@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
+    <script src="../_static/documentation_options.js?v=547576fa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters" href="an.adapters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.130" />
+  <meta name="docsearch:version" content="0.1.131" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -441,6 +441,18 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -987,10 +999,10 @@ clothes (an#33).</p>
 <td><p>The canvas capture path: frames read from the page, not photographed off the screen.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.channel.html#module-an.adapters.cutout.channel" title="an.adapters.cutout.channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channel</span></code></a></p></td>
-<td><p>Channel: keyframes for a single (target, property) pair, evaluated at time t.</p></td>
+<td><p>Channel evaluation — moved to <a class="reference internal" href="an.timing.channel.html#module-an.timing.channel" title="an.timing.channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.channel</span></code></a> (the timing kernel).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.clip.html#module-an.adapters.cutout.clip" title="an.adapters.cutout.clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip</span></code></a></p></td>
-<td><p>Clip: a named bundle of channels with a duration and loop mode.</p></td>
+<td><p>Clips, loop modes and poses — moved to <a class="reference internal" href="an.timing.clip.html#module-an.timing.clip" title="an.timing.clip"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.clip</span></code></a> (the timing kernel).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.coarticulate.html#module-an.adapters.cutout.coarticulate" title="an.adapters.cutout.coarticulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coarticulate</span></code></a></p></td>
 <td><p>Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).</p></td>
@@ -999,7 +1011,7 @@ clothes (an#33).</p>
 <td><p>Compile a top-level <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> (renderer=&quot;cutout&quot;) into a <code class="code docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.easing.html#module-an.adapters.cutout.easing" title="an.adapters.cutout.easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing</span></code></a></p></td>
-<td><p>Easing functions for keyframe interpolation.</p></td>
+<td><p>The stage engine's easing vocabulary — a view of <a class="reference internal" href="an.timing.easing.html#module-an.timing.easing" title="an.timing.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.easing</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.fidelity.html#module-an.adapters.cutout.fidelity" title="an.adapters.cutout.fidelity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fidelity</span></code></a></p></td>
 <td><p>How faithfully a compiled scene reproduces the art it was built from.</p></td>
@@ -1032,7 +1044,7 @@ clothes (an#33).</p>
 <td><p>A text block, compiled: one node per unit, each an SVG sprite (an#155).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.timeline.html#module-an.adapters.cutout.timeline" title="an.adapters.cutout.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
-<td><p>Timeline: tracks of placed clips with absolute times and blend ramps.</p></td>
+<td><p>Stage timeline helpers: the compiled scene as a <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>, and screen space.</p></td>
 </tr>
 </tbody>
 </table>

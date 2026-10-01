@@ -1,22 +1,12 @@
 # an.adapters.cutout.timeline
 
-Timeline: tracks of placed clips with absolute times and blend ramps.
+Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.
 
-A `Timeline` is a flat description of *what plays when*. It’s the canonical
-form passed downstream to the JS runtime in Phase 2B. Authoring composition
-trees from `an.ir.compose` (sequence/parallel/etc.) get *flattened into* a
-Timeline by `compile_shot` (see `compile.py`).
-
-Evaluation semantics in Phase 2A:
-
-- For each track, identify all clips active at time `t`.
-- Each active clip produces a `Pose`.
-- Clips on **the same track** override each other in start-order (later wins).
-- Clips on **different tracks** merge with later-track override semantics
-  (track order in the list determines priority — last track wins on conflict).
-- `blend_in` and `blend_out` ramps are recorded but **not yet applied** to
-  pose values in 2A — the timeline produces the raw Pose and the renderer
-  decides what to do with the ramps. Additive blending lands in 2B.
+The evaluation itself — tracks of placed clips, write groups, the pure pose —
+moved to [`an.timing.timeline`](an.timing.timeline.html.md#module-an.timing.timeline) (the timing kernel). This module re-exports
+it so every existing caller keeps its import path, and keeps what is the STAGE’s
+own: reading a compiled `CutoutSceneJSON` ([`timeline_from_scene()`](#an.adapters.cutout.timeline.timeline_from_scene)) and
+composing node transforms into canvas positions ([`screen_position()`](#an.adapters.cutout.timeline.screen_position)).
 
 ```pycon
 >>> from an.adapters.cutout.channel import Channel, Keyframe
@@ -28,28 +18,57 @@ Evaluation semantics in Phase 2A:
 5.0
 ```
 
-### Module Attributes
-
-| [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP)   | two keys in one group set the same thing, so only the more recently written can be showing.   |
-|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-
 ### Functions
 
-| [`clip_from_json`](#an.adapters.cutout.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.                                    |
-|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| [`evaluate_timeline`](#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
-| [`screen_position`](#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                              |
-| [`timeline_from_scene`](#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as this module's `Timeline`.                               |
-| [`transform_of`](#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                  |
-| [`write_group`](#an.adapters.cutout.timeline.write_group)(prop)                               | What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP). |
+| [`merge_poses`](#an.adapters.cutout.timeline.merge_poses)(\*poses)                            | Merge multiple poses with **override semantics** (later wins per key).                                                    |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`write_group`](#an.adapters.cutout.timeline.write_group)(prop)                               | What `prop` writes on a STAGE node (the `stage.node` space's groups).                                                     |
+| [`evaluate_timeline`](#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t, \*[, space])     | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                       |
+| [`clip_from_json`](#an.adapters.cutout.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](#an.adapters.cutout.timeline.Clip). |
+| [`timeline_from_scene`](#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.                                                  |
+| [`transform_of`](#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                                    |
+| [`screen_position`](#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                                                |
 
 ### Classes
 
-| [`PlacedClip`](#an.adapters.cutout.timeline.PlacedClip)(clip[, start_time, duration, ...])   | A clip placed at an absolute time on a track.                           |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`Timeline`](#an.adapters.cutout.timeline.Timeline)(duration[, tracks])                    | A duration + ordered list of tracks.                                    |
-| [`Track`](#an.adapters.cutout.timeline.Track)([target_root, clips])                     | A sequence of placed clips that share a common purpose / target prefix. |
-| [`Transform2D`](#an.adapters.cutout.timeline.Transform2D)([x, y, rotation, scale_x, ...])     | One node's local transform, in the runtime's own vocabulary.            |
+| [`Channel`](#an.adapters.cutout.timeline.Channel)(target, property[, keyframes])        | Sorted keyframes for one property of one target.                        |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`Keyframe`](#an.adapters.cutout.timeline.Keyframe)(time, value[, easing])               | One keyframe: time, value, optional per-segment easing.                 |
+| [`Clip`](#an.adapters.cutout.timeline.Clip)(name, duration[, channels, loop_mode])   | Named animation: a duration + a bundle of channels.                     |
+| [`LoopMode`](#an.adapters.cutout.timeline.LoopMode)(\*values)                            | How a clip behaves past its natural duration.                           |
+| [`PlacedClip`](#an.adapters.cutout.timeline.PlacedClip)(clip[, start_time, duration, ...]) | A clip placed at an absolute time on a track.                           |
+| [`Track`](#an.adapters.cutout.timeline.Track)([target_root, clips])                   | A sequence of placed clips that share a common purpose / target prefix. |
+| [`Timeline`](#an.adapters.cutout.timeline.Timeline)(duration[, tracks])                  | A duration + ordered list of tracks.                                    |
+| [`Transform2D`](#an.adapters.cutout.timeline.Transform2D)([x, y, rotation, scale_x, ...])   | One node's local transform, in the runtime's own vocabulary.            |
+
+### *class* an.adapters.cutout.timeline.Channel(target, property, keyframes=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Sorted keyframes for one property of one target.
+
+Construction validates that `keyframes` is non-empty and sorted.
+
+### *class* an.adapters.cutout.timeline.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Named animation: a duration + a bundle of channels.
+
+### *class* an.adapters.cutout.timeline.Keyframe(time, value, easing=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One keyframe: time, value, optional per-segment easing.
+
+The easing on a keyframe describes the curve **leaving** that keyframe
+toward the next one. The last keyframe’s easing is therefore unused.
+
+### *class* an.adapters.cutout.timeline.LoopMode(\*values)
+
+Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
+
+How a clip behaves past its natural duration.
 
 ### *class* an.adapters.cutout.timeline.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
 
@@ -60,18 +79,6 @@ A clip placed at an absolute time on a track.
 #### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Duration this clip occupies on the timeline (after speed scaling).
-
-### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<swap>'*
-
-two keys in one group set the same
-thing, so only the more recently written can be showing. Every swap set on a
-node swaps the one visual it carries (`viseme` and `viseme@happy` both set
-the mouth’s texture, an#88), and `rotation_rad` is `rotation`. Every other
-runtime property (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own
-switch) writes only itself.
-
-* **Type:**
-  The group a property WRITES, on its node
 
 ### *class* an.adapters.cutout.timeline.Timeline(duration, tracks=<factory>)
 
@@ -136,19 +143,20 @@ The inverse of [`apply()`](#an.adapters.cutout.timeline.Transform2D.apply) — a
 
 ### an.adapters.cutout.timeline.clip_from_json(anim, , name=None)
 
-One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.
+One compiled animation (`compiled.schema.json`’s `animation`) as a [`Clip`](#an.adapters.cutout.timeline.Clip).
 
-Two fields are carried rather than defaulted, and both have cost a bug:
-`loop_mode` (without it every loop evaluated as `once` — an#7) and a
-list-valued `easing`, which is a cubic-bezier control quadruple and must
-stay a tuple for `Keyframe`. The compiler reads a from-less tween’s
-start through this too (an#212), so it evaluates exactly what the
-runtime will.
+Accepts the JSON mapping or any object with the same attributes (the stage’s
+`AnimationClipJSON`). Two fields are carried rather than defaulted, and
+both have cost a bug: `loop_mode` (without it every loop evaluated as
+`once` — an#7) and a list-valued `easing`, which is a cubic-bezier
+control quadruple and must stay a tuple for `Keyframe`. The stage compiler
+reads a from-less tween’s start through this too (an#212), so it evaluates
+exactly what the runtime will.
 
 * **Return type:**
-  [`Clip`](an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.Clip)
+  [`Clip`](an.timing.clip.html.md#an.timing.clip.Clip)
 
-### an.adapters.cutout.timeline.evaluate_timeline(timeline, t)
+### an.adapters.cutout.timeline.evaluate_timeline(timeline, t, , space=None)
 
 Evaluate `timeline` at time `t`, merging poses across tracks/clips.
 
@@ -164,13 +172,19 @@ never depends on which instants were evaluated before it. Per
   the clip reached AT ITS END holds. The latest end wins; a tie goes to
   the later clip, the same “later wins” as above. Written at that end.
 - **At rest** — nothing writing it has started yet. The key is ABSENT from
-  the pose, and its value is the node’s own (`transform_of` reads it
-  from the document; `runtime.js` restores what it built).
+  the pose, and its value is the node’s own (the entity’s rest state;
+  `runtime.js` restores what it built).
 
-Keys that write the same thing on one node ([`write_group()`](#an.adapters.cutout.timeline.write_group): the swap
-sets of one visual, `rotation`/`rotation_rad`) keep only the most
-recently WRITTEN — an ended `viseme@happy` span does not outlive the
-`viseme` track that took the mouth back.
+Keys that write the same thing on one node (a write group: the swap sets of
+one visual, `rotation`/`rotation_rad`) keep only the most recently
+WRITTEN — an ended `viseme@happy` span does not outlive the `viseme`
+track that took the mouth back.
+
+`space` says what each property is ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
+registered space’s name, or a `target -> space` resolver. Its field kinds
+interpolate and its write groups resolve. `None` is the stage runtime’s
+rule, which `runtime.js` implements: interpolation by value type, the
+`stage.node` write groups.
 
 Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree
@@ -188,8 +202,8 @@ while both played).
 `tests/test_pure_pose.py` holds the two to it.
 
 ```pycon
->>> from an.adapters.cutout.channel import Channel, Keyframe
->>> from an.adapters.cutout.clip import Clip
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
 >>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
 >>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
 >>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
@@ -202,6 +216,20 @@ while both played).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.cutout.timeline.merge_poses(\*poses)
+
+Merge multiple poses with **override semantics** (later wins per key).
+
+Used by the timeline to combine concurrent clips on the same target.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
+{('a', 'x'): 2.0, ('a', 'y'): 3.0}
+```
 
 ### an.adapters.cutout.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
 
@@ -239,21 +267,18 @@ reason `root.pivot` is the camera:
 
 ### an.adapters.cutout.timeline.timeline_from_scene(scene)
 
-The compiled scene’s `timeline`/`animations` as this module’s `Timeline`.
+The compiled scene’s `timeline`/`animations` as an evaluable `Timeline`.
 
 `compile_shot` produces a serialisable document (`an.adapters.cutout.serialize`)
 for the JS runtime; this rebuilds the *evaluable* form, so a caller can ask
 what a compiled scene’s pose is at time `t` without a browser. It is the
 Python side of the parity contract: `evaluate_timeline` over this object is
-the executable spec `runtime.js` is tested against.
-
-Two fields are carried rather than defaulted, and both have cost a bug:
-`loop_mode` (without it every loop evaluated as `once` — an#7) and a
-list-valued `easing`, which is a cubic-bezier control quadruple and must
-stay a tuple for `Keyframe`.
+the executable spec `runtime.js` is tested against. The reading itself is the
+kernel’s ([`an.timing.timeline.timeline_from_compiled()`](an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled)), which carries
+`loop_mode` and keeps a list-valued `easing` a tuple.
 
 * **Return type:**
-  [`Timeline`](#an.adapters.cutout.timeline.Timeline)
+  [`Timeline`](an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ```pycon
 >>> from an.adapters.cutout.compile import compile_shot
@@ -280,7 +305,14 @@ every keyframe instead of an offset from it.
 
 ### an.adapters.cutout.timeline.write_group(prop)
 
-What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP).
+What `prop` writes on a STAGE node (the `stage.node` space’s groups).
+
+Two keys in one group set the same thing, so only the more recently written
+can be showing: every swap set on a node swaps the one visual it carries
+(`viseme` and `viseme@happy` both set the mouth’s texture, an#88), and
+`rotation_rad` is `rotation`. Every other runtime property
+(`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
+itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

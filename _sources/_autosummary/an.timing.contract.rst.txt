@@ -1,0 +1,38 @@
+an.timing.contract
+==================
+
+.. automodule:: an.timing.contract
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CONTRACT_DIR
+      REL_TOL
+      VALUE_TYPED_CASE_SPACE
+      SOLVER_PROBE_U
+      PARAMETRIC_EXAMPLES
+      CSS_IMPORT_ALIASES
+      ADDRESS_PATTERN
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_compiled_schema
+      build_contract
+      build_easing
+      build_kinds
+      build_timeline_schema
+      build_vectors
+      check_vectors
+      contract_drift
+      dumps
+      load_contract_file
+      main
+      resolve_space
+      state_at
+      values_close
+      write_contract
+   

@@ -11,11 +11,11 @@
 - [an.adapters](_autosummary/an.adapters.html.md): Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).
 - [an.adapters.cutout](_autosummary/an.adapters.cutout.html.md): Cutout-style 2D animation backend.
 - [an.adapters.cutout.canvas_capture](_autosummary/an.adapters.cutout.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.
-- [an.adapters.cutout.channel](_autosummary/an.adapters.cutout.channel.html.md): Channel: keyframes for a single (target, property) pair, evaluated at time t.
-- [an.adapters.cutout.clip](_autosummary/an.adapters.cutout.clip.html.md): Clip: a named bundle of channels with a duration and loop mode.
+- [an.adapters.cutout.channel](_autosummary/an.adapters.cutout.channel.html.md): Channel evaluation — moved to &#96;an.timing.channel&#96; (the timing kernel).
+- [an.adapters.cutout.clip](_autosummary/an.adapters.cutout.clip.html.md): Clips, loop modes and poses — moved to &#96;an.timing.clip&#96; (the timing kernel).
 - [an.adapters.cutout.coarticulate](_autosummary/an.adapters.cutout.coarticulate.html.md): Co-articulation for a swap mouth: the passes between a provider’s raw viseme
 - [an.adapters.cutout.compile](_autosummary/an.adapters.cutout.compile.html.md): Compile a top-level &#96;Shot&#96; (renderer=”cutout”) into a &#96;CutoutSceneJSON&#96;.
-- [an.adapters.cutout.easing](_autosummary/an.adapters.cutout.easing.html.md): Easing functions for keyframe interpolation.
+- [an.adapters.cutout.easing](_autosummary/an.adapters.cutout.easing.html.md): The stage engine’s easing vocabulary — a view of &#96;an.timing.easing&#96;.
 - [an.adapters.cutout.fidelity](_autosummary/an.adapters.cutout.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
 - [an.adapters.cutout.gaze](_autosummary/an.adapters.cutout.gaze.html.md): Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
 - [an.adapters.cutout.path](_autosummary/an.adapters.cutout.path.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
@@ -26,7 +26,7 @@
 - [an.adapters.cutout.supersample](_autosummary/an.adapters.cutout.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
 - [an.adapters.cutout.surface](_autosummary/an.adapters.cutout.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.adapters.cutout.text](_autosummary/an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
-- [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Timeline: tracks of placed clips with absolute times and blend ramps.
+- [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
 - [an.adapters.manim_adapter](_autosummary/an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
 - [an.adapters.remotion_adapter](_autosummary/an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
 - [an.adapters.whiteboard](_autosummary/an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
@@ -130,6 +130,16 @@
 - [an.stores.voices](_autosummary/an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](_autosummary/an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
 - [an.text](_autosummary/an.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
+- [an.timing](_autosummary/an.timing.html.md): The timing kernel: what is on screen at time &#96;t&#96;, as a pure function.
+- [an.timing.address](_autosummary/an.timing.address.html.md): The address grammar: one way to name an animatable value, in every genre.
+- [an.timing.channel](_autosummary/an.timing.channel.html.md): Channel: keyframes for a single (target, property) pair, evaluated at time t.
+- [an.timing.clip](_autosummary/an.timing.clip.html.md): Clip: a named bundle of channels with a duration and loop mode.
+- [an.timing.contract](_autosummary/an.timing.contract.html.md): The timing kernel’s cross-language contract: five JSON files, generated from the registries.
+- [an.timing.easing](_autosummary/an.timing.easing.html.md): The easing registry: every named timing curve, each with the solver that computes it.
+- [an.timing.flat](_autosummary/an.timing.flat.html.md): The authored flat timeline: &#96;(start, end, address, change)&#96; rows.
+- [an.timing.kinds](_autosummary/an.timing.kinds.html.md): Field kinds: the declared interpolator of each animatable property.
+- [an.timing.spaces](_autosummary/an.timing.spaces.html.md): Property spaces: what an entity kind’s properties ARE, declared once.
+- [an.timing.timeline](_autosummary/an.timing.timeline.html.md): Timeline: tracks of placed clips with absolute times — the compiled evaluation form.
 - [an.tools](_autosummary/an.tools.html.md): User-facing utility functions, plus the SSOT list for CLI dispatch.
 - [an.util](_autosummary/an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
 - [an.verify](_autosummary/an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
@@ -140,7 +150,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 11:23 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 12:05 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

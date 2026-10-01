@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
+    <script src="../_static/documentation_options.js?v=547576fa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.channel" href="an.adapters.cutout.channel.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.130" />
+  <meta name="docsearch:version" content="0.1.131" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -441,6 +441,18 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,38 +537,20 @@
                   
   <section id="module-an.adapters.cutout.clip">
 <span id="an-adapters-cutout-clip"></span><h1>an.adapters.cutout.clip<a class="headerlink" href="#module-an.adapters.cutout.clip" title="Link to this heading">#</a></h1>
-<p>Clip: a named bundle of channels with a duration and loop mode.</p>
-<p>A clip is what you’d call an “animation” in Spine / Rive terminology — a
-reusable unit (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;walk_cycle&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;wave&quot;</span></code>). Evaluating a clip at time
-<code class="docutils literal notranslate"><span class="pre">t</span></code> produces a <code class="code docutils literal notranslate"><span class="pre">Pose</span></code> by evaluating each of its channels at <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p>
-<p>Loop modes:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">LoopMode.ONCE</span></code> — past <code class="docutils literal notranslate"><span class="pre">duration</span></code>, the last frame holds.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LoopMode.LOOP</span></code> — <code class="docutils literal notranslate"><span class="pre">t</span></code> wraps modulo <code class="docutils literal notranslate"><span class="pre">duration</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LoopMode.PING_PONG</span></code> — <code class="docutils literal notranslate"><span class="pre">t</span></code> ping-pongs over <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">duration]</span></code>.</p></li>
-</ul>
+<p>Clips, loop modes and poses — moved to <a class="reference internal" href="an.timing.clip.html#module-an.timing.clip" title="an.timing.clip"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.clip</span></code></a> (the timing kernel).</p>
+<p>This path keeps working for every existing caller; new code imports from
+<code class="docutils literal notranslate"><span class="pre">an.timing</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ch</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">Clip</span><span class="p">(</span><span class="s2">"walk"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">loop_mode</span><span class="o">=</span><span class="n">LoopMode</span><span class="o">.</span><span class="n">LOOP</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>
-<span class="go">5.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>  <span class="c1"># loop wraps</span>
 <span class="go">2.5</span>
 </pre></div>
 </div>
-<p class="rubric">Module Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.clip.Pose" title="an.adapters.cutout.clip.Pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Pose</span></code></a></p></td>
-<td><p>Mapping of (target_path, property_name) -&gt; value — the universal output of animation evaluation.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.clip.evaluate" title="an.adapters.cutout.clip.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(clip, t)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.clip.evaluate" title="an.adapters.cutout.clip.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(clip, t, *[, kind_of])</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">clip</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, returning a <code class="code docutils literal notranslate"><span class="pre">Pose</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.clip.merge_poses" title="an.adapters.cutout.clip.merge_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_poses</span></code></a>(*poses)</p></td>
@@ -579,7 +573,7 @@ reusable unit (e.g. <code class="docutils literal notranslate"><span class="pre"
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.clip.Clip">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">Clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">LoopMode.ONCE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/clip.html#Clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.Clip" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">Clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">LoopMode.ONCE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#Clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.Clip" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Named animation: a duration + a bundle of channels.</p>
 <dl class="field-list simple">
@@ -588,25 +582,17 @@ reusable unit (e.g. <code class="docutils literal notranslate"><span class="pre"
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.clip.LoopMode">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">LoopMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/clip.html#LoopMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.LoopMode" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">LoopMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#LoopMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.LoopMode" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
 <p>How a clip behaves past its natural duration.</p>
 </dd></dl>
 
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.clip.Pose">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">Pose</span></span><a class="headerlink" href="#an.adapters.cutout.clip.Pose" title="Link to this definition">#</a></dt>
-<dd><p>Mapping of (target_path, property_name) -&gt; value — the universal output of
-animation evaluation. Application happens in <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> (<code class="docutils literal notranslate"><span class="pre">applyPose</span></code>);
-the Python side only ever <em>produces</em> poses (an#86 deleted the Python
-applier, which structurally could not apply swap or alpha values).</p>
-<p>alias of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.clip.evaluate">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/clip.html#evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.evaluate" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind_of</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.evaluate" title="Link to this definition">#</a></dt>
 <dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">clip</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, returning a <code class="code docutils literal notranslate"><span class="pre">Pose</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">kind_of</span></code> declares each channel’s field kind; <code class="docutils literal notranslate"><span class="pre">None</span></code> interpolates by
+value type, as <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> does (see <a class="reference internal" href="an.timing.channel.html#module-an.timing.channel" title="an.timing.channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.channel</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
@@ -616,7 +602,7 @@ applier, which structurally could not apply swap or alpha values).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.clip.merge_poses">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">merge_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">poses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/clip.html#merge_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.merge_poses" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.clip.</span></span><span class="sig-name descname"><span class="pre">merge_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">poses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#merge_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.clip.merge_poses" title="Link to this definition">#</a></dt>
 <dd><p>Merge multiple poses with <strong>override semantics</strong> (later wins per key).</p>
 <p>Used by the timeline to combine concurrent clips on the same target.</p>
 <dl class="field-list simple">
@@ -681,7 +667,6 @@ applier, which structurally could not apply swap or alpha values).</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.clip.Clip"><code class="docutils literal notranslate"><span class="pre">Clip</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.clip.LoopMode"><code class="docutils literal notranslate"><span class="pre">LoopMode</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.clip.Pose"><code class="docutils literal notranslate"><span class="pre">Pose</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.clip.evaluate"><code class="docutils literal notranslate"><span class="pre">evaluate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.clip.merge_poses"><code class="docutils literal notranslate"><span class="pre">merge_poses()</span></code></a></li>
 </ul>

@@ -9,6 +9,7 @@ an.adapters.cutout.channel
    .. autosummary::
    
       evaluate
+      check_channel
    
    .. rubric:: Classes
 

@@ -1,0 +1,46 @@
+an.timing.kinds
+===============
+
+.. automodule:: an.timing.kinds
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_SWITCH_AT
+      QUATERNION_UNIT_TOLERANCE
+      SLERP_LINEAR_THRESHOLD
+      KindFactory
+      CORE_OWNER
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      kind_from_spec
+      kind_names
+      register_kind
+      shortest_delta
+      slerp
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AngleKind
+      ColorKind
+      DiscreteKind
+      FieldKind
+      NumberKind
+      OrbitKind
+      QuaternionKind
+      Segment
+      VectorKind
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      FieldKindError
+   

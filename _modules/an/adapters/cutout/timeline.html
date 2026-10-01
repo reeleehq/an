@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=f00df2e3"></script>
+    <script src="../../../../_static/documentation_options.js?v=547576fa"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.130" />
+  <meta name="docsearch:version" content="0.1.131" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -710,23 +710,13 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for an.adapters.cutout.timeline</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Timeline: tracks of placed clips with absolute times and blend ramps.</span>
+<span></span><span class="sd">"""Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.</span>
 
-<span class="sd">A `Timeline` is a flat description of *what plays when*. It's the canonical</span>
-<span class="sd">form passed downstream to the JS runtime in Phase 2B. Authoring composition</span>
-<span class="sd">trees from `an.ir.compose` (sequence/parallel/etc.) get *flattened into* a</span>
-<span class="sd">Timeline by `compile_shot` (see `compile.py`).</span>
-
-<span class="sd">Evaluation semantics in Phase 2A:</span>
-
-<span class="sd">- For each track, identify all clips active at time ``t``.</span>
-<span class="sd">- Each active clip produces a `Pose`.</span>
-<span class="sd">- Clips on **the same track** override each other in start-order (later wins).</span>
-<span class="sd">- Clips on **different tracks** merge with later-track override semantics</span>
-<span class="sd">  (track order in the list determines priority — last track wins on conflict).</span>
-<span class="sd">- ``blend_in`` and ``blend_out`` ramps are recorded but **not yet applied** to</span>
-<span class="sd">  pose values in 2A — the timeline produces the raw Pose and the renderer</span>
-<span class="sd">  decides what to do with the ramps. Additive blending lands in 2B.</span>
+<span class="sd">The evaluation itself — tracks of placed clips, write groups, the pure pose —</span>
+<span class="sd">moved to :mod:`an.timing.timeline` (the timing kernel). This module re-exports</span>
+<span class="sd">it so every existing caller keeps its import path, and keeps what is the STAGE's</span>
+<span class="sd">own: reading a compiled ``CutoutSceneJSON`` (:func:`timeline_from_scene`) and</span>
+<span class="sd">composing node transforms into canvas positions (:func:`screen_position`).</span>
 
 <span class="sd">&gt;&gt;&gt; from an.adapters.cutout.channel import Channel, Keyframe</span>
 <span class="sd">&gt;&gt;&gt; from an.adapters.cutout.clip import Clip</span>
@@ -740,236 +730,59 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">Clip</span><span class="p">,</span> <span class="n">LoopMode</span><span class="p">,</span> <span class="n">Pose</span><span class="p">,</span> <span class="n">merge_poses</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate</span> <span class="k">as</span> <span class="n">_evaluate_clip</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransformJSON</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRANSFORM_PROPERTIES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">Clip</span><span class="p">,</span> <span class="n">LoopMode</span><span class="p">,</span> <span class="n">Pose</span><span class="p">,</span> <span class="n">merge_poses</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SWAP_WRITE_GROUP</span><span class="p">,</span>
+    <span class="n">PlacedClip</span><span class="p">,</span>
+    <span class="n">Timeline</span><span class="p">,</span>
+    <span class="n">Track</span><span class="p">,</span>
+    <span class="n">clip_from_json</span><span class="p">,</span>
+    <span class="n">evaluate_timeline</span><span class="p">,</span>
+    <span class="n">timeline_from_compiled</span><span class="p">,</span>
+    <span class="n">write_group</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># pragma: no cover - types only</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-        <span class="n">AnimationClipJSON</span><span class="p">,</span>
-        <span class="n">CutoutSceneJSON</span><span class="p">,</span>
-        <span class="n">NodeJSON</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutSceneJSON</span><span class="p">,</span> <span class="n">NodeJSON</span>
 
-
-<div class="viewcode-block" id="PlacedClip">
-<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.PlacedClip">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">PlacedClip</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A clip placed at an absolute time on a track."""</span>
-
-    <span class="n">clip</span><span class="p">:</span> <span class="n">Clip</span>
-    <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># override; None = clip's natural duration</span>
-    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="n">blend_in</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">blend_out</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">speed</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"PlacedClip speed must be &gt; 0; got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">speed</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blend_in</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">blend_out</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"blend_in/out must be non-negative"</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">effective_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Duration this clip occupies on the timeline (after speed scaling)."""</span>
-        <span class="n">natural</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="o">.</span><span class="n">duration</span>
-        <span class="k">return</span> <span class="n">natural</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">speed</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">end_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">effective_duration</span></div>
-
-
-
-<div class="viewcode-block" id="Track">
-<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.Track">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">Track</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A sequence of placed clips that share a common purpose / target prefix.</span>
-
-<span class="sd">    ``target_root`` is informational metadata for downstream tools (the JS</span>
-<span class="sd">    runtime can use it to scope rendering); evaluation does not filter by it.</span>
-<span class="sd">    """</span>
-
-    <span class="n">target_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-    <span class="n">clips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PlacedClip</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="Timeline">
-<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.Timeline">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">Timeline</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A duration + ordered list of tracks. The canonical playback structure."""</span>
-
-    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">tracks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Track</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
-
-
-
-<span class="c1">#: The group a property WRITES, on its node: two keys in one group set the same</span>
-<span class="c1">#: thing, so only the more recently written can be showing. Every swap set on a</span>
-<span class="c1">#: node swaps the one visual it carries (``viseme`` and ``viseme@happy`` both set</span>
-<span class="c1">#: the mouth's texture, an#88), and ``rotation_rad`` is ``rotation``. Every other</span>
-<span class="c1">#: runtime property (:data:`an.base.TRANSFORM_PROPERTIES`, the runtime's own</span>
-<span class="c1">#: switch) writes only itself.</span>
-<span class="n">SWAP_WRITE_GROUP</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"&lt;swap&gt;"</span>
-<span class="n">_SHARED_WRITES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"rotation_rad"</span><span class="p">:</span> <span class="s2">"rotation"</span><span class="p">}</span>
-
-
-<div class="viewcode-block" id="write_group">
-<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.write_group">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""What ``prop`` writes on its node — see :data:`SWAP_WRITE_GROUP`.</span>
-
-<span class="sd">    &gt;&gt;&gt; write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")</span>
-<span class="sd">    ('x', 'rotation', '&lt;swap&gt;')</span>
-<span class="sd">    """</span>
-    <span class="k">if</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">TRANSFORM_PROPERTIES</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_SHARED_WRITES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">SWAP_WRITE_GROUP</span></div>
-
-
-
-<div class="viewcode-block" id="evaluate_timeline">
-<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.evaluate_timeline">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pose</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Evaluate ``timeline`` at time ``t``, merging poses across tracks/clips.</span>
-
-<span class="sd">    The result is a PURE function of ``t`` (an#185): what a node shows at ``t``</span>
-<span class="sd">    never depends on which instants were evaluated before it. Per</span>
-<span class="sd">    ``(target, property)``:</span>
-
-<span class="sd">    - **Active** — some clip writing it is playing at ``t`` (inclusive end:</span>
-<span class="sd">      a clip at ``[s, e]`` is active at ``t == e`` too, so the final frame of</span>
-<span class="sd">      "play this from 0 to 1 s" is visible at 1.0). Later wins: track order,</span>
-<span class="sd">      then clip order within a track. Written at ``t``.</span>
-<span class="sd">    - **Held** — no clip writing it is playing, but one has ended: the value</span>
-<span class="sd">      the clip reached AT ITS END holds. The latest end wins; a tie goes to</span>
-<span class="sd">      the later clip, the same "later wins" as above. Written at that end.</span>
-<span class="sd">    - **At rest** — nothing writing it has started yet. The key is ABSENT from</span>
-<span class="sd">      the pose, and its value is the node's own (``transform_of`` reads it</span>
-<span class="sd">      from the document; ``runtime.js`` restores what it built).</span>
-
-<span class="sd">    Keys that write the same thing on one node (:func:`write_group`: the swap</span>
-<span class="sd">    sets of one visual, ``rotation``/``rotation_rad``) keep only the most</span>
-<span class="sd">    recently WRITTEN — an ended ``viseme@happy`` span does not outlive the</span>
-<span class="sd">    ``viseme`` track that took the mouth back.</span>
-
-<span class="sd">    Forward-order rendering used to show the value at the clip's last SAMPLED</span>
-<span class="sd">    frame instead (the runtime kept whatever it last applied). The two agree</span>
-<span class="sd">    whenever a clip ends on the frame grid — true of every golden-corpus clip</span>
-<span class="sd">    — and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps</span>
-<span class="sd">    used to stop at 9.80 and now lands on 10, as authored. That landing is</span>
-<span class="sd">    deliberate (it is the bug the motion presets' settling ``set`` patched one</span>
-<span class="sd">    preset at a time), and it is what makes the pose independent of the grid.</span>
-<span class="sd">    Also deliberate: a clip shorter than a frame that no frame lands in now</span>
-<span class="sd">    leaves its end value, and a held descendant tint stays on top of an</span>
-<span class="sd">    ancestor's later tint (the more specific target wins, as it always did</span>
-<span class="sd">    while both played).</span>
-
-<span class="sd">    ``runtime.js::evaluateTimeline`` is a port of this function and</span>
-<span class="sd">    ``tests/test_pure_pose.py`` holds the two to it.</span>
-
-<span class="sd">    &gt;&gt;&gt; from an.adapters.cutout.channel import Channel, Keyframe</span>
-<span class="sd">    &gt;&gt;&gt; from an.adapters.cutout.clip import Clip</span>
-<span class="sd">    &gt;&gt;&gt; ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])</span>
-<span class="sd">    &gt;&gt;&gt; tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])</span>
-<span class="sd">    &gt;&gt;&gt; evaluate_timeline(tl, 0.0)  # not started: at rest, so absent</span>
-<span class="sd">    {}</span>
-<span class="sd">    &gt;&gt;&gt; evaluate_timeline(tl, 1.0)[("a", "x")]  # active</span>
-<span class="sd">    5.0</span>
-<span class="sd">    &gt;&gt;&gt; evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds</span>
-<span class="sd">    10.0</span>
-<span class="sd">    """</span>
-    <span class="n">written</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># key -&gt; (when, value)</span>
-    <span class="n">held</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">timeline</span><span class="o">.</span><span class="n">tracks</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">placed</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">clips</span><span class="p">:</span>
-            <span class="n">end</span> <span class="o">=</span> <span class="n">placed</span><span class="o">.</span><span class="n">end_time</span>
-            <span class="k">if</span> <span class="n">placed</span><span class="o">.</span><span class="n">start_time</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
-                <span class="n">local_t</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">placed</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">placed</span><span class="o">.</span><span class="n">speed</span>
-                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">_evaluate_clip</span><span class="p">(</span><span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="p">,</span> <span class="n">local_t</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">written</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
-                <span class="n">end_pose</span> <span class="o">=</span> <span class="n">_evaluate_clip</span><span class="p">(</span>
-                    <span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">placed</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">placed</span><span class="o">.</span><span class="n">speed</span>
-                <span class="p">)</span>
-                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">end_pose</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">held</span> <span class="ow">or</span> <span class="n">end</span> <span class="o">&gt;=</span> <span class="n">held</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
-                        <span class="n">held</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">held</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">written</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
-    <span class="n">latest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">written</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">group</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
-        <span class="n">latest</span><span class="p">[</span><span class="n">group</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">latest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">when</span><span class="p">),</span> <span class="n">when</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">written</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">when</span> <span class="o">&gt;=</span> <span class="n">latest</span><span class="p">[(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">write_group</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]))]</span>
-    <span class="p">}</span></div>
-
-
-
-<div class="viewcode-block" id="clip_from_json">
-<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.clip_from_json">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">clip_from_json</span><span class="p">(</span><span class="n">anim</span><span class="p">:</span> <span class="n">AnimationClipJSON</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Clip</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""One compiled animation (``AnimationClipJSON``) as an evaluable :class:`Clip`.</span>
-
-<span class="sd">    Two fields are carried rather than defaulted, and both have cost a bug:</span>
-<span class="sd">    ``loop_mode`` (without it every loop evaluated as ``once`` — an#7) and a</span>
-<span class="sd">    list-valued ``easing``, which is a cubic-bezier control quadruple and must</span>
-<span class="sd">    stay a tuple for ``Keyframe``. The compiler reads a from-less tween's</span>
-<span class="sd">    start through this too (an#212), so it evaluates exactly what the</span>
-<span class="sd">    runtime will.</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">Clip</span><span class="p">(</span>
-        <span class="n">anim</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">name</span><span class="p">,</span>
-        <span class="n">duration</span><span class="o">=</span><span class="n">anim</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
-        <span class="n">loop_mode</span><span class="o">=</span><span class="n">LoopMode</span><span class="p">(</span><span class="n">anim</span><span class="o">.</span><span class="n">loop_mode</span><span class="p">),</span>
-        <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
-            <span class="n">Channel</span><span class="p">(</span>
-                <span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
-                <span class="n">ch</span><span class="o">.</span><span class="n">property</span><span class="p">,</span>
-                <span class="p">[</span>
-                    <span class="n">Keyframe</span><span class="p">(</span>
-                        <span class="n">k</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
-                        <span class="n">k</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                        <span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span>
-                    <span class="p">)</span>
-                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">keyframes</span>
-                <span class="p">],</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">anim</span><span class="o">.</span><span class="n">channels</span>
-        <span class="p">],</span>
-    <span class="p">)</span></div>
-
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"Channel"</span><span class="p">,</span>
+    <span class="s2">"Keyframe"</span><span class="p">,</span>
+    <span class="s2">"Clip"</span><span class="p">,</span>
+    <span class="s2">"LoopMode"</span><span class="p">,</span>
+    <span class="s2">"Pose"</span><span class="p">,</span>
+    <span class="s2">"merge_poses"</span><span class="p">,</span>
+    <span class="s2">"PlacedClip"</span><span class="p">,</span>
+    <span class="s2">"Track"</span><span class="p">,</span>
+    <span class="s2">"Timeline"</span><span class="p">,</span>
+    <span class="s2">"SWAP_WRITE_GROUP"</span><span class="p">,</span>
+    <span class="s2">"write_group"</span><span class="p">,</span>
+    <span class="s2">"evaluate_timeline"</span><span class="p">,</span>
+    <span class="s2">"clip_from_json"</span><span class="p">,</span>
+    <span class="s2">"timeline_from_scene"</span><span class="p">,</span>
+    <span class="s2">"Transform2D"</span><span class="p">,</span>
+    <span class="s2">"transform_of"</span><span class="p">,</span>
+    <span class="s2">"screen_position"</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <div class="viewcode-block" id="timeline_from_scene">
 <a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.timeline.html#an.adapters.cutout.timeline.timeline_from_scene">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">timeline_from_scene</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">CutoutSceneJSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Timeline</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The compiled scene's `timeline`/`animations` as this module's `Timeline`.</span>
+<span class="w">    </span><span class="sd">"""The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.</span>
 
 <span class="sd">    `compile_shot` produces a serialisable document (`an.adapters.cutout.serialize`)</span>
 <span class="sd">    for the JS runtime; this rebuilds the *evaluable* form, so a caller can ask</span>
 <span class="sd">    what a compiled scene's pose is at time `t` without a browser. It is the</span>
 <span class="sd">    Python side of the parity contract: `evaluate_timeline` over this object is</span>
-<span class="sd">    the executable spec `runtime.js` is tested against.</span>
-
-<span class="sd">    Two fields are carried rather than defaulted, and both have cost a bug:</span>
-<span class="sd">    `loop_mode` (without it every loop evaluated as `once` — an#7) and a</span>
-<span class="sd">    list-valued `easing`, which is a cubic-bezier control quadruple and must</span>
-<span class="sd">    stay a tuple for `Keyframe`.</span>
+<span class="sd">    the executable spec `runtime.js` is tested against. The reading itself is the</span>
+<span class="sd">    kernel's (:func:`an.timing.timeline.timeline_from_compiled`), which carries</span>
+<span class="sd">    `loop_mode` and keeps a list-valued `easing` a tuple.</span>
 
 <span class="sd">    &gt;&gt;&gt; from an.adapters.cutout.compile import compile_shot</span>
 <span class="sd">    &gt;&gt;&gt; from an.ir.compose import tween</span>
@@ -980,32 +793,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; evaluate_timeline(timeline_from_scene(scene), 0.5)[("root", "x")]</span>
 <span class="sd">    5.0</span>
 <span class="sd">    """</span>
-    <span class="n">clips</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">clip_from_json</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">animations</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-    <span class="k">return</span> <span class="n">Timeline</span><span class="p">(</span>
-        <span class="n">duration</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
-        <span class="n">tracks</span><span class="o">=</span><span class="p">[</span>
-            <span class="n">Track</span><span class="p">(</span>
-                <span class="n">t</span><span class="o">.</span><span class="n">target_root</span><span class="p">,</span>
-                <span class="p">[</span>
-                    <span class="n">PlacedClip</span><span class="p">(</span>
-                        <span class="n">clips</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">animation_id</span><span class="p">],</span>
-                        <span class="n">p</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
-                        <span class="n">p</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
-                        <span class="n">p</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
-                        <span class="c1"># Carried for the same reason as `target_root`: nothing</span>
-                        <span class="c1"># reads them YET (`evaluate_timeline` records the ramps</span>
-                        <span class="c1"># and does not apply them — additive blending is 2B),</span>
-                        <span class="c1"># and a reader that quietly drops a field it was handed</span>
-                        <span class="c1"># is a lossy "rebuilds the evaluable form".</span>
-                        <span class="n">p</span><span class="o">.</span><span class="n">blend_in</span><span class="p">,</span>
-                        <span class="n">p</span><span class="o">.</span><span class="n">blend_out</span><span class="p">,</span>
-                    <span class="p">)</span>
-                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">clips</span>
-                <span class="p">],</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="o">.</span><span class="n">tracks</span>
-        <span class="p">],</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">timeline_from_compiled</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span></div>
 
 
 

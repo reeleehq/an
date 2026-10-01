@@ -1,0 +1,29 @@
+an.timing.clip
+==============
+
+.. automodule:: an.timing.clip
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Pose
+      KindOf
+      wrap_time
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      evaluate
+      merge_poses
+      wrap_time
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Clip
+      LoopMode
+   

@@ -1,0 +1,31 @@
+an.timing.address
+=================
+
+.. automodule:: an.timing.address
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ENTITY_FIELD_SEP
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      format_address
+      parse_address
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Address
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AddressError
+   

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
+    <script src="../_static/documentation_options.js?v=547576fa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.canvas_capture" href="an.adapters.cutout.canvas_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.130" />
+  <meta name="docsearch:version" content="0.1.131" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -441,6 +441,18 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,52 +537,24 @@
                   
   <section id="module-an.adapters.cutout.channel">
 <span id="an-adapters-cutout-channel"></span><h1>an.adapters.cutout.channel<a class="headerlink" href="#module-an.adapters.cutout.channel" title="Link to this heading">#</a></h1>
-<p>Channel: keyframes for a single (target, property) pair, evaluated at time t.</p>
-<p>A channel holds a sorted list of <code class="code docutils literal notranslate"><span class="pre">Keyframe`s.</span> <span class="pre">``evaluate(channel,</span> <span class="pre">t)`</span></code> does a
-binary search to find the surrounding keyframes, applies the easing for that
-segment, and lerps between the two values.</p>
-<p>**This module is the executable spec of <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>’s <code class="docutils literal notranslate"><span class="pre">evaluateChannel``**</span>
-<span class="pre">—</span> <span class="pre">the</span> <span class="pre">browser</span> <span class="pre">implementation</span> <span class="pre">must</span> <span class="pre">stay</span> <span class="pre">behaviourally</span> <span class="pre">identical,</span> <span class="pre">and</span>
-<span class="pre">``tests/test_cutout_channel_parity.py</span></code> runs the real extracted JS against this
-one to pin it (the same harness pattern that pins <code class="docutils literal notranslate"><span class="pre">wrapTime</span></code>).</p>
-<p>Two value classes, two rules:</p>
-<ul class="simple">
-<li><p><strong>Numeric</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>/<code class="docutils literal notranslate"><span class="pre">float</span></code>, excluding <code class="docutils literal notranslate"><span class="pre">bool</span></code>): true interpolation
-through the segment’s easing.</p></li>
-<li><p><strong>Everything else</strong> (strings — viseme codes, swap keys): the value holds
-<code class="docutils literal notranslate"><span class="pre">a</span></code> for exactly <code class="docutils literal notranslate"><span class="pre">[a.time,</span> <span class="pre">b.time)</span></code> and switches at <code class="docutils literal notranslate"><span class="pre">b.time</span></code>.
-<strong>Easing does not apply</strong> — the snap compares <code class="docutils literal notranslate"><span class="pre">t</span></code> against <code class="docutils literal notranslate"><span class="pre">b.time</span></code>
-directly, never an eased or derived parameter, because each indirection was
-measured wrong: an overshooting cubic-bezier easing crosses 1.0 mid-segment
-(showing the <em>second</em> key early, or flapping A→B→A within one segment), and
-even the raw <code class="docutils literal notranslate"><span class="pre">(t</span> <span class="pre">-</span> <span class="pre">a.time)</span> <span class="pre">/</span> <span class="pre">span</span></code> can round up to 1.0 while
-<code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b.time</span></code>. The time comparison has no intermediate arithmetic, so step
-semantics is a theorem here, not a convention. The easing is still
-<em>validated</em> (an unknown spec raises) so a typo’d easing name stays loud on
-every channel.</p></li>
-</ul>
-<p><code class="docutils literal notranslate"><span class="pre">bool</span></code> keyframe values are refused upstream by the compiler
-(<code class="docutils literal notranslate"><span class="pre">compile.py::_check_keyframe_value</span></code>): Python’s <code class="docutils literal notranslate"><span class="pre">isinstance(True,</span> <span class="pre">int)</span></code>
-would lerp what JS’s <code class="docutils literal notranslate"><span class="pre">typeof</span></code> snaps.</p>
+<p>Channel evaluation — moved to <a class="reference internal" href="an.timing.channel.html#module-an.timing.channel" title="an.timing.channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.channel</span></code></a> (the timing kernel).</p>
+<p>This path keeps working for every existing caller; new code imports from
+<code class="docutils literal notranslate"><span class="pre">an.timing</span></code>. **This module’s names are the executable spec of
+<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>’s <code class="docutils literal notranslate"><span class="pre">evaluateChannel``**</span> <span class="pre">(with</span> <span class="pre">the</span> <span class="pre">default</span> <span class="pre">``kind=None</span></code>: by value
+type), pinned by <code class="docutils literal notranslate"><span class="pre">tests/test_cutout_channel_parity.py</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ch</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="go">5.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># before first → clamps to first value</span>
-<span class="go">0.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="mf">99.0</span><span class="p">)</span>  <span class="c1"># after last → clamps to last value</span>
-<span class="go">10.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sw</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"hands"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">"fist"</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"open"</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">sw</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">)</span>  <span class="c1"># holds the first key for the whole segment</span>
-<span class="go">'fist'</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate</span><span class="p">(</span><span class="n">sw</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># switches exactly at the keyframe</span>
-<span class="go">'open'</span>
 </pre></div>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.channel.evaluate" title="an.adapters.cutout.channel.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(channel, t)</p></td>
-<td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">channel</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.channel.evaluate" title="an.adapters.cutout.channel.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(channel, t, *[, kind])</p></td>
+<td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">channel</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code> (see the module docstring for <code class="docutils literal notranslate"><span class="pre">kind</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.channel.check_channel" title="an.adapters.cutout.channel.check_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_channel</span></code></a>(channel, kind)</p></td>
+<td><p>Why <code class="docutils literal notranslate"><span class="pre">channel</span></code>'s keyframe values do not fit <code class="docutils literal notranslate"><span class="pre">kind</span></code> (empty if they do).</p></td>
 </tr>
 </tbody>
 </table>
@@ -589,7 +573,7 @@ would lerp what JS’s <code class="docutils literal notranslate"><span class="p
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.channel.Channel">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">Channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keyframes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/channel.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.Channel" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">Channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keyframes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/channel.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.Channel" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Sorted keyframes for one property of one target.</p>
 <p>Construction validates that <code class="docutils literal notranslate"><span class="pre">keyframes</span></code> is non-empty and sorted.</p>
@@ -599,7 +583,7 @@ would lerp what JS’s <code class="docutils literal notranslate"><span class="p
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.channel.Keyframe">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">Keyframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/channel.html#Keyframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.Keyframe" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">Keyframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/channel.html#Keyframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.Keyframe" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One keyframe: time, value, optional per-segment easing.</p>
 <p>The easing on a keyframe describes the curve <strong>leaving</strong> that keyframe
@@ -609,9 +593,20 @@ toward the next one. The last keyframe’s easing is therefore unused.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.adapters.cutout.channel.check_channel">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">check_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/channel.html#check_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.check_channel" title="Link to this definition">#</a></dt>
+<dd><p>Why <code class="docutils literal notranslate"><span class="pre">channel</span></code>’s keyframe values do not fit <code class="docutils literal notranslate"><span class="pre">kind</span></code> (empty if they do).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.channel.evaluate">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/channel.html#evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.evaluate" title="Link to this definition">#</a></dt>
-<dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">channel</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.channel.</span></span><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/channel.html#evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.channel.evaluate" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">channel</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code> (see the module docstring for <code class="docutils literal notranslate"><span class="pre">kind</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
@@ -670,6 +665,7 @@ toward the next one. The last keyframe’s easing is therefore unused.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.channel.Channel"><code class="docutils literal notranslate"><span class="pre">Channel</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.channel.Keyframe"><code class="docutils literal notranslate"><span class="pre">Keyframe</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.channel.check_channel"><code class="docutils literal notranslate"><span class="pre">check_channel()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.channel.evaluate"><code class="docutils literal notranslate"><span class="pre">evaluate()</span></code></a></li>
 </ul>
   </nav></div>

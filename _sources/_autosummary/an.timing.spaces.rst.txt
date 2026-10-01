@@ -1,0 +1,42 @@
+an.timing.spaces
+================
+
+.. automodule:: an.timing.spaces
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SWAP_WRITE_GROUP
+      SWAP_KIND
+      STAGE_NODE_UNITS
+      STAGE_NODE_ALIASES
+      CORE_OWNER
+      DFLT_VALUE_TYPED_SPACE
+      SpaceLike
+      STAGE_NODE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_space
+      register_space
+      space_from_json
+      space_names
+      space_resolver
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FieldDecl
+      PropertySpace
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      SpaceError
+   

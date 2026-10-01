@@ -1,0 +1,25 @@
+an.timing.flat
+==============
+
+.. automodule:: an.timing.flat
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      FLAT_TIMELINE_FORMAT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      change_of
+      flat_timeline_doc
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnsupportedChangeError
+   

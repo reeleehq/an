@@ -1,0 +1,23 @@
+an.timing.timeline
+==================
+
+.. automodule:: an.timing.timeline
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      write_group
+      evaluate_timeline
+      clip_from_json
+      timeline_from_compiled
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PlacedClip
+      Track
+      Timeline
+   

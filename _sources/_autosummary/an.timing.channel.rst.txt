@@ -1,0 +1,20 @@
+an.timing.channel
+=================
+
+.. automodule:: an.timing.channel
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_channel
+      evaluate
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Channel
+      Keyframe
+   

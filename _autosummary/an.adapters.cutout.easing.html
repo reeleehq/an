@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
+    <script src="../_static/documentation_options.js?v=547576fa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.compile" href="an.adapters.cutout.compile.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.130" />
+  <meta name="docsearch:version" content="0.1.131" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -441,6 +441,18 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,43 +537,63 @@
                   
   <section id="module-an.adapters.cutout.easing">
 <span id="an-adapters-cutout-easing"></span><h1>an.adapters.cutout.easing<a class="headerlink" href="#module-an.adapters.cutout.easing" title="Link to this heading">#</a></h1>
-<p>Easing functions for keyframe interpolation.</p>
-<p>Two forms are supported (matching <code class="code docutils literal notranslate"><span class="pre">an.base.EasingSpec</span></code>):</p>
-<ul class="simple">
-<li><p>A <strong>named preset</strong> string from <code class="docutils literal notranslate"><span class="pre">an.base.EASING_PRESETS</span></code>.</p></li>
-<li><p>A <strong>cubic-Bézier control 4-tuple</strong> <code class="code docutils literal notranslate"><span class="pre">[cx1,</span> <span class="pre">cy1,</span> <span class="pre">cx2,</span> <span class="pre">cy2]</span></code> over the unit square.</p></li>
-</ul>
-<p><code class="docutils literal notranslate"><span class="pre">apply_easing(spec,</span> <span class="pre">t)</span></code> is the dispatcher; named presets are resolved via
-<code class="docutils literal notranslate"><span class="pre">EASING_FUNCS</span></code>. Step easing returns 0 until t==1.</p>
+<p>The stage engine’s easing vocabulary — a view of <a class="reference internal" href="an.timing.easing.html#module-an.timing.easing" title="an.timing.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.easing</span></code></a>.</p>
+<p>The curves, their solvers and the full registry live in the timing kernel
+(<a class="reference internal" href="an.timing.easing.html#module-an.timing.easing" title="an.timing.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.easing</span></code></a>). This module keeps the path every stage caller already
+imports, and it states what the STAGE implements: <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> evaluates the
+legacy names in <a class="reference internal" href="an.base.html#an.base.EASING_PRESETS" title="an.base.EASING_PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.base.EASING_PRESETS</span></code></a> and a cubic-Bézier control
+4-tuple, nothing else, so <a class="reference internal" href="#an.adapters.cutout.easing.apply_easing" title="an.adapters.cutout.easing.apply_easing"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_easing()</span></code></a> here refuses any other name. That
+refusal is what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the compiler use to say “the evaluators know
+this easing” — a curve the kernel knows but the stage runtime does not would
+otherwise surface as a throw in the browser.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">apply_easing</span><span class="p">(</span><span class="s2">"linear"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="go">0.5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">apply_easing</span><span class="p">(</span><span class="s2">"ease_in_out"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
 <span class="go">0.5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">apply_easing</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
 <span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_easing</span><span class="p">(</span><span class="s2">"ease-in"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w"> </span><span class="c">...</span>
+<span class="gr">an.timing.easing.UnknownEasingError</span>: <span class="n">unknown easing preset 'ease-in'; known: ['ease', 'ease_in', 'ease_in_out', 'ease_out', 'linear', 'step']</span>
 </pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.easing.EASING_FUNCS" title="an.adapters.cutout.easing.EASING_FUNCS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EASING_FUNCS</span></code></a></p></td>
+<td><p>The easings the stage runtime implements (<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> <code class="docutils literal notranslate"><span class="pre">EASINGS</span></code>), each the kernel registry's own curve.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.easing.apply_easing" title="an.adapters.cutout.easing.apply_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_easing</span></code></a>(spec, t)</p></td>
-<td><p>Apply an easing spec to a normalized parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> ∈ [0, 1].</p></td>
+<td><p>Apply an easing the STAGE implements to <code class="docutils literal notranslate"><span class="pre">t</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.easing.cubic_bezier" title="an.adapters.cutout.easing.cubic_bezier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cubic_bezier</span></code></a>(cx1, cy1, cx2, cy2, t)</p></td>
-<td><p>Evaluate a 1D cubic-Bézier easing curve at parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> ∈ [0, 1].</p></td>
+<td><p>an's cubic-Bézier easing at <code class="docutils literal notranslate"><span class="pre">t</span></code> — the <code class="docutils literal notranslate"><span class="pre">an-bezier-newton-8</span></code> solver.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.easing.EASING_FUNCS">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.easing.</span></span><span class="sig-name descname"><span class="pre">EASING_FUNCS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'ease':</span> <span class="pre">&lt;function</span> <span class="pre">_ease&gt;,</span> <span class="pre">'ease_in':</span> <span class="pre">&lt;function</span> <span class="pre">_ease_in&gt;,</span> <span class="pre">'ease_in_out':</span> <span class="pre">&lt;function</span> <span class="pre">_ease_in_out&gt;,</span> <span class="pre">'ease_out':</span> <span class="pre">&lt;function</span> <span class="pre">_ease_out&gt;,</span> <span class="pre">'linear':</span> <span class="pre">&lt;function</span> <span class="pre">_linear&gt;,</span> <span class="pre">'step':</span> <span class="pre">&lt;function</span> <span class="pre">_step&gt;}</span></span><a class="headerlink" href="#an.adapters.cutout.easing.EASING_FUNCS" title="Link to this definition">#</a></dt>
+<dd><p>The easings the stage runtime implements (<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> <code class="docutils literal notranslate"><span class="pre">EASINGS</span></code>), each
+the kernel registry’s own curve.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.easing.apply_easing">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.easing.</span></span><span class="sig-name descname"><span class="pre">apply_easing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/easing.html#apply_easing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.easing.apply_easing" title="Link to this definition">#</a></dt>
-<dd><p>Apply an easing spec to a normalized parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> ∈ [0, 1].</p>
-<p>Accepts:</p>
+<dd><p>Apply an easing the STAGE implements to <code class="docutils literal notranslate"><span class="pre">t</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> → linear (passthrough)</p></li>
 <li><p>a string preset name (must be a key of <code class="docutils literal notranslate"><span class="pre">EASING_FUNCS</span></code>)</p></li>
-<li><p>a 4-element sequence of cubic-Bézier control points</p></li>
+<li><p>a 4-element sequence of cubic-Bézier control points (the legacy solver)</p></li>
 </ul>
 <p>Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for unknown preset names or malformed sequences.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">apply_easing</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
@@ -581,23 +613,30 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.easing.cubic_bezier">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.easing.</span></span><span class="sig-name descname"><span class="pre">cubic_bezier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cx1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cy1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cx2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cy2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/easing.html#cubic_bezier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.easing.cubic_bezier" title="Link to this definition">#</a></dt>
-<dd><p>Evaluate a 1D cubic-Bézier easing curve at parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> ∈ [0, 1].</p>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.easing.</span></span><span class="sig-name descname"><span class="pre">cubic_bezier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cx1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cy1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cx2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cy2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#an.adapters.cutout.easing.cubic_bezier" title="Link to this definition">#</a></dt>
+<dd><p>an’s cubic-Bézier easing at <code class="docutils literal notranslate"><span class="pre">t</span></code> — the <code class="docutils literal notranslate"><span class="pre">an-bezier-newton-8</span></code> solver.</p>
 <p>The curve is defined by P0=(0,0), P1=(cx1,cy1), P2=(cx2,cy2), P3=(1,1).
 Given a desired x=t we solve for the matching curve parameter u, then
-return the y coordinate. Newton’s-method approximation; 8 iterations is
-visually indistinguishable from analytic.</p>
+return the y coordinate, by exactly 8 clamped Newton steps.</p>
+<p>Structurally IDENTICAL to runtime.js::cubicBezier on purpose: always 8
+iterations, break only on a degenerate derivative, clamp each step. This
+function is the spec of that port, and the two are compared bit-for-bit by
+the parity battery — an earlier version had an extra <a href="#id1"><span class="problematic" id="id2">|u_new - u|</span></a> &lt; 1e-9
+early-convergence break the JS side lacked, which left the two a ULP apart;
+a numeric channel lerping large magnitudes amplifies a ULP of easing by
+(b - a) (found by the an#86 adversarial review; the loops now match).</p>
+<p>It does NOT agree with the CSS solver (<code class="xref py py-func docutils literal notranslate"><span class="pre">css_cubic_bezier()</span></code>) to 1e-9
+for every control point, which is why it stays a named legacy solver until
+the pixel goldens are re-blessed under the stricter one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">cubic_bezier</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># linear</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">legacy_cubic_bezier</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># linear</span>
 <span class="go">0.5</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">cubic_bezier</span><span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># endpoints exact</span>
-<span class="go">0.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">cubic_bezier</span><span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
-<span class="go">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">legacy_cubic_bezier</span><span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">legacy_cubic_bezier</span><span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="go">(0.0, 1.0)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -651,6 +690,7 @@ visually indistinguishable from analytic.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.easing.EASING_FUNCS"><code class="docutils literal notranslate"><span class="pre">EASING_FUNCS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.easing.apply_easing"><code class="docutils literal notranslate"><span class="pre">apply_easing()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.easing.cubic_bezier"><code class="docutils literal notranslate"><span class="pre">cubic_bezier()</span></code></a></li>
 </ul>

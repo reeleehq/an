@@ -1,0 +1,82 @@
+an.timing
+=========
+
+.. automodule:: an.timing
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      format_address
+      parse_address
+      check_channel
+      evaluate_channel
+      merge_poses
+      wrap_time
+      evaluate_clip
+      apply_easing
+      easing_entries
+      easing_entry
+      register_easing
+      resolve_easing
+      kind_from_spec
+      kind_names
+      register_kind
+      get_space
+      register_space
+      space_from_json
+      space_names
+      clip_from_json
+      evaluate_timeline
+      timeline_from_compiled
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Address
+      Channel
+      Keyframe
+      Clip
+      LoopMode
+      EasingEntry
+      AngleKind
+      ColorKind
+      DiscreteKind
+      FieldKind
+      NumberKind
+      OrbitKind
+      QuaternionKind
+      Segment
+      VectorKind
+      FieldDecl
+      PropertySpace
+      PlacedClip
+      Timeline
+      Track
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AddressError
+      UnknownEasingError
+      FieldKindError
+      SpaceError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   address
+   channel
+   clip
+   contract
+   easing
+   flat
+   kinds
+   spaces
+   timeline

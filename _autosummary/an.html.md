@@ -604,6 +604,7 @@ always passes it).
 | [`stores`](an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
 | [`styles`](an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had. |
 | [`text`](an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.           |
+| [`timing`](an.timing.html.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                  |
 | [`tools`](an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                    |
 | [`util`](an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.            |
 | [`verify`](an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.              |

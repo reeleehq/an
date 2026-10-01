@@ -1,4 +1,4 @@
-> built 2026-10-01 11:23 UTC from a893770 (main) · an 0.1.130. Details: build_info.json
+> built 2026-10-01 12:05 UTC from 8816a48 (main) · an 0.1.131. Details: build_info.json
 
 # index.html.md
 
@@ -446,56 +446,24 @@ an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 5: 1 of 6 canvas pix
 
 # an.adapters.cutout.channel
 
-Channel: keyframes for a single (target, property) pair, evaluated at time t.
+Channel evaluation — moved to [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel) (the timing kernel).
 
-A channel holds a sorted list of `Keyframe`s. ``evaluate(channel, t)`` does a
-binary search to find the surrounding keyframes, applies the easing for that
-segment, and lerps between the two values.
-
-\*\*This module is the executable spec of `runtime.js`’s `evaluateChannel``**
-— the browser implementation must stay behaviourally identical, and
-``tests/test_cutout_channel_parity.py` runs the real extracted JS against this
-one to pin it (the same harness pattern that pins `wrapTime`).
-
-Two value classes, two rules:
-
-- **Numeric** (`int`/`float`, excluding `bool`): true interpolation
-  through the segment’s easing.
-- **Everything else** (strings — viseme codes, swap keys): the value holds
-  `a` for exactly `[a.time, b.time)` and switches at `b.time`.
-  **Easing does not apply** — the snap compares `t` against `b.time`
-  directly, never an eased or derived parameter, because each indirection was
-  measured wrong: an overshooting cubic-bezier easing crosses 1.0 mid-segment
-  (showing the *second* key early, or flapping A→B→A within one segment), and
-  even the raw `(t - a.time) / span` can round up to 1.0 while
-  `t < b.time`. The time comparison has no intermediate arithmetic, so step
-  semantics is a theorem here, not a convention. The easing is still
-  *validated* (an unknown spec raises) so a typo’d easing name stays loud on
-  every channel.
-
-`bool` keyframe values are refused upstream by the compiler
-(`compile.py::_check_keyframe_value`): Python’s `isinstance(True, int)`
-would lerp what JS’s `typeof` snaps.
+This path keeps working for every existing caller; new code imports from
+`an.timing`. \*\*This module’s names are the executable spec of
+`runtime.js`’s `evaluateChannel``** (with the default ``kind=None`: by value
+type), pinned by `tests/test_cutout_channel_parity.py`.
 
 ```pycon
 >>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
 >>> evaluate(ch, 0.5)
 5.0
->>> evaluate(ch, -1.0)  # before first → clamps to first value
-0.0
->>> evaluate(ch, 99.0)  # after last → clamps to last value
-10.0
->>> sw = Channel("a", "hands", [Keyframe(0.0, "fist"), Keyframe(1.0, "open")])
->>> evaluate(sw, 0.999)  # holds the first key for the whole segment
-'fist'
->>> evaluate(sw, 1.0)  # switches exactly at the keyframe
-'open'
 ```
 
 ### Functions
 
-| [`evaluate`](_autosummary/an.adapters.cutout.channel.html.md#an.adapters.cutout.channel.evaluate)(channel, t)   | Evaluate `channel` at time `t`.   |
-|-------------------------------------------------------------------------|-----------------------------------|
+| [`evaluate`](_autosummary/an.adapters.cutout.channel.html.md#an.adapters.cutout.channel.evaluate)(channel, t, \*[, kind])   | Evaluate `channel` at time `t` (see the module docstring for `kind`).   |
+|-------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`check_channel`](_autosummary/an.adapters.cutout.channel.html.md#an.adapters.cutout.channel.check_channel)(channel, kind)       | Why `channel`'s keyframe values do not fit `kind` (empty if they do).   |
 
 ### Classes
 
@@ -520,9 +488,16 @@ One keyframe: time, value, optional per-segment easing.
 The easing on a keyframe describes the curve **leaving** that keyframe
 toward the next one. The last keyframe’s easing is therefore unused.
 
-### an.adapters.cutout.channel.evaluate(channel, t)
+### an.adapters.cutout.channel.check_channel(channel, kind)
 
-Evaluate `channel` at time `t`.
+Why `channel`’s keyframe values do not fit `kind` (empty if they do).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.adapters.cutout.channel.evaluate(channel, t, , kind=None)
+
+Evaluate `channel` at time `t` (see the module docstring for `kind`).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
@@ -532,38 +507,24 @@ Evaluate `channel` at time `t`.
 
 # an.adapters.cutout.clip
 
-Clip: a named bundle of channels with a duration and loop mode.
+Clips, loop modes and poses — moved to [`an.timing.clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip) (the timing kernel).
 
-A clip is what you’d call an “animation” in Spine / Rive terminology — a
-reusable unit (e.g. `"walk_cycle"`, `"wave"`). Evaluating a clip at time
-`t` produces a `Pose` by evaluating each of its channels at `t`.
-
-Loop modes:
-
-- `LoopMode.ONCE` — past `duration`, the last frame holds.
-- `LoopMode.LOOP` — `t` wraps modulo `duration`.
-- `LoopMode.PING_PONG` — `t` ping-pongs over `[0, duration]`.
+This path keeps working for every existing caller; new code imports from
+`an.timing`.
 
 ```pycon
 >>> from an.adapters.cutout.channel import Channel, Keyframe
 >>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
 >>> clip = Clip("walk", duration=1.0, channels=[ch], loop_mode=LoopMode.LOOP)
->>> evaluate(clip, 0.5)[("a", "x")]
-5.0
 >>> evaluate(clip, 1.25)[("a", "x")]  # loop wraps
 2.5
 ```
 
-### Module Attributes
-
-| [`Pose`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.Pose)   | Mapping of (target_path, property_name) -> value — the universal output of animation evaluation.   |
-|---------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-
 ### Functions
 
-| [`evaluate`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.evaluate)(clip, t)    | Evaluate `clip` at time `t`, returning a `Pose`.                       |
-|-----------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`merge_poses`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.merge_poses)(\*poses) | Merge multiple poses with **override semantics** (later wins per key). |
+| [`evaluate`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.evaluate)(clip, t, \*[, kind_of])   | Evaluate `clip` at time `t`, returning a `Pose`.                       |
+|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [`merge_poses`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.merge_poses)(\*poses)               | Merge multiple poses with **override semantics** (later wins per key). |
 
 ### Classes
 
@@ -583,18 +544,12 @@ Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](h
 
 How a clip behaves past its natural duration.
 
-### an.adapters.cutout.clip.Pose
-
-Mapping of (target_path, property_name) -> value — the universal output of
-animation evaluation. Application happens in `runtime.js` (`applyPose`);
-the Python side only ever *produces* poses (an#86 deleted the Python
-applier, which structurally could not apply swap or alpha values).
-
-alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-### an.adapters.cutout.clip.evaluate(clip, t)
+### an.adapters.cutout.clip.evaluate(clip, t, , kind_of=None)
 
 Evaluate `clip` at time `t`, returning a `Pose`.
+
+`kind_of` declares each channel’s field kind; `None` interpolates by
+value type, as `runtime.js` does (see [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel)).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -1389,15 +1344,16 @@ reports it), so the two say the same thing about the same path.
 
 # an.adapters.cutout.easing
 
-Easing functions for keyframe interpolation.
+The stage engine’s easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing).
 
-Two forms are supported (matching `an.base.EasingSpec`):
-
-- A **named preset** string from `an.base.EASING_PRESETS`.
-- A **cubic-Bézier control 4-tuple** `[cx1, cy1, cx2, cy2]` over the unit square.
-
-`apply_easing(spec, t)` is the dispatcher; named presets are resolved via
-`EASING_FUNCS`. Step easing returns 0 until t==1.
+The curves, their solvers and the full registry live in the timing kernel
+([`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing)). This module keeps the path every stage caller already
+imports, and it states what the STAGE implements: `runtime.js` evaluates the
+legacy names in [`an.base.EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS) and a cubic-Bézier control
+4-tuple, nothing else, so [`apply_easing()`](_autosummary/an.adapters.cutout.easing.html.md#an.adapters.cutout.easing.apply_easing) here refuses any other name. That
+refusal is what `an validate` and the compiler use to say “the evaluators know
+this easing” — a curve the kernel knows but the stage runtime does not would
+otherwise surface as a throw in the browser.
 
 ```pycon
 >>> apply_easing("linear", 0.5)
@@ -1406,23 +1362,35 @@ Two forms are supported (matching `an.base.EasingSpec`):
 0.5
 >>> round(apply_easing([0.0, 0.0, 1.0, 1.0], 0.5), 6)
 0.5
+>>> apply_easing("ease-in", 0.5)
+Traceback (most recent call last):
+ ...
+an.timing.easing.UnknownEasingError: unknown easing preset 'ease-in'; known: ['ease', 'ease_in', 'ease_in_out', 'ease_out', 'linear', 'step']
 ```
+
+### Module Attributes
+
+| [`EASING_FUNCS`](_autosummary/an.adapters.cutout.easing.html.md#an.adapters.cutout.easing.EASING_FUNCS)   | The easings the stage runtime implements (`runtime.js` `EASINGS`), each the kernel registry's own curve.   |
+|-----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
 
 ### Functions
 
-| [`apply_easing`](_autosummary/an.adapters.cutout.easing.html.md#an.adapters.cutout.easing.apply_easing)(spec, t)               | Apply an easing spec to a normalized parameter `t` ∈ [0, 1].       |
+| [`apply_easing`](_autosummary/an.adapters.cutout.easing.html.md#an.adapters.cutout.easing.apply_easing)(spec, t)               | Apply an easing the STAGE implements to `t` in `[0, 1]`.           |
 |--------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| [`cubic_bezier`](_autosummary/an.adapters.cutout.easing.html.md#an.adapters.cutout.easing.cubic_bezier)(cx1, cy1, cx2, cy2, t) | Evaluate a 1D cubic-Bézier easing curve at parameter `t` ∈ [0, 1]. |
+| [`cubic_bezier`](_autosummary/an.adapters.cutout.easing.html.md#an.adapters.cutout.easing.cubic_bezier)(cx1, cy1, cx2, cy2, t) | an's cubic-Bézier easing at `t` — the `an-bezier-newton-8` solver. |
+
+### an.adapters.cutout.easing.EASING_FUNCS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[float](https://docs.python.org/3/builtins/functions.html#float)], [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'ease': <function \_ease>, 'ease_in': <function \_ease_in>, 'ease_in_out': <function \_ease_in_out>, 'ease_out': <function \_ease_out>, 'linear': <function \_linear>, 'step': <function \_step>}*
+
+The easings the stage runtime implements (`runtime.js` `EASINGS`), each
+the kernel registry’s own curve.
 
 ### an.adapters.cutout.easing.apply_easing(spec, t)
 
-Apply an easing spec to a normalized parameter `t` ∈ [0, 1].
-
-Accepts:
+Apply an easing the STAGE implements to `t` in `[0, 1]`.
 
 - `None` → linear (passthrough)
 - a string preset name (must be a key of `EASING_FUNCS`)
-- a 4-element sequence of cubic-Bézier control points
+- a 4-element sequence of cubic-Bézier control points (the legacy solver)
 
 Raises `ValueError` for unknown preset names or malformed sequences.
 
@@ -1440,23 +1408,38 @@ Raises `ValueError` for unknown preset names or malformed sequences.
 
 ### an.adapters.cutout.easing.cubic_bezier(cx1, cy1, cx2, cy2, t)
 
-Evaluate a 1D cubic-Bézier easing curve at parameter `t` ∈ [0, 1].
+an’s cubic-Bézier easing at `t` — the `an-bezier-newton-8` solver.
 
 The curve is defined by P0=(0,0), P1=(cx1,cy1), P2=(cx2,cy2), P3=(1,1).
 Given a desired x=t we solve for the matching curve parameter u, then
-return the y coordinate. Newton’s-method approximation; 8 iterations is
-visually indistinguishable from analytic.
+return the y coordinate, by exactly 8 clamped Newton steps.
+
+Structurally IDENTICAL to runtime.js::cubicBezier on purpose: always 8
+iterations, break only on a degenerate derivative, clamp each step. This
+function is the spec of that port, and the two are compared bit-for-bit by
+the parity battery — an earlier version had an extra 
+
+```
+|u_new - u|
+```
+
+ < 1e-9
+early-convergence break the JS side lacked, which left the two a ULP apart;
+a numeric channel lerping large magnitudes amplifies a ULP of easing by
+(b - a) (found by the an#86 adversarial review; the loops now match).
+
+It does NOT agree with the CSS solver (`css_cubic_bezier()`) to 1e-9
+for every control point, which is why it stays a named legacy solver until
+the pixel goldens are re-blessed under the stricter one.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
->>> round(cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
+>>> round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
 0.5
->>> round(cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), 6)  # endpoints exact
-0.0
->>> round(cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0), 6)
-1.0
+>>> legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)
+(0.0, 1.0)
 ```
 
 
@@ -2017,24 +2000,24 @@ clothes (an#33).
 
 ### Modules
 
-| [`canvas_capture`](_autosummary/an.adapters.cutout.canvas_capture.html.md#module-an.adapters.cutout.canvas_capture)   | The canvas capture path: frames read from the page, not photographed off the screen.                                                            |
-|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)                 | Channel: keyframes for a single (target, property) pair, evaluated at time t.                                                                   |
-| [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                       | Clip: a named bundle of channels with a duration and loop mode.                                                                                 |
-| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)       | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6). |
-| [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)                 | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                        |
-| [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)                   | Easing functions for keyframe interpolation.                                                                                                    |
-| [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)               | How faithfully a compiled scene reproduces the art it was built from.                                                                           |
-| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                       | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                         |
-| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                       | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                      |
-| [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                   | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                      |
-| [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)     | Locate the bundled cutout JS runtime files.                                                                                                     |
-| [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)             | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
-| [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)                 | The temporal half of the frame stage: average several instants into one frame.                                                                  |
-| [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)         | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
-| [`surface`](_autosummary/an.adapters.cutout.surface.html.md#module-an.adapters.cutout.surface)                 | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                            |
-| [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                         |
-| [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)               | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |
+| [`canvas_capture`](_autosummary/an.adapters.cutout.canvas_capture.html.md#module-an.adapters.cutout.canvas_capture)   | The canvas capture path: frames read from the page, not photographed off the screen.                                                              |
+|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)                 | Channel evaluation — moved to [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel) (the timing kernel).    |
+| [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                       | Clips, loop modes and poses — moved to [`an.timing.clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip) (the timing kernel). |
+| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)       | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).   |
+| [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)                 | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                          |
+| [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)                   | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing).       |
+| [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)               | How faithfully a compiled scene reproduces the art it was built from.                                                                             |
+| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                       | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                           |
+| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                       | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                        |
+| [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                   | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                        |
+| [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)     | Locate the bundled cutout JS runtime files.                                                                                                       |
+| [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)             | JSON contract between the Python compiler and the (future) JS runtime.                                                                            |
+| [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)                 | The temporal half of the frame stage: average several instants into one frame.                                                                    |
+| [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)         | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                     |
+| [`surface`](_autosummary/an.adapters.cutout.surface.html.md#module-an.adapters.cutout.surface)                 | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                              |
+| [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                           |
+| [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)               | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                                     |
 
 
 # _autosummary/an.adapters.cutout.path.html.md
@@ -3532,23 +3515,13 @@ One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
 # an.adapters.cutout.timeline
 
-Timeline: tracks of placed clips with absolute times and blend ramps.
+Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.
 
-A `Timeline` is a flat description of *what plays when*. It’s the canonical
-form passed downstream to the JS runtime in Phase 2B. Authoring composition
-trees from `an.ir.compose` (sequence/parallel/etc.) get *flattened into* a
-Timeline by `compile_shot` (see `compile.py`).
-
-Evaluation semantics in Phase 2A:
-
-- For each track, identify all clips active at time `t`.
-- Each active clip produces a `Pose`.
-- Clips on **the same track** override each other in start-order (later wins).
-- Clips on **different tracks** merge with later-track override semantics
-  (track order in the list determines priority — last track wins on conflict).
-- `blend_in` and `blend_out` ramps are recorded but **not yet applied** to
-  pose values in 2A — the timeline produces the raw Pose and the renderer
-  decides what to do with the ramps. Additive blending lands in 2B.
+The evaluation itself — tracks of placed clips, write groups, the pure pose —
+moved to [`an.timing.timeline`](_autosummary/an.timing.timeline.html.md#module-an.timing.timeline) (the timing kernel). This module re-exports
+it so every existing caller keeps its import path, and keeps what is the STAGE’s
+own: reading a compiled `CutoutSceneJSON` ([`timeline_from_scene()`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.timeline_from_scene)) and
+composing node transforms into canvas positions ([`screen_position()`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.screen_position)).
 
 ```pycon
 >>> from an.adapters.cutout.channel import Channel, Keyframe
@@ -3560,28 +3533,57 @@ Evaluation semantics in Phase 2A:
 5.0
 ```
 
-### Module Attributes
-
-| [`SWAP_WRITE_GROUP`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.SWAP_WRITE_GROUP)   | two keys in one group set the same thing, so only the more recently written can be showing.   |
-|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-
 ### Functions
 
-| [`clip_from_json`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.                                    |
-|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| [`evaluate_timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
-| [`screen_position`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                              |
-| [`timeline_from_scene`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as this module's `Timeline`.                               |
-| [`transform_of`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                  |
-| [`write_group`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.write_group)(prop)                               | What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.SWAP_WRITE_GROUP). |
+| [`merge_poses`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.merge_poses)(\*poses)                            | Merge multiple poses with **override semantics** (later wins per key).                                                    |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`write_group`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.write_group)(prop)                               | What `prop` writes on a STAGE node (the `stage.node` space's groups).                                                     |
+| [`evaluate_timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t, \*[, space])     | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                       |
+| [`clip_from_json`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Clip). |
+| [`timeline_from_scene`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.                                                  |
+| [`transform_of`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                                    |
+| [`screen_position`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                                                |
 
 ### Classes
 
-| [`PlacedClip`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.PlacedClip)(clip[, start_time, duration, ...])   | A clip placed at an absolute time on a track.                           |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`Timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Timeline)(duration[, tracks])                    | A duration + ordered list of tracks.                                    |
-| [`Track`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Track)([target_root, clips])                     | A sequence of placed clips that share a common purpose / target prefix. |
-| [`Transform2D`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Transform2D)([x, y, rotation, scale_x, ...])     | One node's local transform, in the runtime's own vocabulary.            |
+| [`Channel`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Channel)(target, property[, keyframes])        | Sorted keyframes for one property of one target.                        |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`Keyframe`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Keyframe)(time, value[, easing])               | One keyframe: time, value, optional per-segment easing.                 |
+| [`Clip`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Clip)(name, duration[, channels, loop_mode])   | Named animation: a duration + a bundle of channels.                     |
+| [`LoopMode`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.LoopMode)(\*values)                            | How a clip behaves past its natural duration.                           |
+| [`PlacedClip`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.PlacedClip)(clip[, start_time, duration, ...]) | A clip placed at an absolute time on a track.                           |
+| [`Track`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Track)([target_root, clips])                   | A sequence of placed clips that share a common purpose / target prefix. |
+| [`Timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Timeline)(duration[, tracks])                  | A duration + ordered list of tracks.                                    |
+| [`Transform2D`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Transform2D)([x, y, rotation, scale_x, ...])   | One node's local transform, in the runtime's own vocabulary.            |
+
+### *class* an.adapters.cutout.timeline.Channel(target, property, keyframes=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Sorted keyframes for one property of one target.
+
+Construction validates that `keyframes` is non-empty and sorted.
+
+### *class* an.adapters.cutout.timeline.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Named animation: a duration + a bundle of channels.
+
+### *class* an.adapters.cutout.timeline.Keyframe(time, value, easing=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One keyframe: time, value, optional per-segment easing.
+
+The easing on a keyframe describes the curve **leaving** that keyframe
+toward the next one. The last keyframe’s easing is therefore unused.
+
+### *class* an.adapters.cutout.timeline.LoopMode(\*values)
+
+Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
+
+How a clip behaves past its natural duration.
 
 ### *class* an.adapters.cutout.timeline.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
 
@@ -3592,18 +3594,6 @@ A clip placed at an absolute time on a track.
 #### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Duration this clip occupies on the timeline (after speed scaling).
-
-### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<swap>'*
-
-two keys in one group set the same
-thing, so only the more recently written can be showing. Every swap set on a
-node swaps the one visual it carries (`viseme` and `viseme@happy` both set
-the mouth’s texture, an#88), and `rotation_rad` is `rotation`. Every other
-runtime property (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own
-switch) writes only itself.
-
-* **Type:**
-  The group a property WRITES, on its node
 
 ### *class* an.adapters.cutout.timeline.Timeline(duration, tracks=<factory>)
 
@@ -3668,19 +3658,20 @@ The inverse of [`apply()`](_autosummary/an.adapters.cutout.timeline.html.md#an.a
 
 ### an.adapters.cutout.timeline.clip_from_json(anim, , name=None)
 
-One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.
+One compiled animation (`compiled.schema.json`’s `animation`) as a [`Clip`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Clip).
 
-Two fields are carried rather than defaulted, and both have cost a bug:
-`loop_mode` (without it every loop evaluated as `once` — an#7) and a
-list-valued `easing`, which is a cubic-bezier control quadruple and must
-stay a tuple for `Keyframe`. The compiler reads a from-less tween’s
-start through this too (an#212), so it evaluates exactly what the
-runtime will.
+Accepts the JSON mapping or any object with the same attributes (the stage’s
+`AnimationClipJSON`). Two fields are carried rather than defaulted, and
+both have cost a bug: `loop_mode` (without it every loop evaluated as
+`once` — an#7) and a list-valued `easing`, which is a cubic-bezier
+control quadruple and must stay a tuple for `Keyframe`. The stage compiler
+reads a from-less tween’s start through this too (an#212), so it evaluates
+exactly what the runtime will.
 
 * **Return type:**
-  [`Clip`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.Clip)
+  [`Clip`](_autosummary/an.timing.clip.html.md#an.timing.clip.Clip)
 
-### an.adapters.cutout.timeline.evaluate_timeline(timeline, t)
+### an.adapters.cutout.timeline.evaluate_timeline(timeline, t, , space=None)
 
 Evaluate `timeline` at time `t`, merging poses across tracks/clips.
 
@@ -3696,13 +3687,19 @@ never depends on which instants were evaluated before it. Per
   the clip reached AT ITS END holds. The latest end wins; a tie goes to
   the later clip, the same “later wins” as above. Written at that end.
 - **At rest** — nothing writing it has started yet. The key is ABSENT from
-  the pose, and its value is the node’s own (`transform_of` reads it
-  from the document; `runtime.js` restores what it built).
+  the pose, and its value is the node’s own (the entity’s rest state;
+  `runtime.js` restores what it built).
 
-Keys that write the same thing on one node ([`write_group()`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.write_group): the swap
-sets of one visual, `rotation`/`rotation_rad`) keep only the most
-recently WRITTEN — an ended `viseme@happy` span does not outlive the
-`viseme` track that took the mouth back.
+Keys that write the same thing on one node (a write group: the swap sets of
+one visual, `rotation`/`rotation_rad`) keep only the most recently
+WRITTEN — an ended `viseme@happy` span does not outlive the `viseme`
+track that took the mouth back.
+
+`space` says what each property is ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
+registered space’s name, or a `target -> space` resolver. Its field kinds
+interpolate and its write groups resolve. `None` is the stage runtime’s
+rule, which `runtime.js` implements: interpolation by value type, the
+`stage.node` write groups.
 
 Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree
@@ -3720,8 +3717,8 @@ while both played).
 `tests/test_pure_pose.py` holds the two to it.
 
 ```pycon
->>> from an.adapters.cutout.channel import Channel, Keyframe
->>> from an.adapters.cutout.clip import Clip
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
 >>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
 >>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
 >>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
@@ -3734,6 +3731,20 @@ while both played).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.cutout.timeline.merge_poses(\*poses)
+
+Merge multiple poses with **override semantics** (later wins per key).
+
+Used by the timeline to combine concurrent clips on the same target.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
+{('a', 'x'): 2.0, ('a', 'y'): 3.0}
+```
 
 ### an.adapters.cutout.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
 
@@ -3771,21 +3782,18 @@ reason `root.pivot` is the camera:
 
 ### an.adapters.cutout.timeline.timeline_from_scene(scene)
 
-The compiled scene’s `timeline`/`animations` as this module’s `Timeline`.
+The compiled scene’s `timeline`/`animations` as an evaluable `Timeline`.
 
 `compile_shot` produces a serialisable document (`an.adapters.cutout.serialize`)
 for the JS runtime; this rebuilds the *evaluable* form, so a caller can ask
 what a compiled scene’s pose is at time `t` without a browser. It is the
 Python side of the parity contract: `evaluate_timeline` over this object is
-the executable spec `runtime.js` is tested against.
-
-Two fields are carried rather than defaulted, and both have cost a bug:
-`loop_mode` (without it every loop evaluated as `once` — an#7) and a
-list-valued `easing`, which is a cubic-bezier control quadruple and must
-stay a tuple for `Keyframe`.
+the executable spec `runtime.js` is tested against. The reading itself is the
+kernel’s ([`an.timing.timeline.timeline_from_compiled()`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled)), which carries
+`loop_mode` and keeps a list-valued `easing` a tuple.
 
 * **Return type:**
-  [`Timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Timeline)
+  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ```pycon
 >>> from an.adapters.cutout.compile import compile_shot
@@ -3812,7 +3820,14 @@ every keyframe instead of an offset from it.
 
 ### an.adapters.cutout.timeline.write_group(prop)
 
-What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.SWAP_WRITE_GROUP).
+What `prop` writes on a STAGE node (the `stage.node` space’s groups).
+
+Two keys in one group set the same thing, so only the more recently written
+can be showing: every swap set on a node swaps the one visual it carries
+(`viseme` and `viseme@happy` both set the mouth’s texture, an#88), and
+`rotation_rad` is `rotation`. Every other runtime property
+(`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
+itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -7027,7 +7042,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect', 'eye', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -16823,6 +16838,7 @@ always passes it).
 | [`stores`](_autosummary/an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
 | [`styles`](_autosummary/an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had. |
 | [`text`](_autosummary/an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.           |
+| [`timing`](_autosummary/an.timing.html.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                  |
 | [`tools`](_autosummary/an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                    |
 | [`util`](_autosummary/an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.            |
 | [`verify`](_autosummary/an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.              |
@@ -23166,6 +23182,2477 @@ The node names a block builds — what `<id>/<name>` targets may address.
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 
+# _autosummary/an.timing.address.html.md
+
+# an.timing.address
+
+The address grammar: one way to name an animatable value, in every genre.
+
+```default
+<entity>[/<node>…]:<field>[@<qualifier>]
+```
+
+- `entity` — what the scene holds (a character, a prop, the camera, a view);
+- `/<node>…` — a path inside it (`charlie/left_arm`); `root` is the
+  stage’s reserved scene root, which the camera lowers onto;
+- `field` — a property the entity kind’s property space declares
+  ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)). It may be a **dotted** path (`view:light.color`),
+  and a dotted segment names a declared field, never a member *inside* a
+  composite value: an `orbit` interpolates as one value, so
+  `view:camera.azimuth` is addressable only if the space declares
+  `camera.azimuth` itself;
+- `@<qualifier>` — a variant of the field (`mouth:viseme@happy`, a variant
+  swap set), which the stage already emits.
+
+The compiled form’s `(target, property)` pair is exactly
+`(entity/nodes, field@qualifier)`, and the golden vectors key every state by
+the address string.
+
+```pycon
+>>> a = parse_address("charlie/head/mouth:viseme@happy")
+>>> a.entity, a.nodes, a.field, a.qualifier
+('charlie', ('head', 'mouth'), 'viseme', 'happy')
+>>> a.target, a.property
+('charlie/head/mouth', 'viseme@happy')
+>>> str(parse_address("view:light.color")), parse_address("view:light.color").field_path
+('view:light.color', ('light', 'color'))
+>>> str(Address.of("root", "pivot_x"))
+'root:pivot_x'
+>>> parse_address("charlie:")
+Traceback (most recent call last):
+ ...
+an.timing.address.AddressError: 'charlie:': the field is empty
+```
+
+### Module Attributes
+
+| [`ENTITY_FIELD_SEP`](_autosummary/an.timing.address.html.md#an.timing.address.ENTITY_FIELD_SEP)   | Separators of the grammar; none of them may appear inside a name.   |
+|---------------------------------------------------------------------|---------------------------------------------------------------------|
+
+### Functions
+
+| [`format_address`](_autosummary/an.timing.address.html.md#an.timing.address.format_address)(target, prop)   | The address string of a compiled `(target, property)` pair, unvalidated (the fast path for keying states; [`Address.of()`](_autosummary/an.timing.address.html.md#an.timing.address.Address.of) validates).   |
+|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`parse_address`](_autosummary/an.timing.address.html.md#an.timing.address.parse_address)(text)            | `text` as an [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address); raises [`AddressError`](_autosummary/an.timing.address.html.md#an.timing.address.AddressError) naming the fault.                         |
+
+### Classes
+
+| [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)(entity[, nodes, field, qualifier])   | A parsed address.   |
+|-----------------------------------------------------------------------------------------------|---------------------|
+
+### Exceptions
+
+| [`AddressError`](_autosummary/an.timing.address.html.md#an.timing.address.AddressError)   | A string is not an address under the grammar.   |
+|-----------------------------------------------------------------|-------------------------------------------------|
+
+### *class* an.timing.address.Address(entity, nodes=(), field='', qualifier=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A parsed address. `str(address)` writes it back unchanged.
+
+#### *property* field_path *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
+
+The dotted field, split.
+
+#### *classmethod* of(target, prop)
+
+The address of a compiled `(target, property)` pair (validated).
+
+* **Return type:**
+  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
+
+#### *property* property *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+the field and its qualifier.
+
+* **Type:**
+  The compiled form’s `property`
+
+#### *property* target *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+the entity and its node path.
+
+* **Type:**
+  The compiled form’s `target`
+
+### *exception* an.timing.address.AddressError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A string is not an address under the grammar.
+
+### an.timing.address.ENTITY_FIELD_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ':'*
+
+Separators of the grammar; none of them may appear inside a name.
+
+### an.timing.address.format_address(target, prop)
+
+The address string of a compiled `(target, property)` pair, unvalidated
+(the fast path for keying states; [`Address.of()`](_autosummary/an.timing.address.html.md#an.timing.address.Address.of) validates).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.timing.address.parse_address(text)
+
+`text` as an [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address); raises [`AddressError`](_autosummary/an.timing.address.html.md#an.timing.address.AddressError) naming the fault.
+
+* **Return type:**
+  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
+
+```pycon
+>>> parse_address("charlie/left_arm:rotation").target
+'charlie/left_arm'
+>>> parse_address("a::b")
+Traceback (most recent call last):
+ ...
+an.timing.address.AddressError: 'a::b': an address has exactly one ':', found 2
+```
+
+
+# _autosummary/an.timing.channel.html.md
+
+# an.timing.channel
+
+Channel: keyframes for a single (target, property) pair, evaluated at time t.
+
+A channel holds a sorted list of `Keyframe`s. ``evaluate(channel, t)`` does a
+binary search to find the surrounding keyframes, applies the easing for that
+segment, and interpolates between the two values. Keys are half-open: the
+segment `[a.time, b.time)` belongs to `a`; before the first key the first
+value holds, from the last key on the last value holds; a zero-span segment
+(two keys at one time) resolves to the later key.
+
+**Who picks the interpolator.** Two rules, one per caller:
+
+- `kind=None` — **by value type**, the rule `runtime.js`’s
+  `evaluateChannel` implements, and the default because this function is that
+  port’s executable spec (`tests/test_cutout_channel_parity.py` runs the real
+  extracted JS against it). Numbers (`int`/`float`, excluding `bool`)
+  interpolate through the segment’s easing; everything else holds `a` for
+  exactly `[a.time, b.time)` and switches at `b.time`. Being runtime.js’s
+  rule, it accepts only runtime.js’s easings
+  ([`VALUE_TYPED_EASINGS`](_autosummary/an.timing.easing.html.md#an.timing.easing.VALUE_TYPED_EASINGS)): a curve the stage cannot
+  draw raises here, as it does in the browser, instead of yielding a pose.
+- `kind=<FieldKind>` — **by declaration** ([`an.timing.kinds`](_autosummary/an.timing.kinds.html.md#module-an.timing.kinds)), the
+  kernel contract’s rule: the declared kind interpolates, a discrete kind
+  switches on time, and the first instant of a segment is the key it leaves.
+  The stage’s declarations (`stage.node`) give the same values as the
+  value-type rule on everything the stage compiler emits; a test holds that.
+
+In both, the snap of a held value compares `t` against a TIME, never an eased
+or derived parameter, because each indirection was measured wrong: an
+overshooting cubic-bezier easing crosses 1.0 mid-segment (showing the *second*
+key early, or flapping A→B→A within one segment), and even the raw
+`(t - a.time) / span` can round up to 1.0 while `t < b.time`. And in both,
+the easing is *validated* on every segment (an unknown spec raises) so a typo’d
+easing name stays loud on a swap channel too.
+
+`bool` keyframe values are refused upstream by the stage compiler: Python’s
+`isinstance(True, int)` would lerp what JS’s `typeof` snaps.
+
+```pycon
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> evaluate(ch, 0.5)
+5.0
+>>> evaluate(ch, -1.0)  # before first → clamps to first value
+0.0
+>>> evaluate(ch, 99.0)  # after last → clamps to last value
+10.0
+>>> sw = Channel("a", "hands", [Keyframe(0.0, "fist"), Keyframe(1.0, "open")])
+>>> evaluate(sw, 0.999)  # holds the first key for the whole segment
+'fist'
+>>> evaluate(sw, 1.0)  # switches exactly at the keyframe
+'open'
+>>> from an.timing.kinds import AngleKind
+>>> spin = Channel("a", "yaw", [Keyframe(0.0, 350.0), Keyframe(1.0, 10.0)])
+>>> evaluate(spin, 0.5), evaluate(spin, 0.5, kind=AngleKind())
+(180.0, 360.0)
+```
+
+### Functions
+
+| [`check_channel`](_autosummary/an.timing.channel.html.md#an.timing.channel.check_channel)(channel, kind)     | Why `channel`'s keyframe values do not fit `kind` (empty if they do).   |
+|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`evaluate`](_autosummary/an.timing.channel.html.md#an.timing.channel.evaluate)(channel, t, \*[, kind]) | Evaluate `channel` at time `t` (see the module docstring for `kind`).   |
+
+### Classes
+
+| [`Channel`](_autosummary/an.timing.channel.html.md#an.timing.channel.Channel)(target, property[, keyframes])   | Sorted keyframes for one property of one target.        |
+|-------------------------------------------------------------------------------------------|---------------------------------------------------------|
+| [`Keyframe`](_autosummary/an.timing.channel.html.md#an.timing.channel.Keyframe)(time, value[, easing])          | One keyframe: time, value, optional per-segment easing. |
+
+### *class* an.timing.channel.Channel(target, property, keyframes=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Sorted keyframes for one property of one target.
+
+Construction validates that `keyframes` is non-empty and sorted.
+
+### *class* an.timing.channel.Keyframe(time, value, easing=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One keyframe: time, value, optional per-segment easing.
+
+The easing on a keyframe describes the curve **leaving** that keyframe
+toward the next one. The last keyframe’s easing is therefore unused.
+
+### an.timing.channel.check_channel(channel, kind)
+
+Why `channel`’s keyframe values do not fit `kind` (empty if they do).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.timing.channel.evaluate(channel, t, , kind=None)
+
+Evaluate `channel` at time `t` (see the module docstring for `kind`).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+
+# _autosummary/an.timing.clip.html.md
+
+# an.timing.clip
+
+Clip: a named bundle of channels with a duration and loop mode.
+
+A clip is what you’d call an “animation” in Spine / Rive terminology — a
+reusable unit (e.g. `"walk_cycle"`, `"wave"`). Evaluating a clip at time
+`t` produces a `Pose` by evaluating each of its channels at `t`.
+
+Loop modes:
+
+- `LoopMode.ONCE` — past `duration`, the last frame holds.
+- `LoopMode.LOOP` — `t` wraps modulo `duration`.
+- `LoopMode.PING_PONG` — `t` ping-pongs over `[0, duration]`.
+
+```pycon
+>>> from an.timing.channel import Channel, Keyframe
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> clip = Clip("walk", duration=1.0, channels=[ch], loop_mode=LoopMode.LOOP)
+>>> evaluate(clip, 0.5)[("a", "x")]
+5.0
+>>> evaluate(clip, 1.25)[("a", "x")]  # loop wraps
+2.5
+```
+
+### Module Attributes
+
+| [`Pose`](_autosummary/an.timing.clip.html.md#an.timing.clip.Pose)                              | Mapping of (target_path, property_name) -> value — the universal output of animation evaluation.                          |
+|------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`KindOf`](_autosummary/an.timing.clip.html.md#an.timing.clip.KindOf)                            | the declared kind of each channel.                                                                                        |
+| [`wrap_time`](_autosummary/an.timing.clip.html.md#an.timing.clip.wrap_time)(t, duration, loop_mode) | The public name of the loop rule (the contract's; `_wrap_time` is kept for the callers and tests that already import it). |
+
+### Functions
+
+| [`evaluate`](_autosummary/an.timing.clip.html.md#an.timing.clip.evaluate)(clip, t, \*[, kind_of])   | Evaluate `clip` at time `t`, returning a `Pose`.                                                                          |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`merge_poses`](_autosummary/an.timing.clip.html.md#an.timing.clip.merge_poses)(\*poses)               | Merge multiple poses with **override semantics** (later wins per key).                                                    |
+| [`wrap_time`](_autosummary/an.timing.clip.html.md#an.timing.clip.wrap_time)(t, duration, loop_mode)  | The public name of the loop rule (the contract's; `_wrap_time` is kept for the callers and tests that already import it). |
+
+### Classes
+
+| [`Clip`](_autosummary/an.timing.clip.html.md#an.timing.clip.Clip)(name, duration[, channels, loop_mode])   | Named animation: a duration + a bundle of channels.   |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| [`LoopMode`](_autosummary/an.timing.clip.html.md#an.timing.clip.LoopMode)(\*values)                            | How a clip behaves past its natural duration.         |
+
+### *class* an.timing.clip.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Named animation: a duration + a bundle of channels.
+
+### an.timing.clip.KindOf
+
+the declared kind of each channel.
+
+* **Type:**
+  `(target, property) -> FieldKind`
+
+alias of `Callable`[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
+
+### *class* an.timing.clip.LoopMode(\*values)
+
+Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
+
+How a clip behaves past its natural duration.
+
+### an.timing.clip.Pose
+
+Mapping of (target_path, property_name) -> value — the universal output of
+animation evaluation. Application happens in `runtime.js` (`applyPose`);
+the Python side only ever *produces* poses (an#86 deleted the Python
+applier, which structurally could not apply swap or alpha values).
+
+alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.clip.evaluate(clip, t, , kind_of=None)
+
+Evaluate `clip` at time `t`, returning a `Pose`.
+
+`kind_of` declares each channel’s field kind; `None` interpolates by
+value type, as `runtime.js` does (see [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.clip.merge_poses(\*poses)
+
+Merge multiple poses with **override semantics** (later wins per key).
+
+Used by the timeline to combine concurrent clips on the same target.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
+{('a', 'x'): 2.0, ('a', 'y'): 3.0}
+```
+
+### an.timing.clip.wrap_time(t, duration, loop_mode)
+
+The public name of the loop rule (the contract’s; `_wrap_time` is kept for
+the callers and tests that already import it).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+
+# _autosummary/an.timing.contract.html.md
+
+# an.timing.contract
+
+The timing kernel’s cross-language contract: five JSON files, generated from the registries.
+
+The contract lives in `an/data/timing/` (shipped in the wheel) and is what any
+other implementation of the kernel — the TypeScript one, a package that copies
+`an`’s track format — copies and asserts:
+
+| `easing.json`          | every registered easing (name, version, family,<br/>solver) with sample values, plus parametrised examples   |
+|------------------------|--------------------------------------------------------------------------------------------------------------|
+| `kinds.json`           | every field kind with sample interpolations, and the<br/>seeded property spaces                              |
+| `timeline.schema.json` | the authored flat timeline `(start, end, address, change)`                                                   |
+| `compiled.schema.json` | tracks, placed clips, loop modes, channels — the<br/>compiled form `runtime.js` consumes                     |
+| `timing_vectors.json`  | compiled documents and the state at listed times                                                             |
+
+**Numbers agree within** `1e-9 * max(1, |x|, |y|)`; strings, booleans,
+`null`, list lengths and object keys agree exactly. A state is SPARSE: an
+address no clip has started writing is absent (at rest).
+
+The files are regenerated by `python -m an.timing.contract write` and checked
+by `python -m an.timing.contract check` (a test runs the check). Regenerating
+is a deliberate act: a change to a committed sample is a change of the contract.
+
+```pycon
+>>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
+...     {"animation_id": "m", "start_time": 0.0}]}]},
+...     "animations": {"m": {"duration": 1.0, "channels": [{"target": "cam",
+...     "property": "yaw", "keyframes": [{"time": 0.0, "value": 350.0},
+...     {"time": 1.0, "value": 10.0}]}]}}}
+>>> space = {"fields": [{"pattern": "yaw", "spec": {"kind": "angle"}}]}
+>>> state_at(doc, 0.5, space=space)
+{'cam:yaw': 360.0}
+```
+
+### Module Attributes
+
+| [`CONTRACT_DIR`](_autosummary/an.timing.contract.html.md#an.timing.contract.CONTRACT_DIR)           | Where the committed contract files live (inside the package, so they ship).                                                                                                                                  |
+|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`REL_TOL`](_autosummary/an.timing.contract.html.md#an.timing.contract.REL_TOL)                | ```<br/>|x - y|<br/>```<br/><br/> <= REL_TOL \* max(1, <br/><br/>```<br/>|x|<br/>```<br/><br/>, <br/><br/>```<br/>|y|<br/>```<br/><br/>).                                                                    |
+| [`VALUE_TYPED_CASE_SPACE`](_autosummary/an.timing.contract.html.md#an.timing.contract.VALUE_TYPED_CASE_SPACE) | The cases whose space is the value-typed rule's write-group space are ALSO evaluated with `space=None` — the path compile, truth projections and the bench use — so both rules are held to the same numbers. |
+| [`SOLVER_PROBE_U`](_autosummary/an.timing.contract.html.md#an.timing.contract.SOLVER_PROBE_U)         | a uniform grid, plus points that reach the solvers' fallbacks (near the ends, and around the middle of a curve whose slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).                                   |
+| [`PARAMETRIC_EXAMPLES`](_autosummary/an.timing.contract.html.md#an.timing.contract.PARAMETRIC_EXAMPLES)    | Parametrised specs the easing file samples, beside the named entries.                                                                                                                                        |
+| [`CSS_IMPORT_ALIASES`](_autosummary/an.timing.contract.html.md#an.timing.contract.CSS_IMPORT_ALIASES)     | How a CSS-named document's names map onto this registry where the name means something else here.                                                                                                            |
+| [`ADDRESS_PATTERN`](_autosummary/an.timing.contract.html.md#an.timing.contract.ADDRESS_PATTERN)        | The address grammar as a regular expression (the parser is `an.timing.address`).                                                                                                                             |
+
+### Functions
+
+| `build_compiled_schema`()                                                                      |                                                                                                                |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`build_contract`](_autosummary/an.timing.contract.html.md#an.timing.contract.build_contract)()                              | Every contract file's content, by file name, generated from the registries.                                    |
+| `build_easing`()                                                                               |                                                                                                                |
+| `build_kinds`()                                                                                |                                                                                                                |
+| `build_timeline_schema`()                                                                      |                                                                                                                |
+| `build_vectors`()                                                                              |                                                                                                                |
+| [`check_vectors`](_autosummary/an.timing.contract.html.md#an.timing.contract.check_vectors)([vectors])                      | Every sample of `vectors` (default: the committed file) that `an.timing` does not reproduce, as one line each. |
+| [`contract_drift`](_autosummary/an.timing.contract.html.md#an.timing.contract.contract_drift)([directory])                   | How the committed files differ from what the registries generate today.                                        |
+| [`dumps`](_autosummary/an.timing.contract.html.md#an.timing.contract.dumps)(obj)                                    | The committed text of a contract file (stable, diffable).                                                      |
+| `load_contract_file`(name, \*[, directory])                                                    |                                                                                                                |
+| [`main`](_autosummary/an.timing.contract.html.md#an.timing.contract.main)([argv])                                  | `python -m an.timing.contract [write|check]`.                                                                  |
+| [`resolve_space`](_autosummary/an.timing.contract.html.md#an.timing.contract.resolve_space)(space)                          | A vector case's `space`: a registered space's name, or its JSON form.                                          |
+| [`state_at`](_autosummary/an.timing.contract.html.md#an.timing.contract.state_at)(doc, t, \*, space)                   | The sparse state of compiled document `doc` at `t`, keyed by address.                                          |
+| [`values_close`](_autosummary/an.timing.contract.html.md#an.timing.contract.values_close)(expected, actual, \*[, rel_tol]) | The contract's comparison (see the module docstring).                                                          |
+| [`write_contract`](_autosummary/an.timing.contract.html.md#an.timing.contract.write_contract)([directory])                   | Regenerate every contract file under `directory`.                                                              |
+
+### an.timing.contract.ADDRESS_PATTERN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '^[^:/@\\\\s](?:[^:/@]\*[^:/@\\\\s])?(?:/[^:/@\\\\s](?:[^:/@]\*[^:/@\\\\s])?)\*:[^:/@.\\\\s](?:[^:/@.]\*[^:/@.\\\\s])?(?:\\\\.[^:/@.\\\\s](?:[^:/@.]\*[^:/@.\\\\s])?)\*(?:@[^:/@\\\\s](?:[^:/@]\*[^:/@\\\\s])?)?$'*
+
+The address grammar as a regular expression (the parser is `an.timing.address`).
+
+### an.timing.contract.CONTRACT_DIR *: [Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)* *= PosixPath('/home/runner/work/an/an/an/data/timing')*
+
+Where the committed contract files live (inside the package, so they ship).
+
+### an.timing.contract.CSS_IMPORT_ALIASES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'ease': 'cubic-bezier(0.25, 0.1, 0.25, 1)'}*
+
+How a CSS-named document’s names map onto this registry where the name means
+something else here. `ease` is `an`’s quadratic (ADR 0001 decision 10,
+amended 2026-10-01); a CSS document’s `ease` is this spec.
+
+### an.timing.contract.PARAMETRIC_EXAMPLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Any](https://docs.python.org/3/library/typing.html#typing.Any), ...]* *= ('cubic-bezier(0.25, 0.1, 0.25, 1)', 'cubic-bezier(0.5, -0.8, 0.5, 1.8)', 'cubic-bezier(0.3, 1.8, 0.7, -0.8)', 'steps(4)', 'steps(4, jump-start)', 'steps(3, jump-none)', 'steps(2, jump-both)', 'steps(2, start)', 'cubic-bezier(1, 0, 0, 1)', [0.42, 0.0, 0.58, 1.0], [0.5, 2.0, 0.5, 2.0], [0.3, 3.0, 0.7, 0.0], [1.0, 0.0, 0.0, 1.0], [0.42, 0.0, 1.0, 1.0], [0.0, 0.0, 0.58, 1.0])*
+
+Parametrised specs the easing file samples, beside the named entries.
+
+### an.timing.contract.REL_TOL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-09*
+
+```
+|x - y|
+```
+
+ <= REL_TOL \* max(1, 
+
+```
+|x|
+```
+
+, 
+
+```
+|y|
+```
+
+).
+
+* **Type:**
+  The contract’s tolerance
+
+### an.timing.contract.SOLVER_PROBE_U *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...]* *= (1e-06, 0.4, 0.501, 0.999999)*
+
+a uniform grid, plus points that reach the
+solvers’ fallbacks (near the ends, and around the middle of a curve whose
+slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).
+
+* **Type:**
+  Where every easing is sampled
+
+### an.timing.contract.VALUE_TYPED_CASE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
+
+The cases whose space is the value-typed rule’s write-group space are ALSO
+evaluated with `space=None` — the path compile, truth projections and the
+bench use — so both rules are held to the same numbers.
+
+### an.timing.contract.build_contract()
+
+Every contract file’s content, by file name, generated from the registries.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.contract.check_vectors(vectors=None)
+
+Every sample of `vectors` (default: the committed file) that `an.timing`
+does not reproduce, as one line each. Empty means the kernel meets the contract.
+
+Both evaluation rules are held: every case under its declared space, and every
+`stage.node` case also under the value-typed default (`space=None`).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.timing.contract.contract_drift(directory=PosixPath('/home/runner/work/an/an/an/data/timing'))
+
+How the committed files differ from what the registries generate today.
+
+Numbers compare with the contract’s tolerance, because a transcendental
+function (`exp`, `sin`, `pow`) may differ in its last bit across
+platforms’ maths libraries; anything else must match exactly.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.timing.contract.dumps(obj)
+
+The committed text of a contract file (stable, diffable).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.timing.contract.main(argv=None)
+
+`python -m an.timing.contract [write|check]`.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+### an.timing.contract.resolve_space(space)
+
+A vector case’s `space`: a registered space’s name, or its JSON form.
+
+* **Return type:**
+  [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)
+
+### an.timing.contract.state_at(doc, t, , space)
+
+The sparse state of compiled document `doc` at `t`, keyed by address.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.contract.values_close(expected, actual, , rel_tol=1e-09)
+
+The contract’s comparison (see the module docstring).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> values_close(1e9, 1e9 + 0.5), values_close([1, "a"], [1.0, "a"]), values_close(True, 1)
+(True, True, False)
+```
+
+### an.timing.contract.write_contract(directory=PosixPath('/home/runner/work/an/an/an/data/timing'))
+
+Regenerate every contract file under `directory`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
+
+# _autosummary/an.timing.easing.html.md
+
+# an.timing.easing
+
+The easing registry: every named timing curve, each with the solver that computes it.
+
+An **easing** (CSS: *timing function*; Manim: *rate function*) maps a segment’s
+normalised time `u` in `[0, 1]` to its progress. One registry holds every
+curve a timeline may name, and each entry carries its own **solver**, because two
+solvers of “the same” curve do not agree to the contract tolerance (core study
+§2.3): `an`’s cubic Bézier runs 8 Newton steps and stops, the CSS one runs Newton
+and then bisects.
+
+Four vocabularies live here, and none is silently aliased to another:
+
+- **legacy** — `an`’s own names, with the polynomial curves `an` has always drawn
+  (`ease`, `ease_in`, `ease_out`, `ease_in_out`, `step`). `ease` and
+  `ease_in_out` are the quadratic ease-in-out, **not** CSS `ease`; the CSS
+  `ease` curve is spelled `cubic-bezier(0.25, 0.1, 0.25, 1)`.
+- **css** — CSS Easing Level 1/2 hyphenated names with the exact CSS curves
+  (`ease-in`, `ease-out`, `ease-in-out`, `step-start`, `step-end`),
+  plus the parametrised `cubic-bezier(x1, y1, x2, y2)` and
+  `steps(n[, position])`.
+- **manim** — Manim Community Edition’s rate functions under their own names
+  (`smooth`, `there_and_back`, `rush_into`, …), so a curve means the same
+  thing whether the stage engine or Manim draws it.
+- **common** — `linear`, which every vocabulary agrees on.
+
+A bare 4-sequence `[cx1, cy1, cx2, cy2]` (what `an` scenes have always written)
+is a cubic Bézier solved by the **legacy** solver, so no existing scene moves.
+
+```pycon
+>>> apply_easing("linear", 0.5)
+0.5
+>>> apply_easing("ease_in_out", 0.25)  # an's quadratic, not CSS
+0.125
+>>> round(apply_easing("ease-in-out", 0.25), 6)  # the CSS curve
+0.129162
+>>> round(apply_easing("cubic-bezier(0.42, 0, 0.58, 1)", 0.25), 6)
+0.129162
+>>> apply_easing("steps(4)", 0.3)
+0.25
+>>> round(apply_easing("smooth", 0.25), 6)  # Manim's default rate function
+0.070104
+>>> round(apply_easing([0.42, 0.0, 0.58, 1.0], 0.25), 6)  # legacy solver
+0.129162
+```
+
+### Module Attributes
+
+| [`Curve`](_autosummary/an.timing.easing.html.md#an.timing.easing.Curve)                      | normalised time `u` -> progress.                                                                                                                            |
+|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CORE_OWNER`](_autosummary/an.timing.easing.html.md#an.timing.easing.CORE_OWNER)                 | Who registered a core entry.                                                                                                                                |
+| [`EASING_FAMILIES`](_autosummary/an.timing.easing.html.md#an.timing.easing.EASING_FAMILIES)            | a genre adds its own (a Penner family, say) with [`register_family()`](_autosummary/an.timing.easing.html.md#an.timing.easing.register_family).                                        |
+| [`SOLVERS`](_autosummary/an.timing.easing.html.md#an.timing.easing.SOLVERS)                    | The core solvers, by name.                                                                                                                                  |
+| [`LEGACY_BEZIER_NEWTON_STEPS`](_autosummary/an.timing.easing.html.md#an.timing.easing.LEGACY_BEZIER_NEWTON_STEPS) | Newton steps of the legacy Bézier solver, and its degenerate-slope guard.                                                                                   |
+| [`CSS_BEZIERS`](_autosummary/an.timing.easing.html.md#an.timing.easing.CSS_BEZIERS)                | The CSS named curves, as cubic-bezier control points (CSS Easing Level 1).                                                                                  |
+| [`CSS_NEWTON_STEPS`](_autosummary/an.timing.easing.html.md#an.timing.easing.CSS_NEWTON_STEPS)           | The CSS solver's constants (see `SOLVERS["css-bezier-newton-bisection"]`).                                                                                  |
+| [`STEP_POSITIONS`](_autosummary/an.timing.easing.html.md#an.timing.easing.STEP_POSITIONS)             | The positions `steps()` accepts; `start`/`end` are the CSS aliases of `jump-start`/`jump-end`.                                                              |
+| [`MANIM_INFLECTION`](_autosummary/an.timing.easing.html.md#an.timing.easing.MANIM_INFLECTION)           | Manim's default sigmoid steepness for `smooth` and its relatives.                                                                                           |
+| [`VALUE_TYPED_EASINGS`](_autosummary/an.timing.easing.html.md#an.timing.easing.VALUE_TYPED_EASINGS)        | exactly `runtime.js`'s `EASINGS` table (the stage engine draws these and no others), so the Python spec of that rule refuses what the browser would refuse. |
+
+### Functions
+
+| [`apply_easing`](_autosummary/an.timing.easing.html.md#an.timing.easing.apply_easing)(spec, t, \*[, names])              | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.              |
+|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`css_cubic_bezier`](_autosummary/an.timing.easing.html.md#an.timing.easing.css_cubic_bezier)(x1, y1, x2, y2)                | The CSS `cubic-bezier(x1, y1, x2, y2)` curve, solved to well below 1e-9.     |
+| [`css_steps`](_autosummary/an.timing.easing.html.md#an.timing.easing.css_steps)(n[, position])                        | CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.        |
+| [`easing_entries`](_autosummary/an.timing.easing.html.md#an.timing.easing.easing_entries)(\*[, owner])                     | Every registered entry in registration order; only `owner`'s when given.     |
+| [`easing_entry`](_autosummary/an.timing.easing.html.md#an.timing.easing.easing_entry)(name)                              | The registered entry called `name`.                                          |
+| [`legacy_cubic_bezier`](_autosummary/an.timing.easing.html.md#an.timing.easing.legacy_cubic_bezier)(cx1, cy1, cx2, cy2, t)      | an's cubic-Bézier easing at `t` — the `an-bezier-newton-8` solver.           |
+| [`register_easing`](_autosummary/an.timing.easing.html.md#an.timing.easing.register_easing)(entry, \*[, replace, owner])    | Add `entry` to the registry (a genre's own curves register here).            |
+| [`register_family`](_autosummary/an.timing.easing.html.md#an.timing.easing.register_family)(name, \*[, owner])              | Open a new easing family (refused if it exists).                             |
+| [`register_solver`](_autosummary/an.timing.easing.html.md#an.timing.easing.register_solver)(name, description, \*[, owner]) | Name a new solver, with the description another language implements it from. |
+| [`resolve_easing`](_autosummary/an.timing.easing.html.md#an.timing.easing.resolve_easing)(spec)                            | The curve an easing spec names.                                              |
+| [`solvers`](_autosummary/an.timing.easing.html.md#an.timing.easing.solvers)(\*[, owner])                            | The registered solvers; only `owner`'s when given.                           |
+
+### Classes
+
+| [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)(name, curve, family, solver, ...)   | One named easing: its curve, where it comes from, and how it is solved.   |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`UnknownEasingError`](_autosummary/an.timing.easing.html.md#an.timing.easing.UnknownEasingError)   | An easing spec names no registered curve and parses as no parametrised one.   |
+|-----------------------------------------------------------------------|-------------------------------------------------------------------------------|
+
+### an.timing.easing.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
+
+Who registered a core entry. Registries record an owner for every entry, and
+the contract files ([`an.timing.contract`](_autosummary/an.timing.contract.html.md#module-an.timing.contract)) list only this owner’s, so a
+genre’s registrations never leak into `an`’s core contract.
+
+### an.timing.easing.CSS_BEZIERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'ease': (0.25, 0.1, 0.25, 1.0), 'ease-in': (0.42, 0.0, 1.0, 1.0), 'ease-in-out': (0.42, 0.0, 0.58, 1.0), 'ease-out': (0.0, 0.0, 0.58, 1.0)}*
+
+The CSS named curves, as cubic-bezier control points (CSS Easing Level 1).
+
+### an.timing.easing.CSS_NEWTON_STEPS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+
+The CSS solver’s constants (see `SOLVERS["css-bezier-newton-bisection"]`).
+
+### an.timing.easing.Curve
+
+normalised time `u` -> progress.
+
+* **Type:**
+  A curve
+
+alias of `Callable`[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.timing.easing.EASING_FAMILIES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('common', 'legacy', 'css', 'manim')*
+
+a genre adds its own
+(a Penner family, say) with [`register_family()`](_autosummary/an.timing.easing.html.md#an.timing.easing.register_family).
+
+* **Type:**
+  The core families (see the module docstring). Open
+
+### *class* an.timing.easing.EasingEntry(name, curve, family, solver, description, version=1, params=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One named easing: its curve, where it comes from, and how it is solved.
+
+`version` follows ADR 0003: an entry whose meaning changes gets a new
+version, so a shot that names it re-renders visibly instead of silently.
+
+#### to_json()
+
+The entry as the contract file lists it (without samples).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.easing.LEGACY_BEZIER_NEWTON_STEPS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+
+Newton steps of the legacy Bézier solver, and its degenerate-slope guard.
+
+### an.timing.easing.MANIM_INFLECTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 10.0*
+
+Manim’s default sigmoid steepness for `smooth` and its relatives.
+
+### an.timing.easing.SOLVERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'an-bezier-newton-8': "an's cubic Bézier: x(s) = t solved by exactly 8 Newton steps from s = t, each clamped to [0, 1], stopping only on a derivative below 1e-12; no bisection. Bit-identical to runtime.js cubicBezier", 'closed-form': 'evaluated directly from its formula', 'css-bezier-newton-bisection': 'the CSS cubic Bézier: up to 8 Newton steps from s = t (stop when |x(s) - t| < 1e-12, give up on a slope below 1e-6), then up to 60 bisection steps on [0, 1] to the same 1e-12', 'css-steps': 'the CSS Easing Level 1 step algorithm'}*
+
+The core solvers, by name. An entry names the one that computes it, so a
+curve’s numbers are reproducible in another language from its entry alone.
+Open: a genre adds one (a spring integrator) with [`register_solver()`](_autosummary/an.timing.easing.html.md#an.timing.easing.register_solver).
+
+### an.timing.easing.STEP_POSITIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('jump-start', 'jump-end', 'jump-none', 'jump-both', 'start', 'end')*
+
+The positions `steps()` accepts; `start`/`end` are the CSS aliases of
+`jump-start`/`jump-end`.
+
+### *exception* an.timing.easing.UnknownEasingError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+An easing spec names no registered curve and parses as no parametrised one.
+
+### an.timing.easing.VALUE_TYPED_EASINGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ease', 'ease_in', 'ease_in_out', 'ease_out', 'linear', 'step'})*
+
+exactly `runtime.js`’s
+`EASINGS` table (the stage engine draws these and no others), so the Python
+spec of that rule refuses what the browser would refuse.
+
+* **Type:**
+  The easings the value-typed rule accepts
+
+### an.timing.easing.apply_easing(spec, t, , names=None)
+
+Apply an easing spec to a normalised parameter `t` in `[0, 1]`.
+
+`names` restricts the string specs accepted to that collection — what an
+engine that implements only part of the registry passes (the stage runtime
+implements the legacy names; see `an.adapters.cutout.easing`). Sequences
+always take the legacy Bézier solver.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> apply_easing(None, 0.25)
+0.25
+>>> apply_easing("step", 0.99), apply_easing("step", 1.0)
+(0.0, 1.0)
+>>> apply_easing("smooth", 0.5, names={"linear"})
+Traceback (most recent call last):
+ ...
+an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
+```
+
+### an.timing.easing.css_cubic_bezier(x1, y1, x2, y2)
+
+The CSS `cubic-bezier(x1, y1, x2, y2)` curve, solved to well below 1e-9.
+
+`x1` and `x2` must lie in `[0, 1]` (so the curve is a function of
+time); `y` may overshoot.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> css = css_cubic_bezier(0.42, 0.0, 0.58, 1.0)
+>>> css(0.0), css(1.0), round(css(0.5), 12)
+(0, 1, 0.5)
+>>> css_cubic_bezier(1.5, 0, 0, 1)
+Traceback (most recent call last):
+ ...
+ValueError: cubic-bezier x values must lie in [0, 1], got x1=1.5, x2=0
+```
+
+### an.timing.easing.css_steps(n, position='jump-end')
+
+CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> f = css_steps(4)
+>>> [f(u) for u in (0.0, 0.24, 0.25, 0.99, 1.0)]
+[0.0, 0.0, 0.25, 0.75, 1.0]
+>>> css_steps(3, "jump-none")(0.5)
+0.5
+```
+
+### an.timing.easing.easing_entries(, owner=None)
+
+Every registered entry in registration order; only `owner`’s when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.timing.easing.easing_entry(name)
+
+The registered entry called `name`.
+
+* **Return type:**
+  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
+
+```pycon
+>>> easing_entry("ease").family
+'legacy'
+```
+
+### an.timing.easing.legacy_cubic_bezier(cx1, cy1, cx2, cy2, t)
+
+an’s cubic-Bézier easing at `t` — the `an-bezier-newton-8` solver.
+
+The curve is defined by P0=(0,0), P1=(cx1,cy1), P2=(cx2,cy2), P3=(1,1).
+Given a desired x=t we solve for the matching curve parameter u, then
+return the y coordinate, by exactly 8 clamped Newton steps.
+
+Structurally IDENTICAL to runtime.js::cubicBezier on purpose: always 8
+iterations, break only on a degenerate derivative, clamp each step. This
+function is the spec of that port, and the two are compared bit-for-bit by
+the parity battery — an earlier version had an extra 
+
+```
+|u_new - u|
+```
+
+ < 1e-9
+early-convergence break the JS side lacked, which left the two a ULP apart;
+a numeric channel lerping large magnitudes amplifies a ULP of easing by
+(b - a) (found by the an#86 adversarial review; the loops now match).
+
+It does NOT agree with the CSS solver ([`css_cubic_bezier()`](_autosummary/an.timing.easing.html.md#an.timing.easing.css_cubic_bezier)) to 1e-9
+for every control point, which is why it stays a named legacy solver until
+the pixel goldens are re-blessed under the stricter one.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
+0.5
+>>> legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)
+(0.0, 1.0)
+```
+
+### an.timing.easing.register_easing(entry, , replace=False, owner=None)
+
+Add `entry` to the registry (a genre’s own curves register here).
+
+Re-registering a name is refused unless `replace=True`, and a replacement
+must carry a HIGHER version: a name’s meaning changing under a scene that
+uses it is exactly what entry versions exist to make visible, so it must be
+deliberate and visible. `owner` names who registered it (core entries:
+[`CORE_OWNER`](_autosummary/an.timing.easing.html.md#an.timing.easing.CORE_OWNER)); only core entries reach the contract files.
+
+* **Return type:**
+  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
+
+### an.timing.easing.register_family(name, , owner=None)
+
+Open a new easing family (refused if it exists).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.timing.easing.register_solver(name, description, , owner=None)
+
+Name a new solver, with the description another language implements it from.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.timing.easing.resolve_easing(spec)
+
+The curve an easing spec names.
+
+- `None` -> linear;
+- a registered name, `cubic-bezier(x1, y1, x2, y2)` or `steps(n[, position])`;
+- a 4-sequence `[cx1, cy1, cx2, cy2]` -> the legacy Bézier solver.
+
+Raises [`UnknownEasingError`](_autosummary/an.timing.easing.html.md#an.timing.easing.UnknownEasingError) (a `ValueError`) for an unknown name or
+a malformed sequence, `TypeError` for any other type.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.timing.easing.solvers(, owner=None)
+
+The registered solvers; only `owner`’s when given.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+
+# _autosummary/an.timing.flat.html.md
+
+# an.timing.flat
+
+The authored flat timeline: `(start, end, address, change)` rows.
+
+The upper of the kernel’s two canonical levels (core study §2.4). Every authoring
+front-end — `an`’s combinators, a keyframe sequence, Manim-style beats, recipes —
+lowers to this list with absolute seconds, and a compiler lowers it to the
+compiled form ([`an.timing.timeline`](_autosummary/an.timing.timeline.html.md#module-an.timing.timeline)). It is what `timeline.schema.json`
+describes and what a package that copies `an`’s track format (`shaping`)
+validates against.
+
+A **change** is `set` (a value from `start` on) or `tween` (from an
+optional `from` — absent means “from whatever the property has at `start`” —
+to `to`, through an `easing`). Genre actions (a `play`, an `expression`)
+are not changes: a genre lowers them before this level.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rows = [NS(start=0.0, end=1.0, action=NS(kind="tween", target="charlie/left_arm",
+...     property="rotation", to_value=0.5, from_value=None, easing="ease_in_out"))]
+>>> flat_timeline_doc(rows)["actions"]
+[{'start': 0.0, 'end': 1.0, 'address': 'charlie/left_arm:rotation', 'change': {'kind': 'tween', 'to': 0.5, 'easing': 'ease_in_out'}}]
+```
+
+### Module Attributes
+
+| [`FLAT_TIMELINE_FORMAT`](_autosummary/an.timing.flat.html.md#an.timing.flat.FLAT_TIMELINE_FORMAT)   | The document's self-description (`{kind, version}` envelope, core study §2.1).   |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+
+### Functions
+
+| [`change_of`](_autosummary/an.timing.flat.html.md#an.timing.flat.change_of)(action, \*[, default_easing])    | The `change` of one leaf action (any object with the IR's attribute names).   |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`flat_timeline_doc`](_autosummary/an.timing.flat.html.md#an.timing.flat.flat_timeline_doc)(flat_actions, \*[, ...]) | A `timeline.schema.json` document from flat actions.                          |
+
+### Exceptions
+
+| [`UnsupportedChangeError`](_autosummary/an.timing.flat.html.md#an.timing.flat.UnsupportedChangeError)   | A flat action is not a `set` or a `tween` (a genre action not yet lowered).   |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+
+### an.timing.flat.FLAT_TIMELINE_FORMAT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.timeline'*
+
+The document’s self-description (`{kind, version}` envelope, core study §2.1).
+
+### *exception* an.timing.flat.UnsupportedChangeError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A flat action is not a `set` or a `tween` (a genre action not yet lowered).
+
+### an.timing.flat.change_of(action, , default_easing=None)
+
+The `change` of one leaf action (any object with the IR’s attribute names).
+
+A tween’s easing is written RESOLVED and always (`null` is linear): the
+tween’s own, else `default_easing` (the scene’s `meta.default_easing`),
+else the IR default — the precedence `TweenAction.resolved_easing` states,
+so the flat document says what compiles (an#166).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.flat.flat_timeline_doc(flat_actions, , duration=None, default_easing=None, skip_other=False)
+
+A `timeline.schema.json` document from flat actions.
+
+Each item has `start`, `end` and a leaf `action` with `kind`,
+`target`, `property` and the change’s values — the shape of
+`an.ir.compose.flatten`’s output, read by attribute so this module does not
+import the IR. `default_easing` is the scene’s `meta.default_easing`.
+`skip_other` drops non-change actions instead of raising.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+
+# _autosummary/an.timing.html.md
+
+# an.timing
+
+The timing kernel: what is on screen at time `t`, as a pure function.
+
+The heart of the core (core study §3, layer K; ADR 0001 decisions 10-11). Every
+genre that can answer “what is the value of this property at time t” does it the
+same way: **addressed** properties ([`address`](_autosummary/an.timing.address.html.md#module-an.timing.address)), each of a
+declared **field kind** ([`kinds`](_autosummary/an.timing.kinds.html.md#module-an.timing.kinds)) chosen by its entity kind’s
+**property space** ([`spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)), keyed over time with **easing**
+([`easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing)), flattened to absolute times
+([`flat`](_autosummary/an.timing.flat.html.md#module-an.timing.flat)), compiled to tracks of placed clips of channels
+([`channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel), [`clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip), [`timeline`](_autosummary/an.timing.timeline.html.md#module-an.timing.timeline))
+and evaluated by `evaluate_timeline(timeline, t)` — sparse: a property nothing
+has started writing is absent, and the entity’s rest state supplies it.
+
+The kernel is a **cross-language contract** before it is code: five JSON files
+in `an/data/timing/` generated from these registries ([`contract`](_autosummary/an.timing.contract.html.md#module-an.timing.contract)),
+which a second implementation (TypeScript) asserts. `runtime.js` — the stage
+engine’s evaluator — is a bit-exact port of this package’s value-typed rule, and
+its parity tests hold it there.
+
+The frame clock is `an`’s: frame `k` at `k / fps`, `frame_count = max(1,
+round(duration * fps))` ([`an.frame_clock`](_autosummary/an.frame_clock.html.md#module-an.frame_clock)).
+
+```pycon
+>>> from an.timing import Channel, Keyframe, evaluate_channel, get_space
+>>> ch = Channel("charlie", "x", [Keyframe(0.0, 0.0, "ease_in_out"), Keyframe(1.0, 10.0)])
+>>> evaluate_channel(ch, 0.25, kind=get_space("stage.node").kind_of("x"))
+1.25
+```
+
+### Functions
+
+| [`format_address`](_autosummary/an.timing.html.md#an.timing.format_address)(target, prop)                       | The address string of a compiled `(target, property)` pair, unvalidated (the fast path for keying states; [`Address.of()`](_autosummary/an.timing.html.md#an.timing.Address.of) validates).   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`parse_address`](_autosummary/an.timing.html.md#an.timing.parse_address)(text)                                | `text` as an [`Address`](_autosummary/an.timing.html.md#an.timing.Address); raises [`AddressError`](_autosummary/an.timing.html.md#an.timing.AddressError) naming the fault.                         |
+| [`check_channel`](_autosummary/an.timing.html.md#an.timing.check_channel)(channel, kind)                       | Why `channel`'s keyframe values do not fit `kind` (empty if they do).                                                                                                                 |
+| [`evaluate_channel`](_autosummary/an.timing.html.md#an.timing.evaluate_channel)(channel, t, \*[, kind])           | Evaluate `channel` at time `t` (see the module docstring for `kind`).                                                                                                                 |
+| [`merge_poses`](_autosummary/an.timing.html.md#an.timing.merge_poses)(\*poses)                               | Merge multiple poses with **override semantics** (later wins per key).                                                                                                                |
+| [`wrap_time`](_autosummary/an.timing.html.md#an.timing.wrap_time)(t, duration, loop_mode)                  | The public name of the loop rule (the contract's; `_wrap_time` is kept for the callers and tests that already import it).                                                             |
+| [`evaluate_clip`](_autosummary/an.timing.html.md#an.timing.evaluate_clip)(clip, t, \*[, kind_of])              | Evaluate `clip` at time `t`, returning a `Pose`.                                                                                                                                      |
+| [`apply_easing`](_autosummary/an.timing.html.md#an.timing.apply_easing)(spec, t, \*[, names])                 | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.                                                                                                                       |
+| [`easing_entries`](_autosummary/an.timing.html.md#an.timing.easing_entries)(\*[, owner])                        | Every registered entry in registration order; only `owner`'s when given.                                                                                                              |
+| [`easing_entry`](_autosummary/an.timing.html.md#an.timing.easing_entry)(name)                                 | The registered entry called `name`.                                                                                                                                                   |
+| [`register_easing`](_autosummary/an.timing.html.md#an.timing.register_easing)(entry, \*[, replace, owner])       | Add `entry` to the registry (a genre's own curves register here).                                                                                                                     |
+| [`resolve_easing`](_autosummary/an.timing.html.md#an.timing.resolve_easing)(spec)                               | The curve an easing spec names.                                                                                                                                                       |
+| [`kind_from_spec`](_autosummary/an.timing.html.md#an.timing.kind_from_spec)(spec)                               | A kind instance from its contract spec (`{"kind": name, **params}`), a bare kind name, or an instance (returned as is).                                                               |
+| [`kind_names`](_autosummary/an.timing.html.md#an.timing.kind_names)(\*[, owner])                            | The registered kind names in registration order; only `owner`'s when given.                                                                                                           |
+| [`register_kind`](_autosummary/an.timing.html.md#an.timing.register_kind)(name, factory, \*[, replace, owner]) | Register a field kind under `name` (how a genre adds one).                                                                                                                            |
+| `get_space`(name)                                                                                   |                                                                                                                                                                                       |
+| [`register_space`](_autosummary/an.timing.html.md#an.timing.register_space)(space, \*[, replace, owner])        | Register `space` under its name (how an entity kind declares its properties).                                                                                                         |
+| [`space_from_json`](_autosummary/an.timing.html.md#an.timing.space_from_json)(doc)                               | A space from its JSON form (what `PropertySpace.to_json()` writes).                                                                                                                   |
+| [`space_names`](_autosummary/an.timing.html.md#an.timing.space_names)(\*[, owner])                           | The registered space names in registration order; only `owner`'s when given.                                                                                                          |
+| [`clip_from_json`](_autosummary/an.timing.html.md#an.timing.clip_from_json)(anim, \*[, name])                   | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](_autosummary/an.timing.html.md#an.timing.Clip).                                                             |
+| [`evaluate_timeline`](_autosummary/an.timing.html.md#an.timing.evaluate_timeline)(timeline, t, \*[, space])        | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                                                                                   |
+| [`timeline_from_compiled`](_autosummary/an.timing.html.md#an.timing.timeline_from_compiled)(doc)                        | The compiled document's `timeline`/`animations` as an evaluable `Timeline`.                                                                                                           |
+
+### Classes
+
+| [`Address`](_autosummary/an.timing.html.md#an.timing.Address)(entity[, nodes, field, qualifier])    | A parsed address.                                                                       |
+|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`Channel`](_autosummary/an.timing.html.md#an.timing.Channel)(target, property[, keyframes])        | Sorted keyframes for one property of one target.                                        |
+| [`Keyframe`](_autosummary/an.timing.html.md#an.timing.Keyframe)(time, value[, easing])               | One keyframe: time, value, optional per-segment easing.                                 |
+| [`Clip`](_autosummary/an.timing.html.md#an.timing.Clip)(name, duration[, channels, loop_mode])   | Named animation: a duration + a bundle of channels.                                     |
+| [`LoopMode`](_autosummary/an.timing.html.md#an.timing.LoopMode)(\*values)                            | How a clip behaves past its natural duration.                                           |
+| [`EasingEntry`](_autosummary/an.timing.html.md#an.timing.EasingEntry)(name, curve, family, solver, ...) | One named easing: its curve, where it comes from, and how it is solved.                 |
+| [`AngleKind`](_autosummary/an.timing.html.md#an.timing.AngleKind)([unit, wrap])                       | An angle: the shortest arc when `wrap`, else the raw numbers.                           |
+| [`ColorKind`](_autosummary/an.timing.html.md#an.timing.ColorKind)([space])                            | A colour (hex or `[r, g, b, a?]` in 0..1), written back in the form of the start value. |
+| [`DiscreteKind`](_autosummary/an.timing.html.md#an.timing.DiscreteKind)([switch_at])                     | Holds `a` and switches to `b` on TIME (see the module docstring).                       |
+| [`FieldKind`](_autosummary/an.timing.html.md#an.timing.FieldKind)()                                   | Base of every field kind: a frozen, hashable, JSON-describable interpolator.            |
+| [`NumberKind`](_autosummary/an.timing.html.md#an.timing.NumberKind)([space])                           | A continuous scalar.                                                                    |
+| [`OrbitKind`](_autosummary/an.timing.html.md#an.timing.OrbitKind)([unit])                             | A camera orbiting a target: `{azimuth, elevation, distance, target?}`.                  |
+| [`QuaternionKind`](_autosummary/an.timing.html.md#an.timing.QuaternionKind)()                              | A unit quaternion `[x, y, z, w]`, interpolated by slerp after a sign fix.               |
+| [`Segment`](_autosummary/an.timing.html.md#an.timing.Segment)(t, start, end)                        | Where an evaluation sits: time `t` inside the segment `[start, end)`.                   |
+| [`VectorKind`](_autosummary/an.timing.html.md#an.timing.VectorKind)()                                  | A fixed-length list of numbers, interpolated componentwise.                             |
+| [`FieldDecl`](_autosummary/an.timing.html.md#an.timing.FieldDecl)(pattern, kind[, unit, writes, ...]) | One declaration of a property space: pattern -> kind, write group, unit.                |
+| [`PropertySpace`](_autosummary/an.timing.html.md#an.timing.PropertySpace)(name[, fields, version, ...])   | An entity kind's properties: declarations, matched exact-first then by glob.            |
+| [`PlacedClip`](_autosummary/an.timing.html.md#an.timing.PlacedClip)(clip[, start_time, duration, ...]) | A clip placed at an absolute time on a track.                                           |
+| [`Timeline`](_autosummary/an.timing.html.md#an.timing.Timeline)(duration[, tracks])                  | A duration + ordered list of tracks.                                                    |
+| [`Track`](_autosummary/an.timing.html.md#an.timing.Track)([target_root, clips])                   | A sequence of placed clips that share a common purpose / target prefix.                 |
+
+### Exceptions
+
+| [`AddressError`](_autosummary/an.timing.html.md#an.timing.AddressError)       | A string is not an address under the grammar.                               |
+|---------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`UnknownEasingError`](_autosummary/an.timing.html.md#an.timing.UnknownEasingError) | An easing spec names no registered curve and parses as no parametrised one. |
+| [`FieldKindError`](_autosummary/an.timing.html.md#an.timing.FieldKindError)     | A kind spec is malformed, or names no registered kind.                      |
+| [`SpaceError`](_autosummary/an.timing.html.md#an.timing.SpaceError)         | A property space is malformed, unknown, or already registered.              |
+
+### *class* an.timing.Address(entity, nodes=(), field='', qualifier=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A parsed address. `str(address)` writes it back unchanged.
+
+#### *property* field_path *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
+
+The dotted field, split.
+
+#### *classmethod* of(target, prop)
+
+The address of a compiled `(target, property)` pair (validated).
+
+* **Return type:**
+  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
+
+#### *property* property *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+the field and its qualifier.
+
+* **Type:**
+  The compiled form’s `property`
+
+#### *property* target *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+the entity and its node path.
+
+* **Type:**
+  The compiled form’s `target`
+
+### *exception* an.timing.AddressError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A string is not an address under the grammar.
+
+### *class* an.timing.AngleKind(unit='deg', wrap=True)
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+An angle: the shortest arc when `wrap`, else the raw numbers. Interpolated
+angles are not re-normalised (350 -> 10 passes through 360).
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### *class* an.timing.Channel(target, property, keyframes=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Sorted keyframes for one property of one target.
+
+Construction validates that `keyframes` is non-empty and sorted.
+
+### *class* an.timing.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Named animation: a duration + a bundle of channels.
+
+### *class* an.timing.ColorKind(space='oklab')
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A colour (hex or `[r, g, b, a?]` in 0..1), written back in the form of
+the start value. `oklab` mixes perceptually with premultiplied alpha;
+`srgb` lerps the encoded channels (Manim’s and the stage tint’s rule).
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### *class* an.timing.DiscreteKind(switch_at=0.5)
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+Holds `a` and switches to `b` on TIME (see the module docstring).
+
+`switch_at` lies in `(0, 1]`. The default, 0.5, is the switch point of an
+undeclared property; a replacement drawing (a swap set) declares 1, so it
+never appears before its own key.
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= True*
+
+True when the value (or part of it) switches on TIME rather than moving.
+
+### *class* an.timing.EasingEntry(name, curve, family, solver, description, version=1, params=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One named easing: its curve, where it comes from, and how it is solved.
+
+`version` follows ADR 0003: an entry whose meaning changes gets a new
+version, so a shot that names it re-renders visibly instead of silently.
+
+#### to_json()
+
+The entry as the contract file lists it (without samples).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.timing.FieldDecl(pattern, kind, unit=None, writes=None, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One declaration of a property space: pattern -> kind, write group, unit.
+
+#### writes *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The write group this property belongs to; `None` means itself.
+
+### *class* an.timing.FieldKind
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Base of every field kind: a frozen, hashable, JSON-describable interpolator.
+
+Subclasses set `name` and implement [`interpolate()`](_autosummary/an.timing.html.md#an.timing.FieldKind.interpolate); the dataclass
+fields are the kind’s parameters, and `to_spec()` writes them as the
+contract does (`{"kind": name, **non-default params}`).
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= False*
+
+True when the value (or part of it) switches on TIME rather than moving.
+
+### *exception* an.timing.FieldKindError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A kind spec is malformed, or names no registered kind.
+
+### *class* an.timing.Keyframe(time, value, easing=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One keyframe: time, value, optional per-segment easing.
+
+The easing on a keyframe describes the curve **leaving** that keyframe
+toward the next one. The last keyframe’s easing is therefore unused.
+
+### *class* an.timing.LoopMode(\*values)
+
+Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
+
+How a clip behaves past its natural duration.
+
+### *class* an.timing.NumberKind(space='linear')
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A continuous scalar. `space="log"` interpolates the logarithm (zoom, scale).
+
+Linear interpolation is `a + (b - a) * u` with no special case at the ends,
+which is the stage runtime’s arithmetic: a declared `number` channel is
+bit-identical to what `runtime.js` draws.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### *class* an.timing.OrbitKind(unit='deg')
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A camera orbiting a target: `{azimuth, elevation, distance, target?}`.
+
+Azimuth takes the shortest arc, elevation is lerped and clamped to the poles,
+distance is lerped in log, target componentwise. Any other member is discrete
+and switches at `DEFAULT_SWITCH_AT` (on time). One value: a dotted
+address never reaches inside it.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= True*
+
+True when the value (or part of it) switches on TIME rather than moving.
+
+### *class* an.timing.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A clip placed at an absolute time on a track.
+
+#### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Duration this clip occupies on the timeline (after speed scaling).
+
+### *class* an.timing.PropertySpace(name, fields=(), version=1, description='', undeclared=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+An entity kind’s properties: declarations, matched exact-first then by glob.
+
+#### declaration(prop)
+
+The declaration governing `prop`, or `None`.
+
+* **Return type:**
+  [`FieldDecl`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.FieldDecl) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### undeclared *: [FieldKind](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)*
+
+The kind of a property no declaration matches.
+
+### *class* an.timing.QuaternionKind
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A unit quaternion `[x, y, z, w]`, interpolated by slerp after a sign fix.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### *class* an.timing.Segment(t, start, end)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Where an evaluation sits: time `t` inside the segment `[start, end)`.
+
+#### switched(switch_at)
+
+Whether a discrete value has switched to the segment’s second key.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> Segment(0.5, 0.0, 1.0).switched(0.5), Segment(0.49, 0.0, 1.0).switched(0.5)
+(True, False)
+>>> Segment(0.9999999999, 0.0, 1.0).switched(1.0)  # only at b.time itself
+False
+```
+
+### *exception* an.timing.SpaceError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A property space is malformed, unknown, or already registered.
+
+### *class* an.timing.Timeline(duration, tracks=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A duration + ordered list of tracks. The canonical playback structure.
+
+### *class* an.timing.Track(target_root='', clips=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A sequence of placed clips that share a common purpose / target prefix.
+
+`target_root` is informational metadata for downstream tools (the JS
+runtime can use it to scope rendering); evaluation does not filter by it.
+
+### *exception* an.timing.UnknownEasingError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+An easing spec names no registered curve and parses as no parametrised one.
+
+### *class* an.timing.VectorKind
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A fixed-length list of numbers, interpolated componentwise.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.timing.apply_easing(spec, t, , names=None)
+
+Apply an easing spec to a normalised parameter `t` in `[0, 1]`.
+
+`names` restricts the string specs accepted to that collection — what an
+engine that implements only part of the registry passes (the stage runtime
+implements the legacy names; see `an.adapters.cutout.easing`). Sequences
+always take the legacy Bézier solver.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> apply_easing(None, 0.25)
+0.25
+>>> apply_easing("step", 0.99), apply_easing("step", 1.0)
+(0.0, 1.0)
+>>> apply_easing("smooth", 0.5, names={"linear"})
+Traceback (most recent call last):
+ ...
+an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
+```
+
+### an.timing.check_channel(channel, kind)
+
+Why `channel`’s keyframe values do not fit `kind` (empty if they do).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.timing.clip_from_json(anim, , name=None)
+
+One compiled animation (`compiled.schema.json`’s `animation`) as a [`Clip`](_autosummary/an.timing.html.md#an.timing.Clip).
+
+Accepts the JSON mapping or any object with the same attributes (the stage’s
+`AnimationClipJSON`). Two fields are carried rather than defaulted, and
+both have cost a bug: `loop_mode` (without it every loop evaluated as
+`once` — an#7) and a list-valued `easing`, which is a cubic-bezier
+control quadruple and must stay a tuple for `Keyframe`. The stage compiler
+reads a from-less tween’s start through this too (an#212), so it evaluates
+exactly what the runtime will.
+
+* **Return type:**
+  [`Clip`](_autosummary/an.timing.clip.html.md#an.timing.clip.Clip)
+
+### an.timing.easing_entries(, owner=None)
+
+Every registered entry in registration order; only `owner`’s when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.timing.easing_entry(name)
+
+The registered entry called `name`.
+
+* **Return type:**
+  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
+
+```pycon
+>>> easing_entry("ease").family
+'legacy'
+```
+
+### an.timing.evaluate_channel(channel, t, , kind=None)
+
+Evaluate `channel` at time `t` (see the module docstring for `kind`).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.timing.evaluate_clip(clip, t, , kind_of=None)
+
+Evaluate `clip` at time `t`, returning a `Pose`.
+
+`kind_of` declares each channel’s field kind; `None` interpolates by
+value type, as `runtime.js` does (see [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.evaluate_timeline(timeline, t, , space=None)
+
+Evaluate `timeline` at time `t`, merging poses across tracks/clips.
+
+The result is a PURE function of `t` (an#185): what a node shows at `t`
+never depends on which instants were evaluated before it. Per
+`(target, property)`:
+
+- **Active** — some clip writing it is playing at `t` (inclusive end:
+  a clip at `[s, e]` is active at `t == e` too, so the final frame of
+  “play this from 0 to 1 s” is visible at 1.0). Later wins: track order,
+  then clip order within a track. Written at `t`.
+- **Held** — no clip writing it is playing, but one has ended: the value
+  the clip reached AT ITS END holds. The latest end wins; a tie goes to
+  the later clip, the same “later wins” as above. Written at that end.
+- **At rest** — nothing writing it has started yet. The key is ABSENT from
+  the pose, and its value is the node’s own (the entity’s rest state;
+  `runtime.js` restores what it built).
+
+Keys that write the same thing on one node (a write group: the swap sets of
+one visual, `rotation`/`rotation_rad`) keep only the most recently
+WRITTEN — an ended `viseme@happy` span does not outlive the `viseme`
+track that took the mouth back.
+
+`space` says what each property is ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
+registered space’s name, or a `target -> space` resolver. Its field kinds
+interpolate and its write groups resolve. `None` is the stage runtime’s
+rule, which `runtime.js` implements: interpolation by value type, the
+`stage.node` write groups.
+
+Forward-order rendering used to show the value at the clip’s last SAMPLED
+frame instead (the runtime kept whatever it last applied). The two agree
+whenever a clip ends on the frame grid — true of every golden-corpus clip
+— and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
+used to stop at 9.80 and now lands on 10, as authored. That landing is
+deliberate (it is the bug the motion presets’ settling `set` patched one
+preset at a time), and it is what makes the pose independent of the grid.
+Also deliberate: a clip shorter than a frame that no frame lands in now
+leaves its end value, and a held descendant tint stays on top of an
+ancestor’s later tint (the more specific target wins, as it always did
+while both played).
+
+`runtime.js::evaluateTimeline` is a port of this function and
+`tests/test_pure_pose.py` holds the two to it.
+
+```pycon
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
+>>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
+{}
+>>> evaluate_timeline(tl, 1.0)[("a", "x")]  # active
+5.0
+>>> evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds
+10.0
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.format_address(target, prop)
+
+The address string of a compiled `(target, property)` pair, unvalidated
+(the fast path for keying states; [`Address.of()`](_autosummary/an.timing.html.md#an.timing.Address.of) validates).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.timing.kind_from_spec(spec)
+
+A kind instance from its contract spec (`{"kind": name, **params}`),
+a bare kind name, or an instance (returned as is).
+
+* **Return type:**
+  [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+```pycon
+>>> kind_from_spec("discrete")
+DiscreteKind(switch_at=0.5)
+>>> kind_from_spec({"kind": "points"})
+Traceback (most recent call last):
+ ...
+an.timing.kinds.FieldKindError: unknown field kind 'points'; known: ['number', 'angle', 'vector', 'quaternion', 'color', 'orbit', 'discrete']
+```
+
+### an.timing.kind_names(, owner=None)
+
+The registered kind names in registration order; only `owner`’s when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.timing.merge_poses(\*poses)
+
+Merge multiple poses with **override semantics** (later wins per key).
+
+Used by the timeline to combine concurrent clips on the same target.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
+{('a', 'x'): 2.0, ('a', 'y'): 3.0}
+```
+
+### an.timing.parse_address(text)
+
+`text` as an [`Address`](_autosummary/an.timing.html.md#an.timing.Address); raises [`AddressError`](_autosummary/an.timing.html.md#an.timing.AddressError) naming the fault.
+
+* **Return type:**
+  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
+
+```pycon
+>>> parse_address("charlie/left_arm:rotation").target
+'charlie/left_arm'
+>>> parse_address("a::b")
+Traceback (most recent call last):
+ ...
+an.timing.address.AddressError: 'a::b': an address has exactly one ':', found 2
+```
+
+### an.timing.register_easing(entry, , replace=False, owner=None)
+
+Add `entry` to the registry (a genre’s own curves register here).
+
+Re-registering a name is refused unless `replace=True`, and a replacement
+must carry a HIGHER version: a name’s meaning changing under a scene that
+uses it is exactly what entry versions exist to make visible, so it must be
+deliberate and visible. `owner` names who registered it (core entries:
+`CORE_OWNER`); only core entries reach the contract files.
+
+* **Return type:**
+  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
+
+### an.timing.register_kind(name, factory, , replace=False, owner=None)
+
+Register a field kind under `name` (how a genre adds one).
+
+`owner` names who registered it; only `CORE_OWNER`’s kinds reach
+`an`’s contract files.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
+
+```pycon
+>>> sorted(kind_names())[:3]
+['angle', 'color', 'discrete']
+```
+
+### an.timing.register_space(space, , replace=False, owner=None)
+
+Register `space` under its name (how an entity kind declares its properties).
+
+`owner` names who registered it; only `CORE_OWNER`’s spaces reach
+`an`’s contract files, so an installed genre never edits the core contract.
+
+* **Return type:**
+  [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)
+
+### an.timing.resolve_easing(spec)
+
+The curve an easing spec names.
+
+- `None` -> linear;
+- a registered name, `cubic-bezier(x1, y1, x2, y2)` or `steps(n[, position])`;
+- a 4-sequence `[cx1, cy1, cx2, cy2]` -> the legacy Bézier solver.
+
+Raises [`UnknownEasingError`](_autosummary/an.timing.html.md#an.timing.UnknownEasingError) (a `ValueError`) for an unknown name or
+a malformed sequence, `TypeError` for any other type.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.timing.space_from_json(doc)
+
+A space from its JSON form (what `PropertySpace.to_json()` writes).
+
+* **Return type:**
+  [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)
+
+### an.timing.space_names(, owner=None)
+
+The registered space names in registration order; only `owner`’s when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.timing.timeline_from_compiled(doc)
+
+The compiled document’s `timeline`/`animations` as an evaluable `Timeline`.
+
+`doc` is the JSON mapping of `compiled.schema.json` or any object with
+the same attributes (the stage’s `CutoutSceneJSON`). This is the Python
+side of the parity contract: `evaluate_timeline` over what it returns is
+the executable spec `runtime.js` is tested against.
+
+`target_root` and the blend ramps are carried although nothing reads them
+yet: a reader that quietly drops a field it was handed is a lossy “rebuilds
+the evaluable form”.
+
+* **Return type:**
+  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
+
+```pycon
+>>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
+...     {"animation_id": "m", "start_time": 0.0}]}]},
+...     "animations": {"m": {"duration": 1.0, "channels": [{"target": "a",
+...     "property": "x", "keyframes": [{"time": 0.0, "value": 0.0},
+...     {"time": 1.0, "value": 4.0}]}]}}}
+>>> evaluate_timeline(timeline_from_compiled(doc), 0.25)
+{('a', 'x'): 1.0}
+```
+
+### an.timing.wrap_time(t, duration, loop_mode)
+
+Apply the loop mode to `t`, returning a time within `[0, duration]`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### Modules
+
+| [`address`](_autosummary/an.timing.address.html.md#module-an.timing.address)   | The address grammar: one way to name an animatable value, in every genre.                    |
+|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel)   | Channel: keyframes for a single (target, property) pair, evaluated at time t.                |
+| [`clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip)         | Clip: a named bundle of channels with a duration and loop mode.                              |
+| [`contract`](_autosummary/an.timing.contract.html.md#module-an.timing.contract) | The timing kernel's cross-language contract: five JSON files, generated from the registries. |
+| [`easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing)     | The easing registry: every named timing curve, each with the solver that computes it.        |
+| [`flat`](_autosummary/an.timing.flat.html.md#module-an.timing.flat)         | The authored flat timeline: `(start, end, address, change)` rows.                            |
+| [`kinds`](_autosummary/an.timing.kinds.html.md#module-an.timing.kinds)       | Field kinds: the declared interpolator of each animatable property.                          |
+| [`spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)     | Property spaces: what an entity kind's properties ARE, declared once.                        |
+| [`timeline`](_autosummary/an.timing.timeline.html.md#module-an.timing.timeline) | Timeline: tracks of placed clips with absolute times — the compiled evaluation form.         |
+
+
+# _autosummary/an.timing.kinds.html.md
+
+# an.timing.kinds
+
+Field kinds: the declared interpolator of each animatable property.
+
+**The declared kind picks the interpolator; a runtime value never does.** A field
+kind is what lets a number be an angle (shortest arc), a log-space zoom, or a
+colour mixed in OKLab — none of which a value’s type can say. Kinds are declared
+per property by a *property space* ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)); a property no space
+declares is [`DiscreteKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.DiscreteKind).
+
+Seven kinds are seeded, each parametrised (the TypeScript kernel’s seven):
+
+**Discrete is defined on TIME, never on a ratio or an eased value** (an#86). A
+segment from key `a` to key `b` shows `b` iff `t >= a.time + switch_at *
+(b.time - a.time)`, and `switch_at == 1` is evaluated as `t >= b.time` with
+no arithmetic at all: `(t - a.time) / span` can round up to 1.0 while
+`t < b.time`, and an overshooting easing would flip an eased comparison twice.
+
+Genres add kinds with [`register_kind()`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.register_kind) (a Manim genre’s `points`, say)
+without editing this module.
+
+```pycon
+>>> NumberKind().interpolate(0.0, 10.0, 0.25, Segment(0.25, 0.0, 1.0))
+2.5
+>>> NumberKind(space="log").interpolate(1.0, 4.0, 0.5, Segment(0.5, 0.0, 1.0))
+2.0
+>>> AngleKind().interpolate(350, 10, 0.5, Segment(0.5, 0.0, 1.0))  # not re-normalised
+360.0
+>>> b = 9.767899248713501
+>>> DiscreteKind(switch_at=1).interpolate("A", "B", 1.0, Segment(math.nextafter(b, 0), 0.15, b))
+'A'
+>>> kind_from_spec({"kind": "number", "space": "log"})
+NumberKind(space='log')
+```
+
+### Module Attributes
+
+| [`DEFAULT_SWITCH_AT`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.DEFAULT_SWITCH_AT)         | Where an undeclared discrete value switches, in normalised segment time.                                          |
+|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| [`QUATERNION_UNIT_TOLERANCE`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.QUATERNION_UNIT_TOLERANCE) | How far a quaternion's norm may be from 1 and still count as unit length.                                         |
+| [`SLERP_LINEAR_THRESHOLD`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.SLERP_LINEAR_THRESHOLD)    | Above this <br/><br/>```<br/>|dot|<br/>```<br/><br/>, slerp falls back to normalised lerp (the arc is too short). |
+| [`KindFactory`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.KindFactory)               | its parameters as keyword arguments -> an instance.                                                               |
+| [`CORE_OWNER`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.CORE_OWNER)                | Who registered the seeded kinds (only these reach the contract files).                                            |
+
+### Functions
+
+| [`kind_from_spec`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.kind_from_spec)(spec)                               | A kind instance from its contract spec (`{"kind": name, **params}`), a bare kind name, or an instance (returned as is).   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`kind_names`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.kind_names)(\*[, owner])                            | The registered kind names in registration order; only `owner`'s when given.                                               |
+| [`register_kind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.register_kind)(name, factory, \*[, replace, owner]) | Register a field kind under `name` (how a genre adds one).                                                                |
+| [`shortest_delta`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.shortest_delta)(a, b[, period])                     | The signed shortest turn from `a` to `b`, in `[-period/2, period/2]`.                                                     |
+| [`slerp`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.slerp)(a, b, u)                                     | Spherical interpolation of unit quaternions `[x, y, z, w]`, the short way.                                                |
+
+### Classes
+
+| [`AngleKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.AngleKind)([unit, wrap])   | An angle: the shortest arc when `wrap`, else the raw numbers.                           |
+|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`ColorKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.ColorKind)([space])        | A colour (hex or `[r, g, b, a?]` in 0..1), written back in the form of the start value. |
+| [`DiscreteKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.DiscreteKind)([switch_at]) | Holds `a` and switches to `b` on TIME (see the module docstring).                       |
+| [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)()               | Base of every field kind: a frozen, hashable, JSON-describable interpolator.            |
+| [`NumberKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.NumberKind)([space])       | A continuous scalar.                                                                    |
+| [`OrbitKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.OrbitKind)([unit])         | A camera orbiting a target: `{azimuth, elevation, distance, target?}`.                  |
+| [`QuaternionKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.QuaternionKind)()          | A unit quaternion `[x, y, z, w]`, interpolated by slerp after a sign fix.               |
+| [`Segment`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.Segment)(t, start, end)    | Where an evaluation sits: time `t` inside the segment `[start, end)`.                   |
+| [`VectorKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.VectorKind)()              | A fixed-length list of numbers, interpolated componentwise.                             |
+
+### Exceptions
+
+| [`FieldKindError`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKindError)   | A kind spec is malformed, or names no registered kind.   |
+|-------------------------------------------------------------------|----------------------------------------------------------|
+
+### *class* an.timing.kinds.AngleKind(unit='deg', wrap=True)
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+An angle: the shortest arc when `wrap`, else the raw numbers. Interpolated
+angles are not re-normalised (350 -> 10 passes through 360).
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.timing.kinds.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
+
+Who registered the seeded kinds (only these reach the contract files).
+
+### *class* an.timing.kinds.ColorKind(space='oklab')
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A colour (hex or `[r, g, b, a?]` in 0..1), written back in the form of
+the start value. `oklab` mixes perceptually with premultiplied alpha;
+`srgb` lerps the encoded channels (Manim’s and the stage tint’s rule).
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.timing.kinds.DEFAULT_SWITCH_AT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+Where an undeclared discrete value switches, in normalised segment time.
+
+### *class* an.timing.kinds.DiscreteKind(switch_at=0.5)
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+Holds `a` and switches to `b` on TIME (see the module docstring).
+
+`switch_at` lies in `(0, 1]`. The default, 0.5, is the switch point of an
+undeclared property; a replacement drawing (a swap set) declares 1, so it
+never appears before its own key.
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= True*
+
+True when the value (or part of it) switches on TIME rather than moving.
+
+### *class* an.timing.kinds.FieldKind
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Base of every field kind: a frozen, hashable, JSON-describable interpolator.
+
+Subclasses set `name` and implement [`interpolate()`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind.interpolate); the dataclass
+fields are the kind’s parameters, and `to_spec()` writes them as the
+contract does (`{"kind": name, **non-default params}`).
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= False*
+
+True when the value (or part of it) switches on TIME rather than moving.
+
+### *exception* an.timing.kinds.FieldKindError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A kind spec is malformed, or names no registered kind.
+
+### an.timing.kinds.KindFactory
+
+its parameters as keyword arguments -> an instance.
+
+* **Type:**
+  A kind’s factory
+
+alias of `Callable`[[…], [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
+
+### *class* an.timing.kinds.NumberKind(space='linear')
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A continuous scalar. `space="log"` interpolates the logarithm (zoom, scale).
+
+Linear interpolation is `a + (b - a) * u` with no special case at the ends,
+which is the stage runtime’s arithmetic: a declared `number` channel is
+bit-identical to what `runtime.js` draws.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### *class* an.timing.kinds.OrbitKind(unit='deg')
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A camera orbiting a target: `{azimuth, elevation, distance, target?}`.
+
+Azimuth takes the shortest arc, elevation is lerped and clamped to the poles,
+distance is lerped in log, target componentwise. Any other member is discrete
+and switches at [`DEFAULT_SWITCH_AT`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.DEFAULT_SWITCH_AT) (on time). One value: a dotted
+address never reaches inside it.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= True*
+
+True when the value (or part of it) switches on TIME rather than moving.
+
+### an.timing.kinds.QUATERNION_UNIT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
+
+How far a quaternion’s norm may be from 1 and still count as unit length.
+
+### *class* an.timing.kinds.QuaternionKind
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A unit quaternion `[x, y, z, w]`, interpolated by slerp after a sign fix.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.timing.kinds.SLERP_LINEAR_THRESHOLD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.9995*
+
+Above this 
+
+```
+|dot|
+```
+
+, slerp falls back to normalised lerp (the arc is too short).
+
+### *class* an.timing.kinds.Segment(t, start, end)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Where an evaluation sits: time `t` inside the segment `[start, end)`.
+
+#### switched(switch_at)
+
+Whether a discrete value has switched to the segment’s second key.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> Segment(0.5, 0.0, 1.0).switched(0.5), Segment(0.49, 0.0, 1.0).switched(0.5)
+(True, False)
+>>> Segment(0.9999999999, 0.0, 1.0).switched(1.0)  # only at b.time itself
+False
+```
+
+### *class* an.timing.kinds.VectorKind
+
+Bases: [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+A fixed-length list of numbers, interpolated componentwise.
+
+#### check(value)
+
+Why `value` is not valid for this kind, or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### interpolate(a, b, u, seg)
+
+The value between keys `a` and `b` at eased progress `u`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.timing.kinds.kind_from_spec(spec)
+
+A kind instance from its contract spec (`{"kind": name, **params}`),
+a bare kind name, or an instance (returned as is).
+
+* **Return type:**
+  [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
+
+```pycon
+>>> kind_from_spec("discrete")
+DiscreteKind(switch_at=0.5)
+>>> kind_from_spec({"kind": "points"})
+Traceback (most recent call last):
+ ...
+an.timing.kinds.FieldKindError: unknown field kind 'points'; known: ['number', 'angle', 'vector', 'quaternion', 'color', 'orbit', 'discrete']
+```
+
+### an.timing.kinds.kind_names(, owner=None)
+
+The registered kind names in registration order; only `owner`’s when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.timing.kinds.register_kind(name, factory, , replace=False, owner=None)
+
+Register a field kind under `name` (how a genre adds one).
+
+`owner` names who registered it; only [`CORE_OWNER`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.CORE_OWNER)’s kinds reach
+`an`’s contract files.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
+
+```pycon
+>>> sorted(kind_names())[:3]
+['angle', 'color', 'discrete']
+```
+
+### an.timing.kinds.shortest_delta(a, b, period=360.0)
+
+The signed shortest turn from `a` to `b`, in `[-period/2, period/2]`.
+
+An exact half turn goes in the direction of `b - a`, so a return trip
+retraces its path (0 -> 180 -> 0 goes there and back, not round).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> shortest_delta(350, 10), shortest_delta(10, 350), shortest_delta(0, 180)
+(20.0, -20.0, 180.0)
+```
+
+### an.timing.kinds.slerp(a, b, u)
+
+Spherical interpolation of unit quaternions `[x, y, z, w]`, the short way.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+
+# _autosummary/an.timing.spaces.html.md
+
+# an.timing.spaces
+
+Property spaces: what an entity kind’s properties ARE, declared once.
+
+A **property space** is the registration unit an entity kind hands the kernel
+(ADR 0001 decision 11): for each property pattern, its **field kind** (the
+interpolator, [`an.timing.kinds`](_autosummary/an.timing.kinds.html.md#module-an.timing.kinds)), its **write group** (aliases that set the
+same thing — `rotation_rad` is `rotation`; every swap set of one visual
+replaces the same drawing), and its **unit** (stage pixels, radians, a ratio),
+without which moving a value from one engine to another is meaningless.
+
+Patterns are exact property names or `fnmatch` globs (`*@*`). An exact name
+wins; globs are tried in declaration order. A property the space does not declare
+is [`DiscreteKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.DiscreteKind) at the default switch point, and writes
+only itself.
+
+Two spaces are seeded here, and they reproduce today’s output EXACTLY:
+
+- `stage.node` — a node of the 2D stage engine: every name in
+  `an.base.TRANSFORM_PROPERTIES` is `number` (linear), including
+  > `tint_r/g/b` (`tint` itself stays the compiler’s authoring sugar, expanded
+  > into those three before any channel exists, so the wire shape does not move);
+  > every other property names a swap set, `*@*` included, and is
+  > `discrete(switch_at=1)`.
+- `stage.camera` — the stage’s 2D framing camera: `x`, `y`, `zoom`,
+  `rotation`, all plain `number` (the compiler lowers them onto `root`’s
+  pivot, scale and rotation channels). New genres get log zoom and shortest-arc
+  rotation by declaring their own camera space, not by changing this one.
+
+Genres register their own spaces with [`register_space()`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.register_space) (P2: through the
+`an.genres` entry point), without editing this module.
+
+```pycon
+>>> node = get_space("stage.node")
+>>> node.kind_of("x"), node.kind_of("viseme@happy")
+(NumberKind(space='linear'), DiscreteKind(switch_at=1))
+>>> node.write_group("rotation_rad"), node.write_group("hands"), node.unit_of("rotation")
+('rotation', '<swap>', 'rad')
+>>> PropertySpace("demo", ()).kind_of("anything")  # undeclared: discrete
+DiscreteKind(switch_at=0.5)
+```
+
+### Module Attributes
+
+| [`SWAP_WRITE_GROUP`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SWAP_WRITE_GROUP)       | they all replace the one drawing the node carries (`viseme` and `viseme@happy` both set the mouth's texture, an#88).                                                                                                          |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`SWAP_KIND`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SWAP_KIND)              | A replacement drawing never appears before its own key (an#86).                                                                                                                                                               |
+| [`STAGE_NODE_UNITS`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE_UNITS)       | What the stage node's transform properties are measured in.                                                                                                                                                                   |
+| [`STAGE_NODE_ALIASES`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE_ALIASES)     | Properties that write another property's value on the same node.                                                                                                                                                              |
+| [`CORE_OWNER`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.CORE_OWNER)             | Who registered the seeded spaces (only these reach the contract files).                                                                                                                                                       |
+| [`DFLT_VALUE_TYPED_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) | The space whose write groups the value-typed rule (`space=None`) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into `an.stage`) or replacing it needs no kernel edit. |
+| [`SpaceLike`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SpaceLike)              | one space for every target, a registered space's name, or a per-target resolver (P2: target -> its entity kind's space).                                                                                                      |
+| [`STAGE_NODE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE)             | P3 moves their registration into `an.stage`.                                                                                                                                                                                  |
+
+### Functions
+
+| `get_space`(name)                                                                            |                                                                               |
+|----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`register_space`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.register_space)(space, \*[, replace, owner]) | Register `space` under its name (how an entity kind declares its properties). |
+| [`space_from_json`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.space_from_json)(doc)                        | A space from its JSON form (what `PropertySpace.to_json()` writes).           |
+| [`space_names`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.space_names)(\*[, owner])                    | The registered space names in registration order; only `owner`'s when given.  |
+| [`space_resolver`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.space_resolver)(space)                       | `space` as a `target -> PropertySpace` function.                              |
+
+### Classes
+
+| [`FieldDecl`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.FieldDecl)(pattern, kind[, unit, writes, ...])   | One declaration of a property space: pattern -> kind, write group, unit.     |
+|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)(name[, fields, version, ...])     | An entity kind's properties: declarations, matched exact-first then by glob. |
+
+### Exceptions
+
+| [`SpaceError`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SpaceError)   | A property space is malformed, unknown, or already registered.   |
+|---------------------------------------------------------------|------------------------------------------------------------------|
+
+### an.timing.spaces.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
+
+Who registered the seeded spaces (only these reach the contract files).
+
+### an.timing.spaces.DFLT_VALUE_TYPED_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
+
+The space whose write groups the value-typed rule (`space=None`) uses:
+the stage engine’s node, resolved BY NAME at call time, so moving the stage’s
+registration (P3: into `an.stage`) or replacing it needs no kernel edit.
+
+### *class* an.timing.spaces.FieldDecl(pattern, kind, unit=None, writes=None, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One declaration of a property space: pattern -> kind, write group, unit.
+
+#### writes *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The write group this property belongs to; `None` means itself.
+
+### *class* an.timing.spaces.PropertySpace(name, fields=(), version=1, description='', undeclared=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+An entity kind’s properties: declarations, matched exact-first then by glob.
+
+#### declaration(prop)
+
+The declaration governing `prop`, or `None`.
+
+* **Return type:**
+  [`FieldDecl`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.FieldDecl) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### undeclared *: [FieldKind](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)*
+
+The kind of a property no declaration matches.
+
+### an.timing.spaces.STAGE_NODE *: [PropertySpace](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)* *= PropertySpace(name='stage.node', fields=(FieldDecl(pattern='alpha', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='dash_offset', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='pivot_x', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='pivot_y', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='rotation', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='rotation_rad', kind=NumberKind(space='linear'), unit='rad', writes='rotation', description=''), FieldDecl(pattern='scale_x', kind=NumberKind(space='linear'), unit='ratio', writes=None, description=''), FieldDecl(pattern='scale_y', kind=NumberKind(space='linear'), unit='ratio', writes=None, description=''), FieldDecl(pattern='skew_x', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='skew_y', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='tint_b', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='tint_g', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='tint_r', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='trim_end', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='trim_start', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='x', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='y', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='\*@\*', kind=DiscreteKind(switch_at=1), unit=None, writes='<swap>', description='a variant swap set (viseme@happy): replacement animation'), FieldDecl(pattern='\*', kind=DiscreteKind(switch_at=1), unit=None, writes='<swap>', description='any other property names a swap set: replacement animation')), version=1, description='a node of the 2D stage engine: transform properties interpolate as plain numbers; every other property is a swap set that switches at its own key', undeclared=DiscreteKind(switch_at=0.5))*
+
+P3 moves their registration
+into `an.stage`. Kernel code resolves them by name (`get_space`).
+
+* **Type:**
+  Provisional handles on the seeded stage spaces
+
+### an.timing.spaces.STAGE_NODE_ALIASES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'rotation_rad': 'rotation'}*
+
+Properties that write another property’s value on the same node.
+
+### an.timing.spaces.STAGE_NODE_UNITS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'alpha': 'fraction', 'dash_offset': 'px', 'pivot_x': 'px', 'pivot_y': 'px', 'rotation': 'rad', 'rotation_rad': 'rad', 'scale_x': 'ratio', 'scale_y': 'ratio', 'skew_x': 'rad', 'skew_y': 'rad', 'tint_b': 'fraction', 'tint_g': 'fraction', 'tint_r': 'fraction', 'trim_end': 'fraction', 'trim_start': 'fraction', 'x': 'px', 'y': 'px'}*
+
+What the stage node’s transform properties are measured in.
+
+### an.timing.spaces.SWAP_KIND *: [DiscreteKind](_autosummary/an.timing.kinds.html.md#an.timing.kinds.DiscreteKind)* *= DiscreteKind(switch_at=1)*
+
+A replacement drawing never appears before its own key (an#86).
+
+### an.timing.spaces.SWAP_WRITE_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<swap>'*
+
+they all replace the
+one drawing the node carries (`viseme` and `viseme@happy` both set the
+mouth’s texture, an#88).
+
+* **Type:**
+  The write group every swap set on a stage node shares
+
+### *exception* an.timing.spaces.SpaceError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A property space is malformed, unknown, or already registered.
+
+### an.timing.spaces.SpaceLike
+
+one space for every target, a
+registered space’s name, or a per-target resolver (P2: target -> its entity
+kind’s space).
+
+* **Type:**
+  What an evaluator accepts as “the space”
+
+alias of [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Callable`[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)]
+
+### an.timing.spaces.register_space(space, , replace=False, owner=None)
+
+Register `space` under its name (how an entity kind declares its properties).
+
+`owner` names who registered it; only [`CORE_OWNER`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.CORE_OWNER)’s spaces reach
+`an`’s contract files, so an installed genre never edits the core contract.
+
+* **Return type:**
+  [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)
+
+### an.timing.spaces.space_from_json(doc)
+
+A space from its JSON form (what `PropertySpace.to_json()` writes).
+
+* **Return type:**
+  [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)
+
+### an.timing.spaces.space_names(, owner=None)
+
+The registered space names in registration order; only `owner`’s when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.timing.spaces.space_resolver(space)
+
+`space` as a `target -> PropertySpace` function.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)]
+
+
+# _autosummary/an.timing.timeline.html.md
+
+# an.timing.timeline
+
+Timeline: tracks of placed clips with absolute times — the compiled evaluation form.
+
+A `Timeline` is a flat description of *what plays when*: tracks of
+[`PlacedClip`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.PlacedClip), each a [`Clip`](_autosummary/an.timing.clip.html.md#an.timing.clip.Clip) at an absolute start,
+with a duration override, a speed and recorded blend ramps. It is the level the
+stage runtime evaluates (`runtime.js::evaluateTimeline` is a port of
+[`evaluate_timeline()`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.evaluate_timeline)) and the level the contract’s golden vectors exercise
+(`compiled.schema.json`). Authoring composition trees (`an.ir.compose`) are
+flattened into it by a compiler.
+
+`blend_in` and `blend_out` ramps are recorded but **not applied** to pose
+values: the timeline produces the raw pose.
+
+```pycon
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> clip = Clip("walk", duration=1.0, channels=[ch])
+>>> tl = Timeline(duration=2.0, tracks=[Track("a", clips=[PlacedClip(clip, start_time=0.5)])])
+>>> evaluate_timeline(tl, 1.0)[("a", "x")]
+5.0
+```
+
+### Functions
+
+| [`write_group`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.write_group)(prop)                           | What `prop` writes on a STAGE node (the `stage.node` space's groups).       |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`evaluate_timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.evaluate_timeline)(timeline, t, \*[, space]) | Evaluate `timeline` at time `t`, merging poses across tracks/clips.         |
+| [`clip_from_json`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.clip_from_json)(anim, \*[, name])            | One compiled animation (`compiled.schema.json`'s `animation`) as a `Clip`.  |
+| [`timeline_from_compiled`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled)(doc)                 | The compiled document's `timeline`/`animations` as an evaluable `Timeline`. |
+
+### Classes
+
+| [`PlacedClip`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.PlacedClip)(clip[, start_time, duration, ...])   | A clip placed at an absolute time on a track.                           |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`Track`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Track)([target_root, clips])                     | A sequence of placed clips that share a common purpose / target prefix. |
+| [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)(duration[, tracks])                    | A duration + ordered list of tracks.                                    |
+
+### *class* an.timing.timeline.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A clip placed at an absolute time on a track.
+
+#### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Duration this clip occupies on the timeline (after speed scaling).
+
+### *class* an.timing.timeline.Timeline(duration, tracks=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A duration + ordered list of tracks. The canonical playback structure.
+
+### *class* an.timing.timeline.Track(target_root='', clips=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A sequence of placed clips that share a common purpose / target prefix.
+
+`target_root` is informational metadata for downstream tools (the JS
+runtime can use it to scope rendering); evaluation does not filter by it.
+
+### an.timing.timeline.clip_from_json(anim, , name=None)
+
+One compiled animation (`compiled.schema.json`’s `animation`) as a `Clip`.
+
+Accepts the JSON mapping or any object with the same attributes (the stage’s
+`AnimationClipJSON`). Two fields are carried rather than defaulted, and
+both have cost a bug: `loop_mode` (without it every loop evaluated as
+`once` — an#7) and a list-valued `easing`, which is a cubic-bezier
+control quadruple and must stay a tuple for `Keyframe`. The stage compiler
+reads a from-less tween’s start through this too (an#212), so it evaluates
+exactly what the runtime will.
+
+* **Return type:**
+  [`Clip`](_autosummary/an.timing.clip.html.md#an.timing.clip.Clip)
+
+### an.timing.timeline.evaluate_timeline(timeline, t, , space=None)
+
+Evaluate `timeline` at time `t`, merging poses across tracks/clips.
+
+The result is a PURE function of `t` (an#185): what a node shows at `t`
+never depends on which instants were evaluated before it. Per
+`(target, property)`:
+
+- **Active** — some clip writing it is playing at `t` (inclusive end:
+  a clip at `[s, e]` is active at `t == e` too, so the final frame of
+  “play this from 0 to 1 s” is visible at 1.0). Later wins: track order,
+  then clip order within a track. Written at `t`.
+- **Held** — no clip writing it is playing, but one has ended: the value
+  the clip reached AT ITS END holds. The latest end wins; a tie goes to
+  the later clip, the same “later wins” as above. Written at that end.
+- **At rest** — nothing writing it has started yet. The key is ABSENT from
+  the pose, and its value is the node’s own (the entity’s rest state;
+  `runtime.js` restores what it built).
+
+Keys that write the same thing on one node (a write group: the swap sets of
+one visual, `rotation`/`rotation_rad`) keep only the most recently
+WRITTEN — an ended `viseme@happy` span does not outlive the `viseme`
+track that took the mouth back.
+
+`space` says what each property is ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
+registered space’s name, or a `target -> space` resolver. Its field kinds
+interpolate and its write groups resolve. `None` is the stage runtime’s
+rule, which `runtime.js` implements: interpolation by value type, the
+`stage.node` write groups.
+
+Forward-order rendering used to show the value at the clip’s last SAMPLED
+frame instead (the runtime kept whatever it last applied). The two agree
+whenever a clip ends on the frame grid — true of every golden-corpus clip
+— and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
+used to stop at 9.80 and now lands on 10, as authored. That landing is
+deliberate (it is the bug the motion presets’ settling `set` patched one
+preset at a time), and it is what makes the pose independent of the grid.
+Also deliberate: a clip shorter than a frame that no frame lands in now
+leaves its end value, and a held descendant tint stays on top of an
+ancestor’s later tint (the more specific target wins, as it always did
+while both played).
+
+`runtime.js::evaluateTimeline` is a port of this function and
+`tests/test_pure_pose.py` holds the two to it.
+
+```pycon
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
+>>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
+{}
+>>> evaluate_timeline(tl, 1.0)[("a", "x")]  # active
+5.0
+>>> evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds
+10.0
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.timeline.timeline_from_compiled(doc)
+
+The compiled document’s `timeline`/`animations` as an evaluable `Timeline`.
+
+`doc` is the JSON mapping of `compiled.schema.json` or any object with
+the same attributes (the stage’s `CutoutSceneJSON`). This is the Python
+side of the parity contract: `evaluate_timeline` over what it returns is
+the executable spec `runtime.js` is tested against.
+
+`target_root` and the blend ramps are carried although nothing reads them
+yet: a reader that quietly drops a field it was handed is a lossy “rebuilds
+the evaluable form”.
+
+* **Return type:**
+  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
+
+```pycon
+>>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
+...     {"animation_id": "m", "start_time": 0.0}]}]},
+...     "animations": {"m": {"duration": 1.0, "channels": [{"target": "a",
+...     "property": "x", "keyframes": [{"time": 0.0, "value": 0.0},
+...     {"time": 1.0, "value": 4.0}]}]}}}
+>>> evaluate_timeline(timeline_from_compiled(doc), 0.25)
+{('a', 'x'): 1.0}
+```
+
+### an.timing.timeline.write_group(prop)
+
+What `prop` writes on a STAGE node (the `stage.node` space’s groups).
+
+Two keys in one group set the same thing, so only the more recently written
+can be showing: every swap set on a node swaps the one visual it carries
+(`viseme` and `viseme@happy` both set the mouth’s texture, an#88), and
+`rotation_rad` is `rotation`. Every other runtime property
+(`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
+itself.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
+('x', 'rotation', '<swap>')
+```
+
+
 # _autosummary/an.tools.html.md
 
 # an.tools
@@ -24204,20 +26691,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 11:23 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a893770a7c3bc1779dbf6412b8b516cb65b8e3d7"><code>a893770</code></a> on branch <code>main</code>, for **an 0.1.130** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 12:05 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8816a487140ca180269a926ef553b1cfb9c8d8fd"><code>8816a48</code></a> on branch <code>main</code>, for **an 0.1.131** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.130) is ahead of the latest release on PyPI (0.1.129): these docs describe unreleased code.
+- The documented version (0.1.131) is ahead of the latest release on PyPI (0.1.130): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/a893770a7c3bc1779dbf6412b8b516cb65b8e3d7"><code>a893770a7c3bc1779dbf6412b8b516cb65b8e3d7</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/8816a487140ca180269a926ef553b1cfb9c8d8fd"><code>8816a487140ca180269a926ef553b1cfb9c8d8fd</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.130</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.131</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -24226,9 +26713,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36854656927">36854656927</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36858700984">36858700984</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>e6d5f64d388a7b7cd34229f26476ff640b58aebf</code> (in the history of the built commit) |
+| Event commit | <code>3153410da6f60d9cefef14c15a4e8fb1c7712fd1</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -24253,13 +26740,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.129/">0.1.129</a>, older than the documented version (0.1.130).
+Latest release: <a href="https://pypi.org/project/an/0.1.130/">0.1.130</a>, older than the documented version (0.1.131).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout a893770a7c3bc1779dbf6412b8b516cb65b8e3d7
+git checkout 8816a487140ca180269a926ef553b1cfb9c8d8fd
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

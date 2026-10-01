@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="easing.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.timing.easing &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/timing/easing';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.131" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.timing.easing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.timing.easing</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The easing registry: every named timing curve, each with the solver that computes it.</span>
+
+<span class="sd">An **easing** (CSS: *timing function*; Manim: *rate function*) maps a segment's</span>
+<span class="sd">normalised time ``u`` in ``[0, 1]`` to its progress. One registry holds every</span>
+<span class="sd">curve a timeline may name, and each entry carries its own **solver**, because two</span>
+<span class="sd">solvers of "the same" curve do not agree to the contract tolerance (core study</span>
+<span class="sd">§2.3): `an`'s cubic Bézier runs 8 Newton steps and stops, the CSS one runs Newton</span>
+<span class="sd">and then bisects.</span>
+
+<span class="sd">Four vocabularies live here, and none is silently aliased to another:</span>
+
+<span class="sd">- **legacy** — `an`'s own names, with the polynomial curves `an` has always drawn</span>
+<span class="sd">  (``ease``, ``ease_in``, ``ease_out``, ``ease_in_out``, ``step``). ``ease`` and</span>
+<span class="sd">  ``ease_in_out`` are the quadratic ease-in-out, **not** CSS ``ease``; the CSS</span>
+<span class="sd">  ``ease`` curve is spelled ``cubic-bezier(0.25, 0.1, 0.25, 1)``.</span>
+<span class="sd">- **css** — CSS Easing Level 1/2 hyphenated names with the exact CSS curves</span>
+<span class="sd">  (``ease-in``, ``ease-out``, ``ease-in-out``, ``step-start``, ``step-end``),</span>
+<span class="sd">  plus the parametrised ``cubic-bezier(x1, y1, x2, y2)`` and</span>
+<span class="sd">  ``steps(n[, position])``.</span>
+<span class="sd">- **manim** — Manim Community Edition's rate functions under their own names</span>
+<span class="sd">  (``smooth``, ``there_and_back``, ``rush_into``, ...), so a curve means the same</span>
+<span class="sd">  thing whether the stage engine or Manim draws it.</span>
+<span class="sd">- **common** — ``linear``, which every vocabulary agrees on.</span>
+
+<span class="sd">A bare 4-sequence ``[cx1, cy1, cx2, cy2]`` (what `an` scenes have always written)</span>
+<span class="sd">is a cubic Bézier solved by the **legacy** solver, so no existing scene moves.</span>
+
+<span class="sd">&gt;&gt;&gt; apply_easing("linear", 0.5)</span>
+<span class="sd">0.5</span>
+<span class="sd">&gt;&gt;&gt; apply_easing("ease_in_out", 0.25)  # an's quadratic, not CSS</span>
+<span class="sd">0.125</span>
+<span class="sd">&gt;&gt;&gt; round(apply_easing("ease-in-out", 0.25), 6)  # the CSS curve</span>
+<span class="sd">0.129162</span>
+<span class="sd">&gt;&gt;&gt; round(apply_easing("cubic-bezier(0.42, 0, 0.58, 1)", 0.25), 6)</span>
+<span class="sd">0.129162</span>
+<span class="sd">&gt;&gt;&gt; apply_easing("steps(4)", 0.3)</span>
+<span class="sd">0.25</span>
+<span class="sd">&gt;&gt;&gt; round(apply_easing("smooth", 0.25), 6)  # Manim's default rate function</span>
+<span class="sd">0.070104</span>
+<span class="sd">&gt;&gt;&gt; round(apply_easing([0.42, 0.0, 0.58, 1.0], 0.25), 6)  # legacy solver</span>
+<span class="sd">0.129162</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EASING_PRESETS</span><span class="p">,</span> <span class="n">EasingSpec</span>
+
+<span class="c1">#: A curve: normalised time ``u`` -&gt; progress.</span>
+<span class="n">Curve</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span>
+
+<span class="c1">#: Who registered a core entry. Registries record an owner for every entry, and</span>
+<span class="c1">#: the contract files (:mod:`an.timing.contract`) list only this owner's, so a</span>
+<span class="c1">#: genre's registrations never leak into `an`'s core contract.</span>
+<span class="n">CORE_OWNER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an"</span>
+
+<span class="c1">#: The core families (see the module docstring). Open: a genre adds its own</span>
+<span class="c1">#: (a Penner family, say) with :func:`register_family`.</span>
+<span class="n">EASING_FAMILIES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"common"</span><span class="p">,</span> <span class="s2">"legacy"</span><span class="p">,</span> <span class="s2">"css"</span><span class="p">,</span> <span class="s2">"manim"</span><span class="p">)</span>
+<span class="n">_FAMILIES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">EASING_FAMILIES</span><span class="p">,</span> <span class="n">CORE_OWNER</span><span class="p">)</span>
+
+<span class="c1">#: The core solvers, by name. An entry names the one that computes it, so a</span>
+<span class="c1">#: curve's numbers are reproducible in another language from its entry alone.</span>
+<span class="c1">#: Open: a genre adds one (a spring integrator) with :func:`register_solver`.</span>
+<span class="n">SOLVERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"closed-form"</span><span class="p">:</span> <span class="s2">"evaluated directly from its formula"</span><span class="p">,</span>
+    <span class="s2">"an-bezier-newton-8"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"an's cubic Bézier: x(s) = t solved by exactly 8 Newton steps from s = t, "</span>
+        <span class="s2">"each clamped to [0, 1], stopping only on a derivative below 1e-12; no "</span>
+        <span class="s2">"bisection. Bit-identical to runtime.js cubicBezier"</span>
+    <span class="p">),</span>
+    <span class="s2">"css-bezier-newton-bisection"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"the CSS cubic Bézier: up to 8 Newton steps from s = t (stop when "</span>
+        <span class="s2">"|x(s) - t| &lt; 1e-12, give up on a slope below 1e-6), then up to 60 "</span>
+        <span class="s2">"bisection steps on [0, 1] to the same 1e-12"</span>
+    <span class="p">),</span>
+    <span class="s2">"css-steps"</span><span class="p">:</span> <span class="s2">"the CSS Easing Level 1 step algorithm"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">_SOLVER_OWNERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">SOLVERS</span><span class="p">,</span> <span class="n">CORE_OWNER</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="register_family">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.register_family">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_family</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Open a new easing family (refused if it exists)."""</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_FAMILIES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"easing family </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered"</span><span class="p">)</span>
+    <span class="n">_FAMILIES</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">owner</span>
+    <span class="k">return</span> <span class="n">name</span></div>
+
+
+
+<div class="viewcode-block" id="register_solver">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.register_solver">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_solver</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Name a new solver, with the description another language implements it from."""</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"easing solver </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered"</span><span class="p">)</span>
+    <span class="n">SOLVERS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span>
+    <span class="n">_SOLVER_OWNERS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">owner</span>
+    <span class="k">return</span> <span class="n">name</span></div>
+
+
+
+<div class="viewcode-block" id="solvers">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.solvers">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solvers</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The registered solvers; only ``owner``'s when given."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_SOLVER_OWNERS</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="n">owner</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="EasingEntry">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.EasingEntry">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EasingEntry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One named easing: its curve, where it comes from, and how it is solved.</span>
+
+<span class="sd">    ``version`` follows ADR 0003: an entry whose meaning changes gets a new</span>
+<span class="sd">    version, so a shot that names it re-renders visibly instead of silently.</span>
+<span class="sd">    """</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">curve</span><span class="p">:</span> <span class="n">Curve</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">family</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">solver</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">family</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_FAMILIES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: family </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">family</span><span class="si">!r}</span><span class="s2"> is not one of "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_FAMILIES</span><span class="p">)</span><span class="si">}</span><span class="s2"> (register_family adds one)"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: solver </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="si">!r}</span><span class="s2"> is not one of "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">SOLVERS</span><span class="p">)</span><span class="si">}</span><span class="s2"> (register_solver adds one)"</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="EasingEntry.to_json">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.EasingEntry.to_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The entry as the contract file lists it (without samples)."""</span>
+        <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">"version"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+            <span class="s2">"family"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">family</span><span class="p">,</span>
+            <span class="s2">"solver"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"params"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="UnknownEasingError">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.UnknownEasingError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnknownEasingError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An easing spec names no registered curve and parses as no parametrised one."""</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Legacy curves (an's own). DO NOT change their arithmetic: runtime.js mirrors</span>
+<span class="c1"># them bit for bit, and every pixel golden was drawn through them.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_linear</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">t</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ease_in</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ease_out</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ease_in_out</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ease</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""an's ``ease``: the quadratic ease-in-out (NOT CSS ``ease``)."""</span>
+    <span class="k">return</span> <span class="n">_ease_in_out</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_step</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="mf">1.0</span>
+
+
+<span class="c1">#: Newton steps of the legacy Bézier solver, and its degenerate-slope guard.</span>
+<span class="n">LEGACY_BEZIER_NEWTON_STEPS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">LEGACY_BEZIER_MIN_SLOPE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span>
+
+
+<div class="viewcode-block" id="legacy_cubic_bezier">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.legacy_cubic_bezier">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">legacy_cubic_bezier</span><span class="p">(</span>
+    <span class="n">cx1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cy1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cx2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cy2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""an's cubic-Bézier easing at ``t`` — the ``an-bezier-newton-8`` solver.</span>
+
+<span class="sd">    The curve is defined by P0=(0,0), P1=(cx1,cy1), P2=(cx2,cy2), P3=(1,1).</span>
+<span class="sd">    Given a desired x=t we solve for the matching curve parameter u, then</span>
+<span class="sd">    return the y coordinate, by exactly 8 clamped Newton steps.</span>
+
+<span class="sd">    Structurally IDENTICAL to runtime.js::cubicBezier on purpose: always 8</span>
+<span class="sd">    iterations, break only on a degenerate derivative, clamp each step. This</span>
+<span class="sd">    function is the spec of that port, and the two are compared bit-for-bit by</span>
+<span class="sd">    the parity battery — an earlier version had an extra |u_new - u| &lt; 1e-9</span>
+<span class="sd">    early-convergence break the JS side lacked, which left the two a ULP apart;</span>
+<span class="sd">    a numeric channel lerping large magnitudes amplifies a ULP of easing by</span>
+<span class="sd">    (b - a) (found by the an#86 adversarial review; the loops now match).</span>
+
+<span class="sd">    It does NOT agree with the CSS solver (:func:`css_cubic_bezier`) to 1e-9</span>
+<span class="sd">    for every control point, which is why it stays a named legacy solver until</span>
+<span class="sd">    the pixel goldens are re-blessed under the stricter one.</span>
+
+<span class="sd">    &gt;&gt;&gt; round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear</span>
+<span class="sd">    0.5</span>
+<span class="sd">    &gt;&gt;&gt; legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)</span>
+<span class="sd">    (0.0, 1.0)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">bx</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="c1"># x coordinate of the curve at parameter u (note P0.x=0, P3.x=1)</span>
+        <span class="k">return</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cx1</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cx2</span> <span class="o">+</span> <span class="n">u</span><span class="o">**</span><span class="mi">3</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">dbx</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">cx1</span>
+            <span class="o">-</span> <span class="mi">6</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cx1</span>
+            <span class="o">+</span> <span class="mi">6</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cx2</span>
+            <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cx2</span>
+            <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">u</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">by</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cy1</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">cy2</span> <span class="o">+</span> <span class="n">u</span><span class="o">**</span><span class="mi">3</span>
+
+    <span class="n">u</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LEGACY_BEZIER_NEWTON_STEPS</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">bx</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">-</span> <span class="n">t</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">dbx</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">LEGACY_BEZIER_MIN_SLOPE</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">u_new</span> <span class="o">=</span> <span class="n">u</span> <span class="o">-</span> <span class="n">f</span> <span class="o">/</span> <span class="n">fp</span>
+        <span class="c1"># Clamp into the valid range so we don't escape during iteration.</span>
+        <span class="k">if</span> <span class="n">u_new</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">u_new</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">u_new</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">u_new</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">u_new</span>
+    <span class="k">return</span> <span class="n">by</span><span class="p">(</span><span class="n">u</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># CSS curves</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: The CSS named curves, as cubic-bezier control points (CSS Easing Level 1).</span>
+<span class="n">CSS_BEZIERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"ease"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"ease-in"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"ease-out"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"ease-in-out"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1">#: The CSS solver's constants (see ``SOLVERS["css-bezier-newton-bisection"]``).</span>
+<span class="n">CSS_NEWTON_STEPS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">CSS_EPSILON</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span>
+<span class="n">CSS_BISECTION_STEPS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">CSS_MIN_SLOPE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+
+
+<div class="viewcode-block" id="css_cubic_bezier">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.css_cubic_bezier">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">css_cubic_bezier</span><span class="p">(</span><span class="n">x1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">x2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y2</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The CSS ``cubic-bezier(x1, y1, x2, y2)`` curve, solved to well below 1e-9.</span>
+
+<span class="sd">    ``x1`` and ``x2`` must lie in ``[0, 1]`` (so the curve is a function of</span>
+<span class="sd">    time); ``y`` may overshoot.</span>
+
+<span class="sd">    &gt;&gt;&gt; css = css_cubic_bezier(0.42, 0.0, 0.58, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; css(0.0), css(1.0), round(css(0.5), 12)</span>
+<span class="sd">    (0, 1, 0.5)</span>
+<span class="sd">    &gt;&gt;&gt; css_cubic_bezier(1.5, 0, 0, 1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">     ...</span>
+<span class="sd">    ValueError: cubic-bezier x values must lie in [0, 1], got x1=1.5, x2=0</span>
+<span class="sd">    """</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cubic-bezier needs four finite numbers, got </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x1</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x2</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"cubic-bezier x values must lie in [0, 1], got x1=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, x2=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="c1"># Polynomial coefficients of B(s) = 3(1-s)^2 s p1 + 3(1-s) s^2 p2 + s^3.</span>
+    <span class="n">cx</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">x1</span>
+    <span class="n">bx</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span> <span class="o">-</span> <span class="n">cx</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">cx</span> <span class="o">-</span> <span class="n">bx</span>
+    <span class="n">cy</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">y1</span>
+    <span class="n">by</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">-</span> <span class="n">cy</span>
+    <span class="n">ay</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">cy</span> <span class="o">-</span> <span class="n">by</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">x_at</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">ax</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">bx</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">cx</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">y_at</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">ay</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">by</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">cy</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">dx_at</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">ax</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">bx</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">cx</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CSS_NEWTON_STEPS</span><span class="p">):</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">x_at</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">CSS_EPSILON</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">s</span>
+            <span class="n">slope</span> <span class="o">=</span> <span class="n">dx_at</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">CSS_MIN_SLOPE</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">s</span> <span class="o">-=</span> <span class="n">err</span> <span class="o">/</span> <span class="n">slope</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CSS_BISECTION_STEPS</span><span class="p">):</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">x_at</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">CSS_EPSILON</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">s</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">lo</span> <span class="o">=</span> <span class="n">s</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hi</span> <span class="o">=</span> <span class="n">s</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">curve</span><span class="p">(</span><span class="n">tau</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tau</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">tau</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">y_at</span><span class="p">(</span><span class="n">solve</span><span class="p">(</span><span class="n">tau</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">curve</span></div>
+
+
+
+<span class="c1">#: The positions ``steps()`` accepts; ``start``/``end`` are the CSS aliases of</span>
+<span class="c1">#: ``jump-start``/``jump-end``.</span>
+<span class="n">STEP_POSITIONS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"jump-start"</span><span class="p">,</span>
+    <span class="s2">"jump-end"</span><span class="p">,</span>
+    <span class="s2">"jump-none"</span><span class="p">,</span>
+    <span class="s2">"jump-both"</span><span class="p">,</span>
+    <span class="s2">"start"</span><span class="p">,</span>
+    <span class="s2">"end"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">DFLT_STEP_POSITION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"jump-end"</span>
+
+
+<div class="viewcode-block" id="css_steps">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.css_steps">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">css_steps</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_STEP_POSITION</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""CSS ``steps(n, position)``, following the CSS Easing Level 1 algorithm.</span>
+
+<span class="sd">    &gt;&gt;&gt; f = css_steps(4)</span>
+<span class="sd">    &gt;&gt;&gt; [f(u) for u in (0.0, 0.24, 0.25, 0.99, 1.0)]</span>
+<span class="sd">    [0.0, 0.0, 0.25, 0.75, 1.0]</span>
+<span class="sd">    &gt;&gt;&gt; css_steps(3, "jump-none")(0.5)</span>
+<span class="sd">    0.5</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">position</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STEP_POSITIONS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'steps(): unknown position "</span><span class="si">{</span><span class="n">position</span><span class="si">}</span><span class="s1">". Known: </span><span class="si">{</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STEP_POSITIONS</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span>
+        <span class="p">)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"start"</span><span class="p">:</span> <span class="s2">"jump-start"</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">:</span> <span class="s2">"jump-end"</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+    <span class="n">minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="s2">"jump-none"</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"steps() needs a whole number of steps (at least </span><span class="si">{</span><span class="n">minimum</span><span class="si">}</span><span class="s2">), got </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">jumps</span> <span class="o">=</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="s2">"jump-both"</span> <span class="k">else</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="s2">"jump-none"</span> <span class="k">else</span> <span class="n">n</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">curve</span><span class="p">(</span><span class="n">tau</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">tau</span><span class="p">))</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"jump-start"</span><span class="p">,</span> <span class="s2">"jump-both"</span><span class="p">):</span>
+            <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">jumps</span><span class="p">)</span> <span class="o">/</span> <span class="n">jumps</span>
+
+    <span class="k">return</span> <span class="n">curve</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Manim rate functions (Manim Community Edition, manim/utils/rate_functions.py)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: Manim's default sigmoid steepness for ``smooth`` and its relatives.</span>
+<span class="n">MANIM_INFLECTION</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="n">MANIM_PAUSE_RATIO</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mi">3</span>
+<span class="n">MANIM_PULL_FACTOR</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span>
+<span class="n">MANIM_WIGGLES</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">MANIM_LINGER_END</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">MANIM_HALF_LIFE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unit_interval</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Curve</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Manim's ``@unit_interval``: 0 before the segment, 1 after it."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapped</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">wrapped</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_zero</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Curve</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Manim's ``@zero``: 0 outside the segment (curves that return to 0)."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapped</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">wrapped</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_smooth_raw</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inflection</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">MANIM_INFLECTION</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_sigmoid</span><span class="p">(</span><span class="o">-</span><span class="n">inflection</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">((</span><span class="n">_sigmoid</span><span class="p">(</span><span class="n">inflection</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">))</span> <span class="o">-</span> <span class="n">error</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">error</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+
+<span class="n">_smooth</span> <span class="o">=</span> <span class="n">_unit_interval</span><span class="p">(</span><span class="n">_smooth_raw</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_there_and_back_raw</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">new_t</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">t</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_smooth</span><span class="p">(</span><span class="n">new_t</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_there_and_back_with_pause_raw</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">MANIM_PAUSE_RATIO</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">MANIM_PAUSE_RATIO</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_smooth</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="n">MANIM_PAUSE_RATIO</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">_smooth</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">a</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_running_start_raw</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">MANIM_PULL_FACTOR</span>
+    <span class="n">mt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">t</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="mi">15</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">mt</span><span class="o">**</span><span class="mi">4</span> <span class="o">*</span> <span class="n">p</span>
+        <span class="o">+</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">mt</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">p</span>
+        <span class="o">+</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">4</span> <span class="o">*</span> <span class="n">mt</span><span class="o">**</span><span class="mi">2</span>
+        <span class="o">+</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">5</span> <span class="o">*</span> <span class="n">mt</span>
+        <span class="o">+</span> <span class="n">t</span><span class="o">**</span><span class="mi">6</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_double_smooth_raw</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">_smooth</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">_smooth</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">t</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lingering_raw</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># Manim's `squish_rate_func(identity, 0, 0.8)`: t / 0.8, held at 1 after.</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">MANIM_LINGER_END</span> <span class="k">else</span> <span class="n">t</span> <span class="o">/</span> <span class="n">MANIM_LINGER_END</span>
+
+
+<span class="n">_MANIM_CURVES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Curve</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"smooth"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_smooth</span><span class="p">,</span>
+        <span class="s2">"Manim's default rate function: a logistic sigmoid (steepness 10), "</span>
+        <span class="s2">"rescaled to run from 0 to 1"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"smoothstep"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span>
+        <span class="s2">"the first-order smoothstep polynomial 3t^2 - 2t^3"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"smootherstep"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span>
+        <span class="s2">"the second-order smoothstep polynomial 6t^5 - 15t^4 + 10t^3"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"smoothererstep"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mi">35</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">4</span> <span class="o">-</span> <span class="mi">84</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">5</span> <span class="o">+</span> <span class="mi">70</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">6</span> <span class="o">-</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">7</span><span class="p">),</span>
+        <span class="s2">"the third-order smoothstep polynomial"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"rush_into"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">_smooth</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)),</span>
+        <span class="s2">"the first half of smooth, stretched: slow start, full speed at the end"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"rush_from"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">_smooth</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s2">"the second half of smooth, stretched: full speed at the start, slow end"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"slow_into"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">))),</span>
+        <span class="s2">"a quarter circle: fast start, decelerating into the end"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"double_smooth"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="n">_double_smooth_raw</span><span class="p">),</span>
+        <span class="s2">"two smooth curves back to back, each covering half the distance"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"there_and_back"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_zero</span><span class="p">(</span><span class="n">_there_and_back_raw</span><span class="p">),</span>
+        <span class="s2">"goes to 1 at the middle and returns to 0 (the segment ends where it began)"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"there_and_back_with_pause"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_zero</span><span class="p">(</span><span class="n">_there_and_back_with_pause_raw</span><span class="p">),</span>
+        <span class="s2">"there and back, holding at 1 for the middle third"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"running_start"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="n">_running_start_raw</span><span class="p">),</span>
+        <span class="s2">"pulls back (to -0.5 control) before going forward: a degree-6 Bézier "</span>
+        <span class="s2">"evaluated at t directly"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"wiggle"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_zero</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">_there_and_back_raw</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">MANIM_WIGGLES</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t</span><span class="p">)),</span>
+        <span class="s2">"there_and_back times sin(2 pi t): a wiggle that ends where it began"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"lingering"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="n">_lingering_raw</span><span class="p">),</span>
+        <span class="s2">"linear to 1 over the first 80</span><span class="si">% o</span><span class="s2">f the segment, then holds"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"exponential_decay"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">_unit_interval</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span> <span class="o">/</span> <span class="n">MANIM_HALF_LIFE</span><span class="p">)),</span>
+        <span class="s2">"1 - exp(-t / 0.1): reaches 1 - e^-10 at the end of the segment, not 1"</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The registry</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="n">_REGISTRY</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EasingEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">_OWNERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="register_easing">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.register_easing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_easing</span><span class="p">(</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="n">EasingEntry</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasingEntry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Add ``entry`` to the registry (a genre's own curves register here).</span>
+
+<span class="sd">    Re-registering a name is refused unless ``replace=True``, and a replacement</span>
+<span class="sd">    must carry a HIGHER version: a name's meaning changing under a scene that</span>
+<span class="sd">    uses it is exactly what entry versions exist to make visible, so it must be</span>
+<span class="sd">    deliberate and visible. ``owner`` names who registered it (core entries:</span>
+<span class="sd">    :data:`CORE_OWNER`); only core entries reach the contract files.</span>
+<span class="sd">    """</span>
+    <span class="n">old</span> <span class="o">=</span> <span class="n">_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;=</span> <span class="n">old</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: a replacement must raise the version "</span>
+                <span class="sa">f</span><span class="s2">"(registered: </span><span class="si">{</span><span class="n">old</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">, given: </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">), so the "</span>
+                <span class="s2">"change of meaning is visible to every scene that names it"</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">_parse_call</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> would shadow a parametrised spec; pick a plain name"</span>
+        <span class="p">)</span>
+    <span class="n">_REGISTRY</span><span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+    <span class="n">_OWNERS</span><span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">owner</span>
+    <span class="n">_resolve_cached</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">entry</span></div>
+
+
+
+<div class="viewcode-block" id="easing_entry">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.easing_entry">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">easing_entry</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasingEntry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The registered entry called ``name``.</span>
+
+<span class="sd">    &gt;&gt;&gt; easing_entry("ease").family</span>
+<span class="sd">    'legacy'</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_REGISTRY</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown easing preset </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_REGISTRY</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+
+<div class="viewcode-block" id="easing_entries">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.easing_entries">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">easing_entries</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EasingEntry</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every registered entry in registration order; only ``owner``'s when given."""</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">_REGISTRY</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_OWNERS</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">==</span> <span class="n">owner</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_seed</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">register_easing</span><span class="p">(</span>
+        <span class="n">EasingEntry</span><span class="p">(</span>
+            <span class="s2">"linear"</span><span class="p">,</span>
+            <span class="n">_linear</span><span class="p">,</span>
+            <span class="n">family</span><span class="o">=</span><span class="s2">"common"</span><span class="p">,</span>
+            <span class="n">solver</span><span class="o">=</span><span class="s2">"closed-form"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"progress equals time; the same in CSS, Manim and an"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">legacy</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"ease"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">_ease</span><span class="p">,</span>
+            <span class="s2">"an's 'ease': the quadratic ease-in-out (0.125 at u=0.25). NOT "</span>
+            <span class="s2">"CSS 'ease', which is cubic-bezier(0.25, 0.1, 0.25, 1)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">"ease_in"</span><span class="p">:</span> <span class="p">(</span><span class="n">_ease_in</span><span class="p">,</span> <span class="s2">"quadratic ease-in: u^2"</span><span class="p">),</span>
+        <span class="s2">"ease_out"</span><span class="p">:</span> <span class="p">(</span><span class="n">_ease_out</span><span class="p">,</span> <span class="s2">"quadratic ease-out: 1 - (1 - u)^2"</span><span class="p">),</span>
+        <span class="s2">"ease_in_out"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">_ease_in_out</span><span class="p">,</span>
+            <span class="s2">"quadratic ease-in-out: 2u^2, then 1 - 2(1 - u)^2"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">"step"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">_step</span><span class="p">,</span>
+            <span class="s2">"0 until u reaches 1, then 1 (a hold that jumps at the next key)"</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span> <span class="ow">in</span> <span class="n">legacy</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">register_easing</span><span class="p">(</span>
+            <span class="n">EasingEntry</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">curve</span><span class="p">,</span>
+                <span class="n">family</span><span class="o">=</span><span class="s2">"legacy"</span><span class="p">,</span>
+                <span class="n">solver</span><span class="o">=</span><span class="s2">"closed-form"</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">CSS_BEZIERS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"ease"</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># 'ease' is an's legacy curve; the CSS one is cubic-bezier(...)</span>
+        <span class="n">register_easing</span><span class="p">(</span>
+            <span class="n">EasingEntry</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">css_cubic_bezier</span><span class="p">(</span><span class="o">*</span><span class="n">points</span><span class="p">),</span>
+                <span class="n">family</span><span class="o">=</span><span class="s2">"css"</span><span class="p">,</span>
+                <span class="n">solver</span><span class="o">=</span><span class="s2">"css-bezier-newton-bisection"</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">"CSS '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">': cubic-bezier</span><span class="si">{</span><span class="n">points</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"control_points"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">points</span><span class="p">)},</span>
+            <span class="p">),</span>
+            <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">register_easing</span><span class="p">(</span>
+        <span class="n">EasingEntry</span><span class="p">(</span>
+            <span class="s2">"step-start"</span><span class="p">,</span>
+            <span class="n">css_steps</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"jump-start"</span><span class="p">),</span>
+            <span class="n">family</span><span class="o">=</span><span class="s2">"css"</span><span class="p">,</span>
+            <span class="n">solver</span><span class="o">=</span><span class="s2">"css-steps"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"CSS 'step-start': steps(1, jump-start)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">register_easing</span><span class="p">(</span>
+        <span class="n">EasingEntry</span><span class="p">(</span>
+            <span class="s2">"step-end"</span><span class="p">,</span>
+            <span class="n">css_steps</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"jump-end"</span><span class="p">),</span>
+            <span class="n">family</span><span class="o">=</span><span class="s2">"css"</span><span class="p">,</span>
+            <span class="n">solver</span><span class="o">=</span><span class="s2">"css-steps"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"CSS 'step-end': steps(1, jump-end)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_MANIM_CURVES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">register_easing</span><span class="p">(</span>
+            <span class="n">EasingEntry</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">curve</span><span class="p">,</span>
+                <span class="n">family</span><span class="o">=</span><span class="s2">"manim"</span><span class="p">,</span>
+                <span class="n">solver</span><span class="o">=</span><span class="s2">"closed-form"</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Manim rate function '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="c1">#: The easings the value-typed rule accepts: exactly ``runtime.js``'s</span>
+<span class="c1">#: ``EASINGS`` table (the stage engine draws these and no others), so the Python</span>
+<span class="c1">#: spec of that rule refuses what the browser would refuse.</span>
+<span class="n">VALUE_TYPED_EASINGS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">EASING_PRESETS</span><span class="p">)</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Parametrised specs and the dispatcher</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="n">_CALL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^([a-z-]+)\((.*)\)$"</span><span class="p">)</span>
+
+
+<span class="c1">#: A number as both languages parse it alike (no ``1_0``, no ``inf``, no hex).</span>
+<span class="n">_NUMBER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_numbers</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_NUMBER</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> is not a number"</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_call</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``cubic-bezier(...)`` / ``steps(...)`` as a curve; ``None`` if not a call."""</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_CALL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"cubic-bezier"</span><span class="p">:</span>
+        <span class="n">nums</span> <span class="o">=</span> <span class="n">_parse_numbers</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: cubic-bezier takes 4 numbers, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">css_cubic_bezier</span><span class="p">(</span><span class="o">*</span><span class="n">nums</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"steps"</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: steps takes at most 2 arguments"</span>
+            <span class="p">)</span>
+        <span class="p">(</span><span class="n">number</span><span class="p">,)</span> <span class="o">=</span> <span class="n">_parse_numbers</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> is not a whole number"</span>
+            <span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">DFLT_STEP_POSITION</span>
+        <span class="k">return</span> <span class="n">css_steps</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"unknown easing function </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">; known: cubic-bezier(), steps()"</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_cached</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">curve</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="n">_parse_call</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">parsed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hint</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">" (CSS spells it </span><span class="si">{</span><span class="n">spec</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_'</span><span class="p">,</span><span class="w"> </span><span class="s1">'-'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">)"</span>
+            <span class="k">if</span> <span class="s2">"_"</span> <span class="ow">in</span> <span class="n">spec</span> <span class="ow">and</span> <span class="n">spec</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_REGISTRY</span>
+            <span class="k">else</span> <span class="s2">""</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown easing preset </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}{</span><span class="n">hint</span><span class="si">}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_REGISTRY</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="s2">"cubic-bezier(x1, y1, x2, y2), steps(n[, position])"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">parsed</span>
+
+
+<div class="viewcode-block" id="resolve_easing">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.resolve_easing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The curve an easing spec names.</span>
+
+<span class="sd">    - ``None`` -&gt; linear;</span>
+<span class="sd">    - a registered name, ``cubic-bezier(x1, y1, x2, y2)`` or ``steps(n[, position])``;</span>
+<span class="sd">    - a 4-sequence ``[cx1, cy1, cx2, cy2]`` -&gt; the legacy Bézier solver.</span>
+
+<span class="sd">    Raises :class:`UnknownEasingError` (a ``ValueError``) for an unknown name or</span>
+<span class="sd">    a malformed sequence, ``TypeError`` for any other type.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_linear</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_resolve_cached</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"cubic-bezier easing requires exactly 4 control values, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">cx1</span><span class="p">,</span> <span class="n">cy1</span><span class="p">,</span> <span class="n">cx2</span><span class="p">,</span> <span class="n">cy2</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">legacy_cubic_bezier</span><span class="p">(</span><span class="n">cx1</span><span class="p">,</span> <span class="n">cy1</span><span class="p">,</span> <span class="n">cx2</span><span class="p">,</span> <span class="n">cy2</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unsupported easing spec type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="apply_easing">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.apply_easing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_easing</span><span class="p">(</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">names</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Apply an easing spec to a normalised parameter ``t`` in ``[0, 1]``.</span>
+
+<span class="sd">    ``names`` restricts the string specs accepted to that collection — what an</span>
+<span class="sd">    engine that implements only part of the registry passes (the stage runtime</span>
+<span class="sd">    implements the legacy names; see ``an.adapters.cutout.easing``). Sequences</span>
+<span class="sd">    always take the legacy Bézier solver.</span>
+
+<span class="sd">    &gt;&gt;&gt; apply_easing(None, 0.25)</span>
+<span class="sd">    0.25</span>
+<span class="sd">    &gt;&gt;&gt; apply_easing("step", 0.99), apply_easing("step", 1.0)</span>
+<span class="sd">    (0.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; apply_easing("smooth", 0.5, names={"linear"})</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">     ...</span>
+<span class="sd">    an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">spec</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown easing preset </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># the hot path: one dict lookup, as before the registry</span>
+            <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">curve</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resolve_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">)(</span><span class="n">t</span><span class="p">)</span></div>
+
+
+
+<span class="n">_seed</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

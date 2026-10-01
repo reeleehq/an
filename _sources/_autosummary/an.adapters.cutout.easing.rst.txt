@@ -4,6 +4,12 @@ an.adapters.cutout.easing
 .. automodule:: an.adapters.cutout.easing
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      EASING_FUNCS
+   
    .. rubric:: Functions
 
    .. autosummary::

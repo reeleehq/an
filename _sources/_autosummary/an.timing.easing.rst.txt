@@ -1,0 +1,49 @@
+an.timing.easing
+================
+
+.. automodule:: an.timing.easing
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Curve
+      CORE_OWNER
+      EASING_FAMILIES
+      SOLVERS
+      LEGACY_BEZIER_NEWTON_STEPS
+      CSS_BEZIERS
+      CSS_NEWTON_STEPS
+      STEP_POSITIONS
+      MANIM_INFLECTION
+      VALUE_TYPED_EASINGS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      apply_easing
+      css_cubic_bezier
+      css_steps
+      easing_entries
+      easing_entry
+      legacy_cubic_bezier
+      register_easing
+      register_family
+      register_solver
+      resolve_easing
+      solvers
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EasingEntry
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnknownEasingError
+   
