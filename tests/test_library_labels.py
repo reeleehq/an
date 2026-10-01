@@ -420,3 +420,92 @@ def test_the_registry_warns_whenever_it_is_created_from_nothing(tmp_path):
     library_api.reindex(study)  # ... until it is written to or reindexed
     again = publish(open_library("an"), "prop.stool2", {"name": "s"}, {"parts/s.svg": CARVED}, source=CC0)
     assert again.rights.license_class == "private"
+
+
+# ============================================================ an#269: the factory's own bytes
+
+
+def _strip_stamps(char: Path) -> None:
+    """The character as a factory made it BEFORE stamps existed: no source anywhere."""
+    path = char / "character.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    doc.pop("source", None)
+    for skin in doc["skins"].values():
+        for slot in skin["slots"].values():
+            for att in slot.values():
+                att.pop("source", None)
+    path.write_text(json.dumps(doc), encoding="utf-8")
+
+
+def test_a_fresh_factory_character_is_free_beside_an_older_unlabelled_copy(tmp_path):
+    """The e2e's finding 4: an older, unlabelled asset holding the same factory
+    bytes is silent about them, and silence does not outrank the factory's
+    verified stamp — no flag needed."""
+    old = new_character(tmp_path / "old", name="alice", use_dicebear=False).parent
+    _strip_stamps(old)
+    other = open_library("cutan", root=tmp_path / "elsewhere")
+    assert publish_dir(other, old, "character.alice").rights.license_class == "unknown"
+    fresh = new_character(tmp_path / "fresh", name="alice", use_dicebear=False).parent
+    r = publish_dir(open_library("cutan"), fresh, "character.alice-reiniger")
+    assert r.rights.license_class == "free", r.rights.reasons
+
+
+def test_the_factory_record_is_written_by_its_stamping_code_only(tmp_path):
+    char = new_character(tmp_path, name="amy", use_dicebear=False).parent
+    drawing = library_api.content_hash((char / "amy.svg").read_bytes())
+    head = library_api.content_hash((char / "parts" / "head.svg").read_bytes())
+    from an.characters.factory import FACTORY_PROVIDER
+
+    assert FACTORY_PROVIDER in registry.generated_by(drawing)
+    assert FACTORY_PROVIDER in registry.generated_by(head)
+    assert registry.generated_by(library_api.content_hash(CARVED)) == frozenset()
+
+
+@pytest.mark.parametrize("claim", ["a person's cc0", "a forged factory stamp"])
+def test_a_hand_written_cc0_does_not_label_unlabelled_carved_bytes(tmp_path, claim):
+    """The attack: carved bytes published with no label elsewhere, then reused
+    under a per-part cc0 pinned to their digest. Only the factory's record
+    verifies a stamp, so the other asset's silence still binds; a relicence
+    is the way out."""
+    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+
+    lib = open_library("cutan")
+    publish(lib, "prop.carving", {"name": "c"}, {"parts/head.svg": CARVED})  # unlabelled
+    digest = library_api.content_hash(CARVED)
+    source = (
+        {"provider": "me", "license": "cc0-1.0", "sha256": digest}
+        if claim == "a person's cc0"
+        else {"provider": FACTORY_PROVIDER, "license": FACTORY_LICENSE, "sha256": digest}
+    )
+    doc = {
+        "name": "x",
+        "source": {"provider": "me", "license": "cc0-1.0"},
+        "skins": {"default": {"slots": {"head": {"head": {"path": "parts/head.svg", "source": source}}}}},
+    }
+    r = publish(lib, "character.x", doc, {"parts/head.svg": CARVED}, source=CC0)
+    assert r.rights.license_class == "unknown", r.rights.reasons
+    assert any("same bytes as cutan:prop.carving" in reason for reason in r.rights.reasons)
+    freed = publish(lib, "character.x", doc, {"parts/head.svg": CARVED}, source=CC0,
+                    relicense={"by": "tests", "reason": "I carved it from my own drawing"})
+    assert freed.rights.license_class == "free"
+
+
+def test_the_factory_record_never_relaxes_a_private_statement(tmp_path):
+    """A study (made before stamps) whose asset-level private label covers the
+    factory's bytes still binds them: only silence gives way."""
+    study = new_character(tmp_path / "study", name="alice", use_dicebear=False).parent
+    _strip_stamps(study)
+    publish_dir(open_library("cutan", root=tmp_path / "study-lib"), study, "character.study",
+                source=PRIVATE)
+    fresh = new_character(tmp_path / "fresh", name="alice", use_dicebear=False).parent
+    r = publish_dir(open_library("cutan"), fresh, "character.alice")
+    assert r.rights.license_class == "private"
+
+
+def test_a_re_carved_part_under_a_stale_factory_stamp_is_not_the_factorys(tmp_path):
+    """The record verifies a stamp only where the stamp pins the file's bytes."""
+    lib = open_library("cutan")
+    publish(lib, "prop.carving", {"name": "c"}, {"parts/head.svg": CARVED})  # unlabelled
+    char = new_character(tmp_path, name="amy", use_dicebear=False).parent
+    (char / "parts" / "head.svg").write_bytes(CARVED)
+    assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"

@@ -952,6 +952,30 @@ def factory_descriptor_source(source_svg: bytes) -> AssetSource:
     )
 
 
+def _record_drawn(digests: "list[str]") -> None:
+    """Record on this machine that the factory drew these bytes (an#269).
+
+    What verifies the factory's stamps in the asset library: a stamp written
+    by hand, or copied onto other bytes, has no such record. It is written
+    only here, by the code that has just drawn the bytes. If it cannot be
+    written, the stamps stand unverified — the stricter reading — and a
+    warning says so.
+    """
+    import warnings
+
+    from an.library.registry import RegistryError, record_generated
+
+    try:
+        record_generated(sorted(set(digests)), generator=FACTORY_PROVIDER)
+    except RegistryError as e:
+        warnings.warn(
+            f"{e}; the character is stamped, but its bytes are not recorded as the "
+            "factory's, so an older unlabelled asset holding the same bytes keeps "
+            "it `unknown` in the asset library",
+            stacklevel=3,
+        )
+
+
 def stamp_factory_descriptor(char_dir: str | Path) -> Path:
     """Record the factory as the source of the character it just drew at ``char_dir``.
 
@@ -972,6 +996,7 @@ def stamp_factory_descriptor(char_dir: str | Path) -> Path:
         return desc_path
     desc.source = factory_descriptor_source(drawing.read_bytes())
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+    _record_drawn([desc.source.sha256])
     return desc_path
 
 
@@ -1056,6 +1081,7 @@ def stamp_factory_parts(
     desc_path = char_dir / "character.json"
     raw = json.loads(desc_path.read_text(encoding="utf-8"))
     desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
+    drawn: list[str] = []
     for skin in desc.skins.values():
         for attachments in skin.slots.values():
             for att in attachments.values():
@@ -1071,7 +1097,9 @@ def stamp_factory_parts(
                 ):
                     continue
                 att.source = factory_source(file.read_bytes())
+                drawn.append(att.source.sha256)
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+    _record_drawn(drawn)
     return desc_path
 
 
