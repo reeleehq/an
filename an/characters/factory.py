@@ -643,6 +643,76 @@ def new_character(
         _scale_face(out, head_scale)
     if views and head_is_ours:
         add_views(out)
+    # Last, so every part is stamped with the bytes it finally has. A DiceBear
+    # head is not this factory's drawing: it keeps the descriptor's source.
+    stamp_factory_parts(out, skip=() if head_is_ours else ("parts/head.svg",))
+    return desc_path
+
+
+#: The provider of every per-part source the factory stamps on what it draws.
+FACTORY_PROVIDER: str = "an character factory"
+#: The licence of the factory's own drawings: no rights to clear.
+FACTORY_LICENSE: str = "cc0-1.0"
+
+
+def factory_source(data: bytes) -> AssetSource:
+    """The per-part source of a part this factory drew, pinned to its bytes.
+
+    >>> factory_source(b"<svg/>").license, len(factory_source(b"<svg/>").sha256)
+    ('cc0-1.0', 64)
+    """
+    return AssetSource(
+        provider=FACTORY_PROVIDER,
+        license=FACTORY_LICENSE,
+        sha256=hashlib.sha256(data).hexdigest(),
+        cost_usd=0.0,
+    )
+
+
+def stamp_factory_parts(
+    char_dir: str | Path,
+    paths: "set[str] | None" = None,
+    *,
+    skip: tuple[str, ...] = (),
+) -> Path:
+    """Give each part the factory drew a ``cc0`` per-part source pinned to its digest.
+
+    Rights in the asset library attach to the BYTES (an#236): a file is as
+    restricted as the strictest thing any library says about its SHA-256, and an
+    asset-level licence speaks for every file the asset does not itemise. The
+    factory's parts are byte-identical across characters (the default mouths,
+    the eyes), so without this stamp a carved character built on a factory body
+    would make every other character's shared parts private. The stamp pins the
+    digest, so a part later re-drawn or re-carved no longer matches it and stops
+    being itemised as the factory's — the stamp cannot launder new bytes.
+
+    paths: the relative paths this call drew (default: every attachment whose
+        file exists, minus ``skip``). A part carrying some other provider's
+        source is never re-stamped.
+    """
+    from an.characters.schema import CharacterDescriptor
+    from an.ir.migrate import migrate
+
+    char_dir = Path(char_dir)
+    desc_path = char_dir / "character.json"
+    raw = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
+    for skin in desc.skins.values():
+        for attachments in skin.slots.values():
+            for att in attachments.values():
+                file = char_dir / att.path
+                if (
+                    att.path in skip
+                    or (paths is not None and att.path not in paths)
+                    or not file.is_file()
+                    or (
+                        att.source is not None
+                        and att.source.provider != FACTORY_PROVIDER
+                    )
+                ):
+                    continue
+                att.source = factory_source(file.read_bytes())
+    desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
     return desc_path
 
 
@@ -998,7 +1068,14 @@ def add_gaze(
     }
     desc.metadata["gaze_stack"] = "an#99"
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
-    return desc_path
+    return stamp_factory_parts(
+        char_dir,
+        {
+            f"parts/{stem.format(side)}.svg"
+            for side in ("l", "r")
+            for stem in ("eye_{}_open", "eye_{}_closed", "sclera_{}", "pupil_{}")
+        },
+    )
 
 
 def _hex_or_none(colour: str | None) -> str | None:
@@ -1596,4 +1673,12 @@ def add_views(char_dir: str | Path) -> Path:
         desc.colour_roles.update(roles)
     meta["views"] = list(VIEWS)
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
-    return desc_path
+    return stamp_factory_parts(
+        char_dir,
+        {
+            f"parts/{slot}_{view}.svg"
+            for slot in ("head", "torso")
+            for view in VIEWS
+            if view != DFLT_VIEW
+        },
+    )

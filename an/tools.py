@@ -24,6 +24,7 @@ from an.characters.cli import (
 )
 from an.impacts.cli import _dispatch_funcs as _impacts_dispatch_funcs
 from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
+from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
 
 
 def init(project_dir: str, name: str | None = None, force: bool = False) -> str:
@@ -554,4 +555,6 @@ _dispatch_namespaces: dict[str, list] = {
     "character": _character_dispatch_funcs,
     "impacts": _impacts_dispatch_funcs,
     "voices": _voices_dispatch_funcs,
+    # The asset library (ADR 0005): `an library find --affords limbs.legs`.
+    "library": _library_dispatch_funcs,
 }
