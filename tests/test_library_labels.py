@@ -675,3 +675,26 @@ def test_a_label_answers_a_gap_behind_a_verified_derived_from(tmp_path):
     assert publish(lib, "prop.c", {"name": "c"}, files).rights.license_class == "unknown"
     assert publish(lib, "prop.c", {"name": "c"}, files, source=CC0,
                    relabel=LABEL).rights.license_class == "free"
+
+
+def test_a_file_swapped_in_while_the_factory_runs_is_not_recorded(tmp_path, monkeypatch):
+    """Round-2 nit: the record holds the digests of the bytes the factory wrote,
+    computed as it wrote them — not whatever the folder holds when it ends."""
+    from an.characters import factory
+
+    lib = open_library("cutan")
+    publish(lib, "prop.old-carve", {"name": "old"}, {"parts/head.svg": CARVED})  # unlabelled
+    original = factory.stamp_factory_parts
+
+    def swap_then_stamp(char_dir, paths, **kwargs):
+        (Path(char_dir) / "parts" / "head.svg").write_bytes(CARVED)  # not the factory's write
+        return original(char_dir, paths, **kwargs)
+
+    monkeypatch.setattr(factory, "stamp_factory_parts", swap_then_stamp)
+    # no views or gaze: the one stamping call is the last step, after every draw
+    char = new_character(tmp_path, name="amy", use_dicebear=False, views=False, gaze=False).parent
+    assert registry.generated_by(library_api.content_hash(CARVED)) == frozenset()
+    assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"
+    # the parts it did write are still its own
+    torso = library_api.content_hash((char / "parts" / "torso.svg").read_bytes())
+    assert factory.FACTORY_PROVIDER in registry.generated_by(torso)

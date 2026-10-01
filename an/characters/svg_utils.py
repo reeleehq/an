@@ -386,5 +386,7 @@ def write_svg(tree_or_element: Any, path: str | Path | None = None) -> bytes:
     ET.ElementTree(root).write(buf, encoding="utf-8", xml_declaration=True)
     data = buf.getvalue()
     if path is not None:
-        Path(path).write_bytes(data)
+        from an.characters import drawn  # logged while the factory draws
+
+        drawn.write_bytes(path, data)
     return data
