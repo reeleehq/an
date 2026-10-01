@@ -1091,8 +1091,11 @@ def compile_shot(
             "runtime indexes both layers by path, so one would shadow the other"
         )
     entity_swaps: list[_EntitySwap] = []
+    # The speech aspect, resolved once per speaker (an#248): the pulses it adds
+    # here, and the speakers whose lip-sync it switched off for the viseme pass.
+    speech = _speech_plan(shot, vocab, resolutions)
     animations, tracks = _compile_actions(
-        [*shot.actions, *_speech_default_actions(shot, vocab, resolutions)],
+        [*shot.actions, *speech.actions],
         shot.duration,
         vocab=vocab,
         resolutions=resolutions,
@@ -1119,6 +1122,7 @@ def compile_shot(
         fps=fps,
         provider=provider,
         view_spans=view_spans,
+        no_lip_sync=speech.no_lip_sync,
     )
     # The face (an#98): blinks, expressions and the silent mouth form — one
     # channel per (node, property), ahead of everything authored. An entity
@@ -3971,20 +3975,21 @@ def _built_parts(vocab: _SwapVocabulary, entity: str) -> list[str]:
     return [p[len(prefix) :] for p in vocab.node_transforms if p.startswith(prefix)]
 
 
-def _speech_default_actions(
+def _speech_plan(
     shot: Shot,
     vocab: _SwapVocabulary,
     resolutions: list[AssetResolutionJSON] | None,
-) -> list[Action]:
-    """The speech aspect's additions (an#248): a pulse on the syllables for each
-    line whose speaker cannot lip-sync (a baked face). A shot whose speakers all
-    have a mouth chart gets none — its document is unchanged."""
-    from an.characters.methods import speech_default_actions
+):
+    """The speech aspect's plan for the shot (an#248): the pulses a speaker that
+    does not lip-sync gets, and who those speakers are. A shot whose speakers
+    all lip-sync on their mouth chart gets nothing — its document is unchanged."""
+    from an.characters.methods import speech_plan
 
-    return speech_default_actions(
+    return speech_plan(
         shot,
         is_character=lambda e: _on_registry(e, vocab),
         profile_of=lambda e: _character_profile(e, vocab),
+        descriptor_of=lambda e: vocab.descriptors.get(e),
         has_part=lambda path: path in vocab.node_transforms,
         record=lambda sub: _record_substitution(sub, resolutions),
     )
@@ -4019,16 +4024,19 @@ def _record_substitution(
         resolutions.append(AssetResolutionJSON(**substitution_record(sub)))
 
 
-def _locomotion_gait(
+def _locomotion_args(
     entity: str,
     args: Mapping[str, Any],
     desc: Any,
     vocab: _SwapVocabulary,
     resolutions: list[AssetResolutionJSON] | None,
-) -> str:
-    """The walk's gait: the locomotion method the registry resolves (an#248)."""
-    from an.characters.methods import resolve_walk_gait
+) -> dict[str, Any]:
+    """The walk's args with its gait the locomotion method the registry resolves
+    (an#248): a method id or a pinned choice in ``gait`` is spelled out first,
+    its args joining the walk's."""
+    from an.characters.methods import normalise_gait_args, resolve_walk_gait
 
+    args = normalise_gait_args(args)
     gait, resolution = resolve_walk_gait(
         entity,
         args=args,
@@ -4037,7 +4045,7 @@ def _locomotion_gait(
     )
     if resolution.substitution is not None:
         _record_substitution(resolution.substitution, resolutions)
-    return gait
+    return {**args, GAIT_ARG: gait}
 
 
 def _with_view_and_posed_parts(
@@ -4090,9 +4098,9 @@ def _with_view_and_posed_parts(
             args[VIEW_ARG] = view
             action = action.model_copy(update={"args": args})
     if preset_takes(action.animation, GAIT_ARG) and _on_registry(entity, vocab):
-        gait = _locomotion_gait(entity, args, desc, vocab, resolutions)
-        if args.get(GAIT_ARG) != gait:
-            args[GAIT_ARG] = gait
+        resolved = _locomotion_args(entity, args, desc, vocab, resolutions)
+        if resolved != args:
+            args = resolved
             action = action.model_copy(update={"args": args})
     posed: dict[tuple[str, str], _StepCurve] = {}
     if posed_view is not None and entity in vocab.descriptors:
@@ -4609,9 +4617,14 @@ def _add_viseme_clips(
     fps: int = 30,
     provider: ExpressionProvider | None = None,
     view_spans: Mapping[str, list[_ViewSpan]] | None = None,
+    no_lip_sync: frozenset[str] = frozenset(),
 ) -> None:
     """For each dialogue line with a viseme_track, emit a step swap channel on
     every node of the speaker that can apply the line's mouth set.
+
+    ``no_lip_sync`` are the speakers whose speech aspect did not resolve to
+    the mouth chart (an#248: one decision, the capability registry's); they
+    get no viseme channel.
 
     **The view picks first** (an#220): a line that starts while the speaker
     is in a view it declares a mouth for (``viseme@side``, per
@@ -4687,7 +4700,7 @@ def _add_viseme_clips(
             # No timing assigned (audio pipeline didn't run); skip silently.
             continue
         speaker = line.speaker
-        if speaker in face_baked:
+        if speaker in face_baked or speaker in no_lip_sync:
             continue
         set_name = VISEME_CHANNEL
         desc = vocab.descriptors.get(speaker) if vocab is not None else None

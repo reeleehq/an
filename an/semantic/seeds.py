@@ -137,8 +137,16 @@ def schema_of_callable(
 
 
 @lru_cache(maxsize=None)
-def _fields_of(model: type) -> tuple[str, ...]:
-    return tuple(getattr(model, "model_fields", {}) or ())
+def _schema_of(model: type) -> dict[str, Any]:
+    """The action model's JSON Schema (ADR 0003 decision 5), without its ``kind``."""
+    try:
+        schema = dict(model.model_json_schema())
+    except Exception:  # noqa: BLE001 — a model pydantic cannot describe: its field names
+        schema = {"type": "object", "properties": {f: {} for f in getattr(model, "model_fields", {})}}
+    props = dict(schema.get("properties") or {})
+    props.pop("kind", None)
+    schema["properties"] = props
+    return schema
 
 
 def _action_kinds() -> Iterable[tuple[Entry, str]]:
@@ -146,7 +154,6 @@ def _action_kinds() -> Iterable[tuple[Entry, str]]:
 
     for name in r.action_kind_names():
         kind = r.action_kind(name)
-        fields = [f for f in _fields_of(kind.model) if f != "kind"]
         yield (
             Entry(
                 f"action.{name}",
@@ -154,10 +161,7 @@ def _action_kinds() -> Iterable[tuple[Entry, str]]:
                 version=kind.version,
                 name=name,
                 description=kind.description,
-                params={
-                    "type": "object",
-                    "properties": {f: {} for f in fields},
-                },
+                params=_schema_of(kind.model),
                 levels=frozenset({"a"}),
             ),
             r.action_kind_owner(name) or CORE_OWNER,
@@ -388,7 +392,6 @@ def _core_fields() -> tuple[Entry, ...]:
             "replacing in the same patch list). 'start' and 'duration' are "
             "stamped by the audio pipeline from these on every render — never "
             "patch them.",
-            aspects=("speech",),
             description="who says what, and when",
         ),
         _field(

@@ -6,10 +6,11 @@ the shots that say it — visibly, never silently. :func:`vocabulary_versions`
 walks a shot and collects ``{entry id: version}``; :func:`vocabulary_digest`
 hashes it.
 
-**Hook.** The content-keyed shot cache (P6, an#242) adds key parts through
-``an.build.keys.register_shot_key_part(renderer, name, fn)``; this digest is
-the ``vocabulary`` part, registered by :func:`register_vocabulary_key_part`
-once that seam exists (it is a no-op returning ``False`` until then).
+**In the shot key.** The content-keyed shot cache (P6, an#242) adds key parts
+through ``an.build.keys.register_shot_key_part(renderer, name, fn)``; this
+digest is the cut-out keyer's ``vocabulary`` part
+(:func:`register_vocabulary_key_part`, called by ``an.adapters.cutout``), so
+bumping an entry's version re-renders the shots that use it.
 
 Over-inclusion is deliberate and safe: a ``play`` of a name that is a motion
 preset counts the preset even if the character's descriptor shadows it, and a
@@ -34,6 +35,7 @@ from an.semantic.registry import entries, lookup, methods_of
 __all__ = [
     "VOCABULARY_KEY_PART",
     "register_vocabulary_key_part",
+    "vocabulary_key_part",
     "vocabulary_digest",
     "vocabulary_versions",
 ]
@@ -74,7 +76,11 @@ def _names(shot) -> Iterator[tuple[str, str]]:
         if isinstance(preset, str):
             yield "expression_preset", preset
     if shot.dialogue:
-        yield "field", "shot.dialogue"
+        # Every field entry under `shot.dialogue` (a genre's `emotion` names the
+        # aspect a spoken line resolves — the core's field names no genre's).
+        for e in entries(kind="field"):
+            if e.term == "shot.dialogue" or e.term.startswith("shot.dialogue."):
+                yield "field", e.term
     for line in shot.dialogue or ():
         emotion = getattr(line, "emotion", None)
         if isinstance(emotion, str):
@@ -112,15 +118,28 @@ def registry_digest() -> str:
     return hashlib.sha256(json.dumps(pairs).encode()).hexdigest()
 
 
+def vocabulary_key_part(shot, ctx=None) -> str:
+    """The shot-key part (``an.build.keys.ShotKeyPart``): the shot's vocabulary digest."""
+    return vocabulary_digest(shot)
+
+
 def register_vocabulary_key_part(renderer: str = "cutout") -> bool:
     """Fold :func:`vocabulary_digest` into ``renderer``'s shot key, through P6's seam.
 
-    Returns whether the seam exists (``an.build.keys.register_shot_key_part``).
-    Until the shot cache lands, it is a no-op returning ``False``.
+    Idempotent, and tolerant of order: returns ``False`` (registering nothing)
+    when ``renderer`` has no shot keyer yet, ``True`` once the part is in —
+    called again, it leaves the registered part alone. The cut-out adapter
+    calls it right after registering its keyer.
+
+    >>> import an.adapters  # registers the cut-out keyer, and this part with it
+    >>> register_vocabulary_key_part(), register_vocabulary_key_part("no-such-renderer")
+    (True, False)
     """
-    try:
-        from an.build.keys import register_shot_key_part  # type: ignore[import-not-found]
-    except ImportError:
+    from an.build.keys import register_shot_key_part, shot_keyer_for
+
+    entry = shot_keyer_for(renderer)
+    if entry is None:
         return False
-    register_shot_key_part(renderer, VOCABULARY_KEY_PART, lambda shot, *a, **k: vocabulary_digest(shot))
+    if VOCABULARY_KEY_PART not in entry.parts:
+        register_shot_key_part(renderer, VOCABULARY_KEY_PART, vocabulary_key_part)
     return True

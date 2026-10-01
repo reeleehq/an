@@ -39,6 +39,7 @@ Importing this module registers nothing: :data:`an.genres.cutout.CUTOUT` lists
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from an.semantic.entries import Aspect, Method
@@ -50,8 +51,10 @@ __all__ = [
     "LOCOMOTION",
     "SPEECH",
     "compile_profile",
+    "normalise_gait_args",
     "resolve_walk_gait",
-    "speech_default_actions",
+    "SpeechPlan",
+    "speech_plan",
     "substitution_record",
     "syllable_beats",
 ]
@@ -203,11 +206,18 @@ CUTOUT_ASPECTS: tuple[Aspect, ...] = (
         LOCOMOTION,
         chain=(LOCO_LEGGED.id, LOCO_ROCK.id),
         description="how a character travels when it walks.",
+        declared_by="gait",
     ),
     Aspect(
         SPEECH,
         chain=(SPEECH_CHART.id, SPEECH_PULSE.id),
         description="how a character shows that it is speaking.",
+        declared_by="speech",
+        # The pulse is new behaviour for a face that used to stay still: a
+        # character that falls to it without declaring it is recorded, so
+        # `--strict-assets` sees it (review-256 S1). Declare `speech: pulse`
+        # to make it the request.
+        records_fallback=True,
     ),
 )
 
@@ -280,6 +290,34 @@ def resolve_walk_gait(
     return r.method.term, r
 
 
+def normalise_gait_args(args: Mapping[str, Any]) -> dict[str, Any]:
+    """A walk's args with ``gait`` as the walk spells it (``legs``/``hem``/``rock``).
+
+    ``gait`` may name a locomotion method by id (``loco.rock``) or be a choice
+    ``{method, args, version}`` — the level-(a) form, and how a scene pins a
+    method's version (ADR 0003 decision 2). The choice's ``args`` join the
+    walk's (an explicit arg wins); a pin that no longer holds, or a method of
+    another aspect, raises :class:`~an.semantic.VocabularyError`.
+
+    >>> normalise_gait_args({"gait": {"method": "loco.legged_cycle", "args": {"stride": 0.5}, "version": "1"}})
+    {'stride': 0.5, 'gait': 'legs'}
+    >>> normalise_gait_args({"gait": "hem", "distance": 80})
+    {'gait': 'hem', 'distance': 80}
+    """
+    from an.characters.schema import GAITS
+    from an.semantic import Choice
+    from an.semantic.matcher import _as_choice, _method
+
+    gait = args.get("gait")
+    if gait is None or (isinstance(gait, str) and gait in GAITS):
+        return dict(args)
+    choice = _as_choice(gait, LOCOMOTION)
+    method = _method(choice, LOCOMOTION)
+    rest = {k: v for k, v in args.items() if k != "gait"}
+    extra = dict(choice.args) if isinstance(choice, Choice) else {}
+    return {**extra, **rest, "gait": method.term}
+
+
 def substitution_record(sub, *, entity_ref: str | None = None) -> dict[str, Any]:
     """A :class:`~an.capabilities.Substitution` as an ``asset_resolution`` entry.
 
@@ -332,40 +370,91 @@ def syllable_beats(line, *, min_gap_s: float = DFLT_MIN_BEAT_GAP_S) -> list[floa
     return out or [0.0]
 
 
-def speech_default_actions(
+@dataclass(frozen=True)
+class SpeechPlan:
+    """What the speech aspect decided for a shot: the actions it adds, and the
+    speakers whose lip-sync it switched off (the viseme pass skips them)."""
+
+    actions: tuple = ()
+    no_lip_sync: frozenset = frozenset()
+
+
+#: The motion preset ``speech.pose_only`` expands to.
+PULSE_PRESET: str = "speech_pulse"
+
+
+def _authored_pulse_speakers(shot) -> set[str]:
+    """Speakers the author already pulses with an explicit ``play: speech_pulse``."""
+    out: set[str] = set()
+    stack = list(shot.actions or ())
+    while stack:
+        a = stack.pop()
+        stack.extend(getattr(a, "children", None) or ())
+        if getattr(a, "child", None) is not None:
+            stack.append(a.child)
+        if getattr(a, "kind", None) == "play" and getattr(a, "animation", None) == PULSE_PRESET:
+            out.add(str(a.target).split("/", 1)[0])
+    return out
+
+
+def speech_plan(
     shot,
     *,
     is_character: Callable[[str], bool],
     profile_of: Callable[[str], Mapping[str, Mapping[str, Any]]],
+    descriptor_of: Callable[[str], Any] = lambda e: None,
     has_part: Callable[[str], bool],
     record: Callable[[Any], None] | None = None,
     policy: Any = None,
-) -> list:
-    """The actions the speech aspect adds to ``shot``: one pulse per line it resolves to.
+) -> SpeechPlan:
+    """Resolve the speech aspect ONCE per speaking character, and say what it adds.
 
-    For each timed dialogue line whose speaker is a character in the shot, the
-    speech aspect is resolved on the speaker's profile; where it is
-    ``speech.pose_only``, a ``play`` of ``speech_pulse`` is placed at the line's
-    start on the syllables. ``speech.mouth_chart`` adds nothing here (the
-    viseme pass draws it). Substitutions go to ``record``.
+    The request is the character's declared ``speech`` (a method spelling or a
+    ``{method, args, version}`` choice); ``policy`` is the shot/style policy.
+    The one resolution decides both halves: a speaker resolved to anything but
+    ``speech.mouth_chart`` gets no viseme channel (:attr:`SpeechPlan.no_lip_sync`),
+    and one resolved to ``speech.pose_only`` gets a ``speech_pulse`` play at each
+    syllable onset of each timed line — one play per syllable, each built at the
+    head's pose at that instant, so it rides an authored head-scale tween rather
+    than overwriting it. ``strength: 0`` is a mime: no pulse at all. An author who
+    plays ``speech_pulse`` on the speaker in the shot has made the request
+    explicitly: nothing is added beside it. Substitutions (a declared method the
+    rig cannot honour; the fall from the mouth chart to the pulse) go to
+    ``record``, once per speaker.
     """
     from an.ir.compose import delay, play, sequence
     from an.semantic import resolve
 
-    out = []
+    authored = _authored_pulse_speakers(shot)
+    resolved: dict[str, Any] = {}
+    actions: list = []
     for line in shot.dialogue or ():
         speaker = line.speaker
-        if line.start is None or line.duration is None or not is_character(speaker):
+        if not is_character(speaker):
             continue
-        r = resolve(SPEECH, profile_of(speaker), policy=policy, entity=speaker)
-        if r.substitution is not None and record is not None:
-            record(r.substitution)
-        if r.method.id != SPEECH_PULSE.id:
+        if speaker not in resolved:
+            requested = getattr(descriptor_of(speaker), "speech", None)
+            r = resolve(SPEECH, profile_of(speaker), requested=requested, policy=policy, entity=speaker)
+            resolved[speaker] = r
+            if r.substitution is not None and record is not None:
+                record(r.substitution)
+        r = resolved[speaker]
+        if (
+            r.method.id != SPEECH_PULSE.id
+            or speaker in authored
+            or line.start is None
+            or line.duration is None
+            or not float(r.args.get("strength", 0.0))
+        ):
             continue
-        args = {k: v for k, v in r.args.items() if k != "part"}
+        args = {k: v for k, v in r.args.items() if k not in ("part", "beats")}
         part = r.args.get("part", "head")
         args["part"] = part if part and has_part(f"{speaker}/{part}") else ""
-        args["beats"] = syllable_beats(line)
-        pulse = play(speaker, "speech_pulse", args=args)
-        out.append(sequence(delay(float(line.start)), pulse) if line.start else pulse)
-    return out
+        for beat in syllable_beats(line):
+            pulse = play(speaker, PULSE_PRESET, args={**args, "beats": [0.0]})
+            at = float(line.start) + beat
+            actions.append(sequence(delay(at), pulse) if at else pulse)
+    return SpeechPlan(
+        tuple(actions),
+        frozenset(s for s, r in resolved.items() if r.method.id != SPEECH_CHART.id),
+    )

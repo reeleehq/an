@@ -101,15 +101,20 @@ def vocabulary(*, kind: str | None = None, owner: str | None = None) -> list[dic
     return [e.to_json() for e in entries(kind=kind, owner=owner)]
 
 
-def check_registry(*, owner: str | None = None) -> list[str]:
+def check_registry(*, owner: str | None = None, capabilities: bool = True) -> list[str]:
     """The problems with the registered aspects and methods (empty: sound).
 
     ADR 0002 decision 5 as a check: every aspect's chain names methods of that
     aspect, and its last link requires nothing or is the recorded :data:`NOOP`;
-    every requirement names a registered capability. ``owner`` limits it to one
-    genre's aspects and entries (:func:`an.genres.register_genre` runs it).
+    one spelling is one entry; and (``capabilities``) every requirement names a
+    registered capability. ``owner`` limits it to one genre's aspects and
+    entries. :func:`an.genres.register_genre` runs the chain checks per genre;
+    :func:`an.genres.load` runs the capability check once every genre is in, so
+    a genre needing another's capability does not depend on load order.
     """
-    problems: list[str] = []
+    from an.semantic.registry import duplicates
+
+    problems: list[str] = [] if owner is not None else duplicates()
     for a in aspects():
         if owner is not None and owner_of_aspect(a.name) != owner:
             continue
@@ -135,7 +140,7 @@ def check_registry(*, owner: str | None = None) -> list[str]:
                     f"{[str(r) for r in m.requires]} — the last link must require "
                     "nothing, or be the recorded no-op"
                 )
-    for e in entries(owner=owner):
+    for e in entries(owner=owner) if capabilities else ():
         for req in e.requires:
             for cap in req.capabilities():
                 if cap not in CAPABILITIES:

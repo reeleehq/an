@@ -42,7 +42,7 @@ from an.capabilities import (
     missing,
     remedy_for,
 )
-from an.semantic.entries import NOOP, Choice, Method, Policy, VocabularyError
+from an.semantic.entries import ANY_ASPECT, NOOP, Choice, Method, Policy, VocabularyError
 from an.semantic.registry import aspect as _aspect
 from an.semantic.registry import entry as _entry
 from an.semantic.registry import lookup, methods_of
@@ -102,20 +102,31 @@ class Resolution:
 
 
 def _method(x: Method | Choice | str, aspect_name: str | None = None) -> Method:
+    """The method ``x`` names — by spelling within ``aspect_name``, else by id.
+
+    With ``aspect_name``, a method of ANOTHER aspect is refused: a typo in a
+    style's ``policy:`` block must not realise one aspect with another's method.
+    """
     if isinstance(x, Method):
-        return x
-    mid = x.method if isinstance(x, Choice) else str(x)
-    found = None
-    try:
-        found = _entry(mid)
-    except KeyError:
-        if aspect_name is not None:
-            found = lookup("method", mid, aspect=aspect_name)
-    if not isinstance(found, Method):
-        known = [m.id for m in methods_of(aspect_name)] if aspect_name else []
+        found = x
+    else:
+        mid = x.method if isinstance(x, Choice) else str(x)
+        found = lookup("method", mid, aspect=aspect_name) if aspect_name else None
+        if found is None:
+            try:
+                found = _entry(mid)
+            except KeyError:
+                found = None
+        if not isinstance(found, Method):
+            known = [m.id for m in methods_of(aspect_name)] if aspect_name else []
+            raise VocabularyError(
+                f"{mid!r} is not a registered method"
+                + (f" of {aspect_name!r}; its methods: {known}" if aspect_name else "")
+            )
+    if aspect_name is not None and found.aspect not in (aspect_name, ANY_ASPECT):
         raise VocabularyError(
-            f"{mid!r} is not a registered method"
-            + (f" of {aspect_name!r}; its methods: {known}" if aspect_name else "")
+            f"{found.id!r} is a method of {found.aspect!r}, not of {aspect_name!r}; "
+            f"{aspect_name!r}'s methods: {[m.id for m in methods_of(aspect_name)]}"
         )
     return found
 
@@ -201,6 +212,24 @@ def resolve(
                 chosen_version=m.version,
                 missing=gaps,
                 remedies={t: wanted.remedies.get(t) or remedy_for(t) for t in gaps},
+            )
+        elif (
+            effective is None
+            and asp.records_fallback
+            and m.id != asp.chain[0]
+        ):
+            head = _method(asp.chain[0], aspect_name)
+            gaps = next((g for mid, g in considered if mid == head.id), ())
+            sub = Substitution(
+                aspect_name,
+                entity,
+                head.id,
+                m.id,
+                "missing",
+                requested_version=head.version,
+                chosen_version=m.version,
+                missing=gaps,
+                remedies={t: head.remedies.get(t) or remedy_for(t) for t in gaps},
             )
         elif source == "policy" and chain_choice is not None and chain_choice.id != m.id:
             sub = Substitution(

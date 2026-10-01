@@ -950,10 +950,12 @@ def speech_pulse(
     ``strength`` over ``attack`` and settles over ``release``; ``part=""``
     pulses the whole body. A beat that would start before the previous pulse
     settles is skipped, so the pulse never stacks. ``strength=0`` is a mime.
-    ``rest`` is the PART's rest, as for :func:`nod`.
+    ``rest`` is the PART's rest, as for :func:`nod`; it lands with a constant
+    tween rather than a settling ``set``, so played once per syllable (as the
+    speech aspect does) each pulse rides whatever the head is doing.
 
     >>> [(round(f.start, 2), f.action.to_value) for f in _tweens(speech_pulse("al", beats=(0.0, 0.3)))]
-    [(0.0, 1.06), (0.06, 1.0), (0.3, 1.06), (0.36, 1.0)]
+    [(0.0, 1.06), (0.06, 1.0), (0.3, 1.06), (0.36, 1.0), (0.46, 1.0)]
     """
     _positive(attack=attack, release=release)
     if not beats:
@@ -973,7 +975,13 @@ def speech_pulse(
             tween(path, "scale_y", to=s0, duration=release, from_=peak, easing=DFLT_IN_EASING),
         ]
         t = beat + attack + release
-    return _settled(path, "scale_y", s0, *moves)
+    # Lands with a constant tween, not a settling `set` (as a walk's limbs do):
+    # a `set` would hold `s0` and freeze an authored head-scale tween running
+    # under the pulse; a tween ends, and the authored one carries on.
+    moves.append(
+        tween(path, "scale_y", to=s0, duration=WALK_LANDING_S, from_=s0, easing="linear")
+    )
+    return sequence(*moves)
 
 
 #: Every preset by name — the one list the skill, the demo and the ``play``

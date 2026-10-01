@@ -162,20 +162,17 @@ def test_a_version_pin_that_no_longer_holds_is_an_error_not_a_silent_change():
 
 
 def test_an_aspect_that_does_not_apply_to_the_kind_is_a_recorded_no_op():
-    a = Aspect("demo_expression", chain=("demo.brows", NOOP.id), applies_to={"character"})
-    m = Method("demo.brows", aspect="demo_expression", requires=("env.latex",))
+    """`applies_to` alone decides it: the first link requires nothing, so only
+    the kind check can turn it into the no-op (review-256 M15)."""
+    a = Aspect("demo_expression", chain=("demo.posture", NOOP.id), applies_to={"character"})
+    m = Method("demo.posture", aspect="demo_expression")
     genre = Genre("demo_noop", vocabulary=(m,), aspects=(a,))
     with without_genres():
         register_genre(genre)
-        try:
-            r = resolve("demo_expression", {}, entity="lamp", entity_kind="prop")
-            assert r.method is NOOP and r.substitution.reason == "noop" and r.substitution.fatal
-            r = resolve("demo_expression", {}, entity="ned", entity_kind="character")
-            assert r.method is NOOP and r.source == "noop"
-        finally:
-            from an.genres import _uninstall
-
-            _uninstall("demo_noop")
+        r = resolve("demo_expression", {}, entity="lamp", entity_kind="prop")
+        assert r.method is NOOP and r.substitution.reason == "noop" and r.substitution.fatal
+        r = resolve("demo_expression", {}, entity="ned", entity_kind="character")
+        assert r.method.id == "demo.posture" and r.substitution is None
 
 
 # --------------------------------------------------------------------------- genres extend it
@@ -331,11 +328,18 @@ def test_the_digest_names_every_entry_a_shot_uses_with_its_version():
     from an.ir.schema import Camera, PlayAction
     from an.semantic.digest import vocabulary_versions
 
+    from an.ir.compose import loop, parallel, sequence
+
     shot = _shot(
         camera=Camera(move="push_in"),
         actions=[
-            PlayAction(target="ned", animation="walk", args={"distance": 80}),
-            tween("ned", "x", to=1.0, duration=1.0, easing="ease_in"),
+            # Nested composites: the digest reaches every leaf (review-256 M14).
+            sequence(
+                parallel(
+                    loop(PlayAction(target="ned", animation="walk", args={"distance": 80}), count=2),
+                ),
+                tween("ned", "x", to=1.0, duration=1.0, easing="ease_in"),
+            ),
         ],
     )
     v = vocabulary_versions(shot)
@@ -373,15 +377,48 @@ def test_bumping_one_entrys_version_moves_only_the_shots_that_use_it():
     assert vocabulary_digest(hopper) == before[0]
 
 
-def test_the_shot_key_hook_is_inert_until_the_shot_cache_seam_exists():
-    from an.semantic.digest import register_vocabulary_key_part
+def test_the_vocabulary_is_a_part_of_the_cut_out_shot_key_and_registering_it_is_idempotent():
+    """review-256 S6: called again, or for a renderer with no keyer, it never raises."""
+    import an.adapters  # noqa: F401 — registers the cut-out keyer, and the part
+    from an.build.keys import shot_keyer_for
+    from an.semantic.digest import VOCABULARY_KEY_PART, register_vocabulary_key_part
 
+    assert VOCABULARY_KEY_PART in shot_keyer_for("cutout").parts
+    assert register_vocabulary_key_part("cutout") is True
+    assert register_vocabulary_key_part("cutout") is True
+    assert register_vocabulary_key_part("no-such-renderer") is False
+
+
+def test_bumping_an_entrys_version_rerenders_the_shots_that_use_it(tmp_path):
+    """ADR 0003 decision 2 through P6's seam: the shot key moves with the version."""
+    from dataclasses import replace
+
+    from an.ir.schema import PlayAction
+    from an.semantic import register_entry
+    from tests.test_shot_cache import _ctx, _key
+
+    def shot(animation):
+        from an.ir.schema import AssetRef, Shot
+
+        return Shot(
+            id="s",
+            renderer="cutout",
+            duration=1.0,
+            entities=[AssetRef(kind="character", id="ned", store="characters", ref="ned")],
+            actions=[PlayAction(target="ned", animation=animation)],
+        )
+
+    ctx = _ctx(tmp_path)
+    hopper, nodder = shot("hop"), shot("nod")
+    before = _key(hopper, ctx), _key(nodder, ctx)
+    hop = lookup("motion_preset", "hop")
+    register_entry(replace(hop, version="2"), owner="cutout_animation", replace=True)
     try:
-        import an.build.keys as keys  # noqa: F401
-    except ImportError:
-        assert register_vocabulary_key_part() is False
-    else:  # pragma: no cover — once P6 lands
-        assert register_vocabulary_key_part() is True
+        assert _key(hopper, ctx) != before[0]  # a miss: the shot re-renders
+        assert _key(nodder, ctx) == before[1]  # the other shot is reused
+    finally:
+        register_entry(hop, owner="cutout_animation", replace=True)
+    assert _key(hopper, ctx) == before[0]
 
 
 def test_entry_validation_refuses_an_unversioned_or_unlevelled_entry():
@@ -445,3 +482,70 @@ def test_another_package_declares_a_view_space_and_moves_through_it():
 
         _uninstall("demo_dome")
     assert lookup("camera_move", "dome_sweep") is None
+
+
+# --------------------------------------------------------------------------- review-256 invariants
+
+
+def test_resolve_refuses_a_method_of_another_aspect():
+    """S3: a typo in a style's policy must not realise one aspect with another's method."""
+    with pytest.raises(VocabularyError, match="method of 'speech'"):
+        resolve("locomotion", {}, requested="speech.pose_only")
+    with pytest.raises(VocabularyError, match="method of 'speech'"):
+        resolve("locomotion", {}, policy={"locomotion": ["speech.pose_only"]})
+
+
+def test_one_name_is_one_entry_and_a_replacement_is_explicit_and_recorded():
+    """S5: `push_in` means one thing; burns cannot redefine it by accident."""
+    from dataclasses import replace
+
+    from an.semantic import register_entry
+    from an.semantic.registry import drop_owner, duplicates, replacements
+
+    push = lookup("camera_move", "push_in")
+    with pytest.raises(VocabularyError, match="already"):
+        register_entry(replace(push, version="9"), owner="burns")
+    with pytest.raises(VocabularyError, match="one name means one thing"):
+        register_entry(Entry("burns.push_in", "camera_move", name="push_in"), owner="burns")
+    with pytest.raises(VocabularyError, match="one name means one thing"):
+        register_entry(Entry("demo.walk", "motion_preset", name="walk"), owner="demo")
+    assert duplicates() == [] and check_registry() == []
+    register_entry(replace(push, version="9"), owner="burns", replace=True)
+    try:
+        assert lookup("camera_move", "push_in").version == "9"
+        assert replacements()["camera.push_in"] == ("an", "burns", "1")
+    finally:
+        drop_owner("burns")
+    assert lookup("camera_move", "push_in") == push and "camera.push_in" not in replacements()
+
+
+def test_every_entry_survives_its_json_form():
+    """The explicit loader another package (previz) exports entries through."""
+    for e in entries():
+        if e is NOOP:
+            continue
+        assert Entry.from_json(e.to_json()) == e, e.id
+
+
+EXTENSION = Genre(
+    "demo_extension",
+    vocabulary=(Method("loco.demo_stomp", aspect="locomotion", name="stomp", requires=("limbs.legs",)),),
+)
+
+
+def test_a_genre_needing_another_genres_capability_loads_in_any_order():
+    """S7: the capability check runs once every genre is in."""
+    from importlib.metadata import EntryPoint
+
+    from an.genres import load
+
+    eps = [
+        EntryPoint("demo_extension", "tests.test_semantic:EXTENSION", "an.genres"),
+        EntryPoint("cutout_animation", "an.genres.cutout:CUTOUT", "an.genres"),
+    ]
+    with without_genres():
+        assert load(entry_points=eps, builtin=False) == ("demo_extension", "cutout_animation")
+        assert lookup("method", "stomp", aspect="locomotion") is not None
+    with without_genres():
+        with pytest.raises(GenreError, match="limbs.legs"):
+            load(entry_points=eps[:1], builtin=False)

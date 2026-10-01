@@ -264,6 +264,10 @@ class Analyser:
     version: str
     derive: Derivation = field(compare=False, repr=False)
     subject: str = "asset"
+    #: The document's declared facts the derivation honours instead of deriving
+    #: (``rest_view``, ``face_overlay``) or reads as a request (``gait``):
+    #: reported by ``describe_asset`` (ADR 0002 decision 2).
+    declares: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.subject not in SUBJECTS:

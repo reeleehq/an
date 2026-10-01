@@ -133,6 +133,30 @@ class Entry:
             if isinstance(v, Mapping) and "default" in v
         }
 
+    @classmethod
+    def from_json(cls, data: Mapping[str, Any], *, expand: Expand | None = None) -> "Entry":
+        """An entry from its JSON form (what :meth:`to_json` writes, or another
+        package exports — previz's formulas): the explicit loader, a ``method``
+        kind giving a :class:`Method`.
+
+        >>> e = Entry("camera.demo", "camera_move", name="demo", description="d")
+        >>> Entry.from_json(e.to_json()) == e
+        True
+        """
+        d = dict(data)
+        kind = d.get("kind")
+        fields = {k: v for k, v in d.items() if k in cls.__dataclass_fields__ or k in Method.__dataclass_fields__}
+        if "levels" in fields:
+            fields["levels"] = frozenset(fields["levels"])
+        for key in ("examples", "requires", "aspects"):
+            if key in fields:
+                fields[key] = tuple(fields[key])
+        target = Method if kind == "method" else cls
+        if target is not Method:
+            for key in ("aspect", "remedies"):
+                fields.pop(key, None)
+        return target(**fields, expand=expand)
+
     def to_json(self) -> dict[str, Any]:
         """The entry as data (no ``expand``): what the MCP surface and the docs list."""
         out: dict[str, Any] = {
@@ -140,7 +164,7 @@ class Entry:
             "kind": self.kind,
             "name": self.term,
             "version": self.version,
-            "title": self.title or self.term,
+            "title": self.title,
             "description": self.description,
             "levels": sorted(self.levels, key=LEVELS.index),
         }
@@ -224,6 +248,15 @@ class Aspect:
     chain: tuple[str, ...]
     applies_to: frozenset = frozenset()
     description: str = ""
+    #: The asset-document field an asset declares its request in (a
+    #: character's ``gait``, ``speech``): a declared method choice, reported as
+    #: such by ``describe_asset`` and honoured by the compiler.
+    declared_by: str = ""
+    #: Record falling down the chain even when nothing was requested (reason
+    #: ``missing``, so ``--strict-assets`` sees it). For an aspect whose
+    #: fallback is a behaviour the asset never had before — speech's pulse on a
+    #: baked face — rather than today's long-standing default (a legless walk).
+    records_fallback: bool = False
 
     def __post_init__(self) -> None:
         if not self.name or not self.chain:
@@ -232,12 +265,17 @@ class Aspect:
         object.__setattr__(self, "applies_to", frozenset(self.applies_to))
 
     def to_json(self) -> dict[str, Any]:
-        return {
+        out = {
             "name": self.name,
             "chain": list(self.chain),
             "applies_to": sorted(self.applies_to),
             "description": self.description,
         }
+        if self.declared_by:
+            out["declared_by"] = self.declared_by
+        if self.records_fallback:
+            out["records_fallback"] = True
+        return out
 
 
 @dataclass(frozen=True)

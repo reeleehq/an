@@ -17,6 +17,7 @@ registers nothing.
 from __future__ import annotations
 
 import inspect
+import re
 from collections.abc import Mapping
 from typing import Any
 
@@ -50,6 +51,7 @@ EXPRESSION_PRESET_VERSIONS: dict[str, str] = {}
 def _first_sentence(doc: str | None) -> str:
     text = " ".join((inspect.cleandoc(doc or "")).split("\n\n")[0].split())
     text = text.replace("``", "`")  # reST literals read as markdown ones
+    text = re.sub(r"\s*\(an#\d+\)", "", text)  # issue references are noise to a reader
     head, dot, _ = text.partition(". ")
     return (head + "." if dot else text).rstrip()
 
@@ -177,6 +179,7 @@ def _cutout_fields() -> tuple[Entry, ...]:
                 "changed too."
             ),
             levels=frozenset({"a", "b-name"}),
+            aspects=("speech",),  # a spoken line resolves the speech aspect
         ),
     )
 

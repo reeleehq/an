@@ -152,13 +152,18 @@ class Genre:
 _INSTALLED: dict[str, Genre] = {}
 
 
-def register_genre(genre: Genre, *, replace: bool = False) -> Genre:
+def register_genre(
+    genre: Genre, *, replace: bool = False, check_capabilities: bool = True
+) -> Genre:
     """Register everything ``genre`` declares, owned by ``genre.name``.
 
     Idempotent for the same object: registering a genre that is already
     installed is a no-op, so :func:`load` can be called from every entry point.
     A different object under an installed name raises unless ``replace``.
     All or nothing: a registration that fails part-way leaves no trace.
+    ``check_capabilities=False`` defers the "every requirement names a
+    registered capability" check to the caller (:func:`load` runs it once all
+    genres are in, so a genre extending another loads in any order).
     """
     if not isinstance(genre, Genre):
         raise GenreError(f"not a Genre: {genre!r}")
@@ -176,7 +181,7 @@ def register_genre(genre: Genre, *, replace: bool = False) -> Genre:
     try:
         if current is not None:
             _uninstall(genre.name)
-        _install(genre)
+        _install(genre, check_capabilities=check_capabilities)
     except Exception:
         restore(state)
         _timing_restore(timing_state)
@@ -186,7 +191,7 @@ def register_genre(genre: Genre, *, replace: bool = False) -> Genre:
     return genre
 
 
-def _install(genre: Genre) -> None:
+def _install(genre: Genre, *, check_capabilities: bool = True) -> None:
     from an.timing.kinds import register_kind
     from an.timing.spaces import register_space
 
@@ -204,10 +209,10 @@ def _install(genre: Genre) -> None:
     for sugar in genre.dialogue_sugar:
         register_dialogue_sugar(sugar, owner=owner)
     if genre.capabilities or genre.analysers or genre.vocabulary or genre.aspects:
-        _install_semantics(genre)
+        _install_semantics(genre, check_capabilities=check_capabilities)
 
 
-def _install_semantics(genre: Genre) -> None:
+def _install_semantics(genre: Genre, *, check_capabilities: bool = True) -> None:
     """Capabilities, analysers, vocabulary and aspects (ADRs 0002, 0003), then the check."""
     from an import capabilities as caps
     from an import semantic as sem
@@ -224,7 +229,7 @@ def _install_semantics(genre: Genre) -> None:
             sem.register_aspect(aspect, owner=owner)
     except (caps.CapabilityError, sem.VocabularyError) as e:
         raise GenreError(f"genre {genre.name!r}: {e}") from e
-    problems = sem.check_registry(owner=owner)
+    problems = sem.check_registry(owner=owner, capabilities=check_capabilities)
     if problems:
         raise GenreError(
             f"genre {genre.name!r} registers an unsound vocabulary:\n  - "
@@ -435,8 +440,21 @@ def load(
         if genre.name in seen:
             continue  # the same genre under two entry-point names
         seen.add(genre.name)
-        register_genre(genre)
+        register_genre(genre, check_capabilities=False)
+    _check_capabilities_of(seen)
     return installed()
+
+
+def _check_capabilities_of(names: Iterable[str]) -> None:
+    """Every requirement of these genres names a capability registered by SOME
+    genre — checked once all are in, so load order never matters (review-256 S7)."""
+    from an import semantic as sem
+
+    problems = [p for name in names for p in sem.check_registry(owner=name)]
+    if problems:
+        raise GenreError(
+            "the loaded genres register an unsound vocabulary:\n  - " + "\n  - ".join(problems)
+        )
 
 
 def genres_declaring(test) -> tuple[str, ...]:

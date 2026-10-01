@@ -40,6 +40,7 @@ from an.semantic.entries import (
 
 __all__ = [
     "UnknownEntryError",
+    "duplicates",
     "aspect",
     "aspect_names",
     "aspects",
@@ -52,6 +53,7 @@ __all__ = [
     "register_aspect",
     "register_entry",
     "register_view",
+    "replacements",
     "restore",
     "snapshot",
 ]
@@ -75,30 +77,82 @@ class _Tables:
     aspects: dict[str, Aspect]
     aspect_owners: dict[str, str]
     views: dict[str, View]
+    #: id -> (previous owner, new owner, previous version): every deliberate
+    #: replacement (``replace=True``), so a shared definition is never silent.
+    replaced: dict[str, tuple[str, str, str]]
+    #: new id -> (the registered entry it retired, its owner): put back when the
+    #: replacing owner leaves.
+    shadowed: dict[str, tuple[Entry, str]]
 
 
-_T = _Tables({}, {}, {}, {}, {})
+_T = _Tables({}, {}, {}, {}, {}, {}, {})
+
+
+def _held(entry_id: str) -> tuple[Entry, str] | None:
+    """The entry (registered or viewed) under ``entry_id``, with its owner."""
+    for e, o in _all():
+        if e.id == entry_id:
+            return e, o
+    return None
+
+
+def _spelled(kind: str, term: str, *, aspect: str | None) -> tuple[Entry, str] | None:
+    for e, o in _all():
+        if e.kind == kind and e.term == term and getattr(e, "aspect", None) == aspect:
+            return e, o
+    return None
 
 
 def register_entry(
     e: Entry, *, owner: str = CORE_OWNER, replace: bool = False
 ) -> Entry:
-    """Register a vocabulary entry under ``owner``. Ids are unique across kinds.
+    """Register a vocabulary entry under ``owner``: ONE entry per id, and per spelling.
 
-    Re-registering the same entry is a no-op; another entry under a taken id
-    raises unless ``replace``.
+    A name means one thing everywhere (``push_in`` is one entry, an#257): a
+    second entry under a taken id — registered or provided by a view — or under
+    a taken ``(kind, name)`` (within an aspect, for methods) raises, unless
+    ``replace=True`` is passed explicitly, and then the replacement is recorded
+    (:func:`replacements`). Re-registering the same entry is a no-op.
+
+    >>> from an.semantic.entries import Entry
+    >>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
+    Traceback (most recent call last):
+    ...
+    an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
     """
     if not isinstance(e, Entry):
         raise VocabularyError(f"not an Entry: {e!r}")
-    current = _T.entries.get(e.id)
-    if current is not None and current != e and not replace:
+    held = _held(e.id)
+    if held is not None and held[0] == e:
+        _T.entries[e.id] = e
+        _T.entry_owners.setdefault(e.id, owner)
+        return e
+    clash = held or _spelled(e.kind, e.term, aspect=getattr(e, "aspect", None))
+    if clash is not None and clash[0].id != e.id and held is None and not replace:
+        other, other_owner = clash
         raise VocabularyError(
-            f"vocabulary entry {e.id!r} is already registered by "
-            f"{_T.entry_owners[e.id]!r}; pass replace=True to replace it"
+            f"{e.kind} {e.term!r} is already defined by {other.id!r} (owner "
+            f"{other_owner!r}); one name means one thing — register under that id "
+            "with replace=True to redefine it, or choose another name"
         )
+    if held is not None and not replace:
+        raise VocabularyError(
+            f"vocabulary entry {e.id!r} is already registered by {held[1]!r}; "
+            "pass replace=True to replace it (the replacement is recorded)"
+        )
+    if clash is not None and replace:
+        old, old_owner = clash
+        if old.id in _T.entries:  # a registered one is retired, and kept to put back
+            _T.shadowed[e.id] = (_T.entries.pop(old.id), _T.entry_owners.pop(old.id))
+        _T.replaced[e.id] = (old_owner, owner, old.version)
     _T.entries[e.id] = e
     _T.entry_owners[e.id] = owner
     return e
+
+
+def replacements() -> dict[str, tuple[str, str, str]]:
+    """Every deliberate replacement: ``{id: (previous owner, new owner, previous version)}``."""
+    return dict(_T.replaced)
 
 
 def register_aspect(
@@ -126,11 +180,32 @@ def register_view(name: str, view: View) -> None:
 
 
 def _all() -> Iterator[tuple[Entry, str]]:
+    """Every entry with its owner; a registered entry shadows a viewed one of
+    the same id or spelling (only ever through an explicit, recorded replace)."""
     yield NOOP, CORE_OWNER
+    taken: set = set()
     for eid, e in _T.entries.items():
+        taken.add(eid)
+        taken.add((e.kind, e.term, getattr(e, "aspect", None)))
         yield e, _T.entry_owners[eid]
     for view in _T.views.values():
-        yield from view()
+        for e, o in view():
+            if e.id in taken or (e.kind, e.term, getattr(e, "aspect", None)) in taken:
+                continue
+            yield e, o
+
+
+def duplicates() -> list[str]:
+    """Spellings defined twice (a view and a registered entry disagreeing on an id
+    count once: the registered one shadows). Empty when one name is one thing."""
+    seen: dict = {}
+    out: list[str] = []
+    for e, _ in _all():
+        key = (e.kind, e.term, getattr(e, "aspect", None))
+        if key in seen and seen[key] != e.id:
+            out.append(f"{e.kind} {e.term!r} is defined by both {seen[key]!r} and {e.id!r}")
+        seen.setdefault(key, e.id)
+    return out
 
 
 def entries(
@@ -222,21 +297,25 @@ def drop_owner(owner: str) -> None:
         for name in [k for k, o in owners.items() if o == owner]:
             table.pop(name, None)
             owners.pop(name, None)
+            if table is _T.entries:
+                _T.replaced.pop(name, None)
+                back = _T.shadowed.pop(name, None)
+                if back is not None and back[1] != owner:
+                    _T.entries[back[0].id] = back[0]
+                    _T.entry_owners[back[0].id] = back[1]
 
 
 def snapshot() -> tuple:
     """The state of the registered tables (views are code, not state)."""
-    return (
-        dict(_T.entries),
-        dict(_T.entry_owners),
-        dict(_T.aspects),
-        dict(_T.aspect_owners),
+    return tuple(
+        dict(t)
+        for t in (_T.entries, _T.entry_owners, _T.aspects, _T.aspect_owners, _T.replaced, _T.shadowed)
     )
 
 
 def restore(state: tuple) -> None:
     for table, saved in zip(
-        (_T.entries, _T.entry_owners, _T.aspects, _T.aspect_owners), state
+        (_T.entries, _T.entry_owners, _T.aspects, _T.aspect_owners, _T.replaced, _T.shadowed), state
     ):
         table.clear()
         table.update(saved)

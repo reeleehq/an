@@ -36,15 +36,32 @@ def describe_profile(
     *,
     kind: str | None = None,
     aspects: Iterable[str] | None = None,
+    declared: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Per aspect: the default method, the applicable ones, and why not the rest."""
+    """Per aspect: the method it resolves to, the applicable ones, and why not the rest.
+
+    ``declared`` is the asset document's declared facts: an aspect's request
+    is read from the field it names (``Aspect.declared_by``: a character's
+    ``gait``), so the answer is the method the compiler will use.
+    """
+    from an.semantic.registry import aspect as _aspect
+
     subjects = Subjects.of(profile)
+    declared = dict(declared or {})
     out: dict[str, Any] = {}
     for name in aspects if aspects is not None else aspect_names():
-        r = resolve(name, subjects, entity_kind=kind)
+        asp = _aspect(name)
+        request = declared.get(asp.declared_by) if asp.declared_by else None
+        r = resolve(name, subjects, requested=request, entity_kind=kind)
         fits = [m.id for m in applicable(name, subjects)]
         out[name] = {
             "default": r.method.id,
+            **({"declared": request} if request is not None else {}),
+            **(
+                {"substitution": r.substitution.to_json()}
+                if r.substitution is not None
+                else {}
+            ),
             "applicable": fits,
             "not_applicable": {
                 m.id: [w.to_json() for w in why_not(m, subjects)]
@@ -68,10 +85,15 @@ def describe_asset(
     """:func:`describe_profile` of an asset's derived profile, with the analyser and overrides."""
     profile = affordances(doc, art, kind=kind)
     analyser = ANALYSERS.get(kind)
+    raw = doc.model_dump(mode="json") if hasattr(doc, "model_dump") else dict(doc)
+    declared = {
+        f: raw[f] for f in (analyser.declares if analyser else ()) if raw.get(f) is not None
+    }
     out = {
         "kind": kind,
         "analyser": {kind: analyser.version} if analyser else {},
-        **describe_profile(profile, kind=kind, aspects=aspects),
+        "declared": declared,
+        **describe_profile(profile, kind=kind, aspects=aspects, declared=declared),
     }
     out["overrides"] = sorted(
         {o for params in profile.values() for o in (params or {}).get(OVERRIDES_PARAM, ())}
@@ -95,9 +117,18 @@ def format_description(d: Mapping[str, Any], *, name: str = "") -> str:
         lines.append(f"  {cap}" + (f"  [{text}]" if text else ""))
     if d.get("overrides"):
         lines.append(f"  declared overrides used: {', '.join(d['overrides'])}")
+    if d.get("declared"):
+        lines.append(
+            "  declared: " + ", ".join(f"{k}={v}" for k, v in sorted(d["declared"].items()))
+        )
     for aspect, info in d["aspects"].items():
         lines.append("")
-        lines.append(f"{aspect}: default {info['default']}")
+        head = f"{aspect}: default {info['default']}"
+        if "declared" in info:
+            head += f" (declared: {info['declared']})"
+        lines.append(head)
+        if "substitution" in info:
+            lines.append(f"  recorded: {info['substitution']['reason']} — {info['substitution']['requested']} → {info['substitution']['chosen']}")
         if info["applicable"]:
             lines.append(f"  applies: {', '.join(info['applicable'])}")
         for method, gaps in info["not_applicable"].items():

@@ -267,5 +267,8 @@ CHARACTER_CAPABILITIES: tuple[Capability, ...] = (
 )
 #: The character analyser (declared by the cut-out genre, registered with it).
 CHARACTER_ANALYSER: Analyser = Analyser(
-    "character", CHARACTER_ANALYSER_VERSION, character_affordances
+    "character",
+    CHARACTER_ANALYSER_VERSION,
+    character_affordances,
+    declares=("rest_view", "face_overlay", "gait", "speech"),
 )

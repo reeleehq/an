@@ -44,7 +44,7 @@ several slots.
 
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
 
@@ -586,6 +586,27 @@ class CharacterDescriptor(_CharModel):
     #: Omitted from the stored document when unset.
     gait: Optional[str] = None
 
+    #: How this character shows it is speaking (the speech aspect, an#248): a
+    #: method's spelling (``mouth_chart``, ``pulse``), its id
+    #: (``speech.pose_only``) or a choice with args and an optional version pin
+    #: (``{method: pulse, args: {strength: 0}}`` — a mime). ``None`` = the
+    #: default chain: lip-sync when the character has a mouth chart, else a
+    #: head pulse, recorded. Declaring it is also how a baked-face character
+    #: renders under ``--strict-assets``: a declared pulse is the request, not a
+    #: fallback. Resolved (and refused when unknown) by the capability
+    #: registry. Omitted from the stored document when unset.
+    speech: Optional[Union[str, dict[str, Any]]] = None
+
+    @field_validator("speech")
+    @classmethod
+    def _check_speech(cls, v):
+        if isinstance(v, dict) and "method" not in v:
+            raise ValueError(
+                "speech is a method name or {method, args, version}, got a mapping "
+                f"without `method`: {v!r}"
+            )
+        return v
+
     @field_validator("gait")
     @classmethod
     def _check_gait(cls, v: Optional[str]):
@@ -599,7 +620,7 @@ class CharacterDescriptor(_CharModel):
         stored descriptor reads back byte-identical (an#220)."""
         data = handler(self)
         if isinstance(data, dict):
-            for name in ("rest_view", "gait"):
+            for name in ("rest_view", "gait", "speech"):
                 if data.get(name) is None:
                     data.pop(name, None)
         return data

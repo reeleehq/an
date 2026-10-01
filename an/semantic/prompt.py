@@ -33,11 +33,12 @@ KIND_HEADINGS: tuple[tuple[str, str], ...] = (
     ("easing", "Easings (a tween's `easing`)"),
 )
 
-#: Params that are noise in a prompt line (and never an author's to set).
-_HIDDEN_PARAMS: frozenset[str] = frozenset()
+#: Params that are noise in a prompt line: a pulse's ``beats`` are placed by the
+#: speech aspect from the line's syllables, not by an editor.
+_HIDDEN_PARAMS: frozenset[str] = frozenset({"beats"})
 
 
-def _params_line(e: Entry, *, limit: int = 12) -> str:
+def _params_line(e: Entry, *, limit: int = 24) -> str:
     props: dict[str, Any] = dict((e.params or {}).get("properties") or {})
     shown = []
     for name, spec in props.items():

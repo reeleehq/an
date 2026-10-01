@@ -87,6 +87,15 @@ def test_each_term_is_matched_against_its_own_subjects_profile():
     ]
 
 
+def test_an_api_keys_value_appears_nowhere_in_the_profile(monkeypatch):
+    """M24: presence only — the value never reaches a profile, a facet or a record."""
+    secret = "sk-ant-THIS-MUST-NOT-LEAK-0123456789"
+    monkeypatch.setenv("ANTHROPIC_API_KEY", secret)
+    profile = environment_affordances()
+    assert "env.key.anthropic" in profile
+    assert secret not in repr(profile)
+
+
 def test_the_environment_analyser_reads_presence_never_values():
     profile = environment_affordances(
         probe={
