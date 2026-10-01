@@ -93,6 +93,7 @@ def _finish_run(work_dir: Path) -> None:
         if _run_finished(d):
             shutil.rmtree(d, ignore_errors=True)
 
+
 # Default cap so a 20-shot scene doesn't try to spawn 20 Chromiums; the user
 # can always pass a higher number explicitly.
 DEFAULT_PARALLEL_CAP: int = 4

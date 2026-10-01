@@ -136,10 +136,14 @@ def texture_digests(scene_json: Any, mall: Mapping[str, Any]) -> dict[str, str]:
         src = getattr(asset, "src", None) or ""
         if not src or src.startswith(INLINE_SRC_PREFIX):
             continue
-        prefix = next((p for p in r.ASSET_SRC_PREFIX_TO_STORE if src.startswith(p)), None)
+        prefix = next(
+            (p for p in r.ASSET_SRC_PREFIX_TO_STORE if src.startswith(p)), None
+        )
         store = mall.get(r.ASSET_SRC_PREFIX_TO_STORE[prefix]) if prefix else None
         root = getattr(store, "_root", None) if store is not None else None
-        path = Path(root) / strip_version(src)[len(prefix) :] if root and prefix else None
+        path = (
+            Path(root) / strip_version(src)[len(prefix) :] if root and prefix else None
+        )
         if path is not None and path.is_file():
             out[alias] = file_digest(path)
             if path.suffix.lower() == ".svg" and _draws_system_text(path):
@@ -165,7 +169,9 @@ def _module_imports(tree: ast.AST, module: str) -> set[str]:
             base = node.module or ""
             if node.level:
                 parts = package.split(".")
-                base = ".".join(parts[: len(parts) - node.level + 1] + ([base] if base else []))
+                base = ".".join(
+                    parts[: len(parts) - node.level + 1] + ([base] if base else [])
+                )
             out.add(base)
             # `from an.adapters.cutout import render` imports a MODULE.
             out.update(f"{base}.{a.name}" for a in node.names)
@@ -264,7 +270,12 @@ def system_fonts_digest() -> str:
 FONT_DIRS: dict[str, tuple[str, ...]] = {
     "Darwin": ("/System/Library/Fonts", "/Library/Fonts", "~/Library/Fonts"),
     "Windows": ("C:/Windows/Fonts",),
-    "Linux": ("/usr/share/fonts", "/usr/local/share/fonts", "~/.local/share/fonts", "~/.fonts"),
+    "Linux": (
+        "/usr/share/fonts",
+        "/usr/local/share/fonts",
+        "~/.local/share/fonts",
+        "~/.fonts",
+    ),
 }
 
 
@@ -429,9 +440,21 @@ def x264_build() -> str | None:
     with tempfile.TemporaryDirectory() as d:
         out = Path(d) / "probe.mp4"
         subprocess.run(
-            [exe, "-y", "-loglevel", "error", "-f", "lavfi", "-i",
-             "color=c=black:s=16x16:d=0.04", "-frames:v", "1", "-c:v", "libx264",
-             str(out)],
+            [
+                exe,
+                "-y",
+                "-loglevel",
+                "error",
+                "-f",
+                "lavfi",
+                "-i",
+                "color=c=black:s=16x16:d=0.04",
+                "-frames:v",
+                "1",
+                "-c:v",
+                "libx264",
+                str(out),
+            ],
             capture_output=True,
             check=False,
         )
