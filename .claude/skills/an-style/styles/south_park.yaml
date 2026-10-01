@@ -48,7 +48,7 @@ live:
     effects: {pitch_semitones: 4}   # the `effects` of every kid's voice document in assets/voices/ (an#163); about 4 semitones is an estimate
 
 targets:
-  identical_frame_share: [0.55, 0.70]   # measured 0.64
+  identical_frame_share: [0.54, 0.69]   # measured 0.63 (0.64 before the local-change rule, an#255)
   cuts_per_min: [10, 14]                # measured 12.4
   mean_shot_s: [3, 5.5]                 # measured 4.2
 

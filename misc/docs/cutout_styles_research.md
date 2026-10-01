@@ -64,6 +64,19 @@ Six short study clips, kept outside every repository for study use only and neve
 
 Method (a measurement script, since ported as `an.verify.style` minus the camera-motion and k-means parts, and a texture script): decode at 320×180; a frame counts as changed above `max(0.25, 2.5 × the 10th-percentile noise floor)` mean absolute difference. A cut is a frame where the 8×8×8 colour-histogram L1 distance exceeds 0.6 and the mean difference exceeds 8, so dissolves and morphs are missed and Gilliam's and Norstein's cut counts are floors. Global camera motion is `cv2.phaseCorrelate` between changed pairs. Palette is k-means (k=8) in Lab. Contact sheets (12 frames per clip) were made for visual reading; they are not in the repo either. "[M, sheet]" below means read off a contact sheet. Median global shift is near zero in all six clips (0.03–0.28 px at 320 wide). Steps with more than 1 px of global shift: 21% Norstein, 12% Kurzgesagt, 2% OverSimplified (21% in the discarded sponsor window). The texture metric did not separate the styles at 360p after transcoding, so South Park's paper grain is not measurable here.
 
+**Re-measured with the local-change rule (2026-10-01, an#255).** The frame-wide mean cannot see a change that covers a few dozen pixels (a stick figure's shrug, a blink in a close-up), so `an.verify.style` also counts a step as a change when at least 8 pixels at 320×180 move by more than 32 grey levels. Chosen on these six clips: at 32 levels, the steps the frame-wide rule calls holds change at most 4 such pixels at the 99th percentile in the grain-heavy clips (Gilliam 4, Norstein 2, Reiniger 0), while the extra changes it finds in OverSimplified and Kurzgesagt are real small motion (a thrown snowball, a crowd member, drifting particles; checked on difference masks). Re-measured with the same decode, the cadence statistics move only where small motion was being missed; cuts and palette are unchanged. The style specs' cadence ranges moved by the measured change, rounded to 0.01:
+
+| Clip | Identical frames (frame-wide → local) | Pose changes / s | 1-frame intervals | 2-frame | 3+ | Max hold (frames) |
+|---|---|---|---|---|---|---|
+| South Park | 0.641 → 0.634 | 10.75 → 10.96 | 0.498 → 0.498 | 0.244 → 0.246 | 0.258 → 0.256 | 45 → 45 |
+| OverSimplified | 0.589 → 0.486 | 12.31 → 15.39 | 0.914 → 0.936 | 0.068 → 0.053 | 0.018 → 0.011 | 63 → 57 |
+| Kurzgesagt | 0.237 → 0.107 | 22.88 → 26.77 | 0.993 → 0.990 | 0.006 → 0.008 | 0.001 → 0.003 | 75 → 48 |
+| Gilliam | 0.352 → 0.349 | 16.20 → 16.27 | 0.769 → 0.766 | 0.166 → 0.167 | 0.065 → 0.067 | 37 → 37 |
+| Reiniger | 0.293 → 0.293 | 21.20 → 21.20 | 0.929 → 0.929 | 0.061 → 0.061 | 0.010 → 0.010 | 122 → 122 |
+| Norstein | 0.449 → 0.448 | 13.77 → 13.80 | 0.594 → 0.594 | 0.293 → 0.292 | 0.114 → 0.115 | 43 → 43 |
+
+The table in section 2 keeps the frame-wide numbers it was written with; `measure_style(..., min_changed_pixels=0)` reproduces them.
+
 ## 4. Per-style technique
 
 ### 4.1 South Park (digital emulation of cut-out)

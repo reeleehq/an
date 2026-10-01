@@ -52,8 +52,8 @@ live:
       serene:   {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 1.0}}   # Robust: the only setting that flattened an expressive cloned voice
 
 targets:
-  identical_frame_share: [0.55, 0.65]    # measured 0.59
-  one_frame_interval_share: [0.85, 0.95] # measured 0.91
+  identical_frame_share: [0.45, 0.55]    # measured 0.49 (0.59 before the local-change rule, an#255)
+  one_frame_interval_share: [0.87, 0.97] # measured 0.94 (0.91 before the local-change rule, an#255)
   cuts_per_min: [8, 10]                  # measured 9.0
 
 # Delivery targets, checked by `python -m an.verify.prosody <audio>... --targets <this file> --role <role> --text "<words>"`
