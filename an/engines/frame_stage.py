@@ -81,6 +81,25 @@ SHOT_WORKSPACE_PATTERN: str = "shot_{shot_id}"
 #: Inside the workspace: the frame directory and the per-shot mp4's name.
 FRAMES_DIRNAME: str = "frames"
 
+#: The provenance keys the CORE records about what it did. A session's
+#: ``provenance()`` may add facts but never restate these: an engine claiming
+#: another argv, pixel format or frame count than the frame stage used would
+#: make the record lie about the file (the bench and the shot cache read them).
+CORE_PROVENANCE_KEYS: frozenset[str] = frozenset(
+    {
+        "shot_id",
+        "fps",
+        "resolution",
+        "supersample",
+        "pix_fmt",
+        "frame_count",
+        "audio_tracks",
+        "x264_args",
+        "engine",
+        "frame_samples",
+    }
+)
+
 #: The errors the core raises about the RENDER, re-raised as the renderer's own
 #: type. A bad knob (`SupersampleError`, `ShutterError`, both `ValueError`s) is
 #: not a render failure and keeps its own type, as it always has.
@@ -218,6 +237,14 @@ class FrameStageRenderer:
             session_provenance = dict(
                 session.provenance() if callable(getattr(session, "provenance", None)) else {}
             )
+        clash = sorted(CORE_PROVENANCE_KEYS & set(session_provenance))
+        if clash:
+            raise FrameStageError(
+                f"engine {self.engine.name!r} reports provenance keys the frame "
+                f"stage owns: {clash}. Those record what the CORE did (argv, "
+                "pixel format, frame count, ...); an engine adds its own facts "
+                "under other names."
+            )
 
         output_mp4 = workspace / f"{shot.id}.mp4"
         n_audio_tracks = _mp4.mux_shot(
@@ -241,8 +268,8 @@ class FrameStageRenderer:
             "audio_tracks": n_audio_tracks,
             # Read at call time: the `high_crf` lever rebinds it.
             "x264_args": list(_mp4.DETERMINISTIC_X264_ARGS),
-            "engine": self.engine.name,
             **session_provenance,
+            "engine": self.engine.name,
             # Present only when a frame clock was supplied, so an ordinary
             # render's provenance is unchanged. The instants verbatim: a
             # blurred or jittered frame is only interpretable beside them.

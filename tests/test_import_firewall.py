@@ -304,3 +304,50 @@ def test_the_new_core_seams_import_nothing_behind_the_firewall(package):
         "genre, an engine -- or `an.adapters`, whose package init still imports "
         f"the stage to register it: {bad}"
     )
+
+
+#: Imports one module with the `an` package STUBBED (so `an/__init__`, which
+#: still loads the stage today, does not run) and every firewalled prefix --
+#: and `an.adapters`, whose init imports the stage -- made to RAISE. A module
+#: already in `sys.modules` cannot hide an import here, which is the dynamic
+#: probe's blind spot (review of an#250, S3).
+_BLOCKED = r"""
+import importlib, json, sys, types
+package_dir, blocked, module = sys.argv[1], json.loads(sys.argv[2]), sys.argv[3]
+an = types.ModuleType("an"); an.__path__ = [package_dir]; sys.modules["an"] = an
+
+class Block:
+    def find_spec(self, name, path=None, target=None):
+        if any(name == p or name.startswith(p + ".") for p in blocked):
+            raise ImportError(f"firewalled: {name}")
+        return None
+
+sys.meta_path.insert(0, Block())
+importlib.import_module(module)
+leaked = sorted(m for m in sys.modules if any(m == p or m.startswith(p + ".") for p in blocked))
+print(json.dumps(leaked))
+"""
+
+
+def _new_seam_modules() -> list[str]:
+    paths = [*sorted((PACKAGE / "engines").rglob("*.py")), *sorted((PACKAGE / "media").rglob("*.py"))]
+    return [_module_name(p) for p in paths] + ["an._shims"]
+
+
+@pytest.mark.parametrize("module", _new_seam_modules())
+def test_a_new_seam_imports_with_the_stage_and_the_genre_unimportable(module):
+    """Each module of `an.engines`, `an.media` and `an._shims`, imported in a
+    fresh interpreter where everything behind the firewall raises on import."""
+    blocked = [*FIREWALLED, "an.adapters"]
+    result = subprocess.run(
+        [sys.executable, "-c", _BLOCKED, str(PACKAGE), json.dumps(blocked), module],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        f"{module} cannot be imported without the stage, a genre or an engine:\n"
+        + result.stderr[-1500:]
+    )
+    assert json.loads(result.stdout.strip().splitlines()[-1]) == []

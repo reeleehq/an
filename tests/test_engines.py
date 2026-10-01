@@ -338,6 +338,112 @@ def test_an_engine_with_neither_drive_mode_says_what_to_add(tmp_path, no_mux):
         )
 
 
+# ---------------- what the core owns, pinned (review of an#250, S1 and S6)
+
+
+def test_the_frame_count_rounds_it_never_truncates(tmp_path, no_mux):
+    """0.17 s at 10 fps is 1.7 frames: two, as `an.frame_clock.frame_count` says."""
+    result = frame_stage_renderer(GreyRamp()).render(Shot(id="s", duration=0.17), _ctx(tmp_path))
+    assert result.provenance["frame_count"] == 2 and len(result.frame_manifest) == 2
+
+
+def test_a_sequential_sessions_own_resolve_is_used_even_at_supersample_one(tmp_path):
+    """The byte passthrough is the CORE's resolve's shortcut, never a bypass of
+    an engine that asked to normalise its own frames."""
+
+    class Normalising(_Ramp):
+        calls = 0
+
+        def resolve(self, samples, *, frame, factor, size):
+            type(self).calls += 1
+            return b"normalised"
+
+    capture_frames(Normalising((H, W)), [FrameRequest(0, (0.1,))], tmp_path)
+    assert Normalising.calls == 1
+    assert frame_path(tmp_path, 0).read_bytes() == b"normalised"
+
+
+def test_the_recorded_argv_follows_the_high_crf_lever(tmp_path, no_mux):
+    """The provenance the frame stage writes, not just the module global."""
+    from an.bench.mutations import HIGH_CRF, LEVERS
+
+    with LEVERS["high_crf"].apply():
+        result = frame_stage_renderer(GreyRamp()).render(Shot(id="s", duration=0.1), _ctx(tmp_path))
+    argv = result.provenance["x264_args"]
+    assert argv[argv.index("-crf") + 1] == HIGH_CRF
+
+
+def test_frames_left_by_a_longer_earlier_render_are_cleared(tmp_path, no_mux):
+    renderer = frame_stage_renderer(GreyRamp())
+    renderer.render(Shot(id="s", duration=0.5), _ctx(tmp_path))
+    result = renderer.render(Shot(id="s", duration=0.3), _ctx(tmp_path))
+    assert len(result.frame_manifest) == 3
+    assert no_mux[-1]["frames"] == result.frame_manifest
+
+
+def test_a_state_driven_session_is_evaluated_in_its_own_space(tmp_path, no_mux):
+    """A log-space zoom from 1 to 4 is 2 at the midpoint (linear would say 2.5)."""
+    from an.timing.channel import Channel, Keyframe
+    from an.timing.clip import Clip
+    from an.timing.kinds import NumberKind
+    from an.timing.spaces import FieldDecl, PropertySpace
+    from an.timing.timeline import PlacedClip, Timeline, Track
+
+    zoom = Channel("camera", "zoom", [Keyframe(0.0, 1.0), Keyframe(1.0, 4.0)])
+    timeline = Timeline(1.0, [Track("camera", [PlacedClip(Clip("z", 1.0, [zoom]), 0.0)])])
+    seen = []
+
+    class Zoomer:
+        name = "zoomer"
+
+        @contextmanager
+        def open(self, job):
+            class S:
+                space = PropertySpace("demo.camera", (FieldDecl("zoom", NumberKind(space="log")),))
+
+                def __init__(self):
+                    self.timeline = timeline
+
+                def render(self, state):
+                    seen.append(state[("camera", "zoom")])
+                    return _png(np.zeros((H, W, 3)))
+
+            yield S()
+
+    frame_stage_renderer(Zoomer()).render(Shot(id="s", duration=1.0), _ctx(tmp_path, fps=2))
+    assert seen[1] == pytest.approx(2.0)
+
+
+def test_the_engines_own_check_runs_before_it_is_opened(tmp_path, no_mux):
+    class Picky(GreyRamp):
+        name = "picky"
+
+        def check(self, ctx):
+            raise ValueError("no such capture path")
+
+    engine = Picky()
+    with pytest.raises(ValueError, match="no such capture path"):
+        frame_stage_renderer(engine).render(Shot(id="s", duration=0.1), _ctx(tmp_path))
+    assert engine.opened == []
+
+
+def test_an_engine_cannot_restate_what_the_core_recorded(tmp_path, no_mux):
+    """S1: a session claiming another argv, pixel format, frame count or name
+    would make the record lie about the file."""
+
+    class Liar(GreyRamp):
+        name = "liar"
+
+        @contextmanager
+        def open(self, job):
+            session = _Ramp((job.size[1], job.size[0]))
+            session.provenance = lambda: {"x264_args": ["-crf", "0"], "pix_fmt": "yuv444p"}
+            yield session
+
+    with pytest.raises(FrameStageError, match=r"\['pix_fmt', 'x264_args'\]"):
+        frame_stage_renderer(Liar()).render(Shot(id="s", duration=0.1), _ctx(tmp_path))
+
+
 # ------------------------------------------------------------------ the real mux
 
 

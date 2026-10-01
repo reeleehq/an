@@ -88,7 +88,7 @@ def test_off_is_free_and_returns_the_bytes_untouched():
     assert block_mean_resolve(big, NO_SUPERSAMPLE) is big
 
 
-def test_a_factor_that_cannot_resolve_exactly_is_refused_before_the_browser_starts():
+def test_a_factor_that_cannot_resolve_exactly_is_refused_before_the_browser_starts(tmp_path):
     """MUTATION: drop the `check_factor` call at the top of the frame stage.
 
     A bad factor would then surface minutes later, from inside the frame loop,
@@ -124,7 +124,7 @@ def test_a_factor_that_cannot_resolve_exactly_is_refused_before_the_browser_star
             yield
 
     renderer = render_mod.CutoutRenderer(engine=_MustNotOpen())
-    ctx = RenderContext(mall={}, work_dir=Path("."), supersample=0)
+    ctx = RenderContext(mall={}, work_dir=tmp_path, supersample=0)
     import an.media.mp4 as mp4
 
     original, mp4.ensure_ffmpeg = mp4.ensure_ffmpeg, lambda: None

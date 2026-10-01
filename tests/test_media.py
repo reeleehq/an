@@ -136,3 +136,24 @@ def test_a_stub_of_the_ffmpeg_check_at_the_old_path_reaches_the_frame_stage(monk
     sentinel = lambda: None  # noqa: E731
     monkeypatch.setattr(render, "_ensure_ffmpeg_available", sentinel)
     assert mp4.ensure_ffmpeg is sentinel
+
+
+def test_a_fractional_rate_reaches_the_mux_unrounded(tmp_path, monkeypatch):
+    """23.976 fps must be muxed at 23.976, not 23 or 24: the picture would
+    drift against the audio by a frame every 40 s."""
+    from tests._fake_subprocess import patch_subprocess_run, touch_output
+
+    seen = []
+
+    class _Result:
+        returncode, stderr = 0, ""
+
+    def fake_run(cmd, *a, **kw):
+        seen.append(list(cmd))
+        touch_output(cmd[-1], root=tmp_path, argv=list(cmd))
+        return _Result()
+
+    patch_subprocess_run(monkeypatch, mp4, fake_run)
+    mp4.mux_frames(tmp_path, 23.976, tmp_path / "out.mp4")
+    argv = seen[0]
+    assert argv[argv.index("-framerate") + 1] == "23.976"

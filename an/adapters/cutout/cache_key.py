@@ -3,7 +3,7 @@
 The cut-out render is a pure function of these, and of nothing else:
 
 - **the compiled document** — :func:`compile_shot` with exactly the arguments
-  `CutoutRenderer.render` passes; digested as ``scene_contract_sha256``, so the
+  the stage engine passes (``StageEngine.open``, since an#247); digested as ``scene_contract_sha256``, so the
   cache key and the bench's contract hash agree about what "the same document"
   means while staying two different things (the key covers more);
 - **the bytes of every texture it stages** — SVG included. Raster art already
@@ -28,7 +28,11 @@ The cut-out render is a pure function of these, and of nothing else:
   The Python twin of ``runtime_sha256``: an ``an`` upgrade that changes how a
   shot is encoded (an#195 did, with no knob and no runtime change) re-renders
   every shot instead of serving an old mp4. Computed by walking the imports
-  from :data:`RENDER_PATH_ROOT`, so a new helper module cannot fall outside it.
+  from the REGISTERED renderer's own modules (:func:`render_path_roots`: the
+  renderer class, the frame stage its ``render`` comes from, its engine), and
+  through the string targets of :func:`an._shims.forward_module_attributes`,
+  so a new helper module -- or a module that became a pure re-export shim --
+  cannot fall outside it.
 
 The machine — Chromium build, Playwright, the full ffmpeg build and the x264
 build it encodes with, ISA — is the separate environment part
@@ -50,7 +54,7 @@ import subprocess
 import tempfile
 import time
 import warnings
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -65,9 +69,10 @@ from an.build.keys import (
 #: Keys in the compiled document whose string value names an easing.
 EASING_KEYS: frozenset[str] = frozenset({"easing"})
 
-#: Where the render path starts: the module whose ``CutoutRenderer.render``
-#: turns a shot into an mp4. :func:`render_path_modules` walks its ``an.*``
-#: imports (module-level and function-local) from here.
+#: The cut-out renderer's historical module (the stage engine and
+#: ``CutoutRenderer`` live there until an#247 PR B moves them to ``an.stage``).
+#: The walk is no longer rooted HERE alone: :func:`render_path_roots` derives
+#: the roots from the registered renderer, and this module is one of them.
 RENDER_PATH_ROOT: str = "an.adapters.cutout.render"
 
 #: Modules the walk does NOT enter, each with the reason its change is already
@@ -95,7 +100,7 @@ def _render_module():
 
 
 def compiled_document(shot: Any, ctx: Any) -> Any:
-    """The document `CutoutRenderer.render` will compile for ``shot`` under ``ctx``.
+    """The document the stage engine (``StageEngine.open``) will compile for ``shot`` under ``ctx``.
 
     The SAME call, argument for argument — `tests/test_shot_cache.py` pins the
     two against each other, so a knob added to one and not the other fails
@@ -158,12 +163,38 @@ def _draws_system_text(path: Path) -> bool:
     return any(m in data for m in SVG_TEXT_MARKERS)
 
 
+#: The call that makes an old module's names LIVE aliases of another module's
+#: (:mod:`an._shims`). Its target is a STRING, invisible to an import walk.
+FORWARDING_CALL: str = "forward_module_attributes"
+
+
+def _forwarding_target(node: ast.AST) -> str | None:
+    """The target module of a ``forward_module_attributes(name, "target", ...)`` call."""
+    if not isinstance(node, ast.Call) or len(node.args) < 2:
+        return None
+    func = node.func
+    name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+    target = node.args[1]
+    if name == FORWARDING_CALL and isinstance(target, ast.Constant) and isinstance(target.value, str):
+        return target.value
+    return None
+
+
 def _module_imports(tree: ast.AST, module: str) -> set[str]:
-    """Every ``an.*`` module ``tree`` imports, at any depth (function-local too)."""
+    """Every ``an.*`` module ``tree`` imports, at any depth (function-local too),
+    plus every module a ``forward_module_attributes`` call forwards names to.
+
+    >>> sorted(_module_imports(ast.parse(
+    ...     'forward_module_attributes(__name__, "an.media.mp4", ["X"])'), "an.old"))
+    ['an.media.mp4']
+    """
     out: set[str] = set()
     package = module.rsplit(".", 1)[0]
     for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
+        target = _forwarding_target(node)
+        if target is not None:
+            out.add(target)
+        elif isinstance(node, ast.Import):
             out.update(a.name for a in node.names)
         elif isinstance(node, ast.ImportFrom):
             base = node.module or ""
@@ -178,17 +209,54 @@ def _module_imports(tree: ast.AST, module: str) -> set[str]:
     return {m for m in out if m == "an" or m.startswith("an.")}
 
 
+def render_path_roots(renderer_type: type | None = None) -> tuple[str, ...]:
+    """The modules a renderer's render path starts from, read off the renderer itself.
+
+    The renderer class's module, the module its ``render`` method is defined in
+    (the core frame stage, for a ``FrameStageRenderer``), and its default
+    engine's module -- so moving the renderer (an#247 PR B) or turning its old
+    module into a pure shim moves the roots with it. ``None`` is the cut-out
+    renderer, plus :data:`RENDER_PATH_ROOT`.
+
+    >>> "an.engines.frame_stage" in render_path_roots()
+    True
+    """
+    if renderer_type is None:
+        from an.adapters.cutout.render import CutoutRenderer
+
+        renderer_type = CutoutRenderer
+    roots = [renderer_type.__module__, renderer_type.render.__module__]
+    engine_field = getattr(renderer_type, "__dataclass_fields__", {}).get("engine")
+    factory = getattr(engine_field, "default_factory", None) if engine_field else None
+    if callable(factory):
+        roots.append(type(factory()).__module__)
+    roots.append(RENDER_PATH_ROOT)
+    return tuple(dict.fromkeys(roots))
+
+
 def render_path_modules(
-    root: str = RENDER_PATH_ROOT, *, excluded: Mapping[str, str] = RENDER_PATH_EXCLUDED
+    root: str | Iterable[str] | None = None,
+    *,
+    excluded: Mapping[str, str] = RENDER_PATH_EXCLUDED,
 ) -> dict[str, Path]:
     """``{module: source path}`` for every ``an`` module the render path reaches.
+
+    ``root`` is one module name or several; ``None`` is :func:`render_path_roots`.
 
     >>> mods = render_path_modules()
     >>> "an.adapters.cutout.canvas_capture" in mods and "an.adapters.cutout.compile" not in mods
     True
+    >>> {"an.engines.capture", "an.media.mp4"} <= set(mods)
+    True
     """
+    if root is None:
+        roots = list(render_path_roots())
+    elif isinstance(root, str):
+        roots = [root]
+    else:
+        roots = list(root)
     found: dict[str, Path] = {}
-    todo = [root]
+    todo = roots
     while todo:
         name = todo.pop()
         if name in found or name in excluded or name == "an":
@@ -346,16 +414,23 @@ def muxed_audio(shot: Any, ctx: Any) -> dict[str, Any]:
 
 
 def render_knobs(shot: Any, ctx: Any) -> dict[str, Any]:
-    """Every `RenderContext` knob, resolved the way `CutoutRenderer.render` resolves it.
+    """Every `RenderContext` knob, resolved the way the frame stage resolves it.
 
     Validated here too — an invalid ``pix_fmt`` or supersample factor raises
     the render's own error before anything launches.
     """
-    from an.adapters.cutout.shutter import check_frame_samples
-    from an.adapters.cutout.supersample import check_factor
     from an.base import BT709_SCALE_FILTER, MP4_FASTSTART_ARGS
+    from an.media import mp4
+    from an.media.shutter import check_frame_samples
+    from an.media.supersample import check_factor
 
     r = _render_module()
+    try:
+        # What the frame stage itself calls (not the stage's old-name wrapper),
+        # so a rebinding the render does not see cannot move the key either.
+        pix_fmt = mp4.check_pix_fmt(ctx.pix_fmt)
+    except mp4.MediaError as e:
+        raise r.CutoutRenderError(str(e)) from e
     total_frames = max(1, int(round(shot.duration * ctx.fps)))
     frame_samples = check_frame_samples(
         ctx.frame_samples, total_frames=total_frames, duration=shot.duration
@@ -364,14 +439,15 @@ def render_knobs(shot: Any, ctx: Any) -> dict[str, Any]:
         "fps": float(ctx.fps),
         "resolution": list(ctx.resolution),
         "supersample": check_factor(ctx.supersample),
-        "pix_fmt": r._check_pix_fmt(ctx.pix_fmt),
+        "pix_fmt": pix_fmt,
         "capture": r._check_capture(ctx.capture),
         "step_hz": r.effective_step_hz(shot, ctx),
         "frame_samples": [list(f) for f in frame_samples] if frame_samples else None,
         "strict_assets": bool(ctx.strict_assets),
         "extra": dict(ctx.extra),
         "chromium_args": list(r.DETERMINISTIC_CHROMIUM_ARGS),
-        "x264_args": list(r.DETERMINISTIC_X264_ARGS),
+        # Read at call time from where the mux reads it (the `high_crf` seam).
+        "x264_args": list(mp4.DETERMINISTIC_X264_ARGS),
         "scale_filter": BT709_SCALE_FILTER,
         "faststart_args": list(MP4_FASTSTART_ARGS),
     }

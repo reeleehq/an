@@ -212,7 +212,9 @@ def _check_pix_fmt(pix_fmt: str | None) -> str:
 
     The validation itself (and the module global it falls back to, the seam the
     bench pulls) lives in :mod:`an.media.mp4`; this name is the stage's door to
-    it, which callers that expect the renderer's own error type use.
+    it, which callers that expect the renderer's own error type use. **Not the
+    renderer's path**: the frame stage calls ``an.media.mp4.check_pix_fmt``, so
+    rebinding this name changes no render (rebind ``DEFAULT_PIX_FMT`` instead).
 
     >>> _check_pix_fmt(None)
     'yuv420p'
@@ -346,7 +348,8 @@ def _stage_job(
 
     The whole layout a stage render uses, for callers that drive a page
     themselves (``tests/test_pure_pose.py``); the renderer itself gets its
-    workspace and frames directory from the core frame stage.
+    workspace and frames directory from the core frame stage, so rebinding this
+    name changes no render.
     """
     from an.engines.frame_stage import _fresh_frames_dir, shot_workspace
 
@@ -865,8 +868,10 @@ def _capture_frames(
 ) -> None:
     """Step a LOADED page through ``total_frames`` and write them to ``frames_dir``.
 
-    The stage half of the old frame stage, kept for callers that drive a page
-    themselves: it wraps ``page`` in the session ``capture`` names (the module
+    **Not the renderer's path** (an#247): rebinding this name changes no render
+    -- the renderer runs :func:`an.engines.capture.capture_frames` through its
+    frame stage. The stage half of the old frame stage, kept for callers that
+    drive a page themselves: it wraps ``page`` in the session ``capture`` names (the module
     default when ``None``) and runs the core capture loop
     (:func:`an.engines.capture.capture_frames`) over it. The renderer does not
     come through here; it goes through :class:`CutoutRenderer`'s frame stage.
@@ -895,6 +900,8 @@ def _capture_frames_canvas(
     batch_pixels: int | None = None,
 ) -> None:
     """The ``capture="canvas"`` path over a loaded page, with the loop's tunables exposed.
+
+    **Not the renderer's path** (an#247): rebinding this name changes no render.
 
     See :class:`_CanvasStageSession` for the page half and
     :mod:`an.engines.capture` for the loop (batching, ordering, back-pressure,

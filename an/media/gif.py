@@ -85,9 +85,19 @@ def to_gif(
         inputs = ["-framerate", str(source_fps), "-i", str(source / DEFAULT_FRAME_PNG_PATTERN)]
     else:
         inputs = ["-i", str(source)]
+    from an.media.mp4 import MediaError, ensure_ffmpeg
+
+    ensure_ffmpeg()
     vf = gif_filter(crop=crop, fps=fps, width=width, max_colours=max_colours)
-    subprocess.run(
-        ["ffmpeg", "-v", "error", "-y", *inputs, "-vf", vf, str(gif)],
-        check=True,
-    )
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-v", "error", "-y", *inputs, "-vf", vf, str(gif)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as e:
+        raise MediaError(f"ffmpeg failed to launch for the GIF sink: {e}") from e
+    if result.returncode != 0 or not gif.exists():
+        raise MediaError(f"ffmpeg GIF encode failed (rc={result.returncode}):\n{result.stderr}")
     return gif

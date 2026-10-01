@@ -1,6 +1,6 @@
 ---
 name: an-dev-bench
-description: Use when working on `an bench`, the metrics ledger, the golden corpus, or anything that measures rendered output in the `an` repo. Triggers on "add a metric", "the ledger", "an bench", "golden frames", "mutation test the harness", "why is this number moving", "bench corpus", or any change to `an/bench/`, `misc/bench/`, or the encode/decode flags in `an/adapters/cutout/render.py`.
+description: Use when working on `an bench`, the metrics ledger, the golden corpus, or anything that measures rendered output in the `an` repo. Triggers on "add a metric", "the ledger", "an bench", "golden frames", "mutation test the harness", "why is this number moving", "bench corpus", or any change to `an/bench/`, `misc/bench/`, or the encode/decode flags in `an/media/mp4.py` (formerly `an/adapters/cutout/render.py`), or the frame stage in `an/engines/`.
 ---
 
 # Working on `an`'s measurement instrument
