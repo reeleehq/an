@@ -1133,11 +1133,24 @@ def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
 def _check_voice_effects(
     report: "ValidationReport", path: str, k: int, voice_ref: str, voices, *, line
 ) -> None:
-    """An unknown or out-of-range ``effects`` entry on a line's voice is an
-    error — rendering would raise the same ``VoiceEffectError``."""
+    """An unknown or out-of-range ``effects`` entry, or a malformed ``takes``
+    declaration (an#265), on a line's voice is an error — rendering would raise
+    the same ``VoiceEffectError`` / ``VoiceTakesError`` before any request."""
+    from an.audio.takes import TAKES_KEY, VoiceTakesError, takes_spec
+    from an.audio.voices import voice_document
+
     try:
         voice_effects({"voices": voices}, voice_ref)
     except VoiceEffectError as exc:
+        report.add(
+            "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
+        )
+    try:
+        takes_spec(
+            voice_document({"voices": voices}, voice_ref).get(TAKES_KEY),
+            direction=line.direction,
+        )
+    except VoiceTakesError as exc:
         report.add(
             "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
         )

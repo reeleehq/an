@@ -29,23 +29,35 @@ A voice document opts in with ``takes``::
 
 How the pipeline uses it (:mod:`an.audio.pipeline`):
 
-1. Take ``0`` is the request a single take makes, under the same key — turning
-   takes on for a line already synthesized reuses that take and pays for
-   ``n - 1`` more. Take ``i`` adds ``take: i`` to its key, and a provider may
-   vary its request per take (ElevenLabs offsets a declared ``seed`` by ``i``).
-   Every take's raw audio is cached like any line's.
+1. **Every take has its own content key.** Take ``0`` of roll ``0`` is the
+   request a single take makes, under the same key — turning takes on for a
+   line already synthesized reuses that take and pays for ``n - 1`` more. Take
+   ``i`` adds ``take: i`` (and a re-roll adds ``roll: r``) to its key, and a
+   provider may vary its request per take (ElevenLabs offsets a declared
+   ``seed`` by ``i``). The audio a line KEEPS is the chosen take's own heard
+   key (its effects applied), so a different take is a different
+   ``audio_ref``, and its visemes, word timings and captions follow it.
 2. Each take is scored on the audio the viewer hears (the voice's effects
    applied, so a ``tempo`` counts toward the rate); the lowest score wins, ties
-   to the lower take index. Scoring is deterministic, so with the takes cached
-   the same take always wins.
-3. The winner is stored under the line's audio key, which gains a ``takes``
-   part (``n``, the scorer's name, version and configuration) only when ``n``
-   is above 1 — so every existing key is unchanged — and the choice is
-   recorded in ``mall["takes"]`` under that key: the chosen take, the sha256 of
-   the audio kept, every take's key, digest and score, and the scorer. A
-   re-render finds the line's audio and never re-rolls (ADR 0003: nothing
-   below the IR is re-asked); a change to the targets, ``n``, the scorer or its
-   estimator is a different key and chooses again (ADR 0004).
+   to the lower take index.
+3. **The record is the resolution** (ADR 0003 decision 3). The choice is
+   written to ``mall["takes"]`` under the line's *choice key* — the line's
+   request, ``n``, the scorer's name and its configuration (its targets), but
+   NOT its version — with the chosen take, the sha256 of what it sounds like,
+   every take's keys, digests and scores, and the scorer that chose. Every
+   render reads it first:
+
+   - the chosen take is restored from the record (its heard audio, else its
+     raw audio with the effects re-applied) and never re-billed;
+   - a hand edit of ``chosen`` wins: that take is restored, the record says
+     ``superseded_by: hand`` and the decision is logged;
+   - a chosen take whose audio is gone is a :class:`TakeLostError` raised
+     before any request — ``an voices reroll`` is the explicit way to re-roll;
+   - a record made by an older scorer version is KEPT, and the render reports
+     it — ``an voices rescore`` re-chooses explicitly, from the cached takes.
+
+   Changing ``n``, the targets, the scorer or the voice's effects is a new
+   choice key, chosen from the takes already cached where it can.
 
 >>> spec = takes_spec({"n": 3, "targets": {"f0_sd_st": [2, 4]}})
 >>> spec.n, spec.scorer, dict(spec.targets)
@@ -66,12 +78,11 @@ an.audio.takes.VoiceTakesError: takes: n=3 with the prosody scorer needs `target
 from __future__ import annotations
 
 import hashlib
-import io
+import json
 import math
 import shutil
 import tempfile
-import wave
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
@@ -96,8 +107,27 @@ _TAKES_FIELDS = frozenset({"n", "scorer", "targets", "reference_hz", "cues"})
 _CUE_FIELDS = _TAKES_FIELDS - {"cues"}
 
 
+#: What to run when a recorded take must be replaced (named in every error).
+REROLL_HINT: str = (
+    "re-roll it explicitly with `an voices reroll <project> <words of the line>` "
+    "(new takes, billed) or re-choose from the cached takes with "
+    "`an voices rescore <project> <words of the line>`"
+)
+
+
 class VoiceTakesError(ValueError):
     """A voice's ``takes`` declaration is malformed, or cannot be scored."""
+
+
+class TakesRecordError(VoiceTakesError):
+    """A ``mall["takes"]`` record cannot be read as a takes record."""
+
+
+class TakeLostError(RuntimeError):
+    """A line's recorded take is gone from the audio store and cannot be restored.
+
+    Raised before any request: re-rolling an approved take is never implicit.
+    """
 
 
 @dataclass(frozen=True)
@@ -253,29 +283,97 @@ def voice_takes(
     *,
     direction: Sequence[str] | None = None,
     tts_name: str | None = None,
+    repeatable: bool = False,
 ) -> TakesSpec | None:
     """The takes ``mall["voices"][voice_id]`` declares for a line with ``direction``.
 
-    ``None`` (one take) for a voice not in the store, one declaring nothing, and
-    one written for another provider than ``tts_name`` — a preview under
-    ``offline`` or ``mac_say`` never re-rolls (those providers repeat themselves).
+    ``None`` (one take) for a voice not in the store, one declaring nothing, one
+    written for another provider than ``tts_name``, and any voice spoken by a
+    ``repeatable`` provider (``offline``, ``mac_say``: the same request gives the
+    same audio, so a second take is the first one again). A malformed
+    declaration raises :class:`VoiceTakesError` in every case.
     """
     from an.audio.voices import voice_applies, voice_document
 
     doc = voice_document(mall, voice_id)
-    if not doc or not voice_applies(doc, tts_name):
+    if not doc:
         return None
-    return takes_spec(doc.get(TAKES_KEY), direction=direction)
+    spec = takes_spec(doc.get(TAKES_KEY), direction=direction)
+    if repeatable or not voice_applies(doc, tts_name):
+        return None
+    return spec
 
 
-def takes_key_part(scorer: TakeScorer, n: int) -> dict[str, Any]:
-    """What a line's audio key gains for best-of-``n`` takes chosen by ``scorer``."""
-    return {
-        "n": n,
-        "scorer": scorer.name,
-        "version": scorer.version,
-        "config": dict(scorer.config),
-    }
+def takes_choice_part(scorer: TakeScorer, n: int) -> dict[str, Any]:
+    """What identifies a CHOICE among ``n`` takes: the scorer's name and its
+    configuration, never its version — a new scorer version keeps the takes it
+    chose, and says so (:data:`REROLL_HINT`)."""
+    return {"n": n, "scorer": scorer.name, "config": dict(scorer.config)}
+
+
+def scorer_identity(scorer: TakeScorer) -> dict[str, Any]:
+    """The scorer as a record names it: name, version and configuration."""
+    return {"name": scorer.name, "version": scorer.version, "config": dict(scorer.config)}
+
+
+# -----------------------------------------------------------------------------
+# The record
+# -----------------------------------------------------------------------------
+
+
+def read_takes_record(store: Mapping | None, key: str) -> dict[str, Any] | None:
+    """The takes record under ``key`` in ``store`` (``mall["takes"]``), or ``None``.
+
+    Raises :class:`TakesRecordError` — naming the record and the remedy — for one
+    that is not JSON, not a mapping, or whose ``chosen`` names no take.
+
+    >>> read_takes_record({}, "k") is None
+    True
+    >>> read_takes_record({"k": b'{"chosen": 0, "takes": [{"take": 0}]}'}, "k")["chosen"]
+    0
+    >>> read_takes_record({"k": b"[1, 2]"}, "k")
+    Traceback (most recent call last):
+        ...
+    an.audio.takes.TakesRecordError: the takes record 'k' is not a takes record (a JSON object with `chosen` and `takes`): ...
+    """
+    if store is None or key not in store:
+        return None
+    where = getattr(store, "path_of", None)
+    name = str(where(key)) if where is not None else repr(key)
+    remedy = (
+        f"fix it, or delete it to choose again from the cached takes "
+        f"(nothing is billed for a take still cached), or {REROLL_HINT}"
+    )
+    try:
+        record = json.loads(bytes(store[key]).decode("utf-8"))
+    except (ValueError, UnicodeDecodeError, TypeError) as exc:
+        raise TakesRecordError(f"the takes record {name} is not JSON ({exc}); {remedy}") from None
+    takes = record.get("takes") if isinstance(record, dict) else None
+    chosen = record.get("chosen") if isinstance(record, dict) else None
+    ok = (
+        isinstance(record, dict)
+        and isinstance(takes, list)
+        and all(isinstance(t, dict) for t in takes)
+        and (chosen is None or (isinstance(chosen, int) and not isinstance(chosen, bool)))
+        and isinstance(record.get("roll", 0), int)
+    )
+    if not ok:
+        raise TakesRecordError(
+            f"the takes record {name} is not a takes record (a JSON object with "
+            f"`chosen` and `takes`): {remedy}"
+        )
+    if chosen is not None and not 0 <= chosen < len(takes):
+        raise TakesRecordError(
+            f"the takes record {name} keeps take {chosen}, but it lists "
+            f"{len(takes)} take(s); {remedy}"
+        )
+    return record
+
+
+def write_takes_record(store: MutableMapping | None, key: str, record: Mapping) -> None:
+    """Write ``record`` under ``key`` (stable, indented JSON); no store, no record."""
+    if store is not None:
+        store[key] = json.dumps(record, indent=1, sort_keys=True).encode("utf-8")
 
 
 # -----------------------------------------------------------------------------
@@ -284,37 +382,25 @@ def takes_key_part(scorer: TakeScorer, n: int) -> dict[str, Any]:
 
 
 def decode_for_scoring(audio: bytes, *, sr: int = SCORING_SAMPLE_RATE):
-    """``audio`` as mono float samples at ``sr`` Hz.
+    """``audio`` as mono float samples at ``sr`` Hz, decoded by ffmpeg — the decoder
+    the targets were measured with, and the only one, so the same bytes score the
+    same on every machine. Raises :class:`VoiceTakesError` without ffmpeg."""
+    require_ffmpeg()
+    from an.verify.prosody import decode_audio
 
-    ffmpeg when it is on PATH (how the targets were measured); without it a
-    PCM WAV is read and linearly resampled, and anything else is refused.
-    """
-    import numpy as np
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "take.bin"
+        path.write_bytes(audio)
+        return decode_audio(path, sr=sr)
 
-    if shutil.which("ffmpeg") is not None:
-        from an.verify.prosody import decode_audio
 
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "take.bin"
-            path.write_bytes(audio)
-            return decode_audio(path, sr=sr)
-    try:
-        with wave.open(io.BytesIO(audio), "rb") as wf:
-            width, channels, rate = wf.getsampwidth(), wf.getnchannels(), wf.getframerate()
-            frames = wf.readframes(wf.getnframes())
-    except wave.Error as exc:
+def require_ffmpeg() -> None:
+    """Raise :class:`VoiceTakesError` with the install hint when ffmpeg is not on PATH."""
+    if shutil.which("ffmpeg") is None:
         raise VoiceTakesError(
-            "scoring a non-WAV take needs the ffmpeg binary on PATH "
-            "(macOS: `brew install ffmpeg`; Debian/Ubuntu: `apt install ffmpeg`)"
-        ) from exc
-    if width != 2:
-        raise VoiceTakesError(f"cannot score a {8 * width}-bit WAV without ffmpeg")
-    x = np.frombuffer(frames, dtype="<i2").astype(np.float64) / 32768.0
-    x = x.reshape(-1, channels).mean(axis=1)
-    if rate != sr and x.size:
-        t_out = np.arange(int(round(x.size * sr / rate))) / sr
-        x = np.interp(t_out, np.arange(x.size) / rate, x)
-    return x
+            "scoring takes needs the ffmpeg binary on PATH (macOS: `brew install "
+            "ffmpeg`; Debian/Ubuntu: `apt install ffmpeg`); nothing was billed"
+        )
 
 
 class ProsodyTakeScorer:
@@ -343,6 +429,10 @@ class ProsodyTakeScorer:
         self.config: dict[str, Any] = {"targets": self.targets}
         if reference_hz is not None:
             self.config["reference_hz"] = float(reference_hz)
+
+    def check_available(self) -> None:
+        """Raise before any request when this scorer could not score (no ffmpeg)."""
+        require_ffmpeg()
 
     def score(self, audio: bytes, text: str) -> TakeScore:
         from an.verify.prosody import measure_prosody, target_distance

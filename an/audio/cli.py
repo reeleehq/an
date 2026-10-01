@@ -7,8 +7,13 @@ provider factories.
     an voices list --provider elevenlabs
     an voices list --provider elevenlabs --search british
     an voices list --provider mac_say
+    an voices rescore <project> "He did not ask"    # re-choose a line's take from its cached takes
+    an voices reroll <project> "He did not ask"     # synthesize new takes for it (billed)
 
 The ``voice_id`` column is what a ``voices``-store document's ``voice_id`` takes.
+``rescore`` and ``reroll`` are the only ways a recorded best-of-N take is
+replaced (:func:`an.audio.pipeline.retake_lines`); the next ``an render`` does
+the choosing, and prints what it will bill first.
 """
 
 from __future__ import annotations
@@ -20,7 +25,7 @@ from typing import Any
 from an.audio.providers import make_tts
 from an.audio.tts import TTSProvider, VoiceMeta
 
-__all__ = ["browse_voices", "format_voices"]
+__all__ = ["browse_voices", "format_voices", "retake"]
 
 #: The provider ``an voices list`` browses when none is named.
 DEFAULT_BROWSE_PROVIDER = "elevenlabs"
@@ -93,4 +98,52 @@ def _list(provider: str = DEFAULT_BROWSE_PROVIDER, search: str = "") -> str:
 
 _list.__name__ = "list"  # the CLI verb: `an voices list`
 
-_dispatch_funcs: list[Callable[..., Any]] = [_list]
+
+def retake(
+    project: str,
+    line: str,
+    *,
+    rescore: bool = False,
+    tts: str = DEFAULT_BROWSE_PROVIDER,
+    make: Callable[[str], TTSProvider] = make_tts,
+) -> str:
+    """Release the recorded takes of the lines of ``project`` containing ``line``.
+
+    The plain-function core of ``an voices rescore`` / ``an voices reroll``: see
+    :func:`an.audio.pipeline.retake_lines`. ``tts`` must be the provider the
+    line is rendered with (its takes are keyed by it).
+    """
+    from an.audio.pipeline import retake_lines
+    from an.project import load
+
+    proj = load(project)
+    messages = retake_lines(proj.scene, proj.mall, line, tts=make(tts), rescore=rescore)
+    return "\n".join(messages)
+
+
+def _rescore(project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER) -> str:
+    """Re-choose the take of each line containing LINE from its cached takes, with
+    the current scorer, at the next render (nothing billed while the takes are cached).
+
+    project: the project directory
+    line: words of the dialogue line (case-insensitive substring)
+    tts: the TTS provider the line is rendered with
+    """
+    return retake(project, line, rescore=True, tts=tts)
+
+
+def _reroll(project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER) -> str:
+    """Synthesize new takes for each line containing LINE at the next render, and
+    keep the best (billed: the render prints the cost before the first request).
+
+    project: the project directory
+    line: words of the dialogue line (case-insensitive substring)
+    tts: the TTS provider the line is rendered with
+    """
+    return retake(project, line, rescore=False, tts=tts)
+
+
+_rescore.__name__ = "rescore"  # `an voices rescore`
+_reroll.__name__ = "reroll"  # `an voices reroll`
+
+_dispatch_funcs: list[Callable[..., Any]] = [_list, _rescore, _reroll]

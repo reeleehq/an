@@ -176,7 +176,8 @@ guidance:
     takes:
       # A take varies more than any setting (the same punchline's final drop measured -0.8, -2.5 and +1.8 st in three takes),
       # so key lines are re-rolled: `takes` synthesizes n takes, scores each against its targets on the audio heard
-      # (tempo included) and keeps the closest; the choice is recorded and a re-render reuses it.
+      # (tempo included) and keeps the closest; the choice is recorded and every render restores it. Replace a
+      # take only explicitly: `an voices rescore <dir> "<words>"` (from the cached takes) or `an voices reroll` (new, billed).
       default: punchlines ({deadpan} under the narrator's takes.cues) 3 takes; eager (the most variable voice) 3; serene and a deadpan character 2; setups and regal 1
       cost: n requests per line on the first render (take 0 is the single take, so turning takes on for a synthesized line pays n-1); the render prints the requests and billed characters before the first one
       register: an eager role's register_st target needs the voice's neutral median pitch as `takes.reference_hz` on the voice document; without it that metric is unmeasured and weighs every take the same
