@@ -1,6 +1,6 @@
 # ADR 0001 — `an` is the core; genres are packages that depend on it
 
-**Status:** Proposed, 2026-10-01 · **Decider:** the maintainer · **Related:** an#225 (the split), an#9 (the epic that built the cut-out genre), `misc/docs/framework_review_2026-10.md` §2–3 (the measured coupling), `misc/docs/core_from_three_genres.md` (the three-genre evidence), ADR 0002, ADR 0003, ADR 0004
+**Status:** Accepted, 2026-10-01 (the maintainer delegated the decision; choices recorded in `misc/docs/plan_core_and_cutan_2026-10.md` §1) · **Decider:** the maintainer · **Related:** an#225 (the split), an#9 (the epic that built the cut-out genre), `misc/docs/framework_review_2026-10.md` §2–3 (the measured coupling), `misc/docs/core_from_three_genres.md` (the three-genre evidence), ADR 0002, ADR 0003, ADR 0004
 
 **Revised 2026-10-01 with manimkit/previz evidence.** The first version inferred the core from `an` alone. The revision tests it against two more genres the fleet already builds, Manim-based explainer animation (`manimkit`) and view-state animation (`previz`), with `burns`, `walkthru` and `shaping` as further evidence (`misc/docs/core_from_three_genres.md`). What changed: the boundary test (Decision 1); Decision 5, which no longer puts the stage runtime inside the core; and the new Decisions 10–14 (the timing kernel as a cross-language contract, declared field kinds and property spaces, three renderer tiers, how Manim and `previz` plug in, the import firewall). Decision 8(a) gains three steps. The status is unchanged.
 
