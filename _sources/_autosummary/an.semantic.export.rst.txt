@@ -1,0 +1,21 @@
+an.semantic.export
+==================
+
+.. automodule:: an.semantic.export
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      VOCABULARY_FILE
+      VOCABULARY_FORMAT_VERSION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_vocabulary
+      vocabulary_drift
+      write_vocabulary
+   

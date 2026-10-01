@@ -162,6 +162,7 @@
 - [an.semantic.describe](_autosummary/an.semantic.describe.html.md): Describe an asset: what it affords, and per aspect what applies and what is missing.
 - [an.semantic.digest](_autosummary/an.semantic.digest.html.md): Which vocabulary entries a shot names, at which versions: the shot’s vocabulary digest.
 - [an.semantic.docs](_autosummary/an.semantic.docs.html.md): The vocabulary section of the downstream &#96;an&#96; skill, generated from the registry.
+- [an.semantic.export](_autosummary/an.semantic.export.html.md): The vocabulary as a published, code-free contract file: &#96;an/data/timing/vocabulary.json&#96;.
 - [an.semantic.matcher](_autosummary/an.semantic.matcher.html.md): The three queries and the policy (ADR 0002 decision 4): &#96;applicable&#96;, &#96;why_not&#96;, &#96;resolve&#96;.
 - [an.semantic.prompt](_autosummary/an.semantic.prompt.html.md): The &#96;an iterate&#96; system prompt, generated from the vocabulary registry.
 - [an.semantic.registry](_autosummary/an.semantic.registry.html.md): The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.
@@ -202,7 +203,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 16:58 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 17:12 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

@@ -358,6 +358,7 @@ What `method` is missing on `subjects`, each with its remedy (empty: it applies)
 |-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | [`digest`](an.semantic.digest.md#module-an.semantic.digest)       | Which vocabulary entries a shot names, at which versions: the shot's vocabulary digest.     |
 | [`docs`](an.semantic.docs.md#module-an.semantic.docs)           | The vocabulary section of the downstream `an` skill, generated from the registry.           |
+| [`export`](an.semantic.export.md#module-an.semantic.export)       | The vocabulary as a published, code-free contract file: `an/data/timing/vocabulary.json`.   |
 | [`matcher`](an.semantic.matcher.md#module-an.semantic.matcher)     | The three queries and the policy (ADR 0002 decision 4): `applicable`, `why_not`, `resolve`. |
 | [`prompt`](an.semantic.prompt.md#module-an.semantic.prompt)       | The `an iterate` system prompt, generated from the vocabulary registry.                     |
 | [`registry`](an.semantic.registry.md#module-an.semantic.registry)   | The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.           |

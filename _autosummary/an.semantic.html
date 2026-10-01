@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1513c57e"></script>
+    <script src="../_static/documentation_options.js?v=b16b4167"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.render" href="an.render.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.140" />
+  <meta name="docsearch:version" content="0.1.141" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -484,6 +484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.describe.html">an.semantic.describe</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.digest.html">an.semantic.digest</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.docs.html">an.semantic.docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.export.html">an.semantic.export</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.matcher.html">an.semantic.matcher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.prompt.html">an.semantic.prompt</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.registry.html">an.semantic.registry</a></li>
@@ -1101,19 +1102,22 @@ does not apply: it falls back and records why.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.docs.html#module-an.semantic.docs" title="an.semantic.docs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">docs</span></code></a></p></td>
 <td><p>The vocabulary section of the downstream <code class="docutils literal notranslate"><span class="pre">an</span></code> skill, generated from the registry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.matcher.html#module-an.semantic.matcher" title="an.semantic.matcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matcher</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.export.html#module-an.semantic.export" title="an.semantic.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a></p></td>
+<td><p>The vocabulary as a published, code-free contract file: <code class="docutils literal notranslate"><span class="pre">an/data/timing/vocabulary.json</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.matcher.html#module-an.semantic.matcher" title="an.semantic.matcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matcher</span></code></a></p></td>
 <td><p>The three queries and the policy (ADR 0002 decision 4): <code class="docutils literal notranslate"><span class="pre">applicable</span></code>, <code class="docutils literal notranslate"><span class="pre">why_not</span></code>, <code class="docutils literal notranslate"><span class="pre">resolve</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.prompt.html#module-an.semantic.prompt" title="an.semantic.prompt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prompt</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.prompt.html#module-an.semantic.prompt" title="an.semantic.prompt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prompt</span></code></a></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">iterate</span></code> system prompt, generated from the vocabulary registry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.registry.html#module-an.semantic.registry" title="an.semantic.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.registry.html#module-an.semantic.registry" title="an.semantic.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
 <td><p>The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.seeds.html#module-an.semantic.seeds" title="an.semantic.seeds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seeds</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.seeds.html#module-an.semantic.seeds" title="an.semantic.seeds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seeds</span></code></a></p></td>
 <td><p>The core's vocabulary: views over the kind and easing registries, camera moves, IR fields.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-obj docutils literal notranslate"><span class="pre">views</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-obj docutils literal notranslate"><span class="pre">views</span></code></a></p></td>
 <td><p>View spaces: what a camera move moves through, defined once for every engine (an#257).</p></td>
 </tr>
 </tbody>

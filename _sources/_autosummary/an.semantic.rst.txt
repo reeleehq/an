@@ -52,6 +52,7 @@ an.semantic
    describe
    digest
    docs
+   export
    matcher
    prompt
    registry
