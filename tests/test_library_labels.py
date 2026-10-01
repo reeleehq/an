@@ -509,3 +509,33 @@ def test_a_re_carved_part_under_a_stale_factory_stamp_is_not_the_factorys(tmp_pa
     char = new_character(tmp_path, name="amy", use_dicebear=False).parent
     (char / "parts" / "head.svg").write_bytes(CARVED)
     assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"
+
+
+def test_silence_gives_way_but_a_private_statement_beside_it_still_binds(tmp_path):
+    old = new_character(tmp_path / "old", name="alice", use_dicebear=False).parent
+    _strip_stamps(old)
+    publish_dir(open_library("cutan", root=tmp_path / "elsewhere"), old, "character.alice")
+    publish_dir(open_library("cutan", root=tmp_path / "study-lib"), old, "character.study",
+                source=PRIVATE)
+    fresh = new_character(tmp_path / "fresh", name="alice", use_dicebear=False).parent
+    r = publish_dir(open_library("cutan"), fresh, "character.alice")
+    assert r.rights.license_class == "private"
+    assert not any("cutan:character.alice@" in reason for reason in r.rights.reasons)
+
+
+def test_only_the_factorys_own_stamp_is_verified_by_its_record(tmp_path):
+    """Bytes the factory drew, itemised by someone else's claim instead of the
+    factory's stamp, get no help from the record: two pieces of evidence, both."""
+    lib = open_library("cutan")
+    char = new_character(tmp_path, name="amy", use_dicebear=False).parent
+    head = (char / "parts" / "head.svg").read_bytes()
+    publish(lib, "prop.old", {"name": "o"}, {"parts/head.svg": head})  # unlabelled
+    digest = library_api.content_hash(head)
+    doc = {
+        "name": "x",
+        "skins": {"default": {"slots": {"head": {"head": {
+            "path": "parts/head.svg",
+            "source": {"provider": "me", "license": "cc0-1.0", "sha256": digest},
+        }}}}},
+    }
+    assert publish(lib, "character.x", doc, {"parts/head.svg": head}).rights.license_class == "unknown"
