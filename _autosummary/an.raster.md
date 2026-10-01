@@ -60,7 +60,7 @@ compiler says so once.
 | [`RasterFormatError`](#an.raster.RasterFormatError)   | A file named as raster art whose header this module cannot read.   |
 |----------------------------------------------------------------------|--------------------------------------------------------------------|
 
-### an.raster.RASTER_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.png', '.jpg', '.jpeg', '.webp')*
+### an.raster.RASTER_SUFFIXES *: tuple[str, ...]* *= ('.png', '.jpg', '.jpeg', '.webp')*
 
 The raster formats a plate or a part may be, by file suffix. PixiJS 7’s
 `loadTextures` picks its parser by extension and accepts exactly these
@@ -69,7 +69,7 @@ whose output is not specified bit-exactly and the render is a contract).
 
 ### *exception* an.raster.RasterFormatError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A file named as raster art whose header this module cannot read.
 
@@ -87,7 +87,7 @@ The ONE probe the compiler, the fidelity check and `an validate` share, so
 none of them can size a PNG as if it were XML again.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`]
 
 ### an.raster.content_digest(path)
 
@@ -102,7 +102,7 @@ compiles each shot separately; keyed on the stat so an edited file is
 re-read, which is what makes the digest safe to put in a texture alias.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.raster.has_alpha(source)
 
@@ -115,7 +115,7 @@ canvas draws, background and all — which is what `an character validate`
 uses this for.
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `bool` | `None`
 
 ### an.raster.image_size(source)
 
@@ -124,7 +124,7 @@ uses this for.
 `source` is a path or the file’s bytes.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`]
 
 ```pycon
 >>> import struct, zlib
@@ -140,7 +140,7 @@ uses this for.
 Whether `src` names raster art, by its suffix (case-insensitive).
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+  `bool`
 
 ```pycon
 >>> is_raster("plates/Street.JPG")
@@ -154,7 +154,7 @@ False
 The file path a (possibly versioned) texture `src` names.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> strip_version("props/lamp/parts/on.png?v=abc123")
@@ -166,7 +166,7 @@ The file path a (possibly versioned) texture `src` names.
 `src` with its content digest as a query string.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> versioned_src("props/lamp/parts/on.png", "abc123")

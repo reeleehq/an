@@ -52,12 +52,12 @@ facade boundary.
 |-----------------------------------------------------------------------|----------------------------------------------------------------------|
 | [`CutoutRenderError`](#an.adapters.cutout.render.CutoutRenderError)    | Raised when a cutout render fails.                                   |
 
-### an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an:asset-load-timeout'*
+### an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER *: str* *= 'an:asset-load-timeout'*
 
 Sentinel the in-page deadline rejects with, so the Python side can tell a
 timeout apart from a load failure and say something different about each.
 
-### an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'characters/': 'characters', 'environments/': 'environments', 'props/': 'props', 'styles/': 'styles'}*
+### an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE *: dict[str, str]* *= {'characters/': 'characters', 'environments/': 'environments', 'props/': 'props', 'styles/': 'styles'}*
 
 Texture `src` prefix → the mall store that resolves the rest of the path.
 
@@ -73,7 +73,7 @@ store is named differently must still work.
 
 ### *exception* an.adapters.cutout.render.CutoutAssetWarning
 
-Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+Bases: `UserWarning`
 
 A declared texture could not be staged into the runtime directory.
 
@@ -91,13 +91,13 @@ rather than as an error, which is what this warning exists to prevent.
 
 ### *exception* an.adapters.cutout.render.CutoutRenderError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 Raised when a cutout render fails. Carries actionable detail.
 
 ### *class* an.adapters.cutout.render.CutoutRenderer
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Headless cutout renderer: Playwright + ffmpeg.
 
@@ -116,7 +116,7 @@ Render `shot` to mp4 using `ctx` for paths + parameters.
 * **Return type:**
   [`RenderResult`](an.adapters.html.md#an.adapters.RenderResult)
 
-### an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 60000*
+### an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS *: int* *= 60000*
 
 Deadline for `anLoadScene`, which awaits `PIXI.Assets.load` for every declared
 texture. **A bound is required, not merely nice**: a degenerate part SVG —
@@ -129,7 +129,7 @@ The value is a policy choice, not a measurement: it needs to sit far above a
 legitimate cold load of a few dozen small SVGs and far below “a human gave
 up”. Raise it for a genuinely heavy art package rather than removing it.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH *: int* *= 8*
 
 Frames per `anCaptureFrames` round trip. Measured at 1920x1080 on an M1
 Max, `single_character`: 67 ms/frame one frame per call, 46 at four, 46 at
@@ -138,7 +138,7 @@ also the memory the page holds before Python takes it: eight data URLs of a
 1080p frame are well under a megabyte of text, and at a supersampled 4K
 backbuffer a few megabytes each.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4147200*
+### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS *: int* *= 4147200*
 
 The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
 counts k² times and an open shutter once per instant): at most this many per
@@ -154,7 +154,7 @@ driver’s string limit in ONE reply (the render hung in `browser.close()`),
 and ~16 GB of Python memory at supersample 3. A frame whose instants alone
 exceed it is captured over several round trips.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: int* *= 2*
 
 Threads decoding, resolving and re-encoding canvas frames while the page
 renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
@@ -162,7 +162,7 @@ at 1080p — the same order as the page’s own work — so it must overlap it o
 it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs
 one Chromium per shot, and each of them is another source of CPU pressure.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
+### an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT *: int* *= 16*
 
 frames handed to the encode pool and not yet written. When
 the pool falls behind, the capture loop blocks on the oldest one before it
@@ -172,7 +172,7 @@ batch however long the shot is.
 * **Type:**
   BACK-PRESSURE
 
-### an.adapters.cutout.render.DEFAULT_CAPTURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'canvas'*
+### an.adapters.cutout.render.DEFAULT_CAPTURE *: str* *= 'canvas'*
 
 the
 runtime’s `anCaptureFrames` reads the canvas in-page and hands back PNG data
@@ -192,7 +192,7 @@ would bind it at def time.
 * **Type:**
   How frames leave the browser. `"canvas"` (the default since an#192)
 
-### an.adapters.cutout.render.DEFAULT_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv420p'*
+### an.adapters.cutout.render.DEFAULT_PIX_FMT *: str* *= 'yuv420p'*
 
 x264 encode knobs pinned so the delivered mp4 is a function of the frames
 rather than of the machine (an#34, research §2).
@@ -260,7 +260,7 @@ bench’s lever rebind it from outside, exactly as `high_crf` rebinds
 `DETERMINISTIC_X264_ARGS`. Hoisting either into a default argument binds it
 at `def` time and disarms the lever silently.
 
-### an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('--no-sandbox', '--disable-gpu', '--enable-unsafe-swiftshader', '--force-color-profile=srgb')*
+### an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS *: tuple[str, ...]* *= ('--no-sandbox', '--disable-gpu', '--enable-unsafe-swiftshader', '--force-color-profile=srgb')*
 
 Chromium launch flags that pin the rasteriser (an#31, research §2).
 
@@ -288,7 +288,7 @@ Record the argv **verbatim** in any provenance row: all four rasteriser
 configurations report the byte-identical `UNMASKED_RENDERER_WEBGL` string,
 so the renderer string cannot witness this choice.
 
-### an.adapters.cutout.render.SUPPORTED_CAPTURES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('screenshot', 'canvas')*
+### an.adapters.cutout.render.SUPPORTED_CAPTURES *: tuple[str, ...]* *= ('screenshot', 'canvas')*
 
 a typo must
 fail before a browser launches, not minutes into a render.
@@ -296,7 +296,7 @@ fail before a browser launches, not minutes into a render.
 * **Type:**
   The capture paths `_check_capture` accepts. Not an open string
 
-### an.adapters.cutout.render.SUPPORTED_PIX_FMTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('yuv420p', 'yuv444p')*
+### an.adapters.cutout.render.SUPPORTED_PIX_FMTS *: tuple[str, ...]* *= ('yuv420p', 'yuv444p')*
 
 a typo would reach ffmpeg
 as an obscure failure minutes into a render, and a format outside this set
@@ -312,7 +312,7 @@ The stepped-timing policy a shot renders under (an#89): the shot’s own
 `None` — smooth. The compiler stamps whatever this returns.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `float` | `None`
 
 ```pycon
 >>> from pathlib import Path

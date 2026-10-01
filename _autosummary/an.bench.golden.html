@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.environment" href="an.bench.environment.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -627,7 +627,7 @@ otherwise carry a perfect score that no code could ever have failed.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.golden.BLESS_MANIFEST_TEMPLATE">
-<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">BLESS_MANIFEST_TEMPLATE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bless-chromium{chromium_build}.json'</span></span><a class="headerlink" href="#an.bench.golden.BLESS_MANIFEST_TEMPLATE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">BLESS_MANIFEST_TEMPLATE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bless-chromium{chromium_build}.json'</span></span><a class="headerlink" href="#an.bench.golden.BLESS_MANIFEST_TEMPLATE" title="Link to this definition">#</a></dt>
 <dd><p>Per-scene, per-build bless record, committed beside the frames. Per build
 rather than per scene: a Playwright bump adds a new set of frames under new
 names, and the old set stays valid for anyone still on the old build.</p>
@@ -636,13 +636,13 @@ names, and the old set stays valid for anyone still on the old build.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.bench.golden.FrameRef">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">FrameRef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/golden.html#FrameRef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.golden.FrameRef" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>One pinned golden frame, resolved against the render that just happened.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.bench.golden.FrameRef.local_index">
-<span class="sig-name descname"><span class="pre">local_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#an.bench.golden.FrameRef.local_index" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">local_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#an.bench.golden.FrameRef.local_index" title="Link to this definition">#</a></dt>
 <dd><p>Index WITHIN that shot’s frame directory.</p>
 </dd></dl>
 
@@ -650,7 +650,7 @@ names, and the old set stays valid for anyone still on the old build.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.golden.GATE_UNDECLARED">
-<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">GATE_UNDECLARED</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'golden_frames_undeclared'</span></span><a class="headerlink" href="#an.bench.golden.GATE_UNDECLARED" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">GATE_UNDECLARED</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'golden_frames_undeclared'</span></span><a class="headerlink" href="#an.bench.golden.GATE_UNDECLARED" title="Link to this definition">#</a></dt>
 <dd><p>Gate names. Literals rather than an enum because they are written into the
 ledger and read back by <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span> <span class="pre">--compare</span></code> from rows written by older
 registries, so their spelling is a wire format.</p>
@@ -659,13 +659,13 @@ registries, so their spelling is a wire format.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.bench.golden.GoldenError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">GoldenError</span></span><a class="reference internal" href="../_modules/an/bench/golden.html#GoldenError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.golden.GoldenError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
 <p>A bless was refused, or a committed golden is unusable.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.golden.REQUIRED_GOLDEN_FRAMES">
-<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">REQUIRED_GOLDEN_FRAMES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.bench.golden.REQUIRED_GOLDEN_FRAMES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">REQUIRED_GOLDEN_FRAMES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.bench.golden.REQUIRED_GOLDEN_FRAMES" title="Link to this definition">#</a></dt>
 <dd><p>How many golden frames a scene must declare. Two, because one frame tests a
 single instant and cannot notice a scene that renders its first frame
 correctly and then stops.</p>
@@ -673,7 +673,7 @@ correctly and then stops.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.golden.RETIRED_GATES">
-<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">RETIRED_GATES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'golden_absent':</span> <span class="pre">'golden_absent_for_chromium_build'}</span></span><a class="headerlink" href="#an.bench.golden.RETIRED_GATES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.golden.</span></span><span class="sig-name descname"><span class="pre">RETIRED_GATES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'golden_absent':</span> <span class="pre">'golden_absent_for_chromium_build'}</span></span><a class="headerlink" href="#an.bench.golden.RETIRED_GATES" title="Link to this definition">#</a></dt>
 <dd><p>Gate names that appear in rows written BEFORE this module existed, and what
 they meant. <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span> <span class="pre">--compare</span></code> (an#40) reads old rows as fact, so the one
 place a reader has to look is here rather than in a commit message. The
@@ -703,7 +703,7 @@ frames would be written under a name no future run could look up.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -717,7 +717,7 @@ not ask the browser” arrives here as a missing field rather than as an
 exception, and must not be confused with “nobody has blessed this scene”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -734,7 +734,7 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 “the worst small window”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -747,7 +747,7 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 binary floating point, so the obvious spelling silently picks frame 5.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_index_for</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
@@ -768,7 +768,7 @@ which makes the golden absent and therefore <em>gated</em> — loud, and pointin
 the right cause.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_key</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
@@ -783,7 +783,7 @@ the right cause.</p>
 <dd><p>Where the renderer left the PNG for one resolved frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -794,7 +794,7 @@ the right cause.</p>
 <dd><p>Every committed golden PNG for one scene and build, in sorted order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -805,7 +805,7 @@ the right cause.</p>
 <dd><p>The committed bless record, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when this scene has never been blessed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -816,7 +816,7 @@ the right cause.</p>
 <dd><p>Where one scene’s bless record for one Chromium build lives.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -835,7 +835,7 @@ its <code class="docutils literal notranslate"><span class="pre">shape_mismatch<
 rather than quietly disagreeing with it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -855,7 +855,7 @@ mp4 shows — so a pinned time can land in the second shot, which is exactly
 what <code class="docutils literal notranslate"><span class="pre">multi_shot</span></code>’s second golden does.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.bench.golden.FrameRef" title="an.bench.golden.FrameRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameRef</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#an.bench.golden.FrameRef" title="an.bench.golden.FrameRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameRef</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>

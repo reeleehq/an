@@ -33,7 +33,7 @@ the render rather than appearing in it, so the two numbers differ on every
 scene with dialogue. Both are recorded; only this one is inside the hash.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ```pycon
 >>> count_drawable_entities({"scene": {"children": [{}, {}]}})
@@ -45,7 +45,7 @@ scene with dialogue. Both are recorded; only this one is inside the hash.
 Every node in the tree, root included.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ```pycon
 >>> count_nodes({"scene": {"children": [{"children": [{}]}]}})
@@ -67,7 +67,7 @@ pixels, so a file-byte digest goes red on the first Playwright bump for a
 reason unrelated to animation quality.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.bench.contract.scene_contract_sha256(scene_json)
 
@@ -82,7 +82,7 @@ palette hash is `sum(ord(c)) % 5` rather than Python’s `hash()`, and
 the staged JSON is written with `sort_keys=True`).
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> a = scene_contract_sha256({"meta": {"fps": 24}, "scene": {"children": []}})
@@ -107,7 +107,7 @@ hashing only the first shot would let a change to the second one pass as
 “the same scene” — which is precisely the claim this digest exists to deny.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> a = {"scene": {"children": []}}

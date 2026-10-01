@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.easing" href="an.adapters.cutout.easing.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -593,13 +593,13 @@ scaled, never stretched to fit a box.</p>
 </section>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.fidelity.CONTAIN_FIT">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">CONTAIN_FIT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'contain'</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.CONTAIN_FIT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">CONTAIN_FIT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'contain'</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.CONTAIN_FIT" title="Link to this definition">#</a></dt>
 <dd><p>Fit policies, mirroring <code class="docutils literal notranslate"><span class="pre">VisualJSON.fit</span></code>.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">DFLT_ASPECT_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.000001</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">DFLT_ASPECT_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.000001</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE" title="Link to this definition">#</a></dt>
 <dd><p>Ratios within this of 1.0 count as uniform. Guards float noise only — it is
 not a tolerance for “close enough”, which is why it is this tight.</p>
 </dd></dl>
@@ -607,13 +607,13 @@ not a tolerance for “close enough”, which is why it is this tight.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.fidelity.PartFidelity">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">PartFidelity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stretch'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/fidelity.html#PartFidelity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.fidelity.PartFidelity" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>One sprite’s box, its art’s raster, and the disagreement between them.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.adapters.cutout.fidelity.PartFidelity.aspect_distortion">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">aspect_distortion</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.adapters.cutout.fidelity.PartFidelity.aspect_distortion" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">aspect_distortion</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.PartFidelity.aspect_distortion" title="Link to this definition">#</a></dt>
 <dd><p>The factor by which the art is actually reshaped on screen.</p>
 <p><strong>The fit policy is what decides this, not the box.</strong> Under
 <code class="docutils literal notranslate"><span class="pre">contain</span></code> the runtime scales both axes by one factor, so the art
@@ -624,7 +624,7 @@ distortion.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.adapters.cutout.fidelity.PartFidelity.box_aspect_disagreement">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">box_aspect_disagreement</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.adapters.cutout.fidelity.PartFidelity.box_aspect_disagreement" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">box_aspect_disagreement</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.PartFidelity.box_aspect_disagreement" title="Link to this definition">#</a></dt>
 <dd><p>How far the box’s shape is from the art’s. 1.0 when they agree.</p>
 <p>Pure geometry, independent of the fit policy. Under <code class="docutils literal notranslate"><span class="pre">contain</span></code> this is
 <em>slack</em> — the art still keeps its shape and the box is simply roomier on
@@ -637,7 +637,7 @@ from a constant.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.fidelity.SPRITE_KIND">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">SPRITE_KIND</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'svg_sprite'</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.SPRITE_KIND" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.fidelity.</span></span><span class="sig-name descname"><span class="pre">SPRITE_KIND</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'svg_sprite'</span></span><a class="headerlink" href="#an.adapters.cutout.fidelity.SPRITE_KIND" title="Link to this definition">#</a></dt>
 <dd><p>The visual kind whose art comes from a file and can therefore be distorted.</p>
 </dd></dl>
 
@@ -650,7 +650,7 @@ and sets <code class="docutils literal notranslate"><span class="pre">ir_path</s
 part that needs it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.verify.html#an.verify.Finding" title="an.verify._base.Finding"><code class="xref py py-class docutils literal notranslate"><span class="pre">Finding</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="an.verify.html#an.verify.Finding" title="an.verify._base.Finding"><code class="xref py py-class docutils literal notranslate"><span class="pre">Finding</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -666,7 +666,7 @@ staged runtime directory, or the mall’s characters-store root with the
 missing part is #76’s problem, not this function’s.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.adapters.cutout.fidelity.PartFidelity" title="an.adapters.cutout.fidelity.PartFidelity"><code class="xref py py-class docutils literal notranslate"><span class="pre">PartFidelity</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#an.adapters.cutout.fidelity.PartFidelity" title="an.adapters.cutout.fidelity.PartFidelity"><code class="xref py py-class docutils literal notranslate"><span class="pre">PartFidelity</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>

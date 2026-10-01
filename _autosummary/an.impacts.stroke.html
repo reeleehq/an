@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.performance" href="an.impacts.performance.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -605,13 +605,13 @@ discontinuity is in acceleration — a muscle stopping a limb, not a collision.<
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.stroke.DEFAULT_BRAKE">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BRAKE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.03</span></span><a class="headerlink" href="#an.impacts.stroke.DEFAULT_BRAKE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BRAKE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.03</span></span><a class="headerlink" href="#an.impacts.stroke.DEFAULT_BRAKE" title="Link to this definition">#</a></dt>
 <dd><p>The air stroke’s braking time before its turning point (seconds).</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.stroke.DEFAULT_RISE">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_RISE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.18</span></span><a class="headerlink" href="#an.impacts.stroke.DEFAULT_RISE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_RISE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.18</span></span><a class="headerlink" href="#an.impacts.stroke.DEFAULT_RISE" title="Link to this definition">#</a></dt>
 <dd><p>Longest rise after an impact, and longest fall into one (seconds). A slower
 tempo holds at the apex between them instead of floating: a drummer’s stroke
 takes about as long at 60 BPM as at 120, it is the wait that changes.</p>
@@ -620,7 +620,7 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.stroke.Stroke">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">Stroke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinematics</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/stroke.html#Stroke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.stroke.Stroke" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The whole curve, plus the kinematics of every impact on it.</p>
 <dl class="field-list simple">
 </dl>
@@ -630,7 +630,7 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.</p>
 <dd><p>Stroke height at scene time <code class="docutils literal notranslate"><span class="pre">t</span></code> (clamped to the clip).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -641,7 +641,7 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">dh/dt</span></code> at <code class="docutils literal notranslate"><span class="pre">t</span></code>; at a segment boundary, the LATER segment’s value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -651,14 +651,14 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.impacts.stroke.StrokeError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">StrokeError</span></span><a class="reference internal" href="../_modules/an/impacts/stroke.html#StrokeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.stroke.StrokeError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>A stroke that cannot be built from these events.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.stroke.StrokeKinematics">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">StrokeKinematics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_impact</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_peak_speed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_speed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brake</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/stroke.html#StrokeKinematics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.stroke.StrokeKinematics" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>How the object moved into one impact.</p>
 <p><code class="docutils literal notranslate"><span class="pre">t_peak_speed</span></code> equals <code class="docutils literal notranslate"><span class="pre">t_impact</span></code> for a surface impact and precedes it by
 <code class="docutils literal notranslate"><span class="pre">brake</span></code> for an air impact; <code class="docutils literal notranslate"><span class="pre">peak_speed</span></code> is in stroke heights per second
@@ -670,7 +670,7 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.stroke.StrokeSegment">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.stroke.</span></span><span class="sig-name descname"><span class="pre">StrokeSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/stroke.html#StrokeSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.stroke.StrokeSegment" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">h</span></code> goes from <code class="docutils literal notranslate"><span class="pre">h0</span></code> to <code class="docutils literal notranslate"><span class="pre">h1</span></code> over <code class="docutils literal notranslate"><span class="pre">[t0,</span> <span class="pre">t1]</span></code> under <code class="docutils literal notranslate"><span class="pre">easing</span></code>.</p>
 <dl class="field-list simple">
 </dl>

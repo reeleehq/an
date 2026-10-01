@@ -34,7 +34,7 @@ True
 | [`mouth_attachment_name`](#an.characters.mouth_set.mouth_attachment_name)(shape[, form])             | The attachment (and file stem) of one mouth drawing.                                                                                                                                |
 | [`write_default_mouths`](#an.characters.mouth_set.write_default_mouths)(out_dir, \*[, canvas, ...]) | Write the default mouth SVGs into `out_dir` (created if missing), plus one `mouth_<shape>_<form>.svg` per shape for every `variants` entry (`{form: smile offset}`; `None` = none). |
 
-### an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'happy': 0.35, 'sad': -0.35}*
+### an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS *: dict[str, float]* *= {'happy': 0.35, 'sad': -0.35}*
 
 a
 `viseme@<form>` set per entry, its shapes drawn with this corner upturn
@@ -45,7 +45,7 @@ most-authored presets (`happy`/`amused`, `sad`) ask for.
 * **Type:**
   The mouth-form variants a synthesized character gets by default
 
-### an.characters.mouth_set.DEFAULT_MOUTH_VIEWBOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (256, 128)*
+### an.characters.mouth_set.DEFAULT_MOUTH_VIEWBOX *: tuple[int, int]* *= (256, 128)*
 
 Mouth canvas viewBox (width, height) — small per-shape and centered so the
 anchor is always (0.5, 0.5).
@@ -55,7 +55,7 @@ anchor is always (0.5, 0.5).
 Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  `dict`[`str`, `str`]
 
 ```pycon
 >>> svgs = generate_default_mouths()
@@ -70,7 +70,7 @@ True
 The attachment (and file stem) of one mouth drawing.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> mouth_attachment_name("a"), mouth_attachment_name("a", "happy")
@@ -87,4 +87,4 @@ Returns the list of paths written: the neutral set in shape order, then
 each variant’s.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+  `list`[`Path`]

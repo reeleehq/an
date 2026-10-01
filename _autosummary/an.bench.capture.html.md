@@ -55,18 +55,18 @@ per-developer landmine, in the module whose docstring says the opposite.
 
 ### *exception* an.bench.capture.CaptureError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 A capture could not produce something the metrics need.
 
-### an.bench.capture.FRAME_PNG_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'frame_\*.png'*
+### an.bench.capture.FRAME_PNG_GLOB *: str* *= 'frame_\*.png'*
 
 How a shot’s frames are named on disk. One constant rather than the literal
 repeated at each glob site.
 
 ### *exception* an.bench.capture.GitStatusUnavailable
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 `git status` did not answer, so “the tree is clean” is not known.
 
@@ -80,7 +80,7 @@ a concurrent `git` in a linked worktree of this repo takes `index.lock`,
 been green fifty times. A check that could not run is not evidence that
 nothing is wrong.
 
-### an.bench.capture.IGNORED_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.an', 'output', '.anima')*
+### an.bench.capture.IGNORED_ON_COPY *: tuple[str, ...]* *= ('.an', 'output', '.anima')*
 
 they are the previous render’s
 output, and one of them silently extends this one’s frame sequence.
@@ -91,7 +91,7 @@ spelled here. See [`IGNORED_RELPATHS_ON_COPY`](#an.bench.capture.IGNORED_RELPATH
 * **Type:**
   Copied for the render, but never these
 
-### an.bench.capture.IGNORED_RELPATHS_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/shots',)*
+### an.bench.capture.IGNORED_RELPATHS_ON_COPY *: tuple[str, ...]* *= ('artifacts/shots',)*
 
 Excluded by their path **relative to the project root**, POSIX-spelled.
 `mall["shots"]` is `<project>/artifacts/shots`, and `artifacts/`
@@ -105,17 +105,17 @@ can never match anything (no name contains a separator) and a bare
 `"shots"` would delete every directory of that name **anywhere** in the
 tree, a character rig’s included.
 
-### an.bench.capture.RENDER_WORK_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an/render_work'*
+### an.bench.capture.RENDER_WORK_RELPATH *: str* *= '.an/render_work'*
 
 Where the renderer leaves its per-shot working tree inside the project.
 
 ### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One fixture’s whole render.
 
-#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### capture *: str*
 
 How the frames left the browser (`"screenshot"` / `"canvas"`),
 resolved the way the render resolves it. The decoded pixels are the same
@@ -125,17 +125,17 @@ and a timing row is only readable beside the path that produced it
 
 ### *class* an.bench.capture.ShotCapture(shot_id, frames_dir, scene_json, runtime_dir, frame_count, duration=0.0, frame_sizes=())
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One rendered shot’s artifacts.
 
-#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### duration *: float*
 
 The shot’s declared duration, from the IR rather than from the staged
 scene, so the expected frame count is derived from the same number the
 renderer used.
 
-#### frame_sizes *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)], ...]*
+#### frame_sizes *: tuple[tuple[int, int], ...]*
 
 The distinct pixel sizes actually on disk, from each PNG’s IHDR. The
 independent half of a pair whose other half — `SceneCapture.resolution`
@@ -158,7 +158,7 @@ and hands back the path. `captured()` is the scoped form.
 Remove a capture’s throwaway tree.
 
 * **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `None`
 
 ### an.bench.capture.compiled_contract_sha256(fixture, , repo_root)
 
@@ -176,7 +176,7 @@ It is the contract of a bench render, which passes no overrides: a render
 given its own `step_hz`, fps or resolution compiles something else.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.bench.capture.dirty_paths(repo_root)
 
@@ -186,7 +186,7 @@ Raises [`GitStatusUnavailable`](#an.bench.capture.GitStatusUnavailable) when git
 reporting a clean tree it never observed.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  `list`[`str`]
 
 ### an.bench.capture.distinct_png_sizes(frames_dir)
 
@@ -205,7 +205,7 @@ the supersample — so this module reports what it saw and
 [`an.bench.run`](an.bench.run.html.md#module-an.bench.run) is where the *bench’s* invariant is asserted.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+  `tuple`[`tuple`[`int`, `int`], `...`]
 
 ### an.bench.capture.expected_frame_count(duration, fps)
 
@@ -216,7 +216,7 @@ banker’s rounding, so `math.ceil` or `int(x + 0.5)` silently disagrees
 on every half-frame duration.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ```pycon
 >>> expected_frame_count(2.5, 24)
@@ -241,4 +241,4 @@ Two kinds of exclusion, because one kind cannot say both things:
 the only way to drop `artifacts/shots` while keeping `artifacts/audio`.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`

@@ -62,29 +62,29 @@ Entry points: [`an.bench.run.run_bench()`](an.bench.run.html.md#an.bench.run.run
 
 ### *exception* an.bench.BenchError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 The bench could not produce a row it would be honest to file.
 
 ### *exception* an.bench.GoldenError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 A bless was refused, or a committed golden is unusable.
 
 ### *exception* an.bench.LedgerSchemaError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A ledger row violates an invariant that would make it misreadable.
 
 ### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One row of the panel.
 
-#### requires *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### requires *: str*
 
 What a scene must HAVE for this row to exist at all, or `""` when the
 row applies to every scene (an#111).
@@ -100,13 +100,13 @@ Declared rather than hardcoded in the test, so the panel rule keeps
 naming its own exceptions instead of a test file carrying a list the
 registry does not know about.
 
-#### sweep *: [Sweep](an.bench.registry.html.md#an.bench.registry.Sweep) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### sweep *: [Sweep](an.bench.registry.html.md#an.bench.registry.Sweep) | None*
 
 Set only on a hard-threshold counter (an#140); see `Sweep`.
 
 ### *exception* an.bench.PngFormatError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A PNG this module deliberately does not decode, or a malformed one.
 
@@ -116,7 +116,7 @@ than one that does not run.
 
 ### *class* an.bench.Prediction(expect, counts=False, gate=None, reason='', reference=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 What one metric is expected to do under one mutation, declared in advance.
 
@@ -125,13 +125,13 @@ good or bad, and `gate` says why. It is not “no change”.
 
 ### *exception* an.bench.RegistryError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A metric declaration violates one of the table’s invariants.
 
 ### *class* an.bench.Value(value, state='measured', gate=None, detail='', extra=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One measured (or deliberately absent) number.
 
@@ -154,14 +154,14 @@ that cannot fail:
   frames would be written under a name no future run could look up.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.build_ledger(, provenance, scenes)
 
 The whole row.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.build_scene_block(, provenance, metrics, tripwires)
 
@@ -173,7 +173,7 @@ but the registry does not declare has no family, no side and no predicted
 direction, so nothing downstream can count it.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.compare_scene(capture, , times, chromium_build, root=None)
 
@@ -187,7 +187,7 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 “the worst small window”.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.decode_png(data)
 
@@ -197,7 +197,7 @@ Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ```pycon
 >>> import numpy as np
@@ -211,7 +211,7 @@ True
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
 
 * **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+  `bytes`
 
 ```pycon
 >>> import numpy as np
@@ -227,7 +227,7 @@ True
 A human-readable digest of a row — the thing `an bench` prints.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.bench.frame_key(index)
 
@@ -239,7 +239,7 @@ which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> frame_key(7)
@@ -260,7 +260,7 @@ its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> import numpy as np
@@ -283,7 +283,7 @@ than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+  `tuple`[`int`, `int`]
 
 ```pycon
 >>> import numpy as np
@@ -296,7 +296,7 @@ frame size changed partway through — is exactly the one sampling misses.
 `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ### an.bench.read_png_dimensions(path)
 
@@ -307,7 +307,7 @@ them. Reading only those is what makes checking every frame of every shot
 free rather than a second full decode of the corpus.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+  `tuple`[`int`, `int`]
 
 ### an.bench.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None)
 
@@ -330,7 +330,7 @@ bless test did exactly that, replacing a real bless record’s reason with the
 test’s own.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.witnesses(ledger_scene, mutation)
 
@@ -340,7 +340,7 @@ Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+  `dict`[`str`, `list`[`str`]]
 
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
@@ -359,7 +359,7 @@ exactly this — “assert the round trip at bless time against the in-memory
 screenshot pixels, so a bug in `an`’s own encoder cannot hide”.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ### Modules
 

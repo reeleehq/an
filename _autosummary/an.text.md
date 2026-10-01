@@ -86,12 +86,12 @@ recorded in the compiled document.
 |------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [`TextLayoutError`](#an.text.TextLayoutError) | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
 
-### an.text.DFLT_TEXT_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
+### an.text.DFLT_TEXT_COLOUR *: str* *= '#1a1a1a'*
 
 Ink when the document names none — a near-black that reads on the default
 white background.
 
-### an.text.DFLT_TEXT_SIZE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.06*
+### an.text.DFLT_TEXT_SIZE *: float* *= 0.06*
 
 0.06 is
 65 px at 1080p, and the same block reads the same at 720p and at 4K.
@@ -101,7 +101,7 @@ white background.
 
 ### *class* an.text.FontIdentity(family, style, sha256, embedded, layout_engine='basic')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Which face drew a block — by its bytes, not its name.
 
@@ -111,9 +111,9 @@ Which face drew a block — by its bytes, not its name.
 compiled document records.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
-#### layout_engine *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'basic'*
+#### layout_engine *: str* *= 'basic'*
 
 Pillow’s layout engine for this face (`basic` or `raqm`). Recorded
 because it moves glyph ADVANCES: RAQM (HarfBuzz) applies kerning and
@@ -121,7 +121,7 @@ ligatures and is used for a font file whenever libraqm can be loaded,
 so the same bytes can set differently on two machines. The embedded
 face is always `basic`.
 
-### an.text.RESERVED_TEXT_IDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'overlay', 'root'})*
+### an.text.RESERVED_TEXT_IDS *: frozenset[str]* *= frozenset({'overlay', 'root'})*
 
 the runtime indexes the scene’s
 container as `root` (the camera’s target), and the overlay container is
@@ -155,7 +155,7 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for TextDescrip
 ...
 ```
 
-#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### anchor *: str | None*
 
 one of tituli’s nine anchors (`"top"`, `"bottom-left"`,
 `"center"`, …) inside the title-safe area. `None` centres the block
@@ -164,31 +164,31 @@ on the node origin (the frame centre, or `stage.at`).
 * **Type:**
   Overlay only
 
-#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### color *: str*
 
 `#rrggbb`.
 
-#### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### font *: str | None*
 
 `None` = the embedded face; else a font FILE path (see the module doc).
 
-#### max_width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### max_width *: float | None*
 
 Wrap width as a fraction of frame WIDTH; `None` = break only at newlines.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### size *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### size *: float*
 
 Fraction of frame height.
 
-#### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### text *: str*
 
 The words. Explicit newlines break lines; `max_width` wraps.
 
-#### tracking *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### tracking *: float*
 
 tituli sets a
 tracked string one run per glyph, so a word unit would not exist.
@@ -196,7 +196,7 @@ tracked string one run per glyph, so a word unit would not exist.
 * **Type:**
   Extra advance per glyph, in em. Only with `unit="glyph"`
 
-#### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line']*
+#### unit *: Literal['word', 'glyph', 'line']*
 
 a word, a glyph, or a whole line.
 
@@ -205,7 +205,7 @@ a word, a glyph, or a whole line.
 
 ### *exception* an.text.TextFontError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A text block’s font cannot be used: not a file, not a font, or not the
 face the typesetter actually used. Raised instead of falling back, because
@@ -213,7 +213,7 @@ a fallback face is a different picture wearing the right one’s clothes.
 
 ### *class* an.text.TextLayout(units, origin, font)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A placed block: its units, its reference point, and the face that set it.
 
@@ -223,13 +223,13 @@ node sits; each unit’s node is placed relative to it.
 
 ### *exception* an.text.TextLayoutError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 The text cannot be set as asked (a glyph the face lacks, nothing to draw).
 
 ### *class* an.text.TextUnit(name, text, box, d)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One addressable unit: its node name, its string, its box and its ink.
 
@@ -238,11 +238,11 @@ pixels and containing both the layout box and the ink, so the sprite’s
 corners sit on the pixel grid and nothing is clipped. `d` is the unit’s
 glyph contours as SVG path data in frame pixels.
 
-#### *property* center *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+#### *property* center *: tuple[float, float]*
 
 The box centre in frame pixels — where the unit’s node sits.
 
-#### *property* size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
+#### *property* size *: tuple[int, int]*
 
 `(width, height)` of `box`.
 
@@ -254,7 +254,7 @@ relative path then RAISES rather than resolving against the working
 directory (which would make the picture depend on where you ran it).
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `Path` | `None`
 
 ### an.text.layout_text(desc, , width, height, base_dir=None)
 
@@ -310,7 +310,7 @@ round-trips through `scene.md`. (A `parallel` would not: the markdown
 writer only knows leaf shapes and that one wrapper.)
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
+  `list`
 
 ```pycon
 >>> [a.kind for a in stagger("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
@@ -329,11 +329,11 @@ raises) and by `an validate` (which reports) so the two agree:
 - `anchor` and `stage.at` together — two answers to one question.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `str` | `None`
 
 ### an.text.unit_names(desc, , width, height, base_dir=None)
 
 The node names a block builds — what `<id>/<name>` targets may address.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  `list`[`str`]

@@ -52,18 +52,18 @@ construction.
 
 ### *class* an.expression.provider.AxisCurve(axis, samples)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).
 
-### an.expression.provider.DIALOGUE_EMOTION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
+### an.expression.provider.DIALOGUE_EMOTION_BLEND_S *: float* *= 0.15*
 
 The `[emotion]` sugar ramps in and out over this; it is a comment on the
 line, not a cut.
 
 ### *class* an.expression.provider.DefaultExpressionProvider
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Sum of the shot’s expression spans on the entity, ramped, per frame.
 
@@ -77,17 +77,17 @@ asks once per line, never per frame, so at most one mouth swap
 property is live per instant.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `str` | `None`
 
 ### *class* an.expression.provider.ExpressionProvider(\*args, \*\*kwargs)
 
-Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+Bases: `Protocol`
 
 The seam: whatever produces per-axis curves for one entity of one shot.
 
 ### *class* an.expression.provider.ExpressionSpan(start, end, preset, axes=<factory>, intensity=1.0, blend=0.0, source='action')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One expression contributor on one entity, in absolute shot time.
 
@@ -96,9 +96,9 @@ One expression contributor on one entity, in absolute shot time.
 The unscaled axis offsets this span asks for.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `dict`[`str`, `float`]
 
-#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'action'*
+#### source *: str* *= 'action'*
 
 `"action"` for an authored leaf, `"dialogue"` for the `[emotion]` sugar.
 
@@ -107,7 +107,7 @@ The unscaled axis offsets this span asks for.
 The ramped intensity at `t`: 0 outside, ramping over `blend` at each end.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ### an.expression.provider.expression_spans(shot, entity_id)
 
@@ -116,7 +116,7 @@ dialogue sugar. `duration=None` runs to the shot end (the looping-play
 rule); a span never extends past the shot.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExpressionSpan`](#an.expression.provider.ExpressionSpan)]
+  `list`[[`ExpressionSpan`](#an.expression.provider.ExpressionSpan)]
 
 ### an.expression.provider.flatten_expressions(shot)
 

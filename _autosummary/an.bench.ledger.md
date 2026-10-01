@@ -51,7 +51,7 @@ count for free:
 | [`LedgerSchemaError`](#an.bench.ledger.LedgerSchemaError)   | A ledger row violates an invariant that would make it misreadable.   |
 |----------------------------------------------------------------------|----------------------------------------------------------------------|
 
-### an.bench.ledger.INLINE_SPEC_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('side', 'family', 'comparison_scope', 'reference', 'counts')*
+### an.bench.ledger.INLINE_SPEC_FIELDS *: tuple[str, ...]* *= ('side', 'family', 'comparison_scope', 'reference', 'counts')*
 
 Fields a per-scene row carries inline. Everything else about a metric — the
 sentence, the notes, each prediction’s reason and reference — is identical
@@ -67,18 +67,18 @@ a second block to decide whether two rows may be compared at all.
 
 ### *exception* an.bench.ledger.LedgerSchemaError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A ledger row violates an invariant that would make it misreadable.
 
-### an.bench.ledger.SCHEMA_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+### an.bench.ledger.SCHEMA_VERSION *: int* *= 1*
 
 Bumped when a reader could misinterpret an older row. `an bench --compare`
 (an#40) must refuse a version it does not understand rather than guess.
 
 ### *class* an.bench.ledger.Value(value, state='measured', gate=None, detail='', extra=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One measured (or deliberately absent) number.
 
@@ -87,7 +87,7 @@ One measured (or deliberately absent) number.
 The whole row.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.ledger.build_scene_block(, provenance, metrics, tripwires)
 
@@ -99,7 +99,7 @@ but the registry does not declare has no family, no side and no predicted
 direction, so nothing downstream can count it.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.ledger.gated(gate, detail='')
 
@@ -128,7 +128,7 @@ written by older registries: a row from six months ago has to be
 interpretable without checking out the commit that wrote it.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.ledger.unavailable(detail)
 
@@ -145,7 +145,7 @@ Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+  `dict`[`str`, `list`[`str`]]
 
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
@@ -158,4 +158,4 @@ against what was actually written down.
 Write a row. `sort_keys=True` so two rows diff line-for-line.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`

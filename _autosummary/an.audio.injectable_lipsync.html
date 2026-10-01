@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.elevenlabs_tts" href="an.audio.elevenlabs_tts.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -567,7 +567,7 @@ word→viseme conversion as <code class="xref py py-class docutils literal notra
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.injectable_lipsync.StaticWordTimings">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.injectable_lipsync.</span></span><span class="sig-name descname"><span class="pre">StaticWordTimings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'static'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/injectable_lipsync.html#StaticWordTimings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.injectable_lipsync.StaticWordTimings" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">WordTimingProvider</span></code> over a fixed list of timings.</p>
 <dl class="field-list simple">
 </dl>
@@ -576,7 +576,7 @@ word→viseme conversion as <code class="xref py py-class docutils literal notra
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.injectable_lipsync.WordTimingsLipSync">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.injectable_lipsync.</span></span><span class="sig-name descname"><span class="pre">WordTimingsLipSync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rhubarb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/injectable_lipsync.html#WordTimingsLipSync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.injectable_lipsync.WordTimingsLipSync" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p><code class="xref py py-class docutils literal notranslate"><span class="pre">LipSyncProvider</span></code> driven by a <code class="xref py py-class docutils literal notranslate"><span class="pre">WordTimingProvider</span></code>.</p>
 <p>Skips transcription entirely. Use this when the caller already has
 authoritative word timings (e.g. from a separate lyric-alignment
@@ -585,22 +585,22 @@ pipeline).</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>provider</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.WordTimingProvider" title="an.audio.lipsync.WordTimingProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">WordTimingProvider</span></code></a></span>) – any <code class="xref py py-class docutils literal notranslate"><span class="pre">WordTimingProvider</span></code>.</p></li>
-<li><p><strong>char_to_viseme</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – optional override of the character→viseme code
+<li><p><strong>char_to_viseme</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – optional override of the character→viseme code
 mapping; defaults to the one shared with
 <code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineLipSync</span></code> / <code class="xref py py-class docutils literal notranslate"><span class="pre">WhisperLipSync</span></code>.</p></li>
-<li><p><strong>convention</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – declared viseme convention string for the produced
+<li><p><strong>convention</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – declared viseme convention string for the produced
 track. Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;rhubarb&quot;</span></code> for compatibility with the
 existing cutout adapter.</p></li>
-<li><p><strong>rest_viseme</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – code emitted in silent gaps. Defaults to
+<li><p><strong>rest_viseme</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – code emitted in silent gaps. Defaults to
 <code class="xref py py-data docutils literal notranslate"><span class="pre">_REST_VISEME</span></code>.</p></li>
-<li><p><strong>min_gap_for_rest</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – minimum inter-word silence (seconds) before
+<li><p><strong>min_gap_for_rest</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – minimum inter-word silence (seconds) before
 we insert a rest keyframe. Defaults to <code class="docutils literal notranslate"><span class="pre">0.20</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.injectable_lipsync.WordTimingsLipSync.emits_word_timings">
-<span class="sig-name descname"><span class="pre">emits_word_timings</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.injectable_lipsync.WordTimingsLipSync.emits_word_timings" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">emits_word_timings</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.injectable_lipsync.WordTimingsLipSync.emits_word_timings" title="Link to this definition">#</a></dt>
 <dd><p>Built from words, so the track carries them (an#96).</p>
 </dd></dl>
 

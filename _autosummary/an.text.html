@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.styles" href="an.styles.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -639,14 +639,14 @@ recorded in the compiled document.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.text.DFLT_TEXT_COLOUR">
-<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">DFLT_TEXT_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.text.DFLT_TEXT_COLOUR" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">DFLT_TEXT_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.text.DFLT_TEXT_COLOUR" title="Link to this definition">#</a></dt>
 <dd><p>Ink when the document names none — a near-black that reads on the default
 white background.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.text.DFLT_TEXT_SIZE">
-<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">DFLT_TEXT_SIZE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></span><a class="headerlink" href="#an.text.DFLT_TEXT_SIZE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">DFLT_TEXT_SIZE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></span><a class="headerlink" href="#an.text.DFLT_TEXT_SIZE" title="Link to this definition">#</a></dt>
 <dd><p>0.06 is
 65 px at 1080p, and the same block reads the same at 720p and at 4K.</p>
 <dl class="field-list simple">
@@ -659,7 +659,7 @@ white background.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.text.FontIdentity">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">FontIdentity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedded</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'basic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/text.html#FontIdentity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.FontIdentity" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Which face drew a block — by its bytes, not its name.</p>
 <dl class="field-list simple">
 </dl>
@@ -670,14 +670,14 @@ white background.</p>
 compiled document records.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.FontIdentity.layout_engine">
-<span class="sig-name descname"><span class="pre">layout_engine</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'basic'</span></span><a class="headerlink" href="#an.text.FontIdentity.layout_engine" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">layout_engine</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'basic'</span></span><a class="headerlink" href="#an.text.FontIdentity.layout_engine" title="Link to this definition">#</a></dt>
 <dd><p>Pillow’s layout engine for this face (<code class="docutils literal notranslate"><span class="pre">basic</span></code> or <code class="docutils literal notranslate"><span class="pre">raqm</span></code>). Recorded
 because it moves glyph ADVANCES: RAQM (HarfBuzz) applies kerning and
 ligatures and is used for a font file whenever libraqm can be loaded,
@@ -689,7 +689,7 @@ face is always <code class="docutils literal notranslate"><span class="pre">basi
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.text.RESERVED_TEXT_IDS">
-<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">RESERVED_TEXT_IDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'overlay',</span> <span class="pre">'root'})</span></span><a class="headerlink" href="#an.text.RESERVED_TEXT_IDS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">RESERVED_TEXT_IDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'overlay',</span> <span class="pre">'root'})</span></span><a class="headerlink" href="#an.text.RESERVED_TEXT_IDS" title="Link to this definition">#</a></dt>
 <dd><p>the runtime indexes the scene’s
 container as <code class="docutils literal notranslate"><span class="pre">root</span></code> (the camera’s target), and the overlay container is
 named <code class="docutils literal notranslate"><span class="pre">overlay</span></code>. An overlay block called <code class="docutils literal notranslate"><span class="pre">root</span></code> would overwrite the
@@ -728,7 +728,7 @@ the defect class this package refuses. Set-but-inert combinations raise too:</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.anchor">
-<span class="sig-name descname"><span class="pre">anchor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.anchor" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">anchor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.text.TextDescriptor.anchor" title="Link to this definition">#</a></dt>
 <dd><p>one of tituli’s nine anchors (<code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;bottom-left&quot;</span></code>,
 <code class="docutils literal notranslate"><span class="pre">&quot;center&quot;</span></code>, …) inside the title-safe area. <code class="docutils literal notranslate"><span class="pre">None</span></code> centres the block
 on the node origin (the frame centre, or <code class="docutils literal notranslate"><span class="pre">stage.at</span></code>).</p>
@@ -741,43 +741,43 @@ on the node origin (the frame centre, or <code class="docutils literal notransla
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.color">
-<span class="sig-name descname"><span class="pre">color</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.color" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">color</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#an.text.TextDescriptor.color" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.font">
-<span class="sig-name descname"><span class="pre">font</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.font" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">font</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.text.TextDescriptor.font" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">None</span></code> = the embedded face; else a font FILE path (see the module doc).</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.max_width">
-<span class="sig-name descname"><span class="pre">max_width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.max_width" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">max_width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.text.TextDescriptor.max_width" title="Link to this definition">#</a></dt>
 <dd><p>Wrap width as a fraction of frame WIDTH; <code class="docutils literal notranslate"><span class="pre">None</span></code> = break only at newlines.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.text.TextDescriptor.model_config" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.text.TextDescriptor.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.size">
-<span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.size" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.text.TextDescriptor.size" title="Link to this definition">#</a></dt>
 <dd><p>Fraction of frame height.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.text">
-<span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.text" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#an.text.TextDescriptor.text" title="Link to this definition">#</a></dt>
 <dd><p>The words. Explicit newlines break lines; <code class="docutils literal notranslate"><span class="pre">max_width</span></code> wraps.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.tracking">
-<span class="sig-name descname"><span class="pre">tracking</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.text.TextDescriptor.tracking" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">tracking</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.text.TextDescriptor.tracking" title="Link to this definition">#</a></dt>
 <dd><p>tituli sets a
 tracked string one run per glyph, so a word unit would not exist.</p>
 <dl class="field-list simple">
@@ -789,7 +789,7 @@ tracked string one run per glyph, so a word unit would not exist.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.text.TextDescriptor.unit">
-<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'word'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'glyph'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'line'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.text.TextDescriptor.unit" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'word'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'glyph'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'line'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.text.TextDescriptor.unit" title="Link to this definition">#</a></dt>
 <dd><p>a word, a glyph, or a whole line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -803,7 +803,7 @@ tracked string one run per glyph, so a word unit would not exist.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.text.TextFontError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">TextFontError</span></span><a class="reference internal" href="../_modules/an/text.html#TextFontError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.TextFontError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>A text block’s font cannot be used: not a file, not a font, or not the
 face the typesetter actually used. Raised instead of falling back, because
 a fallback face is a different picture wearing the right one’s clothes.</p>
@@ -812,7 +812,7 @@ a fallback face is a different picture wearing the right one’s clothes.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.text.TextLayout">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">TextLayout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/text.html#TextLayout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.TextLayout" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A placed block: its units, its reference point, and the face that set it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">origin</span></code> is the block’s reference point in frame pixels — the frame
 centre, or its title-safe anchor position — which is where the block’s own
@@ -824,14 +824,14 @@ node sits; each unit’s node is placed relative to it.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.text.TextLayoutError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">TextLayoutError</span></span><a class="reference internal" href="../_modules/an/text.html#TextLayoutError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.TextLayoutError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>The text cannot be set as asked (a glyph the face lacks, nothing to draw).</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.text.TextUnit">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">TextUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/text.html#TextUnit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.TextUnit" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>One addressable unit: its node name, its string, its box and its ink.</p>
 <p><code class="docutils literal notranslate"><span class="pre">box</span></code> is <code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> in frame pixels, snapped OUTWARD to whole
 pixels and containing both the layout box and the ink, so the sprite’s
@@ -841,13 +841,13 @@ glyph contours as SVG path data in frame pixels.</p>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.text.TextUnit.center">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">center</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.text.TextUnit.center" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">center</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.text.TextUnit.center" title="Link to this definition">#</a></dt>
 <dd><p>The box centre in frame pixels — where the unit’s node sits.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.text.TextUnit.size">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.text.TextUnit.size" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.text.TextUnit.size" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> of <code class="docutils literal notranslate"><span class="pre">box</span></code>.</p>
 </dd></dl>
 
@@ -862,7 +862,7 @@ relative path then RAISES rather than resolving against the working
 directory (which would make the picture depend on where you ran it).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -924,7 +924,7 @@ round-trips through <code class="docutils literal notranslate"><span class="pre"
 writer only knows leaf shapes and that one wrapper.)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">stagger</span><span class="p">(</span><span class="s2">"t"</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)]</span>
@@ -946,7 +946,7 @@ camera’s node in the runtime’s index;</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -957,7 +957,7 @@ camera’s node in the runtime’s index;</p></li>
 <dd><p>The node names a block builds — what <code class="docutils literal notranslate"><span class="pre">&lt;id&gt;/&lt;name&gt;</span></code> targets may address.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>

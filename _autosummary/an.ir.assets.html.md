@@ -65,7 +65,7 @@ what keeps `an` from shipping unattributed work in the meantime.
 | [`AssetSource`](#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
 |--------------------------------------------------------------------------|----------------------------------------------------|
 
-### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
+### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: frozenset[str]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
 
 Licence codes that oblige the *user of the output* to credit someone.
 
@@ -90,7 +90,7 @@ False
 True
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -103,9 +103,9 @@ What a licence means for shipping the video it ends up in.
 - `private` — NOT shippable: all rights reserved, private study only;
 - `unknown` — not classified, which is not the same as free.
 
-alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘private’, ‘unknown’]
+alias of `Literal`[‘attribution’, ‘free’, ‘private’, ‘unknown’]
 
-### an.ir.assets.PRIVATE_STUDY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'all-rights-reserved-private-study'*
+### an.ir.assets.PRIVATE_STUDY *: str* *= 'all-rights-reserved-private-study'*
 
 The recognised code for material its owner has not licensed at all — frames
 or art carved out of a film, a show, a book — that a user may study
@@ -113,7 +113,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PUBLIC_DOMAIN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'public-domain'*
+### an.ir.assets.PUBLIC_DOMAIN *: str* *= 'public-domain'*
 
 The recognised code for the public domain — no rights to clear, nothing
 owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
@@ -124,7 +124,7 @@ owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
 What this asset’s licence means for shipping the video (an#211).
 
 * **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+  `Literal`[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
 
 ```pycon
 >>> license_class(AssetSource(provider="p", license="pd"))
@@ -145,7 +145,7 @@ Free text is what people actually write in a licence field, so the
 classifier reads through punctuation and spacing:
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> normalise_license("All rights reserved - private study only; never publish")
@@ -165,4 +165,4 @@ silently dropped. Private-study material (all rights reserved) also answers
 at all; [`license_class()`](#an.ir.assets.license_class) says so (`"private"`).
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `bool` | `None`

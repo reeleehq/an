@@ -49,11 +49,11 @@ hatch is the same variable read the other way — `AN_DETERMINISTIC=0`.
 |---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
 | [`determinism_enforced`](#an.determinism.determinism_enforced)()                           | Whether to refuse a render whose determinism perimeter has been breached. |
 
-### an.determinism.AN_DETERMINISTIC_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'AN_DETERMINISTIC'*
+### an.determinism.AN_DETERMINISTIC_ENV_VAR *: str* *= 'AN_DETERMINISTIC'*
 
 Read as an OFF switch, not an on switch — see the module docstring.
 
-### an.determinism.CAPTURE_PAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'index.html'*
+### an.determinism.CAPTURE_PAGE *: str* *= 'index.html'*
 
 The page the capture path must be on. `render.py` stages `preview.html`
 into every work dir and it carries seven clock calls, so “which page did the
@@ -74,7 +74,7 @@ carry a field cannot testify that the field is fine, and silently reading
 into a clean bill of health.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  `list`[`str`]
 
 ```pycon
 >>> capture_violations({})[0].startswith("the determinism report is missing")
@@ -88,7 +88,7 @@ Whether to refuse a render whose determinism perimeter has been breached.
 True unless [`AN_DETERMINISTIC_ENV_VAR`](#an.determinism.AN_DETERMINISTIC_ENV_VAR) is explicitly falsey.
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+  `bool`
 
 ```pycon
 >>> import os

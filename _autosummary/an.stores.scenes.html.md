@@ -16,7 +16,7 @@ validates as one) and persists both the JSON and the regenerated Markdown.
 
 ### *class* an.stores.scenes.ScenesStore(project_dir)
 
-Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+Bases: `MutableMapping`
 
 `MutableMapping` exposing the scene file pair under a project root.
 

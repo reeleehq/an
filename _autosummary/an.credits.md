@@ -48,7 +48,7 @@ parts carved out of several clips credits each clip, part by part.
 
 ### *class* an.credits.CreditsReport(entries=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Everything a project owes, split by whether we actually know.
 
@@ -57,13 +57,13 @@ Everything a project owes, split by whether we actually know.
 Human-readable, and honest about what it does not know.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
-#### *property* owed *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+#### *property* owed *: list[CreditEntry]*
 
 Entries that definitely require an attribution.
 
-#### *property* private *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+#### *property* private *: list[CreditEntry]*
 
 all rights reserved, private
 study only (an#211). A video containing any of them is not shippable,
@@ -72,11 +72,11 @@ whatever else it credits.
 * **Type:**
   Entries that may NOT be published
 
-#### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+#### *property* publishable *: bool*
 
 `False` when any entry is private-study material.
 
-#### *property* unverified *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+#### *property* unverified *: list[CreditEntry]*
 
 Entries whose licence we could not classify.
 
@@ -87,7 +87,7 @@ reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
 
 ### *exception* an.credits.PrivateStudyWarning
 
-Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+Bases: `UserWarning`
 
 A render used material that is all rights reserved, private study only.
 
@@ -143,4 +143,4 @@ Returns whether it warned. Called at the end of a render, so the warning is
 the last word about the file; `output` names it.
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+  `bool`

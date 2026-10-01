@@ -34,4 +34,4 @@ Fold unipolar coefficients onto the axes (summed, then clamped).
 Unknown names raise — a misspelt coefficient must not vanish quietly.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `dict`[`str`, `float`]

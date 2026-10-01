@@ -51,7 +51,7 @@ existing cache key moves.
 | [`ElevenLabsVoiceError`](#an.audio.elevenlabs_tts.ElevenLabsVoiceError)   | A voice document declares ElevenLabs settings that are malformed.   |
 |-------------------------------------------------------------------------|---------------------------------------------------------------------|
 
-### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('eleven_v3', 'eleven_v4')*
+### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: tuple[str, ...]* *= ('eleven_v3', 'eleven_v4')*
 
 Model ids that read inline audio tags (`[excited]`, `[sighs]`). Matched
 as prefixes, so `eleven_v3_conversational` and `eleven_v4_turbo` count.
@@ -59,7 +59,7 @@ Every other model would speak the brackets, so it never receives a tag.
 
 ### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
@@ -80,7 +80,7 @@ absent key or SDK yields `[]`; a key that is present and a call that
 fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 
 * **Return type:**
-  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
+  `Iterable`[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
 
 #### synthesis_options(voice, , emotion=None, direction=None)
 
@@ -94,7 +94,7 @@ on a model that reads tags; elsewhere a direction is dropped with a
 warning and the emotion stays a face-only cue, as before.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 #### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
 
@@ -106,11 +106,11 @@ so alignment and captions never read a cue.
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A voice document declares ElevenLabs settings that are malformed.
 
-### an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'similarity_boost': (0.0, 1.0), 'speed': (0.7, 1.2), 'stability': (0.0, 1.0), 'style': (0.0, 1.0), 'use_speaker_boost': None}*
+### an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES *: dict[str, tuple[float, float] | None]* *= {'similarity_boost': (0.0, 1.0), 'speed': (0.7, 1.2), 'stability': (0.0, 1.0), 'style': (0.0, 1.0), 'use_speaker_boost': None}*
 
 The `voice_settings` keys the API takes, with the range each accepts
 (`None` = a boolean). `speed` is the API’s documented 0.7–1.2.
@@ -123,7 +123,7 @@ Omit-when-unset: `None` and `{}` give `{}`. Unknown keys and values out
 of range raise, so a typo cannot silently fall back to the account default.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 ```pycon
 >>> normalize_voice_settings({"style": 1, "stability": 0.25})
@@ -139,14 +139,14 @@ an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['st
 `text` with each tag prefixed as `[tag]` — what an audio-tag model reads.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.audio.elevenlabs_tts.takes_audio_tags(model_id, , prefixes=('eleven_v3', 'eleven_v4'))
 
 Whether `model_id` reads inline audio tags.
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+  `bool`
 
 ```pycon
 >>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")

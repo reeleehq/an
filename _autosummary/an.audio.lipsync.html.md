@@ -36,7 +36,7 @@ Two protocols live here:
 
 ### *class* an.audio.lipsync.LipSyncProvider(\*args, \*\*kwargs)
 
-Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+Bases: `Protocol`
 
 Audio + transcript → aligned viseme track.
 
@@ -55,13 +55,13 @@ Produce a viseme track for `audio` given its `transcript`.
 
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A single mouth-shape keyframe.
 
 ### *class* an.audio.lipsync.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Aligned viseme sequence produced by a LipSyncProvider.
 
@@ -76,11 +76,11 @@ viseme conversion: captions (Wave 8) and any consumer that wants to know
 
 One word’s slice in time. Tuple form keeps providers cheap.
 
-alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+alias of `tuple`[`str`, `float`, `float`]
 
 ### *class* an.audio.lipsync.WordTimingProvider(\*args, \*\*kwargs)
 
-Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+Bases: `Protocol`
 
 Audio → `[(word, start_s, end_s), ...]`.
 
@@ -94,7 +94,7 @@ fine and represent silence the lipsync provider should rest through.
 Return the word timings for `audio`.
 
 * **Return type:**
-  [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+  `Sequence`[`tuple`[`str`, `float`, `float`]]
 
 ### an.audio.lipsync.word_timings_to_visemes(words, , total_duration, char_to_viseme, rest_viseme='X', min_gap_for_rest=0.2)
 
@@ -113,4 +113,4 @@ transcribers occasionally round the last word’s end past the
 audio’s actual length.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Viseme`](#an.audio.lipsync.Viseme)]
+  `list`[[`Viseme`](#an.audio.lipsync.Viseme)]

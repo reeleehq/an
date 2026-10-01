@@ -34,7 +34,7 @@ at the midpoint, and the intersection-over-union of the foreground (dark)
 pixels is computed.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> # Two identical silhouettes → IoU = 1.0; two empty → 0.0 (no overlap).
@@ -52,4 +52,4 @@ The output is RGB; the silhouette is filled with black (#000) and the
 background with the given color.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`

@@ -28,18 +28,18 @@ Return the directory containing index.html + runtime.js.
 Uses importlib.resources so it works from a wheel install too.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.adapters.cutout.runtime_files.runtime_index_html()
 
 Path to `index.html`.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.adapters.cutout.runtime_files.runtime_js()
 
 Path to `runtime.js`.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`

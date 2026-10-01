@@ -30,7 +30,7 @@ True
 
 ### *class* an.audio.offline_tts.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Default TTS provider: silent WAV of length proportional to text.
 
@@ -47,7 +47,7 @@ synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> round(estimate_speech_duration("It only takes exact change."), 3)

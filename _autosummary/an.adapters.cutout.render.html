@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.path" href="an.adapters.cutout.path.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -617,14 +617,14 @@ facade boundary.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">ASSET_LOAD_TIMEOUT_MARKER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an:asset-load-timeout'</span></span><a class="headerlink" href="#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">ASSET_LOAD_TIMEOUT_MARKER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an:asset-load-timeout'</span></span><a class="headerlink" href="#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER" title="Link to this definition">#</a></dt>
 <dd><p>Sentinel the in-page deadline rejects with, so the Python side can tell a
 timeout apart from a load failure and say something different about each.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">ASSET_SRC_PREFIX_TO_STORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'characters/':</span> <span class="pre">'characters',</span> <span class="pre">'environments/':</span> <span class="pre">'environments',</span> <span class="pre">'props/':</span> <span class="pre">'props',</span> <span class="pre">'styles/':</span> <span class="pre">'styles'}</span></span><a class="headerlink" href="#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">ASSET_SRC_PREFIX_TO_STORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'characters/':</span> <span class="pre">'characters',</span> <span class="pre">'environments/':</span> <span class="pre">'environments',</span> <span class="pre">'props/':</span> <span class="pre">'props',</span> <span class="pre">'styles/':</span> <span class="pre">'styles'}</span></span><a class="headerlink" href="#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE" title="Link to this definition">#</a></dt>
 <dd><p>Texture <code class="docutils literal notranslate"><span class="pre">src</span></code> prefix → the mall store that resolves the rest of the path.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">src</span></code> reads <code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;/&lt;ref&gt;/parts/head.svg</span></code> and resolves to
 <code class="docutils literal notranslate"><span class="pre">mall[store]._root/&lt;ref&gt;/parts/head.svg</span></code>. Only <code class="docutils literal notranslate"><span class="pre">characters/</span></code> is emitted
@@ -639,7 +639,7 @@ store is named differently must still work.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutAssetWarning">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">CutoutAssetWarning</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutAssetWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.CutoutAssetWarning" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></p>
 <p>A declared texture could not be staged into the runtime directory.</p>
 <p>Deliberately a warning and not an error, for now: an art package that is
 still being assembled is a real state, and refusing to render it would be
@@ -657,14 +657,14 @@ rather than as an error, which is what this warning exists to prevent.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutRenderError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderError</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
 <p>Raised when a cutout render fails. Carries actionable detail.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutRenderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Headless cutout renderer: Playwright + ffmpeg.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">CutoutRenderer</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">name</span>
@@ -688,7 +688,7 @@ rather than as an error, which is what this warning exists to prevent.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_ASSET_LOAD_TIMEOUT_MS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60000</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_ASSET_LOAD_TIMEOUT_MS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60000</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS" title="Link to this definition">#</a></dt>
 <dd><p>Deadline for <code class="code docutils literal notranslate"><span class="pre">anLoadScene</span></code>, which awaits <code class="code docutils literal notranslate"><span class="pre">PIXI.Assets.load</span></code> for every declared
 texture. <strong>A bound is required, not merely nice</strong>: a degenerate part SVG —
 <code class="code docutils literal notranslate"><span class="pre">&lt;svg/&gt;</span></code>, malformed XML, a zero-dimension root — makes <code class="code docutils literal notranslate"><span class="pre">Assets.load</span></code> never
@@ -702,7 +702,7 @@ up”. Raise it for a genuinely heavy art package rather than removing it.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH" title="Link to this definition">#</a></dt>
 <dd><p>Frames per <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip. Measured at 1920x1080 on an M1
 Max, <code class="code docutils literal notranslate"><span class="pre">single_character</span></code>: 67 ms/frame one frame per call, 46 at four, 46 at
 eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is
@@ -713,7 +713,7 @@ backbuffer a few megabytes each.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH_PIXELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4147200</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH_PIXELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4147200</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS" title="Link to this definition">#</a></dt>
 <dd><p>The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
 counts k² times and an open shutter once per instant): at most this many per
 <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip, and twice this many waiting on the encode
@@ -731,7 +731,7 @@ exceed it is captured over several round trips.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS" title="Link to this definition">#</a></dt>
 <dd><p>Threads decoding, resolving and re-encoding canvas frames while the page
 renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
 at 1080p — the same order as the page’s own work — so it must overlap it or
@@ -741,7 +741,7 @@ one Chromium per shot, and each of them is another source of CPU pressure.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT" title="Link to this definition">#</a></dt>
 <dd><p>frames handed to the encode pool and not yet written. When
 the pool falls behind, the capture loop blocks on the oldest one before it
 asks the page for more, so memory is bounded by this many frames plus one
@@ -755,7 +755,7 @@ batch however long the shot is.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CAPTURE">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CAPTURE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'canvas'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CAPTURE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CAPTURE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'canvas'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CAPTURE" title="Link to this definition">#</a></dt>
 <dd><p>the
 runtime’s <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> reads the canvas in-page and hands back PNG data
 URLs in batches (<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>), which writes frames
@@ -778,7 +778,7 @@ would bind it at def time.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_PIX_FMT">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv420p'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv420p'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT" title="Link to this definition">#</a></dt>
 <dd><p>x264 encode knobs pinned so the delivered mp4 is a function of the frames
 rather than of the machine (an#34, research §2).</p>
 <p><code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">1</span></code> — <code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">1/4/11</span></code> all give bit-identical decoded pixels, so
@@ -843,7 +843,7 @@ at <code class="code docutils literal notranslate"><span class="pre">def</span><
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DETERMINISTIC_CHROMIUM_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('--no-sandbox',</span> <span class="pre">'--disable-gpu',</span> <span class="pre">'--enable-unsafe-swiftshader',</span> <span class="pre">'--force-color-profile=srgb')</span></span><a class="headerlink" href="#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DETERMINISTIC_CHROMIUM_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('--no-sandbox',</span> <span class="pre">'--disable-gpu',</span> <span class="pre">'--enable-unsafe-swiftshader',</span> <span class="pre">'--force-color-profile=srgb')</span></span><a class="headerlink" href="#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS" title="Link to this definition">#</a></dt>
 <dd><p>Chromium launch flags that pin the rasteriser (an#31, research §2).</p>
 <p><strong>Unconditional, deliberately</strong> — not gated behind an env var. A render whose
 rasteriser depends on <code class="docutils literal notranslate"><span class="pre">AN_DETERMINISTIC</span></code> is non-reproducible <em>by default</em>,
@@ -869,7 +869,7 @@ so the renderer string cannot witness this choice.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.SUPPORTED_CAPTURES">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_CAPTURES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('screenshot',</span> <span class="pre">'canvas')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_CAPTURES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('screenshot',</span> <span class="pre">'canvas')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="Link to this definition">#</a></dt>
 <dd><p>a typo must
 fail before a browser launches, not minutes into a render.</p>
 <dl class="field-list simple">
@@ -881,7 +881,7 @@ fail before a browser launches, not minutes into a render.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.SUPPORTED_PIX_FMTS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_PIX_FMTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('yuv420p',</span> <span class="pre">'yuv444p')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_PIX_FMTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('yuv420p',</span> <span class="pre">'yuv444p')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS" title="Link to this definition">#</a></dt>
 <dd><p>a typo would reach ffmpeg
 as an obscure failure minutes into a render, and a format outside this set
 has not been measured against the panel.</p>
@@ -900,7 +900,7 @@ has not been measured against the panel.</p>
 <code class="docutils literal notranslate"><span class="pre">None</span></code> — smooth. The compiler stamps whatever this returns.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>

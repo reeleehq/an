@@ -27,7 +27,7 @@ loading frames). No scikit-image, no opencv.
 
 ### *class* an.verify.media.SilenceSpan(start, end)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A contiguous run of near-silence inside an audio stream.
 
@@ -36,7 +36,7 @@ A contiguous run of near-silence inside an audio stream.
 Return dict with mean_db and max_db of the media’s audio stream.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `dict`[`str`, `float`]
 
 ### an.verify.media.detect_silence(media_path, , noise_db=-30.0, min_duration_s=0.3)
 
@@ -47,14 +47,14 @@ Wraps `ffmpeg -af silencedetect=...` and parses the stderr “silence_start”
 (silence at the start/end of a shot when speech was expected).
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SilenceSpan`](#an.verify.media.SilenceSpan)]
+  `list`[[`SilenceSpan`](#an.verify.media.SilenceSpan)]
 
 ### an.verify.media.extract_frames(media_path, out_dir, , fps=4.0, pattern='frame_%04d.png')
 
 Extract frames from `media_path` at `fps` to `out_dir`.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+  `list`[`Path`]
 
 ### an.verify.media.ssim(a, b)
 
@@ -79,7 +79,7 @@ Inputs are float arrays in [0, 1]. Returns a float in roughly `[-1, 1]`;
 1 means identical.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> import numpy as np
@@ -93,7 +93,7 @@ Inputs are float arrays in [0, 1]. Returns a float in roughly `[-1, 1]`;
 SSIM between two image files (any format Pillow can read).
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ### an.verify.media.transcribe(media_path, , model_size='tiny')
 
@@ -103,4 +103,4 @@ Lazily imports faster-whisper. Raises `RuntimeError` with a clear
 message when the package isn’t installed.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`

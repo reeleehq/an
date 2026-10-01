@@ -51,22 +51,22 @@ scaled, never stretched to fit a box.
 | [`PartFidelity`](#an.adapters.cutout.fidelity.PartFidelity)(node_path, asset_id, src, box, ...)   | One sprite's box, its art's raster, and the disagreement between them.   |
 |-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### an.adapters.cutout.fidelity.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
+### an.adapters.cutout.fidelity.CONTAIN_FIT *: str* *= 'contain'*
 
 Fit policies, mirroring `VisualJSON.fit`.
 
-### an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.000001*
+### an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE *: float* *= 1.000001*
 
 Ratios within this of 1.0 count as uniform. Guards float noise only — it is
 not a tolerance for “close enough”, which is why it is this tight.
 
 ### *class* an.adapters.cutout.fidelity.PartFidelity(node_path, asset_id, src, box, raster, fit='stretch')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One sprite’s box, its art’s raster, and the disagreement between them.
 
-#### *property* aspect_distortion *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* aspect_distortion *: float*
 
 The factor by which the art is actually reshaped on screen.
 
@@ -76,7 +76,7 @@ keeps its shape whatever the box says and this is 1.0. Under
 `stretch` the box wins on both axes and the disagreement is the
 distortion.
 
-#### *property* box_aspect_disagreement *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* box_aspect_disagreement *: float*
 
 How far the box’s shape is from the art’s. 1.0 when they agree.
 
@@ -86,7 +86,7 @@ one axis — so it is a weaker signal than [`aspect_distortion`](#an.adapters.cu
 it is what tells you the compiler is sizing from the art rather than
 from a constant.
 
-### an.adapters.cutout.fidelity.SPRITE_KIND *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'svg_sprite'*
+### an.adapters.cutout.fidelity.SPRITE_KIND *: str* *= 'svg_sprite'*
 
 The visual kind whose art comes from a file and can therefore be distorted.
 
@@ -99,7 +99,7 @@ and sets `ir_path` to the scene-graph node path so a fix is routed to the
 part that needs it.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](an.verify.html.md#an.verify.Finding)]
+  `list`[[`Finding`](an.verify.html.md#an.verify.Finding)]
 
 ### an.adapters.cutout.fidelity.part_fidelity(scene, , asset_root, tolerance=1.000001)
 
@@ -113,4 +113,4 @@ Sprites whose art cannot be read are skipped rather than guessed at; a
 missing part is #76’s problem, not this function’s.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`PartFidelity`](#an.adapters.cutout.fidelity.PartFidelity)]
+  `list`[[`PartFidelity`](#an.adapters.cutout.fidelity.PartFidelity)]

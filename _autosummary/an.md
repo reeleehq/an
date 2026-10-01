@@ -62,7 +62,7 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
+#### kind *: Literal['character', 'environment', 'voice', 'prop']*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
@@ -71,11 +71,11 @@ renderer selector. Art direction arrives as a StylePack (#112).
 * **Type:**
   `"style"` was retired in an#106
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### stage *: [StagePlacement](an.ir.schema.md#an.ir.schema.StagePlacement) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### stage *: [StagePlacement](an.ir.schema.md#an.ir.schema.StagePlacement) | None*
 
 Where on the stage this entity stands. `None` — the default and what
 every existing document has — means “wherever the layout puts it”,
@@ -112,15 +112,15 @@ block it regenerates.
 written into every `scene.md` this package ever generated and read by
 nothing; a registered migration drops them.
 
-#### keys *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](an.ir.schema.md#an.ir.schema.CameraKey)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### keys *: list[[CameraKey](an.ir.schema.md#an.ir.schema.CameraKey)] | None*
 
 The explicit door. `None` = use `move`.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### move *: str | None*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 `an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
@@ -137,14 +137,14 @@ One line of spoken dialogue.
 gives us a real duration); the pipeline stamps them then, deriving
 `start` from the author’s `pause` / `at` ([`planned_start()`](#an.Dialogue.planned_start)).
 
-#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### at *: float | None*
 
 Where this line starts, in SHOT seconds, whatever came before it —
 `(at 3.0)` in `scene.md`. `start` is what the audio pipeline
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
-#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### direction *: list[str] | None*
 
 How the line is DELIVERED — cues such as `["excited"]` or
 `["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
@@ -152,11 +152,11 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### pause *: float | None*
 
 Seconds of silence before this line, after the previous line ends (the
 shot start, for the first line) — `(pause 1.5)` in `scene.md`.
@@ -172,7 +172,7 @@ spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
@@ -183,14 +183,14 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 0.8
 ```
 
-#### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](an.ir.schema.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### word_timings *: list[[WordTimingIR](an.ir.schema.md#an.ir.schema.WordTimingIR)] | None*
 
 The provider’s word timings, line-relative; `None` when the provider
 has none (offline, Rhubarb) or the line was stamped before an#96.
 
 ### *class* an.FlatAction(start, end, action)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A leaf action with its absolute start and end times.
 
@@ -204,12 +204,12 @@ Bases: `_IRModel`
 
 Scene metadata.
 
-#### captions *: [Captions](an.ir.schema.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### captions *: [Captions](an.ir.schema.md#an.ir.schema.Captions) | None*
 
 Captions from the dialogue’s word timings (`Captions`, an#175);
 `None` — the default — is none, omitted from JSON like `style_pack`.
 
-#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### default_easing *: str | tuple[float, float, float, float] | list[float] | None*
 
 The easing every authored `tween` that names none is drawn with
 (an#166) — `"linear"` for a snappy South Park cadence, an overshooting
@@ -222,16 +222,16 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
+#### sounds *: list[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
 
 Sound cues in FILM time — a music bed, an ambience under every shot
 (`SoundCue`). Empty, the default, is no sound layer at all.
 
-#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### step_hz *: float | None*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
 (the default) leaves every tween smooth. At 30 fps, `15` is “on twos”
@@ -248,7 +248,7 @@ likewise lands where it was authored). A shot’s own `step_hz`
 overrides this. Must be positive (schema) and `<= fps` (validate +
 compile), an#89.
 
-#### style_pack *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### style_pack *: str | None*
 
 The `StylePack` in the project’s `styles` store this scene is drawn
 under, by key. `None` — the default and what every existing document
@@ -264,7 +264,7 @@ cannot reach is WARNED about by name at compile.
 
 ### *class* an.Project(root, mall, scene)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A loaded an project: directory + mall + current scene.
 
@@ -274,7 +274,7 @@ Bases: `_IRModel`
 
 Pixel dimensions of the rendered output.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -297,7 +297,7 @@ True
 'Hello'
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -310,11 +310,11 @@ A single rendered unit. A scene is a sequence of shots.
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: Literal['cutout', 'manim', 'motion_graphics', 'whiteboard']*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
@@ -322,15 +322,15 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
-#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
+#### sounds *: list[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
 
 Sound cues in SHOT-local time (`SoundCue`).
 
-#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### step_hz *: float | None*
 
 Per-shot override of [`Meta.step_hz`](#an.Meta.step_hz) (`None` = inherit).
 
-#### transition *: [Transition](an.ir.schema.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### transition *: [Transition](an.ir.schema.md#an.ir.schema.Transition) | None*
 
 How this shot is entered (`Transition`); `None` is a hard cut.
 
@@ -343,7 +343,7 @@ don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory `dict` for tests).
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/typing.html#typing.MutableMapping)]
+  `dict`[`str`, `MutableMapping`]
 
 ### an.check_requirements()
 
@@ -353,7 +353,7 @@ The CLI subcommand `an check` pretty-prints this. Programmatic callers
 can inspect the dict directly.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+  `dict`[`str`, `dict`]
 
 ### an.delay(duration)
 
@@ -375,7 +375,7 @@ Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](an.ir.compose.md#an.ir.compose.FlatAction)]
+  `list`[[`FlatAction`](an.ir.compose.md#an.ir.compose.FlatAction)]
 
 ### an.init(project_dir, , name=None, force=False)
 
@@ -385,14 +385,14 @@ Idempotent unless the directory already contains a non-empty `scene.md`;
 pass `force=True` to overwrite. Returns the absolute project root.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.ir_to_markdown(scene)
 
 Render a SceneIR back into the structured Markdown form.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Meta, Shot
@@ -503,7 +503,7 @@ A name the descriptor does not declare falls back to a motion preset of
 Persist a Project’s current scene back to disk (md + json).
 
 * **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `None`
 
 ### an.sequence(\*actions)
 

@@ -30,7 +30,7 @@ True
 
 ### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Outcome of an end-to-end orchestrated run.
 
@@ -79,7 +79,7 @@ a `TypeError` — invisible because the CLI test stubbed THIS function
 rather than the leaf (an#98 review). A pass-through cannot drift.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.orchestrate.validate_project(project_dir)
 

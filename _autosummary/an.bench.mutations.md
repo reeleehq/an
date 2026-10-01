@@ -88,13 +88,13 @@ code under test, not a comparability key — see
 | [`MutationError`](#an.bench.mutations.MutationError)   | A lever could not be applied, or applied and left no trace.   |
 |------------------------------------------------------------------|---------------------------------------------------------------|
 
-### an.bench.mutations.AA_ON *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'antialias: true'*
+### an.bench.mutations.AA_ON *: str* *= 'antialias: true'*
 
 The exact text the AA lever flips, and where. Pinned as a literal so a
 rename in `runtime.js` fails here — loudly, at the lever — rather than
 producing a “mutation” that changes nothing.
 
-### an.bench.mutations.APP_OPEN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'const resolution = Math.max(1, (NS.anSupersample | 0) || 1);'*
+### an.bench.mutations.APP_OPEN *: str* *= 'const resolution = Math.max(1, (NS.anSupersample | 0) || 1);'*
 
 The exact text the supersample lever anchors to, and what it inserts. Pinned
 for the same reason `AA_ON` is: a reformat of the Pixi options object must
@@ -125,7 +125,7 @@ product sets `window.anSupersample` from `ctx.supersample` immediately before
 an#54’s shape guard — 160x120 frames against a 320x240 declaration — which is
 what that guard is for.
 
-### an.bench.mutations.HIGH_CRF *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '40'*
+### an.bench.mutations.HIGH_CRF *: str* *= '40'*
 
 measured on the CRF
 ladder, 40 gives C x8.4, D x8.0 and F -42% on `single_character` — large,
@@ -136,7 +136,7 @@ proxy for the regressions this instrument exists to catch.
 * **Type:**
   The CRF the encoder lever raises to. 40 rather than 51
 
-### an.bench.mutations.LEVERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Lever](#an.bench.mutations.Lever)]* *= {'disabled_aa': Lever(name='disabled_aa', side='render', what='build the PixiJS application with multisampling off', why='moves the render-side families and fires the golden tripwire. Its effect is scene-dependent by measurement, not by accident: MSAA applies to WebGL geometry, so an SVG sprite is nearly blind to it (96 differing pixels of 12.4M) and axis-aligned \`drawRect\` edges are bit-identical with it on or off. \`aa_probe\` exists so the corpus contains edges this lever can actually change.', apply=<function \_disabled_aa>, verify_row=<function \_verify_disabled_aa>), 'high_crf': Lever(name='high_crf', side='encode', what='raise the delivered encode from the pinned CRF to 40', why='moves only post-encode metrics. The golden corpus is upstream of the encoder, so family B cannot see this by construction — which is the reason two disjoint levers are mandatory.', apply=<function \_high_crf>, verify_row=<function \_verify_high_crf>), 'supersample': Lever(name='supersample', side='render', what='build the PixiJS application at resolution 2 with \`autoDensity: false\`, and resolve the frames back to the declared size with an exact 2x2 block mean before anything reads them', why="the instrument's exam against a change somebody WANTS to ship (an#56). Run instead as a plain commit-to-commit diff, \`_verdict_by_optimum\` reports it as 2 false regressions and 7 unearned improvements, plus 7 unscored \`changed\`s including the metric the wave's done-when names — a table that looks like evidence and is not. Its effect is scene-dependent BY MEASUREMENT and in the exact inverse of \`disabled_aa\`: +2.6% to +8.0% edge width on the five procedural scenes and -34.8% on \`promote_demo\`. The two render levers therefore reach complementary scenes, which strengthens the harness rather than diluting it.", apply=<function \_supersample>, verify_row=<function \_verify_supersample>)}*
+### an.bench.mutations.LEVERS *: dict[str, [Lever](#an.bench.mutations.Lever)]* *= {'disabled_aa': Lever(name='disabled_aa', side='render', what='build the PixiJS application with multisampling off', why='moves the render-side families and fires the golden tripwire. Its effect is scene-dependent by measurement, not by accident: MSAA applies to WebGL geometry, so an SVG sprite is nearly blind to it (96 differing pixels of 12.4M) and axis-aligned \`drawRect\` edges are bit-identical with it on or off. \`aa_probe\` exists so the corpus contains edges this lever can actually change.', apply=<function \_disabled_aa>, verify_row=<function \_verify_disabled_aa>), 'high_crf': Lever(name='high_crf', side='encode', what='raise the delivered encode from the pinned CRF to 40', why='moves only post-encode metrics. The golden corpus is upstream of the encoder, so family B cannot see this by construction — which is the reason two disjoint levers are mandatory.', apply=<function \_high_crf>, verify_row=<function \_verify_high_crf>), 'supersample': Lever(name='supersample', side='render', what='build the PixiJS application at resolution 2 with \`autoDensity: false\`, and resolve the frames back to the declared size with an exact 2x2 block mean before anything reads them', why="the instrument's exam against a change somebody WANTS to ship (an#56). Run instead as a plain commit-to-commit diff, \`_verdict_by_optimum\` reports it as 2 false regressions and 7 unearned improvements, plus 7 unscored \`changed\`s including the metric the wave's done-when names — a table that looks like evidence and is not. Its effect is scene-dependent BY MEASUREMENT and in the exact inverse of \`disabled_aa\`: +2.6% to +8.0% edge width on the five procedural scenes and -34.8% on \`promote_demo\`. The two render levers therefore reach complementary scenes, which strengthens the harness rather than diluting it.", apply=<function \_supersample>, verify_row=<function \_verify_supersample>)}*
 
 The levers, keyed by the mutation name the registry declares. At least one
 per SIDE is mandatory and the two sides are **disjoint on purpose**: an
@@ -154,11 +154,11 @@ scene hardest of all six (-34.8% edge width, because the sprite rasterises AT
 
 ### *class* an.bench.mutations.Lever(name, side, what, why, apply, verify_row=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One deliberate, declared change to the pipeline, with the evidence that it took.
 
-#### verify_row *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### verify_row *: Callable[[dict], None] | None*
 
 Given the ledger row the mutated run produced, raise unless the lever’s
 fingerprint is in it. `None` when the row cannot carry one — see the
@@ -166,11 +166,11 @@ module docstring.
 
 ### *exception* an.bench.mutations.MutationError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 A lever could not be applied, or applied and left no trace.
 
-### an.bench.mutations.STAGING_IGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('_\_pycache_\_',)*
+### an.bench.mutations.STAGING_IGNORE *: tuple[str, ...]* *= ('_\_pycache_\_',)*
 
 Excluded from the staged copy so the staged tree is a pure function of the
 shipped source and the patch — which is what lets `_verify_supersample`
@@ -179,7 +179,7 @@ one”. `runtime_sha256()` walks whatever `render.runtime_dir()` returns, so
 with this excluded on the staging side and on the recompute side, the two
 hash byte-identical file sets.
 
-### an.bench.mutations.SUPERSAMPLE_K *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+### an.bench.mutations.SUPERSAMPLE_K *: int* *= 2*
 
 The supersample lever’s factor, read at call time so a test can move it. 2
 rather than 3, deliberately and with the residual on the record: research §3
@@ -200,4 +200,4 @@ Deliberately returns a row rather than a comparison: what to do with it is
 criterion be evaluated against a row written months ago.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`

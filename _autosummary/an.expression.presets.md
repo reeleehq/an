@@ -41,15 +41,15 @@ True
 
 ### *class* an.expression.presets.Preset(name, axes=<factory>, mouth_form=None, anchor='')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A named expression: axis offsets, the mouth form it prefers, its anchor.
 
-#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
+#### anchor *: str* *= ''*
 
 FACS AU cross-reference (a comment, never a source).
 
-#### mouth_form *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+#### mouth_form *: str | None* *= None*
 
 The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
 
@@ -58,7 +58,7 @@ The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
 The preset names, in declaration order.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+  `tuple`[`str`, `...`]
 
 ```pycon
 >>> known_presets()[:3]
@@ -70,7 +70,7 @@ The preset names, in declaration order.
 The `viseme@<form>` a preset prefers, or `None` for the neutral set.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `str` | `None`
 
 ```pycon
 >>> mouth_form_of("amused"), mouth_form_of("thinking"), mouth_form_of(None)
@@ -87,4 +87,4 @@ An unknown preset or axis is a `ValueError` — validate reports it as an
 error, the compiler refuses it.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `dict`[`str`, `float`]

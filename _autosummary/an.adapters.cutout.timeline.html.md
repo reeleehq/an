@@ -53,15 +53,15 @@ Evaluation semantics in Phase 2A:
 
 ### *class* an.adapters.cutout.timeline.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A clip placed at an absolute time on a track.
 
-#### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* effective_duration *: float*
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<swap>'*
+### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: str* *= '<swap>'*
 
 two keys in one group set the same
 thing, so only the more recently written can be showing. Every swap set on a
@@ -75,13 +75,13 @@ switch) writes only itself.
 
 ### *class* an.adapters.cutout.timeline.Timeline(duration, tracks=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A duration + ordered list of tracks. The canonical playback structure.
 
 ### *class* an.adapters.cutout.timeline.Track(target_root='', clips=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A sequence of placed clips that share a common purpose / target prefix.
 
@@ -90,7 +90,7 @@ runtime can use it to scope rendering); evaluation does not filter by it.
 
 ### *class* an.adapters.cutout.timeline.Transform2D(x=0.0, y=0.0, rotation=0.0, scale_x=1.0, scale_y=1.0, pivot_x=0.0, pivot_y=0.0)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One node’s local transform, in the runtime’s own vocabulary.
 
@@ -110,7 +110,7 @@ performs, and the reason `root.pivot` is a 2D camera: moving the pivot
 moves everything the node contains, in the opposite direction.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`]
 
 ```pycon
 >>> Transform2D(x=10.0).apply((0.0, 0.0))
@@ -126,7 +126,7 @@ moves everything the node contains, in the opposite direction.
 The inverse of [`apply()`](#an.adapters.cutout.timeline.Transform2D.apply) — a parent-space point, in local space.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`]
 
 ```pycon
 >>> t = Transform2D(x=10.0, pivot_x=3.0, scale_x=2.0, rotation=0.4)
@@ -201,7 +201,7 @@ while both played).
 ```
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`tuple`[`str`, `str`], `Any`]
 
 ### an.adapters.cutout.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
 
@@ -215,7 +215,7 @@ the root container.
 `evaluate_timeline` returns, and each node reads only its own entry.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`]
 
 ```pycon
 >>> from an.adapters.cutout.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON
@@ -283,7 +283,7 @@ every keyframe instead of an offset from it.
 What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP).
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")

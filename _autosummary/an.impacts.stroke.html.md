@@ -63,11 +63,11 @@ In both kinds the speed at the peak is `2 * apex / fall`.
 | [`StrokeError`](#an.impacts.stroke.StrokeError)   | A stroke that cannot be built from these events.   |
 |----------------------------------------------------------------|----------------------------------------------------|
 
-### an.impacts.stroke.DEFAULT_BRAKE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.03*
+### an.impacts.stroke.DEFAULT_BRAKE *: float* *= 0.03*
 
 The air stroke’s braking time before its turning point (seconds).
 
-### an.impacts.stroke.DEFAULT_RISE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.18*
+### an.impacts.stroke.DEFAULT_RISE *: float* *= 0.18*
 
 Longest rise after an impact, and longest fall into one (seconds). A slower
 tempo holds at the apex between them instead of floating: a drummer’s stroke
@@ -75,7 +75,7 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.
 
 ### *class* an.impacts.stroke.Stroke(kind, duration, segments, kinematics)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 The whole curve, plus the kinematics of every impact on it.
 
@@ -84,24 +84,24 @@ The whole curve, plus the kinematics of every impact on it.
 Stroke height at scene time `t` (clamped to the clip).
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 #### velocity(t)
 
 `dh/dt` at `t`; at a segment boundary, the LATER segment’s value.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ### *exception* an.impacts.stroke.StrokeError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A stroke that cannot be built from these events.
 
 ### *class* an.impacts.stroke.StrokeKinematics(index, kind, t_impact, t_peak_speed, peak_speed, apex, fall, brake)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 How the object moved into one impact.
 
@@ -111,7 +111,7 @@ How the object moved into one impact.
 
 ### *class* an.impacts.stroke.StrokeSegment(t0, t1, h0, h1, easing)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 `h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.
 

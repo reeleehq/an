@@ -44,33 +44,33 @@ dependence, and it belongs in provenance rather than inside a gate.
 
 ### *exception* an.bench.run.BenchError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 The bench could not produce a row it would be honest to file.
 
-### an.bench.run.GOLDEN_METRIC_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'min_ssim_win8_vs_golden'*
+### an.bench.run.GOLDEN_METRIC_KEY *: str* *= 'min_ssim_win8_vs_golden'*
 
 Family B’s two rows, one in each block. Named here because the golden result
 fills both from one comparison, and a reader has to be able to see that the
 boolean and the number are the same evidence read two ways.
 
-### an.bench.run.JUST_BLESSED_DETAIL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'this run WROTE these goldens, so comparing against them is a tautology: the identity holds by construction and no code could have failed it. Run \`an bench\` again, without --bless, for a comparison that can fail.'*
+### an.bench.run.JUST_BLESSED_DETAIL *: str* *= 'this run WROTE these goldens, so comparing against them is a tautology: the identity holds by construction and no code could have failed it. Run \`an bench\` again, without --bless, for a comparison that can fail.'*
 
 Said when a run blessed the goldens it would otherwise have compared against.
 
-### an.bench.run.MIN_PINNED_FRAMES_FOR_PAIRWISE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+### an.bench.run.MIN_PINNED_FRAMES_FOR_PAIRWISE *: int* *= 2*
 
 A pairwise minimum needs two frames; every fixture pins at least two, so on
 a real capture this row is always measured (the render-side panel may not
 be null — `tests/test_bench_capture.py`).
 
-### an.bench.run.STAGE_METRIC_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage_min_plane_ratio_gap'*
+### an.bench.run.STAGE_METRIC_KEY *: str* *= 'stage_min_plane_ratio_gap'*
 
 The pan measurement (an#111). Metric and tripwire come from ONE measurement,
 as the golden pair does: the boolean and the number must be the same evidence
 read two ways, or a reader has to reconcile them.
 
-### an.bench.run.STAGE_MIN_RATIO_GAP *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1875*
+### an.bench.run.STAGE_MIN_RATIO_GAP *: float* *= 0.1875*
 
 The floor the tripwire fires below, set at HALF the first bless’s measured
 minimum — the `expression_min_pairwise_changed_px` precedent followed
@@ -94,14 +94,14 @@ longer depend on it, and the number is kept because it is the thing that
 will explain a future cross-build surprise.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.run.format_panel(ledger)
 
 A human-readable digest of a row — the thing `an bench` prints.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.bench.run.lossless_reference(frames_dir, fps, out, , delivered)
 
@@ -148,7 +148,7 @@ conditional: it is the whole of the fix, and a guard for it must not have to
 render the corpus to reach it.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.run.pinned_frames_min_pairwise_changed_px(capture, times)
 
@@ -182,7 +182,7 @@ bless test did exactly that, replacing a real bless record’s reason with the
 test’s own.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+  `dict`
 
 ### an.bench.run.shot_policy_provenance(shots)
 
@@ -210,7 +210,7 @@ Additive scene-provenance facts read off each staged `scene_json`’s
 ```
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+  `dict`[`str`, `dict`[`str`, `Any`]]
 
 ### an.bench.run.viseme_keyframes_per_second(scene_json)
 
@@ -229,7 +229,7 @@ shapes. Recorded as provenance rather than a panel metric because no lever
 in the registry moves it.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `float` | `None`
 
 ```pycon
 >>> viseme_keyframes_per_second({"animations": {}})

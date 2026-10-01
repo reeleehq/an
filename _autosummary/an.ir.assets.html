@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir" href="an.ir.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -603,7 +603,7 @@ what keeps <code class="code docutils literal notranslate"><span class="pre">an<
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES">
-<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">ATTRIBUTION_REQUIRING_LICENSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'by',</span> <span class="pre">'by-sa',</span> <span class="pre">'cc-by',</span> <span class="pre">'cc-by-4.0',</span> <span class="pre">'cc-by-nc',</span> <span class="pre">'cc-by-nd',</span> <span class="pre">'cc-by-sa',</span> <span class="pre">'cc-by-sa-4.0'})</span></span><a class="headerlink" href="#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">ATTRIBUTION_REQUIRING_LICENSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'by',</span> <span class="pre">'by-sa',</span> <span class="pre">'cc-by',</span> <span class="pre">'cc-by-4.0',</span> <span class="pre">'cc-by-nc',</span> <span class="pre">'cc-by-nd',</span> <span class="pre">'cc-by-sa',</span> <span class="pre">'cc-by-sa-4.0'})</span></span><a class="headerlink" href="#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES" title="Link to this definition">#</a></dt>
 <dd><p>Licence codes that oblige the <em>user of the output</em> to credit someone.</p>
 <p>Matched case-insensitively against the licence code. Deliberately a small,
 explicit set rather than a pattern: “does this oblige me” is a question with
@@ -629,7 +629,7 @@ not the same as “no obligation”.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.assets.AssetSource.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow'}</span></span><a class="headerlink" href="#an.ir.assets.AssetSource.model_config" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow'}</span></span><a class="headerlink" href="#an.ir.assets.AssetSource.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
@@ -645,12 +645,12 @@ not the same as “no obligation”.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">private</span></code> — NOT shippable: all rights reserved, private study only;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">unknown</span></code> — not classified, which is not the same as free.</p></li>
 </ul>
-<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘attribution’, ‘free’, ‘private’, ‘unknown’]</p>
+<p>alias of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code>[‘attribution’, ‘free’, ‘private’, ‘unknown’]</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.assets.PRIVATE_STUDY">
-<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">PRIVATE_STUDY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'all-rights-reserved-private-study'</span></span><a class="headerlink" href="#an.ir.assets.PRIVATE_STUDY" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">PRIVATE_STUDY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'all-rights-reserved-private-study'</span></span><a class="headerlink" href="#an.ir.assets.PRIVATE_STUDY" title="Link to this definition">#</a></dt>
 <dd><p>The recognised code for material its owner has not licensed at all — frames
 or art carved out of a film, a show, a book — that a user may study
 privately but must not publish (an#211). Any code that normalises to one
@@ -660,7 +660,7 @@ so <code class="docutils literal notranslate"><span class="pre">&quot;All</span>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.assets.PUBLIC_DOMAIN">
-<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">PUBLIC_DOMAIN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'public-domain'</span></span><a class="headerlink" href="#an.ir.assets.PUBLIC_DOMAIN" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">PUBLIC_DOMAIN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'public-domain'</span></span><a class="headerlink" href="#an.ir.assets.PUBLIC_DOMAIN" title="Link to this definition">#</a></dt>
 <dd><p>The recognised code for the public domain — no rights to clear, nothing
 owed (an#211). <code class="docutils literal notranslate"><span class="pre">pd</span></code>, <code class="docutils literal notranslate"><span class="pre">pd-us</span></code>, <code class="docutils literal notranslate"><span class="pre">pdm-1.0</span></code>, <code class="docutils literal notranslate"><span class="pre">public-domain</span></code>,
 <code class="docutils literal notranslate"><span class="pre">cc-pdm-1.0</span></code> and <code class="docutils literal notranslate"><span class="pre">cc0-*</span></code> are all this class.</p>
@@ -672,7 +672,7 @@ owed (an#211). <code class="docutils literal notranslate"><span class="pre">pd</
 <dd><p>What this asset’s licence means for shipping the video (an#211).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Literal</span></code></a>[<code class="docutils literal notranslate"><span class="pre">'attribution'</span></code>, <code class="docutils literal notranslate"><span class="pre">'free'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, <code class="docutils literal notranslate"><span class="pre">'unknown'</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Literal</span></code>[<code class="docutils literal notranslate"><span class="pre">'attribution'</span></code>, <code class="docutils literal notranslate"><span class="pre">'free'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, <code class="docutils literal notranslate"><span class="pre">'unknown'</span></code>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"pd"</span><span class="p">))</span>
@@ -695,7 +695,7 @@ owed (an#211). <code class="docutils literal notranslate"><span class="pre">pd</
 classifier reads through punctuation and spacing:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">normalise_license</span><span class="p">(</span><span class="s2">"All rights reserved - private study only; never publish"</span><span class="p">)</span>
@@ -717,7 +717,7 @@ silently dropped. Private-study material (all rights reserved) also answers
 at all; <a class="reference internal" href="#an.ir.assets.license_class" title="an.ir.assets.license_class"><code class="xref py py-func docutils literal notranslate"><span class="pre">license_class()</span></code></a> says so (<code class="docutils literal notranslate"><span class="pre">&quot;private&quot;</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>

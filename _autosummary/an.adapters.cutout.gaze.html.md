@@ -22,7 +22,7 @@ hide the pop.
 Seeding follows the blink pattern — a pure function of the entity name — so
 renaming a character re-seeds its saccades (the recorded blink hazard); the
 seed is stamped into the compiled scene’s `meta` beside `blink_phases`.
-Integer seeding of [`random.Random`](https://docs.python.org/3/library/random.html#random.Random) is version-stable.
+Integer seeding of `random.Random` is version-stable.
 
 ```pycon
 >>> track = saccade_track("gale", duration=2.0, fps=24)
@@ -50,13 +50,13 @@ True
 | [`GazeStep`](#an.adapters.cutout.gaze.GazeStep)(time, x, y)   | The pupils rest at `(x, y)` (axis units) from `time` on.   |
 |-------------------------------------------------------------------------|------------------------------------------------------------|
 
-### an.adapters.cutout.gaze.GAZE_SALT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 27182*
+### an.adapters.cutout.gaze.GAZE_SALT *: int* *= 27182*
 
 XOR’d into the entity-name hash so saccades and blinks never share a seed.
 
 ### *class* an.adapters.cutout.gaze.GazeStep(time, x, y)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 The pupils rest at `(x, y)` (axis units) from `time` on.
 
@@ -65,7 +65,7 @@ The pupils rest at `(x, y)` (axis units) from `time` on.
 The generator’s seed for an entity — a pure function of its name.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ```pycon
 >>> gaze_seed("gale") == gaze_seed("gale") and gaze_seed("gale") != gaze_seed("nora")
@@ -81,4 +81,4 @@ values assume 1). `blink_windows` are the entity’s compiled blink
 windows, for the coupling rule.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`GazeStep`](#an.adapters.cutout.gaze.GazeStep)]
+  `list`[[`GazeStep`](#an.adapters.cutout.gaze.GazeStep)]

@@ -69,11 +69,11 @@ The loop that drives the page (batching, ordering, back-pressure) is
 
 ### *exception* an.adapters.cutout.canvas_capture.CanvasCaptureError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A captured frame that cannot be turned into the screenshot path’s frame.
 
-### an.adapters.cutout.canvas_capture.DATA_URL_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:image/png;base64,'*
+### an.adapters.cutout.canvas_capture.DATA_URL_PREFIX *: str* *= 'data:image/png;base64,'*
 
 What `HTMLCanvasElement.toDataURL('image/png')` returns. Anything else —
 `"data:,"` for a zero-size canvas, or a JPEG a browser fell back to — is
@@ -93,7 +93,7 @@ not `factor` times it is refused here, not muxed. `compress_level=None`
 reads `DEFAULT_PNG_COMPRESS_LEVEL` at call time.
 
 * **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+  `bytes`
 
 ```pycon
 >>> import numpy as np
@@ -116,7 +116,7 @@ an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, 
 A `toDataURL('image/png')` result -> the PNG’s bytes, or refuse.
 
 * **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+  `bytes`
 
 ```pycon
 >>> decode_data_url(DATA_URL_PREFIX + "iVBORw==", frame=0)[:4]
@@ -143,7 +143,7 @@ view and copying it contiguous measured ~5x slower at 1080p, on a path whose
 whole point is time.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ```pycon
 >>> import numpy as np

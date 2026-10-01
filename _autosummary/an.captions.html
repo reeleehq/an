@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.stage" href="an.bench.stage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -649,13 +649,13 @@ adapter owns the body schema), so it is not written here.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.captions.CAPTION_ID_PREFIX">
-<span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CAPTION_ID_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'caption_'</span></span><a class="headerlink" href="#an.captions.CAPTION_ID_PREFIX" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CAPTION_ID_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'caption_'</span></span><a class="headerlink" href="#an.captions.CAPTION_ID_PREFIX" title="Link to this definition">#</a></dt>
 <dd><p>A caption page’s entity id is this plus its index within the shot.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.captions.CAPTION_PROP_REF">
-<span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CAPTION_PROP_REF</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an.captions'</span></span><a class="headerlink" href="#an.captions.CAPTION_PROP_REF" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CAPTION_PROP_REF</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an.captions'</span></span><a class="headerlink" href="#an.captions.CAPTION_PROP_REF" title="Link to this definition">#</a></dt>
 <dd><p>The props-store key the caption blocks resolve against — a style-only
 <code class="docutils literal notranslate"><span class="pre">TextDescriptor</span></code> supplied at render time, never stored in the project.</p>
 </dd></dl>
@@ -663,14 +663,14 @@ adapter owns the body schema), so it is not written here.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.captions.CaptionError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CaptionError</span></span><a class="reference internal" href="../_modules/an/captions.html#CaptionError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.CaptionError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>Captions cannot be built as asked. Carries the fix.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.captions.CaptionPage">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CaptionPage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#CaptionPage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.CaptionPage" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>One caption as shown: which shot, which frames, which words.</p>
 <p><code class="docutils literal notranslate"><span class="pre">start</span></code>/<code class="docutils literal notranslate"><span class="pre">end</span></code> are SHOT-local frames — the first that shows the page and
 the first that does not. <code class="docutils literal notranslate"><span class="pre">lines</span></code> are the words per line, broken by
@@ -680,7 +680,7 @@ order) starts being spoken, clamped into the page.</p>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.captions.CaptionPage.text">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.captions.CaptionPage.text" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#an.captions.CaptionPage.text" title="Link to this definition">#</a></dt>
 <dd><p>words joined by spaces, lines by
 newlines.</p>
 <dl class="field-list simple">
@@ -692,7 +692,7 @@ newlines.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.captions.CaptionPage.words">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">words</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.captions.CaptionPage.words" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">words</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.captions.CaptionPage.words" title="Link to this definition">#</a></dt>
 <dd><p>Every word of the page, in reading order.</p>
 </dd></dl>
 
@@ -708,14 +708,14 @@ newlines.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.captions.CaptionWarning">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">CaptionWarning</span></span><a class="reference internal" href="../_modules/an/captions.html#CaptionWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.CaptionWarning" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></p>
 <p>Captions were built, but not everything was captioned as asked.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.captions.Cue">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">Cue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#Cue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.Cue" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>One SubRip cue — <code class="docutils literal notranslate"><span class="pre">mixing.srt.Cue</span></code>’s fields, in its order.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Cue</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Hi"</span><span class="p">)</span><span class="o">.</span><span class="n">duration</span>
 <span class="go">1.5</span>
@@ -725,7 +725,7 @@ newlines.</p>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.captions.Cue.duration">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.captions.Cue.duration" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.captions.Cue.duration" title="Link to this definition">#</a></dt>
 <dd><p>Cue duration in seconds (never negative).</p>
 </dd></dl>
 
@@ -739,7 +739,7 @@ newlines.</p>
 first that does not — the same frames the picture shows it on.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.captions.Cue" title="an.captions.Cue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cue</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#an.captions.Cue" title="an.captions.Cue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cue</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -759,7 +759,7 @@ the next, and a fade takes the burned caption through the colour with the
 rest of the picture, while the sidecar’s cue is simply on.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.captions.CaptionPage" title="an.captions.CaptionPage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CaptionPage</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#an.captions.CaptionPage" title="an.captions.CaptionPage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CaptionPage</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -780,7 +780,7 @@ naming the shot and the words — before a browser launches, rather than
 from inside a shot’s compile after others have rendered.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-class docutils literal notranslate"><span class="pre">Shot</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-class docutils literal notranslate"><span class="pre">Shot</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -791,7 +791,7 @@ from inside a shot’s compile after others have rendered.</p>
 <dd><p>Serialize cues to SubRip text, renumbering from 1.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dump_srt</span><span class="p">([</span><span class="n">Cue</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">"Hello</span><span class="se">\n</span><span class="s2">there"</span><span class="p">)]))</span>
@@ -810,7 +810,7 @@ from inside a shot’s compile after others have rendered.</p>
 page starting after each sentence end. Returns index ranges.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#range" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">range</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">range</span></code>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">paginate</span><span class="p">(</span><span class="s2">"One two. Three four five six"</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_lines</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -825,7 +825,7 @@ page starting after each sentence end. Returns index ranges.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">HH:MM:SS,mmm</span></code>, milliseconds ROUNDED with carry; negatives clamp to 0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="mf">2592.187</span><span class="p">),</span> <span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span>
@@ -840,7 +840,7 @@ page starting after each sentence end. Returns index ranges.</p>
 <dd><p>The SubRip sidecar of <code class="docutils literal notranslate"><span class="pre">scene</span></code> rendered at <code class="docutils literal notranslate"><span class="pre">fps</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">Transition</span><span class="p">,</span> <span class="n">WordTimingIR</span>
@@ -868,7 +868,7 @@ page starting after each sentence end. Returns index ranges.</p>
 longer than a line gets a line of its own and is never split.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wrap_words</span><span class="p">(</span><span class="s2">"the quick brown fox jumps"</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="mi">10</span><span class="p">)</span>

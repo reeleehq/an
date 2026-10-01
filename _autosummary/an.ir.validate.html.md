@@ -32,14 +32,14 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 |------------------------------------------------------------------------------------------------------|------------------------------------------------------|
 | [`ValidationReport`](#an.ir.validate.ValidationReport)([passed, findings])                | Result of running one or more validators.            |
 
-### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
+### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: float* *= 0.016666666666666666*
 
 a frame at 60 fps.
 
 * **Type:**
   Slack before a line counts as running past its shot
 
-### an.ir.validate.RETIRED_CAMERA_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'focal_length', 'position', 'target'})*
+### an.ir.validate.RETIRED_CAMERA_KEYS *: frozenset[str]* *= frozenset({'focal_length', 'position', 'target'})*
 
 an#109’s removed camera fields. A WARNING, not an error, and the difference
 is the harm: a surviving `style` silently picks the wrong RENDERER, while
@@ -52,7 +52,7 @@ at the current version is never migrated again, so a camera block that came
 through a sync between the version bump and this check keeps them forever as
 `extra="allow"` extras, and nothing else looks.
 
-### an.ir.validate.RETIRED_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'meta': {'default_style': 'default_renderer'}, 'shot': {'style': 'renderer'}}*
+### an.ir.validate.RETIRED_KEYS *: dict[str, dict[str, str]]* *= {'meta': {'default_style': 'default_renderer'}, 'shot': {'style': 'renderer'}}*
 
 Keys an#106 retired, and what to write instead. `SceneIR`’s models are
 `extra="allow"` (deliberately — forward compatibility), so a document that
@@ -62,7 +62,7 @@ a document that is already 0.2.0: an agent patch, a hand edit, or a caller
 passing `style=` to `Shot(...)` all produce a permanently dead key that no
 later migration will touch. So it is caught here, at ERROR, by name.
 
-### an.ir.validate.RIG_STORES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'character': ('characters', 'CharacterDescriptor'), 'prop': ('props', 'PropDescriptor')}*
+### an.ir.validate.RIG_STORES *: dict[str, tuple[str, str]]* *= {'character': ('characters', 'CharacterDescriptor'), 'prop': ('props', 'PropDescriptor')}*
 
 Entity kind → (the mall store holding its rig, the descriptor `kind` tag
 that store’s documents carry). `environment` and `voice` are absent because
@@ -70,13 +70,13 @@ neither has a rig to declare asset sets on.
 
 ### *class* an.ir.validate.ValidationFinding(severity, ir_path, description)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A single validation issue with a path into the IR.
 
 ### *class* an.ir.validate.ValidationReport(passed=True, findings=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Result of running one or more validators.
 

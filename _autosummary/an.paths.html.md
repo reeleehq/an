@@ -59,7 +59,7 @@ SVG; a path has none of those, and its colour is decided by the compiler
 | [`PathDescriptor`](#an.paths.PathDescriptor)(\*\*data)   | The on-disk path schema, saved as a prop's `prop.json`.   |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------|
 
-### an.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
+### an.paths.DFLT_STROKE_COLOUR *: str* *= '#c0392b'*
 
 The stroke colour when the document names none. A `StylePack`’s `stroke`
 role replaces it (an#161) — but only this default: a document that sets
@@ -67,7 +67,7 @@ role replaces it (an#161) — but only this default: a document that sets
 same line `an.styles` draws for SVG). A per-entity `stroke` override in the
 pack wins over both.
 
-### an.paths.MIN_DASH_PERIOD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+### an.paths.MIN_DASH_PERIOD *: float* *= 1.0*
 
 The shortest dash period (dash + gap), scene pixels. Bounds the number of
 dashes a path can ask the runtime to redraw every frame: a path a few
@@ -104,11 +104,11 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
 ...
 ```
 
-#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### color *: str*
 
 `#rrggbb`.
 
-#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### dash *: float | None*
 
 `dash` on, `gap` off, repeating along
 the path from ITS start — anchored to the path, not to the trimmed span,
@@ -118,37 +118,37 @@ so a draw-on reveals dashes in place instead of making them crawl.
 * **Type:**
   A dash pattern, scene pixels
 
-#### dash_offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### dash_offset *: float*
 
 Shifts the pattern along the path (positive = forward). An ordinary
 numeric node property like `trim_end`, so `tween route dash_offset`
 is the “marching ants” route; only a dashed path has one.
 
-#### *property* gap_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* gap_px *: float*
 
 The gap of the dash pattern, scene pixels (`dash` when unset).
 
-#### head_length *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### head_length *: float | None*
 
 Scene pixels; `None` = a multiple of `width`.
 
-#### *property* head_length_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* head_length_px *: float*
 
 The arrowhead’s length in scene pixels.
 
-#### *property* head_width_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* head_width_px *: float*
 
 The arrowhead’s base width in scene pixels.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### points *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+#### points *: list[tuple[float, float]]*
 
 Scene pixels, relative to the node’s origin (`AssetRef.stage.at`).
 
-#### trim_start *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### trim_start *: float*
 
 The visible span before anything animates it, as fractions of arc
 length. `trim_end=0` starts a draw-on hidden, and a trim tween

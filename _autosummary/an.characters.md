@@ -84,7 +84,7 @@ list of `[time_s, value]` pairs evaluated in order.
 2.0
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -100,15 +100,15 @@ A drawable: an SVG path + anchor point (in 0..1 per-axis units).
 (0.5, 0.78)
 ```
 
-#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+#### anchor *: tuple[float, float]*
 
 Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | None*
 
 Where THIS part’s art came from, when it is not the descriptor’s
 `source` — a character composed from several clips, or a carved head
@@ -117,7 +117,7 @@ on a CC0 body, credits each (an#220). `None` = the descriptor’s
 reserved part makes the render NOT PUBLISHABLE like any other.
 Omitted from the stored document when unset.
 
-#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### width *: float | None*
 
 The size the part draws at, in **view_box units** — the rig’s units,
 the ones `x`/`y` and the bones use (an#220). \*\*A declared size
@@ -132,7 +132,7 @@ the art’s aspect; with both, the art is contained in the box
 validate` says when the two aspects disagree. See
 `attachment_box()`.
 
-#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### x *: float*
 
 Offset from the slot’s bone, in view_box units.
 
@@ -156,11 +156,11 @@ A skeleton joint with a local transform relative to its parent.
 'torso'
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### pivot *: str | None*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
 
@@ -192,7 +192,7 @@ True
 True
 ```
 
-#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+#### asset_sets *: dict[str, dict[str, str]]*
 
 `{channel: {key: attachment_name}}` — what a swap key SELECTS, layered
 over `skins`, which is the SSOT for what art EXISTS. The indirection is
@@ -202,7 +202,7 @@ are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
 
-#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+#### colour_roles *: dict[str, dict[str, str]]*
 
 Which colour literal in which part plays which `StylePack` role —
 `{part path: {"#rrggbb": role}}`, e.g.
@@ -216,7 +216,7 @@ Additive: no schema bump, and a descriptor without it reads back as
 untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
 one a pack can set ([`an.styles.REACHABLE_ROLES`](an.styles.md#an.styles.REACHABLE_ROLES)).
 
-#### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### expression_binding *: list[dict[str, Any]] | None*
 
 How expression axes reach this rig (an#98), as a list of binding dicts —
 `{"axis", "slot", "property", "gain"[, "rig_scaled"]}` for a transform
@@ -225,7 +225,7 @@ the default binding derived from the slots the rig has
 ([`an.expression.binding.default_binding()`](an.expression.binding.md#an.expression.binding.default_binding)). Additive: no schema bump,
 and a pre-Wave-6 descriptor reads back unchanged.
 
-#### face_overlay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+#### face_overlay *: bool*
 
 Whether this character’s face is drawn as separate overlay parts
 (eyes, brows, mouth as their own slots — the default) or baked into the
@@ -239,7 +239,7 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
-#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### gait *: str | None*
 
 This character’s default walk `gait` (one of `GAITS`, an#220);
 an author’s `gait` arg overrides it. `None` = `legs` when the rig
@@ -247,7 +247,7 @@ builds a leg pair, else `rock`. A robe figure whose leg slots are hem
 halves declares `"hem"` once, here, rather than on every walk.
 Omitted from the stored document when unset.
 
-#### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### gaze_travel *: dict[str, float] | None*
 
 How far a pupil may travel from its rest, in view-box units per axis
 (an#99): the sclera’s clearance minus the pupil’s radius, written by
@@ -258,7 +258,7 @@ inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
 circle, which keeps the whole pupil disc inside the white at every
 angle (a per-axis box pokes out at the diagonal) — no runtime mask.
 
-#### metadata *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+#### metadata *: dict[str, Any]*
 
 Free-form metadata (dicebear style/seed, etc.). Schema-evolution
 friendly: anything an external tool wants to record can land here.
@@ -266,7 +266,7 @@ friendly: anything an external tool wants to record can land here.
 This comment used to say “art license, etc.” — an invitation nothing ever
 took up. Rights live in `source` now, typed, so they can be found.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -276,9 +276,9 @@ Override this method to perform additional initialization after `__init__` and `
 This is useful if you want to do some validation that requires the entire model to be initialized.
 
 * **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `None`
 
-#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### rest_view *: str | None*
 
 The view the DEFAULT art is drawn in (an#220) — a declared fact about
 the art, like `face_overlay`. `None` means `DFLT_VIEW`
@@ -288,7 +288,7 @@ force before any turn — `walk` swinging its legs rather than lifting
 them — reads it instead of the author passing `view: side` by hand.
 Omitted from the stored document when unset.
 
-#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | None*
 
 Where this character’s art came from, and what its licence obliges.
 
@@ -301,12 +301,12 @@ Field names match `illustration.ImageResult` exactly, so an adapter is a
 dict copy rather than a rename table — and a rename table is where a field
 quietly stops being carried. Pinned by test.
 
-#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source_svg *: str | None*
 
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
-#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](an.characters.schema.md#an.characters.schema.SlotPose)]]]*
+#### swap_poses *: dict[str, dict[str, dict[str, [SlotPose](an.characters.schema.md#an.characters.schema.SlotPose)]]]*
 
 {slot:
 SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
@@ -330,7 +330,7 @@ schema bump, and a descriptor without it reads back unposed.
 * **Type:**
   {key
 
-#### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### voice_ref *: str | None*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
 can override per shot.
@@ -347,7 +347,7 @@ A named idle loop (e.g., breath, blink).
 True
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -363,7 +363,7 @@ A named outfit/variant: maps slot → {attachment_name → Attachment}.
 'parts/mouth/mouth_a.svg'
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -379,12 +379,12 @@ A draw-order slot bound to a bone, displaying one attachment at a time.
 'mouth_x'
 ```
 
-#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### attachment *: str | None*
 
 Default attachment name; the active attachment can change at runtime
 via animation tracks targeting `slot:<name>.attachment`.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -426,7 +426,7 @@ at the midpoint, and the intersection-over-union of the foreground (dark)
 pixels is computed.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> # Two identical silhouettes → IoU = 1.0; two empty → 0.0 (no overlap).
@@ -454,10 +454,10 @@ it does not fill. The crop rect’s \*\*parent-space origin survives as the
 viewBox’s first two numbers\*\*, so where the part sat relative to its
 siblings is not lost and needs no separate record.
 
-If no match is found, raises [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError).
+If no match is found, raises `KeyError`.
 
 * **Return type:**
-  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
+  `ElementTree`
 
 ### an.characters.extract_pivots(source, , skeleton_id='skeleton')
 
@@ -469,13 +469,13 @@ The circle’s `cx`/`cy` is the pivot in the same coordinate system as
 the art (the SVG’s viewBox).
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+  `dict`[`str`, `tuple`[`float`, `float`]]
 
 ### an.characters.fetch_dicebear(seed, , style='lorelei', api_version='9.x', timeout_s=10.0, extra_params=None)
 
 Fetch an avatar SVG from DiceBear’s HTTP API.
 
-Returns the SVG string. Raises [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError) if the API call
+Returns the SVG string. Raises `RuntimeError` if the API call
 fails (network error, HTTP error, non-SVG response).
 
 The URL pattern is:
@@ -488,14 +488,14 @@ Pass `extra_params` to forward style-specific options (e.g.
 `backgroundColor=transparent`).
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.generate_default_mouths(, canvas=(256, 128), palette=None, shapes=('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x'), smile=0.0, form=None)
 
 Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  `dict`[`str`, `str`]
 
 ```pycon
 >>> svgs = generate_default_mouths()
@@ -561,11 +561,11 @@ Steps:
 
 Returns the path to the created `character.json`.
 
-Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#FileExistsError) if `out_dir/name` already exists and
+Raises `FileExistsError` if `out_dir/name` already exists and
 `overwrite=False`.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.characters.normalize_svg(source, , fallback_viewbox='0 0 1024 1024')
 
@@ -575,33 +575,33 @@ Returns the parsed `ElementTree`. Idempotent: running it twice is a
 no-op on the second pass.
 
 * **Return type:**
-  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
+  `ElementTree`
 
 ### an.characters.promote(project_dir, entity, as_, , source_svg=None, voice_ref=None, use_dicebear=True, overwrite=False)
 
 Promote `entity` from `project_dir`’s inline assets into the mall.
 
 * **Parameters:**
-  * **project_dir** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)) – Path to an `an` project (must contain `assets/characters/`).
-  * **entity** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Inline entity id used inside the scene (the directory under
+  * **project_dir** (`str` | `Path`) – Path to an `an` project (must contain `assets/characters/`).
+  * **entity** (`str`) – Inline entity id used inside the scene (the directory under
     `assets/characters/<entity>`, or the SVG file at
     `assets/characters/<entity>.svg`).
-  * **as_** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The mall character id to register the result as. Becomes the
+  * **as_** (`str`) – The mall character id to register the result as. Becomes the
     directory name under `assets/characters/` and the descriptor’s
     `name` field.
-  * **source_svg** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – Optional explicit path to a source SVG. If omitted, the function
+  * **source_svg** (`str` | `Path` | `None`) – Optional explicit path to a source SVG. If omitted, the function
     looks for `assets/characters/<entity>.svg` or
     `assets/characters/<entity>/<entity>.svg`.
-  * **voice_ref** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Voice reference to embed in the descriptor.
-  * **use_dicebear** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – Forwarded to [`new_character()`](an.characters.factory.md#an.characters.factory.new_character) on the
+  * **voice_ref** (`Optional`[`str`]) – Voice reference to embed in the descriptor.
+  * **use_dicebear** (`bool`) – Forwarded to [`new_character()`](an.characters.factory.md#an.characters.factory.new_character) on the
     no-source fallback path. Pass `False` to keep the call offline —
     without it that fallback always reaches the DiceBear API, and
     `new_character` swallows the failure and generates geometry instead,
     so an offline test looks like it passed rather than like it was skipped.
-  * **overwrite** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – If False and the target already exists, raises `FileExistsError`.
+  * **overwrite** (`bool`) – If False and the target already exists, raises `FileExistsError`.
   * **character.json.** (*Returns the path to the new*)
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.characters.promote_inkscape_labels_to_ids(tree)
 
@@ -614,7 +614,7 @@ and does NOT promote it to `id` on save. This is a long-standing UX
 issue (Inkscape bug #243383); the workaround is to promote at parse time.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ### an.characters.record_character(char_dir, , name=None, out_mp4=None, duration_s=8.0, size=(640, 480))
 
@@ -624,7 +624,7 @@ The preview HTML is generated/refreshed via the same writer used by
 `an character preview`, so this command is self-contained.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.characters.record_preview_to_mp4(preview_html, out_mp4, , duration_s=8.0, size=(640, 480), fps=30, crf=23)
 
@@ -645,7 +645,7 @@ Both Playwright (project dep) and ffmpeg (system dep, already
 required by the renderer) must be installed.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.characters.render_silhouette(svg_source, out_png, , size=(256, 256), background='#ffffff')
 
@@ -658,7 +658,7 @@ The output is RGB; the silhouette is filled with black (#000) and the
 background with the given color.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.characters.validate_character(char_dir, , name=None)
 
@@ -692,7 +692,7 @@ Returns the list of paths written: the neutral set in shape order, then
 each variant’s.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+  `list`[`Path`]
 
 ### an.characters.write_svg(tree_or_element, path=None)
 
@@ -702,7 +702,7 @@ Always emits `<?xml version="1.0" encoding="UTF-8"?>` and the SVG
 namespace as the default, so the output is a valid standalone SVG.
 
 * **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+  `bytes`
 
 ### Modules
 

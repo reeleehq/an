@@ -58,12 +58,12 @@ writes.
 | [`PngFormatError`](#an.bench.png.PngFormatError)   | A PNG this module deliberately does not decode, or a malformed one.   |
 |-------------------------------------------------------------------|-----------------------------------------------------------------------|
 
-### an.bench.png.DFLT_ZLIB_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 9*
+### an.bench.png.DFLT_ZLIB_LEVEL *: int* *= 9*
 
 zlib level for the IDAT stream. 9 because a golden is written rarely and
 read often, and because the committed bytes are reviewed in a diff.
 
-### an.bench.png.PNG_HEADER_BYTES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 24*
+### an.bench.png.PNG_HEADER_BYTES *: int* *= 24*
 
 the 8-byte signature, a
 4-byte chunk length, the 4-byte `IHDR` tag, and two big-endian uint32s. PNG
@@ -72,13 +72,13 @@ requires IHDR to be the FIRST chunk, so this prefix is always enough.
 * **Type:**
   Bytes needed to read an image’s declared size
 
-### an.bench.png.PNG_SIGNATURE *: [bytes](https://docs.python.org/3/builtins/stdtypes.html#bytes)* *= b'\\x89PNG\\r\\n\\x1a\\n'*
+### an.bench.png.PNG_SIGNATURE *: bytes* *= b'\\x89PNG\\r\\n\\x1a\\n'*
 
 PNG’s fixed 8-byte signature.
 
 ### *exception* an.bench.png.PngFormatError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A PNG this module deliberately does not decode, or a malformed one.
 
@@ -86,12 +86,12 @@ Typed and specific on purpose: the alternative to refusing is returning a
 plausible array, and a golden gate that compares a plausible array is worse
 than one that does not run.
 
-### an.bench.png.RGB_CHANNELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
+### an.bench.png.RGB_CHANNELS *: int* *= 3*
 
 What [`encode_png()`](#an.bench.png.encode_png) writes, and the only channel count the golden gate
 compares. Alpha is dropped at the boundary (see [`to_rgb()`](#an.bench.png.to_rgb)), never here.
 
-### an.bench.png.SUPPORTED_BIT_DEPTH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+### an.bench.png.SUPPORTED_BIT_DEPTH *: int* *= 8*
 
 Bit depth. 16-bit PNGs are refused rather than truncated — a silently
 halved code value is exactly the class of bug this corpus exists to catch.
@@ -104,7 +104,7 @@ Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ```pycon
 >>> import numpy as np
@@ -118,7 +118,7 @@ True
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
 
 * **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+  `bytes`
 
 ```pycon
 >>> import numpy as np
@@ -143,7 +143,7 @@ than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+  `tuple`[`int`, `int`]
 
 ```pycon
 >>> import numpy as np
@@ -156,7 +156,7 @@ frame size changed partway through — is exactly the one sampling misses.
 `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ### an.bench.png.read_png_dimensions(path)
 
@@ -167,7 +167,7 @@ them. Reading only those is what makes checking every frame of every shot
 free rather than a second full decode of the corpus.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+  `tuple`[`int`, `int`]
 
 ### an.bench.png.to_rgb(arr)
 
@@ -179,7 +179,7 @@ transparency regression invisible to the one gate that exists to see
 changes, so a non-opaque alpha is an error rather than a silent narrowing.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`
 
 ```pycon
 >>> import numpy as np
@@ -198,4 +198,4 @@ exactly this — “assert the round trip at bless time against the in-memory
 screenshot pixels, so a bug in `an`’s own encoder cannot hide”.
 
 * **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+  `Any`

@@ -72,7 +72,7 @@ True
 
 ### *class* an.frame_clock.CapturedFrame(index, t_nominal, t_open, t_close, samples, t_reported)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One output frame: when its exposure opened and closed, and what it saw.
 
@@ -83,7 +83,7 @@ best instant to attribute a blurred frame to. `t_reported` is the
 timestamp a capture pipeline hands downstream: nominal or actual, per the
 clock’s `timestamps` setting.
 
-### an.frame_clock.DEFAULT_EXPOSURE_SAMPLES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+### an.frame_clock.DEFAULT_EXPOSURE_SAMPLES *: int* *= 8*
 
 Sub-samples integrated per frame when the shutter is open and the caller did
 not say how many. Eight midpoint samples put the smear of an object crossing
@@ -92,7 +92,7 @@ render (each sample is one screenshot).
 
 ### *class* an.frame_clock.FrameClock(fps=30.0, exposure=0.0, samples=None, jitter_sd=0.0, phase=0.0, timestamps='nominal', report_noise_sd=0.0, seed=0)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A camera’s timing, as data. Every field defaults to the ideal camera.
 
@@ -130,9 +130,9 @@ sample a scene outside its own timeline; the clipped values are what
 One [`CapturedFrame`](#an.frame_clock.CapturedFrame) per output frame of a `duration` render.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CapturedFrame`](#an.frame_clock.CapturedFrame), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+  `tuple`[[`CapturedFrame`](#an.frame_clock.CapturedFrame), `...`]
 
-#### *property* max_jitter *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### *property* max_jitter *: float*
 
 The clamp on a frame’s capture offset, in seconds.
 
@@ -146,9 +146,9 @@ The clamp on a frame’s capture offset, in seconds.
 Per frame, the scene instants to render and average — the render seam.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+  `tuple`[`tuple`[`float`, `...`], `...`]
 
-#### *property* samples_per_frame *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+#### *property* samples_per_frame *: int*
 
 1 for an instantaneous shutter.
 
@@ -162,18 +162,18 @@ Per frame, the scene instants to render and average — the render seam.
 
 ### *exception* an.frame_clock.FrameClockError
 
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+Bases: `ValueError`
 
 A frame clock that cannot describe a camera.
 
-### an.frame_clock.MAX_JITTER_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.49*
+### an.frame_clock.MAX_JITTER_FRACTION *: float* *= 0.49*
 
 A frame’s capture offset is clamped to this fraction of the slack between
 one exposure closing and the next opening, on each side. Below one half, so
 two neighbouring frames can each move toward the other by the full clamp and
 still not overlap: the clock never reorders frames, whatever `jitter_sd` is.
 
-### an.frame_clock.MAX_REPORT_NOISE_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.24*
+### an.frame_clock.MAX_REPORT_NOISE_FRACTION *: float* *= 0.24*
 
 Report noise is clamped to this fraction of the frame period, each side, so
 two neighbouring reported timestamps can never cross on a regular grid.
@@ -183,7 +183,7 @@ two neighbouring reported timestamps can never cross on a regular grid.
 Frames in a render of `duration` seconds — the renderer’s own rule.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ```pycon
 >>> frame_count(2.0, 30), frame_count(0.01, 30)

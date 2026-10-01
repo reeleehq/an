@@ -102,14 +102,14 @@ ValueError: unknown style target 'camera_shake'; measurable targets are [...]
 | [`StyleLintVerifier`](#an.verify.style.StyleLintVerifier)(spec_or_targets, \*[, ...]) | Compare a render to a style spec's `targets`.                                                                      |
 | [`ShotMetrics`](#an.verify.style.ShotMetrics)(shot, start_s, duration_s, ...)   | The cadence of one shot, measured with the WHOLE clip's change threshold so a shot's numbers add up to the clip's. |
 
-### an.verify.style.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'cuts_per_min': 'hard cuts per minute', 'dark_pixel_share': 'share of pixels with every channel below 60', 'identical_frame_share': 'share of frames identical to the previous one (holds)', 'max_hold_frames': 'longest run of identical frames', 'mean_saturation': 'mean HSV saturation, 0..1', 'mean_shot_s': 'mean shot length in seconds', 'one_frame_interval_share': 'share of change gaps of one frame (on ones)', 'pose_changes_per_s': 'changed frames per second', 'three_plus_interval_share': 'share of change gaps of three to twelve frames', 'top16_colour_coverage': 'coverage of the 16 commonest 4-bit colours (flatness)', 'two_frame_interval_share': 'share of change gaps of two frames (on twos)'}*
+### an.verify.style.METRICS *: dict[str, str]* *= {'cuts_per_min': 'hard cuts per minute', 'dark_pixel_share': 'share of pixels with every channel below 60', 'identical_frame_share': 'share of frames identical to the previous one (holds)', 'max_hold_frames': 'longest run of identical frames', 'mean_saturation': 'mean HSV saturation, 0..1', 'mean_shot_s': 'mean shot length in seconds', 'one_frame_interval_share': 'share of change gaps of one frame (on ones)', 'pose_changes_per_s': 'changed frames per second', 'three_plus_interval_share': 'share of change gaps of three to twelve frames', 'top16_colour_coverage': 'coverage of the 16 commonest 4-bit colours (flatness)', 'two_frame_interval_share': 'share of change gaps of two frames (on twos)'}*
 
 every key a spec’s `targets` may use, and what it is.
 
 * **Type:**
   The target vocabulary
 
-### an.verify.style.SHOT_METRICS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('identical_frame_share', 'pose_changes_per_s', 'one_frame_interval_share', 'two_frame_interval_share', 'three_plus_interval_share', 'max_hold_frames')*
+### an.verify.style.SHOT_METRICS *: tuple[str, ...]* *= ('identical_frame_share', 'pose_changes_per_s', 'one_frame_interval_share', 'two_frame_interval_share', 'three_plus_interval_share', 'max_hold_frames')*
 
 the cadence ones, which a single static shot (a date
 card, a held map) can swing for the whole clip.
@@ -119,14 +119,14 @@ card, a held map) can swing for the whole clip.
 
 ### *class* an.verify.style.ShotMetrics(shot, start_s, duration_s, frames, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 The cadence of one shot, measured with the WHOLE clip’s change
 threshold so a shot’s numbers add up to the clip’s.
 
 ### *class* an.verify.style.StyleLintResult(metrics, report, per_shot=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 What one lint run measured, and what it found.
 
@@ -136,7 +136,7 @@ static date card is 90% identical frames on its own).
 
 ### *class* an.verify.style.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Compare a render to a style spec’s `targets`. Implements `Verifier`.
 
@@ -148,11 +148,11 @@ measure yet.
 
 ### *class* an.verify.style.StyleMetrics(fps, frames, duration_s, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames, cuts, cuts_per_min, mean_shot_s, mean_saturation, dark_pixel_share, top16_colour_coverage, cut_source, change_threshold)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 The statistics [`METRICS`](#an.verify.style.METRICS) names, measured on one clip.
 
-#### cut_source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### cut_source *: str*
 
 `"shots"` (a shot list, exact) or `"pixels"`.
 
@@ -168,7 +168,7 @@ respects it — a style that sets `step_hz` is never told to drop it, one
 that leaves it unset is never told to set it:
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](an.verify.html.md#an.verify.Finding)]
+  `list`[[`Finding`](an.verify.html.md#an.verify.Finding)]
 
 ```pycon
 >>> m = measure_style(np.zeros((8, 4, 4, 3), np.uint8), fps=8.0, shot_durations=[1.0])
@@ -191,7 +191,7 @@ than their sum ([`an.assemble.film_timeline()`](an.assemble.html.md#an.assemble.
 counted from where its frames start in the film.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+  `list`[`tuple`[`str`, `float`]]
 
 ```pycon
 >>> from an.ir.schema import Shot, Transition
@@ -206,7 +206,7 @@ counted from where its frames start in the film.
 A style spec as a dict: a mapping is passed through, a path is read as YAML.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 ### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None)
 
@@ -218,7 +218,7 @@ change, so it belongs to no shot. A one-frame shot has no step of its own
 and measures as all-identical.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ShotMetrics`](#an.verify.style.ShotMetrics)]
+  `list`[[`ShotMetrics`](#an.verify.style.ShotMetrics)]
 
 ```pycon
 >>> import numpy as np
@@ -262,7 +262,7 @@ The project directory an `an` render sits in — `<project>/output/x.mp4`
 beside `<project>/ir/scene.json` — or `None` for any other video.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `Path` | `None`
 
 ### an.verify.style.style_lint(mp4, spec_or_targets, , shot_durations=None, scene=None, miss_severity='warning')
 

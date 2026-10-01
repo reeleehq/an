@@ -21,7 +21,7 @@ already in `sys.modules`.
 
 ### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A single verification issue.
 
@@ -30,31 +30,31 @@ the IR — e.g. `"timeline/0/dialogue/1"`.
 
 ### *class* an.verify.HumanInTheLoopVerifier(, prompt='Approve render? [y/N/r=reject]: ')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Open the mp4, prompt the user to approve. Implements `Verifier`.
 
 ### *class* an.verify.LayoutLintVerifier
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Cheap IR-only verifier. Implements `Verifier`.
 
 ### *class* an.verify.MediaQualityVerifier(, max_db_floor=-75.0, dialogue_silence_ratio=0.7, frozen_ssim_threshold=0.999, frame_sample_fps=4.0)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Post-render quality checks. Implements `Verifier`.
 
 ### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Result of running one or more verifiers.
 
 ### *class* an.verify.Verifier(\*args, \*\*kwargs)
 
-Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+Bases: `Protocol`
 
 Pluggable verifier. Same interface for human, lint, vision-LM, MoVer.
 
@@ -68,7 +68,7 @@ for pre-render lint passes.
 
 ### *class* an.verify.VisionLMVerifier(, model='claude-haiku-4-5-20251001', frame_count=4, max_tokens=800, api_key=None, judge=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Claude vision Verifier (skip-if-missing-deps).
 

@@ -93,14 +93,14 @@ the file, and this field is what `bench-compare` uses to decide whether two
 encode-side rows may be compared at all.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 ### an.bench.environment.ffmpeg_identity()
 
 The ffmpeg build banner. Informational — the `x264_sei` is the key.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 ### an.bench.environment.home_relative(path, , home=None)
 
@@ -111,7 +111,7 @@ the absolute path of the machine that wrote it. Provenance only: nothing
 compares on this field. POSIX-spelled on every platform.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
@@ -129,7 +129,7 @@ capture, and a recorded `error` is more honest than a missing field that
 reads as “nothing to report”.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 ### an.bench.environment.runtime_sha256()
 
@@ -147,11 +147,11 @@ file that is not staged as a runtime asset — a stray `.DS_Store`, a
 `__pycache__` entry, package metadata — cannot move the digest (an#141).
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.bench.environment.x264_sei(mp4)
 
 The encoder build + thread count, read straight out of the file.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `str` | `None`

@@ -50,13 +50,13 @@ True
 | [`PropArt`](#an.impacts.objects.PropArt)(ref, descriptor, parts)                     | A prop's descriptor and its SVG parts — what goes into a props store. |
 | [`StrokeChannel`](#an.impacts.objects.StrokeChannel)(target, property, ...)                | One animated property, AFFINE in stroke height `h`.                   |
 
-### an.impacts.objects.IMPACT_OBJECTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [ImpactObject](#an.impacts.objects.ImpactObject)]]* *= {'ball': <function ball>, 'stick': <function stick>}*
+### an.impacts.objects.IMPACT_OBJECTS *: dict[str, Callable[[...], [ImpactObject](#an.impacts.objects.ImpactObject)]]* *= {'ball': <function ball>, 'stick': <function stick>}*
 
 Name -> factory. The registry the clip spec and the CLI resolve names through.
 
 ### *class* an.impacts.objects.ImpactObject(name, art, at, channels, keypoints, impact_keypoint, keypoint_nodes=<factory>, surface_art=None, surface_at=None, params=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One striking object, its surface, and how the stroke moves it.
 
@@ -65,11 +65,11 @@ ball, two for a forearm-plus-stick limb (each affine in the SAME `h`, so
 the motion stays exact). `keypoints` are local points by name; each lives
 on the node `keypoint_nodes[name]` names, the entity itself by default.
 
-#### impact_keypoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### impact_keypoint *: str*
 
 The keypoint that does the striking (a stick’s tip, a ball’s bottom).
 
-#### keypoints *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+#### keypoints *: Mapping[str, tuple[float, float]]*
 
 Local points by name. What a tracker would report.
 
@@ -78,21 +78,21 @@ Local points by name. What a tracker would report.
 `{(node path, property): value}` at stroke height `h`.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `dict`[`tuple`[`str`, `str`], `float`]
 
-#### surface_at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### surface_at *: tuple[float, float] | None*
 
 Where the surface’s top edge is centred, in scene coordinates.
 
 ### *class* an.impacts.objects.PropArt(ref, descriptor, parts)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 A prop’s descriptor and its SVG parts — what goes into a props store.
 
 ### *class* an.impacts.objects.StrokeChannel(target, property, contact_value, stroke_extent)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One animated property, AFFINE in stroke height `h`.
 

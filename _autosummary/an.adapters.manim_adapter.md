@@ -22,13 +22,13 @@ sanity check; not a real animation.
 
 ### *exception* an.adapters.manim_adapter.ManimRenderError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 Raised when a Manim render fails. Carries actionable detail.
 
 ### *class* an.adapters.manim_adapter.ManimRenderer
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Manim Community Edition renderer (skeleton).
 

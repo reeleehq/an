@@ -38,7 +38,7 @@ the entire pipeline runs without API keys or external binaries.
 
 ### *exception* an.audio.pipeline.AudioPipelineError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 The scene declares audio the pipeline cannot produce. Carries detail.
 
@@ -51,7 +51,7 @@ an#209). With none of them, the payload is exactly the pre-effects one, so
 every key a project already has is unchanged.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ```pycon
 >>> audio_key("hi", "default", "offline") == audio_key(
@@ -100,7 +100,7 @@ to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
+  `tuple`[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
 
 ### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
 
@@ -162,11 +162,11 @@ mac_say) and for a voice written for another provider — which is what
 keeps their cache keys where they were.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+  `dict`[`str`, `Any`]
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
 Content key of a line’s viseme track (a function of the audio HEARD).
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`

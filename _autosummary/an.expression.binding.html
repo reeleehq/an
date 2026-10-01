@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.expression.axes" href="an.expression.axes.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -629,13 +629,13 @@ uses, else <code class="docutils literal notranslate"><span class="pre">viseme</
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.expression.binding.BROW_ANGLE_TRAVEL">
-<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">BROW_ANGLE_TRAVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.35</span></span><a class="headerlink" href="#an.expression.binding.BROW_ANGLE_TRAVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">BROW_ANGLE_TRAVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.35</span></span><a class="headerlink" href="#an.expression.binding.BROW_ANGLE_TRAVEL" title="Link to this definition">#</a></dt>
 <dd><p>Brow rotation per unit of <code class="code docutils literal notranslate"><span class="pre">brow_angle_*</span></code>, radians. Art direction.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.expression.binding.BROW_HEIGHT_TRAVEL">
-<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">BROW_HEIGHT_TRAVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10.0</span></span><a class="headerlink" href="#an.expression.binding.BROW_HEIGHT_TRAVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">BROW_HEIGHT_TRAVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10.0</span></span><a class="headerlink" href="#an.expression.binding.BROW_HEIGHT_TRAVEL" title="Link to this definition">#</a></dt>
 <dd><p>Brow travel per unit of <code class="code docutils literal notranslate"><span class="pre">brow_height_*</span></code>, in the rig’s view-box units
 (scaled to scene pixels by the entity’s rig factor). Art direction; about
 the synthesized eye’s half-height.</p>
@@ -644,13 +644,13 @@ the synthesized eye’s half-height.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.expression.binding.ChannelBinding">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">ChannelBinding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rig_scaled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/expression/binding.html#ChannelBinding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.expression.binding.ChannelBinding" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A numeric axis driving one transform property of one slot’s node.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.expression.binding.ChannelBinding.rig_scaled">
-<span class="sig-name descname"><span class="pre">rig_scaled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#an.expression.binding.ChannelBinding.rig_scaled" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">rig_scaled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#an.expression.binding.ChannelBinding.rig_scaled" title="Link to this definition">#</a></dt>
 <dd><p>Whether the gain is a view-box length (scaled by the rig factor).</p>
 </dd></dl>
 
@@ -659,7 +659,7 @@ the synthesized eye’s half-height.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.expression.binding.ExpressionResolutionError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">ExpressionResolutionError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">who</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problems</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/expression/binding.html#ExpressionResolutionError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.expression.binding.ExpressionResolutionError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>An expression that cannot resolve on a character; <code class="docutils literal notranslate"><span class="pre">problems</span></code> says why.</p>
 <dl class="field-list simple">
 </dl>
@@ -667,14 +667,14 @@ the synthesized eye’s half-height.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.expression.binding.GAZE_TRAVEL">
-<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">GAZE_TRAVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.0</span></span><a class="headerlink" href="#an.expression.binding.GAZE_TRAVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">GAZE_TRAVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.0</span></span><a class="headerlink" href="#an.expression.binding.GAZE_TRAVEL" title="Link to this definition">#</a></dt>
 <dd><p>Pupil travel per unit of <code class="code docutils literal notranslate"><span class="pre">gaze_*</span></code>, in view-box units — the default when a
 descriptor declares no travel of its own (<code class="code docutils literal notranslate"><span class="pre">add_gaze</span></code> writes <code class="code docutils literal notranslate"><span class="pre">gaze_travel</span></code>).</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.expression.binding.LID_SQUASH_GAIN">
-<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">LID_SQUASH_GAIN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.expression.binding.LID_SQUASH_GAIN" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">LID_SQUASH_GAIN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.expression.binding.LID_SQUASH_GAIN" title="Link to this definition">#</a></dt>
 <dd><p>On a rig whose eye squashes instead of swapping art, a lid offset scales
 the eye by this much per unit.</p>
 </dd></dl>
@@ -682,7 +682,7 @@ the eye by this much per unit.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.expression.binding.SetBinding">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.expression.binding.</span></span><span class="sig-name descname"><span class="pre">SetBinding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eyelid'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/expression/binding.html#SetBinding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.expression.binding.SetBinding" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A lid axis driving one slot’s swap set through the ladder.</p>
 <dl class="field-list simple">
 </dl>
@@ -697,7 +697,7 @@ the eye by this much per unit.</p>
 <code class="docutils literal notranslate"><span class="pre">{&quot;axis&quot;,</span> <span class="pre">&quot;slot&quot;,</span> <span class="pre">&quot;set_family&quot;}</span></code>). An unknown axis in it is an error.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="#an.expression.binding.ChannelBinding" title="an.expression.binding.ChannelBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelBinding</span></code></a>, <a class="reference internal" href="#an.expression.binding.SetBinding" title="an.expression.binding.SetBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetBinding</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="#an.expression.binding.ChannelBinding" title="an.expression.binding.ChannelBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelBinding</span></code></a>, <a class="reference internal" href="#an.expression.binding.SetBinding" title="an.expression.binding.SetBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetBinding</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -708,7 +708,7 @@ the eye by this much per unit.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{form:</span> <span class="pre">set</span> <span class="pre">name}</span></code> for every <code class="docutils literal notranslate"><span class="pre">viseme&#64;&lt;form&gt;</span></code> set the descriptor declares.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">declared_mouth_variants</span><span class="p">(</span><span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"m"</span><span class="p">))</span>
@@ -727,7 +727,7 @@ end while on the RIGHT brow it lifts it — the axis says “+ = inner end
 up”, hence <code class="docutils literal notranslate"><span class="pre">-travel</span></code> on the left and <code class="docutils literal notranslate"><span class="pre">+travel</span></code> on the right.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="#an.expression.binding.ChannelBinding" title="an.expression.binding.ChannelBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelBinding</span></code></a>, <a class="reference internal" href="#an.expression.binding.SetBinding" title="an.expression.binding.SetBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetBinding</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="#an.expression.binding.ChannelBinding" title="an.expression.binding.ChannelBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelBinding</span></code></a>, <a class="reference internal" href="#an.expression.binding.SetBinding" title="an.expression.binding.SetBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetBinding</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -740,7 +740,7 @@ up”, hence <code class="docutils literal notranslate"><span class="pre">-trave
 (which raises <a class="reference internal" href="#an.expression.binding.ExpressionResolutionError" title="an.expression.binding.ExpressionResolutionError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExpressionResolutionError</span></code></a> with the same list).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">expression_problems</span><span class="p">(</span><span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"m"</span><span class="p">),</span> <span class="n">preset</span><span class="o">=</span><span class="s2">"joyful"</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="s2">"m"</span><span class="p">)</span>
@@ -761,7 +761,7 @@ non-zero offsets are returned, so a neutral expression is <code class="docutils 
 error, the compiler refuses it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -777,7 +777,7 @@ was missing; else <a class="reference internal" href="#an.expression.binding.Exp
 error, not a fallback.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -788,7 +788,7 @@ error, not a fallback.</p>
 <dd><p>Whether any of <code class="docutils literal notranslate"><span class="pre">axes</span></code> is a gaze axis (a no-op on a rig without pupils).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">touches_gaze</span><span class="p">([</span><span class="s2">"gaze_x"</span><span class="p">]),</span> <span class="n">touches_gaze</span><span class="p">([</span><span class="s2">"brow_angle_l"</span><span class="p">])</span>
@@ -803,7 +803,7 @@ error, not a fallback.</p>
 <dd><p>The swap-set name for a mouth form (<code class="docutils literal notranslate"><span class="pre">&#64;</span></code> is a legal set-name character).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">variant_set_name</span><span class="p">(</span><span class="s2">"happy"</span><span class="p">)</span>

@@ -61,13 +61,13 @@ whatever the transitions do.
 
 ### *exception* an.assemble.AssemblyError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 The shots cannot be assembled as the scene asks. Carries the fix.
 
 ### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Where each shot’s frames land in the film, and what blends them.
 
@@ -81,14 +81,14 @@ NEXT shot’s fade colour).
 Film time just after shot `i`’s last frame.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 #### start_seconds(i)
 
 Film time of shot `i`’s first frame.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ### an.assemble.assemble_film(scene, shot_results, output, , fps, mall, work_dir, pix_fmt=None)
 
@@ -100,7 +100,7 @@ each must carry its frames (``frame_manifest``), so a renderer that only
 produces an mp4 cannot take part in an assembled film.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.assemble.duck_gain(t, spans, , duck_db, attack, release)
 
@@ -112,7 +112,7 @@ ramp over `attack` seconds BEFORE each line (so its first syllable is
 already clear) and `release` seconds after.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> spans = [(1.0, 2.0)]
@@ -128,7 +128,7 @@ dissolve’s overlap. Exactly `sum(durations)` for a scene without one, so
 every existing document’s arithmetic is unchanged.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Shot, Transition
@@ -154,7 +154,7 @@ transition that rounds to zero frames asks for nothing, and must not cost a
 scene its byte-identical concat.
 
 * **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+  `bool`
 
 ```pycon
 >>> from an.ir.schema import Meta, SceneIR, Shot, Transition
@@ -172,7 +172,7 @@ Every reason these shots’ transitions cannot be assembled, as
 [`film_timeline()`](#an.assemble.film_timeline) raises on, so the two cannot disagree.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+  `list`[`tuple`[`int`, `str`]]
 
 ```pycon
 >>> from an.ir.schema import Shot, Transition

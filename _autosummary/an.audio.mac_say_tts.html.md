@@ -28,7 +28,7 @@ audio pipeline (which prefers WAV) can read frames + duration directly.
 
 ### *class* an.audio.mac_say_tts.MacSayTTS(, default_voice_id='Samantha', sample_rate=22050, rate_wpm=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 macOS `say`-backed TTSProvider.
 
@@ -37,6 +37,6 @@ fully offline — uses Apple’s voice synthesis bundled with the OS.
 
 ### *exception* an.audio.mac_say_tts.MacSayTTSError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 Raised when the `say` subprocess fails.

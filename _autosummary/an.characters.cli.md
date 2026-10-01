@@ -42,7 +42,7 @@ overwrite_eyes: replace hand-drawn eye parts with the synthesized outline
 > and filled lid (refused otherwise — a promoted rig’s eyes are not the
 > factory’s to redraw)
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.add_views(name, out_dir='')
 
@@ -56,7 +56,7 @@ name: character id
 out_dir: parent directory; defaults to ./assets/characters
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.contract()
 
@@ -68,7 +68,7 @@ contract that disagrees with its checker is worse than none, because it
 gets a human paid for work that cannot land.
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.mouths(name, out_dir='', palette='', variants='happy,sad')
 
@@ -85,7 +85,7 @@ palette: optional JSON string to override colors, e.g. ‘{“lip”:”#a44”}
 variants: comma-separated mouth forms (see `an character new`); “” = none
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
@@ -126,7 +126,7 @@ views: draw the turnaround — back, side (a profile facing right) and
 > three_quarter beside the front, as a `view` swap set (offline head
 > only), so `play: turn` can turn the character (an#197)
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.preview(name, out_dir='', open_browser=False)
 
@@ -142,7 +142,7 @@ out_dir: parent directory; defaults to ./assets/characters
 open_browser: also open the file in the default browser
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.record(name, out_dir='', output='', duration=8.0, width=640, height=480)
 
@@ -158,7 +158,7 @@ duration: recording length in seconds (default 8)
 width / height: video resolution (default 640x480)
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.silhouette(name, other='', out_dir='', output='', size=512)
 
@@ -174,7 +174,7 @@ output: output PNG path; defaults to <character_dir>/silhouette.png
 size: square output size in pixels (default 512)
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`
 
 ### an.characters.cli.validate(name, out_dir='')
 
@@ -184,4 +184,4 @@ name: character id
 out_dir: parent directory; defaults to ./assets/characters
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  `str`

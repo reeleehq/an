@@ -111,22 +111,22 @@ drawn over them. `None` puts every plane behind every character, which is
 what the two-loop builder did before an#110 and is why an environment that
 declares no planes compiles byte-identically.
 
-#### anchors *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+#### anchors *: dict[str, tuple[float, float]]*
 
 Named stage marks — a horizon is one of them. A dedicated `horizon`
 field would be two fields for one fact, which is how the intersecting
 override arrived.
 
-#### characters_after *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### characters_after *: str | None*
 
 The plane the characters are drawn in FRONT of. `None` = all planes
 behind all characters.
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### planes *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[Plane](#an.environments.Plane)]*
+#### planes *: list[[Plane](#an.environments.Plane)]*
 
 the runtime sets no
 `zIndex`, so a second ordering would be one it could not honour.
@@ -134,14 +134,14 @@ the runtime sets no
 * **Type:**
   **LIST ORDER IS DRAW ORDER.** There is no `z` field
 
-#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
 
 Where this art came from and what its licence obliges. Not decoration:
 `an credits` walked ONLY `mall["characters"]`, so the PR that gives
 environments art is the PR that closes that hole — otherwise
 `an credits` becomes an affirmative false statement about plates.
 
-### an.environments.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
+### an.environments.PLANE_FILL_SPAN *: float* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale.
 The same 4000 the preset backdrop uses, and for the same reason — the runtime
@@ -171,11 +171,11 @@ a misspelled key there is the exact failure an#110 exists to remove. The
 old override path *silently dropped* every key it did not know, and the
 test pinning that warning used `parallax_layers: 3` as its example.
 
-#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+#### anchor *: tuple[float, float]*
 
 The art’s anchor within its own box, in 0..1 per axis.
 
-#### depth *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+#### depth *: float*
 
 The parallax factor — a RATIO, in Godot’s `Parallax2D.scroll_scale`
 coordinates. `1.0` is the character plane and emits nothing. See this
@@ -186,7 +186,7 @@ module’s docstring for the table and for the Unity sign trap.
 The per-axis parallax factors this plane actually moves by.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`]
 
 ```pycon
 >>> Plane(name="p", depth=0.4).factors()
@@ -195,31 +195,31 @@ The per-axis parallax factors this plane actually moves by.
 (0.2, 0.0)
 ```
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### name *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### name *: str*
 
 Becomes the scene node’s name, under the environment entity’s id.
 
-#### offset *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+#### offset *: tuple[float, float]*
 
 Where the plane sits, in scene pixels from the stage centre.
 
-#### parallax *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### parallax *: tuple[float, float] | None*
 
 Per-axis override of `depth`, for a plane that scrolls horizontally but
 not vertically. `None` means `(depth, depth)`.
 
-#### size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### size *: tuple[float, float] | None*
 
 `None` = the art’s own extent. A `fill` with no size covers the canvas.
 The box the art is fitted into, in scene pixels. **A declared size wins**
 (an#211); `None` = the art’s own extent — an SVG’s `width`/`height`, a
 raster’s pixel size. A `fill` with no size covers the canvas.
 
-#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
 
 Where THIS plane’s art came from, when it is not the environment’s —
 a composite stage of a carved plate and a CC0 prop credits both
@@ -250,18 +250,18 @@ and this package’s standing rule is that schema without a consumer is
 worse than an absent field — the `repeat`/`TilingSprite` decision in
 an#110 is the same call made the same way.
 
-#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### color *: str*
 
 a CSS colour.
 
 * **Type:**
   `fill` only
 
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### src *: str | None*
 
 a path under the environment’s own folder in the store,
 exactly as a character attachment’s `path` is — `.svg`, `.png`,
@@ -274,7 +274,7 @@ exactly as a character attachment’s `path` is — `.svg`, `.png`,
 
 `(left, top, right, bottom)` in scene pixels, `y` down (the stage’s axes).
 
-alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+alias of `tuple`[`float`, `float`, `float`, `float`]
 
 ### an.environments.frame_rect(, x, y, zoom, rotation, width, height)
 
@@ -287,7 +287,7 @@ not show, so a plate that covers a rolled view can still be flagged).
 canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  `tuple`[`float`, `float`, `float`, `float`]
 
 ```pycon
 >>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
@@ -306,7 +306,7 @@ extent cannot be known (an image whose art cannot be measured and whose
 `fit` makes the drawn size depend on it) — an unknown, not a hole.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `tuple`[`float`, `float`, `float`, `float`] | `None`
 
 ```pycon
 >>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
@@ -326,7 +326,7 @@ rects: the view is cut into cells at every cover edge, and a cell is
 covered or not as a whole.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  `tuple`[`float`, `float`, `float`, `float`] | `None`
 
 ```pycon
 >>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])

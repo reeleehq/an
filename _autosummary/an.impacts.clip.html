@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.cli" href="an.impacts.cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -610,26 +610,26 @@ camera and the object over.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.clip.DEFAULT_JITTER_SD">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_JITTER_SD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.008</span></span><a class="headerlink" href="#an.impacts.clip.DEFAULT_JITTER_SD" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_JITTER_SD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.008</span></span><a class="headerlink" href="#an.impacts.clip.DEFAULT_JITTER_SD" title="Link to this definition">#</a></dt>
 <dd><p>Default humanisation (seconds, standard deviation). See <code class="code docutils literal notranslate"><span class="pre">ImpactClipSpec</span></code>.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.clip.DEFAULT_TAIL">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_TAIL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.impacts.clip.DEFAULT_TAIL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_TAIL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.impacts.clip.DEFAULT_TAIL" title="Link to this definition">#</a></dt>
 <dd><p>Seconds after the last grid beat before the clip ends.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.clip.DEFAULT_TRAJECTORY_HZ">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_TRAJECTORY_HZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></span><a class="headerlink" href="#an.impacts.clip.DEFAULT_TRAJECTORY_HZ" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_TRAJECTORY_HZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></span><a class="headerlink" href="#an.impacts.clip.DEFAULT_TRAJECTORY_HZ" title="Link to this definition">#</a></dt>
 <dd><p>Samples per second of the dense trajectory in <code class="docutils literal notranslate"><span class="pre">trajectory.csv</span></code>.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.clip.ImpactClipSpec">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">ImpactClipSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stick'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'surface'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tempo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lead_in</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.008</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brake</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_jitter_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_noise_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nominal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">640</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">360</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/clip.html#ImpactClipSpec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.clip.ImpactClipSpec" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.</p>
 <p>Performance: <code class="docutils literal notranslate"><span class="pre">tempo</span></code> (a bpm, or <code class="docutils literal notranslate"><span class="pre">[(beat,</span> <span class="pre">bpm),</span> <span class="pre">...]</span></code> for a tempo
 change), <code class="docutils literal notranslate"><span class="pre">beats</span></code>, <code class="docutils literal notranslate"><span class="pre">subdivision</span></code>, <code class="docutils literal notranslate"><span class="pre">pattern</span></code> (per-step stroke heights,
@@ -653,7 +653,7 @@ performance.</p>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.impacts.clip.ImpactClipSpec.clip_id">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">clip_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.impacts.clip.ImpactClipSpec.clip_id" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">clip_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#an.impacts.clip.ImpactClipSpec.clip_id" title="Link to this definition">#</a></dt>
 <dd><p>A readable, deterministic directory name.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ImpactClipSpec</span><span class="p">()</span><span class="o">.</span><span class="n">clip_id</span><span class="p">[:</span><span class="o">-</span><span class="mi">8</span><span class="p">]</span>
 <span class="go">'stick-surface-30fps-e0-'</span>
@@ -680,7 +680,7 @@ dropping one would regenerate a different clip under the same spec.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.clip.ImpactPlan">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">ImpactPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/clip.html#ImpactPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.clip.ImpactPlan" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A clip before it touches disk: events, motion, camera, and the Scene IR.</p>
 <dl class="field-list simple">
 </dl>
@@ -689,7 +689,7 @@ dropping one would regenerate a different clip under the same spec.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.impacts.clip.ImpactSpecError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.clip.</span></span><span class="sig-name descname"><span class="pre">ImpactSpecError</span></span><a class="reference internal" href="../_modules/an/impacts/clip.html#ImpactSpecError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.clip.ImpactSpecError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>A clip spec that cannot describe a clip.</p>
 </dd></dl>
 
@@ -699,7 +699,7 @@ dropping one would regenerate a different clip under the same spec.</p>
 <dd><p>The cartesian product of the given axes over <code class="docutils literal notranslate"><span class="pre">base</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.impacts.clip.ImpactClipSpec" title="an.impacts.clip.ImpactClipSpec"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactClipSpec</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#an.impacts.clip.ImpactClipSpec" title="an.impacts.clip.ImpactClipSpec"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactClipSpec</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">impact_set_specs</span><span class="p">())</span>
@@ -730,7 +730,7 @@ browser is needed: the keypoints and the truth come from the compiled
 document, not from the pixels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -742,7 +742,7 @@ document, not from the pixels.</p>
 <p><code class="docutils literal notranslate"><span class="pre">progress</span></code>, if given, is called with <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">n,</span> <span class="pre">clip_dir)</span></code> after each clip.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>

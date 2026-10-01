@@ -27,7 +27,7 @@ directly.
 
 ### *exception* an.characters.record.PreviewRecordError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 Raised when preview recording fails.
 
@@ -39,7 +39,7 @@ The preview HTML is generated/refreshed via the same writer used by
 `an character preview`, so this command is self-contained.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`
 
 ### an.characters.record.record_preview_to_mp4(preview_html, out_mp4, , duration_s=8.0, size=(640, 480), fps=30, crf=23)
 
@@ -60,4 +60,4 @@ Both Playwright (project dep) and ffmpeg (system dep, already
 required by the renderer) must be installed.
 
 * **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+  `Path`

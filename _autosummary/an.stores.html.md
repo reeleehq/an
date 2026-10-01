@@ -67,7 +67,7 @@ Per-character directory store.
 
 ### *class* an.stores.DecisionLogStore(log_path)
 
-Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+Bases: `MutableMapping`
 
 Append-only JSONL log keyed by ordinal index (as string).
 
@@ -90,7 +90,7 @@ forbidden; the log is append-only by design.
 Append one decision; returns its ordinal index.
 
 * **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+  `int`
 
 ### *class* an.stores.EnvironmentsStore(root_dir)
 
@@ -127,7 +127,7 @@ Per-prop directory store.
 
 ### *class* an.stores.ScenesStore(project_dir)
 
-Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+Bases: `MutableMapping`
 
 `MutableMapping` exposing the scene file pair under a project root.
 
@@ -200,7 +200,7 @@ don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory `dict` for tests).
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/typing.html#typing.MutableMapping)]
+  `dict`[`str`, `MutableMapping`]
 
 ### Modules
 

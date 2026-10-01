@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=68b33800"></script>
+    <script src="../_static/documentation_options.js?v=cccbbc19"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout" href="an.adapters.cutout.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.124" />
+  <meta name="docsearch:version" content="0.1.125" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -606,13 +606,13 @@ The loop that drives the page (batching, ordering, back-pressure) is
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.CanvasCaptureError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">CanvasCaptureError</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/canvas_capture.html#CanvasCaptureError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.canvas_capture.CanvasCaptureError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>A captured frame that cannot be turned into the screenshot path’s frame.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.DATA_URL_PREFIX">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">DATA_URL_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'data:image/png;base64,'</span></span><a class="headerlink" href="#an.adapters.cutout.canvas_capture.DATA_URL_PREFIX" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">DATA_URL_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'data:image/png;base64,'</span></span><a class="headerlink" href="#an.adapters.cutout.canvas_capture.DATA_URL_PREFIX" title="Link to this definition">#</a></dt>
 <dd><p>What <code class="docutils literal notranslate"><span class="pre">HTMLCanvasElement.toDataURL('image/png')</span></code> returns. Anything else —
 <code class="docutils literal notranslate"><span class="pre">&quot;data:,&quot;</span></code> for a zero-size canvas, or a JPEG a browser fell back to — is
 refused rather than decoded as whatever it happens to be.</p>
@@ -632,7 +632,7 @@ not <code class="docutils literal notranslate"><span class="pre">factor</span></
 reads <code class="xref py py-data docutils literal notranslate"><span class="pre">DEFAULT_PNG_COMPRESS_LEVEL</span></code> at call time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -658,7 +658,7 @@ reads <code class="xref py py-data docutils literal notranslate"><span class="pr
 <dd><p>A <code class="docutils literal notranslate"><span class="pre">toDataURL('image/png')</span></code> result -&gt; the PNG’s bytes, or refuse.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">decode_data_url</span><span class="p">(</span><span class="n">DATA_URL_PREFIX</span> <span class="o">+</span> <span class="s2">"iVBORw=="</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span>
@@ -686,7 +686,7 @@ view and copying it contiguous measured ~5x slower at 1080p, on a path whose
 whole point is time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>

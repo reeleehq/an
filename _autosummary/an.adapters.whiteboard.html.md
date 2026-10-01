@@ -19,12 +19,12 @@ A spike during v0.1 picks the direction.
 
 ### *exception* an.adapters.whiteboard.WhiteboardRenderError
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 Raised by the whiteboard stub.
 
 ### *class* an.adapters.whiteboard.WhiteboardRenderer
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Whiteboard-style renderer (stub).

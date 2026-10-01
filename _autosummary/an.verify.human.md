@@ -13,6 +13,6 @@ informational finding.
 
 ### *class* an.verify.human.HumanInTheLoopVerifier(, prompt='Approve render? [y/N/r=reject]: ')
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Open the mp4, prompt the user to approve. Implements `Verifier`.

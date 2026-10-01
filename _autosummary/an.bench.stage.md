@@ -59,11 +59,11 @@ plane panning partly off-canvas biases its centroid — measured, that read a
 
 ### *class* an.bench.stage.PanMeasurement(tracks, reference)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 What a pan did, plane by plane.
 
-#### *property* is_rigid *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+#### *property* is_rigid *: bool*
 
 True when every plane moved by the same amount — the null
 hypothesis, and what a stage with no parallax looks like.
@@ -83,7 +83,7 @@ True
 False
 ```
 
-#### *property* ratios *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+#### *property* ratios *: dict[str, float]*
 
 `{plane: Δ_i / Δ_ref}`. A rigid stage gives 1.0 for every plane.
 
@@ -93,7 +93,7 @@ False
 {'a': 0.25, 'b': 1.0}
 ```
 
-#### reference *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### reference *: str*
 
 always the largest mover, so
 the JSON and pixel halves agree and the number does not depend on what
@@ -104,17 +104,17 @@ a descriptor declares (`_reference()`).
 
 ### *class* an.bench.stage.PlaneTrack(name, dx, dy, depth=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 One plane’s displacement between the two probed times.
 
-#### depth *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### depth *: float | None*
 
 The declared parallax factor, when the caller knows it.
 
 ### *exception* an.bench.stage.RotatingCamera
 
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+Bases: `RuntimeError`
 
 The camera rolls, so a per-axis ratio is not a depth ratio.
 
@@ -155,7 +155,7 @@ means two planes moved together, which on a stage that declares distinct
 depths means the parallax flattened.
 
 * **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+  `float`
 
 ```pycon
 >>> min_ratio_gap({"far": 0.25, "mid": 1.0, "near": 2.0})
@@ -174,4 +174,4 @@ per colour, compared exactly, so a plane’s mask cannot pick up an
 anti-aliased edge pixel from its neighbour.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+  `dict`[`str`, `tuple`[`float`, `float`, `int`]]

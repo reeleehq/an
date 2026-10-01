@@ -29,7 +29,7 @@ True
 
 ### *class* an.audio.offline_lipsync.OfflineLipSync(, char_to_viseme=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `object`
 
 Default lip-sync provider: deterministic char-to-viseme mapping.
 
