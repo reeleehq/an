@@ -236,6 +236,16 @@ stage feature as a pass or a builder; never add an `if entity.kind == ...`
 branch.** A pass that changes emission order moves channels, and that moves the
 contract hashes.
 
+**An entity kind may declare its own property space** (an#245, an#287): the
+compiled document records it per entity (`meta.entity_spaces`) and embeds the
+space's definition (`meta.spaces`), and `runtime.js` evaluates that entity's
+targets by the declared field kinds, write groups and the contract's easings
+(every other target keeps the value-typed rule). The runtime implements the
+seven core kinds only (`an.stage.compile.RUNTIME_FIELD_KINDS`, pinned to its
+`FIELD_KINDS` table); a space using any other kind is refused at compile. What a
+declared property *draws* is still `applyProperty`'s switch or a swap set: a
+space changes how a value moves, not what it sets.
+
 ## 5. Order of work
 
 

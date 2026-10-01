@@ -63,6 +63,44 @@ def test_the_stage_engines_readback_reproduces_every_stage_vector(tmp_path):
     assert not mismatches, mismatches[:5]
 
 
+def test_the_stage_has_declared_space_vectors_to_conform_to():
+    declared = [c for c in vector_cases() if c.get("space") != "stage.node"]
+    assert len(declared) >= 10
+
+
+@pytest.mark.browser
+def test_the_stage_engines_readback_reproduces_every_declared_space_vector(tmp_path):
+    """an#287: every inline-space case, loaded as a self-describing document
+    (``meta.entity_spaces`` + ``meta.spaces``), reads back from the page in its
+    declared space -- the browser that draws the frames, not a node extract."""
+    from an.engines.conformance import case_document
+    from an.stage.render import StageEngine
+
+    engine = StageEngine()
+    mismatches = []
+    cases = [c for c in vector_cases() if c.get("space") != "stage.node"]
+    for i, case in enumerate(cases):
+        document = case_document(case)
+        document["meta"] = {**document["meta"], "duration": document["timeline"]["duration"]}
+        with engine.open_document(document, workspace=tmp_path / f"case_{i}") as session:
+            mismatches += readback_mismatches(session.state, case)
+    assert not mismatches, mismatches[:5]
+
+
+@pytest.mark.browser
+def test_a_document_naming_an_undefined_space_fails_at_load(tmp_path):
+    """No silent fallback to the value-typed rule: a declared space the
+    document does not define is refused when the scene loads."""
+    from an.stage.render import CutoutRenderError, StageEngine
+
+    case = next(c for c in vector_cases() if c["name"] == "number-linear-and-log")
+    document = dict(case["document"])
+    document["meta"] = {"entity_spaces": {"view": "nowhere"}, "duration": 3.0}
+    with pytest.raises(CutoutRenderError, match="nowhere"):
+        with StageEngine().open_document(document, workspace=tmp_path):
+            pass
+
+
 @pytest.mark.browser
 def test_a_wrong_readback_is_reported_not_absorbed(tmp_path):
     """The check can fail: a session that reads back a shifted time does."""

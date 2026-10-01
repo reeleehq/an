@@ -494,12 +494,16 @@ def build_compiled_schema() -> dict[str, Any]:
             "placed clips (a clip is active on [start, end] inclusive; later wins by "
             "track then clip order; an ended clip's final value holds; an unstarted "
             "property is at rest and absent), clips with a loop mode, channels of "
-            "keyframes (half-open segments, easing on the leaving key). Other "
-            "top-level members (an engine's scene tree) are allowed."
+            "keyframes (half-open segments, easing on the leaving key). A target "
+            "whose entity (its first path segment) is listed in "
+            "meta.entity_spaces is evaluated in that property space, defined in "
+            "meta.spaces; every other target in the engine's default space. Other "
+            "top-level and meta members (an engine's scene tree) are allowed."
         ),
         "type": "object",
         "required": ["timeline", "animations"],
         "properties": {
+            "meta": {"$ref": "#/$defs/meta"},
             "timeline": {"$ref": "#/$defs/timeline"},
             "animations": {
                 "type": "object",
@@ -508,6 +512,36 @@ def build_compiled_schema() -> dict[str, Any]:
         },
         "$defs": {
             "easing": _EASING_SPEC_SCHEMA,
+            "meta": {
+                "type": "object",
+                "properties": {
+                    "entity_spaces": {
+                        "description": "entity -> the property space its targets are evaluated in",
+                        "type": "object",
+                        "additionalProperties": {"type": "string", "minLength": 1},
+                    },
+                    "spaces": {
+                        "description": (
+                            "space name -> its definition, in kinds.json's space form "
+                            "(fields of {pattern, spec, unit?, writes?}; undeclared?)"
+                        ),
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "required": ["fields"],
+                            "properties": {
+                                "fields": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["pattern", "spec"],
+                                    },
+                                }
+                            },
+                        },
+                    },
+                },
+            },
             "timeline": {
                 "type": "object",
                 "required": ["duration"],

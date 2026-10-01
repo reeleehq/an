@@ -102,3 +102,60 @@ def test_no_shipped_entity_kind_moves_a_compiled_document():
         warnings.simplefilter("ignore")  # the preset backdrop stands in, and says so
         doc = to_dict(compile_shot(shot, mall={}, fps=10, width=64, height=48))
     assert "entity_spaces" not in doc["meta"]
+    assert "spaces" not in doc["meta"], "an#287: nor a space definition"
+
+
+# ------------------------------------------- an#287: the document carries the space
+
+
+def test_the_compiler_embeds_each_declared_spaces_definition(dial_genre):
+    """`runtime.js` has no registry, so the document defines what it names."""
+    from an.stage.compile import compile_shot
+    from an.stage.serialize import to_dict
+
+    shot = Shot(id="s", renderer="stage", duration=1.0,
+                entities=[AssetRef(kind="dial", id="dial", store="props", ref="d")])
+    doc = to_dict(compile_shot(shot, mall={}, fps=10, width=64, height=48))
+    assert doc["meta"]["spaces"] == {
+        "demo.dial": {"name": "demo.dial", "version": 1,
+                      "fields": [{"pattern": "zoom", "spec": {"kind": "number", "space": "log"}}]}
+    }
+
+
+def test_the_compiler_refuses_a_space_the_runtime_cannot_evaluate():
+    """A genre kind the stage runtime does not implement fails at COMPILE,
+    naming the kind, instead of in the browser mid-render."""
+    from dataclasses import dataclass
+    from typing import ClassVar
+
+    from an.stage.compile import CutoutCompileError, compile_shot
+    from an.timing import kinds
+    from an.timing.kinds import FieldKind
+
+    @dataclass(frozen=True)
+    class Points(FieldKind):
+        name: ClassVar[str] = "demo-points"
+
+    genre = Genre(
+        "demo_points_genre",
+        spaces=(PropertySpace("demo.curve", (FieldDecl("shape", Points()),)),),
+        entity_kinds=(EntityKind("curve", space="demo.curve", store="props"),),
+    )
+    shot = Shot(id="s", renderer="stage", duration=1.0,
+                entities=[AssetRef(kind="curve", id="c", store="props", ref="c")])
+    with without_genres():
+        register_genre(genre)
+        with pytest.raises(CutoutCompileError, match="demo-points"):
+            compile_shot(shot, mall={}, fps=10, width=64, height=48)
+    kinds._REGISTRY.pop(Points.name, None)
+    kinds._OWNERS.pop(Points.name, None)
+
+
+def test_the_evaluator_reads_the_embedded_definition_not_the_registry():
+    """A document read where its genre is not installed still evaluates in the
+    space it was compiled under: the definition travels with it."""
+    definition = {"name": "demo.dial", "fields": [
+        {"pattern": "zoom", "spec": {"kind": "number", "space": "log"}}]}
+    doc = _doc(entity_spaces={"dial": "demo.dial"}, spaces={"demo.dial": definition})
+    pose = evaluate_timeline(timeline_from_compiled(doc), 0.5)  # no genre registered
+    assert pose[("dial", "zoom")] == pytest.approx(2.0)

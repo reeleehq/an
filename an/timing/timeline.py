@@ -304,9 +304,10 @@ def timeline_from_compiled(doc: Any) -> Timeline:
     animations = _get(doc, "animations", {}) or {}
     clips = {aid: clip_from_json(a, name=aid) for aid, a in animations.items()}
     tl = _get(doc, "timeline")
+    meta = _get(doc, "meta", None)
     return Timeline(
         space=entity_spaces_resolver(
-            _get(_get(doc, "meta", None), "entity_spaces", None)
+            _get(meta, "entity_spaces", None), definitions=_get(meta, "spaces", None)
         ),
         duration=_get(tl, "duration"),
         tracks=[
@@ -329,8 +330,8 @@ def timeline_from_compiled(doc: Any) -> Timeline:
     )
 
 
-def entity_spaces_resolver(entity_spaces: Any) -> Any:
-    """``target -> space name`` from a compiled document's ``meta.entity_spaces``.
+def entity_spaces_resolver(entity_spaces: Any, *, definitions: Any = None) -> Any:
+    """``target -> space`` from a compiled document's ``meta.entity_spaces``.
 
     The document records, per ENTITY, the space its kind declares -- only
     where that is not the kernel default, so a document that declares nothing
@@ -338,21 +339,35 @@ def entity_spaces_resolver(entity_spaces: Any) -> Any:
     anything not listed (the camera's ``root`` included) is the default.
     ``None`` when there is nothing to resolve.
 
+    ``definitions`` is the document's ``meta.spaces`` (an#287): each declared
+    space's definition as the compiler embedded it (the ``kinds.json`` form),
+    which is what ``runtime.js`` evaluates -- so a space defined there is read
+    from the DOCUMENT, and only a name it does not define falls back to the
+    registry.
+
     >>> of = entity_spaces_resolver({"cam": "stage.camera"})
     >>> of("cam/lens").name, of("root").name == _spaces.DFLT_TIMELINE_SPACE
     ('stage.camera', True)
+    >>> inline = {"name": "demo", "fields": [{"pattern": "z", "spec": {"kind": "number", "space": "log"}}]}
+    >>> entity_spaces_resolver({"cam": "demo"}, definitions={"demo": inline})("cam").kind_of("z")
+    NumberKind(space='log')
     >>> entity_spaces_resolver({}) is None
     True
     """
     if not entity_spaces:
         return None
     mapping = dict(entity_spaces)
+    embedded = dict(definitions or {})
     resolved: dict[str, Any] = {}
 
     def space_of(target: str):
         name = mapping.get(target.split("/", 1)[0], _spaces.DFLT_TIMELINE_SPACE)
         if name not in resolved:  # by name, once per document
-            resolved[name] = _spaces.get_space(name)
+            resolved[name] = (
+                _spaces.space_from_json({**embedded[name], "name": name})
+                if name in embedded
+                else _spaces.get_space(name)
+            )
         return resolved[name]
 
     return space_of

@@ -310,9 +310,12 @@ def test_values_close_is_the_stated_tolerance():
 # ---------------------------------------- 3. runtime.js meets the stage vectors
 
 
-def _runtime_states(cases: list[dict]) -> list[list[dict]]:
-    src = RUNTIME_JS.read_text(encoding="utf-8")
-    script = "\n".join(
+def _runtime_kernel(src: str | None = None) -> str:
+    """The runtime's evaluation code, lifted out of the shipped runtime.js: the
+    legacy easings, the value-typed channel, and the declared-space block
+    (an#287) that sits between ``RUNTIME_PROPERTIES`` and ``evaluateTimeline``."""
+    src = RUNTIME_JS.read_text(encoding="utf-8") if src is None else src
+    return "\n".join(
         [
             _extract_js_block(src, "const EASINGS ="),
             _extract_js_block(src, "function cubicBezier"),
@@ -325,15 +328,43 @@ def _runtime_states(cases: list[dict]) -> list[list[dict]]:
                 )
             ],
             _extract_js_block(src, "function evaluateTimeline"),
-            "let scene = null;",
-            f"const cases = {json.dumps([{'doc': c['document'], 'times': [s['t'] for s in c['samples']]} for c in cases])};",
-            "const out = cases.map(c => { scene = c.doc; return c.times.map(t => evaluateTimeline(t)); });",
-            "console.log(JSON.stringify(out));",
         ]
     )
-    proc = run_node(script)
+
+
+def _run_kernel(body: str, *, src: str | None = None):
+    proc = run_node(_runtime_kernel(src) + "\n" + body)
     assert proc.returncode == 0, f"node failed: {proc.stderr}"
     return json.loads(proc.stdout)
+
+
+def _runtime_states(cases: list[dict], *, src: str | None = None) -> list[list[dict]]:
+    """Each case's states as runtime.js evaluates its SELF-DESCRIBING document
+    (:func:`an.engines.conformance.case_document`: a non-default space travels
+    in ``meta.entity_spaces`` + ``meta.spaces``, as the compiler writes it)."""
+    from an.engines.conformance import case_document
+
+    docs = [
+        {"doc": case_document(c), "times": [s["t"] for s in c["samples"]]}
+        for c in cases
+    ]
+    return _run_kernel(
+        "let scene = null;\n"
+        f"const cases = {json.dumps(docs)};\n"
+        "const out = cases.map(c => { scene = c.doc; return c.times.map(t => evaluateTimeline(t)); });\n"
+        "console.log(JSON.stringify(out));",
+        src=src,
+    )
+
+
+def _mismatches(cases: list[dict], got: list[list[dict]]) -> list[tuple]:
+    out = []
+    for case, rows in zip(cases, got):
+        for sample, js in zip(case["samples"], rows):
+            js_state = {k.replace("::", ":", 1): v for k, v in js.items()}
+            if not values_close(sample["state"], js_state):
+                out.append((case["name"], sample["t"], sample["state"], js_state))
+    return out
 
 
 def _stage_cases() -> list[dict]:
@@ -359,16 +390,120 @@ def test_the_stage_runtime_reproduces_every_stage_vector():
     declarations reproduce the runtime exactly, checked from the runtime's side."""
     cases = _stage_cases()
     assert len(cases) >= 10
-    got = _runtime_states(cases)
-    mismatches = []
-    for case, rows in zip(cases, got):
-        for sample, js in zip(case["samples"], rows):
-            js_state = {k.replace("::", ":", 1): v for k, v in js.items()}
-            if not values_close(sample["state"], js_state):
-                mismatches.append(
-                    (case["name"], sample["t"], sample["state"], js_state)
-                )
+    mismatches = _mismatches(cases, _runtime_states(cases))
     assert not mismatches, mismatches[:5]
+
+
+def _declared_cases() -> list[dict]:
+    return [c for c in _vectors()["cases"] if c["space"] != "stage.node"]
+
+
+@requires_node
+def test_the_stage_runtime_reproduces_every_vector_in_its_declared_space():
+    """an#287: a document whose entity declares a space (``meta.entity_spaces``,
+    defined in ``meta.spaces``) is evaluated by that space's field kinds and
+    write groups -- log numbers, angles, vectors, quaternions, OKLab and sRGB
+    colours, orbits, discrete switch points -- and the contract's easings. Every
+    inline-space case, every sample."""
+    cases = _declared_cases()
+    assert len(cases) >= 10
+    mismatches = _mismatches(cases, _runtime_states(cases))
+    assert not mismatches, mismatches[:5]
+
+
+@requires_node
+def test_a_runtime_that_ignores_the_declared_spaces_fails_the_vectors():
+    """The check can fail: the pre-an#287 runtime (every target by value type)
+    disagrees with the declared-space cases."""
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    marker = "const spaceOf = documentSpaces(scene);"
+    assert src.count(marker) == 1
+    ignoring = src.replace(marker, "const spaceOf = null;")
+    # Cases whose easings the value-typed rule also accepts (null), so the
+    # failure is the interpolation, not a refused curve.
+    names = {"color", "orbit", "loop"}
+    cases = [c for c in _declared_cases() if c["name"] in names]
+    failing = {m[0] for m in _mismatches(cases, _runtime_states(cases, src=ignoring))}
+    assert failing == names
+
+
+@requires_node
+def test_the_runtime_kinds_reproduce_kinds_json():
+    """Every sample interpolation of every core kind in ``kinds.json``."""
+    doc = load_contract_file("kinds.json")
+    rows = [
+        {"spec": ex["spec"], **s}
+        for kind in doc["kinds"]
+        for ex in kind["examples"]
+        for s in ex["samples"]
+    ]
+    got = _run_kernel(
+        f"const rows = {json.dumps(rows)};\n"
+        "console.log(JSON.stringify(rows.map(r => {\n"
+        "  const k = makeKind(r.spec);\n"
+        "  return 'segment' in r\n"
+        "    ? k(r.a, r.b, 0.0, {t: r.t, start: r.segment[0], end: r.segment[1]})\n"
+        "    : k(r.a, r.b, r.u, {t: r.u, start: 0.0, end: 1.0});\n"
+        "})));"
+    )
+    bad = [(r, g) for r, g in zip(rows, got) if not values_close(r["value"], g)]
+    assert not bad, bad[:5]
+    assert {k["kind"] for k in doc["kinds"]} <= set(_runtime_field_kinds())
+
+
+@requires_node
+def test_the_runtime_easings_reproduce_easing_json():
+    """Every named and parametrised curve in ``easing.json`` -- the legacy
+    table, CSS (both solvers' fallbacks are sampled) and Manim -- at every
+    sampled u, through the declared rule's ``applyContractEasing``."""
+    doc = load_contract_file("easing.json")
+    specs = [e["name"] for e in doc["entries"]] + [p["spec"] for p in doc["parametric"]]
+    expected = [e["samples"] for e in doc["entries"]] + [
+        p["samples"] for p in doc["parametric"]
+    ]
+    got = _run_kernel(
+        f"const specs = {json.dumps(specs)}; const us = {json.dumps(doc['sample_u'])};\n"
+        "console.log(JSON.stringify(specs.map(s => us.map(u => applyContractEasing(s, u)))));"
+    )
+    bad = [
+        (spec, u, e, g)
+        for spec, exp, row in zip(specs, expected, got)
+        for u, e, g in zip(doc["sample_u"], exp, row)
+        if not values_close(e, g)
+    ]
+    assert not bad, bad[:5]
+
+
+def _runtime_field_kinds() -> list[str]:
+    import re
+
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    table = _extract_js_block(src, "const FIELD_KINDS =")
+    return re.findall(r"^        (\w+): ", table, flags=re.MULTILINE)
+
+
+def test_the_compilers_runtime_kinds_are_the_runtimes():
+    """``an.stage.compile.RUNTIME_FIELD_KINDS`` (what the compiler lets reach
+    the browser) is exactly runtime.js's ``FIELD_KINDS`` table."""
+    from an.stage.compile import RUNTIME_FIELD_KINDS
+
+    assert set(_runtime_field_kinds()) == RUNTIME_FIELD_KINDS
+
+
+def test_an_timing_reads_every_vector_back_from_its_self_describing_document():
+    """The Python side of the same claim: ``timeline_from_compiled`` evaluates
+    a case's document by the space it carries, with no space passed."""
+    from an.engines.conformance import as_contract_state, case_document
+    from an.timing.timeline import evaluate_timeline, timeline_from_compiled
+
+    bad = []
+    for case in _vectors()["cases"]:
+        tl = timeline_from_compiled(case_document(case))
+        for sample in case["samples"]:
+            got = as_contract_state(evaluate_timeline(tl, sample["t"]))
+            if not values_close(sample["state"], got):
+                bad.append((case["name"], sample["t"]))
+    assert not bad, bad[:5]
 
 
 # ----------------------------------------------- 4. what the stage emits fits

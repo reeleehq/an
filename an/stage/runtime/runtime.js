@@ -963,6 +963,501 @@
         return SWAP_WRITE_GROUP;
     }
 
+    // ------------------------------------------------------------------------
+    // Declared property spaces (an#287). A compiled document records, per
+    // ENTITY whose kind declares a space other than the stage node's,
+    // `meta.entity_spaces[entity] = name`, and carries each such space's
+    // definition in `meta.spaces[name]` (the kinds.json form: `fields` of
+    // {pattern, spec, writes?}, an optional `undeclared` spec). A target in
+    // such an entity is evaluated BY DECLARATION -- the timing kernel's rule,
+    // `an/timing/channel.py::evaluate(kind=...)` and `kinds.py` are the spec --
+    // and every other target keeps the value-typed rule above, bit for bit.
+    // tests/test_timing_contract.py holds this block to every golden vector
+    // (`an/data/timing/timing_vectors.json`), to kinds.json and to easing.json.
+    // ------------------------------------------------------------------------
+
+    // Python's `%`: the result takes the sign of the divisor.
+    function pyMod(a, n) {
+        const m = a % n;
+        return m !== 0 && (m < 0) !== (n < 0) ? m + n : m;
+    }
+
+    // --- the contract's easings (an/timing/easing.py), for DECLARED targets.
+    // The value-typed rule keeps `applyEasing` (the legacy table only), as
+    // `channel.py` does with `names=VALUE_TYPED_EASINGS`.
+    const CSS_BEZIERS = {
+        'ease-in': [0.42, 0.0, 1.0, 1.0],
+        'ease-out': [0.0, 0.0, 0.58, 1.0],
+        'ease-in-out': [0.42, 0.0, 0.58, 1.0],
+    };
+    const CSS_NEWTON_STEPS = 8;
+    const CSS_EPSILON = 1e-12;
+    const CSS_BISECTION_STEPS = 60;
+    const CSS_MIN_SLOPE = 1e-6;
+
+    function cssCubicBezier(x1, y1, x2, y2) {
+        for (const v of [x1, y1, x2, y2]) {
+            if (typeof v !== 'number' || !Number.isFinite(v)) {
+                throw new Error('cubic-bezier needs four finite numbers, got ' +
+                    JSON.stringify([x1, y1, x2, y2]));
+            }
+        }
+        if (!(x1 >= 0 && x1 <= 1 && x2 >= 0 && x2 <= 1)) {
+            throw new Error('cubic-bezier x values must lie in [0, 1], got x1=' + x1 + ', x2=' + x2);
+        }
+        const cx = 3 * x1;
+        const bx = 3 * (x2 - x1) - cx;
+        const ax = 1 - cx - bx;
+        const cy = 3 * y1;
+        const by = 3 * (y2 - y1) - cy;
+        const ay = 1 - cy - by;
+        const xAt = s => ((ax * s + bx) * s + cx) * s;
+        const yAt = s => ((ay * s + by) * s + cy) * s;
+        const dxAt = s => (3 * ax * s + 2 * bx) * s + cx;
+        function solve(x) {
+            let s = x;
+            for (let i = 0; i < CSS_NEWTON_STEPS; i++) {
+                const err = xAt(s) - x;
+                if (Math.abs(err) < CSS_EPSILON) return s;
+                const slope = dxAt(s);
+                if (Math.abs(slope) < CSS_MIN_SLOPE) break;
+                s -= err / slope;
+            }
+            let lo = 0.0, hi = 1.0;
+            s = x;
+            for (let i = 0; i < CSS_BISECTION_STEPS; i++) {
+                const v = xAt(s);
+                if (Math.abs(v - x) < CSS_EPSILON) return s;
+                if (v < x) lo = s; else hi = s;
+                s = (lo + hi) / 2;
+            }
+            return s;
+        }
+        return tau => (tau <= 0 ? 0 : tau >= 1 ? 1 : yAt(solve(tau)));
+    }
+
+    const STEP_POSITIONS = ['jump-start', 'jump-end', 'jump-none', 'jump-both', 'start', 'end'];
+
+    function cssSteps(n, position) {
+        if (STEP_POSITIONS.indexOf(position) < 0) {
+            throw new Error('steps(): unknown position "' + position + '". Known: ' +
+                STEP_POSITIONS.join(', '));
+        }
+        const pos = { start: 'jump-start', end: 'jump-end' }[position] || position;
+        const minimum = pos === 'jump-none' ? 2 : 1;
+        if (!Number.isInteger(n) || n < minimum) {
+            throw new Error('steps() needs a whole number of steps (at least ' + minimum + '), got ' + n);
+        }
+        const jumps = pos === 'jump-both' ? n + 1 : pos === 'jump-none' ? n - 1 : n;
+        return tau => {
+            const x = Math.min(1.0, Math.max(0.0, tau));
+            let step = Math.floor(x * n);
+            if (pos === 'jump-start' || pos === 'jump-both') step += 1;
+            return Math.min(step, jumps) / jumps;
+        };
+    }
+
+    // Manim Community Edition's rate functions (easing.py's `_MANIM_CURVES`).
+    const MANIM_INFLECTION = 10.0;
+    const MANIM_PAUSE_RATIO = 1.0 / 3;
+    const MANIM_PULL_FACTOR = -0.5;
+    const MANIM_WIGGLES = 2.0;
+    const MANIM_LINGER_END = 0.8;
+    const MANIM_HALF_LIFE = 0.1;
+    const unitInterval = f => t => (t >= 0 && t <= 1 ? f(t) : t < 0 ? 0 : 1);
+    const zeroOutside = f => t => (t >= 0 && t <= 1 ? f(t) : 0);
+    const sigmoid = x => 1.0 / (1 + Math.exp(-x));
+    function smoothRaw(t) {
+        const error = sigmoid(-MANIM_INFLECTION / 2);
+        return Math.min(Math.max(
+            (sigmoid(MANIM_INFLECTION * (t - 0.5)) - error) / (1 - 2 * error), 0), 1);
+    }
+    const manimSmooth = unitInterval(smoothRaw);
+    const thereAndBackRaw = t => manimSmooth(t < 0.5 ? 2 * t : 2 * (1 - t));
+    const MANIM_CURVES = {
+        smooth: manimSmooth,
+        smoothstep: unitInterval(t => 3 * t ** 2 - 2 * t ** 3),
+        smootherstep: unitInterval(t => 6 * t ** 5 - 15 * t ** 4 + 10 * t ** 3),
+        smoothererstep: unitInterval(
+            t => 35 * t ** 4 - 84 * t ** 5 + 70 * t ** 6 - 20 * t ** 7),
+        rush_into: unitInterval(t => 2 * manimSmooth(t / 2.0)),
+        rush_from: unitInterval(t => 2 * manimSmooth(t / 2.0 + 0.5) - 1),
+        slow_into: unitInterval(t => Math.sqrt(1 - (1 - t) * (1 - t))),
+        double_smooth: unitInterval(t => (t < 0.5
+            ? 0.5 * manimSmooth(2 * t)
+            : 0.5 * (1 + manimSmooth(2 * t - 1)))),
+        there_and_back: zeroOutside(thereAndBackRaw),
+        there_and_back_with_pause: zeroOutside(t => {
+            const a = 2.0 / (1.0 - MANIM_PAUSE_RATIO);
+            if (t < 0.5 - MANIM_PAUSE_RATIO / 2) return manimSmooth(a * t);
+            if (t < 0.5 + MANIM_PAUSE_RATIO / 2) return 1;
+            return manimSmooth(a - a * t);
+        }),
+        running_start: unitInterval(t => {
+            const p = MANIM_PULL_FACTOR;
+            const mt = 1 - t;
+            return 15 * t ** 2 * mt ** 4 * p + 20 * t ** 3 * mt ** 3 * p +
+                15 * t ** 4 * mt ** 2 + 6 * t ** 5 * mt + t ** 6;
+        }),
+        wiggle: zeroOutside(t => thereAndBackRaw(t) * Math.sin(MANIM_WIGGLES * Math.PI * t)),
+        lingering: unitInterval(t => (t > MANIM_LINGER_END ? 1.0 : t / MANIM_LINGER_END)),
+        exponential_decay: unitInterval(t => 1 - Math.exp(-t / MANIM_HALF_LIFE)),
+    };
+
+    const EASING_CALL = /^([a-z-]+)\((.*)\)$/;
+    const EASING_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+
+    function parseEasingNumbers(args, spec) {
+        return args.split(',').map(raw => {
+            const text = raw.trim();
+            if (!EASING_NUMBER.test(text)) {
+                throw new Error('easing ' + JSON.stringify(spec) + ': ' +
+                    JSON.stringify(text) + ' is not a number');
+            }
+            return parseFloat(text);
+        });
+    }
+
+    // `easing.py::_resolve_cached`: a registered name, else a parametrised call.
+    const contractCurves = new Map();
+    function contractCurve(spec) {
+        if (contractCurves.has(spec)) return contractCurves.get(spec);
+        let curve = null;
+        if (EASINGS.hasOwnProperty(spec)) curve = EASINGS[spec];
+        else if (CSS_BEZIERS.hasOwnProperty(spec)) curve = cssCubicBezier(...CSS_BEZIERS[spec]);
+        else if (spec === 'step-start') curve = cssSteps(1, 'jump-start');
+        else if (spec === 'step-end') curve = cssSteps(1, 'jump-end');
+        else if (MANIM_CURVES.hasOwnProperty(spec)) curve = MANIM_CURVES[spec];
+        else {
+            const m = EASING_CALL.exec(spec.trim());
+            if (!m) throw new Error('unknown easing preset ' + JSON.stringify(spec));
+            const [, name, args] = m;
+            if (name === 'cubic-bezier') {
+                const nums = parseEasingNumbers(args, spec);
+                if (nums.length !== 4) {
+                    throw new Error('easing ' + JSON.stringify(spec) +
+                        ': cubic-bezier takes 4 numbers, got ' + nums.length);
+                }
+                curve = cssCubicBezier(...nums);
+            } else if (name === 'steps') {
+                const parts = args.split(',').map(a => a.trim());
+                if (parts.length > 2) {
+                    throw new Error('easing ' + JSON.stringify(spec) + ': steps takes at most 2 arguments');
+                }
+                const [count] = parseEasingNumbers(parts[0], spec);
+                if (!Number.isInteger(count)) {
+                    throw new Error('easing ' + JSON.stringify(spec) + ': ' +
+                        JSON.stringify(parts[0]) + ' is not a whole number');
+                }
+                curve = cssSteps(count, parts.length === 2 ? parts[1] : 'jump-end');
+            } else {
+                throw new Error('unknown easing function ' + JSON.stringify(name) + ' in ' +
+                    JSON.stringify(spec) + '; known: cubic-bezier(), steps()');
+            }
+        }
+        contractCurves.set(spec, curve);
+        return curve;
+    }
+
+    // `easing.py::apply_easing(spec, t)` with no name restriction.
+    function applyContractEasing(spec, t) {
+        if (spec == null) return t;
+        if (typeof spec === 'string') return contractCurve(spec)(t);
+        return applyEasing(spec, t);  // a 4-sequence: the legacy solver, as in Python
+    }
+
+    // --- the field kinds (an/timing/kinds.py). Each is (a, b, u, seg) -> value,
+    // where `u` is the eased progress and `seg` = {t, start, end}.
+    const DEG_TURN = 360.0;
+    const RAD_TURN = 2 * Math.PI;
+    const DEFAULT_SWITCH_AT = 0.5;
+    const SLERP_LINEAR_THRESHOLD = 0.9995;
+    const ORBIT_MEMBERS = ['azimuth', 'elevation', 'distance', 'target'];
+
+    // kinds.py::Segment.switched: on TIME; switch_at >= 1 is a comparison only (an#86).
+    function switched(seg, switchAt) {
+        if (switchAt >= 1) return seg.t >= seg.end;
+        return seg.t > seg.start && seg.t >= seg.start + switchAt * (seg.end - seg.start);
+    }
+
+    function shortestDelta(a, b, period) {
+        const half = period / 2;
+        const d = pyMod(pyMod(b - a + half, period) + period, period) - half;
+        return d === -half && b > a ? half : d;
+    }
+
+    function vectorLerp(a, b, u) {
+        if (a.length !== b.length) {
+            throw new Error('cannot interpolate vectors of lengths ' + a.length + ' and ' + b.length);
+        }
+        return a.map((x, i) => x + (b[i] - x) * u);
+    }
+
+    function normalizeQuat(q) {
+        const n = Math.hypot(...q);
+        if (n === 0) throw new Error('a quaternion cannot be zero');
+        return q.map(c => c / n);
+    }
+
+    function slerp(a, b, u) {
+        const p = normalizeQuat(a);
+        let q = normalizeQuat(b);
+        let dot = p.reduce((s, x, i) => s + x * q[i], 0);
+        if (dot < 0) {
+            q = q.map(c => -c);
+            dot = -dot;
+        }
+        if (dot > SLERP_LINEAR_THRESHOLD) return normalizeQuat(vectorLerp(p, q, u));
+        const theta = Math.acos(Math.min(1.0, dot));
+        const sin = Math.sin(theta);
+        const wa = Math.sin((1 - u) * theta) / sin;
+        const wb = Math.sin(u * theta) / sin;
+        return p.map((x, i) => wa * x + wb * q[i]);
+    }
+
+    // --- colours (an/timing/_color.py)
+    const HEX_COLOR = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+    const SRGB_KNEE = 0.04045;
+    const LINEAR_KNEE = 0.0031308;
+    const SRGB_SLOPE = 12.92;
+    const SRGB_GAMMA = 2.4;
+    const SRGB_OFFSET = 0.055;
+    const clampUnit = x => Math.min(1.0, Math.max(0.0, x));
+
+    function parseRgba(value) {
+        if (Array.isArray(value)) {
+            if ((value.length !== 3 && value.length !== 4) ||
+                !value.every(c => typeof c === 'number' && c >= 0 && c <= 1)) {
+                throw new Error('colour array channels are numbers in 0..1, got ' + JSON.stringify(value));
+            }
+            return [value[0], value[1], value[2], value.length === 4 ? value[3] : 1.0];
+        }
+        if (typeof value !== 'string' || !HEX_COLOR.test(value)) {
+            throw new Error(JSON.stringify(value) + ' is not a hex colour (#rgb, #rgba, #rrggbb or #rrggbbaa)');
+        }
+        let digits = value.slice(1);
+        if (digits.length <= 4) digits = digits.split('').map(c => c + c).join('');
+        const byte = i => parseInt(digits.slice(2 * i, 2 * i + 2), 16) / 255;
+        return [byte(0), byte(1), byte(2), digits.length === 8 ? byte(3) : 1.0];
+    }
+
+    function formatRgba(rgba, like) {
+        const c = rgba.map(clampUnit);
+        if (Array.isArray(like)) {
+            return like.length === 3 && c[3] === 1 ? [c[0], c[1], c[2]] : c;
+        }
+        const hex2 = x => Math.floor(x * 255 + 0.5).toString(16).padStart(2, '0');
+        return '#' + hex2(c[0]) + hex2(c[1]) + hex2(c[2]) + (c[3] < 1 ? hex2(c[3]) : '');
+    }
+
+    const toLinear = c => (c <= SRGB_KNEE ? c / SRGB_SLOPE
+        : ((c + SRGB_OFFSET) / (1 + SRGB_OFFSET)) ** SRGB_GAMMA);
+    const fromLinear = c => (c <= LINEAR_KNEE ? SRGB_SLOPE * c
+        : (1 + SRGB_OFFSET) * Math.sign(c) * Math.abs(c) ** (1 / SRGB_GAMMA) - SRGB_OFFSET);
+
+    function srgbToOklab(r, g, b) {
+        const lr = toLinear(r), lg = toLinear(g), lb = toLinear(b);
+        const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+        const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+        const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+        return [
+            0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+            1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+            0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+        ];
+    }
+
+    function oklabToSrgb(L, a, b) {
+        const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+        const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+        const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+        return [
+            fromLinear(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+            fromLinear(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+            fromLinear(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+        ];
+    }
+
+    function mixOklab(src, dst, u) {
+        const la = srgbToOklab(src[0], src[1], src[2]).map(x => x * src[3]);
+        const lb = srgbToOklab(dst[0], dst[1], dst[2]).map(x => x * dst[3]);
+        const alpha = src[3] + (dst[3] - src[3]) * u;
+        if (alpha <= 0) return [0.0, 0.0, 0.0, 0.0];
+        const lab = la.map((x, i) => (x + (lb[i] - x) * u) / alpha);
+        const rgb = oklabToSrgb(lab[0], lab[1], lab[2]);
+        return [clampUnit(rgb[0]), clampUnit(rgb[1]), clampUnit(rgb[2]), clampUnit(alpha)];
+    }
+
+    const mixSrgb = (src, dst, u) => src.map((x, i) => clampUnit(x + (dst[i] - x) * u));
+
+    const atEnds = (a, b, u, f) => (u === 0 ? a : u === 1 ? b : f());
+
+    // The core kinds by name: spec -> interpolator. A kind a document names and
+    // this table lacks is refused at load (and by the compiler, before that).
+    const FIELD_KINDS = {
+        number: spec => {
+            const log = (spec.space || 'linear') === 'log';
+            return (a, b, u) => (log ? a * (b / a) ** u : a + (b - a) * u);
+        },
+        angle: spec => {
+            const period = (spec.unit || 'deg') === 'rad' ? RAD_TURN : DEG_TURN;
+            const wrap = spec.wrap !== false;
+            return (a, b, u) => atEnds(a, b, u,
+                () => a + (wrap ? shortestDelta(a, b, period) : b - a) * u);
+        },
+        vector: () => (a, b, u) => atEnds(a, b, u, () => vectorLerp(a, b, u)),
+        quaternion: () => (a, b, u) => atEnds(a, b, u, () => slerp(a, b, u)),
+        color: spec => {
+            const mix = (spec.space || 'oklab') === 'oklab' ? mixOklab : mixSrgb;
+            return (a, b, u) => atEnds(a, b, u,
+                () => formatRgba(mix(parseRgba(a), parseRgba(b), u), a));
+        },
+        orbit: spec => {
+            const period = (spec.unit || 'deg') === 'rad' ? RAD_TURN : DEG_TURN;
+            const pole = period / 4;
+            const get = (o, k) => (Object.prototype.hasOwnProperty.call(o, k) ? o[k] : null);
+            return (a, b, u, seg) => {
+                const sw = switched(seg, DEFAULT_SWITCH_AT);
+                // Member order cannot reach a value (each is computed alone); sorted per the
+                // runtime's Object.keys rule (tests/test_determinism_perimeter.py).
+                const keys = [...new Set([...Object.keys(a).sort(), ...Object.keys(b).sort()])];
+                const out = {};
+                if (u === 0 || u === 1) {
+                    const end = u === 0 ? a : b;
+                    for (const k of keys) {
+                        out[k] = ORBIT_MEMBERS.includes(k) ? get(end, k) : get(sw ? b : a, k);
+                    }
+                    return out;
+                }
+                for (const k of keys) {
+                    const p = get(a, k), q = get(b, k);
+                    if (k === 'azimuth') out[k] = p + shortestDelta(p, q, period) * u;
+                    else if (k === 'elevation') out[k] = Math.min(pole, Math.max(-pole, p + (q - p) * u));
+                    else if (k === 'distance') out[k] = p * (q / p) ** u;
+                    else if (k === 'target' && Array.isArray(p) && Array.isArray(q)) out[k] = vectorLerp(p, q, u);
+                    else out[k] = sw ? q : p;
+                }
+                return out;
+            };
+        },
+        discrete: spec => {
+            const at = spec.switch_at != null ? spec.switch_at : DEFAULT_SWITCH_AT;
+            return (a, b, u, seg) => (switched(seg, at) ? b : a);
+        },
+    };
+
+    function makeKind(spec) {
+        const make = FIELD_KINDS[spec.kind];
+        if (!make) {
+            throw new Error('unknown field kind ' + JSON.stringify(spec.kind) +
+                '; this runtime implements: ' + JSON.stringify(Object.keys(FIELD_KINDS).sort()));
+        }
+        return make(spec);
+    }
+
+    // fnmatch.fnmatchcase's pattern language (`*`, `?`, `[seq]`, `[!seq]`).
+    function globRegExp(pattern) {
+        let out = '';
+        let i = 0;
+        while (i < pattern.length) {
+            const c = pattern[i++];
+            if (c === '*') out += '[\\s\\S]*';
+            else if (c === '?') out += '[\\s\\S]';
+            else if (c === '[') {
+                let j = i;
+                if (j < pattern.length && pattern[j] === '!') j++;
+                if (j < pattern.length && pattern[j] === ']') j++;
+                while (j < pattern.length && pattern[j] !== ']') j++;
+                if (j >= pattern.length) out += '\\[';
+                else {
+                    let stuff = pattern.slice(i, j).replace(/\\/g, '\\\\');
+                    i = j + 1;
+                    if (stuff[0] === '!') stuff = '^' + stuff.slice(1);
+                    else if (stuff[0] === '^') stuff = '\\' + stuff;
+                    out += '[' + stuff + ']';
+                }
+            } else out += c.replace(/[.*+?^${}()|[\]\\\/-]/g, '\\$&');
+        }
+        return new RegExp('^' + out + '$');
+    }
+
+    // spaces.py::PropertySpace from its JSON: an exact pattern wins, then the
+    // first matching glob in declaration order; nothing matched is `undeclared`.
+    function makeSpace(name, doc) {
+        if (!doc || !Array.isArray(doc.fields)) {
+            throw new Error('property space ' + JSON.stringify(name) +
+                ' has no definition in meta.spaces (the compiler embeds one per declared space)');
+        }
+        const decls = doc.fields.map(d => ({
+            pattern: d.pattern,
+            glob: /[*?[]/.test(d.pattern) ? globRegExp(d.pattern) : null,
+            kind: makeKind(d.spec),
+            writes: d.writes != null ? d.writes : null,
+        }));
+        const undeclared = makeKind(doc.undeclared || { kind: 'discrete' });
+        const resolved = {};
+        function declaration(prop) {
+            if (prop in resolved) return resolved[prop];
+            const exact = decls.find(d => d.pattern === prop);
+            const found = exact || decls.find(d => d.glob && d.glob.test(prop)) || null;
+            resolved[prop] = found;
+            return found;
+        }
+        return {
+            name: name,
+            kindOf: prop => { const d = declaration(prop); return d ? d.kind : undeclared; },
+            writeGroup: prop => { const d = declaration(prop); return d && d.writes != null ? d.writes : prop; },
+        };
+    }
+
+    // timeline.py::entity_spaces_resolver: target -> its entity's space, or
+    // null for the default (the value-typed rule). Built once per document.
+    const documentSpaceCache = new WeakMap();
+    function documentSpaces(doc) {
+        if (documentSpaceCache.has(doc)) return documentSpaceCache.get(doc);
+        const meta = doc.meta || {};
+        const entitySpaces = meta.entity_spaces || {};
+        let resolver = null;
+        if (Object.keys(entitySpaces).length) {
+            const definitions = meta.spaces || {};
+            const spaces = {};
+            for (const entity of Object.keys(entitySpaces).sort()) {
+                const name = entitySpaces[entity];
+                if (!(name in spaces)) spaces[name] = makeSpace(name, definitions[name]);
+            }
+            resolver = target => {
+                const name = entitySpaces[target.split('/', 1)[0]];
+                return name === undefined ? null : spaces[name];
+            };
+        }
+        documentSpaceCache.set(doc, resolver);
+        return resolver;
+    }
+
+    // channel.py::evaluate(channel, t, kind=...): the declared rule. The
+    // easing is validated on every segment; the first instant of a segment is
+    // the key it leaves.
+    function evaluateChannelDeclared(channel, t, kind) {
+        const kfs = channel.keyframes;
+        if (!kfs || kfs.length === 0) return null;
+        if (kfs.length === 1) return kfs[0].value;
+        const last = kfs[kfs.length - 1];
+        if (t >= last.time) return last.value;
+        if (t < kfs[0].time) return kfs[0].value;
+        let i = 0;
+        for (; i < kfs.length - 1; i++) {
+            if (kfs[i].time <= t && t < kfs[i + 1].time) break;
+        }
+        const a = kfs[i];
+        const b = kfs[i + 1];
+        const span = b.time - a.time;
+        if (span <= 0) return b.value;
+        const u = (t - a.time) / span;
+        const eased = applyContractEasing(a.easing, u);
+        if (t === a.time) return a.value;
+        return kind(a.value, b.value, eased, { t: t, start: a.time, end: b.time });
+    }
+
     // Port of `an/adapters/cutout/timeline.py::evaluate_timeline` — that
     // function is the spec, and tests/test_pure_pose.py runs this one against
     // it. The pose is a PURE function of t (an#185): a key a playing clip
@@ -975,6 +1470,17 @@
     // so the node kept whatever the previous SEEK applied — identical when
     // seeks run forward, and a different picture after any seek backwards.
     function evaluateTimeline(t) {
+        // A target whose entity declares a space (an#287) is evaluated by its
+        // declared field kinds and write groups; every other target by value
+        // type, exactly as before (`spaceOf` is null for a document that
+        // declares nothing, which is every document the shipped kinds compile).
+        const spaceOf = documentSpaces(scene);
+        const channelAt = (ch, localT) => {
+            const space = spaceOf && spaceOf(ch.target);
+            return space
+                ? evaluateChannelDeclared(ch, localT, space.kindOf(ch.property))
+                : evaluateChannel(ch, localT);
+        };
         const written = {};  // key → { when, value }
         const held = {};     // key → { when, value }
         for (const track of scene.timeline.tracks || []) {
@@ -996,7 +1502,7 @@
                         (t - placed.start_time) * speed, clipDur, anim.loop_mode
                     );
                     for (const ch of anim.channels) {
-                        const v = evaluateChannel(ch, localT);
+                        const v = channelAt(ch, localT);
                         if (v != null) {
                             written[ch.target + '::' + ch.property] = { when: t, value: v };
                         }
@@ -1006,7 +1512,7 @@
                         (end - placed.start_time) * speed, clipDur, anim.loop_mode
                     );
                     for (const ch of anim.channels) {
-                        const v = evaluateChannel(ch, localEnd);
+                        const v = channelAt(ch, localEnd);
                         if (v == null) continue;
                         const key = ch.target + '::' + ch.property;
                         if (!(key in held) || end >= held[key].when) {
@@ -1024,7 +1530,8 @@
         }
         const groupOf = key => {
             const [target, prop] = key.split('::');
-            return target + '::' + writeGroup(prop);
+            const space = spaceOf && spaceOf(target);
+            return target + '::' + (space ? space.writeGroup(prop) : writeGroup(prop));
         };
         const latest = {};
         const keys = Object.keys(written).sort();
@@ -1150,6 +1657,10 @@
             throw new Error('PixiJS not loaded');
         }
         await preloadAssets(sceneJson);
+        // Declared spaces are resolved at LOAD (an#287): a document naming a
+        // space it does not define, or a kind this runtime lacks, fails here
+        // rather than at the first seek that reaches the entity.
+        documentSpaces(sceneJson);
         scene = sceneJson;
         nodeIndex = {};
         visualIndex = {};
