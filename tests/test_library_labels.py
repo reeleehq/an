@@ -538,4 +538,6 @@ def test_only_the_factorys_own_stamp_is_verified_by_its_record(tmp_path):
             "source": {"provider": "me", "license": "cc0-1.0", "sha256": digest},
         }}}}},
     }
-    assert publish(lib, "character.x", doc, {"parts/head.svg": head}).rights.license_class == "unknown"
+    r = publish(lib, "character.x", doc, {"parts/head.svg": head}, source=CC0)
+    assert r.rights.license_class == "unknown"
+    assert any("same bytes as cutan:prop.old" in reason for reason in r.rights.reasons)
