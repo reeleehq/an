@@ -108,7 +108,7 @@ x = 0 probe excludes a zoom.
 - **JSON measurement** uses the *composed screen-space* x, not a per-node local channel (a rigid
   pan on `root` leaves every plane's local `Δx = 0`). `evaluate_timeline` returns a **pose**, not a
   position, and nothing in `an/` composes `world = position + M·(local − pivot)`. The prerequisite
-  **landed as an#107**: `an.adapters.cutout.timeline.timeline_from_scene` turns a compiled document
+  **landed as an#107**: `an.stage.timeline.timeline_from_scene` turns a compiled document
   into an evaluable `Timeline` (it was a private helper inside `tests/test_swap_channels.py`).
   **Writing the compositor is the work**, and it is still unwritten.
 - **Pixel measurement** is per-plane centroids over exact-colour masks; `an/bench/masks.py` is
@@ -125,7 +125,7 @@ x = 0 probe excludes a zoom.
 - **Corpus plates stay vector.** Raster takes a different loader (premultiplied alpha,
   implementation-defined colour-space conversion, a worker pool) that the determinism report does
   not watch, and the cross-arch verdict does not cover it. Raster plates and parts are SUPPORTED
-  since an#211 (sized by `an.raster.art_size`, a header parse; the alias carries a content digest)
+  since an#211 (sized by `an.stage.raster.art_size`, a header parse; the alias carries a content digest)
   — they are simply kept out of the corpus for that reason, and their pixel tests
   (`tests/test_raster_art.py`) sample flat-colour regions with a tolerance rather than bless bytes.
 
@@ -140,7 +140,7 @@ stage marks (a horizon is one of them); `source: AssetSource` is mandatory in sp
 the day plates arrive. A plane may carry its OWN `source` (an#211; omitted from the stored
 document when unset), credited as `environments/<key>/planes/<name>`. **A plane's declared `size`
 is its box and wins over the art's measured extent** (an#211 — it was the other way round).
-`an validate`'s framing check (`an.environments.plane_rect` / `frame_rect` / `uncovered_part`,
+`an validate`'s framing check (`an.stage.environments.plane_rect` / `frame_rect` / `uncovered_part`,
 called by `_check_framing`) evaluates this geometry at every camera key — keys suffice without
 roll, because x/y/zoom share one eased parameter and each edge gap is convex in it. Build planes **only when the store entry declares them** — re-expressing
 `_ENV_PRESETS` as planes moves two ledger hashes for no picture change; a richer default look
@@ -188,7 +188,7 @@ and a per-entity `stroke` in the pack beats both. Every role in `REACHABLE_ROLES
 test compiling one fixed scene, so adding a role means adding the entity that reaches it to that scene.
 
 **Surface treatments (an#163 gap 5) are the pack's second job, and they are NOT colour roles.**
-`surface` / `entity_surfaces` / `grain` expand in `an/adapters/cutout/surface.py` into document
+`surface` / `entity_surfaces` / `grain` expand in `an/stage/surface.py` into document
 content, never a runtime filter (`runtime.js` refuses per-frame randomness, and its determinism
 probe counts filters):
 

@@ -28,9 +28,9 @@ The packaging config is not the answer. `pyproject.toml` has a
 `[tool.hatch.build.targets.wheel.force-include]` block listing three files:
 
 ```toml
-"an/data/cutout_runtime/index.html" = "an/data/cutout_runtime/index.html"
-"an/data/cutout_runtime/runtime.js" = "an/data/cutout_runtime/runtime.js"
-"an/data/cutout_runtime/README.md"  = "an/data/cutout_runtime/README.md"
+"an/stage/runtime/index.html" = "an/stage/runtime/index.html"
+"an/stage/runtime/runtime.js" = "an/stage/runtime/runtime.js"
+"an/stage/runtime/README.md"  = "an/stage/runtime/README.md"
 ```
 
 Reading that, you would have concluded `preview.html` — in the same directory, and
