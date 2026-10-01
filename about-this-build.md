@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-10-01 07:50 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/16b02cc48980725a919586289595d7047f65e2d9"><code>16b02cc</code></a> on branch <code>main</code>, for **an 0.1.126** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 09:23 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a699f3166b537d7483b649789e3229cf8dd8eb6d"><code>a699f31</code></a> on branch <code>main</code>, for **an 0.1.127** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,9 +11,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/16b02cc48980725a919586289595d7047f65e2d9"><code>16b02cc48980725a919586289595d7047f65e2d9</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/a699f3166b537d7483b649789e3229cf8dd8eb6d"><code>a699f3166b537d7483b649789e3229cf8dd8eb6d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.126</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.127</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36832036466">36832036466</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36841982104">36841982104</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>9be5091b2745075b511af90b4794da962187d3ad</code> (in the history of the built commit) |
+| Event commit | <code>2034dac2337ce3ac0b8e2fc09a0c18a96e64c186</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +49,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.126/">0.1.126</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.127/">0.1.127</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 16b02cc48980725a919586289595d7047f65e2d9
+git checkout a699f3166b537d7483b649789e3229cf8dd8eb6d
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
