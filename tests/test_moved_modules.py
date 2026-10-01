@@ -25,7 +25,7 @@ def moved_tree(tmp_path, monkeypatch, request):
     tag = request.node.name.replace("[", "_").replace("]", "_")
     old, new = f"_mv_old_{tag}", f"_mv_new_{tag}"
     (tmp_path / new).mkdir()
-    (tmp_path / new / "__init__.py").write_text("WHERE = 'new'\n")
+    (tmp_path / new / "__init__.py").write_text("WHERE = 'new'\n", encoding="utf-8")
     (tmp_path / new / "sub.py").write_text(
         textwrap.dedent(
             """
@@ -105,5 +105,5 @@ def test_doctest_collection_skips_moved_shims():
     import the genre package, absent in the core lane (`an/conftest.py`)."""
     from pathlib import Path
 
-    conftest = (Path(__file__).resolve().parents[1] / "an" / "conftest.py").read_text()
+    conftest = (Path(__file__).resolve().parents[1] / "an" / "conftest.py").read_text(encoding="utf-8")
     assert "moved_to_package(__name__," in conftest
