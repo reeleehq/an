@@ -150,19 +150,49 @@ def _produce_line(
     lipsync: LipSyncProvider,
 ) -> tuple[AudioClip, VisemeTrack]:
     """The audio and visemes of a resolved request; sets ``req.cache_key`` when
-    a best-of-N choice is made here. The visemes are keyed on the audio KEPT."""
+    a best-of-N choice is made here. The visemes are keyed on the audio KEPT.
+
+    An audio key names a REQUEST, and a provider such as ``eleven_v3`` answers
+    the same request differently each time, so audio produced in this call
+    (its blob was not in the store) may differ from the audio a cached viseme
+    track was aligned on. ``_load_or_align`` is told so, and re-aligns unless
+    the track's sidecar records the digest of these very bytes (an#289).
+    """
+    audio_store = mall.get("audio") if mall is not None else None
+
+    def cached(key: str) -> bool:
+        return audio_store is not None and key in audio_store
+
     if req.spec is None:
-        audio_clip = _load_or_synthesize(
-            req.tts, req.text, req.handed_voice, mall, req.raw_key, options=req.options
-        )
-        if req.cache_key != req.raw_key:
-            audio_clip = _load_or_apply_effects(
-                audio_clip, req.effects, mall, req.cache_key
+        if req.cache_key != req.raw_key and cached(req.cache_key):
+            # The processed audio is what the line keeps: never re-bill a raw
+            # take that was deleted while its processed audio survives.
+            audio_clip = _clip_from_bytes(
+                audio_store[req.cache_key], req.handed_voice, req.text
             )
+            audio_clip.sample_rate = EFFECT_SAMPLE_RATE
+            fresh = False
+        else:
+            fresh = not cached(req.raw_key) or not cached(req.cache_key)
+            audio_clip = _load_or_synthesize(
+                req.tts,
+                req.text,
+                req.handed_voice,
+                mall,
+                req.raw_key,
+                options=req.options,
+            )
+            if req.cache_key != req.raw_key:
+                audio_clip = _load_or_apply_effects(
+                    audio_clip, req.effects, mall, req.cache_key
+                )
     else:
         audio_clip = _load_or_choose_take(mall, req)
+        fresh = req.fresh_audio
     viseme_cache_key = viseme_key(req.cache_key, lipsync.name, req.text)
-    track = _load_or_align(lipsync, audio_clip, req.text, mall, viseme_cache_key)
+    track = _load_or_align(
+        lipsync, audio_clip, req.text, mall, viseme_cache_key, fresh_audio=fresh
+    )
     return audio_clip, track
 
 
@@ -253,6 +283,18 @@ def produce_audio_for_scene(
                 and (line.word_timings is not None or not _emits_word_timings(lipsync))
                 and (audio_store is None or expected_audio_ref in audio_store)
                 and (viseme_store is None or expected_viseme_ref in viseme_store)
+                # Present is not enough: the stored audio must be the audio the
+                # sidecar was aligned on, and the IR stamps must be the
+                # sidecar's (an#289 review — a replaced blob or a backup
+                # restored into one store would otherwise keep the old mouth).
+                and _stamps_match_store(
+                    line,
+                    audio_store,
+                    viseme_store,
+                    expected_audio_ref,
+                    expected_viseme_ref,
+                    lipsync,
+                )
             )
             if not already_done:
                 pending.append((line, voice_id, req))
@@ -543,6 +585,10 @@ class _LineRequest:
     restore: bool = False  # the kept audio is gone, the chosen raw take is cached
     hand_edit: bool = False  # the record's `chosen` was edited by hand
     older_scorer: str | None = None  # the version that chose, when not the current one
+    #: the kept audio was produced (not read back) in this call
+    fresh_audio: bool = False
+    #: the kept audio's bytes are not the record's heard digest
+    replaced: bool = False
 
     @property
     def handed_voice(self) -> str:
@@ -551,8 +597,9 @@ class _LineRequest:
 
     @property
     def needs_work(self) -> bool:
-        """A recorded take that must be restored, or a hand edit to honour."""
-        return self.restore or self.hand_edit
+        """A recorded take that must be restored, or a hand edit to honour, or
+        whose kept audio is not the audio its record names."""
+        return self.restore or self.hand_edit or self.replaced
 
     def take_key(self, take: int, *, heard: bool) -> str:
         """The key of candidate ``take`` of this roll: its raw audio, or (``heard``)
@@ -681,6 +728,12 @@ def _line_request(
     if recorded != req.scorer.version:
         req.older_scorer = str(recorded)
     audio_store = mall.get("audio") if mall is not None else None
+    if audio_store is not None and req.cache_key in audio_store:
+        recorded_digest = entry.get("heard_digest")
+        if recorded_digest and audio_digest(audio_store[req.cache_key]) != recorded_digest:
+            # Replaced under its key (a sync, a backup): warned about when it is
+            # read back, and its visemes are re-aligned on what is there now.
+            req.replaced = req.fresh_audio = True
     if audio_store is not None and req.cache_key not in audio_store:
         if req.take_key(chosen, heard=False) in audio_store:
             req.restore = True
@@ -756,11 +809,18 @@ def _load_or_choose_take(
 
     audio_store = mall.get("audio") if mall is not None else None
     candidates = []
+    produced: set[int] = set()  # takes whose heard audio was produced in this call
     for take, options, raw_key in req.take_requests():
+        heard_key = req.take_key(take, heard=True)
+        if (
+            audio_store is None
+            or raw_key not in audio_store
+            or heard_key not in audio_store
+        ):
+            produced.add(take)
         raw = _load_or_synthesize(
             req.tts, req.text, req.handed_voice, mall, raw_key, options=options
         )
-        heard_key = req.take_key(take, heard=True)
         heard = (
             _load_or_apply_effects(raw, req.effects, mall, heard_key)
             if req.effects
@@ -779,6 +839,7 @@ def _load_or_choose_take(
         )
     best = choose_take([c[5] for c in candidates])
     req.cache_key, kept = candidates[best][2], candidates[best][4]
+    req.fresh_audio = best in produced
     if audio_store is not None and req.cache_key not in audio_store:
         audio_store[req.cache_key] = kept
 
@@ -828,6 +889,7 @@ def _restore_recorded_take(
         kept = apply_voice_effects(raw, req.effects) if req.effects else raw
         audio_store[req.cache_key] = kept
         req.restore = False
+        req.fresh_audio = True
     else:
         kept = audio_store[req.cache_key]
     expected = entry.get("heard_digest")
@@ -1082,32 +1144,44 @@ def _load_or_align(
     transcript: str,
     mall: Mapping[str, MutableMapping] | None,
     cache_key: str,
+    *,
+    fresh_audio: bool = False,
 ) -> VisemeTrack:
+    """The viseme track of ``audio``: the cached one when it was aligned on these
+    bytes, else a new alignment (written back under the same key).
+
+    The sidecar records ``audio_sha256``, the digest of the audio it was
+    aligned on (an#289). A cached track is re-aligned when that digest differs
+    from ``audio``'s, or — for a sidecar written before the digest existed —
+    when the audio was produced in this call (``fresh_audio``): a re-synthesized
+    line must never keep the mouth, word timings and captions of other audio.
+    The viseme KEY is unchanged, so no existing ``viseme_ref`` moves.
+    """
+    digest = _audio_sha256(audio)
     if mall is not None and "visemes" in mall and cache_key in mall["visemes"]:
         try:
             payload = json.loads(mall["visemes"][cache_key].decode("utf-8"))
-            words = payload.get("words")
-            cached = VisemeTrack(
-                visemes=[
-                    Viseme(
-                        time=v["time"],
-                        code=v["code"],
-                        intensity=v.get("intensity", 1.0),
-                    )
-                    for v in payload.get("visemes", [])
-                ],
-                convention=payload.get("convention", lipsync.convention),
-                duration=payload.get("duration", audio.duration),
-                words=(
-                    [(str(w[0]), float(w[1]), float(w[2])) for w in words]
-                    if words is not None
-                    else None
-                ),
+            cached = _track_from_payload(
+                payload, lipsync.convention, duration=audio.duration
             )
+            recorded = payload.get("audio_sha256")
+            if recorded is not None and digest is not None:
+                same_audio = recorded == digest
+            else:
+                # A sidecar written before an#289 names no audio: trust it only
+                # for audio read back AND of the length it was aligned on (a
+                # replaced take or a restored backup is another length).
+                same_audio = not fresh_audio and _legacy_sidecar_fits(
+                    payload, audio.duration
+                )
             # A payload written before an#96 by a provider that HAS words is
             # missing them; re-align once so the sidecar carries them. The key
             # is the same, so the rewrite below replaces the old payload.
-            if cached.words is not None or not _emits_word_timings(lipsync):
+            if same_audio and (
+                cached.words is not None or not _emits_word_timings(lipsync)
+            ):
+                if recorded is None and digest is not None:
+                    _backfill_digest(mall["visemes"], cache_key, payload, digest)
                 return cached
         except Exception:
             # Fall through to recompute; cache content was malformed.
@@ -1132,8 +1206,121 @@ def _load_or_align(
                 else None
             ),
         }
+        if digest is not None:
+            payload["audio_sha256"] = digest
         mall["visemes"][cache_key] = json.dumps(payload).encode("utf-8")
     return track
+
+
+def _stamps_match_store(
+    line: Any,
+    audio_store: Mapping | None,
+    viseme_store: Mapping | None,
+    audio_ref: str,
+    viseme_ref: str,
+    lipsync: LipSyncProvider,
+) -> bool:
+    """Whether ``line``'s stamps can be trusted without producing it again.
+
+    ``False`` when the viseme sidecar names (``audio_sha256``) other audio than
+    the bytes stored under ``audio_ref``. When it names these bytes, the IR is
+    made a projection of the store: a ``duration``, ``viseme_track`` or
+    ``word_timings`` stamped from other audio (a ``scene.json`` from another
+    take, a backup) is re-stamped from the sidecar and the audio, so the mouth
+    and captions follow what is heard. A sidecar written before an#289 names
+    no audio: it is trusted when its recorded duration is the stored audio's
+    (to a frame), and then gains the audio's digest (backfilled once, so the
+    digest check covers the line from then on); another length means the audio
+    was replaced, and the line is produced again. No untouched project
+    re-aligns.
+    """
+    if audio_store is None or viseme_store is None:
+        return True
+    try:
+        payload = json.loads(bytes(viseme_store[viseme_ref]).decode("utf-8"))
+    except Exception:
+        return False  # unreadable: produce it again (`_load_or_align` rewrites it)
+    if not isinstance(payload, dict):
+        return False
+    import hashlib
+
+    audio = audio_store[audio_ref]
+    digest = hashlib.sha256(audio).hexdigest()
+    recorded = payload.get("audio_sha256")
+    if recorded is None:
+        if not _legacy_sidecar_fits(payload, _wav_duration(audio)):
+            return False
+        _backfill_digest(viseme_store, viseme_ref, payload, digest)
+    elif digest != recorded:
+        return False
+    track = _track_from_payload(payload, lipsync.convention)
+    if _emits_word_timings(lipsync) and track.words is None:
+        return False
+    stamped_track, stamped_words = _to_ir_viseme_track(track), _to_ir_word_timings(track)
+    if line.viseme_track != stamped_track or line.word_timings != stamped_words:
+        line.viseme_track, line.word_timings = stamped_track, stamped_words
+        line.duration = _wav_duration(audio)
+    return True
+
+
+#: How far a legacy sidecar's duration may sit from its audio's and still be
+#: the same take: a frame at 60 fps.
+LEGACY_DURATION_TOLERANCE_S: float = 1 / 60
+
+
+def _legacy_sidecar_fits(
+    payload: Mapping[str, Any],
+    audio_duration: float,
+    *,
+    tolerance_s: float = LEGACY_DURATION_TOLERANCE_S,
+) -> bool:
+    """Whether a sidecar that names no audio was aligned on audio this long.
+
+    Every lip-sync provider records the audio's own duration in its track, so
+    a different duration is different audio. One without a recorded duration
+    cannot be checked, and is trusted as before.
+    """
+    recorded = payload.get("duration")
+    if recorded is None or not audio_duration:
+        return True
+    return abs(float(recorded) - float(audio_duration)) <= tolerance_s
+
+
+def _backfill_digest(
+    store: MutableMapping, key: str, payload: Mapping[str, Any], digest: str
+) -> None:
+    """Record ``digest`` in a legacy sidecar — nothing else in it changes."""
+    store[key] = json.dumps({**payload, "audio_sha256": digest}).encode("utf-8")
+
+
+def _track_from_payload(
+    payload: Mapping[str, Any], convention: str, *, duration: float | None = None
+) -> VisemeTrack:
+    """The ``VisemeTrack`` a viseme sidecar holds."""
+    words = payload.get("words")
+    return VisemeTrack(
+        visemes=[
+            Viseme(time=v["time"], code=v["code"], intensity=v.get("intensity", 1.0))
+            for v in payload.get("visemes", [])
+        ],
+        convention=payload.get("convention", convention),
+        duration=payload.get("duration", duration),
+        words=(
+            [(str(w[0]), float(w[1]), float(w[2])) for w in words]
+            if words is not None
+            else None
+        ),
+    )
+
+
+def _audio_sha256(audio: AudioClip) -> str | None:
+    """The sha256 of the clip's bytes (``None`` for a clip with no bytes)."""
+    import hashlib
+
+    data = audio.bytes_
+    if data is None and audio.path is not None and audio.path.exists():
+        data = audio.path.read_bytes()
+    return hashlib.sha256(data).hexdigest() if data is not None else None
 
 
 def _wav_duration(wav_bytes: bytes) -> float:
