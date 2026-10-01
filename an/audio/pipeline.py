@@ -133,7 +133,13 @@ def produce_audio_for_dialogue(
     lipsync = lipsync or default_lipsync()
     voice_id = voice_id or dialogue.voice_ref or DEFAULT_VOICE
     req = _line_request(
-        dialogue, mall, tts, voice_id, effects=effects, takes=takes, take_scorer=take_scorer
+        dialogue,
+        mall,
+        tts,
+        voice_id,
+        effects=effects,
+        takes=takes,
+        take_scorer=take_scorer,
     )
     return _produce_line(req, mall, lipsync)
 
@@ -150,7 +156,9 @@ def _produce_line(
             req.tts, req.text, req.handed_voice, mall, req.raw_key, options=req.options
         )
         if req.cache_key != req.raw_key:
-            audio_clip = _load_or_apply_effects(audio_clip, req.effects, mall, req.cache_key)
+            audio_clip = _load_or_apply_effects(
+                audio_clip, req.effects, mall, req.cache_key
+            )
     else:
         audio_clip = _load_or_choose_take(mall, req)
     viseme_cache_key = viseme_key(req.cache_key, lipsync.name, req.text)
@@ -250,7 +258,9 @@ def produce_audio_for_scene(
                 pending.append((line, voice_id, req))
 
     messages = [
-        takes_cost_message([(line.text, req) for line, _, req in pending], tts, audio_store),
+        takes_cost_message(
+            [(line.text, req) for line, _, req in pending], tts, audio_store
+        ),
         _older_scorer_message(resolved),
     ]
     if announce is not None:
@@ -492,7 +502,9 @@ def _older_scorer_message(reqs: list["_LineRequest"]) -> str:
     if not older:
         return ""
     first = older[0]
-    texts = ", ".join(repr(r.text[:40]) for r in older[:5]) + (" …" if len(older) > 5 else "")
+    texts = ", ".join(repr(r.text[:40]) for r in older[:5]) + (
+        " …" if len(older) > 5 else ""
+    )
     return (
         f"{len(older)} line(s) keep the take chosen by an older scorer "
         f"({first.scorer.name} {first.older_scorer}; now {first.scorer.version}): "
@@ -561,8 +573,10 @@ class _LineRequest:
         """``(take, options, raw_key)`` per candidate take (only take 0 without ``spec``)."""
         n = self.spec.n if self.spec is not None else 1
         for take in range(n):
-            yield take, _take_options(self.tts, self.options, take), self.take_key(
-                take, heard=False
+            yield (
+                take,
+                _take_options(self.tts, self.options, take),
+                self.take_key(take, heard=False),
             )
 
 
@@ -596,7 +610,9 @@ def _line_request(
             tts_name=tts.name,
             repeatable=bool(getattr(tts, "repeatable", False)),
         )
-    raw_key = audio_key(line.text, voice_id, tts.name, provider_voice=named, options=options)
+    raw_key = audio_key(
+        line.text, voice_id, tts.name, provider_voice=named, options=options
+    )
     req = _LineRequest(
         tts=tts,
         text=line.text,
@@ -606,7 +622,14 @@ def _line_request(
         effects=effects,
         raw_key=raw_key,
         cache_key=(
-            audio_key(line.text, voice_id, tts.name, effects, provider_voice=named, options=options)
+            audio_key(
+                line.text,
+                voice_id,
+                tts.name,
+                effects,
+                provider_voice=named,
+                options=options,
+            )
             if takes is None
             else None
         ),
@@ -632,7 +655,12 @@ def _line_request(
     if chosen is None:  # never chosen, or a rescore / reroll pending
         req.roll = int(record.get("roll", 0)) if record is not None else 0
         missing = _missing_takes(req, mall)
-        if strict and record is not None and record.get("pending") == "rescore" and missing:
+        if (
+            strict
+            and record is not None
+            and record.get("pending") == "rescore"
+            and missing
+        ):
             # A rescore chooses among takes ALREADY synthesized: re-synthesizing
             # one under its old key would put new bytes under a key whose
             # visemes are cached (the stale mouth of review H1).
@@ -673,15 +701,21 @@ REROLL_ONLY_HINT: str = (
 )
 
 
-def _missing_takes(req: _LineRequest, mall: Mapping[str, MutableMapping] | None) -> list[int]:
+def _missing_takes(
+    req: _LineRequest, mall: Mapping[str, MutableMapping] | None
+) -> list[int]:
     """The takes of ``req``'s current roll whose raw audio is not in the store."""
     audio_store = mall.get("audio") if mall is not None else None
     if audio_store is None:
         return []
-    return [take for take, _options, key in req.take_requests() if key not in audio_store]
+    return [
+        take for take, _options, key in req.take_requests() if key not in audio_store
+    ]
 
 
-def _take_options(tts: TTSProvider, options: Mapping[str, Any], take: int) -> dict[str, Any]:
+def _take_options(
+    tts: TTSProvider, options: Mapping[str, Any], take: int
+) -> dict[str, Any]:
     """The provider's request for candidate ``take`` (its optional ``take_options`` hook)."""
     hook = getattr(tts, "take_options", None)
     if take == 0 or hook is None:
@@ -728,11 +762,20 @@ def _load_or_choose_take(
         )
         heard_key = req.take_key(take, heard=True)
         heard = (
-            _load_or_apply_effects(raw, req.effects, mall, heard_key) if req.effects else raw
+            _load_or_apply_effects(raw, req.effects, mall, heard_key)
+            if req.effects
+            else raw
         )
         data = _clip_bytes(heard)
         candidates.append(
-            (take, raw_key, heard_key, _clip_bytes(raw), data, req.scorer.score(data, req.text))
+            (
+                take,
+                raw_key,
+                heard_key,
+                _clip_bytes(raw),
+                data,
+                req.scorer.score(data, req.text),
+            )
         )
     best = choose_take([c[5] for c in candidates])
     req.cache_key, kept = candidates[best][2], candidates[best][4]
@@ -765,7 +808,9 @@ def _load_or_choose_take(
         ],
         "history": list(previous.get("history", [])),
     }
-    write_takes_record(mall.get(TAKES_STORE) if mall is not None else None, req.choice_key, record)
+    write_takes_record(
+        mall.get(TAKES_STORE) if mall is not None else None, req.choice_key, record
+    )
     req.record = record
     return _kept_clip(kept, req)
 
@@ -808,7 +853,11 @@ def _honour_hand_edit(mall: Mapping[str, MutableMapping], req: _LineRequest) -> 
     chosen = record["chosen"]
     entry = record["takes"][chosen]
     replaced = next(
-        (t.get("take") for t in record["takes"] if t.get("heard_digest") == record.get("digest")),
+        (
+            t.get("take")
+            for t in record["takes"]
+            if t.get("heard_digest") == record.get("digest")
+        ),
         None,
     )
     record["history"] = [
@@ -831,8 +880,13 @@ def _honour_hand_edit(mall: Mapping[str, MutableMapping], req: _LineRequest) -> 
     if decisions is not None and hasattr(decisions, "append"):
         decisions.append(
             kind="takes_hand_edit",
-            body={"text": req.text, "voice": req.voice_id, "from_take": replaced,
-                  "to_take": chosen, "record": req.choice_key},
+            body={
+                "text": req.text,
+                "voice": req.voice_id,
+                "from_take": replaced,
+                "to_take": chosen,
+                "record": req.choice_key,
+            },
         )
     req.record, req.hand_edit = record, False
 
@@ -878,13 +932,19 @@ def retake_lines(
             if needle not in line.text.lower():
                 continue
             voice_id = line_voice_id(line, shot, mall)
-            req = _line_request(line, mall, tts, voice_id, take_scorer=take_scorer, strict=False)
+            req = _line_request(
+                line, mall, tts, voice_id, take_scorer=take_scorer, strict=False
+            )
             if req.spec is None:
-                out.append(f"{line.text!r}: its voice declares no takes under {tts.name}")
+                out.append(
+                    f"{line.text!r}: its voice declares no takes under {tts.name}"
+                )
                 continue
             record = req.record
             if record is None or record.get("chosen") is None:
-                out.append(f"{line.text!r}: no take recorded yet; the next render chooses one")
+                out.append(
+                    f"{line.text!r}: no take recorded yet; the next render chooses one"
+                )
                 continue
             roll = int(record.get("roll", 0))
             missing = _missing_takes(req, mall)
@@ -923,7 +983,11 @@ def retake_lines(
             )
             out.append(
                 f"{line.text!r}: take {record['chosen']} released; the next render "
-                + ("re-chooses from the cached takes" if rescore else f"synthesizes {req.spec.n} new takes (roll {roll + 1})")
+                + (
+                    "re-chooses from the cached takes"
+                    if rescore
+                    else f"synthesizes {req.spec.n} new takes (roll {roll + 1})"
+                )
             )
     if not out:
         out.append(f"no dialogue line contains {match!r}")

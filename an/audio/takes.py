@@ -172,7 +172,9 @@ class TakeScorer(Protocol):
 def _check_entry(raw: Any, *, where: str, allowed: frozenset[str]) -> dict[str, Any]:
     """One ``takes`` mapping (the voice's or a cue's), validated and canonical."""
     if isinstance(raw, bool):
-        raise VoiceTakesError(f"{where} must be a number of takes or a mapping, got {raw!r}")
+        raise VoiceTakesError(
+            f"{where} must be a number of takes or a mapping, got {raw!r}"
+        )
     if isinstance(raw, int):
         raw = {"n": raw}
     if not isinstance(raw, Mapping):
@@ -181,7 +183,9 @@ def _check_entry(raw: Any, *, where: str, allowed: frozenset[str]) -> dict[str, 
         )
     unknown = sorted(set(raw) - allowed)
     if unknown:
-        raise VoiceTakesError(f"unknown {where} key(s) {unknown}; known: {sorted(allowed)}")
+        raise VoiceTakesError(
+            f"unknown {where} key(s) {unknown}; known: {sorted(allowed)}"
+        )
     out: dict[str, Any] = {}
     if "n" in raw:
         n = raw["n"]
@@ -193,14 +197,18 @@ def _check_entry(raw: Any, *, where: str, allowed: frozenset[str]) -> dict[str, 
         out["n"] = n
     if "scorer" in raw:
         if not isinstance(raw["scorer"], str) or not raw["scorer"]:
-            raise VoiceTakesError(f"{where}.scorer must be a scorer name, got {raw['scorer']!r}")
+            raise VoiceTakesError(
+                f"{where}.scorer must be a scorer name, got {raw['scorer']!r}"
+            )
         out["scorer"] = raw["scorer"]
     if "targets" in raw:
         out["targets"] = _check_targets(raw["targets"], where=f"{where}.targets")
     if raw.get("reference_hz") is not None:
         ref = raw["reference_hz"]
         if isinstance(ref, bool) or not isinstance(ref, (int, float)) or ref <= 0:
-            raise VoiceTakesError(f"{where}.reference_hz must be a pitch in Hz, got {ref!r}")
+            raise VoiceTakesError(
+                f"{where}.reference_hz must be a pitch in Hz, got {ref!r}"
+            )
         out["reference_hz"] = float(ref)
     return out
 
@@ -240,7 +248,9 @@ def normalize_takes(raw: Any) -> dict[str, Any]:
         if not isinstance(cues, Mapping):
             raise VoiceTakesError(f"{TAKES_KEY}.cues must map a direction cue to takes")
         out["cues"] = {
-            str(cue): _check_entry(entry, where=f"{TAKES_KEY}.cues.{cue}", allowed=_CUE_FIELDS)
+            str(cue): _check_entry(
+                entry, where=f"{TAKES_KEY}.cues.{cue}", allowed=_CUE_FIELDS
+            )
             for cue, entry in cues.items()
         }
     return out
@@ -313,7 +323,11 @@ def takes_choice_part(scorer: TakeScorer, n: int) -> dict[str, Any]:
 
 def scorer_identity(scorer: TakeScorer) -> dict[str, Any]:
     """The scorer as a record names it: name, version and configuration."""
-    return {"name": scorer.name, "version": scorer.version, "config": dict(scorer.config)}
+    return {
+        "name": scorer.name,
+        "version": scorer.version,
+        "config": dict(scorer.config),
+    }
 
 
 # -----------------------------------------------------------------------------
@@ -347,14 +361,18 @@ def read_takes_record(store: Mapping | None, key: str) -> dict[str, Any] | None:
     try:
         record = json.loads(bytes(store[key]).decode("utf-8"))
     except (ValueError, UnicodeDecodeError, TypeError) as exc:
-        raise TakesRecordError(f"the takes record {name} is not JSON ({exc}); {remedy}") from None
+        raise TakesRecordError(
+            f"the takes record {name} is not JSON ({exc}); {remedy}"
+        ) from None
     takes = record.get("takes") if isinstance(record, dict) else None
     chosen = record.get("chosen") if isinstance(record, dict) else None
     ok = (
         isinstance(record, dict)
         and isinstance(takes, list)
         and all(isinstance(t, dict) for t in takes)
-        and (chosen is None or (isinstance(chosen, int) and not isinstance(chosen, bool)))
+        and (
+            chosen is None or (isinstance(chosen, int) and not isinstance(chosen, bool))
+        )
         and isinstance(record.get("roll", 0), int)
     )
     if not ok:
@@ -438,14 +456,21 @@ class ProsodyTakeScorer:
         from an.verify.prosody import measure_prosody, target_distance
 
         samples = decode_for_scoring(audio, sr=self.sr)
-        stats = measure_prosody(samples, self.sr, text=text, reference_hz=self.reference_hz)
+        stats = measure_prosody(
+            samples, self.sr, text=text, reference_hz=self.reference_hz
+        )
         outside, off_centre = target_distance(stats, self.targets)
         measured = {
-            k: (None if v is None or (isinstance(v, float) and math.isnan(v)) else round(float(v), 3))
+            k: (
+                None
+                if v is None or (isinstance(v, float) and math.isnan(v))
+                else round(float(v), 3)
+            )
             for k, v in ((name, getattr(stats, name)) for name in self.targets)
         }
         misses = [
-            k for k, (lo, hi) in self.targets.items()
+            k
+            for k, (lo, hi) in self.targets.items()
             if measured[k] is None or not lo <= measured[k] <= hi
         ]
         return TakeScore(
@@ -456,7 +481,9 @@ class ProsodyTakeScorer:
 
 #: Scorer factories by name: ``TakesSpec -> TakeScorer``.
 SCORERS: dict[str, Callable[[TakesSpec], TakeScorer]] = {
-    DEFAULT_SCORER: lambda spec: ProsodyTakeScorer(spec.targets, reference_hz=spec.reference_hz),
+    DEFAULT_SCORER: lambda spec: ProsodyTakeScorer(
+        spec.targets, reference_hz=spec.reference_hz
+    ),
 }
 
 
@@ -507,7 +534,9 @@ def style_voice_role(spec: Mapping[str, Any], role: str) -> dict[str, Any]:
     """
     roles = ((spec.get("live") or {}).get("voice") or {}).get("roles") or {}
     if role not in roles:
-        raise VoiceTakesError(f"the style casts no voice role {role!r}; roles: {sorted(roles)}")
+        raise VoiceTakesError(
+            f"the style casts no voice role {role!r}; roles: {sorted(roles)}"
+        )
     named = spec.get("prosody_targets") or {}
 
     def resolve(entry: Any) -> Any:
@@ -529,5 +558,7 @@ def style_voice_role(spec: Mapping[str, Any], role: str) -> dict[str, Any]:
     doc = dict(roles[role])
     if TAKES_KEY in doc:
         doc[TAKES_KEY] = resolve(doc[TAKES_KEY])
-        normalize_takes(doc[TAKES_KEY])  # refuse a bad role at apply time, not at render
+        normalize_takes(
+            doc[TAKES_KEY]
+        )  # refuse a bad role at apply time, not at render
     return doc
