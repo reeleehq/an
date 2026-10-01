@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.frame_clock" href="an.frame_clock.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -658,19 +660,22 @@ genre defined in the same process).</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.genres.installed" title="an.genres.installed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">installed</span></code></a>()</p></td>
 <td><p>The names of the genres registered in this process, in registration order.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">installed_genre</span></code>(name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.genre_library" title="an.genres.genre_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genre_library</span></code></a>(name, *[, default])</p></td>
+<td><p>The package whose data root holds genre <code class="docutils literal notranslate"><span class="pre">name</span></code>'s library and projects.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">installed_genre</span></code>(name)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.load" title="an.genres.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(*[, entry_points, builtin])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.load" title="an.genres.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(*[, entry_points, builtin])</p></td>
 <td><p>Register every discoverable genre.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.providers_of" title="an.genres.providers_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers_of</span></code></a>(kind, *[, registry])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.providers_of" title="an.genres.providers_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers_of</span></code></a>(kind, *[, registry])</p></td>
 <td><p>The installed genres (loaded or not) that declare <code class="docutils literal notranslate"><span class="pre">kind</span></code> in <code class="docutils literal notranslate"><span class="pre">registry</span></code> (a key of <a class="reference internal" href="#an.genres.Genre.provides" title="an.genres.Genre.provides"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Genre.provides()</span></code></a>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.register_genre" title="an.genres.register_genre"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_genre</span></code></a>(genre, *[, replace])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.register_genre" title="an.genres.register_genre"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_genre</span></code></a>(genre, *[, replace])</p></td>
 <td><p>Register everything <code class="docutils literal notranslate"><span class="pre">genre</span></code> declares, owned by <code class="docutils literal notranslate"><span class="pre">genre.name</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.without_genres" title="an.genres.without_genres"><code class="xref py py-obj docutils literal notranslate"><span class="pre">without_genres</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.without_genres" title="an.genres.without_genres"><code class="xref py py-obj docutils literal notranslate"><span class="pre">without_genres</span></code></a>()</p></td>
 <td><p>Run a block with no genre registered (the core alone), then restore.</p></td>
 </tr>
 </tbody>
@@ -777,7 +782,7 @@ a voice); <code class="docutils literal notranslate"><span class="pre">store</sp
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.genres.Genre">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">Genre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue_sugar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres.html#Genre"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.Genre" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">Genre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue_sugar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres.html#Genre"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.Genre" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A genre: one plain, declarative object listing what it registers.</p>
 <p><code class="docutils literal notranslate"><span class="pre">name</span></code> is the genre’s persisted slug (<code class="docutils literal notranslate"><span class="pre">cutout_animation</span></code>); it is also
@@ -788,6 +793,13 @@ touching any genre that does not use it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">spaces</span></code> are <a class="reference internal" href="an.timing.spaces.html#an.timing.spaces.PropertySpace" title="an.timing.spaces.PropertySpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.timing.spaces.PropertySpace</span></code></a> objects and
 <code class="docutils literal notranslate"><span class="pre">field_kinds</span></code> are <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">factory)</span></code> pairs for
 <a class="reference internal" href="an.timing.kinds.html#an.timing.kinds.register_kind" title="an.timing.kinds.register_kind"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.timing.kinds.register_kind()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">library</span></code> names the package whose data root holds the genre’s asset
+library and its projects (<code class="docutils literal notranslate"><span class="pre">~/.local/share/&lt;library&gt;</span></code>, ADR 0005, plan §1
+decision 7); empty means the core’s (<code class="docutils literal notranslate"><span class="pre">an</span></code>). It is not <code class="docutils literal notranslate"><span class="pre">package</span></code>: the
+distribution that ships a genre and the root its data lives under can
+differ (the cut-out genre ships inside <code class="docutils literal notranslate"><span class="pre">an</span></code> today, while its library is
+already <code class="docutils literal notranslate"><span class="pre">cutan</span></code>’s). The core never names a genre’s library itself —
+a project made in a genre asks the genre (<a class="reference internal" href="#an.genres.genre_library" title="an.genres.genre_library"><code class="xref py py-func docutils literal notranslate"><span class="pre">genre_library()</span></code></a>).</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
@@ -944,6 +956,24 @@ per-entity evaluation default arrives with the <code class="docutils literal not
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntryPoint</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.genres.genre_library">
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">genre_library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres.html#genre_library"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.genre_library" title="Link to this definition">#</a></dt>
+<dd><p>The package whose data root holds genre <code class="docutils literal notranslate"><span class="pre">name</span></code>’s library and projects.</p>
+<p><code class="docutils literal notranslate"><span class="pre">default</span></code> (the core package) for no genre, an unknown one, or a genre
+that declares none. Reads the genres installed in this process (call
+<a class="reference internal" href="#an.genres.load" title="an.genres.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code></a> first, as every entry point does).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">genre_library</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="go">'an'</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1114,6 +1144,7 @@ All or nothing: a registration that fails part-way leaves no trace.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.discovered_entry_points"><code class="docutils literal notranslate"><span class="pre">discovered_entry_points()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.entity_space_resolver"><code class="docutils literal notranslate"><span class="pre">entity_space_resolver()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.genre_entry_points"><code class="docutils literal notranslate"><span class="pre">genre_entry_points()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.genre_library"><code class="docutils literal notranslate"><span class="pre">genre_library()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.genres_declaring"><code class="docutils literal notranslate"><span class="pre">genres_declaring()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.installed"><code class="docutils literal notranslate"><span class="pre">installed()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>

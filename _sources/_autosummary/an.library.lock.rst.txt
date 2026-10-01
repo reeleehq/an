@@ -4,13 +4,6 @@ an.library.lock
 .. automodule:: an.library.lock
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      LOCKFILE_NAME
-      LOCKFILE_SCHEMA_VERSION
-   
    .. rubric:: Functions
 
    .. autosummary::

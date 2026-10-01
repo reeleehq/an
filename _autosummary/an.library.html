@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.iterate" href="an.iterate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -590,7 +592,7 @@ read together as an ordered search path.</p>
 </pre></div>
 </div>
 <p>What lives where:</p>
-<ul class="simple">
+<ul>
 <li><p><a class="reference internal" href="an.library.root.html#module-an.library.root" title="an.library.root"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.root</span></code></a> — the root of each package’s data (vendored XDG logic);</p></li>
 <li><p><a class="reference internal" href="an.library.ids.html#module-an.library.ids" title="an.library.ids"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.ids</span></code></a> — asset ids, version labels, library references;</p></li>
 <li><p><a class="reference internal" href="an.library.stores.html#module-an.library.stores" title="an.library.stores"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.stores</span></code></a> — the mall: <code class="docutils literal notranslate"><span class="pre">records</span></code>, write-once <code class="docutils literal notranslate"><span class="pre">versions</span></code>,
@@ -598,10 +600,21 @@ content-addressed <code class="docutils literal notranslate"><span class="pre">b
 <li><p><a class="reference internal" href="an.library.federation.html#module-an.library.federation" title="an.library.federation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.federation</span></code></a> — <a class="reference internal" href="#an.library.Library" title="an.library.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a> and the search path;</p></li>
 <li><p><a class="reference internal" href="an.library.affordances.html#module-an.library.affordances" title="an.library.affordances"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.affordances</span></code></a> — capabilities and per-kind analysers (the seed
 of ADR 0002’s registry); <a class="reference internal" href="an.library.character.html#module-an.library.character" title="an.library.character"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.character</span></code></a> — the character analyser;</p></li>
-<li><p><a class="reference internal" href="an.library.rights.html#module-an.library.rights" title="an.library.rights"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.rights</span></code></a> — the most-restrictive roll-up over <code class="docutils literal notranslate"><span class="pre">AssetSource</span></code>;</p></li>
+<li><p><a class="reference internal" href="an.library.rights.html#module-an.library.rights" title="an.library.rights"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.rights</span></code></a> — the most-restrictive roll-up over <code class="docutils literal notranslate"><span class="pre">AssetSource</span></code>;
+<a class="reference internal" href="an.library.floor.html#module-an.library.floor" title="an.library.floor"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.floor</span></code></a> — the strictest statement any library on the machine</p>
+<blockquote>
+<div><p>makes about a blob; <a class="reference internal" href="an.library.registry.html#module-an.library.registry" title="an.library.registry"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.registry</span></code></a> — the machine’s registry of
+library roots the floor reads, independent of the environment;</p>
+</div></blockquote>
+</li>
 <li><p><a class="reference internal" href="an.library.api.html#module-an.library.api" title="an.library.api"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.api</span></code></a> — <code class="docutils literal notranslate"><span class="pre">publish</span></code>, <code class="docutils literal notranslate"><span class="pre">find</span></code>, <code class="docutils literal notranslate"><span class="pre">vocabulary</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>,
 <code class="docutils literal notranslate"><span class="pre">promote</span></code>; <a class="reference internal" href="#an.library.checkout" title="an.library.checkout"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.checkout</span></code></a> — <code class="docutils literal notranslate"><span class="pre">checkout</span></code>, <code class="docutils literal notranslate"><span class="pre">verify_checkout</span></code>,
-<code class="docutils literal notranslate"><span class="pre">check_pins</span></code>; <a class="reference internal" href="an.library.lock.html#module-an.library.lock" title="an.library.lock"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.lock</span></code></a> — the project lockfile;</p></li>
+<code class="docutils literal notranslate"><span class="pre">check_pins</span></code>, <code class="docutils literal notranslate"><span class="pre">drift_findings</span></code> (both run by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>);
+<a class="reference internal" href="an.library.lock.html#module-an.library.lock" title="an.library.lock"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.lock</span></code></a> — the project lockfile (a project store,</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">mall[&quot;library_lock&quot;]</span></code>);</p>
+</div></blockquote>
+</li>
 <li><p><a class="reference internal" href="an.library.cli.html#module-an.library.cli" title="an.library.cli"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.cli</span></code></a> — <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span> <span class="pre">…</span></code>, a projection of the same functions.</p></li>
 </ul>
 <p class="rubric">Functions</p>
@@ -619,67 +632,76 @@ of ADR 0002’s registry); <a class="reference internal" href="an.library.charac
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.checkout" title="an.library.checkout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkout</span></code></a>(libraries, project_dir, ref, *[, ...])</p></td>
 <td><p>Materialise a library version into a project, carry its rights, pin it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.effective_rights" title="an.library.effective_rights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">effective_rights</span></code></a>(libraries, version, *[, floor])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.drift_findings" title="an.library.drift_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drift_findings</span></code></a>([project_dir, mall, lock, ...])</p></td>
+<td><p>One <code class="docutils literal notranslate"><span class="pre">info</span></code> Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.effective_rights" title="an.library.effective_rights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">effective_rights</span></code></a>(libraries, version, *[, floor])</p></td>
 <td><p>The rights of a version, recomputed from its sources, its lineage and its bytes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.find" title="an.library.find"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find</span></code></a>(libraries, *[, kind, style, affords, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.find" title="an.library.find"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find</span></code></a>(libraries, *[, kind, style, affords, ...])</p></td>
 <td><p>Assets matching every facet given (AND across facets, OR within one facet's values).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.library_root" title="an.library.library_root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library_root</span></code></a>([root, package, environ, platform])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.library_root" title="an.library.library_root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library_root</span></code></a>([root, package, environ, platform])</p></td>
 <td><p>The data root of <code class="docutils literal notranslate"><span class="pre">package</span></code> — its library and its projects live under it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.open_library" title="an.library.open_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open_library</span></code></a>([package, root])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.open_library" title="an.library.open_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open_library</span></code></a>([package, root])</p></td>
 <td><p>The library of <code class="docutils literal notranslate"><span class="pre">package</span></code>, at <code class="docutils literal notranslate"><span class="pre">root</span></code> (resolved as in <a class="reference internal" href="an.library.root.html#module-an.library.root" title="an.library.root"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.root</span></code></a>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.parse_ref" title="an.library.parse_ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_ref</span></code></a>(text, *[, require_version, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.parse_ref" title="an.library.parse_ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_ref</span></code></a>(text, *[, require_version, ...])</p></td>
 <td><p>Parse a library reference.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.project_dir" title="an.library.project_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_dir</span></code></a>(project_id[, root, package, environ])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.project_dir" title="an.library.project_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_dir</span></code></a>(project_id[, root, package, environ])</p></td>
 <td><p>The default directory of the agent-made project <code class="docutils literal notranslate"><span class="pre">project_id</span></code> (design §7.5).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.projects_root" title="an.library.projects_root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projects_root</span></code></a>([root, package, environ])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.projects_root" title="an.library.projects_root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projects_root</span></code></a>([root, package, environ])</p></td>
 <td><p>Where agent-made projects go by default: <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;/projects/</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.promote" title="an.library.promote"><code class="xref py py-obj docutils literal notranslate"><span class="pre">promote</span></code></a>(libraries, ref, *[, to, as_id, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.promote" title="an.library.promote"><code class="xref py py-obj docutils literal notranslate"><span class="pre">promote</span></code></a>(libraries, ref, *[, to, as_id, ...])</p></td>
 <td><p>Copy one version into another library — by default the core <code class="docutils literal notranslate"><span class="pre">an</span></code> library.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.publish" title="an.library.publish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish</span></code></a>(library, asset_id, doc[, files, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.publish" title="an.library.publish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish</span></code></a>(library, asset_id, doc[, files, ...])</p></td>
 <td><p>Publish <code class="docutils literal notranslate"><span class="pre">doc</span></code> and its <code class="docutils literal notranslate"><span class="pre">files</span></code> as the next version of <code class="docutils literal notranslate"><span class="pre">asset_id</span></code> in <code class="docutils literal notranslate"><span class="pre">library</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.publish_dir" title="an.library.publish_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish_dir</span></code></a>(library, folder, asset_id, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.publish_dir" title="an.library.publish_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish_dir</span></code></a>(library, folder, asset_id, **kwargs)</p></td>
 <td><p>Publish an asset folder as it sits in a project store (<code class="docutils literal notranslate"><span class="pre">assets/characters/alice/</span></code>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.reindex" title="an.library.reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reindex</span></code></a>(library, *[, search])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.reindex" title="an.library.reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reindex</span></code></a>(library, *[, search])</p></td>
 <td><p>Rebuild <code class="docutils literal notranslate"><span class="pre">library</span></code>'s floor index from its versions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.register_analyser" title="an.library.register_analyser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_analyser</span></code></a>(kind, *, version)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.register_analyser" title="an.library.register_analyser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_analyser</span></code></a>(kind, *, version)</p></td>
 <td><p>Decorator: register <code class="docutils literal notranslate"><span class="pre">derive</span></code> as the analyser of <code class="docutils literal notranslate"><span class="pre">kind</span></code> at <code class="docutils literal notranslate"><span class="pre">version</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.register_asset_kind" title="an.library.register_asset_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_asset_kind</span></code></a>(name, *[, store, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.register_asset_kind" title="an.library.register_asset_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_asset_kind</span></code></a>(name, *[, store, ...])</p></td>
 <td><p>Register (or re-register) an asset kind.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.register_capability" title="an.library.register_capability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_capability</span></code></a>(name, *, description, remedy)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.register_capability" title="an.library.register_capability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_capability</span></code></a>(name, *, description, remedy)</p></td>
 <td><p>Register (or re-register) a capability.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.resolve" title="an.library.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(libraries, ref)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.register_root" title="an.library.register_root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_root</span></code></a>(package, root, *[, registry])</p></td>
+<td><p>Record <code class="docutils literal notranslate"><span class="pre">root</span></code> (<code class="docutils literal notranslate"><span class="pre">package</span></code>'s library root) in the registry; <code class="docutils literal notranslate"><span class="pre">True</span></code> if it was new.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.registered_roots" title="an.library.registered_roots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_roots</span></code></a>(*[, registry])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(package,</span> <span class="pre">root)</span></code> for every root ever registered, oldest first, each once.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.resolve" title="an.library.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(libraries, ref)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(library,</span> <span class="pre">pinned_ref,</span> <span class="pre">version_doc)</span></code> for a reference, along the search path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.roll_up" title="an.library.roll_up"><code class="xref py py-obj docutils literal notranslate"><span class="pre">roll_up</span></code></a>(sources, *[, inherited])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.roll_up" title="an.library.roll_up"><code class="xref py py-obj docutils literal notranslate"><span class="pre">roll_up</span></code></a>(sources, *[, inherited])</p></td>
 <td><p>Roll labelled sources (and parents' rights) up to one <a class="reference internal" href="#an.library.Rights" title="an.library.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.scan_index" title="an.library.scan_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scan_index</span></code></a>(library)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.scan_index" title="an.library.scan_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scan_index</span></code></a>(library)</p></td>
 <td><p>Every asset's head version in <code class="docutils literal notranslate"><span class="pre">library</span></code>, read from the stores.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.search_path" title="an.library.search_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">search_path</span></code></a>([package, extra, roots])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.search_path" title="an.library.search_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">search_path</span></code></a>([package, extra, roots])</p></td>
 <td><p>The ordered libraries <code class="docutils literal notranslate"><span class="pre">package</span></code> reads: its own, then the core <code class="docutils literal notranslate"><span class="pre">an</span></code>, then <code class="docutils literal notranslate"><span class="pre">extra</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.show" title="an.library.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(libraries, ref)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.show" title="an.library.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(libraries, ref)</p></td>
 <td><p>The record, the resolved version, its recomputed rights and the list of versions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.verify_checkout" title="an.library.verify_checkout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_checkout</span></code></a>(libraries, project_dir, *[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.verify_checkout" title="an.library.verify_checkout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_checkout</span></code></a>(libraries, project_dir, *[, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&lt;store&gt;/&lt;key&gt;:</span> <span class="pre">differences}</span></code> for every pinned entry; empty lists are intact copies.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.vocabulary" title="an.library.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a>(libraries, *[, index])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.vocabulary" title="an.library.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a>(libraries, *[, index])</p></td>
 <td><p>Every facet with its values and counts, and the registered capabilities.</p></td>
 </tr>
 </tbody>
@@ -736,10 +758,13 @@ of ADR 0002’s registry); <a class="reference internal" href="an.library.charac
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.LibraryError" title="an.library.LibraryError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LibraryError</span></code></a></p></td>
 <td><p>A library operation refused, with a sentence saying why and what to do.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.RightsRefusal" title="an.library.RightsRefusal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RightsRefusal</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.RegistryError" title="an.library.RegistryError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RegistryError</span></code></a></p></td>
+<td><p>The machine's registry or statement memory cannot be read or written; nothing proceeds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.RightsRefusal" title="an.library.RightsRefusal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RightsRefusal</span></code></a></p></td>
 <td><p>A private or unknown version would leave the user's library without an override.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.VersionExistsError" title="an.library.VersionExistsError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VersionExistsError</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.VersionExistsError" title="an.library.VersionExistsError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VersionExistsError</span></code></a></p></td>
 <td><p>A write-once key was written twice, or deleted.</p></td>
 </tr>
 </tbody>
@@ -940,7 +965,7 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.ProjectLock">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">ProjectLock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/lock.html#ProjectLock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ProjectLock" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">ProjectLock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/library_lock.html#ProjectLock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ProjectLock" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
 <p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project’s <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p>
 <p>Every write rewrites the whole (small) file, sorted, so the lockfile diffs
@@ -956,6 +981,13 @@ cleanly under version control.</p>
 <p>What a publish did: the version it names, and whether it made one.</p>
 <dl class="field-list simple">
 </dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.library.RegistryError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">RegistryError</span></span><a class="reference internal" href="../_modules/an/library/registry.html#RegistryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.RegistryError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#OSError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a></p>
+<p>The machine’s registry or statement memory cannot be read or written; nothing proceeds.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1051,9 +1083,11 @@ one on a search path) leaves the disk as it was.</p>
 <dt class="sig sig-object py" id="an.library.check_pins">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">check_pins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/checkout.html#check_pins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.check_pins" title="Link to this definition">#</a></dt>
 <dd><p>Findings where a scene’s <code class="docutils literal notranslate"><span class="pre">AssetRef.library</span></code> and the project lockfile disagree.</p>
-<p>Two records of one pin can drift (a re-check-out updates the lockfile, not
-the scene). Until the lockfile joins the project mall and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>
-runs this (an#240), call it yourself; each disagreement is a <code class="docutils literal notranslate"><span class="pre">warning</span></code>.</p>
+<p>The lockfile is the source of truth (it is what the check-out wrote, beside
+the files); the scene’s <code class="docutils literal notranslate"><span class="pre">library:</span></code> restates it. Two records of one pin can
+drift — a re-check-out updates the lockfile, not the scene — so <code class="docutils literal notranslate"><span class="pre">an</span>
+<span class="pre">validate</span></code> runs this on every project (an#240). Each disagreement, and each
+<code class="docutils literal notranslate"><span class="pre">library:</span></code> the lockfile does not pin, is a <code class="docutils literal notranslate"><span class="pre">warning</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
@@ -1077,16 +1111,42 @@ ref: <code class="docutils literal notranslate"><span class="pre">[&lt;library&g
 </div></blockquote>
 <p>key: the key in the project store (default: the asset id’s slug)
 mall: the project mall (default: <code class="docutils literal notranslate"><span class="pre">build_project_mall(project_dir)</span></code>)
-lock: the lockfile mapping (default: <code class="docutils literal notranslate"><span class="pre">&lt;project_dir&gt;/assets.lock.json</span></code>)
-overwrite: replace an existing entry that is not exactly this version — a</p>
+lock: the lockfile mapping (default: the mall’s <code class="docutils literal notranslate"><span class="pre">library_lock</span></code> store,</p>
 <blockquote>
-<div><p>local fork (any edited file or descriptor) or another asset; without it
-that is refused</p>
+<div><p><code class="docutils literal notranslate"><span class="pre">&lt;project_dir&gt;/assets.lock.json</span></code>)</p>
 </div></blockquote>
+<dl class="simple">
+<dt>overwrite: replace an existing entry that is not exactly this version — a</dt><dd><p>local fork (any edited file or descriptor) or another asset; without it
+that is refused</p>
+</dd>
+</dl>
+<p>An entry that already IS this version byte for byte — the folder a
+<code class="docutils literal notranslate"><span class="pre">publish</span></code> just sent to the library, still unedited — is recognised and
+linked (origin block, carried source, pin) without <code class="docutils literal notranslate"><span class="pre">overwrite</span></code>: publishing
+a project’s asset and checking it back out is the natural first round trip.</p>
 <p>Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; <code class="docutils literal notranslate"><span class="pre">publish</span></code> of the edited folder
 sends it back as a new version derived from this one.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.drift_findings">
+<span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">drift_findings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">libraries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/checkout.html#drift_findings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.drift_findings" title="Link to this definition">#</a></dt>
+<dd><p>One <code class="docutils literal notranslate"><span class="pre">info</span></code> Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.</p>
+<p>An edited check-out is a fork, not a mistake — hence <code class="docutils literal notranslate"><span class="pre">info</span></code>: it says the
+pin now records where the copy CAME FROM, not what it IS, so nothing may
+treat the pin as standing for the content (an#240), and publishing the
+folder would make a new version. A pin this machine cannot check (its
+library is at a custom root, or elsewhere) is its own <code class="docutils literal notranslate"><span class="pre">info</span></code>, with no
+advice to check anything out again — that could swap the asset for a
+same-named other one.</p>
+<p>project_dir: the project (not needed when both <code class="docutils literal notranslate"><span class="pre">mall</span></code> and <code class="docutils literal notranslate"><span class="pre">lock</span></code> are given)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1209,8 +1269,11 @@ on whatever the library’s head is that day.</p>
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">project_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/root.html#project_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.project_dir" title="Link to this definition">#</a></dt>
 <dd><p>The default directory of the agent-made project <code class="docutils literal notranslate"><span class="pre">project_id</span></code> (design §7.5).</p>
 <p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span> <span class="pre">&lt;dir&gt;</span></code> with an explicit directory keeps working anywhere; this is
-the default for projects an agent makes, so they never land in a session’s
-working folder or a repository.</p>
+the default for projects an agent makes (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span> <span class="pre">--id</span> <span class="pre">&lt;id&gt;</span></code>), so they
+never land in a session’s working folder or a repository. <code class="docutils literal notranslate"><span class="pre">package</span></code> is
+the library package of the genre the video is made in
+(<a class="reference internal" href="an.genres.html#an.genres.genre_library" title="an.genres.genre_library"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.genre_library()</span></code></a>; the core’s, <code class="docutils literal notranslate"><span class="pre">an</span></code>, by default — the core
+names no genre).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
@@ -1279,9 +1342,13 @@ doc: the descriptor — the existing document <code class="docutils literal notr
 <dt>files: the asset’s files, by the relative paths the descriptor uses</dt><dd><p>(<code class="docutils literal notranslate"><span class="pre">parts/head.svg</span></code>) — stored once each in the content-addressed blobs</p>
 </dd>
 <dt>source: provenance declared for the asset as a whole. It contributes BESIDE</dt><dd><p>the descriptor’s own <code class="docutils literal notranslate"><span class="pre">source</span></code> (the most restrictive wins), never
-instead of it. With no <code class="docutils literal notranslate"><span class="pre">source</span></code> and none in the descriptor, the source
-of the previous version carries forward (<code class="docutils literal notranslate"><span class="pre">carry_source</span></code>); with none at
-all the version is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> — recorded and visible, not refused</p>
+instead of it. With no <code class="docutils literal notranslate"><span class="pre">source</span></code>, and a descriptor declaring nothing
+or exactly what the head’s declared, the source of the previous version
+carries forward (<code class="docutils literal notranslate"><span class="pre">carry_source</span></code>) — for the bytes it was declared on
+only: a file changed or added since is recorded as <code class="docutils literal notranslate"><span class="pre">unlabelled</span></code> on the
+version and is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> until a publish passes <code class="docutils literal notranslate"><span class="pre">source=</span></code> (or a
+relicence) again; with no source at all the version is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> —
+recorded and visible, not refused</p>
 </dd>
 <dt>relicense: <code class="docutils literal notranslate"><span class="pre">{&quot;by&quot;:</span> <span class="pre">who,</span> <span class="pre">&quot;reason&quot;:</span> <span class="pre">why}</span></code> — the ONLY way to relax rights.</dt><dd><p>Rights attach to the bytes and the lineage: a new version inherits the
 version it follows (<code class="docutils literal notranslate"><span class="pre">previous</span></code>), every version it derives from, and
@@ -1329,8 +1396,9 @@ expect_head: guard against publishing into an asset you did not mean:</p>
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">publish_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#publish_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.publish_dir" title="Link to this definition">#</a></dt>
 <dd><p>Publish an asset folder as it sits in a project store (<code class="docutils literal notranslate"><span class="pre">assets/characters/alice/</span></code>).</p>
 <p>The descriptor is the kind’s descriptor file (<code class="docutils literal notranslate"><span class="pre">character.json</span></code>); every other
-non-hidden file under the folder is published as one of the asset’s files, so
-a check-out reproduces the folder. Keyword arguments go to <a class="reference internal" href="#an.library.publish" title="an.library.publish"><code class="xref py py-func docutils literal notranslate"><span class="pre">publish()</span></code></a>.</p>
+file under the folder is published as one of the asset’s files, so a
+check-out reproduces the folder — except operating-system clutter
+(<code class="docutils literal notranslate"><span class="pre">.DS_Store</span></code>, hidden files, <code class="docutils literal notranslate"><span class="pre">Thumbs.db</span></code>: <code class="xref py py-func docutils literal notranslate"><span class="pre">an.stores._common.is_os_junk()</span></code>). Keyword arguments go to <a class="reference internal" href="#an.library.publish" title="an.library.publish"><code class="xref py py-func docutils literal notranslate"><span class="pre">publish()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.api.html#an.library.api.PublishResult" title="an.library.api.PublishResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">PublishResult</span></code></a></span></p>
@@ -1374,11 +1442,45 @@ input: versions published under the old one are then recomputed on read.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.library.register_root">
+<span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">register_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">registry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/registry.html#register_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.register_root" title="Link to this definition">#</a></dt>
+<dd><p>Record <code class="docutils literal notranslate"><span class="pre">root</span></code> (<code class="docutils literal notranslate"><span class="pre">package</span></code>’s library root) in the registry; <code class="docutils literal notranslate"><span class="pre">True</span></code> if it was new.</p>
+<p>Idempotent. Raises <a class="reference internal" href="#an.library.RegistryError" title="an.library.RegistryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistryError</span></code></a> when the registry cannot be read
+or written: a library the floor cannot find later must not be written to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.registered_roots">
+<span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">registered_roots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">registry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/registry.html#registered_roots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.registered_roots" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(package,</span> <span class="pre">root)</span></code> for every root ever registered, oldest first, each once.</p>
+<p>A line that does not parse (a torn append) is skipped; existence is the
+caller’s to check. A registry that exists but cannot be read raises
+<a class="reference internal" href="#an.library.RegistryError" title="an.library.RegistryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistryError</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.library.reindex">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">reindex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#reindex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.reindex" title="Link to this definition">#</a></dt>
 <dd><p>Rebuild <code class="docutils literal notranslate"><span class="pre">library</span></code>’s floor index from its versions. Returns the number of blobs indexed.</p>
 <p>The index is derived data: rebuilding it is always safe, and the way to
-repair a library whose index was lost or written by an older <code class="docutils literal notranslate"><span class="pre">an</span></code>.</p>
+repair a library whose index was lost or written by an older <code class="docutils literal notranslate"><span class="pre">an</span></code>. It also
+(re-)registers the library’s root in the machine registry
+(<a class="reference internal" href="an.library.registry.html#module-an.library.registry" title="an.library.registry"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.registry</span></code></a>), so a library made at a custom root before the
+registry existed becomes visible to every other library’s rights floor.</p>
+<p>The new index is computed in full first, then written over the old one
+entry by entry, and only then are stale entries removed: a crash midway
+leaves old and new statements side by side, never an empty floor (an#249
+R4-N4).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
@@ -1474,13 +1576,20 @@ search.</p>
 <dt class="sig sig-object py" id="an.library.verify_checkout">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">verify_checkout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/checkout.html#verify_checkout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.verify_checkout" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{&lt;store&gt;/&lt;key&gt;:</span> <span class="pre">differences}</span></code> for every pinned entry; empty lists are intact copies.</p>
-<p>What makes a pin usable as more than provenance: an entry with no
-differences is byte-for-byte the version its pin names.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
 </dd>
 </dl>
+<dl class="simple">
+<dt>libraries: where the pinned versions resolve (<code class="docutils literal notranslate"><span class="pre">None</span></code>: the library each</dt><dd><p>pin names, at its default root — <code class="xref py py-func docutils literal notranslate"><span class="pre">pinned_libraries()</span></code>)</p>
+</dd>
+</dl>
+<p>What makes a pin usable as more than provenance: an entry with no
+differences is byte-for-byte the version its pin names. An entry whose
+pinned version cannot be found, or is found with another manifest (a
+same-named asset in another library), reads <code class="docutils literal notranslate"><span class="pre">[&quot;cannot</span> <span class="pre">verify:</span> <span class="pre">…&quot;]</span></code> —
+never as an edit.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1533,15 +1642,18 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 <td><p>Asset kinds: the <code class="docutils literal notranslate"><span class="pre">kind</span></code> facet's vocabulary, and where each kind lives in a project.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.library.lock.html#module-an.library.lock" title="an.library.lock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lock</span></code></a></p></td>
-<td><p>The project lockfile: which library version each checked-out asset came from.</p></td>
+<td><p>The project lockfile, as the asset library sees it (re-exported from <a class="reference internal" href="an.stores.library_lock.html#module-an.stores.library_lock" title="an.stores.library_lock"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stores.library_lock</span></code></a>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.library.rights.html#module-an.library.rights" title="an.library.rights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rights</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.library.registry.html#module-an.library.registry" title="an.library.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
+<td><p>The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.library.rights.html#module-an.library.rights" title="an.library.rights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rights</span></code></a></p></td>
 <td><p>Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.library.root.html#module-an.library.root" title="an.library.root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">root</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.library.root.html#module-an.library.root" title="an.library.root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">root</span></code></a></p></td>
 <td><p>Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.library.stores.html#module-an.library.stores" title="an.library.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.library.stores.html#module-an.library.stores" title="an.library.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
 <td><p>The library mall: <code class="docutils literal notranslate"><span class="pre">records</span></code>, <code class="docutils literal notranslate"><span class="pre">versions</span></code> and <code class="docutils literal notranslate"><span class="pre">blobs</span></code>, each an injected <code class="docutils literal notranslate"><span class="pre">MutableMapping</span></code>.</p></td>
 </tr>
 </tbody>
@@ -1631,6 +1743,7 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.PublishResult"><code class="docutils literal notranslate"><span class="pre">PublishResult</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.RegistryError"><code class="docutils literal notranslate"><span class="pre">RegistryError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights"><code class="docutils literal notranslate"><span class="pre">Rights</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights.from_dict"><code class="docutils literal notranslate"><span class="pre">Rights.from_dict()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights.publishable"><code class="docutils literal notranslate"><span class="pre">Rights.publishable</span></code></a></li>
@@ -1643,6 +1756,7 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.build_library_mall"><code class="docutils literal notranslate"><span class="pre">build_library_mall()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.check_pins"><code class="docutils literal notranslate"><span class="pre">check_pins()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.checkout"><code class="docutils literal notranslate"><span class="pre">checkout()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.drift_findings"><code class="docutils literal notranslate"><span class="pre">drift_findings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.effective_rights"><code class="docutils literal notranslate"><span class="pre">effective_rights()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.find"><code class="docutils literal notranslate"><span class="pre">find()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.library_root"><code class="docutils literal notranslate"><span class="pre">library_root()</span></code></a></li>
@@ -1656,6 +1770,8 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.register_analyser"><code class="docutils literal notranslate"><span class="pre">register_analyser()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.register_asset_kind"><code class="docutils literal notranslate"><span class="pre">register_asset_kind()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.register_capability"><code class="docutils literal notranslate"><span class="pre">register_capability()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.register_root"><code class="docutils literal notranslate"><span class="pre">register_root()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.registered_roots"><code class="docutils literal notranslate"><span class="pre">registered_roots()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.reindex"><code class="docutils literal notranslate"><span class="pre">reindex()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.resolve"><code class="docutils literal notranslate"><span class="pre">resolve()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.roll_up"><code class="docutils literal notranslate"><span class="pre">roll_up()</span></code></a></li>

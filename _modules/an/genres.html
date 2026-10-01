@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -808,12 +808,21 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``spaces`` are :class:`an.timing.spaces.PropertySpace` objects and</span>
 <span class="sd">    ``field_kinds`` are ``(name, factory)`` pairs for</span>
 <span class="sd">    :func:`an.timing.kinds.register_kind`.</span>
+
+<span class="sd">    ``library`` names the package whose data root holds the genre's asset</span>
+<span class="sd">    library and its projects (``~/.local/share/&lt;library&gt;``, ADR 0005, plan §1</span>
+<span class="sd">    decision 7); empty means the core's (``an``). It is not ``package``: the</span>
+<span class="sd">    distribution that ships a genre and the root its data lives under can</span>
+<span class="sd">    differ (the cut-out genre ships inside ``an`` today, while its library is</span>
+<span class="sd">    already ``cutan``'s). The core never names a genre's library itself —</span>
+<span class="sd">    a project made in a genre asks the genre (:func:`genre_library`).</span>
 <span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">package</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">library</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">action_kinds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ActionKind</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">entity_kinds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EntityKind</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">spaces</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
@@ -971,6 +980,23 @@ window.runMermaid = runMermaid;</script>
 <span class="n">IN_DISTRIBUTION_GENRES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="p">(</span><span class="s2">"cutout_animation"</span><span class="p">,</span> <span class="s2">"an.genres.cutout:CUTOUT"</span><span class="p">),</span>
 <span class="p">)</span>
+
+
+<div class="viewcode-block" id="genre_library">
+<a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.genre_library">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">genre_library</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The package whose data root holds genre ``name``'s library and projects.</span>
+
+<span class="sd">    ``default`` (the core package) for no genre, an unknown one, or a genre</span>
+<span class="sd">    that declares none. Reads the genres installed in this process (call</span>
+<span class="sd">    :func:`load` first, as every entry point does).</span>
+
+<span class="sd">    &gt;&gt;&gt; genre_library(None)</span>
+<span class="sd">    'an'</span>
+<span class="sd">    """</span>
+    <span class="n">genre</span> <span class="o">=</span> <span class="n">installed_genre</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="n">name</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">genre</span><span class="o">.</span><span class="n">library</span> <span class="k">if</span> <span class="n">genre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="n">default</span></div>
+
 
 
 <div class="viewcode-block" id="genre_entry_points">
@@ -1204,6 +1230,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"genre_entry_points"</span><span class="p">,</span>
     <span class="s2">"genres_declaring"</span><span class="p">,</span>
     <span class="s2">"installed"</span><span class="p">,</span>
+    <span class="s2">"genre_library"</span><span class="p">,</span>
     <span class="s2">"installed_genre"</span><span class="p">,</span>
     <span class="s2">"load"</span><span class="p">,</span>
     <span class="s2">"providers_of"</span><span class="p">,</span>

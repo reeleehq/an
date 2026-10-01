@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -732,30 +732,55 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">rebuilt by :func:`an.library.api.reindex`. Reading a floor is one key lookup per</span>
 <span class="sd">library, so the cross-library check costs nothing like a scan.</span>
 
-<span class="sd">**Which libraries.** Those on the search path, plus every library it can</span>
-<span class="sd">DISCOVER: each package root under the current platform data folder</span>
-<span class="sd">(``~/.local/share/an``, ``~/.local/share/cutan``, …) and each currently set</span>
-<span class="sd">``&lt;PKG&gt;_HOME`` root — so the core library, which no genre's search path makes it</span>
-<span class="sd">read, still sees a genre's private bytes. A library at a custom ``--root``, or</span>
-<span class="sd">under an environment that has since changed, is not discovered; a root registry</span>
-<span class="sd">independent of the environment closes that (an#249). Until then, keep study</span>
-<span class="sd">libraries under the default root.</span>
+<span class="sd">**Which libraries.** Those on the search path, plus every other library on</span>
+<span class="sd">this machine the floor can find:</span>
+
+<span class="sd">- each package root under the current platform data folder</span>
+<span class="sd">  (``~/.local/share/an``, ``~/.local/share/cutan``, …);</span>
+<span class="sd">- each currently set ``&lt;PKG&gt;_HOME`` root;</span>
+<span class="sd">- every root in the machine's **registry of library roots**</span>
+<span class="sd">  (:mod:`an.library.registry`, an#249) — written on the first write to any</span>
+<span class="sd">  library, at a path that depends on nothing in the environment. A library at a</span>
+<span class="sd">  custom ``--root``, or under a ``&lt;PKG&gt;_HOME`` / ``XDG_DATA_HOME`` that has since</span>
+<span class="sd">  changed, is therefore still read. A registered root that no longer exists (or</span>
+<span class="sd">  holds no library) is skipped;</span>
+<span class="sd">- the machine's **memory of statements** (same place): every statement any</span>
+<span class="sd">  on-disk library made at publish, so a library moved, renamed or deleted</span>
+<span class="sd">  since relaxes nothing — the floor keeps its last-known statements.</span>
+
+<span class="sd">A library written by an older ``an`` at a custom root, before the registry</span>
+<span class="sd">existed, is registered by its next write or by :func:`an.library.api.reindex`.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.federation</span><span class="w"> </span><span class="kn">import</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">Library</span><span class="p">,</span> <span class="n">as_libraries</span><span class="p">,</span> <span class="n">open_library</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetIdError</span><span class="p">,</span> <span class="n">check_namespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">RegistryWarning</span><span class="p">,</span>
+    <span class="n">machine_registry_path</span><span class="p">,</span>
+    <span class="n">register_root</span><span class="p">,</span>
+    <span class="n">registered_roots</span><span class="p">,</span>
+    <span class="n">remember_statements</span><span class="p">,</span>
+    <span class="n">remembered_statements</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">HOME_ENV_SUFFIX</span><span class="p">,</span> <span class="n">LIBRARY_DIRNAME</span><span class="p">,</span> <span class="n">_platform_data_dir</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.rights</span><span class="w"> </span><span class="kn">import</span> <span class="n">LICENSE_CLASS_ORDER</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"BlobFloor"</span><span class="p">,</span> <span class="s2">"machine_libraries"</span><span class="p">,</span> <span class="s2">"record_statement"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"BlobFloor"</span><span class="p">,</span>
+    <span class="s2">"machine_libraries"</span><span class="p">,</span>
+    <span class="s2">"record_statement"</span><span class="p">,</span>
+    <span class="s2">"register_library"</span><span class="p">,</span>
+    <span class="s2">"remember"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="c1">#: The sub-folders that mark a directory as a library's (any one suffices).</span>
 <span class="n">_LIBRARY_MARKERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"versions"</span><span class="p">,</span> <span class="s2">"records"</span><span class="p">,</span> <span class="s2">"blob_rights"</span><span class="p">)</span>
@@ -769,7 +794,7 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_discovered_roots</span><span class="p">(</span>
     <span class="n">environ</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""``(package, root)`` for every library root on this machine."""</span>
+<span class="w">    </span><span class="sd">"""``(package, root)`` for every library root discoverable now, then every registered one."""</span>
     <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">_platform_data_dir</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">platform</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
@@ -781,7 +806,58 @@ window.runMermaid = runMermaid;</script>
             <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">_is_library_root</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
                 <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">var</span><span class="p">[:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">HOME_ENV_SUFFIX</span><span class="p">)]</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">root</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">registered_roots</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">_is_library_root</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">found</span>
+
+
+<div class="viewcode-block" id="register_library">
+<a class="viewcode-back" href="../../../_autosummary/an.library.floor.html#an.library.floor.register_library">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_library</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record an on-disk library's root in the machine registry, before its first write.</span>
+
+<span class="sd">    An in-memory library (no root) has nothing to register. Raises</span>
+<span class="sd">    :class:`an.library.registry.RegistryError` when the registry cannot be</span>
+<span class="sd">    read or written: the write is refused rather than made invisible to the floor.</span>
+
+<span class="sd">    A registry that does not exist yet while libraries already sit on disk</span>
+<span class="sd">    means either the first use since the registry exists, or a registry that</span>
+<span class="sd">    was lost: every library discoverable now is registered with this one, and a</span>
+<span class="sd">    :class:`an.library.registry.RegistryWarning` says that libraries kept at</span>
+<span class="sd">    custom roots are known again only once written to or reindexed.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">machine_registry_path</span><span class="p">()</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">discovered</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">_discovered_roots</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="o">!=</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">discovered</span><span class="p">:</span>
+            <span class="n">register_root</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">discovered</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the registry of library roots (</span><span class="si">{</span><span class="n">machine_registry_path</span><span class="p">()</span><span class="si">}</span><span class="s2">) did not "</span>
+                <span class="sa">f</span><span class="s2">"exist, though </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">discovered</span><span class="p">)</span><span class="si">}</span><span class="s2"> library root(s) do: registered "</span>
+                <span class="s2">"every library discoverable now. A library kept at a custom root is "</span>
+                <span class="s2">"known to the rights checks again once it is written to or reindexed "</span>
+                <span class="s2">"(an.library.api.reindex)."</span><span class="p">,</span>
+                <span class="n">RegistryWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="n">register_root</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="remember">
+<a class="viewcode-back" href="../../../_autosummary/an.library.floor.html#an.library.floor.remember">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remember</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Remember an on-disk library's statements in the machine memory (none for an in-memory one)."""</span>
+    <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">remember_statements</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="machine_libraries">
@@ -818,6 +894,21 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">a</span> <span class="k">if</span> <span class="n">order</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">order</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">else</span> <span class="n">b</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_outranks</span><span class="p">(</span><span class="n">statement</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">held</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``statement`` replaces ``held`` for the same ``&lt;library&gt;:&lt;asset&gt;`` key.</span>
+
+<span class="sd">    Two libraries can share a name (the default ``cutan`` and a ``cutan`` at a</span>
+<span class="sd">    registered custom root), so one key can come from both: the stricter</span>
+<span class="sd">    statement wins, and only on a tie the later version.</span>
+<span class="sd">    """</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">LICENSE_CLASS_ORDER</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">new</span> <span class="o">=</span> <span class="n">order</span><span class="p">(</span><span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">))</span>
+    <span class="n">old</span> <span class="o">=</span> <span class="n">order</span><span class="p">(</span><span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">new</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">new</span> <span class="o">&lt;</span> <span class="n">old</span>
+    <span class="k">return</span> <span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"number"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"number"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="record_statement">
 <a class="viewcode-back" href="../../../_autosummary/an.library.floor.html#an.library.floor.record_statement">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">record_statement</span><span class="p">(</span>
@@ -849,11 +940,14 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">discover</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""libraries: the search path; discover: also read every other library</span>
+<span class="sd">        on the machine and the machine's memory of statements (default)."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">libraries</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">machine_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">discover</span>
             <span class="k">else</span> <span class="p">(</span><span class="n">as_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span> <span class="k">if</span> <span class="n">libraries</span> <span class="k">else</span> <span class="p">[])</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remembered</span> <span class="o">=</span> <span class="n">discover</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="BlobFloor.statements">
@@ -870,10 +964,16 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">entries</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">held</span> <span class="o">=</span> <span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"number"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="s2">"number"</span><span class="p">,</span> <span class="mi">0</span>
-                    <span class="p">):</span>
+                    <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_outranks</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">held</span><span class="p">):</span>
                         <span class="n">merged</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="c1"># What any library on this machine ever said, even one since moved,</span>
+            <span class="c1"># renamed or deleted: a missing root relaxes nothing.</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="n">remembered_statements</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remembered</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="p">):</span>
+                <span class="n">held</span> <span class="o">=</span> <span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_outranks</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">held</span><span class="p">):</span>
+                    <span class="n">merged</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">digest</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">digest</span><span class="p">]</span></div>
 

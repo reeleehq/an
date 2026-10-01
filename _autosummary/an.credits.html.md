@@ -30,11 +30,13 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
-| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.    |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`credits_for_project`](#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                       |
-| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211). |
-| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.       |
+| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).        |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`is_generated_source`](#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person. |
+| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                   |
+| [`credits_for_project`](#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                                      |
+| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                |
+| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                      |
 
 ### Classes
 
@@ -134,6 +136,33 @@ an unrelated render “not publishable”. Kept: every entry under a
 
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)
+
+### an.credits.is_factory_stamp(raw)
+
+Whether a source is the character factory’s own stamp (an#236, an#251).
+
+The factory stamps every part it draws `cc0` with the part’s digest, and
+the descriptor with its `source_svg`’s, so the asset library can tell its
+shared parts from carved ones. It is `an`’s own work, not third-party: a
+credits report lists what is OWED, and listing fifty generated parts per
+character would bury the one carved head.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.credits.is_generated_source(raw)
+
+Whether a descriptor’s source was written by a generator rather than a person.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})
+True
+>>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
+False
+```
 
 ### an.credits.warn_if_private_study(report, , output=None)
 

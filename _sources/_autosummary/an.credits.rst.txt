@@ -8,6 +8,8 @@ an.credits
 
    .. autosummary::
    
+      is_factory_stamp
+      is_generated_source
       collect_credits
       credits_for_project
       credits_for_scene

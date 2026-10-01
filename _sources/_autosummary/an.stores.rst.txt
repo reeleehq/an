@@ -27,6 +27,7 @@ an.stores
       PreviewArtifactStore
       OutputStore
       DecisionLogStore
+      ProjectLock
    
 .. rubric:: Modules
 
@@ -38,6 +39,7 @@ an.stores
    characters
    decisions
    environments
+   library_lock
    props
    scenes
    sounds

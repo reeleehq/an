@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1365,7 +1365,18 @@ window.runMermaid = runMermaid;</script>
         <span class="n">add_views</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
     <span class="c1"># Last, so every part is stamped with the bytes it finally has. A DiceBear</span>
     <span class="c1"># head is not this factory's drawing: it keeps the descriptor's source.</span>
-    <span class="n">stamp_factory_parts</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="p">()</span> <span class="k">if</span> <span class="n">head_is_ours</span> <span class="k">else</span> <span class="p">(</span><span class="s2">"parts/head.svg"</span><span class="p">,))</span>
+    <span class="n">stamp_factory_parts</span><span class="p">(</span>
+        <span class="n">out</span><span class="p">,</span>
+        <span class="n">_attachment_paths</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">-</span> <span class="p">({</span><span class="s2">"parts/head.svg"</span><span class="p">}</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">head_is_ours</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()),</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The descriptor says who made the character (an#251): the factory,</span>
+        <span class="c1"># pinned to the drawing the parts were cut from.</span>
+        <span class="n">stamp_factory_descriptor</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># DiceBear's source speaks only for DiceBear's bytes (review-259 S1):</span>
+        <span class="c1"># pinned on the head it drew and on the drawing wrapping it.</span>
+        <span class="n">stamp_generated_head</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">desc_path</span></div>
 
 
@@ -1374,6 +1385,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">FACTORY_PROVIDER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an character factory"</span>
 <span class="c1">#: The licence of the factory's own drawings: no rights to clear.</span>
 <span class="n">FACTORY_LICENSE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cc0-1.0"</span>
+<span class="c1">#: Who the factory's descriptor-level source names as the author.</span>
+<span class="n">FACTORY_AUTHOR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an (generated locally)"</span>
 
 
 <div class="viewcode-block" id="factory_source">
@@ -1393,11 +1406,116 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="factory_descriptor_source">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.factory_descriptor_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">factory_descriptor_source</span><span class="p">(</span><span class="n">source_svg</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The descriptor-level source of a character this factory drew, pinned to its drawing.</span>
+
+<span class="sd">    The digest is that of the descriptor's ``source_svg`` — the drawing every</span>
+<span class="sd">    part was cut from. Like a part stamp it speaks only for bytes it pins: the</span>
+<span class="sd">    asset library and ``an credits`` read every file of the character that no</span>
+<span class="sd">    stamp pins (a part re-carved later, a file added by hand) as UNVERIFIED,</span>
+<span class="sd">    never as the factory's (:func:`an.credits._part_credits`).</span>
+
+<span class="sd">    &gt;&gt;&gt; s = factory_descriptor_source(b"&lt;svg/&gt;")</span>
+<span class="sd">    &gt;&gt;&gt; (s.provider, s.license, len(s.sha256))</span>
+<span class="sd">    ('an character factory', 'cc0-1.0', 64)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span>
+        <span class="n">provider</span><span class="o">=</span><span class="n">FACTORY_PROVIDER</span><span class="p">,</span>
+        <span class="n">license</span><span class="o">=</span><span class="n">FACTORY_LICENSE</span><span class="p">,</span>
+        <span class="n">author</span><span class="o">=</span><span class="n">FACTORY_AUTHOR</span><span class="p">,</span>
+        <span class="n">sha256</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">source_svg</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>
+        <span class="n">cost_usd</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="stamp_factory_descriptor">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.stamp_factory_descriptor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stamp_factory_descriptor</span><span class="p">(</span><span class="n">char_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record the factory as the source of the character it just drew at ``char_dir``.</span>
+
+<span class="sd">    Only a descriptor that declares no source is stamped (a DiceBear head</span>
+<span class="sd">    carries DiceBear's); the stamp pins the bytes of its ``source_svg``. Called</span>
+<span class="sd">    by :func:`new_character` on what it has just drawn, never on a character</span>
+<span class="sd">    someone may have edited since.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
+
+    <span class="n">char_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">char_dir</span><span class="p">)</span>
+    <span class="n">desc_path</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">desc_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">migrate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"CharacterDescriptor"</span><span class="p">))</span>
+    <span class="n">drawing</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">source_svg</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">desc</span><span class="o">.</span><span class="n">source_svg</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">drawing</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">desc_path</span>
+    <span class="n">desc</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">factory_descriptor_source</span><span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span>
+    <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">desc_path</span></div>
+
+
+
+<div class="viewcode-block" id="stamp_generated_head">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.stamp_generated_head">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stamp_generated_head</span><span class="p">(</span><span class="n">char_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Pin a generator's ``source`` (DiceBear's) to the bytes it produced at ``char_dir``.</span>
+
+<span class="sd">    The head part(s) the generator drew (``parts/head.svg``) carry the source</span>
+<span class="sd">    with their own digest, and the descriptor carries it with the digest of its</span>
+<span class="sd">    ``source_svg``. Like the factory's stamps, it then speaks only for those</span>
+<span class="sd">    bytes: a part re-carved since, or a file added, is UNVERIFIED in ``an</span>
+<span class="sd">    credits`` and ``unknown`` in the asset library. Called by</span>
+<span class="sd">    :func:`new_character` on what it has just written.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
+
+    <span class="n">char_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">char_dir</span><span class="p">)</span>
+    <span class="n">desc_path</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">desc_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">migrate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"CharacterDescriptor"</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pinned</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+        <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"sha256"</span><span class="p">:</span> <span class="n">digest</span><span class="p">})</span>
+
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">file</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="s2">"parts/head.svg"</span>
+                    <span class="ow">and</span> <span class="n">att</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="ow">and</span> <span class="n">file</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                <span class="p">):</span>
+                    <span class="n">att</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">pinned</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="n">drawing</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">source_svg</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">source_svg</span> <span class="ow">and</span> <span class="n">drawing</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">desc</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">pinned</span><span class="p">(</span><span class="n">drawing</span><span class="p">)</span>
+    <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">desc_path</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_attachment_paths</span><span class="p">(</span><span class="n">char_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every attachment path the descriptor at ``char_dir`` names."""</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">att</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="p">(</span><span class="n">skin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">att</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+
 <div class="viewcode-block" id="stamp_factory_parts">
 <a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.stamp_factory_parts">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stamp_factory_parts</span><span class="p">(</span>
     <span class="n">char_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
-    <span class="n">paths</span><span class="p">:</span> <span class="s2">"set[str] | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">paths</span><span class="p">:</span> <span class="s2">"set[str]"</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">skip</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -1412,9 +1530,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    digest, so a part later re-drawn or re-carved no longer matches it and stops</span>
 <span class="sd">    being itemised as the factory's — the stamp cannot launder new bytes.</span>
 
-<span class="sd">    paths: the relative paths this call drew (default: every attachment whose</span>
-<span class="sd">        file exists, minus ``skip``). A part carrying some other provider's</span>
-<span class="sd">        source is never re-stamped.</span>
+<span class="sd">    paths: the relative paths this call has just DRAWN — required (an#249</span>
+<span class="sd">        R4-N1): a stamp says "the factory made these bytes", so only the code</span>
+<span class="sd">        that made them may write it. Stamping every part by default would label</span>
+<span class="sd">        a part re-carved since as the factory's ``cc0``. A part carrying some</span>
+<span class="sd">        other provider's source is never re-stamped.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
@@ -1429,7 +1549,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">file</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="ow">in</span> <span class="n">skip</span>
-                    <span class="ow">or</span> <span class="p">(</span><span class="n">paths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">paths</span>
                     <span class="ow">or</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
                     <span class="ow">or</span> <span class="p">(</span>
                         <span class="n">att</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>

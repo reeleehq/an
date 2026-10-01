@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.library.rights" href="an.library.rights.html" />
+    <link rel="next" title="an.library.registry" href="an.library.registry.html" />
     <link rel="prev" title="an.library.kinds" href="an.library.kinds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -576,43 +578,14 @@
                   
   <section id="module-an.library.lock">
 <span id="an-library-lock"></span><h1>an.library.lock<a class="headerlink" href="#module-an.library.lock" title="Link to this heading">#</a></h1>
-<p>The project lockfile: which library version each checked-out asset came from.</p>
-<p><code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code> at the project root (design §7.2), one entry per checked-out
-asset, keyed <code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">characters/alice</span></code>) — the address the scene’s
-<code class="docutils literal notranslate"><span class="pre">AssetRef</span></code> already uses:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.1.0"</span><span class="p">,</span>
-<span class="w"> </span><span class="nt">"assets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"characters/alice"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"library"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cutan:character.alice-reiniger@v002"</span><span class="p">,</span>
-<span class="w">                                 </span><span class="nt">"manifest_sha256"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="p">,</span><span class="w"> </span><span class="nt">"checked_out"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="p">}}}</span>
+<p>The project lockfile, as the asset library sees it (re-exported from <a class="reference internal" href="an.stores.library_lock.html#module-an.stores.library_lock" title="an.stores.library_lock"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stores.library_lock</span></code></a>).</p>
+<p>The lockfile is a project store — <code class="docutils literal notranslate"><span class="pre">mall[&quot;library_lock&quot;]</span></code>, registered by
+<a class="reference internal" href="an.stores.html#an.stores.build_project_mall" title="an.stores.build_project_mall"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stores.build_project_mall()</span></code></a> (an#240) — so its class lives with the other
+project stores and building a project never imports the library. This module
+keeps the import path the library and its callers already use.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">LOCKFILE_NAME</span><span class="p">,</span> <span class="n">lock_key</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="s2">"alice"</span><span class="p">)</span>
+<span class="go">('assets.lock.json', 'characters/alice')</span>
 </pre></div>
-</div>
-<p>The pin records <strong>provenance</strong>: where each checked-out copy came from, so a
-project can be rebuilt from the library. It is not a content key — the copy in
-the project can be edited after it is pinned; <code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.checkout.verify_checkout()</span></code>
-says whether it still is its version, and only then may anything (ADR 0004’s
-shot cache) treat the pin as standing for the content.</p>
-<p>The lockfile is a <code class="docutils literal notranslate"><span class="pre">MutableMapping</span></code> like every other store (pillar 7);
-<code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.checkout.checkout()</span></code> takes one by injection (<code class="docutils literal notranslate"><span class="pre">lock=</span></code>) and
-defaults to <a class="reference internal" href="#an.library.lock.ProjectLock" title="an.library.lock.ProjectLock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProjectLock</span></code></a> over the project folder. Registering it in the
-project mall (<code class="docutils literal notranslate"><span class="pre">mall[&quot;library_lock&quot;]</span></code>) is an#240.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="n">lock</span> <span class="o">=</span> <span class="n">ProjectLock</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="n">lock</span><span class="p">[</span><span class="s2">"characters/alice"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"library"</span><span class="p">:</span> <span class="s2">"character.alice@v001"</span><span class="p">}</span>
-<span class="gp">... </span>    <span class="nb">list</span><span class="p">(</span><span class="n">ProjectLock</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-<span class="go">[('characters/alice', {'library': 'character.alice@v001'})]</span>
-</pre></div>
-</div>
-<p class="rubric">Module Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.lock.LOCKFILE_NAME" title="an.library.lock.LOCKFILE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOCKFILE_NAME</span></code></a></p></td>
-<td><p>The lockfile's name at the project root.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.lock.LOCKFILE_SCHEMA_VERSION" title="an.library.lock.LOCKFILE_SCHEMA_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOCKFILE_SCHEMA_VERSION</span></code></a></p></td>
-<td><p>The lockfile document's schema version (its own document kind).</p></td>
-</tr>
-</tbody>
-</table>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
@@ -632,21 +605,9 @@ project mall (<code class="docutils literal notranslate"><span class="pre">mall[
 </tbody>
 </table>
 </div>
-<dl class="py data">
-<dt class="sig sig-object py" id="an.library.lock.LOCKFILE_NAME">
-<span class="sig-prename descclassname"><span class="pre">an.library.lock.</span></span><span class="sig-name descname"><span class="pre">LOCKFILE_NAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'assets.lock.json'</span></span><a class="headerlink" href="#an.library.lock.LOCKFILE_NAME" title="Link to this definition">#</a></dt>
-<dd><p>The lockfile’s name at the project root.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.library.lock.LOCKFILE_SCHEMA_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.library.lock.</span></span><span class="sig-name descname"><span class="pre">LOCKFILE_SCHEMA_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.1.0'</span></span><a class="headerlink" href="#an.library.lock.LOCKFILE_SCHEMA_VERSION" title="Link to this definition">#</a></dt>
-<dd><p>The lockfile document’s schema version (its own document kind).</p>
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.lock.ProjectLock">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.lock.</span></span><span class="sig-name descname"><span class="pre">ProjectLock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/lock.html#ProjectLock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.lock.ProjectLock" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.lock.</span></span><span class="sig-name descname"><span class="pre">ProjectLock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/library_lock.html#ProjectLock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.lock.ProjectLock" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
 <p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project’s <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p>
 <p>Every write rewrites the whole (small) file, sorted, so the lockfile diffs
@@ -657,7 +618,7 @@ cleanly under version control.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.lock.lock_key">
-<span class="sig-prename descclassname"><span class="pre">an.library.lock.</span></span><span class="sig-name descname"><span class="pre">lock_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/lock.html#lock_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.lock.lock_key" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.lock.</span></span><span class="sig-name descname"><span class="pre">lock_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/library_lock.html#lock_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.lock.lock_key" title="Link to this definition">#</a></dt>
 <dd><p>The lockfile key of one project store entry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -692,11 +653,11 @@ cleanly under version control.</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.library.rights.html"
+       href="an.library.registry.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.library.rights</p>
+        <p class="prev-next-title">an.library.registry</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -719,8 +680,6 @@ cleanly under version control.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.LOCKFILE_NAME"><code class="docutils literal notranslate"><span class="pre">LOCKFILE_NAME</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.LOCKFILE_SCHEMA_VERSION"><code class="docutils literal notranslate"><span class="pre">LOCKFILE_SCHEMA_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.lock_key"><code class="docutils literal notranslate"><span class="pre">lock_key()</span></code></a></li>
 </ul>

@@ -6,9 +6,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="alternate" type="text/markdown" href="lock.html.md">
+<link rel="alternate" type="text/markdown" href="library_lock.html.md">
 <link rel="describedby" href="../../../llms.txt" type="text/markdown">
-    <title>an.library.lock &#8212; an</title>
+    <title>an.stores.library_lock &#8212; an</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -403,13 +403,13 @@ mermaid.initialize(
 
 window.addEventListener("load", load);
 window.runMermaid = runMermaid;</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/library/lock';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/stores/library_lock';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -692,7 +692,10 @@ window.runMermaid = runMermaid;</script>
     
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.library.lock</span></li>
+    
+    <li class="breadcrumb-item"><a href="../stores.html" class="nav-link">an.stores</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.stores.library_lock</span></li>
   </ul>
 </nav>
 </div>
@@ -709,7 +712,7 @@ window.runMermaid = runMermaid;</script>
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for an.library.lock</h1><div class="highlight"><pre>
+  <h1>Source code for an.stores.library_lock</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""The project lockfile: which library version each checked-out asset came from.</span>
 
 <span class="sd">``assets.lock.json`` at the project root (design §7.2), one entry per checked-out</span>
@@ -722,16 +725,30 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">     "assets": {"characters/alice": {"library": "cutan:character.alice-reiniger@v002",</span>
 <span class="sd">                                     "manifest_sha256": "…", "checked_out": "…"}}}</span>
 
+<span class="sd">**The lockfile is the single source of truth for a pin** (an#240). It is written</span>
+<span class="sd">by the check-out that put the files there, beside the manifest it verified, so</span>
+<span class="sd">it says what the project actually holds. A scene's ``AssetRef.library`` is the</span>
+<span class="sd">declared intent, an optional restatement of it for the reader; a later</span>
+<span class="sd">"reference" resolution resolves through the lockfile entry ``&lt;store&gt;/&lt;ref&gt;``</span>
+<span class="sd">too, and treats ``library:`` as the intent it must match — never as a second</span>
+<span class="sd">pin. ``an validate`` (and ``an render``, fatally under ``--strict-assets``)</span>
+<span class="sd">reports every scene ``library:`` that disagrees with the lockfile, or names an</span>
+<span class="sd">entry the lockfile does not pin (:func:`an.library.checkout.check_pins`). The</span>
+<span class="sd">lockfile records no library root: it is committed, and a path would leak.</span>
+
 <span class="sd">The pin records **provenance**: where each checked-out copy came from, so a</span>
 <span class="sd">project can be rebuilt from the library. It is not a content key — the copy in</span>
 <span class="sd">the project can be edited after it is pinned; :func:`an.library.checkout.verify_checkout`</span>
-<span class="sd">says whether it still is its version, and only then may anything (ADR 0004's</span>
-<span class="sd">shot cache) treat the pin as standing for the content.</span>
+<span class="sd">says whether it still is its version (``an validate`` reports the drift as</span>
+<span class="sd">``info``: an edited check-out is a fork, not a mistake), and only then may</span>
+<span class="sd">anything treat the pin as standing for the content.</span>
 
-<span class="sd">The lockfile is a ``MutableMapping`` like every other store (pillar 7);</span>
-<span class="sd">:func:`an.library.checkout.checkout` takes one by injection (``lock=``) and</span>
-<span class="sd">defaults to :class:`ProjectLock` over the project folder. Registering it in the</span>
-<span class="sd">project mall (``mall["library_lock"]``) is an#240.</span>
+<span class="sd">The lockfile is a ``MutableMapping`` like every other store (pillar 7),</span>
+<span class="sd">registered in the project mall as ``mall["library_lock"]``</span>
+<span class="sd">(:func:`an.stores.build_project_mall`); :func:`an.library.checkout.checkout`</span>
+<span class="sd">writes through the mall's store unless one is injected (``lock=``). It lives</span>
+<span class="sd">here, with the other project stores, so building a project mall never imports</span>
+<span class="sd">the asset library; :mod:`an.library.lock` re-exports it.</span>
 
 <span class="sd">&gt;&gt;&gt; import tempfile</span>
 <span class="sd">&gt;&gt;&gt; with tempfile.TemporaryDirectory() as d:</span>
@@ -767,7 +784,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="lock_key">
-<a class="viewcode-back" href="../../../_autosummary/an.library.lock.html#an.library.lock_key">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.stores.library_lock.html#an.library.lock_key">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lock_key</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The lockfile key of one project store entry.</span>
 
@@ -779,7 +796,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ProjectLock">
-<a class="viewcode-back" href="../../../_autosummary/an.library.lock.html#an.library.ProjectLock">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.stores.library_lock.html#an.library.ProjectLock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ProjectLock</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""``&lt;store&gt;/&lt;key&gt; -&gt; pin`` over a project's ``assets.lock.json``.</span>
 

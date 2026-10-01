@@ -65,6 +65,7 @@ genre defined in the same process).
 | [`genre_entry_points`](#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                           |
 | [`genres_declaring`](#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                   |
 | [`installed`](#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                              |
+| [`genre_library`](#an.genres.genre_library)(name, \*[, default])               | The package whose data root holds genre `name`'s library and projects.                                                                                                                                                  |
 | `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
 | [`load`](#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
 | [`providers_of`](#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](#an.genres.Genre.provides)).                                                                    |
@@ -138,7 +139,7 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
 
-### *class* an.genres.Genre(name, title='', description='', package='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -153,6 +154,14 @@ touching any genre that does not use it.
 `spaces` are [`an.timing.spaces.PropertySpace`](an.timing.spaces.md#an.timing.spaces.PropertySpace) objects and
 `field_kinds` are `(name, factory)` pairs for
 [`an.timing.kinds.register_kind()`](an.timing.kinds.md#an.timing.kinds.register_kind).
+
+`library` names the package whose data root holds the genre’s asset
+library and its projects (`~/.local/share/<library>`, ADR 0005, plan §1
+decision 7); empty means the core’s (`an`). It is not `package`: the
+distribution that ships a genre and the root its data lives under can
+differ (the cut-out genre ships inside `an` today, while its library is
+already `cutan`’s). The core never names a genre’s library itself —
+a project made in a genre asks the genre ([`genre_library()`](#an.genres.genre_library)).
 
 #### provides()
 
@@ -277,6 +286,22 @@ The installed `an.genres` entry points (nothing is imported).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.genre_library(name, , default='an')
+
+The package whose data root holds genre `name`’s library and projects.
+
+`default` (the core package) for no genre, an unknown one, or a genre
+that declares none. Reads the genres installed in this process (call
+[`load()`](#an.genres.load) first, as every entry point does).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> genre_library(None)
+'an'
+```
 
 ### an.genres.genres_declaring(test)
 

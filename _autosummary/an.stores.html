@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.sounds" href="an.sounds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -577,8 +579,9 @@
 <p>The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
-final output and its caption sidecar, and the agent’s
-decision log — is keyed inside a store. Stores are dol-backed so the same call
+final output and its caption sidecar, the agent’s decision log, and the asset
+library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
+dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -586,7 +589,8 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <span class="gp">... </span>    <span class="n">mall</span> <span class="o">=</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">mall</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">[</span>
 <span class="gp">... </span>        <span class="s1">'audio'</span><span class="p">,</span> <span class="s1">'captions'</span><span class="p">,</span> <span class="s1">'characters'</span><span class="p">,</span> <span class="s1">'decisions'</span><span class="p">,</span> <span class="s1">'environments'</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s1">'output'</span><span class="p">,</span> <span class="s1">'previews'</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">,</span> <span class="s1">'scenes'</span><span class="p">,</span> <span class="s1">'shot_cache'</span><span class="p">,</span> <span class="s1">'shots'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'library_lock'</span><span class="p">,</span> <span class="s1">'output'</span><span class="p">,</span> <span class="s1">'previews'</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">,</span> <span class="s1">'scenes'</span><span class="p">,</span> <span class="s1">'shot_cache'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'shots'</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s1">'sounds'</span><span class="p">,</span> <span class="s1">'styles'</span><span class="p">,</span> <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">]</span>
 <span class="go">True</span>
@@ -642,6 +646,9 @@ sites work against filesystem, SQLite, S3, etc.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.DecisionLogStore" title="an.stores.DecisionLogStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecisionLogStore</span></code></a>(log_path)</p></td>
 <td><p>Append-only JSONL log keyed by ordinal index (as string).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.ProjectLock" title="an.stores.ProjectLock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectLock</span></code></a>(project_dir)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project's <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -727,6 +734,17 @@ forbidden; the log is append-only by design.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">PreviewArtifactStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#PreviewArtifactStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.PreviewArtifactStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
 <p>Low-res preview renders (mp4 or png sequence wrapper).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stores.ProjectLock">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">ProjectLock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/library_lock.html#ProjectLock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.ProjectLock" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project’s <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p>
+<p>Every write rewrites the whole (small) file, sorted, so the lockfile diffs
+cleanly under version control.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -862,19 +880,22 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 <tr class="row-even"><td><p><a class="reference internal" href="an.stores.environments.html#module-an.stores.environments" title="an.stores.environments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environments</span></code></a></p></td>
 <td><p>Environments store — backgrounds, set pieces, and prop bundles.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.props.html#module-an.stores.props" title="an.stores.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.library_lock.html#module-an.stores.library_lock" title="an.stores.library_lock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library_lock</span></code></a></p></td>
+<td><p>The project lockfile: which library version each checked-out asset came from.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.props.html#module-an.stores.props" title="an.stores.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
 <td><p>Props store — descriptor + sidecar folder per prop.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stores.scenes.html#module-an.stores.scenes" title="an.stores.scenes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scenes</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.scenes.html#module-an.stores.scenes" title="an.stores.scenes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scenes</span></code></a></p></td>
 <td><p>Scenes store — wraps the project's <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> + <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> pair.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.sounds.html#module-an.stores.sounds" title="an.stores.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.sounds.html#module-an.stores.sounds" title="an.stores.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
 <td><p>Sounds store — one directory per sound: <code class="docutils literal notranslate"><span class="pre">sound.json</span></code> beside <code class="docutils literal notranslate"><span class="pre">audio.wav</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stores.styles.html#module-an.stores.styles" title="an.stores.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.styles.html#module-an.stores.styles" title="an.stores.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
 <td><p>Styles store — visual style presets (color palette, line weight, fonts).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.voices.html#module-an.stores.voices" title="an.stores.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.voices.html#module-an.stores.voices" title="an.stores.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Voices store — pure JSON; one entry per voice.</p></td>
 </tr>
 </tbody>
@@ -938,6 +959,7 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.EnvironmentsStore"><code class="docutils literal notranslate"><span class="pre">EnvironmentsStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.OutputStore"><code class="docutils literal notranslate"><span class="pre">OutputStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PreviewArtifactStore"><code class="docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PropsStore"><code class="docutils literal notranslate"><span class="pre">PropsStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ShotArtifactStore"><code class="docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a></li>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -866,8 +866,11 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""The default directory of the agent-made project ``project_id`` (design §7.5).</span>
 
 <span class="sd">    ``an init &lt;dir&gt;`` with an explicit directory keeps working anywhere; this is</span>
-<span class="sd">    the default for projects an agent makes, so they never land in a session's</span>
-<span class="sd">    working folder or a repository.</span>
+<span class="sd">    the default for projects an agent makes (``an init --id &lt;id&gt;``), so they</span>
+<span class="sd">    never land in a session's working folder or a repository. ``package`` is</span>
+<span class="sd">    the library package of the genre the video is made in</span>
+<span class="sd">    (:func:`an.genres.genre_library`; the core's, ``an``, by default — the core</span>
+<span class="sd">    names no genre).</span>
 
 <span class="sd">    &gt;&gt;&gt; project_dir("alice-and-bob", "/lib").as_posix()</span>
 <span class="sd">    '/lib/projects/alice-and-bob'</span>

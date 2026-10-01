@@ -10,6 +10,8 @@ an.library.floor
    
       machine_libraries
       record_statement
+      register_library
+      remember
    
    .. rubric:: Classes
 

@@ -44,11 +44,11 @@ Order, most restrictive first: `private` > `unknown` > `attribution` >
 
 ### Functions
 
-| [`most_restrictive`](#an.library.rights.most_restrictive)(classes)            | The most restrictive of `classes`; `free` for none.                                                            |
-|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| [`descriptor_source`](#an.library.rights.descriptor_source)(doc, \*, store)    | The source the descriptor itself declares (or `an credits` reconstructs), if any.                              |
-| [`roll_up`](#an.library.rights.roll_up)(sources, \*[, inherited])    | Roll labelled sources (and parents' rights) up to one [`Rights`](#an.library.rights.Rights). |
-| [`sources_in`](#an.library.rights.sources_in)(doc, \*, store[, source]) | Every labelled source one version holds: the asset's, the descriptor's, each part's.                           |
+| [`most_restrictive`](#an.library.rights.most_restrictive)(classes)                   | The most restrictive of `classes`; `free` for none.                                                            |
+|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`descriptor_source`](#an.library.rights.descriptor_source)(doc, \*, store)           | The source the descriptor itself declares (or `an credits` reconstructs), if any.                              |
+| [`roll_up`](#an.library.rights.roll_up)(sources, \*[, inherited])           | Roll labelled sources (and parents' rights) up to one [`Rights`](#an.library.rights.Rights). |
+| [`sources_in`](#an.library.rights.sources_in)(doc, \*, store[, source, files]) | Every labelled source one version holds: the asset's, the descriptor's, each part's.                           |
 
 ### Classes
 
@@ -132,7 +132,7 @@ winning class, so a reader sees *why* a version is restricted.
 {'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
 ```
 
-### an.library.rights.sources_in(doc, , store, source=None)
+### an.library.rights.sources_in(doc, , store, source=None, files=None)
 
 Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.
 
@@ -150,6 +150,11 @@ source: a source declared for the asset as a whole (at publish, or carried
   the art came from a film. The only way to relax a stricter source is
   an explicit, recorded relicence ([`an.library.api.publish()`](an.library.api.md#an.library.api.publish)’s
   `relicense`), which bypasses this function altogether
+
+files: `{path: sha256}` of the asset’s files. With them, a factory stamp
+: is checked against the bytes it pins (`an.credits._part_credits()`):
+  a re-carved part under a stale stamp, or a file the factory’s
+  descriptor stamp does not pin, is `unknown` unless a source covers it
 
 With no source anywhere the asset contributes `None`: `unknown`.
 

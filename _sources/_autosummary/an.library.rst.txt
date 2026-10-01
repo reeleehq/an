@@ -12,6 +12,7 @@ an.library
       build_library_mall
       check_pins
       checkout
+      drift_findings
       effective_rights
       find
       library_root
@@ -26,6 +27,8 @@ an.library
       register_analyser
       register_asset_kind
       register_capability
+      register_root
+      registered_roots
       resolve
       roll_up
       scan_index
@@ -57,6 +60,7 @@ an.library
       CheckoutError
       IntegrityError
       LibraryError
+      RegistryError
       RightsRefusal
       VersionExistsError
    
@@ -75,6 +79,7 @@ an.library
    ids
    kinds
    lock
+   registry
    rights
    root
    stores

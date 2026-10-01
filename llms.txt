@@ -130,7 +130,8 @@
 - [an.library.floor](_autosummary/an.library.floor.html.md): The rights floor of a blob: the strictest statement any library on this machine makes about its byte...
 - [an.library.ids](_autosummary/an.library.ids.html.md): Asset ids, version labels and library references — the library’s persisted names.
 - [an.library.kinds](_autosummary/an.library.kinds.html.md): Asset kinds: the &#96;kind&#96; facet’s vocabulary, and where each kind lives in a project.
-- [an.library.lock](_autosummary/an.library.lock.html.md): The project lockfile: which library version each checked-out asset came from.
+- [an.library.lock](_autosummary/an.library.lock.html.md): The project lockfile, as the asset library sees it (re-exported from &#96;an.stores.library_lock&#96;).
+- [an.library.registry](_autosummary/an.library.registry.html.md): The machine’s memory of its libraries: every root ever written, and every statement ever made (an#24...
 - [an.library.rights](_autosummary/an.library.rights.html.md): Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).
 - [an.library.root](_autosummary/an.library.root.html.md): Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
 - [an.library.stores](_autosummary/an.library.stores.html.md): The library mall: &#96;records&#96;, &#96;versions&#96; and &#96;blobs&#96;, each an injected &#96;MutableMapping&#96;.
@@ -156,6 +157,7 @@
 - [an.stores.characters](_autosummary/an.stores.characters.html.md): Characters store — descriptor + sidecar folder per character.
 - [an.stores.decisions](_autosummary/an.stores.decisions.html.md): Decision log — append-only JSONL of agent decisions and user approvals.
 - [an.stores.environments](_autosummary/an.stores.environments.html.md): Environments store — backgrounds, set pieces, and prop bundles.
+- [an.stores.library_lock](_autosummary/an.stores.library_lock.html.md): The project lockfile: which library version each checked-out asset came from.
 - [an.stores.props](_autosummary/an.stores.props.html.md): Props store — descriptor + sidecar folder per prop.
 - [an.stores.scenes](_autosummary/an.stores.scenes.html.md): Scenes store — wraps the project’s &#96;scene.md&#96; + &#96;ir/scene.json&#96; pair.
 - [an.stores.sounds](_autosummary/an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
@@ -183,7 +185,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 16:04 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 16:24 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.conftest" href="an.conftest.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -600,6 +602,12 @@ parts carved out of several clips credits each clip, part by part.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.is_factory_stamp" title="an.credits.is_factory_stamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_factory_stamp</span></code></a>(raw)</p></td>
+<td><p>Whether a source is the character factory's own stamp (an#236, an#251).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.credits.is_generated_source" title="an.credits.is_generated_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_generated_source</span></code></a>(raw)</p></td>
+<td><p>Whether a descriptor's source was written by a generator rather than a person.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.collect_credits" title="an.credits.collect_credits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collect_credits</span></code></a>(mall, *[, only])</p></td>
 <td><p>Walk a project mall and gather every recorded <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p></td>
 </tr>
@@ -747,6 +755,39 @@ an unrelated render “not publishable”. Kept: every entry under a
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.credits.is_factory_stamp">
+<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">is_factory_stamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#is_factory_stamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.is_factory_stamp" title="Link to this definition">#</a></dt>
+<dd><p>Whether a source is the character factory’s own stamp (an#236, an#251).</p>
+<p>The factory stamps every part it draws <code class="docutils literal notranslate"><span class="pre">cc0</span></code> with the part’s digest, and
+the descriptor with its <code class="docutils literal notranslate"><span class="pre">source_svg</span></code>’s, so the asset library can tell its
+shared parts from carved ones. It is <code class="docutils literal notranslate"><span class="pre">an</span></code>’s own work, not third-party: a
+credits report lists what is OWED, and listing fifty generated parts per
+character would bury the one carved head.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.credits.is_generated_source">
+<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">is_generated_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#is_generated_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.is_generated_source" title="Link to this definition">#</a></dt>
+<dd><p>Whether a descriptor’s source was written by a generator rather than a person.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_generated_source</span><span class="p">({</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"dicebear"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">:</span> <span class="s2">"cc0-1.0"</span><span class="p">})</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_generated_source</span><span class="p">({</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"a-film"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">:</span> <span class="s2">"all-rights-reserved"</span><span class="p">})</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.credits.warn_if_private_study">
 <span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">warn_if_private_study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#warn_if_private_study"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.warn_if_private_study" title="Link to this definition">#</a></dt>
 <dd><p>Warn, loudly, when <code class="docutils literal notranslate"><span class="pre">report</span></code> holds private-study material.</p>
@@ -820,6 +861,8 @@ the last word about the file; <code class="docutils literal notranslate"><span c
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.collect_credits"><code class="docutils literal notranslate"><span class="pre">collect_credits()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.credits_for_project"><code class="docutils literal notranslate"><span class="pre">credits_for_project()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.credits_for_scene"><code class="docutils literal notranslate"><span class="pre">credits_for_scene()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.is_factory_stamp"><code class="docutils literal notranslate"><span class="pre">is_factory_stamp()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.is_generated_source"><code class="docutils literal notranslate"><span class="pre">is_generated_source()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.warn_if_private_study"><code class="docutils literal notranslate"><span class="pre">warn_if_private_study()</span></code></a></li>
 </ul>
   </nav></div>

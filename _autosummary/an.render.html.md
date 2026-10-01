@@ -163,6 +163,10 @@ the scene’s declaration, which is itself `None` (smooth) by default.
 it when `lipsync` is a provider *name* — Rhubarb’s recognizer (an#96). A
 provider *instance* carries its own.
 
+A scene whose `library:` pins disagree with the project’s
+`assets.lock.json` renders with a `LibraryPinWarning` per pin, and is
+refused under `strict_assets` (`an.library.checkout.check_pins_before_render()`).
+
 Returns the absolute path of the final output file (under `output/`).
 
 * **Return type:**

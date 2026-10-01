@@ -93,7 +93,7 @@ Raised by [`require_registered_kinds()`](#an.ir.validate.require_registered_kind
 longer render silently wrong now that the schema holds them as `str`
 (review-244 S2). `findings` keeps each one with its IR path.
 
-### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, shot=None, index=None, memo=<factory>)
+### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -112,6 +112,11 @@ two checks that need the same derived fact compute it once
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### library_lock *: [Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
+`None` means the pin checks did not run.
 
 #### *property* path *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -208,7 +213,7 @@ True
 False
 ```
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -224,6 +229,11 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_library_lock` is the project’s asset-library lockfile
+(`mall["library_lock"]`): with it, every scene `library:` pin is checked
+against the lockfile (`warning` on disagreement) and every pinned
+check-out against its library version (`info` when it has been edited).
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](an.genres.registry.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out

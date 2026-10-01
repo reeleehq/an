@@ -5,8 +5,9 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
-final output and its caption sidecar, and the agent’s
-decision log — is keyed inside a store. Stores are dol-backed so the same call
+final output and its caption sidecar, the agent’s decision log, and the asset
+library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
+dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
 ```pycon
@@ -16,7 +17,8 @@ sites work against filesystem, SQLite, S3, etc.
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'output', 'previews', 'props', 'scenes', 'shot_cache', 'shots',
+...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
+...         'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
@@ -43,6 +45,7 @@ True
 | [`PreviewArtifactStore`](#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                 |
 | [`OutputStore`](#an.stores.OutputStore)(root_dir)          | Final composited renders.                                              |
 | [`DecisionLogStore`](#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).              |
+| [`ProjectLock`](#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.            |
 
 ### *class* an.stores.AudioArtifactStore(root_dir)
 
@@ -109,6 +112,15 @@ Final composited renders.
 Bases: `_BlobStore`
 
 Low-res preview renders (mp4 or png sequence wrapper).
+
+### *class* an.stores.ProjectLock(project_dir)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`<store>/<key> -> pin` over a project’s `assets.lock.json`.
+
+Every write rewrites the whole (small) file, sorted, so the lockfile diffs
+cleanly under version control.
 
 ### *class* an.stores.PropsStore(root_dir)
 
@@ -204,13 +216,14 @@ in-memory `dict` for tests).
 
 ### Modules
 
-| [`artifacts`](an.stores.artifacts.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.       |
-|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`characters`](an.stores.characters.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.            |
-| [`decisions`](an.stores.decisions.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.  |
-| [`environments`](an.stores.environments.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.          |
-| [`props`](an.stores.props.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                      |
-| [`scenes`](an.stores.scenes.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.    |
-| [`sounds`](an.stores.sounds.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`. |
-| [`styles`](an.stores.styles.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts). |
-| [`voices`](an.stores.voices.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                           |
+| [`artifacts`](an.stores.artifacts.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.            |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`characters`](an.stores.characters.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.                 |
+| [`decisions`](an.stores.decisions.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.       |
+| [`environments`](an.stores.environments.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.               |
+| [`library_lock`](an.stores.library_lock.md#module-an.stores.library_lock) | The project lockfile: which library version each checked-out asset came from. |
+| [`props`](an.stores.props.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                           |
+| [`scenes`](an.stores.scenes.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.         |
+| [`sounds`](an.stores.sounds.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.      |
+| [`styles`](an.stores.styles.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).      |
+| [`voices`](an.stores.voices.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                |

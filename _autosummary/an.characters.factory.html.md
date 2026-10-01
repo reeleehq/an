@@ -32,6 +32,7 @@ problem routes the way every other verifier’s does (an#78).
 | [`BUILDS`](#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
 | [`FACTORY_PROVIDER`](#an.characters.factory.FACTORY_PROVIDER)         | The provider of every per-part source the factory stamps on what it draws.                                                                                                                                                                                                                                                                                  |
 | [`FACTORY_LICENSE`](#an.characters.factory.FACTORY_LICENSE)          | no rights to clear.                                                                                                                                                                                                                                                                                                                                         |
+| [`FACTORY_AUTHOR`](#an.characters.factory.FACTORY_AUTHOR)           | Who the factory's descriptor-level source names as the author.                                                                                                                                                                                                                                                                                              |
 | [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                                                                                                                                                                                                         |
 | [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                                                                                                                                                                                                         |
 | [`FACE_SLOTS`](#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                                                                                                                                                                                                               |
@@ -45,11 +46,14 @@ problem routes the way every other verifier’s does (an#78).
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_views`](#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](an.motion.html.md#an.motion.turn) turns the whole character. |
 | [`declare_mouth_variants`](#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
+| [`factory_descriptor_source`](#an.characters.factory.factory_descriptor_source)(source_svg)            | The descriptor-level source of a character this factory drew, pinned to its drawing.                                                                                                                                                                                                                                                                                                            |
 | [`factory_source`](#an.characters.factory.factory_source)(data)                             | The per-part source of a part this factory drew, pinned to its bytes.                                                                                                                                                                                                                                                                                                                           |
 | [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
 | [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
 | [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
-| [`stamp_factory_parts`](#an.characters.factory.stamp_factory_parts)(char_dir[, paths, skip])     | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
+| [`stamp_factory_descriptor`](#an.characters.factory.stamp_factory_descriptor)(char_dir)               | Record the factory as the source of the character it just drew at `char_dir`.                                                                                                                                                                                                                                                                                                                   |
+| [`stamp_factory_parts`](#an.characters.factory.stamp_factory_parts)(char_dir, paths, \*[, skip]) | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
+| [`stamp_generated_head`](#an.characters.factory.stamp_generated_head)(char_dir, source)           | Pin a generator's `source` (DiceBear's) to the bytes it produced at `char_dir`.                                                                                                                                                                                                                                                                                                                 |
 | [`view_poses`](#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
 
 ### Classes
@@ -112,6 +116,10 @@ the sclera, the pupil and the lid outline agree (an#99).
 ### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
 
 The face slots of the default rig with the eye stack (an#99).
+
+### an.characters.factory.FACTORY_AUTHOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an (generated locally)'*
+
+Who the factory’s descriptor-level source names as the author.
 
 ### an.characters.factory.FACTORY_LICENSE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cc0-1.0'*
 
@@ -255,6 +263,25 @@ neutral set is the SSOT for which shapes exist; a variant mirrors it.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.characters.factory.factory_descriptor_source(source_svg)
+
+The descriptor-level source of a character this factory drew, pinned to its drawing.
+
+The digest is that of the descriptor’s `source_svg` — the drawing every
+part was cut from. Like a part stamp it speaks only for bytes it pins: the
+asset library and `an credits` read every file of the character that no
+stamp pins (a part re-carved later, a file added by hand) as UNVERIFIED,
+never as the factory’s (`an.credits._part_credits()`).
+
+* **Return type:**
+  [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource)
+
+```pycon
+>>> s = factory_descriptor_source(b"<svg/>")
+>>> (s.provider, s.license, len(s.sha256))
+('an character factory', 'cc0-1.0', 64)
+```
+
 ### an.characters.factory.factory_source(data)
 
 The per-part source of a part this factory drew, pinned to its bytes.
@@ -354,7 +381,19 @@ screen. Missing files are skipped.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.characters.factory.stamp_factory_parts(char_dir, paths=None, , skip=())
+### an.characters.factory.stamp_factory_descriptor(char_dir)
+
+Record the factory as the source of the character it just drew at `char_dir`.
+
+Only a descriptor that declares no source is stamped (a DiceBear head
+carries DiceBear’s); the stamp pins the bytes of its `source_svg`. Called
+by [`new_character()`](#an.characters.factory.new_character) on what it has just drawn, never on a character
+someone may have edited since.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.stamp_factory_parts(char_dir, paths, , skip=())
 
 Give each part the factory drew a `cc0` per-part source pinned to its digest.
 
@@ -370,9 +409,25 @@ being itemised as the factory’s — the stamp cannot launder new bytes.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-paths: the relative paths this call drew (default: every attachment whose
-: file exists, minus `skip`). A part carrying some other provider’s
-  source is never re-stamped.
+paths: the relative paths this call has just DRAWN — required (an#249
+: R4-N1): a stamp says “the factory made these bytes”, so only the code
+  that made them may write it. Stamping every part by default would label
+  a part re-carved since as the factory’s `cc0`. A part carrying some
+  other provider’s source is never re-stamped.
+
+### an.characters.factory.stamp_generated_head(char_dir, source)
+
+Pin a generator’s `source` (DiceBear’s) to the bytes it produced at `char_dir`.
+
+The head part(s) the generator drew (`parts/head.svg`) carry the source
+with their own digest, and the descriptor carries it with the digest of its
+`source_svg`. Like the factory’s stamps, it then speaks only for those
+bytes: a part re-carved since, or a file added, is UNVERIFIED in `an
+credits` and `unknown` in the asset library. Called by
+[`new_character()`](#an.characters.factory.new_character) on what it has just written.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
 

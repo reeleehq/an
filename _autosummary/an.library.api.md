@@ -128,7 +128,7 @@ Bases: [`LibraryError`](#an.library.api.LibraryError)
 
 Stored bytes, paths or a stored manifest do not match what was recorded.
 
-### an.library.api.LIBRARY_ERRORS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[type](https://docs.python.org/3/builtins/functions.html#type)[[BaseException](https://docs.python.org/3/builtins/exceptions.html#BaseException)], ...]* *= (<class 'an.library.api.LibraryError'>, <class 'an.library.ids.AssetIdError'>, <class 'an.library.federation.AssetNotFoundError'>, <class 'an.library.stores.VersionExistsError'>, <class 'an.library.rights.RightsRefusal'>, <class 'an.library.kinds.UnknownKindError'>)*
+### an.library.api.LIBRARY_ERRORS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[type](https://docs.python.org/3/builtins/functions.html#type)[[BaseException](https://docs.python.org/3/builtins/exceptions.html#BaseException)], ...]* *= (<class 'an.library.api.LibraryError'>, <class 'an.library.ids.AssetIdError'>, <class 'an.library.federation.AssetNotFoundError'>, <class 'an.library.stores.VersionExistsError'>, <class 'an.library.rights.RightsRefusal'>, <class 'an.library.kinds.UnknownKindError'>, <class 'an.library.registry.RegistryError'>)*
 
 the CLI
 prints these as a sentence and exits non-zero.
@@ -241,9 +241,13 @@ files: the asset’s files, by the relative paths the descriptor uses
 
 source: provenance declared for the asset as a whole. It contributes BESIDE
 : the descriptor’s own `source` (the most restrictive wins), never
-  instead of it. With no `source` and none in the descriptor, the source
-  of the previous version carries forward (`carry_source`); with none at
-  all the version is `unknown` — recorded and visible, not refused
+  instead of it. With no `source`, and a descriptor declaring nothing
+  or exactly what the head’s declared, the source of the previous version
+  carries forward (`carry_source`) — for the bytes it was declared on
+  only: a file changed or added since is recorded as `unlabelled` on the
+  version and is `unknown` until a publish passes `source=` (or a
+  relicence) again; with no source at all the version is `unknown` —
+  recorded and visible, not refused
 
 relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 : Rights attach to the bytes and the lineage: a new version inherits the
@@ -289,8 +293,9 @@ False
 Publish an asset folder as it sits in a project store (`assets/characters/alice/`).
 
 The descriptor is the kind’s descriptor file (`character.json`); every other
-non-hidden file under the folder is published as one of the asset’s files, so
-a check-out reproduces the folder. Keyword arguments go to [`publish()`](#an.library.api.publish).
+file under the folder is published as one of the asset’s files, so a
+check-out reproduces the folder — except operating-system clutter
+(`.DS_Store`, hidden files, `Thumbs.db`: `an.stores._common.is_os_junk()`). Keyword arguments go to [`publish()`](#an.library.api.publish).
 
 * **Return type:**
   [`PublishResult`](#an.library.api.PublishResult)
@@ -300,7 +305,15 @@ a check-out reproduces the folder. Keyword arguments go to [`publish()`](#an.lib
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
 
 The index is derived data: rebuilding it is always safe, and the way to
-repair a library whose index was lost or written by an older `an`.
+repair a library whose index was lost or written by an older `an`. It also
+(re-)registers the library’s root in the machine registry
+([`an.library.registry`](an.library.registry.md#module-an.library.registry)), so a library made at a custom root before the
+registry existed becomes visible to every other library’s rights floor.
+
+The new index is computed in full first, then written over the old one
+entry by entry, and only then are stale entries removed: a crash midway
+leaves old and new statements side by side, never an empty floor (an#249
+R4-N4).
 
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)

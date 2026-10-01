@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.affordances" href="an.library.affordances.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -782,7 +784,7 @@ the asset derives from. <code class="docutils literal notranslate"><span class="
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.api.LIBRARY_ERRORS">
-<span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">LIBRARY_ERRORS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#BaseException" title="(in Python v3.14)"><span class="pre">BaseException</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;class</span> <span class="pre">'an.library.api.LibraryError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.ids.AssetIdError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.federation.AssetNotFoundError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.stores.VersionExistsError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.rights.RightsRefusal'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.kinds.UnknownKindError'&gt;)</span></span><a class="headerlink" href="#an.library.api.LIBRARY_ERRORS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">LIBRARY_ERRORS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#BaseException" title="(in Python v3.14)"><span class="pre">BaseException</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;class</span> <span class="pre">'an.library.api.LibraryError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.ids.AssetIdError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.federation.AssetNotFoundError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.stores.VersionExistsError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.rights.RightsRefusal'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.kinds.UnknownKindError'&gt;,</span> <span class="pre">&lt;class</span> <span class="pre">'an.library.registry.RegistryError'&gt;)</span></span><a class="headerlink" href="#an.library.api.LIBRARY_ERRORS" title="Link to this definition">#</a></dt>
 <dd><p>the CLI
 prints these as a sentence and exits non-zero.</p>
 <dl class="field-list simple">
@@ -910,9 +912,13 @@ doc: the descriptor — the existing document <code class="docutils literal notr
 <dt>files: the asset’s files, by the relative paths the descriptor uses</dt><dd><p>(<code class="docutils literal notranslate"><span class="pre">parts/head.svg</span></code>) — stored once each in the content-addressed blobs</p>
 </dd>
 <dt>source: provenance declared for the asset as a whole. It contributes BESIDE</dt><dd><p>the descriptor’s own <code class="docutils literal notranslate"><span class="pre">source</span></code> (the most restrictive wins), never
-instead of it. With no <code class="docutils literal notranslate"><span class="pre">source</span></code> and none in the descriptor, the source
-of the previous version carries forward (<code class="docutils literal notranslate"><span class="pre">carry_source</span></code>); with none at
-all the version is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> — recorded and visible, not refused</p>
+instead of it. With no <code class="docutils literal notranslate"><span class="pre">source</span></code>, and a descriptor declaring nothing
+or exactly what the head’s declared, the source of the previous version
+carries forward (<code class="docutils literal notranslate"><span class="pre">carry_source</span></code>) — for the bytes it was declared on
+only: a file changed or added since is recorded as <code class="docutils literal notranslate"><span class="pre">unlabelled</span></code> on the
+version and is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> until a publish passes <code class="docutils literal notranslate"><span class="pre">source=</span></code> (or a
+relicence) again; with no source at all the version is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> —
+recorded and visible, not refused</p>
 </dd>
 <dt>relicense: <code class="docutils literal notranslate"><span class="pre">{&quot;by&quot;:</span> <span class="pre">who,</span> <span class="pre">&quot;reason&quot;:</span> <span class="pre">why}</span></code> — the ONLY way to relax rights.</dt><dd><p>Rights attach to the bytes and the lineage: a new version inherits the
 version it follows (<code class="docutils literal notranslate"><span class="pre">previous</span></code>), every version it derives from, and
@@ -960,8 +966,9 @@ expect_head: guard against publishing into an asset you did not mean:</p>
 <span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">publish_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#publish_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.publish_dir" title="Link to this definition">#</a></dt>
 <dd><p>Publish an asset folder as it sits in a project store (<code class="docutils literal notranslate"><span class="pre">assets/characters/alice/</span></code>).</p>
 <p>The descriptor is the kind’s descriptor file (<code class="docutils literal notranslate"><span class="pre">character.json</span></code>); every other
-non-hidden file under the folder is published as one of the asset’s files, so
-a check-out reproduces the folder. Keyword arguments go to <a class="reference internal" href="#an.library.api.publish" title="an.library.api.publish"><code class="xref py py-func docutils literal notranslate"><span class="pre">publish()</span></code></a>.</p>
+file under the folder is published as one of the asset’s files, so a
+check-out reproduces the folder — except operating-system clutter
+(<code class="docutils literal notranslate"><span class="pre">.DS_Store</span></code>, hidden files, <code class="docutils literal notranslate"><span class="pre">Thumbs.db</span></code>: <code class="xref py py-func docutils literal notranslate"><span class="pre">an.stores._common.is_os_junk()</span></code>). Keyword arguments go to <a class="reference internal" href="#an.library.api.publish" title="an.library.api.publish"><code class="xref py py-func docutils literal notranslate"><span class="pre">publish()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.library.api.PublishResult" title="an.library.api.PublishResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">PublishResult</span></code></a></span></p>
@@ -974,7 +981,14 @@ a check-out reproduces the folder. Keyword arguments go to <a class="reference i
 <span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">reindex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#reindex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.reindex" title="Link to this definition">#</a></dt>
 <dd><p>Rebuild <code class="docutils literal notranslate"><span class="pre">library</span></code>’s floor index from its versions. Returns the number of blobs indexed.</p>
 <p>The index is derived data: rebuilding it is always safe, and the way to
-repair a library whose index was lost or written by an older <code class="docutils literal notranslate"><span class="pre">an</span></code>.</p>
+repair a library whose index was lost or written by an older <code class="docutils literal notranslate"><span class="pre">an</span></code>. It also
+(re-)registers the library’s root in the machine registry
+(<a class="reference internal" href="an.library.registry.html#module-an.library.registry" title="an.library.registry"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.registry</span></code></a>), so a library made at a custom root before the
+registry existed becomes visible to every other library’s rights floor.</p>
+<p>The new index is computed in full first, then written over the old one
+entry by entry, and only then are stale entries removed: a crash midway
+leaves old and new statements side by side, never an empty floor (an#249
+R4-N4).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>

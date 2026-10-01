@@ -124,8 +124,11 @@ platform: `sys.platform` value to resolve for (default: this one)
 The default directory of the agent-made project `project_id` (design §7.5).
 
 `an init <dir>` with an explicit directory keeps working anywhere; this is
-the default for projects an agent makes, so they never land in a session’s
-working folder or a repository.
+the default for projects an agent makes (`an init --id <id>`), so they
+never land in a session’s working folder or a repository. `package` is
+the library package of the genre the video is made in
+([`an.genres.genre_library()`](an.genres.md#an.genres.genre_library); the core’s, `an`, by default — the core
+names no genre).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

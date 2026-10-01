@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -741,17 +741,21 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">,</span> <span class="n">license_class</span><span class="p">,</span> <span class="n">requires_attribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CreditsReport"</span><span class="p">,</span>
+    <span class="s2">"is_factory_stamp"</span><span class="p">,</span>
+    <span class="s2">"is_generated_source"</span><span class="p">,</span>
     <span class="s2">"PrivateStudyWarning"</span><span class="p">,</span>
     <span class="s2">"collect_credits"</span><span class="p">,</span>
     <span class="s2">"credits_for_project"</span><span class="p">,</span>
@@ -776,6 +780,22 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">license_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LicenseClass</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""``attribution`` / ``free`` / ``private`` / ``unknown`` (an#211)."""</span>
         <span class="k">return</span> <span class="n">license_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">own_work</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether ``an`` itself made it (the character factory, the sound</span>
+<span class="sd">        synthesizer) — recorded, but not third-party work and nothing owed."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span> <span class="ow">in</span> <span class="n">_own_work_providers</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"free"</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_own_work_providers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The providers of the sources ``an`` writes on what it generates itself."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SYNTH_SOURCE</span>
+
+    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">({</span><span class="n">FACTORY_PROVIDER</span><span class="p">,</span> <span class="n">SYNTH_SOURCE</span><span class="o">.</span><span class="n">provider</span><span class="p">})</span>
 
 
 <div class="viewcode-block" id="CreditsReport">
@@ -825,6 +845,7 @@ window.runMermaid = runMermaid;</script>
             <span class="p">],</span>
             <span class="s2">"unverified"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">],</span>
             <span class="s2">"private_study"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">],</span>
+            <span class="s2">"own_work"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">own_work</span><span class="p">],</span>
             <span class="s2">"publishable"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span><span class="p">,</span>
         <span class="p">}</span>
 
@@ -832,9 +853,23 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.CreditsReport.format">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Human-readable, and honest about what it does not know."""</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">"credits: no third-party assets recorded."</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"credits: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> third-party asset(s)."</span><span class="p">]</span>
+        <span class="n">own</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">own_work</span><span class="p">]</span>
+        <span class="n">third_party</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">own_work</span><span class="p">]</span>
+        <span class="n">made_here</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">own</span><span class="p">)</span><span class="si">}</span><span class="s2"> asset(s) made by an itself (nothing owed)"</span> <span class="k">if</span> <span class="n">own</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">third_party</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">own</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">"credits: no third-party assets recorded."</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"credits: no third-party assets recorded; </span><span class="si">{</span><span class="n">made_here</span><span class="si">}</span><span class="s2">."</span><span class="p">]</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Made by an itself, nothing owed (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">own</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">own</span><span class="p">]</span>
+            <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">"credits: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">third_party</span><span class="p">)</span><span class="si">}</span><span class="s2"> third-party asset(s)"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"; </span><span class="si">{</span><span class="n">made_here</span><span class="si">}</span><span class="s2">."</span> <span class="k">if</span> <span class="n">own</span> <span class="k">else</span> <span class="s2">"."</span><span class="p">)</span>
+        <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -861,12 +896,16 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: license=</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"free"</span><span class="p">]</span>
+        <span class="n">clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">third_party</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"free"</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">clear</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No attribution required (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">clear</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">clear</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">own</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Made by an itself, nothing owed (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">own</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">own</span><span class="p">]</span>
         <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 </div>
 
@@ -959,17 +998,79 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">store_name</span> <span class="o">==</span> <span class="s2">"characters"</span><span class="p">:</span>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">_reconstruct_legacy_source</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
+            <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">CreditEntry</span><span class="p">(</span><span class="n">asset</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
-                <span class="p">)</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CreditEntry</span><span class="p">(</span><span class="n">asset</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">store_name</span> <span class="o">==</span> <span class="s2">"environments"</span><span class="p">:</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_plane_credits</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">))</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_plane_credits</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">store_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="s2">"props"</span><span class="p">):</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_part_credits</span><span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">))</span>
-            <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_library_origin_credits</span><span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">))</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="n">_part_credits</span><span class="p">(</span>
+                    <span class="n">store_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">digests</span><span class="o">=</span><span class="n">_digests_of</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="c1"># A part stamped with the descriptor's own source (DiceBear's</span>
+                <span class="c1"># head) owes what the descriptor owes: one credit, not two.</span>
+                <span class="n">said</span> <span class="o">=</span> <span class="p">{</span><span class="n">_source_identity</span><span class="p">(</span><span class="n">source</span><span class="p">)}</span> <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">parts</span> <span class="k">if</span> <span class="n">_source_identity</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">said</span><span class="p">)</span>
+            <span class="c1"># A check-out's recorded contributors that say exactly what this</span>
+            <span class="c1"># entry already says (the same source restated by the version it</span>
+            <span class="c1"># follows) are one statement, not two credits.</span>
+            <span class="n">shown</span> <span class="o">=</span> <span class="p">[</span><span class="n">_source_identity</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">found</span><span class="p">]</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">e</span>
+                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">_library_origin_credits</span><span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">_source_identity</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shown</span>
+            <span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_source_identity</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a source says, whichever bytes it pins (its ``sha256`` left out)."""</span>
+    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">"sha256"</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_digests_of</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A lazy ``{relative path: sha256}`` of the files beside ``store[key]``.</span>
+
+<span class="sd">    Read only when a provenance stamp has to be checked against the bytes it</span>
+<span class="sd">    claims (a factory stamp is only true of the bytes it pins). A store may</span>
+<span class="sd">    provide them itself (``file_digests(key)`` — the asset library does, for a</span>
+<span class="sd">    version that is not on disk); a folder store is hashed from its sidecars;</span>
+<span class="sd">    anything else gives ``None``: unknowable, so stamps are taken as written.</span>
+<span class="sd">    Operating-system clutter is not an asset (:func:`an.stores._common.is_os_junk`,</span>
+<span class="sd">    the rule a publish and a check-out apply too).</span>
+<span class="sd">    """</span>
+    <span class="n">memo</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">provided</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"file_digests"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">provided</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">provided</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"META_NAME"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">sidecar</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"sidecar_path"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">sidecar</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">sidecar</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">meta</span><span class="p">))</span><span class="o">.</span><span class="n">parent</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)):</span>
+                <span class="n">rel</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">rel</span> <span class="o">==</span> <span class="n">meta</span> <span class="ow">or</span> <span class="n">is_os_junk</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">out</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">memo</span><span class="p">:</span>
+            <span class="n">memo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compute</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">memo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">get</span>
 
 
 <span class="c1">#: Where a library check-out records itself in a descriptor (ADR 0005); the</span>
@@ -1065,13 +1166,38 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_part_credits</span><span class="p">(</span><span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_part_credits</span><span class="p">(</span>
+    <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">digests</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""One entry per part (attachment) that declares its OWN `source` (an#220).</span>
 
 <span class="sd">    A character carved from several clips — a head from one, the arms from</span>
 <span class="sd">    another — cannot be credited by one descriptor `source`. Keyed by the part's</span>
 <span class="sd">    PATH, once, whichever slots or skins name it: the credit is for the art,</span>
 <span class="sd">    and one file used by two attachments is one piece of work.</span>
+
+<span class="sd">    **A stamp is true only of the bytes it pins** (an#249, an#251, review-259).</span>
+<span class="sd">    The character factory stamps each part it draws, and the descriptor, as its</span>
+<span class="sd">    own ``cc0`` work; a DiceBear head and the drawing wrapping it carry</span>
+<span class="sd">    DiceBear's source the same way; each pinned to a SHA-256 (a descriptor's</span>
+<span class="sd">    stamp pins its ``source_svg``). With the files' ``digests`` known:</span>
+
+<span class="sd">    - a part whose pinned digest matches its file is itemised by that source</span>
+<span class="sd">      (the factory's own is not listed: not third-party, nothing owed);</span>
+<span class="sd">    - a part whose pinned digest no longer matches (re-drawn or re-carved since)</span>
+<span class="sd">      speaks for nothing: it is UNVERIFIED, unless the descriptor declares a</span>
+<span class="sd">      source a PERSON wrote, which then speaks for it. A stale claim that is</span>
+<span class="sd">      ``private`` is still listed as such — stricter never gives way;</span>
+<span class="sd">    - under a generator's descriptor-level source (the factory's, DiceBear's)</span>
+<span class="sd">      that pins a digest, every file no stamp pins is UNVERIFIED: a generator</span>
+<span class="sd">      made claims only about the bytes it produced.</span>
+
+<span class="sd">    The asset library reads the same walk (:mod:`an.library.rights`), so the</span>
+<span class="sd">    library and ``an credits`` agree about which bytes are the factory's.</span>
 
 <span class="sd">    &gt;&gt;&gt; d = {"skins": {"default": {"slots": {"head": {"head": {</span>
 <span class="sd">    ...     "path": "parts/head.png",</span>
@@ -1082,8 +1208,20 @@ window.runMermaid = runMermaid;</script>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">):</span>
         <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">raw</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
+    <span class="n">generated</span> <span class="o">=</span> <span class="n">is_generated_source</span><span class="p">(</span><span class="n">own</span><span class="p">)</span>
+    <span class="c1"># Only a source a person wrote speaks for parts nothing itemises; a source a</span>
+    <span class="c1"># machine wrote (the factory's, DiceBear's) speaks for what it pins.</span>
+    <span class="n">covered</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">own</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">generated</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">known</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># hashed only if a stamp needs it</span>
+        <span class="k">return</span> <span class="n">digests</span><span class="p">()</span> <span class="k">if</span> <span class="n">digests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CreditEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">((</span><span class="n">raw</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="n">pinned</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">stale</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="k">for</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="p">(</span><span class="n">skin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -1092,27 +1230,109 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">att</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>  <span class="c1"># an empty `{}` is still a claim: reported UNKNOWN</span>
-                <span class="k">if</span> <span class="n">_is_factory_stamp</span><span class="p">(</span><span class="n">att</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]):</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">))</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">att</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span>
+                <span class="n">sha</span> <span class="o">=</span> <span class="n">_stamp_digest</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">sha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">files</span> <span class="o">=</span> <span class="n">known</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">files</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">sha</span> <span class="o">==</span> <span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                        <span class="n">pinned</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">stale</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>  <span class="c1"># a claim about other bytes</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pinned</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
                     <span class="k">continue</span>  <span class="c1"># this package drew it: nothing owed, not third-party</span>
-                <span class="n">asset</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'path'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">asset</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span>
                 <span class="k">if</span> <span class="n">asset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
                     <span class="n">out</span><span class="p">[</span><span class="n">asset</span><span class="p">]</span> <span class="o">=</span> <span class="n">CreditEntry</span><span class="p">(</span>
-                        <span class="n">asset</span><span class="o">=</span><span class="n">asset</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">att</span><span class="p">[</span><span class="s2">"source"</span><span class="p">],</span> <span class="n">asset</span><span class="p">)</span>
+                        <span class="n">asset</span><span class="o">=</span><span class="n">asset</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">asset</span><span class="p">)</span>
                     <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">covered</span><span class="p">:</span>
+        <span class="n">unpinned</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stale</span> <span class="o">-</span> <span class="n">pinned</span><span class="p">)</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">known</span><span class="p">()</span> <span class="k">if</span> <span class="n">generated</span> <span class="ow">and</span> <span class="n">_stamp_digest</span><span class="p">(</span><span class="n">own</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">svg</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_svg"</span><span class="p">)</span>
+            <span class="n">unpinned</span> <span class="o">|=</span> <span class="p">{</span>
+                <span class="n">path</span>
+                <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">files</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pinned</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">path</span> <span class="o">==</span> <span class="n">svg</span> <span class="ow">and</span> <span class="n">digest</span> <span class="o">==</span> <span class="n">_stamp_digest</span><span class="p">(</span><span class="n">own</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpinned</span><span class="p">):</span>
+            <span class="n">asset</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="n">asset</span> <span class="ow">in</span> <span class="n">out</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="n">asset</span><span class="p">]</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"private"</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># a stale claim stricter than unknown still binds</span>
+            <span class="c1"># Otherwise it replaces a stale claim's entry: that speaks for other bytes.</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">asset</span><span class="p">]</span> <span class="o">=</span> <span class="n">CreditEntry</span><span class="p">(</span>
+                <span class="n">asset</span><span class="o">=</span><span class="n">asset</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span>
+                    <span class="n">provider</span><span class="o">=</span><span class="s2">"unknown"</span><span class="p">,</span>
+                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">"reason"</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="s2">"the stamp on this part no longer matches its bytes "</span>
+                            <span class="s2">"(re-drawn or re-carved)"</span>
+                            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">stale</span>
+                            <span class="k">else</span> <span class="s2">"no stamp pins these bytes, and the descriptor's "</span>
+                            <span class="s2">"source was written by a generator, not a person"</span>
+                        <span class="p">)</span>
+                    <span class="p">},</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">out</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="p">)]</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_is_factory_stamp</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Whether a per-part source is the character factory's own stamp (an#236).</span>
+<span class="c1">#: Providers whose descriptor-level source a GENERATOR writes (the character</span>
+<span class="c1">#: factory, DiceBear through the factory): such a source speaks only for the</span>
+<span class="c1">#: bytes a stamp pins, never for a part re-carved or added since.</span>
+<span class="n">GENERATED_PROVIDERS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"dicebear"</span><span class="p">})</span>
 
-<span class="sd">    The factory stamps every part it draws ``cc0`` with the part's digest, so the</span>
-<span class="sd">    asset library can tell its shared parts from carved ones. It is ``an``'s own</span>
-<span class="sd">    work, not third-party: a credits report lists what is OWED, and listing</span>
-<span class="sd">    fifty generated parts per character would bury the one carved head.</span>
+
+<div class="viewcode-block" id="is_generated_source">
+<a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.is_generated_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_generated_source</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a descriptor's source was written by a generator rather than a person.</span>
+
+<span class="sd">    &gt;&gt;&gt; is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})</span>
+<span class="sd">    False</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
+    <span class="k">return</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"provider"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">GENERATED_PROVIDERS</span>
+    <span class="p">)</span></div>
 
-    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"provider"</span><span class="p">)</span> <span class="o">==</span> <span class="n">FACTORY_PROVIDER</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stamp_digest</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">sha</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">raw</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">sha</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"sha256:"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="is_factory_stamp">
+<a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.is_factory_stamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_factory_stamp</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a source is the character factory's own stamp (an#236, an#251).</span>
+
+<span class="sd">    The factory stamps every part it draws ``cc0`` with the part's digest, and</span>
+<span class="sd">    the descriptor with its ``source_svg``'s, so the asset library can tell its</span>
+<span class="sd">    shared parts from carved ones. It is ``an``'s own work, not third-party: a</span>
+<span class="sd">    credits report lists what is OWED, and listing fifty generated parts per</span>
+<span class="sd">    character would bury the one carved head.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_LICENSE</span><span class="p">,</span> <span class="n">FACTORY_PROVIDER</span>
+
+    <span class="c1"># Both fields: a record naming the factory but another licence is not the</span>
+    <span class="c1"># factory's stamp — it is a claim, and is reported (and counted) as one.</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"provider"</span><span class="p">)</span> <span class="o">==</span> <span class="n">FACTORY_PROVIDER</span>
+        <span class="ow">and</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"license"</span><span class="p">)</span> <span class="o">==</span> <span class="n">FACTORY_LICENSE</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">_is_factory_stamp</span> <span class="o">=</span> <span class="n">is_factory_stamp</span>
 
 
 <div class="viewcode-block" id="credits_for_scene">

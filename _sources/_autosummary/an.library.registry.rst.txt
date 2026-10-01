@@ -1,0 +1,31 @@
+an.library.registry
+===================
+
+.. automodule:: an.library.registry
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      REGISTRY_DIRNAME
+      REGISTRY_FILENAME
+      STATEMENTS_DIRNAME
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      machine_registry_dir
+      machine_registry_path
+      register_root
+      registered_roots
+      remember_statements
+      remembered_statements
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RegistryError
+   

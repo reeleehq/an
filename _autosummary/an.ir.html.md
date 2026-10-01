@@ -694,7 +694,7 @@ True
 False
 ```
 
-### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
+### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -710,6 +710,11 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_library_lock` is the project’s asset-library lockfile
+(`mall["library_lock"]`): with it, every scene `library:` pin is checked
+against the lockfile (`warning` on disagreement) and every pinned
+check-out against its library version (`info` when it has been edited).
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](an.genres.registry.html.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out

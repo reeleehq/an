@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2353,6 +2353,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">voices</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">characters</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The project's asset-library lockfile (``mall["library_lock"]``, an#240);</span>
+    <span class="c1">#: ``None`` means the pin checks did not run.</span>
+    <span class="n">library_lock</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">memo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
@@ -2383,6 +2386,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">available_props</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">available_environments</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">available_sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">available_library_lock</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Cross-field semantic checks. Pass live stores in for cross-store checks.</span>
 
@@ -2398,6 +2402,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    skipping them is what it sounds like: a `play` or a swap the compiler</span>
 <span class="sd">    will refuse passes silently without the store (the CLI, `an validate`,</span>
 <span class="sd">    always passes it).</span>
+
+<span class="sd">    ``available_library_lock`` is the project's asset-library lockfile</span>
+<span class="sd">    (``mall["library_lock"]``): with it, every scene ``library:`` pin is checked</span>
+<span class="sd">    against the lockfile (``warning`` on disagreement) and every pinned</span>
+<span class="sd">    check-out against its library version (``info`` when it has been edited).</span>
 
 <span class="sd">    The checks are a REGISTRY (:func:`an.genres.registry.register_check`):</span>
 <span class="sd">    the core's own register below, a genre's when it is loaded (the cut-out</span>
@@ -2424,6 +2433,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">voices</span><span class="o">=</span><span class="n">available_voices</span><span class="p">,</span>
         <span class="n">characters</span><span class="o">=</span><span class="n">available_characters</span><span class="p">,</span>
         <span class="n">sounds</span><span class="o">=</span><span class="n">available_sounds</span><span class="p">,</span>
+        <span class="n">library_lock</span><span class="o">=</span><span class="n">available_library_lock</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"scene"</span><span class="p">):</span>
         <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
@@ -2871,6 +2881,69 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_check_assembly</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">sounds</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">sounds</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_findings</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="n">ValidationReport</span><span class="p">,</span> <span class="n">findings</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">findings</span><span class="p">:</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" Fix: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_readable_lock</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The lockfile's pins, read once — or a finding saying it cannot be read."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">ctx</span><span class="o">.</span><span class="n">library_lock</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">library_lock</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported, never a traceback</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="s2">"assets.lock.json"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"the asset library's lockfile cannot be read (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">), so no library pin was checked. Check the assets out again "</span>
+                <span class="s2">"(an library checkout --overwrite) to rewrite it."</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">library_lock</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span><span class="s2">"library lock"</span><span class="p">,</span> <span class="n">read</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_library_pins</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every scene ``library:`` pin agrees with the lockfile, the source of truth (an#240)."""</span>
+    <span class="n">lock</span> <span class="o">=</span> <span class="n">_readable_lock</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lock</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">library</span> <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+    <span class="p">):</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.checkout</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_pins</span>
+
+    <span class="n">_add_findings</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">check_pins</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">lock</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_library_checkouts</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every pinned check-out is still its version byte for byte; an edit is ``info`` (a fork)."""</span>
+    <span class="n">lock</span> <span class="o">=</span> <span class="n">_readable_lock</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lock</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.checkout</span><span class="w"> </span><span class="kn">import</span> <span class="n">drift_findings</span>
+
+    <span class="n">stores</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">sounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">stores</span><span class="p">[</span><span class="s2">"sounds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">sounds</span>
+    <span class="n">supplied</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lock</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">stores</span><span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">findings</span> <span class="o">=</span> <span class="n">drift_findings</span><span class="p">(</span><span class="n">mall</span><span class="o">=</span><span class="n">stores</span><span class="p">,</span> <span class="n">lock</span><span class="o">=</span><span class="n">supplied</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a library that cannot be read is a finding</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="s2">"assets.lock.json"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"the pinned check-outs could not be compared with their library "</span>
+            <span class="sa">f</span><span class="s2">"versions (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">_add_findings</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">findings</span><span class="p">)</span>
+
+
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># The cut-out genre's checks, as context functions. The genre object</span>
 <span class="c1"># (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its</span>
@@ -2955,6 +3028,20 @@ window.runMermaid = runMermaid;</script>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_lines"</span><span class="p">,</span> <span class="n">_core_dialogue_lines</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">120</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_fits"</span><span class="p">,</span> <span class="n">_core_dialogue_fits</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">130</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"assembly"</span><span class="p">,</span> <span class="n">_core_assembly</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span>
+            <span class="s2">"library_pins"</span><span class="p">,</span>
+            <span class="n">_core_library_pins</span><span class="p">,</span>
+            <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span>
+            <span class="n">order</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"a scene's `library:` pins agree with assets.lock.json"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span>
+            <span class="s2">"library_checkouts"</span><span class="p">,</span>
+            <span class="n">_core_library_checkouts</span><span class="p">,</span>
+            <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span>
+            <span class="n">order</span><span class="o">=</span><span class="mi">31</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"a pinned check-out is still its library version (info when edited)"</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">check</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_names</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">):</span>
             <span class="n">register_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>

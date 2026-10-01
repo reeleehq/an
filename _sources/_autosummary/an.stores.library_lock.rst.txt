@@ -1,0 +1,25 @@
+an.stores.library\_lock
+=======================
+
+.. automodule:: an.stores.library_lock
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LOCKFILE_NAME
+      LOCKFILE_SCHEMA_VERSION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      lock_key
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ProjectLock
+   

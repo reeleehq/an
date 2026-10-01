@@ -10,9 +10,10 @@ the business logic is [`an.library.api`](an.library.api.html.md#module-an.librar
 Lists are comma-separated (`--style reiniger,gilliam`). Every command reads
 the library of `--package` (default `an`) at `--root` (default: the
 package’s data folder, or `<PKG>_HOME`); the read commands search that
-library, then the core `an` library, then `--extra` ones. A refusal (an
-unknown asset, a private asset leaving its library, …) prints one sentence and
-exits non-zero.
+library, then the core `an` library, then `--extra` ones — and the library
+a namespaced reference names (`cutan:character.alice@v002` reads `cutan`
+with no `--package`; an#251). A refusal (an unknown asset, a private asset
+leaving its library, …) prints one sentence and exits non-zero.
 
 Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 `promote`.
@@ -27,16 +28,16 @@ Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 | [`show`](#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.      |
 | [`vocabulary`](#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON). |
 
-### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='an', root='', extra='')
+### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='', root='', extra='')
 
 Check a library version out into a project, and pin it in assets.lock.json.
 
 project_dir: the an project
-ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned)
+ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed
 key: the key in the project store (default: the asset’s slug)
-overwrite: replace an existing entry that is not this version
-package: the library to read first (then the core an library)
-root: that library’s root
+overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
+package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
+root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
 
 * **Return type:**
@@ -68,7 +69,7 @@ json_out: print JSON instead of a table
 Copy a version into the core an library, so other genres can reuse it.
 
 ref: [<library>:]<asset_id>[@<version>]
-package: the library it is in (a genre’s, e.g. cutan)
+package: the library it is in (a genre’s, e.g. cutan; default: the reference’s <library>: prefix)
 root: that library’s root
 core_root: the core an library’s root (default: its data folder)
 as_id: promote under another id (when the core library has an unrelated asset with this one)
@@ -106,13 +107,13 @@ extra: further libraries where –derived-from resolves, by package name, comma-
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.show(ref, package='an', root='', extra='', json_out=False)
+### an.library.cli.show(ref, package='', root='', extra='', json_out=False)
 
 Show one asset: its record, the resolved version, and its other versions.
 
-ref: [<library>:]<asset_id>[@<version>] (latest by default)
-package: the library to read first (then the core an library)
-root: that library’s root
+ref: [<library>:]<asset_id>[@<version>] (latest by default); a <library>: prefix reads that library
+package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
+root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
 json_out: print the full record and version as JSON
 

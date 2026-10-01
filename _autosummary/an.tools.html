@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.timeline" href="an.timing.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -597,8 +599,8 @@ without touching these functions, so they stay plain Python.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.credits" title="an.tools.credits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">credits</span></code></a>(project_dir[, json_out])</p></td>
 <td><p>Show what third-party work is in <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> and what it obliges.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.init" title="an.tools.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>(project_dir[, name, force])</p></td>
-<td><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.init" title="an.tools.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>(project_dir[, name, force, id, genre, ...])</p></td>
+<td><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> — or, with --id, at the default location.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.iterate" title="an.tools.iterate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterate</span></code></a>(project_dir, instruction[, ...])</p></td>
 <td><p>Apply a free-text instruction to the scene.</p></td>
@@ -737,11 +739,15 @@ consumer that makes the provenance field worth having.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.init">
-<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.init" title="Link to this definition">#</a></dt>
-<dd><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
-<p>project_dir: where to create the project (created if missing)
+<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.init" title="Link to this definition">#</a></dt>
+<dd><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> — or, with –id, at the default location.</p>
+<p>project_dir: where to create the project (created if missing); with –id, the project’s id
 name: project display name (defaults to the directory name)
-force: overwrite an existing scene.md</p>
+force: overwrite an existing scene.md
+id: treat project_dir as a project id and create the project under its genre’s projects folder (an init –id alice-and-bob –genre cutout_animation -&gt; ~/.local/share/cutan/projects/alice-and-bob)
+genre: with –id, the genre the video is made in (e.g. cutout_animation); the genre names the package whose root holds the project
+package: with –id, that package directly, overriding –genre (default: the genre’s, else an)
+root: with –id, that package’s root (default: its data folder, or &lt;PKG&gt;_HOME)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>

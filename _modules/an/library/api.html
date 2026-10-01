@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -757,6 +757,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentRef</span><span class="p">,</span> <span class="n">content_hash</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRIVATE_STUDY</span><span class="p">,</span> <span class="n">PUBLIC_DOMAIN</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">license_class</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_generated_source</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span><span class="p">,</span> <span class="n">omit_unset</span><span class="p">,</span> <span class="n">register_kind</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">character</span> <span class="k">as</span> <span class="n">_character</span>  <span class="c1"># noqa: F401 — registers the analyser</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.affordances</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -769,7 +770,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">missing</span><span class="p">,</span>
     <span class="n">remedy_for</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.floor</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlobFloor</span><span class="p">,</span> <span class="n">record_statement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.floor</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlobFloor</span><span class="p">,</span> <span class="n">record_statement</span><span class="p">,</span> <span class="n">register_library</span><span class="p">,</span> <span class="n">remember</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.federation</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AssetNotFoundError</span><span class="p">,</span>
     <span class="n">Libraries</span><span class="p">,</span>
@@ -790,6 +791,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">version_number</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASSET_KINDS</span><span class="p">,</span> <span class="n">UnknownKindError</span><span class="p">,</span> <span class="n">asset_kind_info</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegistryError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.rights</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">LICENSE_CLASS_ORDER</span><span class="p">,</span>
     <span class="n">PUBLISHABLE_CLASSES</span><span class="p">,</span>
@@ -801,6 +803,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_PACKAGE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionExistsError</span><span class="p">,</span> <span class="n">canonical_json</span><span class="p">,</span> <span class="n">version_key</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CheckoutError"</span><span class="p">,</span>
@@ -864,6 +867,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The version field naming the head this version follows (``&lt;lib&gt;:&lt;id&gt;@vNNN``):</span>
 <span class="c1">#: a new version inherits the old one's rights, so it cannot relabel them.</span>
 <span class="n">PREVIOUS_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"previous"</span>
+<span class="c1">#: The version field listing the files a CARRIED asset-level source does not</span>
+<span class="c1">#: speak for: changed or added since the version the source was declared on</span>
+<span class="c1">#: (S1 of review-259). Each is ``unknown`` until a publish labels it again.</span>
+<span class="n">UNLABELLED_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"unlabelled"</span>
 <span class="c1">#: How many labels a publish tries when another publisher takes the one it chose.</span>
 <span class="n">MAX_PUBLISH_ATTEMPTS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1">#: How many close capability names a typo's error suggests.</span>
@@ -914,6 +921,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">VersionExistsError</span><span class="p">,</span>
     <span class="n">RightsRefusal</span><span class="p">,</span>
     <span class="n">UnknownKindError</span><span class="p">,</span>
+    <span class="n">RegistryError</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1">#: ``publish(expect_head=…)`` default: no expectation about the head.</span>
@@ -1064,6 +1072,7 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">previous</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">relicense</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">unlabelled</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"doc"</span><span class="p">:</span> <span class="n">doc</span><span class="p">,</span>
@@ -1075,6 +1084,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">payload</span><span class="p">[</span><span class="n">PREVIOUS_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous</span>
     <span class="k">if</span> <span class="n">relicense</span><span class="p">:</span>
         <span class="n">payload</span><span class="p">[</span><span class="n">RELICENSE_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relicense</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unlabelled</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="n">UNLABELLED_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unlabelled</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">canonical_json</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
 
@@ -1091,6 +1102,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"derived_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[],</span>
         <span class="n">previous</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PREVIOUS_FIELD</span><span class="p">),</span>
         <span class="n">relicense</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">),</span>
+        <span class="n">unlabelled</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(),</span>
     <span class="p">)</span>
 
 
@@ -1149,9 +1161,21 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    It itemises only if it pins the same digest: a per-part source left on a</span>
 <span class="sd">    file whose bytes have since changed (a factory stamp on a re-carved part)</span>
-<span class="sd">    describes other bytes and speaks for nothing.</span>
+<span class="sd">    describes other bytes and speaks for nothing. The descriptor's ``source_svg``</span>
+<span class="sd">    is itemised by a generator's descriptor-level stamp pinning its digest.</span>
 <span class="sd">    """</span>
-    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="o">==</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_svg"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_generated_source</span><span class="p">(</span><span class="n">own</span><span class="p">):</span>
+        <span class="c1"># The generator's descriptor-level stamp pins the drawing the parts were</span>
+        <span class="c1"># cut from — the same rule `an credits` applies (S2 of review-259).</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">claim</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">own</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">claim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">claim</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="k">for</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="p">(</span><span class="n">skin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -1224,7 +1248,16 @@ window.runMermaid = runMermaid;</script>
             <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
             <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span> <span class="k">if</span> <span class="n">kind</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">source</span><span class="o">=</span><span class="n">_source_model</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
+            <span class="n">files</span><span class="o">=</span><span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
         <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2"> (changed since the carried source was declared; "</span>
+            <span class="s2">"not labelled)"</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
     <span class="p">]</span>
     <span class="n">lineage</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"previous version </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="p">[</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PREVIOUS_FIELD</span><span class="p">)]</span> <span class="k">if</span> <span class="n">ref</span>
@@ -1278,9 +1311,19 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">blob_statement</span><span class="p">(</span>
-    <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">own_label</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor)."""</span>
+<span class="w">    </span><span class="sd">"""What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor).</span>
+
+<span class="sd">    own_label: the class of the version's own label, computed once by the</span>
+<span class="sd">        caller for all its files (it is the same for every file the version</span>
+<span class="sd">        does not itemise); default: computed here</span>
+<span class="sd">    """</span>
     <span class="n">relicense</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span>
     <span class="n">itemised</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">relicense</span> <span class="k">else</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">relicense</span><span class="p">:</span>
@@ -1296,7 +1339,11 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> itemised as </span><span class="si">{</span><span class="n">itemised</span><span class="o">.</span><span class="n">license</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'no licence'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="bp">cls</span> <span class="o">=</span> <span class="n">roll_up</span><span class="p">(</span><span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">license_class</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">own_label</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">own_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">_own_label_class</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">label</span> <span class="o">=</span> <span class="s2">"the asset's own label"</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">"version"</span><span class="p">:</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">),</span>
@@ -1307,19 +1354,45 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_own_label_class</span><span class="p">(</span><span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The class of what a version says about every file it does not itemise."""</span>
+    <span class="k">return</span> <span class="n">roll_up</span><span class="p">(</span><span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">license_class</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_version_statements</span><span class="p">(</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""``(digest, asset_key, statement)`` for each file of ``version``.</span>
+
+<span class="sd">    The version's own label is computed at most once (an#249 R4-N3): it walks</span>
+<span class="sd">    the version's lineage, and it is the same for every un-itemised file.</span>
+<span class="sd">    """</span>
+    <span class="n">asset_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">version</span><span class="p">[</span><span class="s1">'asset'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">memo</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">own_label</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">memo</span><span class="p">:</span>
+            <span class="n">memo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_own_label_class</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">memo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">digest</span> <span class="o">=</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span>
+        <span class="k">yield</span> <span class="p">(</span>
+            <span class="n">digest</span><span class="p">,</span>
+            <span class="n">asset_key</span><span class="p">,</span>
+            <span class="n">blob_statement</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">own_label</span><span class="o">=</span><span class="n">own_label</span><span class="p">),</span>
+        <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_index_version</span><span class="p">(</span>
     <span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Record what ``version`` says about each of its blobs in ``library``'s floor index."""</span>
-    <span class="n">asset_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">version</span><span class="p">[</span><span class="s1">'asset'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-        <span class="n">digest</span> <span class="o">=</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span>
-        <span class="n">record_statement</span><span class="p">(</span>
-            <span class="n">library</span><span class="o">.</span><span class="n">blob_rights</span><span class="p">,</span>
-            <span class="n">digest</span><span class="p">,</span>
-            <span class="n">asset_key</span><span class="p">,</span>
-            <span class="n">blob_statement</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">),</span>
-        <span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Record what ``version`` says about each of its blobs: in ``library``'s floor</span>
+<span class="sd">    index, and in the machine's memory (which outlives the library's root)."""</span>
+    <span class="n">said</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_version_statements</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+    <span class="n">remember</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">said</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">said</span><span class="p">:</span>
+        <span class="n">record_statement</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">blob_rights</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reindex">
@@ -1328,8 +1401,17 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Rebuild ``library``'s floor index from its versions. Returns the number of blobs indexed.</span>
 
 <span class="sd">    The index is derived data: rebuilding it is always safe, and the way to</span>
-<span class="sd">    repair a library whose index was lost or written by an older ``an``.</span>
+<span class="sd">    repair a library whose index was lost or written by an older ``an``. It also</span>
+<span class="sd">    (re-)registers the library's root in the machine registry</span>
+<span class="sd">    (:mod:`an.library.registry`), so a library made at a custom root before the</span>
+<span class="sd">    registry existed becomes visible to every other library's rights floor.</span>
+
+<span class="sd">    The new index is computed in full first, then written over the old one</span>
+<span class="sd">    entry by entry, and only then are stale entries removed: a crash midway</span>
+<span class="sd">    leaves old and new statements side by side, never an empty floor (an#249</span>
+<span class="sd">    R4-N4).</span>
 <span class="sd">    """</span>
+    <span class="n">register_library</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
     <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">library</span><span class="p">,</span>
         <span class="o">*</span><span class="p">(</span>
@@ -1338,9 +1420,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span>
         <span class="p">),</span>
     <span class="p">]</span>
-    <span class="n">store</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">blob_rights</span>
-    <span class="k">for</span> <span class="n">digest</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
-        <span class="k">del</span> <span class="n">store</span><span class="p">[</span><span class="n">digest</span><span class="p">]</span>
+    <span class="n">fresh</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
         <span class="n">library</span><span class="o">.</span><span class="n">versions</span><span class="p">,</span>
         <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">version_number</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">1</span><span class="p">])),</span>
@@ -1349,8 +1429,16 @@ window.runMermaid = runMermaid;</script>
             <span class="n">version</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">versions</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="n">VERSION_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by scan_index; nothing to index</span>
             <span class="k">continue</span>
-        <span class="n">_index_version</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="p">)</span></div>
+        <span class="n">said</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_version_statements</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+        <span class="n">remember</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">said</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">said</span><span class="p">:</span>
+            <span class="n">record_statement</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span><span class="p">)</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">blob_rights</span>
+    <span class="k">for</span> <span class="n">digest</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="n">fresh</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">store</span><span class="p">[</span><span class="n">digest</span><span class="p">]</span> <span class="o">=</span> <span class="n">entries</span>
+    <span class="k">for</span> <span class="n">digest</span> <span class="ow">in</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">store</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fresh</span><span class="p">]:</span>
+        <span class="k">del</span> <span class="n">store</span><span class="p">[</span><span class="n">digest</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">fresh</span><span class="p">)</span></div>
 
 
 
@@ -1444,6 +1532,8 @@ window.runMermaid = runMermaid;</script>
         <span class="ow">or</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashes</span><span class="p">)</span>
         <span class="ow">or</span> <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pending</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span>
         <span class="ow">or</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
     <span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="n">parents</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="p">[</span><span class="s2">"derived_from"</span><span class="p">])</span>
@@ -1512,9 +1602,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        (``parts/head.svg``) — stored once each in the content-addressed blobs</span>
 <span class="sd">    source: provenance declared for the asset as a whole. It contributes BESIDE</span>
 <span class="sd">        the descriptor's own ``source`` (the most restrictive wins), never</span>
-<span class="sd">        instead of it. With no ``source`` and none in the descriptor, the source</span>
-<span class="sd">        of the previous version carries forward (``carry_source``); with none at</span>
-<span class="sd">        all the version is ``unknown`` — recorded and visible, not refused</span>
+<span class="sd">        instead of it. With no ``source``, and a descriptor declaring nothing</span>
+<span class="sd">        or exactly what the head's declared, the source of the previous version</span>
+<span class="sd">        carries forward (``carry_source``) — for the bytes it was declared on</span>
+<span class="sd">        only: a file changed or added since is recorded as ``unlabelled`` on the</span>
+<span class="sd">        version and is ``unknown`` until a publish passes ``source=`` (or a</span>
+<span class="sd">        relicence) again; with no source at all the version is ``unknown`` —</span>
+<span class="sd">        recorded and visible, not refused</span>
 <span class="sd">    relicense: ``{"by": who, "reason": why}`` — the ONLY way to relax rights.</span>
 <span class="sd">        Rights attach to the bytes and the lineage: a new version inherits the</span>
 <span class="sd">        version it follows (``previous``), every version it derives from, and</span>
@@ -1552,11 +1646,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">relicense</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relicense</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">relicense</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"by"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">relicense</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reason"</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
-                <span class="s2">"a relicence records who and why: relicense={'by': …, 'reason': …}"</span>
+                <span class="s2">"a relicence records who and why: relicense={'by': …, 'reason': …} "</span>
+                <span class="s2">"(--relicense-by, --relicense-reason)"</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
-                <span class="s2">"a relicence needs the source= it relicenses the asset under"</span>
+                <span class="s2">"a relicence needs the source= it relicenses the asset under "</span>
+                <span class="s2">"(--license and --provider)"</span>
             <span class="p">)</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">_doc_dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">origin_block</span> <span class="o">=</span> <span class="n">pop_origin</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
@@ -1591,13 +1687,16 @@ window.runMermaid = runMermaid;</script>
             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"already exists (head </span><span class="si">{</span><span class="n">head</span><span class="si">}</span><span class="s2">)"</span> <span class="k">if</span> <span class="n">head</span> <span class="k">else</span> <span class="s2">"does not exist yet"</span><span class="p">)</span>
             <span class="o">+</span> <span class="sa">f</span><span class="s2">", but this publish expected </span><span class="si">{</span><span class="s1">'a new asset'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">expect_head</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">expect_head</span><span class="si">}</span><span class="s2">. "</span>
             <span class="s2">"Pick another id (a different asset sharing an id would be merged into it), "</span>
-            <span class="s2">"or pass the head you mean to follow."</span>
+            <span class="s2">"or pass the head you mean to follow (expect_head=…, --expect-head)."</span>
         <span class="p">)</span>
     <span class="n">head_version</span> <span class="o">=</span> <span class="n">read_version</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">,</span> <span class="n">head</span><span class="p">)</span> <span class="k">if</span> <span class="n">head</span> <span class="k">else</span> <span class="kc">None</span>
 
+    <span class="n">check_path_set</span><span class="p">(</span><span class="n">files</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="c1"># Before anything is written: a library the machine registry does not know</span>
+    <span class="c1"># is invisible to every other library's rights floor (an#249).</span>
+    <span class="n">register_library</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
     <span class="n">blobs</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">blobs</span>
     <span class="n">file_refs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">check_path_set</span><span class="p">(</span><span class="n">files</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">files</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="n">rel</span> <span class="o">=</span> <span class="n">check_relpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">file_refs</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span> <span class="o">=</span> <span class="n">blobs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">rel</span><span class="p">)</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
@@ -1606,11 +1705,29 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="p">(</span>
         <span class="n">source_doc</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="ow">and</span> <span class="n">carry_source</span>
-        <span class="ow">and</span> <span class="n">descriptor_source</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">descriptor_source</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span>
+        <span class="o">==</span> <span class="n">descriptor_source</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span>
     <span class="p">):</span>
         <span class="c1"># A source declared on an earlier publish carries forward — but only</span>
-        <span class="c1"># where the descriptor says nothing itself: it never masks it.</span>
-        <span class="n">source_doc</span> <span class="o">=</span> <span class="p">(</span><span class="n">head_version</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
+        <span class="c1"># where the descriptor says nothing new itself (nothing, or exactly</span>
+        <span class="c1"># what the head's said, such as the factory's own stamp): a descriptor</span>
+        <span class="c1"># that now declares another source is never masked by it.</span>
+        <span class="n">source_doc</span> <span class="o">=</span> <span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
+    <span class="n">hashes</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">file_refs</span><span class="p">)</span>
+    <span class="n">unlabelled</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">source_doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The carried source was a statement about the bytes it was declared</span>
+        <span class="c1"># on. A file changed or added since is bytes nobody has labelled: it</span>
+        <span class="c1"># stays `unknown` (in the floor, in the rights, in the credits of a</span>
+        <span class="c1"># check-out) until a publish passes `source=` again.</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">still</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="n">unlabelled</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">path</span>
+            <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">!=</span> <span class="n">digest</span> <span class="ow">or</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">still</span>
+        <span class="p">)</span>
     <span class="n">pending</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"doc_kind"</span><span class="p">:</span> <span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="s2">"doc"</span><span class="p">:</span> <span class="n">doc</span><span class="p">,</span>
@@ -1622,9 +1739,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">pending</span><span class="p">[</span><span class="n">PREVIOUS_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">LibraryRef</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">relicense</span><span class="p">:</span>
         <span class="n">pending</span><span class="p">[</span><span class="n">RELICENSE_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">relicense</span>
+    <span class="k">if</span> <span class="n">unlabelled</span><span class="p">:</span>
+        <span class="n">pending</span><span class="p">[</span><span class="n">UNLABELLED_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">unlabelled</span>
     <span class="n">floor</span> <span class="o">=</span> <span class="n">BlobFloor</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>
     <span class="n">rights</span> <span class="o">=</span> <span class="n">effective_rights</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">)</span>
-    <span class="n">hashes</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">file_refs</span><span class="p">)</span>
     <span class="n">manifest</span> <span class="o">=</span> <span class="n">_manifest</span><span class="p">(</span>
         <span class="n">doc</span><span class="p">,</span>
         <span class="n">hashes</span><span class="p">,</span>
@@ -1632,6 +1750,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">pinned_parents</span><span class="p">,</span>
         <span class="n">previous</span><span class="o">=</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PREVIOUS_FIELD</span><span class="p">),</span>
         <span class="n">relicense</span><span class="o">=</span><span class="n">relicense</span><span class="p">,</span>
+        <span class="n">unlabelled</span><span class="o">=</span><span class="n">unlabelled</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">affordances</span><span class="p">,</span> <span class="n">analysers</span> <span class="o">=</span> <span class="n">analyse</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">file_refs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"character"</span> <span class="ow">and</span> <span class="n">_character</span><span class="o">.</span><span class="n">renders_as_placeholder</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
@@ -1773,11 +1892,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)):</span>
         <span class="n">rel</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
-            <span class="ow">or</span> <span class="n">rel</span> <span class="o">==</span> <span class="n">skip</span>
-            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">rel</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">))</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">rel</span> <span class="o">==</span> <span class="n">skip</span> <span class="ow">or</span> <span class="n">is_os_junk</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">out</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">out</span>
@@ -1791,8 +1906,9 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Publish an asset folder as it sits in a project store (``assets/characters/alice/``).</span>
 
 <span class="sd">    The descriptor is the kind's descriptor file (``character.json``); every other</span>
-<span class="sd">    non-hidden file under the folder is published as one of the asset's files, so</span>
-<span class="sd">    a check-out reproduces the folder. Keyword arguments go to :func:`publish`.</span>
+<span class="sd">    file under the folder is published as one of the asset's files, so a</span>
+<span class="sd">    check-out reproduces the folder — except operating-system clutter</span>
+<span class="sd">    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`). Keyword arguments go to :func:`publish`.</span>
 <span class="sd">    """</span>
     <span class="n">folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">asset_kind_info</span><span class="p">(</span><span class="n">asset_kind</span><span class="p">(</span><span class="n">check_asset_id</span><span class="p">(</span><span class="n">asset_id</span><span class="p">)))</span>
@@ -2286,7 +2402,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">rights</span><span class="o">.</span><span class="n">publishable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">allow_restricted</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">RightsRefusal</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">'; '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rights</span><span class="o">.</span><span class="n">reasons</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'no reasons recorded'</span><span class="si">}</span><span class="s2">); "</span>
-            <span class="s2">"it is not copied out of its library without allow_restricted=True"</span>
+            <span class="s2">"it is not copied out of its library without allow_restricted=True "</span>
+            <span class="s2">"(--allow-restricted)"</span>
         <span class="p">)</span>
     <span class="n">target_id</span> <span class="o">=</span> <span class="n">check_asset_id</span><span class="p">(</span><span class="n">as_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">as_id</span> <span class="k">else</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span>
     <span class="k">if</span> <span class="n">asset_kind</span><span class="p">(</span><span class="n">target_id</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pinned</span><span class="o">.</span><span class="n">kind</span><span class="p">:</span>
@@ -2296,7 +2413,7 @@ window.runMermaid = runMermaid;</script>
     <span class="p">):</span>
         <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> library already has </span><span class="si">{</span><span class="n">target_id</span><span class="si">}</span><span class="s2">, and it is not a copy of "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">; promote under another id (as_id=…)"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">; promote under another id (as_id=…, --as-id)"</span>
         <span class="p">)</span>
     <span class="n">record</span> <span class="o">=</span> <span class="n">_read_record</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
     <span class="n">facets</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"facets"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>

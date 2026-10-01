@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.federation" href="an.library.federation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -595,14 +597,24 @@ its lineage — what the asset says about every file it does not itemise;</p></l
 per asset (its latest version holding the blob), maintained by <code class="docutils literal notranslate"><span class="pre">publish</span></code> and
 rebuilt by <a class="reference internal" href="an.library.api.html#an.library.api.reindex" title="an.library.api.reindex"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.api.reindex()</span></code></a>. Reading a floor is one key lookup per
 library, so the cross-library check costs nothing like a scan.</p>
-<p><strong>Which libraries.</strong> Those on the search path, plus every library it can
-DISCOVER: each package root under the current platform data folder
-(<code class="docutils literal notranslate"><span class="pre">~/.local/share/an</span></code>, <code class="docutils literal notranslate"><span class="pre">~/.local/share/cutan</span></code>, …) and each currently set
-<code class="docutils literal notranslate"><span class="pre">&lt;PKG&gt;_HOME</span></code> root — so the core library, which no genre’s search path makes it
-read, still sees a genre’s private bytes. A library at a custom <code class="docutils literal notranslate"><span class="pre">--root</span></code>, or
-under an environment that has since changed, is not discovered; a root registry
-independent of the environment closes that (an#249). Until then, keep study
-libraries under the default root.</p>
+<p><strong>Which libraries.</strong> Those on the search path, plus every other library on
+this machine the floor can find:</p>
+<ul class="simple">
+<li><p>each package root under the current platform data folder
+(<code class="docutils literal notranslate"><span class="pre">~/.local/share/an</span></code>, <code class="docutils literal notranslate"><span class="pre">~/.local/share/cutan</span></code>, …);</p></li>
+<li><p>each currently set <code class="docutils literal notranslate"><span class="pre">&lt;PKG&gt;_HOME</span></code> root;</p></li>
+<li><p>every root in the machine’s <strong>registry of library roots</strong>
+(<a class="reference internal" href="an.library.registry.html#module-an.library.registry" title="an.library.registry"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.registry</span></code></a>, an#249) — written on the first write to any
+library, at a path that depends on nothing in the environment. A library at a
+custom <code class="docutils literal notranslate"><span class="pre">--root</span></code>, or under a <code class="docutils literal notranslate"><span class="pre">&lt;PKG&gt;_HOME</span></code> / <code class="docutils literal notranslate"><span class="pre">XDG_DATA_HOME</span></code> that has since
+changed, is therefore still read. A registered root that no longer exists (or
+holds no library) is skipped;</p></li>
+<li><p>the machine’s <strong>memory of statements</strong> (same place): every statement any
+on-disk library made at publish, so a library moved, renamed or deleted
+since relaxes nothing — the floor keeps its last-known statements.</p></li>
+</ul>
+<p>A library written by an older <code class="docutils literal notranslate"><span class="pre">an</span></code> at a custom root, before the registry
+existed, is registered by its next write or by <a class="reference internal" href="an.library.api.html#an.library.api.reindex" title="an.library.api.reindex"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.api.reindex()</span></code></a>.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -611,6 +623,12 @@ libraries under the default root.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.floor.record_statement" title="an.library.floor.record_statement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_statement</span></code></a>(store, digest, asset_key, ...)</p></td>
 <td><p>Record what <code class="docutils literal notranslate"><span class="pre">asset_key</span></code> says about <code class="docutils literal notranslate"><span class="pre">digest</span></code>: its latest holding version wins.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.floor.register_library" title="an.library.floor.register_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_library</span></code></a>(library)</p></td>
+<td><p>Record an on-disk library's root in the machine registry, before its first write.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.floor.remember" title="an.library.floor.remember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remember</span></code></a>(library, statements)</p></td>
+<td><p>Remember an on-disk library's statements in the machine memory (none for an in-memory one).</p></td>
 </tr>
 </tbody>
 </table>
@@ -684,6 +702,36 @@ version’s statement is the asset’s statement.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.floor.register_library">
+<span class="sig-prename descclassname"><span class="pre">an.library.floor.</span></span><span class="sig-name descname"><span class="pre">register_library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/floor.html#register_library"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.floor.register_library" title="Link to this definition">#</a></dt>
+<dd><p>Record an on-disk library’s root in the machine registry, before its first write.</p>
+<p>An in-memory library (no root) has nothing to register. Raises
+<a class="reference internal" href="an.library.registry.html#an.library.registry.RegistryError" title="an.library.registry.RegistryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryError</span></code></a> when the registry cannot be
+read or written: the write is refused rather than made invisible to the floor.</p>
+<p>A registry that does not exist yet while libraries already sit on disk
+means either the first use since the registry exists, or a registry that
+was lost: every library discoverable now is registered with this one, and a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryWarning</span></code> says that libraries kept at
+custom roots are known again only once written to or reindexed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.floor.remember">
+<span class="sig-prename descclassname"><span class="pre">an.library.floor.</span></span><span class="sig-name descname"><span class="pre">remember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/floor.html#remember"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.floor.remember" title="Link to this definition">#</a></dt>
+<dd><p>Remember an on-disk library’s statements in the machine memory (none for an in-memory one).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -740,6 +788,8 @@ version’s statement is the asset’s statement.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.machine_libraries"><code class="docutils literal notranslate"><span class="pre">machine_libraries()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.record_statement"><code class="docutils literal notranslate"><span class="pre">record_statement()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.register_library"><code class="docutils literal notranslate"><span class="pre">register_library()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.remember"><code class="docutils literal notranslate"><span class="pre">remember()</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,10 +53,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="an.library.root" href="an.library.root.html" />
-    <link rel="prev" title="an.library.lock" href="an.library.lock.html" />
+    <link rel="prev" title="an.library.registry" href="an.library.registry.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -635,7 +637,7 @@ takes an explicit, recorded relicence — who and why — on the version.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.rights.roll_up" title="an.library.rights.roll_up"><code class="xref py py-obj docutils literal notranslate"><span class="pre">roll_up</span></code></a>(sources, *[, inherited])</p></td>
 <td><p>Roll labelled sources (and parents' rights) up to one <a class="reference internal" href="#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.rights.sources_in" title="an.library.rights.sources_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources_in</span></code></a>(doc, *, store[, source])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.rights.sources_in" title="an.library.rights.sources_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources_in</span></code></a>(doc, *, store[, source, files])</p></td>
 <td><p>Every labelled source one version holds: the asset's, the descriptor's, each part's.</p></td>
 </tr>
 </tbody>
@@ -760,7 +762,7 @@ winning class, so a reader sees <em>why</em> a version is restricted.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.rights.sources_in">
-<span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">sources_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#sources_in"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.sources_in" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">sources_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#sources_in"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.sources_in" title="Link to this definition">#</a></dt>
 <dd><p>Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -777,6 +779,10 @@ restrictive, so a declared <code class="docutils literal notranslate"><span clas
 the art came from a film. The only way to relax a stricter source is
 an explicit, recorded relicence (<a class="reference internal" href="an.library.api.html#an.library.api.publish" title="an.library.api.publish"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.api.publish()</span></code></a>’s
 <code class="docutils literal notranslate"><span class="pre">relicense</span></code>), which bypasses this function altogether</p>
+</dd>
+<dt>files: <code class="docutils literal notranslate"><span class="pre">{path:</span> <span class="pre">sha256}</span></code> of the asset’s files. With them, a factory stamp</dt><dd><p>is checked against the bytes it pins (<code class="xref py py-func docutils literal notranslate"><span class="pre">an.credits._part_credits()</span></code>):
+a re-carved part under a stale stamp, or a file the factory’s
+descriptor stamp does not pin, is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> unless a source covers it</p>
 </dd>
 </dl>
 <p>With no source anywhere the asset contributes <code class="docutils literal notranslate"><span class="pre">None</span></code>: <code class="docutils literal notranslate"><span class="pre">unknown</span></code>.</p>
@@ -801,12 +807,12 @@ an explicit, recorded relicence (<a class="reference internal" href="an.library.
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="an.library.lock.html"
+       href="an.library.registry.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">an.library.lock</p>
+        <p class="prev-next-title">an.library.registry</p>
       </div>
     </a>
     <a class="right-next"

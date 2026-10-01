@@ -1,4 +1,4 @@
-> built 2026-10-01 16:04 UTC from 676e08d (main) · an 0.1.137. Details: build_info.json
+> built 2026-10-01 16:24 UTC from bf42ae0 (main) · an 0.1.138. Details: build_info.json
 
 # index.html.md
 
@@ -7192,7 +7192,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'mouth', 'ellipse', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'rect', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -12513,6 +12513,7 @@ problem routes the way every other verifier’s does (an#78).
 | [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
 | [`FACTORY_PROVIDER`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_PROVIDER)         | The provider of every per-part source the factory stamps on what it draws.                                                                                                                                                                                                                                                                                  |
 | [`FACTORY_LICENSE`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_LICENSE)          | no rights to clear.                                                                                                                                                                                                                                                                                                                                         |
+| [`FACTORY_AUTHOR`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_AUTHOR)           | Who the factory's descriptor-level source names as the author.                                                                                                                                                                                                                                                                                              |
 | [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                                                                                                                                                                                                         |
 | [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                                                                                                                                                                                                         |
 | [`FACE_SLOTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                                                                                                                                                                                                               |
@@ -12526,11 +12527,14 @@ problem routes the way every other verifier’s does (an#78).
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_views`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) turns the whole character. |
 | [`declare_mouth_variants`](_autosummary/an.characters.factory.html.md#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
+| [`factory_descriptor_source`](_autosummary/an.characters.factory.html.md#an.characters.factory.factory_descriptor_source)(source_svg)            | The descriptor-level source of a character this factory drew, pinned to its drawing.                                                                                                                                                                                                                                                                                                            |
 | [`factory_source`](_autosummary/an.characters.factory.html.md#an.characters.factory.factory_source)(data)                             | The per-part source of a part this factory drew, pinned to its bytes.                                                                                                                                                                                                                                                                                                                           |
 | [`gaze_travel_for`](_autosummary/an.characters.factory.html.md#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
 | [`new_character`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
 | [`scale_part_files`](_autosummary/an.characters.factory.html.md#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
-| [`stamp_factory_parts`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_factory_parts)(char_dir[, paths, skip])     | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
+| [`stamp_factory_descriptor`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_factory_descriptor)(char_dir)               | Record the factory as the source of the character it just drew at `char_dir`.                                                                                                                                                                                                                                                                                                                   |
+| [`stamp_factory_parts`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_factory_parts)(char_dir, paths, \*[, skip]) | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
+| [`stamp_generated_head`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_generated_head)(char_dir, source)           | Pin a generator's `source` (DiceBear's) to the bytes it produced at `char_dir`.                                                                                                                                                                                                                                                                                                                 |
 | [`view_poses`](_autosummary/an.characters.factory.html.md#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
 
 ### Classes
@@ -12593,6 +12597,10 @@ the sclera, the pupil and the lid outline agree (an#99).
 ### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
 
 The face slots of the default rig with the eye stack (an#99).
+
+### an.characters.factory.FACTORY_AUTHOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an (generated locally)'*
+
+Who the factory’s descriptor-level source names as the author.
 
 ### an.characters.factory.FACTORY_LICENSE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cc0-1.0'*
 
@@ -12736,6 +12744,25 @@ neutral set is the SSOT for which shapes exist; a variant mirrors it.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.characters.factory.factory_descriptor_source(source_svg)
+
+The descriptor-level source of a character this factory drew, pinned to its drawing.
+
+The digest is that of the descriptor’s `source_svg` — the drawing every
+part was cut from. Like a part stamp it speaks only for bytes it pins: the
+asset library and `an credits` read every file of the character that no
+stamp pins (a part re-carved later, a file added by hand) as UNVERIFIED,
+never as the factory’s (`an.credits._part_credits()`).
+
+* **Return type:**
+  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
+
+```pycon
+>>> s = factory_descriptor_source(b"<svg/>")
+>>> (s.provider, s.license, len(s.sha256))
+('an character factory', 'cc0-1.0', 64)
+```
+
 ### an.characters.factory.factory_source(data)
 
 The per-part source of a part this factory drew, pinned to its bytes.
@@ -12835,7 +12862,19 @@ screen. Missing files are skipped.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.characters.factory.stamp_factory_parts(char_dir, paths=None, , skip=())
+### an.characters.factory.stamp_factory_descriptor(char_dir)
+
+Record the factory as the source of the character it just drew at `char_dir`.
+
+Only a descriptor that declares no source is stamped (a DiceBear head
+carries DiceBear’s); the stamp pins the bytes of its `source_svg`. Called
+by [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on what it has just drawn, never on a character
+someone may have edited since.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.stamp_factory_parts(char_dir, paths, , skip=())
 
 Give each part the factory drew a `cc0` per-part source pinned to its digest.
 
@@ -12851,9 +12890,25 @@ being itemised as the factory’s — the stamp cannot launder new bytes.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-paths: the relative paths this call drew (default: every attachment whose
-: file exists, minus `skip`). A part carrying some other provider’s
-  source is never re-stamped.
+paths: the relative paths this call has just DRAWN — required (an#249
+: R4-N1): a stamp says “the factory made these bytes”, so only the code
+  that made them may write it. Stamping every part by default would label
+  a part re-carved since as the factory’s `cc0`. A part carrying some
+  other provider’s source is never re-stamped.
+
+### an.characters.factory.stamp_generated_head(char_dir, source)
+
+Pin a generator’s `source` (DiceBear’s) to the bytes it produced at `char_dir`.
+
+The head part(s) the generator drew (`parts/head.svg`) carry the source
+with their own digest, and the descriptor carries it with the digest of its
+`source_svg`. Like the factory’s stamps, it then speaks only for those
+bytes: a part re-carved since, or a file added, is UNVERIFIED in `an
+credits` and `unknown` in the asset library. Called by
+[`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on what it has just written.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
 
@@ -15645,11 +15700,13 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
-| [`collect_credits`](_autosummary/an.credits.html.md#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.    |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`credits_for_project`](_autosummary/an.credits.html.md#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                       |
-| [`credits_for_scene`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211). |
-| [`warn_if_private_study`](_autosummary/an.credits.html.md#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.       |
+| [`is_factory_stamp`](_autosummary/an.credits.html.md#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).        |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`is_generated_source`](_autosummary/an.credits.html.md#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person. |
+| [`collect_credits`](_autosummary/an.credits.html.md#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                   |
+| [`credits_for_project`](_autosummary/an.credits.html.md#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                                      |
+| [`credits_for_scene`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                |
+| [`warn_if_private_study`](_autosummary/an.credits.html.md#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                      |
 
 ### Classes
 
@@ -15749,6 +15806,33 @@ an unrelated render “not publishable”. Kept: every entry under a
 
 * **Return type:**
   [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)
+
+### an.credits.is_factory_stamp(raw)
+
+Whether a source is the character factory’s own stamp (an#236, an#251).
+
+The factory stamps every part it draws `cc0` with the part’s digest, and
+the descriptor with its `source_svg`’s, so the asset library can tell its
+shared parts from carved ones. It is `an`’s own work, not third-party: a
+credits report lists what is OWED, and listing fifty generated parts per
+character would bury the one carved head.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.credits.is_generated_source(raw)
+
+Whether a descriptor’s source was written by a generator rather than a person.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})
+True
+>>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
+False
+```
 
 ### an.credits.warn_if_private_study(report, , output=None)
 
@@ -18401,6 +18485,7 @@ genre defined in the same process).
 | [`genre_entry_points`](_autosummary/an.genres.html.md#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                           |
 | [`genres_declaring`](_autosummary/an.genres.html.md#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                   |
 | [`installed`](_autosummary/an.genres.html.md#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                              |
+| [`genre_library`](_autosummary/an.genres.html.md#an.genres.genre_library)(name, \*[, default])               | The package whose data root holds genre `name`'s library and projects.                                                                                                                                                  |
 | `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
 | [`load`](_autosummary/an.genres.html.md#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
 | [`providers_of`](_autosummary/an.genres.html.md#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](_autosummary/an.genres.html.md#an.genres.Genre.provides)).                                                                    |
@@ -18474,7 +18559,7 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
 
-### *class* an.genres.Genre(name, title='', description='', package='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18489,6 +18574,14 @@ touching any genre that does not use it.
 `spaces` are [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) objects and
 `field_kinds` are `(name, factory)` pairs for
 [`an.timing.kinds.register_kind()`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.register_kind).
+
+`library` names the package whose data root holds the genre’s asset
+library and its projects (`~/.local/share/<library>`, ADR 0005, plan §1
+decision 7); empty means the core’s (`an`). It is not `package`: the
+distribution that ships a genre and the root its data lives under can
+differ (the cut-out genre ships inside `an` today, while its library is
+already `cutan`’s). The core never names a genre’s library itself —
+a project made in a genre asks the genre ([`genre_library()`](_autosummary/an.genres.html.md#an.genres.genre_library)).
 
 #### provides()
 
@@ -18613,6 +18706,22 @@ The installed `an.genres` entry points (nothing is imported).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.genre_library(name, , default='an')
+
+The package whose data root holds genre `name`’s library and projects.
+
+`default` (the core package) for no genre, an unknown one, or a genre
+that declares none. Reads the genres installed in this process (call
+[`load()`](_autosummary/an.genres.html.md#an.genres.load) first, as every entry point does).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> genre_library(None)
+'an'
+```
 
 ### an.genres.genres_declaring(test)
 
@@ -19587,7 +19696,7 @@ True
 False
 ```
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -19603,6 +19712,11 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_library_lock` is the project’s asset-library lockfile
+(`mall["library_lock"]`): with it, every scene `library:` pin is checked
+against the lockfile (`warning` on disagreement) and every pinned
+check-out against its library version (`info` when it has been edited).
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out
@@ -22291,7 +22405,7 @@ True
 False
 ```
 
-### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
+### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -22307,6 +22421,11 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_library_lock` is the project’s asset-library lockfile
+(`mall["library_lock"]`): with it, every scene `library:` pin is checked
+against the lockfile (`warning` on disagreement) and every pinned
+check-out against its library version (`info` when it has been edited).
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out
@@ -23387,7 +23506,7 @@ Raised by [`require_registered_kinds()`](_autosummary/an.ir.validate.html.md#an.
 longer render silently wrong now that the schema holds them as `str`
 (review-244 S2). `findings` keeps each one with its IR path.
 
-### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, shot=None, index=None, memo=<factory>)
+### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -23406,6 +23525,11 @@ two checks that need the same derived fact compute it once
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### library_lock *: [Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
+`None` means the pin checks did not run.
 
 #### *property* path *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -23502,7 +23626,7 @@ True
 False
 ```
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -23518,6 +23642,11 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_library_lock` is the project’s asset-library lockfile
+(`mall["library_lock"]`): with it, every scene `library:` pin is checked
+against the lockfile (`warning` on disagreement) and every pinned
+check-out against its library version (`info` when it has been edited).
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out
@@ -23931,7 +24060,7 @@ Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.Libra
 
 Stored bytes, paths or a stored manifest do not match what was recorded.
 
-### an.library.api.LIBRARY_ERRORS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[type](https://docs.python.org/3/builtins/functions.html#type)[[BaseException](https://docs.python.org/3/builtins/exceptions.html#BaseException)], ...]* *= (<class 'an.library.api.LibraryError'>, <class 'an.library.ids.AssetIdError'>, <class 'an.library.federation.AssetNotFoundError'>, <class 'an.library.stores.VersionExistsError'>, <class 'an.library.rights.RightsRefusal'>, <class 'an.library.kinds.UnknownKindError'>)*
+### an.library.api.LIBRARY_ERRORS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[type](https://docs.python.org/3/builtins/functions.html#type)[[BaseException](https://docs.python.org/3/builtins/exceptions.html#BaseException)], ...]* *= (<class 'an.library.api.LibraryError'>, <class 'an.library.ids.AssetIdError'>, <class 'an.library.federation.AssetNotFoundError'>, <class 'an.library.stores.VersionExistsError'>, <class 'an.library.rights.RightsRefusal'>, <class 'an.library.kinds.UnknownKindError'>, <class 'an.library.registry.RegistryError'>)*
 
 the CLI
 prints these as a sentence and exits non-zero.
@@ -24044,9 +24173,13 @@ files: the asset’s files, by the relative paths the descriptor uses
 
 source: provenance declared for the asset as a whole. It contributes BESIDE
 : the descriptor’s own `source` (the most restrictive wins), never
-  instead of it. With no `source` and none in the descriptor, the source
-  of the previous version carries forward (`carry_source`); with none at
-  all the version is `unknown` — recorded and visible, not refused
+  instead of it. With no `source`, and a descriptor declaring nothing
+  or exactly what the head’s declared, the source of the previous version
+  carries forward (`carry_source`) — for the bytes it was declared on
+  only: a file changed or added since is recorded as `unlabelled` on the
+  version and is `unknown` until a publish passes `source=` (or a
+  relicence) again; with no source at all the version is `unknown` —
+  recorded and visible, not refused
 
 relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 : Rights attach to the bytes and the lineage: a new version inherits the
@@ -24092,8 +24225,9 @@ False
 Publish an asset folder as it sits in a project store (`assets/characters/alice/`).
 
 The descriptor is the kind’s descriptor file (`character.json`); every other
-non-hidden file under the folder is published as one of the asset’s files, so
-a check-out reproduces the folder. Keyword arguments go to [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish).
+file under the folder is published as one of the asset’s files, so a
+check-out reproduces the folder — except operating-system clutter
+(`.DS_Store`, hidden files, `Thumbs.db`: `an.stores._common.is_os_junk()`). Keyword arguments go to [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish).
 
 * **Return type:**
   [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
@@ -24103,7 +24237,15 @@ a check-out reproduces the folder. Keyword arguments go to [`publish()`](_autosu
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
 
 The index is derived data: rebuilding it is always safe, and the way to
-repair a library whose index was lost or written by an older `an`.
+repair a library whose index was lost or written by an older `an`. It also
+(re-)registers the library’s root in the machine registry
+([`an.library.registry`](_autosummary/an.library.registry.html.md#module-an.library.registry)), so a library made at a custom root before the
+registry existed becomes visible to every other library’s rights floor.
+
+The new index is computed in full first, then written over the old one
+entry by entry, and only then are stale entries removed: a crash midway
+leaves old and new statements side by side, never an empty floor (an#249
+R4-N4).
 
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)
@@ -24278,9 +24420,10 @@ the business logic is [`an.library.api`](_autosummary/an.library.api.html.md#mod
 Lists are comma-separated (`--style reiniger,gilliam`). Every command reads
 the library of `--package` (default `an`) at `--root` (default: the
 package’s data folder, or `<PKG>_HOME`); the read commands search that
-library, then the core `an` library, then `--extra` ones. A refusal (an
-unknown asset, a private asset leaving its library, …) prints one sentence and
-exits non-zero.
+library, then the core `an` library, then `--extra` ones — and the library
+a namespaced reference names (`cutan:character.alice@v002` reads `cutan`
+with no `--package`; an#251). A refusal (an unknown asset, a private asset
+leaving its library, …) prints one sentence and exits non-zero.
 
 Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 `promote`.
@@ -24295,16 +24438,16 @@ Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 | [`show`](_autosummary/an.library.cli.html.md#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.      |
 | [`vocabulary`](_autosummary/an.library.cli.html.md#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON). |
 
-### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='an', root='', extra='')
+### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='', root='', extra='')
 
 Check a library version out into a project, and pin it in assets.lock.json.
 
 project_dir: the an project
-ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned)
+ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed
 key: the key in the project store (default: the asset’s slug)
-overwrite: replace an existing entry that is not this version
-package: the library to read first (then the core an library)
-root: that library’s root
+overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
+package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
+root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
 
 * **Return type:**
@@ -24336,7 +24479,7 @@ json_out: print JSON instead of a table
 Copy a version into the core an library, so other genres can reuse it.
 
 ref: [<library>:]<asset_id>[@<version>]
-package: the library it is in (a genre’s, e.g. cutan)
+package: the library it is in (a genre’s, e.g. cutan; default: the reference’s <library>: prefix)
 root: that library’s root
 core_root: the core an library’s root (default: its data folder)
 as_id: promote under another id (when the core library has an unrelated asset with this one)
@@ -24374,13 +24517,13 @@ extra: further libraries where –derived-from resolves, by package name, comma-
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.show(ref, package='an', root='', extra='', json_out=False)
+### an.library.cli.show(ref, package='', root='', extra='', json_out=False)
 
 Show one asset: its record, the resolved version, and its other versions.
 
-ref: [<library>:]<asset_id>[@<version>] (latest by default)
-package: the library to read first (then the core an library)
-root: that library’s root
+ref: [<library>:]<asset_id>[@<version>] (latest by default); a <library>: prefix reads that library
+package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
+root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
 json_out: print the full record and version as JSON
 
@@ -24563,20 +24706,32 @@ per asset (its latest version holding the blob), maintained by `publish` and
 rebuilt by [`an.library.api.reindex()`](_autosummary/an.library.api.html.md#an.library.api.reindex). Reading a floor is one key lookup per
 library, so the cross-library check costs nothing like a scan.
 
-**Which libraries.** Those on the search path, plus every library it can
-DISCOVER: each package root under the current platform data folder
-(`~/.local/share/an`, `~/.local/share/cutan`, …) and each currently set
-`<PKG>_HOME` root — so the core library, which no genre’s search path makes it
-read, still sees a genre’s private bytes. A library at a custom `--root`, or
-under an environment that has since changed, is not discovered; a root registry
-independent of the environment closes that (an#249). Until then, keep study
-libraries under the default root.
+**Which libraries.** Those on the search path, plus every other library on
+this machine the floor can find:
+
+- each package root under the current platform data folder
+  (`~/.local/share/an`, `~/.local/share/cutan`, …);
+- each currently set `<PKG>_HOME` root;
+- every root in the machine’s **registry of library roots**
+  ([`an.library.registry`](_autosummary/an.library.registry.html.md#module-an.library.registry), an#249) — written on the first write to any
+  library, at a path that depends on nothing in the environment. A library at a
+  custom `--root`, or under a `<PKG>_HOME` / `XDG_DATA_HOME` that has since
+  changed, is therefore still read. A registered root that no longer exists (or
+  holds no library) is skipped;
+- the machine’s **memory of statements** (same place): every statement any
+  on-disk library made at publish, so a library moved, renamed or deleted
+  since relaxes nothing — the floor keeps its last-known statements.
+
+A library written by an older `an` at a custom root, before the registry
+existed, is registered by its next write or by [`an.library.api.reindex()`](_autosummary/an.library.api.html.md#an.library.api.reindex).
 
 ### Functions
 
-| [`machine_libraries`](_autosummary/an.library.floor.html.md#an.library.floor.machine_libraries)([libraries, environ, platform])   | `libraries` (first, as given) plus every other library root on this machine.   |
-|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`record_statement`](_autosummary/an.library.floor.html.md#an.library.floor.record_statement)(store, digest, asset_key, ...)     | Record what `asset_key` says about `digest`: its latest holding version wins.  |
+| [`machine_libraries`](_autosummary/an.library.floor.html.md#an.library.floor.machine_libraries)([libraries, environ, platform])   | `libraries` (first, as given) plus every other library root on this machine.                |
+|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`record_statement`](_autosummary/an.library.floor.html.md#an.library.floor.record_statement)(store, digest, asset_key, ...)     | Record what `asset_key` says about `digest`: its latest holding version wins.               |
+| [`register_library`](_autosummary/an.library.floor.html.md#an.library.floor.register_library)(library)                           | Record an on-disk library's root in the machine registry, before its first write.           |
+| [`remember`](_autosummary/an.library.floor.html.md#an.library.floor.remember)(library, statements)                       | Remember an on-disk library's statements in the machine memory (none for an in-memory one). |
 
 ### Classes
 
@@ -24627,6 +24782,30 @@ version’s statement is the asset’s statement.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.library.floor.register_library(library)
+
+Record an on-disk library’s root in the machine registry, before its first write.
+
+An in-memory library (no root) has nothing to register. Raises
+[`an.library.registry.RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError) when the registry cannot be
+read or written: the write is refused rather than made invisible to the floor.
+
+A registry that does not exist yet while libraries already sit on disk
+means either the first use since the registry exists, or a registry that
+was lost: every library discoverable now is registered with this one, and a
+`an.library.registry.RegistryWarning` says that libraries kept at
+custom roots are known again only once written to or reindexed.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.library.floor.remember(library, statements)
+
+Remember an on-disk library’s statements in the machine memory (none for an in-memory one).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 
 # _autosummary/an.library.html.md
 
@@ -24661,9 +24840,14 @@ What lives where:
 - [`an.library.affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances) — capabilities and per-kind analysers (the seed
   of ADR 0002’s registry); [`an.library.character`](_autosummary/an.library.character.html.md#module-an.library.character) — the character analyser;
 - [`an.library.rights`](_autosummary/an.library.rights.html.md#module-an.library.rights) — the most-restrictive roll-up over `AssetSource`;
+  [`an.library.floor`](_autosummary/an.library.floor.html.md#module-an.library.floor) — the strictest statement any library on the machine
+  > makes about a blob; [`an.library.registry`](_autosummary/an.library.registry.html.md#module-an.library.registry) — the machine’s registry of
+  > library roots the floor reads, independent of the environment;
 - [`an.library.api`](_autosummary/an.library.api.html.md#module-an.library.api) — `publish`, `find`, `vocabulary`, `show`,
   `promote`; [`an.library.checkout`](_autosummary/an.library.html.md#an.library.checkout) — `checkout`, `verify_checkout`,
-  `check_pins`; [`an.library.lock`](_autosummary/an.library.lock.html.md#module-an.library.lock) — the project lockfile;
+  `check_pins`, `drift_findings` (both run by `an validate`);
+  [`an.library.lock`](_autosummary/an.library.lock.html.md#module-an.library.lock) — the project lockfile (a project store,
+  > `mall["library_lock"]`);
 - [`an.library.cli`](_autosummary/an.library.cli.html.md#module-an.library.cli) — `an library …`, a projection of the same functions.
 
 ### Functions
@@ -24673,6 +24857,7 @@ What lives where:
 | [`build_library_mall`](_autosummary/an.library.html.md#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](_autosummary/an.library.html.md#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
 | [`checkout`](_autosummary/an.library.html.md#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
+| [`drift_findings`](_autosummary/an.library.html.md#an.library.drift_findings)([project_dir, mall, lock, ...])     | One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.                                   |
 | [`effective_rights`](_autosummary/an.library.html.md#an.library.effective_rights)(libraries, version, \*[, floor])  | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
 | [`find`](_autosummary/an.library.html.md#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
 | [`library_root`](_autosummary/an.library.html.md#an.library.library_root)([root, package, environ, platform])   | The data root of `package` — its library and its projects live under it.                                                                      |
@@ -24687,6 +24872,8 @@ What lives where:
 | [`register_analyser`](_autosummary/an.library.html.md#an.library.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                                                                          |
 | [`register_asset_kind`](_autosummary/an.library.html.md#an.library.register_asset_kind)(name, \*[, store, ...])        | Register (or re-register) an asset kind.                                                                                                      |
 | [`register_capability`](_autosummary/an.library.html.md#an.library.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                                                                       |
+| [`register_root`](_autosummary/an.library.html.md#an.library.register_root)(package, root, \*[, registry])       | Record `root` (`package`'s library root) in the registry; `True` if it was new.                                                               |
+| [`registered_roots`](_autosummary/an.library.html.md#an.library.registered_roots)(\*[, registry])                   | `(package, root)` for every root ever registered, oldest first, each once.                                                                    |
 | [`resolve`](_autosummary/an.library.html.md#an.library.resolve)(libraries, ref)                            | `(library, pinned_ref, version_doc)` for a reference, along the search path.                                                                  |
 | [`roll_up`](_autosummary/an.library.html.md#an.library.roll_up)(sources, \*[, inherited])                  | Roll labelled sources (and parents' rights) up to one [`Rights`](_autosummary/an.library.html.md#an.library.Rights).                                |
 | [`scan_index`](_autosummary/an.library.html.md#an.library.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                                                                                |
@@ -24710,14 +24897,15 @@ What lives where:
 
 ### Exceptions
 
-| [`AssetIdError`](_autosummary/an.library.html.md#an.library.AssetIdError)       | An asset id, version label or library reference that does not parse.             |
-|---------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`AssetNotFoundError`](_autosummary/an.library.html.md#an.library.AssetNotFoundError) | No library on the search path holds the asset or version asked for.              |
-| [`CheckoutError`](_autosummary/an.library.html.md#an.library.CheckoutError)      | A version cannot be materialised into this project as asked.                     |
-| [`IntegrityError`](_autosummary/an.library.html.md#an.library.IntegrityError)     | Stored bytes, paths or a stored manifest do not match what was recorded.         |
-| [`LibraryError`](_autosummary/an.library.html.md#an.library.LibraryError)       | A library operation refused, with a sentence saying why and what to do.          |
-| [`RightsRefusal`](_autosummary/an.library.html.md#an.library.RightsRefusal)      | A private or unknown version would leave the user's library without an override. |
-| [`VersionExistsError`](_autosummary/an.library.html.md#an.library.VersionExistsError) | A write-once key was written twice, or deleted.                                  |
+| [`AssetIdError`](_autosummary/an.library.html.md#an.library.AssetIdError)       | An asset id, version label or library reference that does not parse.                    |
+|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`AssetNotFoundError`](_autosummary/an.library.html.md#an.library.AssetNotFoundError) | No library on the search path holds the asset or version asked for.                     |
+| [`CheckoutError`](_autosummary/an.library.html.md#an.library.CheckoutError)      | A version cannot be materialised into this project as asked.                            |
+| [`IntegrityError`](_autosummary/an.library.html.md#an.library.IntegrityError)     | Stored bytes, paths or a stored manifest do not match what was recorded.                |
+| [`LibraryError`](_autosummary/an.library.html.md#an.library.LibraryError)       | A library operation refused, with a sentence saying why and what to do.                 |
+| [`RegistryError`](_autosummary/an.library.html.md#an.library.RegistryError)      | The machine's registry or statement memory cannot be read or written; nothing proceeds. |
+| [`RightsRefusal`](_autosummary/an.library.html.md#an.library.RightsRefusal)      | A private or unknown version would leave the user's library without an override.        |
+| [`VersionExistsError`](_autosummary/an.library.html.md#an.library.VersionExistsError) | A write-once key was written twice, or deleted.                                         |
 
 ### *exception* an.library.AssetIdError
 
@@ -24869,6 +25057,12 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a publish did: the version it names, and whether it made one.
 
+### *exception* an.library.RegistryError
+
+Bases: [`OSError`](https://docs.python.org/3/builtins/exceptions.html#OSError)
+
+The machine’s registry or statement memory cannot be read or written; nothing proceeds.
+
 ### *class* an.library.Rights(license_class, reasons=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -24940,9 +25134,11 @@ one on a search path) leaves the disk as it was.
 
 Findings where a scene’s `AssetRef.library` and the project lockfile disagree.
 
-Two records of one pin can drift (a re-check-out updates the lockfile, not
-the scene). Until the lockfile joins the project mall and `an validate`
-runs this (an#240), call it yourself; each disagreement is a `warning`.
+The lockfile is the source of truth (it is what the check-out wrote, beside
+the files); the scene’s `library:` restates it. Two records of one pin can
+drift — a re-check-out updates the lockfile, not the scene — so `an
+validate` runs this on every project (an#240). Each disagreement, and each
+`library:` the lockfile does not pin, is a `warning`.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -24961,16 +25157,40 @@ ref: `[<library>:]<asset_id>[@<version>]`; `latest` (or no version) is
 
 key: the key in the project store (default: the asset id’s slug)
 mall: the project mall (default: `build_project_mall(project_dir)`)
-lock: the lockfile mapping (default: `<project_dir>/assets.lock.json`)
-overwrite: replace an existing entry that is not exactly this version — a
+lock: the lockfile mapping (default: the mall’s `library_lock` store,
 
-> local fork (any edited file or descriptor) or another asset; without it
-> that is refused
+> `<project_dir>/assets.lock.json`)
+
+overwrite: replace an existing entry that is not exactly this version — a
+: local fork (any edited file or descriptor) or another asset; without it
+  that is refused
+
+An entry that already IS this version byte for byte — the folder a
+`publish` just sent to the library, still unedited — is recognised and
+linked (origin block, carried source, pin) without `overwrite`: publishing
+a project’s asset and checking it back out is the natural first round trip.
 
 Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
+
+### an.library.drift_findings(project_dir=None, , mall=None, lock=None, libraries=None)
+
+One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.
+
+An edited check-out is a fork, not a mistake — hence `info`: it says the
+pin now records where the copy CAME FROM, not what it IS, so nothing may
+treat the pin as standing for the content (an#240), and publishing the
+folder would make a new version. A pin this machine cannot check (its
+library is at a custom root, or elsewhere) is its own `info`, with no
+advice to check anything out again — that could swap the asset for a
+same-named other one.
+
+project_dir: the project (not needed when both `mall` and `lock` are given)
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.effective_rights(libraries, version, \*, floor=<object object>)
 
@@ -25080,8 +25300,11 @@ AssetIdError: ...
 The default directory of the agent-made project `project_id` (design §7.5).
 
 `an init <dir>` with an explicit directory keeps working anywhere; this is
-the default for projects an agent makes, so they never land in a session’s
-working folder or a repository.
+the default for projects an agent makes (`an init --id <id>`), so they
+never land in a session’s working folder or a repository. `package` is
+the library package of the genre the video is made in
+([`an.genres.genre_library()`](_autosummary/an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
+names no genre).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -25142,9 +25365,13 @@ files: the asset’s files, by the relative paths the descriptor uses
 
 source: provenance declared for the asset as a whole. It contributes BESIDE
 : the descriptor’s own `source` (the most restrictive wins), never
-  instead of it. With no `source` and none in the descriptor, the source
-  of the previous version carries forward (`carry_source`); with none at
-  all the version is `unknown` — recorded and visible, not refused
+  instead of it. With no `source`, and a descriptor declaring nothing
+  or exactly what the head’s declared, the source of the previous version
+  carries forward (`carry_source`) — for the bytes it was declared on
+  only: a file changed or added since is recorded as `unlabelled` on the
+  version and is `unknown` until a publish passes `source=` (or a
+  relicence) again; with no source at all the version is `unknown` —
+  recorded and visible, not refused
 
 relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 : Rights attach to the bytes and the lineage: a new version inherits the
@@ -25190,8 +25417,9 @@ False
 Publish an asset folder as it sits in a project store (`assets/characters/alice/`).
 
 The descriptor is the kind’s descriptor file (`character.json`); every other
-non-hidden file under the folder is published as one of the asset’s files, so
-a check-out reproduces the folder. Keyword arguments go to [`publish()`](_autosummary/an.library.html.md#an.library.publish).
+file under the folder is published as one of the asset’s files, so a
+check-out reproduces the folder — except operating-system clutter
+(`.DS_Store`, hidden files, `Thumbs.db`: `an.stores._common.is_os_junk()`). Keyword arguments go to [`publish()`](_autosummary/an.library.html.md#an.library.publish).
 
 * **Return type:**
   [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
@@ -25220,12 +25448,41 @@ Register (or re-register) a capability. Returns it.
 * **Return type:**
   [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)
 
+### an.library.register_root(package, root, , registry=None)
+
+Record `root` (`package`’s library root) in the registry; `True` if it was new.
+
+Idempotent. Raises [`RegistryError`](_autosummary/an.library.html.md#an.library.RegistryError) when the registry cannot be read
+or written: a library the floor cannot find later must not be written to.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.library.registered_roots(, registry=None)
+
+`(package, root)` for every root ever registered, oldest first, each once.
+
+A line that does not parse (a torn append) is skipped; existence is the
+caller’s to check. A registry that exists but cannot be read raises
+[`RegistryError`](_autosummary/an.library.html.md#an.library.RegistryError).
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
+
 ### an.library.reindex(library, , search=None)
 
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
 
 The index is derived data: rebuilding it is always safe, and the way to
-repair a library whose index was lost or written by an older `an`.
+repair a library whose index was lost or written by an older `an`. It also
+(re-)registers the library’s root in the machine registry
+([`an.library.registry`](_autosummary/an.library.registry.html.md#module-an.library.registry)), so a library made at a custom root before the
+registry existed becomes visible to every other library’s rights floor.
+
+The new index is computed in full first, then written over the old one
+entry by entry, and only then are stale entries removed: a crash midway
+leaves old and new statements side by side, never an empty floor (an#249
+R4-N4).
 
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)
@@ -25304,11 +25561,17 @@ The record, the resolved version, its recomputed rights and the list of versions
 
 `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.
 
-What makes a pin usable as more than provenance: an entry with no
-differences is byte-for-byte the version its pin names.
-
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+libraries: where the pinned versions resolve (`None`: the library each
+: pin names, at its default root — `pinned_libraries()`)
+
+What makes a pin usable as more than provenance: an entry with no
+differences is byte-for-byte the version its pin names. An entry whose
+pinned version cannot be found, or is found with another manifest (a
+same-named asset in another library), reads `["cannot verify: …"]` —
+never as an edit.
 
 ### an.library.vocabulary(libraries, \*, index=<function scan_index>)
 
@@ -25332,19 +25595,20 @@ True
 
 ### Modules
 
-| [`affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                    |
-|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| [`api`](_autosummary/an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                               |
-| [`character`](_autosummary/an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                       |
-| [`cli`](_autosummary/an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                  |
-| [`federation`](_autosummary/an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).         |
-| [`floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes. |
-| [`ids`](_autosummary/an.library.ids.html.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                      |
-| [`kinds`](_autosummary/an.library.kinds.html.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                    |
-| [`lock`](_autosummary/an.library.lock.html.md#module-an.library.lock)                 | The project lockfile: which library version each checked-out asset came from.                          |
-| [`rights`](_autosummary/an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).    |
-| [`root`](_autosummary/an.library.root.html.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).    |
-| [`stores`](_autosummary/an.library.stores.html.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                |
+| [`affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                                                                                          |
+|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`api`](_autosummary/an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                                                                                                     |
+| [`character`](_autosummary/an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |
+| [`cli`](_autosummary/an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                                                                                        |
+| [`federation`](_autosummary/an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).                                                                               |
+| [`floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.                                                                       |
+| [`ids`](_autosummary/an.library.ids.html.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                                                                                            |
+| [`kinds`](_autosummary/an.library.kinds.html.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                                                                                          |
+| [`lock`](_autosummary/an.library.lock.html.md#module-an.library.lock)                 | The project lockfile, as the asset library sees it (re-exported from [`an.stores.library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock)). |
+| [`registry`](_autosummary/an.library.registry.html.md#module-an.library.registry)         | The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).                                                                      |
+| [`rights`](_autosummary/an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).                                                                          |
+| [`root`](_autosummary/an.library.root.html.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).                                                                          |
+| [`stores`](_autosummary/an.library.stores.html.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                                                                                      |
 
 
 # _autosummary/an.library.ids.html.md
@@ -25630,43 +25894,17 @@ Register (or re-register) an asset kind. Returns it.
 
 # an.library.lock
 
-The project lockfile: which library version each checked-out asset came from.
+The project lockfile, as the asset library sees it (re-exported from [`an.stores.library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock)).
 
-`assets.lock.json` at the project root (design §7.2), one entry per checked-out
-asset, keyed `<store>/<key>` (`characters/alice`) — the address the scene’s
-`AssetRef` already uses:
-
-```json
-{"schema_version": "0.1.0",
- "assets": {"characters/alice": {"library": "cutan:character.alice-reiniger@v002",
-                                 "manifest_sha256": "…", "checked_out": "…"}}}
-```
-
-The pin records **provenance**: where each checked-out copy came from, so a
-project can be rebuilt from the library. It is not a content key — the copy in
-the project can be edited after it is pinned; `an.library.checkout.verify_checkout()`
-says whether it still is its version, and only then may anything (ADR 0004’s
-shot cache) treat the pin as standing for the content.
-
-The lockfile is a `MutableMapping` like every other store (pillar 7);
-`an.library.checkout.checkout()` takes one by injection (`lock=`) and
-defaults to [`ProjectLock`](_autosummary/an.library.lock.html.md#an.library.lock.ProjectLock) over the project folder. Registering it in the
-project mall (`mall["library_lock"]`) is an#240.
+The lockfile is a project store — `mall["library_lock"]`, registered by
+[`an.stores.build_project_mall()`](_autosummary/an.stores.html.md#an.stores.build_project_mall) (an#240) — so its class lives with the other
+project stores and building a project never imports the library. This module
+keeps the import path the library and its callers already use.
 
 ```pycon
->>> import tempfile
->>> with tempfile.TemporaryDirectory() as d:
-...     lock = ProjectLock(d)
-...     lock["characters/alice"] = {"library": "character.alice@v001"}
-...     list(ProjectLock(d).items())
-[('characters/alice', {'library': 'character.alice@v001'})]
+>>> LOCKFILE_NAME, lock_key("characters", "alice")
+('assets.lock.json', 'characters/alice')
 ```
-
-### Module Attributes
-
-| [`LOCKFILE_NAME`](_autosummary/an.library.lock.html.md#an.library.lock.LOCKFILE_NAME)           | The lockfile's name at the project root.                        |
-|--------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`LOCKFILE_SCHEMA_VERSION`](_autosummary/an.library.lock.html.md#an.library.lock.LOCKFILE_SCHEMA_VERSION) | The lockfile document's schema version (its own document kind). |
 
 ### Functions
 
@@ -25677,14 +25915,6 @@ project mall (`mall["library_lock"]`) is an#240.
 
 | [`ProjectLock`](_autosummary/an.library.lock.html.md#an.library.lock.ProjectLock)(project_dir)   | `<store>/<key> -> pin` over a project's `assets.lock.json`.   |
 |-----------------------------------------------------------------------------|---------------------------------------------------------------|
-
-### an.library.lock.LOCKFILE_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'assets.lock.json'*
-
-The lockfile’s name at the project root.
-
-### an.library.lock.LOCKFILE_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
-
-The lockfile document’s schema version (its own document kind).
 
 ### *class* an.library.lock.ProjectLock(project_dir)
 
@@ -25706,6 +25936,180 @@ The lockfile key of one project store entry.
 >>> lock_key("characters", "alice")
 'characters/alice'
 ```
+
+
+# _autosummary/an.library.registry.html.md
+
+# an.library.registry
+
+The machine’s memory of its libraries: every root ever written, and every statement ever made (an#249).
+
+The rights floor ([`an.library.floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)) must read every statement any
+library on this machine makes about a blob, not only those it can discover
+from today’s environment. Discovery finds the package roots under the CURRENT
+data folder (which follows `XDG_DATA_HOME`) and the CURRENTLY set
+`<PKG>_HOME` roots. A library written at an explicit `root=` / `--root`,
+or under an environment that has since changed, is invisible to discovery, and
+its private bytes would then publish as `free` anywhere else.
+
+So this module keeps two records, side by side, at a location that depends on
+**nothing in the environment**: the account’s home folder as the operating
+system records it (the password database on POSIX, never `$HOME`), under the
+core package’s default data folder — `~/.local/share/an/registry/` on Linux
+and macOS, whatever `XDG_DATA_HOME`, `AN_HOME` or `<PKG>_HOME` say. (On
+Windows the account’s home is `Path.home()`, which follows `USERPROFILE`:
+there the location is as stable as that variable.)
+
+- **The registry of roots** (`library_roots.jsonl`): the first write to any
+  on-disk library records its root, and the floor reads each registered root’s
+  own index. JSON Lines, **append-only**: an append of one short line is
+  atomic, so racing publishers cannot lose each other’s registration, and a
+  line torn by a crash is skipped (the next append starts on a fresh line).
+  A root that no longer exists is skipped — which is why the second record
+  exists.
+- **The memory of statements** (`statements/<aa>/<sha256>/…json`): every
+  statement a version makes about a blob, written at publish beside the
+  library’s own index. The floor reads it in addition to the libraries, so a
+  library that is moved, renamed, unmounted or deleted can never relax a
+  statement it once made: **a missing root relaxes nothing**. One small file
+  per (blob, library root, asset), replaced only by a later version of the same
+  asset at the same root — so a relicence there still speaks, as in the
+  library’s own index. A file that cannot be parsed counts as `unknown`.
+
+Both are read **fail-closed**: a registry or memory that exists but cannot be
+read raises [`RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError) — a floor that silently read less would let
+private bytes out. Libraries with injected stores (no root on disk: an S3 or
+in-memory mall) are in neither record; their statements reach the floor only
+while they are on the search path.
+
+Neither record is a search path: a registered library’s assets are never
+found, resolved or checked out through them — reads still go through the
+explicit search path ([`an.library.federation.search_path()`](_autosummary/an.library.federation.html.md#an.library.federation.search_path)).
+
+Tests and doctests are redirected by the repository’s root `conftest.py`,
+which points `_account_home()` into a temporary folder. A test that runs
+`an` in a SUBPROCESS cannot be redirected that way and must not publish.
+
+```pycon
+>>> import tempfile, pathlib
+>>> with tempfile.TemporaryDirectory() as d:
+...     reg = pathlib.Path(d) / "roots.jsonl"
+...     first = register_root("cutan", pathlib.Path(d) / "study", registry=reg)
+...     again = register_root("cutan", pathlib.Path(d) / "study", registry=reg)
+...     (first, again), [(p, r.name) for p, r in registered_roots(registry=reg)]
+((True, False), [('cutan', 'study')])
+```
+
+### Module Attributes
+
+| [`REGISTRY_DIRNAME`](_autosummary/an.library.registry.html.md#an.library.registry.REGISTRY_DIRNAME)   | The sub-folder of the core package's default data root holding the registry (a root holds one sub-folder per kind of data, never files at the top).   |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`REGISTRY_FILENAME`](_autosummary/an.library.registry.html.md#an.library.registry.REGISTRY_FILENAME)  | JSON Lines, one `{"package", "root", "registered"}` per line.                                                                                         |
+| [`STATEMENTS_DIRNAME`](_autosummary/an.library.registry.html.md#an.library.registry.STATEMENTS_DIRNAME) | The folder of remembered statements, beside the registry file.                                                                                        |
+
+### Functions
+
+| [`machine_registry_dir`](_autosummary/an.library.registry.html.md#an.library.registry.machine_registry_dir)()                       | The folder holding the registry and the statement memory (independent of the environment).   |
+|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`machine_registry_path`](_autosummary/an.library.registry.html.md#an.library.registry.machine_registry_path)()                      | Where this machine's registry of library roots lives.                                        |
+| [`register_root`](_autosummary/an.library.registry.html.md#an.library.registry.register_root)(package, root, \*[, registry]) | Record `root` (`package`'s library root) in the registry; `True` if it was new.              |
+| [`registered_roots`](_autosummary/an.library.registry.html.md#an.library.registry.registered_roots)(\*[, registry])             | `(package, root)` for every root ever registered, oldest first, each once.                   |
+| [`remember_statements`](_autosummary/an.library.registry.html.md#an.library.registry.remember_statements)(root, statements)        | Remember `(digest, asset_key, statement)` made by the library at `root`.                     |
+| [`remembered_statements`](_autosummary/an.library.registry.html.md#an.library.registry.remembered_statements)(digest)                | `(asset_key, statement)` for every statement this machine ever recorded about `digest`.      |
+
+### Exceptions
+
+| [`RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError)   | The machine's registry or statement memory cannot be read or written; nothing proceeds.   |
+|------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+
+### an.library.registry.REGISTRY_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'registry'*
+
+The sub-folder of the core package’s default data root holding the registry
+(a root holds one sub-folder per kind of data, never files at the top).
+
+### an.library.registry.REGISTRY_FILENAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'library_roots.jsonl'*
+
+JSON Lines, one `{"package", "root", "registered"}` per line.
+
+* **Type:**
+  The registry file
+
+### *exception* an.library.registry.RegistryError
+
+Bases: [`OSError`](https://docs.python.org/3/builtins/exceptions.html#OSError)
+
+The machine’s registry or statement memory cannot be read or written; nothing proceeds.
+
+### an.library.registry.STATEMENTS_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'statements'*
+
+The folder of remembered statements, beside the registry file.
+
+### an.library.registry.machine_registry_dir()
+
+The folder holding the registry and the statement memory (independent of the environment).
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> machine_registry_dir().name
+'registry'
+```
+
+### an.library.registry.machine_registry_path()
+
+Where this machine’s registry of library roots lives.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> machine_registry_path().name
+'library_roots.jsonl'
+```
+
+### an.library.registry.register_root(package, root, , registry=None)
+
+Record `root` (`package`’s library root) in the registry; `True` if it was new.
+
+Idempotent. Raises [`RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError) when the registry cannot be read
+or written: a library the floor cannot find later must not be written to.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.library.registry.registered_roots(, registry=None)
+
+`(package, root)` for every root ever registered, oldest first, each once.
+
+A line that does not parse (a torn append) is skipped; existence is the
+caller’s to check. A registry that exists but cannot be read raises
+[`RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError).
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
+
+### an.library.registry.remember_statements(root, statements)
+
+Remember `(digest, asset_key, statement)` made by the library at `root`.
+
+One file per (digest, root, asset), replaced only by a statement of a later
+(or the same) version of that asset — the same rule as a library’s own
+index. Raises [`RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError) when it cannot be written.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.library.registry.remembered_statements(digest)
+
+`(asset_key, statement)` for every statement this machine ever recorded about `digest`.
+
+A remembered file that cannot be parsed counts as an `unknown`
+statement (it said something; what is no longer known). A memory that
+exists but cannot be listed raises [`RegistryError`](_autosummary/an.library.registry.html.md#an.library.registry.RegistryError).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
 
 # _autosummary/an.library.rights.html.md
@@ -25756,11 +26160,11 @@ Order, most restrictive first: `private` > `unknown` > `attribution` >
 
 ### Functions
 
-| [`most_restrictive`](_autosummary/an.library.rights.html.md#an.library.rights.most_restrictive)(classes)            | The most restrictive of `classes`; `free` for none.                                                            |
-|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| [`descriptor_source`](_autosummary/an.library.rights.html.md#an.library.rights.descriptor_source)(doc, \*, store)    | The source the descriptor itself declares (or `an credits` reconstructs), if any.                              |
-| [`roll_up`](_autosummary/an.library.rights.html.md#an.library.rights.roll_up)(sources, \*[, inherited])    | Roll labelled sources (and parents' rights) up to one [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights). |
-| [`sources_in`](_autosummary/an.library.rights.html.md#an.library.rights.sources_in)(doc, \*, store[, source]) | Every labelled source one version holds: the asset's, the descriptor's, each part's.                           |
+| [`most_restrictive`](_autosummary/an.library.rights.html.md#an.library.rights.most_restrictive)(classes)                   | The most restrictive of `classes`; `free` for none.                                                            |
+|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`descriptor_source`](_autosummary/an.library.rights.html.md#an.library.rights.descriptor_source)(doc, \*, store)           | The source the descriptor itself declares (or `an credits` reconstructs), if any.                              |
+| [`roll_up`](_autosummary/an.library.rights.html.md#an.library.rights.roll_up)(sources, \*[, inherited])           | Roll labelled sources (and parents' rights) up to one [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights). |
+| [`sources_in`](_autosummary/an.library.rights.html.md#an.library.rights.sources_in)(doc, \*, store[, source, files]) | Every labelled source one version holds: the asset's, the descriptor's, each part's.                           |
 
 ### Classes
 
@@ -25844,7 +26248,7 @@ winning class, so a reader sees *why* a version is restricted.
 {'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
 ```
 
-### an.library.rights.sources_in(doc, , store, source=None)
+### an.library.rights.sources_in(doc, , store, source=None, files=None)
 
 Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.
 
@@ -25862,6 +26266,11 @@ source: a source declared for the asset as a whole (at publish, or carried
   the art came from a film. The only way to relax a stricter source is
   an explicit, recorded relicence ([`an.library.api.publish()`](_autosummary/an.library.api.html.md#an.library.api.publish)’s
   `relicense`), which bypasses this function altogether
+
+files: `{path: sha256}` of the asset’s files. With them, a factory stamp
+: is checked against the bytes it pins (`an.credits._part_credits()`):
+  a re-carved part under a stale stamp, or a file the factory’s
+  descriptor stamp does not pin, is `unknown` unless a source covers it
 
 With no source anywhere the asset contributes `None`: `unknown`.
 
@@ -26001,8 +26410,11 @@ platform: `sys.platform` value to resolve for (default: this one)
 The default directory of the agent-made project `project_id` (design §7.5).
 
 `an init <dir>` with an explicit directory keeps working anywhere; this is
-the default for projects an agent makes, so they never land in a session’s
-working folder or a repository.
+the default for projects an agent makes (`an init --id <id>`), so they
+never land in a session’s working folder or a repository. `package` is
+the library package of the genre the video is made in
+([`an.genres.genre_library()`](_autosummary/an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
+names no genre).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -28683,6 +29095,10 @@ the scene’s declaration, which is itself `None` (smooth) by default.
 it when `lipsync` is a provider *name* — Rhubarb’s recognizer (an#96). A
 provider *instance* carries its own.
 
+A scene whose `library:` pins disagree with the project’s
+`assets.lock.json` renders with a `LibraryPinWarning` per pin, and is
+refused under `strict_assets` (`an.library.checkout.check_pins_before_render()`).
+
 Returns the absolute path of the final output file (under `output/`).
 
 * **Return type:**
@@ -29013,8 +29429,9 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
-final output and its caption sidecar, and the agent’s
-decision log — is keyed inside a store. Stores are dol-backed so the same call
+final output and its caption sidecar, the agent’s decision log, and the asset
+library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
+dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
 ```pycon
@@ -29024,7 +29441,8 @@ sites work against filesystem, SQLite, S3, etc.
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'output', 'previews', 'props', 'scenes', 'shot_cache', 'shots',
+...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
+...         'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
@@ -29051,6 +29469,7 @@ True
 | [`PreviewArtifactStore`](_autosummary/an.stores.html.md#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                 |
 | [`OutputStore`](_autosummary/an.stores.html.md#an.stores.OutputStore)(root_dir)          | Final composited renders.                                              |
 | [`DecisionLogStore`](_autosummary/an.stores.html.md#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).              |
+| [`ProjectLock`](_autosummary/an.stores.html.md#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.            |
 
 ### *class* an.stores.AudioArtifactStore(root_dir)
 
@@ -29117,6 +29536,15 @@ Final composited renders.
 Bases: `_BlobStore`
 
 Low-res preview renders (mp4 or png sequence wrapper).
+
+### *class* an.stores.ProjectLock(project_dir)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`<store>/<key> -> pin` over a project’s `assets.lock.json`.
+
+Every write rewrites the whole (small) file, sorted, so the lockfile diffs
+cleanly under version control.
 
 ### *class* an.stores.PropsStore(root_dir)
 
@@ -29212,16 +29640,113 @@ in-memory `dict` for tests).
 
 ### Modules
 
-| [`artifacts`](_autosummary/an.stores.artifacts.html.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.       |
-|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`characters`](_autosummary/an.stores.characters.html.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.            |
-| [`decisions`](_autosummary/an.stores.decisions.html.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.  |
-| [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.          |
-| [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                      |
-| [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.    |
-| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`. |
-| [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts). |
-| [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                           |
+| [`artifacts`](_autosummary/an.stores.artifacts.html.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.            |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`characters`](_autosummary/an.stores.characters.html.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.                 |
+| [`decisions`](_autosummary/an.stores.decisions.html.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.       |
+| [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.               |
+| [`library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock) | The project lockfile: which library version each checked-out asset came from. |
+| [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                           |
+| [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.         |
+| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.      |
+| [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).      |
+| [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                |
+
+
+# _autosummary/an.stores.library_lock.html.md
+
+# an.stores.library_lock
+
+The project lockfile: which library version each checked-out asset came from.
+
+`assets.lock.json` at the project root (design §7.2), one entry per checked-out
+asset, keyed `<store>/<key>` (`characters/alice`) — the address the scene’s
+`AssetRef` already uses:
+
+```json
+{"schema_version": "0.1.0",
+ "assets": {"characters/alice": {"library": "cutan:character.alice-reiniger@v002",
+                                 "manifest_sha256": "…", "checked_out": "…"}}}
+```
+
+**The lockfile is the single source of truth for a pin** (an#240). It is written
+by the check-out that put the files there, beside the manifest it verified, so
+it says what the project actually holds. A scene’s `AssetRef.library` is the
+declared intent, an optional restatement of it for the reader; a later
+“reference” resolution resolves through the lockfile entry `<store>/<ref>`
+too, and treats `library:` as the intent it must match — never as a second
+pin. `an validate` (and `an render`, fatally under `--strict-assets`)
+reports every scene `library:` that disagrees with the lockfile, or names an
+entry the lockfile does not pin (`an.library.checkout.check_pins()`). The
+lockfile records no library root: it is committed, and a path would leak.
+
+The pin records **provenance**: where each checked-out copy came from, so a
+project can be rebuilt from the library. It is not a content key — the copy in
+the project can be edited after it is pinned; `an.library.checkout.verify_checkout()`
+says whether it still is its version (`an validate` reports the drift as
+`info`: an edited check-out is a fork, not a mistake), and only then may
+anything treat the pin as standing for the content.
+
+The lockfile is a `MutableMapping` like every other store (pillar 7),
+registered in the project mall as `mall["library_lock"]`
+([`an.stores.build_project_mall()`](_autosummary/an.stores.html.md#an.stores.build_project_mall)); `an.library.checkout.checkout()`
+writes through the mall’s store unless one is injected (`lock=`). It lives
+here, with the other project stores, so building a project mall never imports
+the asset library; [`an.library.lock`](_autosummary/an.library.lock.html.md#module-an.library.lock) re-exports it.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     lock = ProjectLock(d)
+...     lock["characters/alice"] = {"library": "character.alice@v001"}
+...     list(ProjectLock(d).items())
+[('characters/alice', {'library': 'character.alice@v001'})]
+```
+
+### Module Attributes
+
+| [`LOCKFILE_NAME`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.LOCKFILE_NAME)           | The lockfile's name at the project root.                        |
+|--------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`LOCKFILE_SCHEMA_VERSION`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.LOCKFILE_SCHEMA_VERSION) | The lockfile document's schema version (its own document kind). |
+
+### Functions
+
+| [`lock_key`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.lock_key)(store, key)   | The lockfile key of one project store entry.   |
+|-------------------------------------------------------------------------|------------------------------------------------|
+
+### Classes
+
+| [`ProjectLock`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock)(project_dir)   | `<store>/<key> -> pin` over a project's `assets.lock.json`.   |
+|-----------------------------------------------------------------------------|---------------------------------------------------------------|
+
+### an.stores.library_lock.LOCKFILE_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'assets.lock.json'*
+
+The lockfile’s name at the project root.
+
+### an.stores.library_lock.LOCKFILE_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
+
+The lockfile document’s schema version (its own document kind).
+
+### *class* an.stores.library_lock.ProjectLock(project_dir)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`<store>/<key> -> pin` over a project’s `assets.lock.json`.
+
+Every write rewrites the whole (small) file, sorted, so the lockfile diffs
+cleanly under version control.
+
+### an.stores.library_lock.lock_key(store, key)
+
+The lockfile key of one project store entry.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> lock_key("characters", "alice")
+'characters/alice'
+```
 
 
 # _autosummary/an.stores.props.html.md
@@ -32581,18 +33106,18 @@ without touching these functions, so they stay plain Python.
 
 ### Functions
 
-| [`bench`](_autosummary/an.tools.html.md#an.tools.bench)([scenes, out, keep_render, quiet, ...])   | Render the fixed bench corpus and write a metrics ledger.              |
-|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`bench_compare`](_autosummary/an.tools.html.md#an.tools.bench_compare)([before, after, mutation, ...])   | Compare two ledger rows — and refuse when they are not comparable.     |
-| [`bench_mutants`](_autosummary/an.tools.html.md#an.tools.bench_mutants)([names, quiet])                   | Break each guard on purpose and check the test that names it goes red. |
-| [`check`](_autosummary/an.tools.html.md#an.tools.check)()                                         | Print a status report of all backend system + Python deps.             |
-| [`credits`](_autosummary/an.tools.html.md#an.tools.credits)(project_dir[, json_out])                | Show what third-party work is in `project_dir` and what it obliges.    |
-| [`init`](_autosummary/an.tools.html.md#an.tools.init)(project_dir[, name, force])                | Create a fresh an project at `project_dir`.                            |
-| [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])        | Apply a free-text instruction to the scene.                            |
-| [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser])        | Live-preview the project's scene in a browser; reloads on edit.        |
-| [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])    | Render the project at `project_dir` to a single mp4.                   |
-| [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir)                               | Reconcile scene.md and ir/scene.json inside `project_dir`.             |
-| [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir)                           | Validate the scene at `project_dir`.                                   |
+| [`bench`](_autosummary/an.tools.html.md#an.tools.bench)([scenes, out, keep_render, quiet, ...])    | Render the fixed bench corpus and write a metrics ledger.                            |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`bench_compare`](_autosummary/an.tools.html.md#an.tools.bench_compare)([before, after, mutation, ...])    | Compare two ledger rows — and refuse when they are not comparable.                   |
+| [`bench_mutants`](_autosummary/an.tools.html.md#an.tools.bench_mutants)([names, quiet])                    | Break each guard on purpose and check the test that names it goes red.               |
+| [`check`](_autosummary/an.tools.html.md#an.tools.check)()                                          | Print a status report of all backend system + Python deps.                           |
+| [`credits`](_autosummary/an.tools.html.md#an.tools.credits)(project_dir[, json_out])                 | Show what third-party work is in `project_dir` and what it obliges.                  |
+| [`init`](_autosummary/an.tools.html.md#an.tools.init)(project_dir[, name, force, id, genre, ...]) | Create a fresh an project at `project_dir` — or, with --id, at the default location. |
+| [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
+| [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
+| [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
+| [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir)                                | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
+| [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
@@ -32701,13 +33226,17 @@ consumer that makes the provenance field worth having.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.init(project_dir, name=None, force=False)
+### an.tools.init(project_dir, name=None, force=False, id=False, genre='', package='', root='')
 
-Create a fresh an project at `project_dir`.
+Create a fresh an project at `project_dir` — or, with –id, at the default location.
 
-project_dir: where to create the project (created if missing)
+project_dir: where to create the project (created if missing); with –id, the project’s id
 name: project display name (defaults to the directory name)
 force: overwrite an existing scene.md
+id: treat project_dir as a project id and create the project under its genre’s projects folder (an init –id alice-and-bob –genre cutout_animation -> ~/.local/share/cutan/projects/alice-and-bob)
+genre: with –id, the genre the video is made in (e.g. cutout_animation); the genre names the package whose root holds the project
+package: with –id, that package directly, overriding –genre (default: the genre’s, else an)
+root: with –id, that package’s root (default: its data folder, or <PKG>_HOME)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -33623,7 +34152,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 16:04 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/676e08d139b83a92a57211910b22fc402631c81e"><code>676e08d</code></a> on branch <code>main</code>, for **an 0.1.137** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 16:24 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/bf42ae04cdb65a0a9394570e356f274a1a6d8b85"><code>bf42ae0</code></a> on branch <code>main</code>, for **an 0.1.138** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -33632,9 +34161,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/676e08d139b83a92a57211910b22fc402631c81e"><code>676e08d139b83a92a57211910b22fc402631c81e</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/bf42ae04cdb65a0a9394570e356f274a1a6d8b85"><code>bf42ae04cdb65a0a9394570e356f274a1a6d8b85</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.137</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.138</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -33643,9 +34172,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36888458792">36888458792</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36890913290">36890913290</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>b8a236b5e0772d717a12f9a42aa135a0af6b6d38</code> (in the history of the built commit) |
+| Event commit | <code>f72ca0ba0081a990451eb8f569fc704eb344eee6</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -33670,13 +34199,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.137/">0.1.137</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.138/">0.1.138</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 676e08d139b83a92a57211910b22fc402631c81e
+git checkout bf42ae04cdb65a0a9394570e356f274a1a6d8b85
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

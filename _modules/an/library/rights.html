@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -883,23 +883,64 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">_OneEntry</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A one-entry project store for the credits walk, knowing its files' digests."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="s2">"_"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">files</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">file_digests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_descriptor_sources</span><span class="p">(</span>
-    <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">covering</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_credits</span>
+<span class="w">    </span><span class="sd">"""The descriptor's own source and each part's, as ``an credits`` reads them.</span>
+
+<span class="sd">    files: ``{path: sha256}`` of the asset's files, so the factory's stamps are</span>
+<span class="sd">        checked against the bytes they pin, exactly as in a project</span>
+<span class="sd">    covering: the asset-level source declared at publish. A check-out writes it</span>
+<span class="sd">        into a descriptor that declares none (nor any the credits walk</span>
+<span class="sd">        reconstructs), so the parts are walked as they will read there — the</span>
+<span class="sd">        library and the project's credits see the same document — but it is</span>
+<span class="sd">        reported under its own label, never as the descriptor's.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_credits</span><span class="p">,</span> <span class="n">is_factory_stamp</span>
 
     <span class="n">key</span> <span class="o">=</span> <span class="s2">"_"</span>
     <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span>
-    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">own</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">collect_credits</span><span class="p">({</span><span class="n">store</span><span class="p">:</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)}})</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">store</span> <span class="k">else</span> <span class="p">[]:</span>
-        <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">asset</span> <span class="o">==</span> <span class="n">prefix</span><span class="p">:</span>
-            <span class="n">own</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">source</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">entry</span><span class="o">.</span><span class="n">asset</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:],</span> <span class="n">entry</span><span class="o">.</span><span class="n">source</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">document</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">store</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">collect_credits</span><span class="p">({</span><span class="n">store</span><span class="p">:</span> <span class="n">_OneEntry</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">files</span><span class="p">)})</span><span class="o">.</span><span class="n">entries</span>
+
+    <span class="n">entries</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">source</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="o">==</span> <span class="n">prefix</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">):</span>
         <span class="n">own</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"source"</span><span class="p">])</span>
-    <span class="k">return</span> <span class="p">([(</span><span class="n">DESCRIPTOR_SOURCE_LABEL</span><span class="p">,</span> <span class="n">own</span><span class="p">)]</span> <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span> <span class="o">+</span> <span class="n">out</span>
+    <span class="k">if</span> <span class="n">covering</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">own</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))):</span>
+        <span class="c1"># What the checked-out copy will hold (an.library.checkout): the</span>
+        <span class="c1"># asset-level source written in as the descriptor's — in place of</span>
+        <span class="c1"># nothing, or of the factory's own stamp, which speaks only for the</span>
+        <span class="c1"># bytes its part stamps already pin — speaking for every part nothing</span>
+        <span class="c1"># itemises.</span>
+        <span class="n">walked</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">doc</span><span class="p">,</span>
+            <span class="s2">"source"</span><span class="p">:</span> <span class="n">covering</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">,</span> <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">walked</span><span class="p">)</span>
+        <span class="n">own</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:],</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="o">!=</span> <span class="n">prefix</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="p">([(</span><span class="n">DESCRIPTOR_SOURCE_LABEL</span><span class="p">,</span> <span class="n">own</span><span class="p">)]</span> <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span> <span class="o">+</span> <span class="n">parts</span>
 
 
 <div class="viewcode-block" id="sources_in">
@@ -909,6 +950,7 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Every labelled source one version holds: the asset's, the descriptor's, each part's.</span>
 
@@ -922,6 +964,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        the art came from a film. The only way to relax a stricter source is</span>
 <span class="sd">        an explicit, recorded relicence (:func:`an.library.api.publish`'s</span>
 <span class="sd">        ``relicense``), which bypasses this function altogether</span>
+<span class="sd">    files: ``{path: sha256}`` of the asset's files. With them, a factory stamp</span>
+<span class="sd">        is checked against the bytes it pins (:func:`an.credits._part_credits`):</span>
+<span class="sd">        a re-carved part under a stale stamp, or a file the factory's</span>
+<span class="sd">        descriptor stamp does not pin, is ``unknown`` unless a source covers it</span>
 
 <span class="sd">    With no source anywhere the asset contributes ``None``: ``unknown``.</span>
 
@@ -930,7 +976,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...                                   source=AssetSource(provider="me", license="cc0-1.0"))]</span>
 <span class="sd">    ['asset', 'descriptor']</span>
 <span class="sd">    """</span>
-    <span class="n">found</span> <span class="o">=</span> <span class="n">_descriptor_sources</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">)</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="n">_descriptor_sources</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">covering</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
     <span class="n">own</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">found</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DESCRIPTOR_SOURCE_LABEL</span><span class="p">)</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="n">DESCRIPTOR_SOURCE_LABEL</span><span class="p">]</span>
     <span class="n">top</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span>

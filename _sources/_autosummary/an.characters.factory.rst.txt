@@ -19,6 +19,7 @@ an.characters.factory
       BUILDS
       FACTORY_PROVIDER
       FACTORY_LICENSE
+      FACTORY_AUTHOR
       EYE_CANVAS
       GAZE_PARTS
       FACE_SLOTS
@@ -33,11 +34,14 @@ an.characters.factory
       add_gaze
       add_views
       declare_mouth_variants
+      factory_descriptor_source
       factory_source
       gaze_travel_for
       new_character
       scale_part_files
+      stamp_factory_descriptor
       stamp_factory_parts
+      stamp_generated_head
       view_poses
    
    .. rubric:: Classes

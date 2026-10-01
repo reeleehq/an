@@ -25,6 +25,7 @@ an.genres
       genre_entry_points
       genres_declaring
       installed
+      genre_library
       installed_genre
       load
       providers_of

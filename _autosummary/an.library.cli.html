@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3b84622e"></script>
+    <script src="../_static/documentation_options.js?v=d39ec1ec"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.character" href="an.library.character.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.137" />
+  <meta name="docsearch:version" content="0.1.138" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -445,6 +445,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
@@ -474,6 +475,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
@@ -584,9 +586,10 @@ the business logic is <a class="reference internal" href="an.library.api.html#mo
 <p>Lists are comma-separated (<code class="docutils literal notranslate"><span class="pre">--style</span> <span class="pre">reiniger,gilliam</span></code>). Every command reads
 the library of <code class="docutils literal notranslate"><span class="pre">--package</span></code> (default <code class="docutils literal notranslate"><span class="pre">an</span></code>) at <code class="docutils literal notranslate"><span class="pre">--root</span></code> (default: the
 package’s data folder, or <code class="docutils literal notranslate"><span class="pre">&lt;PKG&gt;_HOME</span></code>); the read commands search that
-library, then the core <code class="docutils literal notranslate"><span class="pre">an</span></code> library, then <code class="docutils literal notranslate"><span class="pre">--extra</span></code> ones. A refusal (an
-unknown asset, a private asset leaving its library, …) prints one sentence and
-exits non-zero.</p>
+library, then the core <code class="docutils literal notranslate"><span class="pre">an</span></code> library, then <code class="docutils literal notranslate"><span class="pre">--extra</span></code> ones — and the library
+a namespaced reference names (<code class="docutils literal notranslate"><span class="pre">cutan:character.alice&#64;v002</span></code> reads <code class="docutils literal notranslate"><span class="pre">cutan</span></code>
+with no <code class="docutils literal notranslate"><span class="pre">--package</span></code>; an#251). A refusal (an unknown asset, a private asset
+leaving its library, …) prints one sentence and exits non-zero.</p>
 <p>Subcommands: <code class="docutils literal notranslate"><span class="pre">publish</span></code>, <code class="docutils literal notranslate"><span class="pre">find</span></code>, <code class="docutils literal notranslate"><span class="pre">vocabulary</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">checkout</span></code>,
 <code class="docutils literal notranslate"><span class="pre">promote</span></code>.</p>
 <p class="rubric">Functions</p>
@@ -615,14 +618,14 @@ exits non-zero.</p>
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.cli.checkout">
-<span class="sig-prename descclassname"><span class="pre">an.library.cli.</span></span><span class="sig-name descname"><span class="pre">checkout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/cli.html#checkout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.cli.checkout" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.cli.</span></span><span class="sig-name descname"><span class="pre">checkout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/cli.html#checkout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.cli.checkout" title="Link to this definition">#</a></dt>
 <dd><p>Check a library version out into a project, and pin it in assets.lock.json.</p>
 <p>project_dir: the an project
-ref: [&lt;library&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;] (latest is resolved now and pinned)
+ref: [&lt;library&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;] (latest is resolved now and pinned); a &lt;library&gt;: prefix reads that library, no –package needed
 key: the key in the project store (default: the asset’s slug)
-overwrite: replace an existing entry that is not this version
-package: the library to read first (then the core an library)
-root: that library’s root
+overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
+package: the library to read first, then the core an library (default: the reference’s &lt;library&gt;: prefix, else an)
+root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -660,7 +663,7 @@ json_out: print JSON instead of a table</p>
 <span class="sig-prename descclassname"><span class="pre">an.library.cli.</span></span><span class="sig-name descname"><span class="pre">promote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_restricted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/cli.html#promote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.cli.promote" title="Link to this definition">#</a></dt>
 <dd><p>Copy a version into the core an library, so other genres can reuse it.</p>
 <p>ref: [&lt;library&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;]
-package: the library it is in (a genre’s, e.g. cutan)
+package: the library it is in (a genre’s, e.g. cutan; default: the reference’s &lt;library&gt;: prefix)
 root: that library’s root
 core_root: the core an library’s root (default: its data folder)
 as_id: promote under another id (when the core library has an unrelated asset with this one)
@@ -706,11 +709,11 @@ extra: further libraries where –derived-from resolves, by package name, comma-
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.cli.show">
-<span class="sig-prename descclassname"><span class="pre">an.library.cli.</span></span><span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/cli.html#show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.cli.show" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.cli.</span></span><span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/cli.html#show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.cli.show" title="Link to this definition">#</a></dt>
 <dd><p>Show one asset: its record, the resolved version, and its other versions.</p>
-<p>ref: [&lt;library&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;] (latest by default)
-package: the library to read first (then the core an library)
-root: that library’s root
+<p>ref: [&lt;library&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;] (latest by default); a &lt;library&gt;: prefix reads that library
+package: the library to read first, then the core an library (default: the reference’s &lt;library&gt;: prefix, else an)
+root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
 json_out: print the full record and version as JSON</p>
 <dl class="field-list simple">

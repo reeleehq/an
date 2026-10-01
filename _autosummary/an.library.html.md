@@ -29,9 +29,14 @@ What lives where:
 - [`an.library.affordances`](an.library.affordances.html.md#module-an.library.affordances) — capabilities and per-kind analysers (the seed
   of ADR 0002’s registry); [`an.library.character`](an.library.character.html.md#module-an.library.character) — the character analyser;
 - [`an.library.rights`](an.library.rights.html.md#module-an.library.rights) — the most-restrictive roll-up over `AssetSource`;
+  [`an.library.floor`](an.library.floor.html.md#module-an.library.floor) — the strictest statement any library on the machine
+  > makes about a blob; [`an.library.registry`](an.library.registry.html.md#module-an.library.registry) — the machine’s registry of
+  > library roots the floor reads, independent of the environment;
 - [`an.library.api`](an.library.api.html.md#module-an.library.api) — `publish`, `find`, `vocabulary`, `show`,
   `promote`; [`an.library.checkout`](#an.library.checkout) — `checkout`, `verify_checkout`,
-  `check_pins`; [`an.library.lock`](an.library.lock.html.md#module-an.library.lock) — the project lockfile;
+  `check_pins`, `drift_findings` (both run by `an validate`);
+  [`an.library.lock`](an.library.lock.html.md#module-an.library.lock) — the project lockfile (a project store,
+  > `mall["library_lock"]`);
 - [`an.library.cli`](an.library.cli.html.md#module-an.library.cli) — `an library …`, a projection of the same functions.
 
 ### Functions
@@ -41,6 +46,7 @@ What lives where:
 | [`build_library_mall`](#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
 | [`checkout`](#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
+| [`drift_findings`](#an.library.drift_findings)([project_dir, mall, lock, ...])     | One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.                                   |
 | [`effective_rights`](#an.library.effective_rights)(libraries, version, \*[, floor])  | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
 | [`find`](#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
 | [`library_root`](#an.library.library_root)([root, package, environ, platform])   | The data root of `package` — its library and its projects live under it.                                                                      |
@@ -55,6 +61,8 @@ What lives where:
 | [`register_analyser`](#an.library.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                                                                          |
 | [`register_asset_kind`](#an.library.register_asset_kind)(name, \*[, store, ...])        | Register (or re-register) an asset kind.                                                                                                      |
 | [`register_capability`](#an.library.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                                                                       |
+| [`register_root`](#an.library.register_root)(package, root, \*[, registry])       | Record `root` (`package`'s library root) in the registry; `True` if it was new.                                                               |
+| [`registered_roots`](#an.library.registered_roots)(\*[, registry])                   | `(package, root)` for every root ever registered, oldest first, each once.                                                                    |
 | [`resolve`](#an.library.resolve)(libraries, ref)                            | `(library, pinned_ref, version_doc)` for a reference, along the search path.                                                                  |
 | [`roll_up`](#an.library.roll_up)(sources, \*[, inherited])                  | Roll labelled sources (and parents' rights) up to one [`Rights`](#an.library.Rights).                                |
 | [`scan_index`](#an.library.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                                                                                |
@@ -78,14 +86,15 @@ What lives where:
 
 ### Exceptions
 
-| [`AssetIdError`](#an.library.AssetIdError)       | An asset id, version label or library reference that does not parse.             |
-|---------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`AssetNotFoundError`](#an.library.AssetNotFoundError) | No library on the search path holds the asset or version asked for.              |
-| [`CheckoutError`](#an.library.CheckoutError)      | A version cannot be materialised into this project as asked.                     |
-| [`IntegrityError`](#an.library.IntegrityError)     | Stored bytes, paths or a stored manifest do not match what was recorded.         |
-| [`LibraryError`](#an.library.LibraryError)       | A library operation refused, with a sentence saying why and what to do.          |
-| [`RightsRefusal`](#an.library.RightsRefusal)      | A private or unknown version would leave the user's library without an override. |
-| [`VersionExistsError`](#an.library.VersionExistsError) | A write-once key was written twice, or deleted.                                  |
+| [`AssetIdError`](#an.library.AssetIdError)       | An asset id, version label or library reference that does not parse.                    |
+|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`AssetNotFoundError`](#an.library.AssetNotFoundError) | No library on the search path holds the asset or version asked for.                     |
+| [`CheckoutError`](#an.library.CheckoutError)      | A version cannot be materialised into this project as asked.                            |
+| [`IntegrityError`](#an.library.IntegrityError)     | Stored bytes, paths or a stored manifest do not match what was recorded.                |
+| [`LibraryError`](#an.library.LibraryError)       | A library operation refused, with a sentence saying why and what to do.                 |
+| [`RegistryError`](#an.library.RegistryError)      | The machine's registry or statement memory cannot be read or written; nothing proceeds. |
+| [`RightsRefusal`](#an.library.RightsRefusal)      | A private or unknown version would leave the user's library without an override.        |
+| [`VersionExistsError`](#an.library.VersionExistsError) | A write-once key was written twice, or deleted.                                         |
 
 ### *exception* an.library.AssetIdError
 
@@ -237,6 +246,12 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a publish did: the version it names, and whether it made one.
 
+### *exception* an.library.RegistryError
+
+Bases: [`OSError`](https://docs.python.org/3/builtins/exceptions.html#OSError)
+
+The machine’s registry or statement memory cannot be read or written; nothing proceeds.
+
 ### *class* an.library.Rights(license_class, reasons=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -308,9 +323,11 @@ one on a search path) leaves the disk as it was.
 
 Findings where a scene’s `AssetRef.library` and the project lockfile disagree.
 
-Two records of one pin can drift (a re-check-out updates the lockfile, not
-the scene). Until the lockfile joins the project mall and `an validate`
-runs this (an#240), call it yourself; each disagreement is a `warning`.
+The lockfile is the source of truth (it is what the check-out wrote, beside
+the files); the scene’s `library:` restates it. Two records of one pin can
+drift — a re-check-out updates the lockfile, not the scene — so `an
+validate` runs this on every project (an#240). Each disagreement, and each
+`library:` the lockfile does not pin, is a `warning`.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -329,16 +346,40 @@ ref: `[<library>:]<asset_id>[@<version>]`; `latest` (or no version) is
 
 key: the key in the project store (default: the asset id’s slug)
 mall: the project mall (default: `build_project_mall(project_dir)`)
-lock: the lockfile mapping (default: `<project_dir>/assets.lock.json`)
-overwrite: replace an existing entry that is not exactly this version — a
+lock: the lockfile mapping (default: the mall’s `library_lock` store,
 
-> local fork (any edited file or descriptor) or another asset; without it
-> that is refused
+> `<project_dir>/assets.lock.json`)
+
+overwrite: replace an existing entry that is not exactly this version — a
+: local fork (any edited file or descriptor) or another asset; without it
+  that is refused
+
+An entry that already IS this version byte for byte — the folder a
+`publish` just sent to the library, still unedited — is recognised and
+linked (origin block, carried source, pin) without `overwrite`: publishing
+a project’s asset and checking it back out is the natural first round trip.
 
 Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
+
+### an.library.drift_findings(project_dir=None, , mall=None, lock=None, libraries=None)
+
+One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.
+
+An edited check-out is a fork, not a mistake — hence `info`: it says the
+pin now records where the copy CAME FROM, not what it IS, so nothing may
+treat the pin as standing for the content (an#240), and publishing the
+folder would make a new version. A pin this machine cannot check (its
+library is at a custom root, or elsewhere) is its own `info`, with no
+advice to check anything out again — that could swap the asset for a
+same-named other one.
+
+project_dir: the project (not needed when both `mall` and `lock` are given)
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.effective_rights(libraries, version, \*, floor=<object object>)
 
@@ -448,8 +489,11 @@ AssetIdError: ...
 The default directory of the agent-made project `project_id` (design §7.5).
 
 `an init <dir>` with an explicit directory keeps working anywhere; this is
-the default for projects an agent makes, so they never land in a session’s
-working folder or a repository.
+the default for projects an agent makes (`an init --id <id>`), so they
+never land in a session’s working folder or a repository. `package` is
+the library package of the genre the video is made in
+([`an.genres.genre_library()`](an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
+names no genre).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -510,9 +554,13 @@ files: the asset’s files, by the relative paths the descriptor uses
 
 source: provenance declared for the asset as a whole. It contributes BESIDE
 : the descriptor’s own `source` (the most restrictive wins), never
-  instead of it. With no `source` and none in the descriptor, the source
-  of the previous version carries forward (`carry_source`); with none at
-  all the version is `unknown` — recorded and visible, not refused
+  instead of it. With no `source`, and a descriptor declaring nothing
+  or exactly what the head’s declared, the source of the previous version
+  carries forward (`carry_source`) — for the bytes it was declared on
+  only: a file changed or added since is recorded as `unlabelled` on the
+  version and is `unknown` until a publish passes `source=` (or a
+  relicence) again; with no source at all the version is `unknown` —
+  recorded and visible, not refused
 
 relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 : Rights attach to the bytes and the lineage: a new version inherits the
@@ -558,8 +606,9 @@ False
 Publish an asset folder as it sits in a project store (`assets/characters/alice/`).
 
 The descriptor is the kind’s descriptor file (`character.json`); every other
-non-hidden file under the folder is published as one of the asset’s files, so
-a check-out reproduces the folder. Keyword arguments go to [`publish()`](#an.library.publish).
+file under the folder is published as one of the asset’s files, so a
+check-out reproduces the folder — except operating-system clutter
+(`.DS_Store`, hidden files, `Thumbs.db`: `an.stores._common.is_os_junk()`). Keyword arguments go to [`publish()`](#an.library.publish).
 
 * **Return type:**
   [`PublishResult`](an.library.api.html.md#an.library.api.PublishResult)
@@ -588,12 +637,41 @@ Register (or re-register) a capability. Returns it.
 * **Return type:**
   [`Capability`](an.library.affordances.html.md#an.library.affordances.Capability)
 
+### an.library.register_root(package, root, , registry=None)
+
+Record `root` (`package`’s library root) in the registry; `True` if it was new.
+
+Idempotent. Raises [`RegistryError`](#an.library.RegistryError) when the registry cannot be read
+or written: a library the floor cannot find later must not be written to.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.library.registered_roots(, registry=None)
+
+`(package, root)` for every root ever registered, oldest first, each once.
+
+A line that does not parse (a torn append) is skipped; existence is the
+caller’s to check. A registry that exists but cannot be read raises
+[`RegistryError`](#an.library.RegistryError).
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
+
 ### an.library.reindex(library, , search=None)
 
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
 
 The index is derived data: rebuilding it is always safe, and the way to
-repair a library whose index was lost or written by an older `an`.
+repair a library whose index was lost or written by an older `an`. It also
+(re-)registers the library’s root in the machine registry
+([`an.library.registry`](an.library.registry.html.md#module-an.library.registry)), so a library made at a custom root before the
+registry existed becomes visible to every other library’s rights floor.
+
+The new index is computed in full first, then written over the old one
+entry by entry, and only then are stale entries removed: a crash midway
+leaves old and new statements side by side, never an empty floor (an#249
+R4-N4).
 
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)
@@ -672,11 +750,17 @@ The record, the resolved version, its recomputed rights and the list of versions
 
 `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.
 
-What makes a pin usable as more than provenance: an entry with no
-differences is byte-for-byte the version its pin names.
-
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+libraries: where the pinned versions resolve (`None`: the library each
+: pin names, at its default root — `pinned_libraries()`)
+
+What makes a pin usable as more than provenance: an entry with no
+differences is byte-for-byte the version its pin names. An entry whose
+pinned version cannot be found, or is found with another manifest (a
+same-named asset in another library), reads `["cannot verify: …"]` —
+never as an edit.
 
 ### an.library.vocabulary(libraries, \*, index=<function scan_index>)
 
@@ -700,16 +784,17 @@ True
 
 ### Modules
 
-| [`affordances`](an.library.affordances.html.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                    |
-|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| [`api`](an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                               |
-| [`character`](an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                       |
-| [`cli`](an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                  |
-| [`federation`](an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).         |
-| [`floor`](an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes. |
-| [`ids`](an.library.ids.html.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                      |
-| [`kinds`](an.library.kinds.html.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                    |
-| [`lock`](an.library.lock.html.md#module-an.library.lock)                 | The project lockfile: which library version each checked-out asset came from.                          |
-| [`rights`](an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).    |
-| [`root`](an.library.root.html.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).    |
-| [`stores`](an.library.stores.html.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                |
+| [`affordances`](an.library.affordances.html.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                                                                                          |
+|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`api`](an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                                                                                                     |
+| [`character`](an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |
+| [`cli`](an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                                                                                        |
+| [`federation`](an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).                                                                               |
+| [`floor`](an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.                                                                       |
+| [`ids`](an.library.ids.html.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                                                                                            |
+| [`kinds`](an.library.kinds.html.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                                                                                          |
+| [`lock`](an.library.lock.html.md#module-an.library.lock)                 | The project lockfile, as the asset library sees it (re-exported from [`an.stores.library_lock`](an.stores.library_lock.html.md#module-an.stores.library_lock)). |
+| [`registry`](an.library.registry.html.md#module-an.library.registry)         | The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).                                                                      |
+| [`rights`](an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).                                                                          |
+| [`root`](an.library.root.html.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).                                                                          |
+| [`stores`](an.library.stores.html.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                                                                                      |
