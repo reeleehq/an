@@ -391,16 +391,22 @@ anyone touching the frame path:
   reused. `tests/test_shot_cache.py` pins `compiled_document` against what
   `CutoutRenderer.render` passes `compile_shot`; extend `render_knobs` in the
   same PR as the knob.
-- **A change to Python-side render behaviour that no key part sees** (the
-  capture loop, the resolve, a mux flag that is not in the pinned argv) bumps
-  `an.build.keys.SHOT_KEY_IMPL_VERSION`. The runtime is covered by
-  `runtime_sha256`, the argv by the knobs part, the machine by the environment
-  digest.
+- **Python-side render code is in the key automatically**: the `code` part
+  digests every module `an.adapters.cutout.render` reaches (walked from its
+  imports; compile-side modules are excluded in `RENDER_PATH_EXCLUDED`, each
+  with its reason). A new module the render path imports is covered; a new
+  EXCLUSION needs a reason that its change reaches another part. The runtime
+  is `runtime_sha256`, the argv the knobs part, the machine (incl. the x264
+  build) the environment digest. `SHOT_KEY_IMPL_VERSION` is only for changes to
+  the key's own composition.
 - **`render()` is cold by default; only `render_project` caches.** The bench,
   the golden corpus, the cross-arch capture and the demo builds call `render()`,
   so their wall times are real and a lever that rebinds something outside the
   key (the supersample lever's `_capture_frames`) is never answered from cache.
-  Do not flip that default.
+  Do not flip that default, and keep every measuring call site saying
+  `incremental=False` itself (`an/bench/capture.py`, `misc/bench/crossarch.py`,
+  `misc/demos/build_demos.py`; pinned by `tests/test_shot_cache.py`) — never
+  inside `BENCH_RENDER_KWARGS`, which is recorded into ledger rows and compared.
 - `mall["shots"]` (`artifacts/shots/<shot.id>.mp4`) is still written on every
   render, reused shots included, and still read by nothing: an archive of the
   latest render per shot id, not a cache. `an iterate` no longer deletes from

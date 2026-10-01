@@ -180,7 +180,11 @@ def test_a_long_render_in_a_parallel_pool_keeps_every_frame_in_order(tmp_path):
     for capture in ("screenshot", "canvas"):
         root = tmp_path / capture
         ids = _long_project(root)
-        mp4 = render_project(root, parallel=LONG_SHOT_COUNT, capture=capture)
+        # Cold: an equivalence measurement must render, and it reads the
+        # shots' frames from `.an/render_work/shot_<id>/` (an#242).
+        mp4 = render_project(
+            root, parallel=LONG_SHOT_COUNT, capture=capture, incremental=False
+        )
         results[capture] = (
             _decoded_frames(root, ids),
             hashlib.sha256(Path(mp4).read_bytes()).hexdigest(),

@@ -36,6 +36,33 @@ from an.project import Project, load
 
 logger = logging.getLogger("an.build")
 
+#: Under ``.an/render_work/``: one directory per CACHED render run.
+RENDER_RUNS_DIR: str = "runs"
+
+#: A run directory older than this is removed when a later run finishes; the
+#: latest run is always kept, for inspection. Long enough that no run still in
+#: progress is ever pruned by another.
+STALE_RUN_S: float = 6 * 60 * 60
+
+
+def _run_id() -> str:
+    import secrets
+
+    return f"{time.strftime('%Y%m%dT%H%M%S')}_{os.getpid()}_{secrets.token_hex(3)}"
+
+
+def _prune_runs(runs: Path, *, keep: Path, older_than: float = STALE_RUN_S) -> None:
+    """Remove finished runs' work dirs, keeping ``keep`` and anything recent."""
+    now = time.time()
+    for d in runs.iterdir() if runs.is_dir() else ():
+        if d == keep or not d.is_dir():
+            continue
+        try:
+            if now - d.stat().st_mtime > older_than:
+                shutil.rmtree(d, ignore_errors=True)
+        except OSError:
+            continue
+
 # Default cap so a 20-shot scene doesn't try to spawn 20 Chromiums; the user
 # can always pass a higher number explicitly.
 DEFAULT_PARALLEL_CAP: int = 4
@@ -261,7 +288,15 @@ def render(
 
         retime_dialogue(scene, timed_shots_only=True)
 
+    engine = resolve_incremental(incremental)
     work_dir = project.root / ".an" / "render_work"
+    if engine is not None:
+        # A cached render works in a directory of its OWN: two renders of one
+        # project at once (a 4:4:4 master and a 4:2:0 delivery, a person and an
+        # agent) would otherwise write the same `shot_<id>/<id>.mp4` and each
+        # record whatever bytes were there under its own key — poisoning the
+        # cache durably, where before it spoiled one run (an#243 review, S1).
+        work_dir = work_dir / RENDER_RUNS_DIR / _run_id()
     work_dir.mkdir(parents=True, exist_ok=True)
 
     effective_fps = fps if fps is not None else scene.meta.fps or DEFAULT_FPS
@@ -329,7 +364,6 @@ def render(
     # The shot cache (ADR 0004): every key is computed HERE, in this thread and
     # before any browser launches — a key compiles its shot, so a shot that
     # cannot compile fails now, and only the misses reach the pool.
-    engine = resolve_incremental(incremental)
     plans: list[ShotPlan | None] = [None] * len(shot_renderers)
     if engine is not None:
         engine.begin(project.mall, project_root=project.root)
@@ -376,6 +410,7 @@ def render(
     if engine is not None:
         report = engine.finish()
         logger.info("%s", report.summary())
+        _prune_runs(work_dir.parent, keep=work_dir)
 
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()

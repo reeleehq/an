@@ -22,16 +22,32 @@ The cut-out render is a pure function of these, and of nothing else:
   default at call time, which is what the bench's lever rebinds), plus the
   pinned Chromium and x264 argv.
 
-The machine — Chromium build, Playwright, ffmpeg, ISA — is the separate
-environment part (:func:`cutout_environment`), never mixed into the content.
-Fonts need no probe of their own: a text unit's glyphs are outlined in Python
-and travel INSIDE the document (``data:`` srcs), so a different face is a
-different compiled digest.
+- **the render path's Python source** (:func:`render_code_digest`): the
+  capture loop, the canvas readback, the supersample and shutter resolves, the
+  audio mux — everything that turns the document into an mp4 after compile.
+  The Python twin of ``runtime_sha256``: an ``an`` upgrade that changes how a
+  shot is encoded (an#195 did, with no knob and no runtime change) re-renders
+  every shot instead of serving an old mp4. Computed by walking the imports
+  from :data:`RENDER_PATH_ROOT`, so a new helper module cannot fall outside it.
+
+The machine — Chromium build, Playwright, the full ffmpeg build and the x264
+build it encodes with, ISA — is the separate environment part
+(:func:`cutout_environment`), never mixed into the content. Fonts: a text
+unit's glyphs are outlined in Python and travel INSIDE the document (``data:``
+srcs), so a different face is a different compiled digest; but SVG ART may
+carry its own ``<text>``, which Chromium draws with the machine's fonts — so a
+shot that stages such a part gets a ``fonts`` part, a digest of the installed
+font set (:func:`system_fonts_digest`).
 """
 
 from __future__ import annotations
 
+import ast
+import importlib.util
 import platform
+import shutil
+import subprocess
+import tempfile
 import time
 import warnings
 from collections.abc import Mapping
@@ -48,6 +64,24 @@ from an.build.keys import (
 
 #: Keys in the compiled document whose string value names an easing.
 EASING_KEYS: frozenset[str] = frozenset({"easing"})
+
+#: Where the render path starts: the module whose ``CutoutRenderer.render``
+#: turns a shot into an mp4. :func:`render_path_modules` walks its ``an.*``
+#: imports (module-level and function-local) from here.
+RENDER_PATH_ROOT: str = "an.adapters.cutout.render"
+
+#: Modules the walk does NOT enter, each with the reason its change is already
+#: in the key some other way. Everything else it reaches is hashed.
+RENDER_PATH_EXCLUDED: dict[str, str] = {
+    "an.adapters.cutout.compile": "its output is the `compiled` part",
+    "an.adapters.cutout.serialize": "its output is the `compiled` part",
+    "an.adapters.cutout.text": "compile-side; only INLINE_SRC_PREFIX is read at render",
+    "an.ir.schema": "the IR model; what it means for a render reaches `compiled`/`knobs`",
+    "an.adapters._base": "the RenderContext/RenderResult types; their values are `knobs`",
+}
+
+#: A byte sequence that marks an SVG part drawing text with the MACHINE's fonts.
+SVG_TEXT_MARKERS: tuple[bytes, ...] = (b"<text", b":text")
 
 
 def _render_module():
@@ -108,9 +142,130 @@ def texture_digests(scene_json: Any, mall: Mapping[str, Any]) -> dict[str, str]:
         path = Path(root) / strip_version(src)[len(prefix) :] if root and prefix else None
         if path is not None and path.is_file():
             out[alias] = file_digest(path)
+            if path.suffix.lower() == ".svg" and _draws_system_text(path):
+                out[alias] += ":text"
         else:
             out[alias] = f"{ABSENT}:{src}"
     return out
+
+
+def _draws_system_text(path: Path) -> bool:
+    data = path.read_bytes()
+    return any(m in data for m in SVG_TEXT_MARKERS)
+
+
+def _module_imports(tree: ast.AST, module: str) -> set[str]:
+    """Every ``an.*`` module ``tree`` imports, at any depth (function-local too)."""
+    out: set[str] = set()
+    package = module.rsplit(".", 1)[0]
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            out.update(a.name for a in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            base = node.module or ""
+            if node.level:
+                parts = package.split(".")
+                base = ".".join(parts[: len(parts) - node.level + 1] + ([base] if base else []))
+            out.add(base)
+            # `from an.adapters.cutout import render` imports a MODULE.
+            out.update(f"{base}.{a.name}" for a in node.names)
+    return {m for m in out if m == "an" or m.startswith("an.")}
+
+
+def render_path_modules(
+    root: str = RENDER_PATH_ROOT, *, excluded: Mapping[str, str] = RENDER_PATH_EXCLUDED
+) -> dict[str, Path]:
+    """``{module: source path}`` for every ``an`` module the render path reaches.
+
+    >>> mods = render_path_modules()
+    >>> "an.adapters.cutout.canvas_capture" in mods and "an.adapters.cutout.compile" not in mods
+    True
+    """
+    found: dict[str, Path] = {}
+    todo = [root]
+    while todo:
+        name = todo.pop()
+        if name in found or name in excluded or name == "an":
+            continue
+        try:
+            spec = importlib.util.find_spec(name)
+        except (ImportError, ValueError):  # `from m import NAME`: NAME is no module
+            continue
+        if spec is None or not spec.origin or not spec.origin.endswith(".py"):
+            continue
+        path = Path(spec.origin)
+        found[name] = path
+        todo.extend(_source_facts(path, name)[1] - set(found))
+    return dict(sorted(found.items()))
+
+
+#: ``{(path, stat identity): (sha256, imports)}`` for render-path SOURCE files.
+#: Keyed on the ctime and inode as well as mtime and size: ctime cannot be set
+#: by ``os.utime`` or by any copy tool, so an edit is never mistaken for the
+#: file it replaced (the hole an (mtime, size) memo leaves, review S2).
+_SOURCE_MEMO: dict[tuple, tuple[str, frozenset[str]]] = {}
+
+
+def _source_facts(path: Path, module: str) -> tuple[str, frozenset[str]]:
+    st = path.stat()
+    key = (str(path), st.st_size, st.st_mtime_ns, st.st_ctime_ns, st.st_ino, module)
+    if key not in _SOURCE_MEMO:
+        data = path.read_bytes()
+        _SOURCE_MEMO[key] = (
+            bytes_digest(data),
+            frozenset(_module_imports(ast.parse(data), module)),
+        )
+    return _SOURCE_MEMO[key]
+
+
+def render_code_digest() -> str:
+    """sha256 over the source of every module on the render path (by module name)."""
+    return canonical_digest(
+        {
+            name: _source_facts(path, name)[0]
+            for name, path in render_path_modules().items()
+        }
+    )
+
+
+_FONTS: dict[str, str] = {}
+
+
+def system_fonts_digest() -> str:
+    """A digest of the fonts this machine can draw SVG ``<text>`` with; once per process.
+
+    ``fc-list`` where fontconfig exists (Linux, and macOS with it installed);
+    otherwise the listing (name, size, mtime) of the platform's font folders.
+    """
+    if "fonts" not in _FONTS:
+        exe = shutil.which("fc-list")
+        if exe:
+            out = subprocess.run(
+                [exe, "--format", "%{file}|%{family}|%{style}\n"],
+                capture_output=True,
+                text=True,
+                check=False,
+            ).stdout
+            listing: Any = sorted(out.splitlines())
+        else:
+            listing = []
+            for d in FONT_DIRS.get(platform.system(), ()):
+                root = Path(d).expanduser()
+                if root.is_dir():
+                    for f in sorted(root.rglob("*")):
+                        if f.is_file():
+                            st = f.stat()
+                            listing.append([str(f), st.st_size, st.st_mtime_ns])
+        _FONTS["fonts"] = canonical_digest(listing)
+    return _FONTS["fonts"]
+
+
+#: Font folders listed when ``fc-list`` is absent.
+FONT_DIRS: dict[str, tuple[str, ...]] = {
+    "Darwin": ("/System/Library/Fonts", "/Library/Fonts", "~/Library/Fonts"),
+    "Windows": ("C:/Windows/Fonts",),
+    "Linux": ("/usr/share/fonts", "/usr/local/share/fonts", "~/.local/share/fonts", "~/.fonts"),
+}
 
 
 def easing_versions(doc: Any) -> dict[str, int]:
@@ -230,14 +385,18 @@ def cutout_shot_inputs(shot: Any, ctx: Any) -> ShotKeyInputs:
         scene_json = compiled_document(shot, ctx)
     compile_s = time.perf_counter() - t0
     doc = to_dict(scene_json)
+    textures = texture_digests(scene_json, ctx.mall)
     parts = {
         "compiled": scene_contract_sha256(doc),
-        "textures": canonical_digest(texture_digests(scene_json, ctx.mall)),
+        "textures": canonical_digest(textures),
         "easings": canonical_digest(easing_versions(doc)),
         "audio": canonical_digest(muxed_audio(shot, ctx)),
         "runtime": runtime_sha256(),
+        "code": render_code_digest(),
         "knobs": canonical_digest(render_knobs(shot, ctx)),
     }
+    if any(d.endswith(":text") for d in textures.values()):
+        parts["fonts"] = system_fonts_digest()
     return ShotKeyInputs(
         parts=parts,
         compile_s=compile_s,
@@ -245,24 +404,59 @@ def cutout_shot_inputs(shot: Any, ctx: Any) -> ShotKeyInputs:
     )
 
 
+def ffmpeg_build() -> dict[str, Any]:
+    """The whole ``ffmpeg -version`` (every library's version and the configure
+    line), not its first line: the banner is unchanged by ``brew upgrade x264``,
+    which swaps the dynamically linked encoder under it."""
+    exe = shutil.which("ffmpeg")
+    if exe is None:
+        return {"error": "ffmpeg not on PATH"}
+    out = subprocess.run([exe, "-version"], capture_output=True, text=True, check=False)
+    return {"version": out.stdout.strip() or out.stderr.strip()}
+
+
+def x264_build() -> str | None:
+    """The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.
+
+    The bench's own comparability key (`an.bench.environment.x264_sei`), so
+    the cache and the ledger agree about what "the same encoder" means.
+    """
+    from an.bench.environment import x264_sei
+
+    exe = shutil.which("ffmpeg")
+    if exe is None:
+        return None
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "probe.mp4"
+        subprocess.run(
+            [exe, "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+             "color=c=black:s=16x16:d=0.04", "-frames:v", "1", "-c:v", "libx264",
+             str(out)],
+            capture_output=True,
+            check=False,
+        )
+        return x264_sei(out) if out.exists() else None
+
+
 def cutout_environment() -> dict[str, Any]:
     """The cut-out render's machine: the bench's own probes, minus what is not identity.
 
-    Chromium's build and WebGL identity (one browser launch), Playwright,
-    ffmpeg's banner, the ISA and OS family, and the Python imaging stack the
-    frame stage decodes and resolves with. The executable PATH is left out — it
-    names a home directory, not a build. A failed probe is recorded as its
-    error, never as "fine".
+    Chromium's build and WebGL identity (one browser launch), Playwright, the
+    full ffmpeg build and the x264 build it encodes with (one 16x16 encode),
+    the ISA and OS family, and the Python imaging stack the frame stage decodes
+    and resolves with. The executable PATH is left out — it names a home
+    directory, not a build. A failed probe is recorded as its error, never as
+    "fine".
     """
-    from an.bench.environment import ffmpeg_identity, probe_browser, tool_version
+    from an.bench.environment import probe_browser, tool_version
 
     browser = dict(probe_browser())
     browser.pop("executable_path", None)
-    ffmpeg = ffmpeg_identity()
     return {
         "browser": browser,
         "playwright": tool_version("playwright"),
-        "ffmpeg": ffmpeg.get("banner") or ffmpeg.get("error"),
+        "ffmpeg": ffmpeg_build(),
+        "x264": x264_build(),
         "isa": platform.machine(),
         "system": platform.system(),
         "pillow": tool_version("pillow"),

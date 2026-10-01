@@ -188,7 +188,7 @@ def test_without_the_project_fallback_only_the_drawing_shot_rerenders(tmp_path, 
     root = _project(
         tmp_path, _shot("with_amy", 10.0, entities=[amy]), _shot("empty", 20.0), character=True
     )
-    precise = lambda: ShotCache(environment=_env(), project_digest=False)  # noqa: E731
+    precise = lambda: ShotCache(environment=_env(), dependencies=None)  # noqa: E731
     _render(root, fake_render, cache=precise())
     part = sorted((root / "assets" / "characters" / "amy" / "parts").glob("*.svg"))[0]
     st = part.stat()
@@ -255,7 +255,7 @@ def test_compile_and_render_wall_times_are_recorded_per_shot(tmp_path, fake_rend
     store = load(root).mall["shot_cache"]
     rec = store[report.outcomes[0].key]
     assert {"compile_s", "render_s", "key_s"} <= set(rec.timings)
-    assert {"compiled", "textures", "easings", "audio", "runtime", "knobs",
+    assert {"compiled", "textures", "easings", "audio", "runtime", "code", "knobs",
             "environment", "project", "renderer"} == set(rec.inputs)
 
 
@@ -288,8 +288,11 @@ def test_iterate_no_longer_deletes_from_the_shots_store():
 # -----------------------------------------------------------------------------
 
 
-class _Named:
-    name = "cutout"
+def _Named():
+    """The real cut-out renderer: the keyer is bound to its class (review S4)."""
+    from an.adapters.cutout.render import CutoutRenderer
+
+    return CutoutRenderer()
 
 
 def test_an_assembled_film_reuses_a_shot_only_with_its_frames(tmp_path):
@@ -302,7 +305,7 @@ def test_an_assembled_film_reuses_a_shot_only_with_its_frames(tmp_path):
     shot = _shot("a", 10.0)
     fake = _FakeCutoutRender()
 
-    engine = ShotCache(store, environment=_env())
+    engine = ShotCache(store, environment=_env(), cache_frames=True)
     engine.begin({})
     plan = engine.plan(shot, _Named(), ctx, needs_frames=False)
     engine.record(plan, fake(None, shot, ctx), render_s=0.5)
@@ -458,3 +461,436 @@ def test_a_real_second_render_reuses_both_shots_byte_for_byte(tmp_path):
     assert second.report.reused == ["a", "b"]
     assert {k: load(root).mall["shots"][k] for k in ("a", "b")} == shots_before
     assert out.read_bytes() == first_bytes
+
+
+# -----------------------------------------------------------------------------
+# The an#243 review: blockers, stale-hit paths, and one test per key part
+# -----------------------------------------------------------------------------
+
+
+def _key(shot, ctx, *, engine=None, renderer=None):
+    """The key a fresh engine computes for ``shot`` under ``ctx`` (no lookup)."""
+    import an.adapters  # noqa: F401 — registers the cut-out keyer
+
+    engine = engine or ShotCache(in_memory_shot_cache_store(), environment=_env())
+    engine.begin({})
+    return engine.plan(shot, renderer or _Named(), ctx, force=True).key
+
+
+def _ctx(tmp_path, **kw):
+    base = dict(mall={"audio": {}}, work_dir=tmp_path, fps=_FPS, resolution=(160, 120))
+    base.update(kw)
+    return RenderContext(**base)
+
+
+@pytest.mark.parametrize("cache_frames", [False, True])
+def test_two_identical_shots_render_warm_without_sharing_files(tmp_path, fake_render, cache_frames):
+    """B1: identical shots share a KEY, never a materialisation directory."""
+    root = _project(tmp_path, _shot("a", 10.0), _shot("b", 10.0))
+    cache = lambda: ShotCache(environment=_env(), cache_frames=cache_frames)  # noqa: E731
+    _render(root, fake_render, cache=cache())
+    report, rendered = _render(root, fake_render, cache=cache())
+    assert rendered == [] and report.reused == ["a", "b"]
+    report, rendered = _render(root, fake_render, cache=cache())  # and again
+    assert report.reused == ["a", "b"]
+    assert {o.key for o in report.outcomes} == {report.outcomes[0].key}
+
+
+def test_two_identical_shots_of_an_assembled_film_reuse_their_own_frames(tmp_path):
+    import an.adapters  # noqa: F401
+
+    store = in_memory_shot_cache_store()
+    ctx = _ctx(tmp_path)
+    a, b = _shot("a", 10.0), _shot("b", 10.0)
+    fake = _FakeCutoutRender()
+    engine = ShotCache(store, environment=_env(), cache_frames=True)
+    engine.begin({})
+    plan = engine.plan(a, _Named(), ctx, needs_frames=True)
+    engine.record(plan, fake(None, a, ctx), render_s=0.1)
+    engine.begin({})
+    pa = engine.plan(a, _Named(), ctx, needs_frames=True)
+    pb = engine.plan(b, _Named(), ctx, needs_frames=True)
+    for p in (pa, pb):
+        assert p.cached is not None
+        assert p.cached.mp4_path.exists() and all(f.exists() for f in p.cached.frame_manifest)
+    assert pa.cached.mp4_path != pb.cached.mp4_path
+    assert pb.cached.provenance["shot_id"] == "b"  # N2: the shot it is FOR
+
+
+def test_an_assembled_film_is_not_cached_unless_frames_are(tmp_path):
+    import an.adapters  # noqa: F401
+
+    engine = ShotCache(in_memory_shot_cache_store(), environment=_env())
+    engine.begin({})
+    plan = engine.plan(_shot("a", 1.0), _Named(), _ctx(tmp_path), needs_frames=True)
+    assert plan.key is None and "frames are not cached" in plan.reason
+
+
+def test_cached_renders_each_work_in_their_own_directory(tmp_path, fake_render):
+    """S1: two renders of one project must never write the same shot file."""
+    from an.adapters.cutout.render import CutoutRenderer
+
+    seen = []
+    original = CutoutRenderer.render
+
+    def spy(self, shot, ctx):
+        seen.append(Path(ctx.work_dir))
+        return original(self, shot, ctx)
+
+    import pytest as _pytest  # noqa: F401
+
+    mp = _pytest.MonkeyPatch()
+    mp.setattr(CutoutRenderer, "render", spy)
+    try:
+        root = _project(tmp_path, _shot("a", 10.0))
+        _render(root, fake_render, force_render=True)
+        _render(root, fake_render, force_render=True)
+    finally:
+        mp.undo()
+    assert len(seen) == 2 and seen[0] != seen[1]
+    assert all(p.parent.name == "runs" for p in seen)
+
+
+def test_a_damaged_blob_is_a_miss_not_a_film(tmp_path, fake_render):
+    """N1: the blob's id IS its sha256; a mismatch is a miss."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    report, _ = _render(root, fake_render)
+    store = load(root).mall["shot_cache"]
+    rec = store[report.outcomes[0].key]
+    store.blob_path(rec.asset_id).write_bytes(b"garbage")
+    report, rendered = _render(root, fake_render)
+    assert rendered == ["a"] and "does not match" in report.outcomes[0].reason
+
+
+def test_a_missing_blob_is_a_miss(tmp_path):
+    import an.adapters  # noqa: F401
+
+    store = in_memory_shot_cache_store()
+    ctx = _ctx(tmp_path)
+    shot = _shot("a", 1.0)
+    engine = ShotCache(store, environment=_env())
+    engine.begin({})
+    plan = engine.plan(shot, _Named(), ctx)
+    engine.record(plan, _FakeCutoutRender()(None, shot, ctx), render_s=0.1)
+    del store.blobs[store[plan.key].asset_id]
+    engine.begin({})
+    assert engine.plan(shot, _Named(), ctx).cached is None
+
+
+def test_a_same_size_edit_with_its_mtime_restored_is_seen_in_one_process(tmp_path, fake_render):
+    """S2: no (path, mtime, size) memo decides a key — through the texture
+    digests (no project dependency) and through the project digest alike."""
+    amy = AssetRef(kind="character", id="amy", store="characters", ref="amy")
+    root = _project(tmp_path, _shot("with_amy", 10.0, entities=[amy]), character=True)
+    modes = {
+        "textures": lambda: ShotCache(environment=_env(), dependencies=None),
+        "project": lambda: ShotCache(environment=_env()),
+    }
+    for make in modes.values():
+        _render(root, fake_render, cache=make())
+    part = sorted((root / "assets" / "characters" / "amy" / "parts").glob("*.svg"))[0]
+    st = part.stat()
+    data = part.read_bytes()
+    i = data.index(b"#") + 1
+    swapped = data[:i] + (b"0" if data[i:i + 1] != b"0" else b"1") + data[i + 1:]
+    assert len(swapped) == len(data) and swapped != data
+    part.write_bytes(swapped)
+    os.utime(part, ns=(st.st_atime_ns, st.st_mtime_ns))
+    assert part.stat().st_mtime_ns == st.st_mtime_ns and part.stat().st_size == st.st_size
+    for mode, make in modes.items():
+        _, rendered = _render(root, fake_render, cache=make())
+        assert rendered == ["with_amy"], mode
+
+
+def test_a_subclass_borrowing_the_name_is_never_cached(tmp_path):
+    """S4: the keyer describes ONE implementation."""
+    from an.adapters.cutout.render import CutoutRenderer
+
+    class Watermarked(CutoutRenderer):
+        pass
+
+    engine = ShotCache(in_memory_shot_cache_store(), environment=_env())
+    engine.begin({})
+    plan = engine.plan(_shot("a", 1.0), Watermarked(), _ctx(tmp_path))
+    assert plan.key is None and "Watermarked" in plan.reason
+
+
+def test_a_keyer_is_never_replaced_silently_and_parts_are_additive(tmp_path, monkeypatch):
+    """S7: a second registration is refused; a part is added, and moves the key."""
+    from an.build import keys
+
+    entry = keys._KEYERS["cutout"]
+    monkeypatch.setitem(keys._KEYERS, "cutout", keys._KeyerEntry(
+        keyer=entry.keyer, environment=entry.environment,
+        renderer_type=entry.renderer_type, parts=dict(entry.parts)))
+    with pytest.raises(keys.ShotKeyerRegistrationError, match="already registered"):
+        keys.register_shot_keyer("cutout", entry.keyer)
+    shot, ctx = _shot("a", 1.0), _ctx(tmp_path)
+    before = _key(shot, ctx)
+    keys.register_shot_key_part("cutout", "vocabulary", lambda shot, ctx: "v" * 64)
+    assert _key(shot, ctx) != before
+    with pytest.raises(keys.ShotKeyerRegistrationError):
+        keys.register_shot_key_part("cutout", "vocabulary", lambda shot, ctx: "w" * 64)
+    # The keyer's identity is in the key: the same parts from another keyer
+    # (a different implementation) never answer for the first one's entries.
+    with_part = _key(shot, ctx)
+
+    def another_keyer(shot, ctx):
+        return entry.keyer(shot, ctx)
+
+    keys.register_shot_keyer("cutout", another_keyer, environment=entry.environment,
+                             renderer_type=entry.renderer_type, replace=True)
+    assert _key(shot, ctx) != with_part
+
+
+def test_the_render_path_code_is_in_the_key(tmp_path, monkeypatch):
+    """B2: the Python half of the render reaches the key without a hand bump."""
+    from an.adapters.cutout import cache_key
+
+    shot, ctx = _shot("a", 1.0), _ctx(tmp_path)
+    before = _key(shot, ctx)
+    monkeypatch.setattr(cache_key, "render_code_digest", lambda: "c" * 64)
+    assert _key(shot, ctx) != before
+
+
+def test_the_render_path_walk_reaches_every_module_the_renderer_imports():
+    """B2: a new helper imported by the render module cannot fall outside the code part."""
+    import ast
+    import importlib.util
+
+    from an.adapters.cutout.cache_key import (
+        RENDER_PATH_EXCLUDED,
+        RENDER_PATH_ROOT,
+        _module_imports,
+        render_path_modules,
+    )
+
+    mods = render_path_modules()
+    for must in ("an.adapters.cutout.render", "an.adapters.cutout.canvas_capture",
+                 "an.adapters.cutout.supersample", "an.adapters.cutout.shutter",
+                 "an.adapters.cutout.runtime_files", "an.base", "an.determinism"):
+        assert must in mods
+    src = Path(importlib.util.find_spec(RENDER_PATH_ROOT).origin).read_bytes()
+    for name in _module_imports(ast.parse(src), RENDER_PATH_ROOT):
+        try:
+            spec = importlib.util.find_spec(name)
+        except (ImportError, ValueError):
+            continue
+        if spec is not None and spec.origin and spec.origin.endswith(".py"):
+            assert name in mods or name in RENDER_PATH_EXCLUDED, name
+
+
+def test_the_code_digest_moves_when_a_source_byte_does(tmp_path):
+    from an.adapters.cutout.cache_key import _source_facts
+
+    f = tmp_path / "m.py"
+    f.write_text("X = 1\n", encoding="utf-8")
+    a = _source_facts(f, "an.m")[0]
+    st = f.stat()
+    f.write_text("X = 2\n", encoding="utf-8")
+    os.utime(f, ns=(st.st_atime_ns, st.st_mtime_ns))  # same size, same mtime
+    assert _source_facts(f, "an.m")[0] != a
+
+
+def test_the_impl_salt_is_in_the_key(monkeypatch):
+    from an.build import keys
+
+    before = keys.compose_shot_key({"a": "b"})
+    monkeypatch.setattr(keys, "SHOT_KEY_IMPL_VERSION", keys.SHOT_KEY_IMPL_VERSION + 1)
+    assert keys.compose_shot_key({"a": "b"}) != before
+
+
+def test_the_runtime_is_in_the_key(tmp_path, monkeypatch):
+    import an.bench.environment as env
+
+    shot, ctx = _shot("a", 1.0), _ctx(tmp_path)
+    before = _key(shot, ctx)
+    monkeypatch.setattr(env, "runtime_sha256", lambda: "r" * 64)
+    assert _key(shot, ctx) != before
+
+
+def test_an_easing_version_reaches_the_key(tmp_path, monkeypatch):
+    from dataclasses import replace
+
+    from an.timing import easing as easing_mod
+
+    shot, ctx = _shot("a", 1.0), _ctx(tmp_path)  # a tween: ease_in_out by default
+    before = _key(shot, ctx)
+    entry = easing_mod.easing_entry("ease_in_out")
+    monkeypatch.setitem(easing_mod._REGISTRY, "ease_in_out", replace(entry, version=entry.version + 1))
+    assert _key(shot, ctx) != before
+
+
+def _speaking_shot(**line):
+    from an.ir.schema import Dialogue
+
+    kw = dict(speaker="c", text="hi", audio_ref="ref1", viseme_ref="vis1", start=0.2, duration=0.5)
+    kw.update(line)
+    return Shot(id="a", renderer="cutout", duration=1.0, dialogue=[Dialogue(**kw)])
+
+
+@pytest.mark.parametrize(
+    "change",
+    ["bytes", "start", "audio_ref", "viseme_ref", "picture"],
+)
+def test_the_muxed_audio_is_in_the_key(tmp_path, change):
+    from an.adapters.cutout.cache_key import muxed_audio
+
+    audio = {"ref1": b"RIFF-one", "ref2": b"RIFF-one"}
+    ctx = _ctx(tmp_path, mall={"audio": dict(audio)})
+    base = muxed_audio(_speaking_shot(), ctx)
+    if change == "bytes":
+        other = muxed_audio(_speaking_shot(), _ctx(tmp_path, mall={"audio": {"ref1": b"RIFF-two"}}))
+    elif change == "start":
+        other = muxed_audio(_speaking_shot(start=0.4), ctx)
+    elif change == "audio_ref":
+        other = muxed_audio(_speaking_shot(audio_ref="ref2"), ctx)
+    elif change == "viseme_ref":
+        other = muxed_audio(_speaking_shot(viseme_ref="vis2"), ctx)
+    else:
+        other = muxed_audio(_speaking_shot(), _ctx(tmp_path, mall={"audio": dict(audio)}, fps=23.976))
+    assert other != base
+
+
+def test_a_resynthesised_line_rerenders_its_shot(tmp_path):
+    """The audio part, through the key: new bytes under the same ref re-render."""
+    shot = _speaking_shot()
+    k1 = _key(shot, _ctx(tmp_path, mall={"audio": {"ref1": b"RIFF-one"}}))
+    k2 = _key(shot, _ctx(tmp_path, mall={"audio": {"ref1": b"RIFF-two"}}))
+    k3 = _key(_speaking_shot(start=0.6), _ctx(tmp_path, mall={"audio": {"ref1": b"RIFF-one"}}))
+    assert len({k1, k2, k3}) == 3
+
+
+_KNOB_CHANGES = {
+    "supersample": dict(supersample=2),
+    "capture": dict(capture="screenshot"),
+    "frame_samples": dict(frame_samples=tuple((i / _FPS + 0.01,) for i in range(_FPS))),
+    "fps": dict(fps=12.5),
+    "resolution": dict(resolution=(200, 120)),
+    "strict_assets": dict(strict_assets=True),
+    "extra": dict(extra={"x": 1}),
+    "pix_fmt": dict(pix_fmt="yuv444p"),
+    "step_hz": dict(step_hz=6.0),
+}
+
+
+@pytest.mark.parametrize("knob", sorted(_KNOB_CHANGES))
+def test_every_render_knob_is_in_the_key(tmp_path, knob):
+    shot = _shot("a", 1.0)
+    assert _key(shot, _ctx(tmp_path, **_KNOB_CHANGES[knob])) != _key(shot, _ctx(tmp_path))
+
+
+def test_a_non_integer_fps_that_compiles_identically_still_moves_the_key(tmp_path):
+    """23.976 and 24 compile to the same document (its grid is integral)."""
+    from an.adapters.cutout.cache_key import compiled_document
+
+    shot = _shot("a", 1.0)
+    a, b = _ctx(tmp_path, fps=24), _ctx(tmp_path, fps=23.976)
+    assert compiled_document(shot, a) == compiled_document(shot, b)
+    assert _key(shot, a) != _key(shot, b)
+
+
+@pytest.mark.parametrize("name", ["DETERMINISTIC_X264_ARGS", "DETERMINISTIC_CHROMIUM_ARGS"])
+def test_the_pinned_argv_is_in_the_key(tmp_path, monkeypatch, name):
+    from an.adapters.cutout import render as render_mod
+
+    shot, ctx = _shot("a", 1.0), _ctx(tmp_path)
+    before = _key(shot, ctx)
+    monkeypatch.setattr(render_mod, name, (*getattr(render_mod, name), "--lever"))
+    assert _key(shot, ctx) != before
+
+
+def test_svg_art_that_draws_text_keys_on_the_machines_fonts(tmp_path, monkeypatch):
+    """S3: Chromium draws an SVG <text> with system fonts."""
+    from an.adapters.cutout import cache_key
+    from an.adapters.cutout.serialize import AssetJSON, AssetsJSON, CutoutSceneJSON, NodeJSON, TimelineJSON
+
+    root = tmp_path / "characters"
+    (root / "amy" / "parts").mkdir(parents=True)
+    (root / "amy" / "parts" / "sign.svg").write_text("<svg><text>HI</text></svg>", encoding="utf-8")
+    (root / "amy" / "parts" / "arm.svg").write_text("<svg><rect/></svg>", encoding="utf-8")
+
+    class _Store:
+        _root = root
+
+    def doc(*names):
+        return CutoutSceneJSON(
+            scene=NodeJSON(name="root"), timeline=TimelineJSON(duration=1.0, tracks=[]),
+            assets=AssetsJSON(textures={n: AssetJSON(src=f"characters/amy/parts/{n}.svg") for n in names}),
+        )
+
+    digests = cache_key.texture_digests(doc("sign", "arm"), {"characters": _Store()})
+    assert digests["sign"].endswith(":text") and not digests["arm"].endswith(":text")
+    monkeypatch.setattr(cache_key, "_FONTS", {})
+    assert len(cache_key.system_fonts_digest()) == 64
+
+
+def test_compile_warnings_are_replayed_on_a_reused_shot(tmp_path, fake_render):
+    """an#33: a stand-in must stay audible when its shot is reused."""
+    from an.adapters.cutout.compile import CutoutCompileWarning
+
+    ghost = AssetRef(kind="character", id="ghost", store="characters", ref="ghost")
+    root = _project(tmp_path, _shot("a", 10.0, entities=[ghost]))
+    import warnings
+
+    with warnings.catch_warnings():
+        # On a miss the RENDERER compiles and warns; the stand-in render here
+        # does not compile, so only the reuse below can warn.
+        warnings.simplefilter("ignore")
+        _render(root, fake_render)
+    with pytest.warns(CutoutCompileWarning):
+        report, rendered = _render(root, fake_render)
+    assert rendered == [] and report.reused == ["a"]
+
+
+def test_the_environment_is_memoised_per_renderer(monkeypatch):
+    from an.build import keys, shot_cache
+
+    monkeypatch.setattr(shot_cache, "_ENVIRONMENTS", {})
+    for name, record in (("probe-a", {"m": 1}), ("probe-b", {"m": 2})):
+        monkeypatch.setitem(keys._KEYERS, name, keys._KeyerEntry(
+            keyer=lambda shot, ctx: None, environment=lambda r=record: r))
+    assert shot_cache.default_environment_digest("probe-a") != shot_cache.default_environment_digest("probe-b")
+
+
+def test_measuring_callers_render_cold_explicitly(monkeypatch, tmp_path):
+    """The ruling on `render()`: the bench says `incremental=False` itself."""
+    import an.render as render_mod
+    from an.bench import capture as capture_mod
+    from an.bench.corpus import DFLT_FIXTURES
+    from an.bench.paths import repo_root
+
+    seen = {}
+
+    class _Stop(Exception):
+        pass
+
+    def spy(project, **kw):
+        seen.update(kw)
+        raise _Stop
+
+    monkeypatch.setattr(render_mod, "render", spy)
+    name = sorted(DFLT_FIXTURES)[0]
+    with pytest.raises(_Stop):
+        capture_mod.capture_fixture(name, DFLT_FIXTURES[name], repo_root=repo_root(), keep_render=tmp_path / "k")
+    assert seen["incremental"] is False
+    # The cross-arch capture and the demo gallery are scripts, not modules:
+    # their calls are checked in the source.
+    repo = repo_root()
+    crossarch = (repo / "misc" / "bench" / "crossarch.py").read_text(encoding="utf-8")
+    assert "render(project, **CAPTURE_RENDER_KWARGS, incremental=False)" in crossarch
+    demos = (repo / "misc" / "demos" / "build_demos.py").read_text(encoding="utf-8")
+    # The two direct `render(...)` calls, and `_render` for every other demo.
+    assert demos.count("incremental=False") == 2
+    assert 'kwargs.setdefault("incremental", False)' in demos
+
+
+@pytest.mark.browser
+@pytest.mark.ffmpeg
+def test_the_real_environment_probe_names_its_builds():
+    from an.adapters.cutout.cache_key import cutout_environment
+
+    env = cutout_environment()
+    assert env["browser"].get("chromium_build"), env["browser"]
+    assert env["x264"] and env["x264"].startswith("core ")
+    assert "libavcodec" in env["ffmpeg"]["version"]

@@ -15,6 +15,10 @@ of its key and the timings that produced it. Entries live in a
 blob store, both injected ``dol`` mappings. In a project the store is
 ``mall["shot_cache"]`` (``artifacts/shot_cache/{catalog,blobs}/``).
 
+A film ASSEMBLED from frames (transitions, a sound layer) needs each shot's
+PNGs too; those are cached only with ``ShotCache(cache_frames=True)``, so by
+default such a film re-renders its shots.
+
 **Invalidation is by digest, never by deletion** (decision 6): a changed input
 is a different key, and the old entry simply stops being asked for. The
 pre-cache ``artifacts/shots/<shot.id>.mp4`` archive is not read. Collecting
@@ -44,6 +48,7 @@ from typing import TYPE_CHECKING, Any, Literal, Protocol, runtime_checkable
 
 from an.build.keys import (
     ShotKeyInputs,
+    bytes_digest,
     canonical_digest,
     compose_shot_key,
     project_assets_digest,
@@ -259,15 +264,26 @@ _ENVIRONMENTS: dict[str, str] = {}
 def default_environment_digest(renderer_name: str) -> str:
     """The digest of ``renderer_name``'s registered environment probe, once per process.
 
-    Once, because the cut-out probe launches a browser (~1 s); a machine does
-    not change under a running process. A renderer with no probe has the
-    empty environment.
+    Memoised per renderer NAME (each backend has its own machine: Chromium and
+    ffmpeg for cut-out, a Manim install for Manim), and once per process,
+    because the cut-out probe launches a browser and encodes a frame. So a
+    long-lived host does not see a ``playwright install`` or a ``brew upgrade``
+    made after its first render: restart it, or pass ``force_render``. A
+    renderer with no probe has the empty environment.
     """
     if renderer_name not in _ENVIRONMENTS:
         entry = shot_keyer_for(renderer_name)
         record = entry.environment() if entry and entry.environment else {}
         _ENVIRONMENTS[renderer_name] = canonical_digest(record)
     return _ENVIRONMENTS[renderer_name]
+
+
+#: ``dependencies(mall, project_root) -> digest | None``: what every shot of the
+#: project depends on beyond its own key parts. The default is ADR 0004
+#: decision 3's fallback, :func:`~an.build.keys.project_assets_digest` (every
+#: asset, plus the library lockfile read by path). Read recording replaces it
+#: with a value, not a flag.
+Dependencies = Any
 
 
 class ShotCache:
@@ -277,10 +293,14 @@ class ShotCache:
     mall's ``shot_cache`` (resolved in :meth:`begin`), and a mall without one
     renders every shot. ``environment(renderer_name) -> digest`` is the
     environment seam — injectable so a test (or a remote-render backend) can
-    state its machine rather than probe this one. ``project_digest`` is
-    decision 3's fallback dependency; pass ``False`` to key a shot on what its
-    compiled document and textures name alone (what read recording will make
-    the default).
+    state its machine rather than probe this one. ``dependencies`` is the
+    project-wide dependency strategy (see :data:`Dependencies`); ``None`` keys
+    a shot on its own parts alone (its document and the bytes of the textures
+    it stages) — and then drops the lockfile too, so use it knowingly.
+    ``cache_frames`` also stores each shot's PNG sequence, which an ASSEMBLED
+    film (transitions, a sound layer) needs to reuse a shot; off by default,
+    because a 1080p shot's frames are hundreds of MB and nothing collects
+    unreachable entries yet — so an assembled film re-renders its shots.
 
     After a render, :attr:`report` holds what happened to each shot.
     """
@@ -290,11 +310,13 @@ class ShotCache:
         store: Any = None,
         *,
         environment: Any = default_environment_digest,
-        project_digest: bool = True,
+        dependencies: Dependencies = project_assets_digest,
+        cache_frames: bool = False,
     ) -> None:
         self.store = store
         self.environment = environment
-        self.project_digest = project_digest
+        self.dependencies = dependencies
+        self.cache_frames = cache_frames
         self.report = BuildReport()
         self._store = store
         self._project: str | None = None
@@ -308,8 +330,8 @@ class ShotCache:
     ) -> None:
         self._store = self.store if self.store is not None else mall.get(SHOT_CACHE_STORE)
         self._project = (
-            project_assets_digest(mall, project_root=project_root)
-            if self.project_digest
+            self.dependencies(mall, project_root=project_root)
+            if self.dependencies is not None
             else None
         )
         self._outcomes = {}
@@ -326,20 +348,34 @@ class ShotCache:
         force: bool = False,
     ) -> ShotPlan:
         name = getattr(renderer, "name", "") or ""
-        entry = shot_keyer_for(name)
-        if entry is None or self._store is None:
+        entry = shot_keyer_for(renderer)
+        reason = ""
+        if entry is None:
             reason = (
                 f"no shot keyer registered for renderer {name!r}"
-                if entry is None
-                else "no shot cache store in the mall"
+                if shot_keyer_for(name) is None
+                else f"renderer {name!r} is a {type(renderer).__qualname__}, not the "
+                "class its shot keyer describes"
             )
+        elif self._store is None:
+            reason = "no shot cache store in the mall"
+        elif needs_frames and not self.cache_frames:
+            reason = "assembled film: frames are not cached (cache_frames=False)"
+        if reason:
             plan = ShotPlan(shot.id, name, key=None, reason=reason)
             self._note(plan, "uncached")
             return plan
 
         t0 = time.perf_counter()
         inputs: ShotKeyInputs = entry.keyer(shot, ctx)
-        parts = {"renderer": canonical_digest(name), **inputs.parts}
+        parts = {"renderer": canonical_digest([name, entry.identity()]), **inputs.parts}
+        for part_name, part in entry.parts.items():
+            if part_name in parts:
+                raise ValueError(
+                    f"key part {part_name!r} registered for {name!r} collides with "
+                    "a part its keyer already returns"
+                )
+            parts[part_name] = part(shot, ctx)
         parts["environment"] = self.environment(name)
         if self._project is not None:
             parts["project"] = self._project
@@ -356,12 +392,14 @@ class ShotCache:
             needs_frames=needs_frames,
         )
         # The report lists shots in timeline order, not in the order a thread
-        # pool finishes them.
+        # pool finishes them; the index also names this plan's own
+        # materialisation directory, so two shots with ONE key never share one.
+        index = len(self._order)
         self._order.append(id(plan))
         if force:
             plan.reason = "forced"
             return plan
-        cached, why = self._lookup(plan, ctx)
+        cached, why = self._lookup(plan, ctx, index=index)
         if cached is None:
             plan.reason = why
             return plan
@@ -427,7 +465,23 @@ class ShotCache:
             "-" if render_s is None else f"{render_s:.3f}",
         )
 
-    def _lookup(self, plan: ShotPlan, ctx: "RenderContext") -> tuple[Any, str]:
+    def _verified_blob(self, asset_id: str) -> bytes | None:
+        """The blob's bytes, or ``None`` when absent or not what its id says.
+
+        ``asset_id`` IS the sha256 of the bytes, so checking costs one hash —
+        milliseconds against a render — and a damaged or substituted blob is a
+        miss rather than a film (an#243 review, N1).
+        """
+        if not self._store.has_blob(asset_id):
+            return None
+        data = self._store.get_blob(asset_id)
+        if data is None or bytes_digest(data) != asset_id:
+            return None
+        return data
+
+    def _lookup(
+        self, plan: ShotPlan, ctx: "RenderContext", *, index: int
+    ) -> tuple[Any, str]:
         store = self._store
         try:
             record = store.get(plan.key)
@@ -435,34 +489,48 @@ class ShotCache:
             return None, f"unreadable entry ({type(e).__name__})"
         if record is None:
             return None, "miss"
-        if not store.has_blob(record.asset_id):
-            return None, "entry without its mp4 blob"
-        frames_dir = None
+        mp4_bytes = self._verified_blob(record.asset_id)
+        if mp4_bytes is None:
+            return None, "entry whose mp4 blob is missing or does not match its id"
+        frames_bytes = None
         if plan.needs_frames:
             frames_rec = store.get(plan.key + FRAMES_SUFFIX)
-            if frames_rec is None or not store.has_blob(frames_rec.asset_id):
+            frames_bytes = (
+                self._verified_blob(frames_rec.asset_id) if frames_rec is not None else None
+            )
+            if frames_bytes is None:
                 return None, "frames needed for assembly, not cached"
         from an.adapters._base import RenderResult
 
-        out_dir = Path(ctx.work_dir) / "shot_cache" / plan.key[:16]
+        # One directory per PLAN (index + id), inside this render's own work
+        # dir: two shots with one key, or two concurrent renders, never share
+        # (and never delete) each other's files (an#243 review, B1).
+        out_dir = Path(ctx.work_dir) / "shot_cache" / f"{index:03d}_{plan.shot_id}"
         if out_dir.exists():
             shutil.rmtree(out_dir)
         out_dir.mkdir(parents=True)
         mp4 = out_dir / f"{plan.shot_id}.mp4"
-        mp4.write_bytes(store.get_blob(record.asset_id))
+        mp4.write_bytes(mp4_bytes)
         manifest: list[Path] = []
-        if plan.needs_frames:
+        if frames_bytes is not None:
             frames_dir = out_dir / "frames"
             frames_dir.mkdir()
             with tempfile.TemporaryFile() as tmp:
-                tmp.write(store.get_blob(frames_rec.asset_id))
+                tmp.write(frames_bytes)
                 tmp.seek(0)
                 with zipfile.ZipFile(tmp) as zf:
                     zf.extractall(frames_dir)
             manifest = sorted(frames_dir.glob("*.png"))
         plan.cached_render_s = record.timings.get("render_s")
         provenance = dict(record.render_provenance)
-        provenance["shot_cache"] = {"status": "reused", "key": plan.key}
+        # The shot this result is FOR, not the one first rendered under the key
+        # (a renamed or duplicated shot reuses another id's entry).
+        provenance["shot_id"] = plan.shot_id
+        provenance["shot_cache"] = {
+            "status": "reused",
+            "key": plan.key,
+            "rendered_as": record.shot_id,
+        }
         return (
             RenderResult(
                 mp4_path=mp4,
@@ -498,7 +566,7 @@ class ShotCache:
         )
         # Frames first, the mp4 record last: the mp4 record is what a lookup
         # asks for, so it must never point at an entry whose parts are missing.
-        if plan.needs_frames and result.frame_manifest:
+        if plan.needs_frames and self.cache_frames and result.frame_manifest:
             fd, name = tempfile.mkstemp(suffix=".zip")
             os.close(fd)
             zpath = Path(name)

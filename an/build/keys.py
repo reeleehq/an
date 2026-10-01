@@ -7,9 +7,10 @@ parts, each a sha256 hex digest, so a re-render can say which input moved:
 ========== ===================================================================
 part       what it covers
 ========== ===================================================================
-renderer   the backend's name (two renderers never share an entry)
+renderer   the backend's registered identity: its class and its keyer, by
+           qualified name (two implementations never share an entry)
 impl       :data:`SHOT_KEY_IMPL_VERSION`, the salt bumped when the key's own
-           composition, or a renderer's unrecorded behaviour, changes
+           composition changes
 project    every asset in the project (ADR 0004 decision 3's fallback, until
            reads are recorded): :func:`project_assets_digest`
 environment the machine's render environment, from the renderer's registered
@@ -17,8 +18,9 @@ environment the machine's render environment, from the renderer's registered
            pretending the content changed
 (keyer)    whatever the renderer's registered :data:`ShotKeyer` returns — for
            the cut-out renderer: the compiled document, its textures' bytes,
-           the easing versions it names, the audio it muxes, the runtime and
-           every render knob (`an.adapters.cutout.cache_key`)
+           the easing versions it names, the audio it muxes, the runtime,
+           the render path's Python source and every render knob
+           (`an.adapters.cutout.cache_key`)
 ========== ===================================================================
 
 The core names no renderer: a backend joins by :func:`register_shot_keyer`. A
@@ -42,10 +44,11 @@ from typing import Any
 
 #: The key's own version — the ``impl_version`` salt of `nw.Transform` and of
 #: `burns.RESOLVER_IMPL_VERSION` ("a lock, not a receipt"). Bump it when the
-#: composition of a key changes, or when a renderer changes its output in a way
-#: none of the key's parts records (a capture-path rewrite that moves pixels
-#: under an unchanged runtime and unchanged argv). Bumping it orphans every
-#: entry; nothing is deleted (decision 6).
+#: COMPOSITION of a key changes (a part added, renamed or re-spelled). It is
+#: NOT how a renderer's code changes reach the key — a hand-bumped constant is
+#: one someone forgets — that is each keyer's ``code`` part, a digest of the
+#: render path's source. Bumping it orphans every entry; nothing is deleted
+#: (decision 6).
 SHOT_KEY_IMPL_VERSION: int = 1
 
 #: The mall stores that make up "every asset in the project" for decision 3's
@@ -121,15 +124,20 @@ def canonical_digest(obj: Any) -> str:
 
 
 def file_digest(path: str | Path) -> str:
-    """The hex sha256 of a file's bytes, memoised on (path, mtime, size).
+    """The hex sha256 of a file's bytes, read NOW.
 
-    ADR 0004 allows a stat-keyed memo *of a digest*, never as the key itself:
-    this is :func:`an.raster.content_digest`, the memo the compiler already
-    keys raster textures with, so a file is read once per process per edit.
+    Deliberately unmemoised. A (path, mtime, size) memo — `an.raster`'s, which
+    is fine for a texture alias inside one compile — let a same-size edit whose
+    mtime was restored (``cp -p``, ``rsync -t``, ``tar x``, a sync client) be
+    served stale from cache in a long-running process (an#243 review, S2). A
+    cache KEY is only as good as its weakest input, so every byte is read on
+    every render; on the golden corpus the whole project digest is under 10 ms.
     """
-    from an.raster import content_digest
-
-    return content_digest(path)
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(1 << 20):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def compose_shot_key(parts: Mapping[str, str]) -> str:
@@ -273,13 +281,51 @@ ShotKeyer = Callable[[Any, Any], ShotKeyInputs]
 EnvironmentProbe = Callable[[], Mapping[str, Any]]
 
 
+#: ``part(shot, ctx) -> str``: one more named digest for a renderer's key —
+#: the additive seam for an input read OUTSIDE the compiled document (a genre's
+#: side file, a vocabulary entry's version). See :func:`register_shot_key_part`.
+ShotKeyPart = Callable[[Any, Any], str]
+
+
+def callable_identity(obj: Any) -> str:
+    """``module.qualname`` of a function or class (of an instance: of its type).
+
+    >>> callable_identity(callable_identity)
+    'an.build.keys.callable_identity'
+    """
+    target = obj if isinstance(obj, type) or callable(obj) and hasattr(obj, "__qualname__") else type(obj)
+    return f"{getattr(target, '__module__', '?')}.{getattr(target, '__qualname__', repr(target))}"
+
+
 @dataclass(frozen=True)
 class _KeyerEntry:
     keyer: ShotKeyer
     environment: EnvironmentProbe | None
+    #: The renderer CLASS this keyer describes. A renderer of any other class —
+    #: a subclass that adds a watermark, a test double that borrowed the name —
+    #: gets no keyer, and so is never cached: the keyer's claim "this is
+    #: everything the render reads" is about one implementation (review S4).
+    renderer_type: type | None = None
+    parts: dict[str, ShotKeyPart] = field(default_factory=dict)
+
+    def identity(self) -> str:
+        """What the ``renderer`` part digests: the class and the keyer, by name."""
+        return canonical_json(
+            {
+                "renderer_type": callable_identity(self.renderer_type)
+                if self.renderer_type is not None
+                else None,
+                "keyer": callable_identity(self.keyer),
+                "parts": {k: callable_identity(v) for k, v in sorted(self.parts.items())},
+            }
+        )
 
 
 _KEYERS: dict[str, _KeyerEntry] = {}
+
+
+class ShotKeyerRegistrationError(ValueError):
+    """A shot keyer or key part was registered twice, or collides with another."""
 
 
 def register_shot_keyer(
@@ -287,19 +333,68 @@ def register_shot_keyer(
     keyer: ShotKeyer,
     *,
     environment: EnvironmentProbe | None = None,
+    renderer_type: type | None = None,
+    replace: bool = False,
 ) -> None:
     """Declare how shots of ``renderer_name`` are keyed, and how its machine is probed.
 
     The registration seam for every backend (cut-out here; Manim's opaque
-    shots, keyed on source hash + Manim version + quality, are the next). A
-    later registration for the same name replaces the earlier one.
+    shots, keyed on source hash + Manim version + quality, are the next).
+    ``renderer_type`` binds the keyer to one renderer class: a renderer whose
+    type is not exactly it is never cached. A second registration for a name
+    is refused unless ``replace=True`` — a silent replacement would drop the
+    first keyer's parts from every key without anyone saying so.
     """
-    _KEYERS[renderer_name] = _KeyerEntry(keyer=keyer, environment=environment)
+    if renderer_name in _KEYERS and not replace:
+        raise ShotKeyerRegistrationError(
+            f"a shot keyer for renderer {renderer_name!r} is already registered "
+            f"({callable_identity(_KEYERS[renderer_name].keyer)}); pass replace=True "
+            "to replace it, or add an input with register_shot_key_part"
+        )
+    old_parts = dict(_KEYERS[renderer_name].parts) if renderer_name in _KEYERS else {}
+    _KEYERS[renderer_name] = _KeyerEntry(
+        keyer=keyer,
+        environment=environment,
+        renderer_type=renderer_type,
+        parts=old_parts,
+    )
 
 
-def shot_keyer_for(renderer_name: str) -> _KeyerEntry | None:
-    """The registered keyer of ``renderer_name``, or ``None`` (never cached)."""
-    return _KEYERS.get(renderer_name)
+def register_shot_key_part(renderer_name: str, part_name: str, part: ShotKeyPart) -> None:
+    """Add one named input to every key of ``renderer_name``'s shots — additively.
+
+    For an input the render reads OUTSIDE its compiled document (whatever
+    changes the document is already covered by the ``compiled`` part, with
+    early cutoff for free): a genre package's side file, a vocabulary entry's
+    version (P7). Refuses a duplicate ``part_name``; a name that collides with
+    one of the keyer's own parts is refused when the key is computed.
+    """
+    entry = _KEYERS.get(renderer_name)
+    if entry is None:
+        raise ShotKeyerRegistrationError(
+            f"no shot keyer for renderer {renderer_name!r}; register one first "
+            f"(registered: {sorted(_KEYERS)})"
+        )
+    if part_name in entry.parts:
+        raise ShotKeyerRegistrationError(
+            f"key part {part_name!r} is already registered for {renderer_name!r}"
+        )
+    entry.parts[part_name] = part
+
+
+def shot_keyer_for(renderer: Any) -> _KeyerEntry | None:
+    """The keyer that describes ``renderer`` (an instance, or a name), or ``None``.
+
+    ``None`` means the shot is never cached: no keyer for the name, or a
+    renderer whose class is not the one the keyer was registered for.
+    """
+    name = renderer if isinstance(renderer, str) else getattr(renderer, "name", "") or ""
+    entry = _KEYERS.get(name)
+    if entry is None or isinstance(renderer, str):
+        return entry
+    if entry.renderer_type is not None and type(renderer) is not entry.renderer_type:
+        return None
+    return entry
 
 
 def registered_shot_keyers() -> tuple[str, ...]:

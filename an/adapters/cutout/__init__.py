@@ -57,4 +57,9 @@ _register_renderer(CutoutRenderer())
 from an.adapters.cutout.cache_key import cutout_environment, cutout_shot_inputs
 from an.build.keys import register_shot_keyer as _register_shot_keyer
 
-_register_shot_keyer("cutout", cutout_shot_inputs, environment=cutout_environment)
+_register_shot_keyer(
+    "cutout",
+    cutout_shot_inputs,
+    environment=cutout_environment,
+    renderer_type=CutoutRenderer,
+)
