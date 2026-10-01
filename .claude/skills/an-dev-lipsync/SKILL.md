@@ -86,6 +86,24 @@ ships none of it.
 
 ## 4. Word timings: retained, additively, in the existing sidecar
 
+**A sidecar names the audio it was aligned on (an#289).** The audio key names a REQUEST,
+not bytes, and `eleven_v3` answers one request differently each time, so a deleted audio blob
+re-synthesized under its old key is different audio. The sidecar records `audio_sha256`
+(additive; the viseme key does not move), and `_load_or_align` re-aligns when it is not the
+audio's digest — or, for a sidecar written before it existed, when the audio was produced in
+this call (`fresh_audio`). Never reuse visemes, word timings or captions across different
+audio under one key; a best-of-N take obeys the same rule (an#277 gives each take its own key).
+The check also runs on the FAST path: `produce_audio_for_scene`'s "already done" test
+(`_stamps_match_store`) hashes the stored audio against the sidecar's digest, and re-stamps
+`duration`/`viseme_track`/`word_timings` from a verified sidecar when the IR's differ (a
+`scene.json` restored from another take) — the compiler and captions read the IR, so the IR
+must be a projection of the store. A best-of-N take is also checked against its record's
+`heard_digest`. A sidecar written before an#289 names no audio: it is trusted only when its
+recorded `duration` is the stored audio's to a frame (every provider records the audio's own
+length), and then gains the digest (`_backfill_digest`), so one render closes the gap for good;
+another length is replaced audio and is re-aligned. No untouched project re-aligns. Only a
+same-length replacement under a legacy sidecar, before its first render here, goes uncaught.
+
 `VisemeTrack.words: list[WordTiming] | None` (whisper and `WordTimingsLipSync` fill it;
 offline and Rhubarb leave `None`). Persist by adding `"words"` to the viseme sidecar payload —
 the key does **not** change (words are a function of the same inputs). IR:
