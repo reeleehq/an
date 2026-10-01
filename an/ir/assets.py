@@ -57,6 +57,9 @@ __all__ = [
     "LicenseClass",
     "PRIVATE_STUDY",
     "PUBLIC_DOMAIN",
+    "PROVIDER_TERMS",
+    "PROVIDER_TERMS_RESTRICTIONS",
+    "provider_terms_restriction",
     "license_class",
     "normalise_license",
     "requires_attribution",
@@ -81,6 +84,52 @@ PUBLIC_DOMAIN: str = "public-domain"
 #: - ``private`` — NOT shippable: all rights reserved, private study only;
 #: - ``unknown`` — not classified, which is not the same as free.
 LicenseClass = Literal["attribution", "free", "private", "unknown"]
+
+#: Licences of what a provider SYNTHESIZES for you, under the provider's own
+#: terms (an#307): the ``source.license`` a voice document declares for the
+#: speech that provider made, by provider. A code counts only on a source
+#: whose ``provider`` is that provider — another provider's terms say nothing
+#: about it — and is matched as whole leading words (``elevenlabs-paid-plan``,
+#: ``elevenlabs-paid-plan-creator``). Which one applies is the user's account,
+#: which ``an`` cannot see: declaring it is the user's statement.
+#:
+#: - ElevenLabs: on a paid plan the output may be used commercially with no
+#:   credit (``free``). On the free plan it must credit ElevenLabs AND is for
+#:   non-commercial use only: no class here says "publishable, but not
+#:   commercially", and ``attribution`` would read as shippable, so it is
+#:   ``unknown`` — not publishable — with its restriction named
+#:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).
+#:   Check the current terms before shipping.
+PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
+    "elevenlabs": {
+        "elevenlabs-paid-plan": "free",
+        "elevenlabs-free-plan": "unknown",
+    },
+}
+#: What a provider-terms code restricts beyond its class, by code: the words a
+#: credits report prints beside it.
+PROVIDER_TERMS_RESTRICTIONS: dict[str, str] = {
+    "elevenlabs-free-plan": "ElevenLabs free plan: non-commercial use only, and "
+    "the video must credit ElevenLabs (elevenlabs.io); not publishable as is",
+}
+
+
+def provider_terms_restriction(source: AssetSource) -> str | None:
+    """The restriction a provider-terms licence carries beyond its class, if any.
+
+    >>> provider_terms_restriction(AssetSource(provider="elevenlabs", license="elevenlabs-free-plan"))[:21]
+    'ElevenLabs free plan:'
+    >>> provider_terms_restriction(AssetSource(provider="openai", license="elevenlabs-free-plan")) is None
+    True
+    """
+    code = normalise_license(source.license or "")
+    terms = PROVIDER_TERMS.get((source.provider or "").strip().lower(), {})
+    for term in terms:
+        if (code == term or code.startswith(term + "-")) and (
+            term in PROVIDER_TERMS_RESTRICTIONS
+        ):
+            return PROVIDER_TERMS_RESTRICTIONS[term]
+    return None
 
 #: Normalised phrases that mean "all rights reserved" ANYWHERE in the code —
 #: "(c) Studio. All rights reserved" is the usual way it is written.
@@ -193,6 +242,13 @@ def license_class(source: AssetSource) -> LicenseClass:
     'attribution'
     >>> license_class(AssetSource(provider="p", license="bespoke"))
     'unknown'
+
+    A provider's terms count for what that provider made (:data:`PROVIDER_TERMS`):
+
+    >>> license_class(AssetSource(provider="elevenlabs", license="elevenlabs-paid-plan"))
+    'free'
+    >>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
+    'unknown'
     """
     if not source.license:
         return "unknown"
@@ -202,6 +258,10 @@ def license_class(source: AssetSource) -> LicenseClass:
     code = normalise_license(raw)
     if code in _PRIVATE_EXACT or any(p in code for p in _PRIVATE_PHRASES):
         return "private"
+    terms = PROVIDER_TERMS.get((source.provider or "").strip().lower(), {})
+    for term, cls in terms.items():
+        if code == term or code.startswith(term + "-"):
+            return cls
     if any(code == w or code.startswith(w + "-") for w in _FREE_WORDS):
         return "free"
     return "unknown"

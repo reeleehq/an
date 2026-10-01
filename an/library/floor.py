@@ -109,40 +109,93 @@ def register_library(library: Library) -> None:
     read or written: the write is refused rather than made invisible to the floor.
 
     A registry that does not exist yet means either this machine's first
-    library write, or a registry that was deleted — and nothing on disk tells
-    the two apart: a deleted registry takes its memory of statements with it.
-    So whenever the registry is created from nothing (an#263, R2b-N2), every
-    library discoverable now is registered with this one, and a
-    :class:`an.library.registry.RegistryWarning` says that a library kept at a
-    custom root binds the rights checks again only once it is written to or
-    reindexed. Never delete the registry folder wholesale; prune it.
+    library write, or a registry that was deleted (or libraries that predate
+    it). The libraries on disk tell the two apart (an#307):
+
+    - no library discoverable now holds an asset: a **new** registry, created;
+    - libraries already hold assets: a **lost** one. It is rebuilt from what
+      is discoverable now — those libraries are registered, and the statements
+      their own floor indexes hold are remembered again — so their rights bind
+      exactly as before. What cannot be recovered is a library kept at a
+      custom root that is not discoverable now: it binds again once it is
+      written to or reindexed.
+
+    Either way a :class:`an.library.registry.RegistryWarning` says which
+    (R2b-N2: a registry deleted wholesale must never pass silently). Never
+    delete the registry folder wholesale; prune it.
     """
     if library.root is None:
         return
     if not machine_registry_path().exists():
-        discovered = [
-            (package, root)
+        here = library.root.resolve()
+        others = [
+            open_library(package, root)
             for package, root in _discovered_roots(os.environ, sys.platform)
-            if root.resolve() != library.root.resolve()
+            if root.resolve() != here and _is_namespace(package)
         ]
-        for package, root in discovered:
-            register_root(package, root)
-        found = (
-            f"registered the {len(discovered)} other library root(s) discoverable now"
-            if discovered
-            else "no other library is discoverable now"
-        )
+        holding = [lib for lib in [library, *others] if _holds_assets(lib)]
+        for other in others:
+            register_root(other.name, other.root)
+        where = machine_registry_path()
+        if not holding:
+            message = (
+                f"the registry of library roots ({where}) was created from "
+                "nothing: no library on this machine holds an asset yet, so this "
+                "is its first library write. (If a registry was deleted instead: "
+                "no other library is discoverable now, and one kept at a custom "
+                "root binds the rights checks again once it is written to or "
+                "reindexed.)"
+            )
+        else:
+            assets = sum(_asset_count(lib) for lib in holding)
+            remembered = sum(_remember_index(lib) for lib in holding)
+            message = (
+                f"the registry of library roots ({where}) did not exist although "
+                f"{len(holding)} librar{'y' if len(holding) == 1 else 'ies'} here "
+                f"already hold {assets} asset(s): it was deleted, or they predate "
+                f"it. It was rebuilt from what is discoverable now: "
+                f"{len(others)} other librar{'y' if len(others) == 1 else 'ies'} "
+                f"registered and {remembered} statement(s) from their indexes "
+                "remembered, so their rights bind as before. Only a library kept "
+                "at a custom root that is not discoverable now is missing until "
+                "it is written to or reindexed (an.library.api.reindex)."
+            )
         warnings.warn(
-            f"the registry of library roots ({machine_registry_path()}) did not "
-            f"exist, so it was created from nothing ({found}). On a machine's first "
-            "library write that is expected. If it was deleted, every statement it "
-            "remembered is gone: a library kept at a custom root binds the rights "
-            "checks again only once it is written to or reindexed "
-            "(an.library.api.reindex). Prune the registry; never delete it.",
+            f"{message} Prune the registry; never delete it.",
             RegistryWarning,
             stacklevel=3,
         )
     register_root(library.name, library.root)
+
+
+def _is_namespace(package: str) -> bool:
+    try:
+        check_namespace(package)
+    except AssetIdError:
+        return False
+    return True
+
+
+def _asset_count(library: Library) -> int:
+    try:
+        return sum(1 for _ in library.records)
+    except OSError:
+        return 0
+
+
+def _holds_assets(library: Library) -> bool:
+    return _asset_count(library) > 0
+
+
+def _remember_index(library: Library) -> int:
+    """Remember every statement ``library``'s own floor index holds; return how many."""
+    said = [
+        (digest, asset_key, statement)
+        for digest, entries in library.blob_rights.items()
+        for asset_key, statement in (entries or {}).items()
+    ]
+    remember(library, said)
+    return len(said)
 
 
 def library_origin(library: Library) -> str:

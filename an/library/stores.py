@@ -8,7 +8,12 @@ store       key                             on disk (default backend)
 records     ``<asset_id>``                  ``library/records/<asset_id>.json``
 versions    ``<asset_id>@<vNNN>``           ``library/versions/<asset_id>/<vNNN>.json``
 blobs       ``<sha256>``                    ``library/blobs/<aa>/<sha256>``
+labels      ``<asset_id>@<vNNN>/<hex16>``   ``library/labels/<asset_id>/<vNNN>/<hex16>.json``
 ==========  ==============================  ==========================================
+
+``labels`` is write-once too: the append-only statements made about an existing
+version after it was published (a relabel of its unchanged content, an#307),
+each its own document, never rewritten or deleted.
 
 - **``dol`` stores**, unlike the project mall's hand-written folder classes: a
   byte store (:class:`LocalFiles`) seen through :func:`dol.wrap_kvs` with a JSON
@@ -35,7 +40,7 @@ blobs       ``<sha256>``                    ``library/blobs/<aa>/<sha256>``
 >>> with tempfile.TemporaryDirectory() as d:
 ...     lib = build_library_mall(d)
 ...     sorted(lib)
-['blob_rights', 'blobs', 'records', 'versions']
+['blob_rights', 'blobs', 'labels', 'records', 'versions']
 >>> mem = build_library_mall(records={}, versions={}, blobs={})  # all in memory
 >>> ref = mem["blobs"].add(b"<svg/>")
 >>> mem["blobs"][ref.item_id]
@@ -66,6 +71,8 @@ __all__ = [
     "WriteOnce",
     "build_library_mall",
     "canonical_json",
+    "label_key",
+    "split_label_key",
     "version_key",
     "split_version_key",
 ]
@@ -76,6 +83,12 @@ LIBRARY_STORES: tuple[str, ...] = ("records", "versions", "blobs")
 #: ``blob_rights``: ``sha256 -> {asset: statement}``, the strictest thing each
 #: asset says about those bytes (:mod:`an.library.floor`).
 DERIVED_STORES: tuple[str, ...] = ("blob_rights",)
+#: Append-only stores of statements made about a version after it was published
+#: (write-once, never derived): ``labels`` holds each relabel of a version's
+#: unchanged content (an#307). A library without one simply has none.
+NOTE_STORES: tuple[str, ...] = ("labels",)
+#: The separator between a version key and a label's id in a ``labels`` key.
+LABEL_KEY_SEP: str = "/"
 #: The separator between an asset id and its version label in a ``versions`` key.
 VERSION_KEY_SEP: str = "@"
 #: Extension of the JSON documents on disk.
@@ -87,6 +100,7 @@ BLOB_FANOUT: int = 2
 JSON_INDENT: int = 2
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_LABEL_ID_RE = re.compile(r"[0-9a-f]{16}")
 
 
 class VersionExistsError(KeyError):
@@ -139,6 +153,31 @@ def split_version_key(key: str) -> tuple[str, str]:
     if not sep:
         raise AssetIdError(f"versions key {key!r} is not '<asset_id>@<vNNN>'")
     return check_asset_id(asset_id), check_version_label(version)
+
+
+def label_key(asset_id: str, version: str, label_id: str) -> str:
+    """The ``labels`` key of one statement about a version.
+
+    >>> label_key("character.alice", "v002", "0123456789abcdef")
+    'character.alice@v002/0123456789abcdef'
+    """
+    if not isinstance(label_id, str) or not _LABEL_ID_RE.fullmatch(label_id):
+        raise KeyError(f"label id {label_id!r} is not 16 lowercase hex digits")
+    return f"{version_key(asset_id, version)}{LABEL_KEY_SEP}{label_id}"
+
+
+def split_label_key(key: str) -> tuple[str, str, str]:
+    """``(asset_id, version, label_id)`` of a ``labels`` key, validated.
+
+    >>> split_label_key("character.alice@v002/0123456789abcdef")
+    ('character.alice', 'v002', '0123456789abcdef')
+    """
+    head, sep, label_id = str(key).rpartition(LABEL_KEY_SEP)
+    if not sep:
+        raise AssetIdError(f"labels key {key!r} is not '<asset_id>@<vNNN>/<id>'")
+    asset_id, version = split_version_key(head)
+    label_key(asset_id, version, label_id)
+    return asset_id, version, label_id
 
 
 def _check_sha(key: str) -> str:
@@ -389,6 +428,27 @@ def _versions_store(folder: Path) -> MutableMapping:
     return WriteOnce(store)
 
 
+def _labels_store(folder: Path) -> MutableMapping:
+    def id_of_key(key: str) -> str:
+        asset_id, version, label_id = split_label_key(key)
+        return f"{asset_id}/{version}/{label_id}{JSON_EXT}"
+
+    def key_of_id(path: str) -> str:
+        asset_id, version, file = path.split("/")
+        return label_key(asset_id, version, file[: -len(JSON_EXT)])
+
+    files = LocalFiles(folder)
+    store = _codec_store(
+        files, depth=2, id_of_key=id_of_key, key_of_id=key_of_id, json_values=True
+    )
+
+    def create_only(key: str, value: Any) -> None:
+        files.create_only(id_of_key(key), _json_bytes(value))
+
+    store.create_only = create_only
+    return WriteOnce(store)
+
+
 def _blobs_backend(folder: Path) -> MutableMapping:
     def id_of_key(sha: str) -> str:
         sha = _check_sha(sha)
@@ -437,11 +497,12 @@ def build_library_mall(
     Nothing is created until the first write: opening a library (or mistyping
     one on a search path) leaves the disk as it was.
     """
-    unknown = set(overrides) - set(LIBRARY_STORES) - set(DERIVED_STORES)
+    known = LIBRARY_STORES + DERIVED_STORES + NOTE_STORES
+    unknown = set(overrides) - set(known)
     if unknown:
         raise TypeError(
             f"unknown library store(s) {sorted(unknown)}; a library mall holds "
-            f"{list(LIBRARY_STORES + DERIVED_STORES)}"
+            f"{list(known)}"
         )
     base: Path | None = None
     in_memory = set(LIBRARY_STORES) <= set(overrides)
@@ -463,9 +524,15 @@ def build_library_mall(
     blob_rights = overrides.get("blob_rights")
     if blob_rights is None:
         blob_rights = {} if in_memory else _blob_rights_store(base / "blob_rights")
+    labels = overrides.get("labels")
+    if labels is None:
+        labels = WriteOnce({}) if in_memory else _labels_store(base / "labels")
+    elif not isinstance(labels, WriteOnce):
+        labels = WriteOnce(labels)
     return {
         "records": records,
         "versions": versions,
         "blobs": blobs,
         "blob_rights": blob_rights,
+        "labels": labels,
     }

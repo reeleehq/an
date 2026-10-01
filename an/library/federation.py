@@ -87,6 +87,16 @@ class Library:
         """``sha256 -> {asset: statement}``, derived (:mod:`an.library.floor`)."""
         return self.mall.setdefault("blob_rights", {})
 
+    @property
+    def labels(self) -> MutableMapping:
+        """``<asset_id>@<vNNN>/<id> -> label`` (write-once): statements made
+        about a version after it was published (an#307)."""
+        if "labels" not in self.mall:
+            from an.library.stores import WriteOnce
+
+            self.mall["labels"] = WriteOnce({})
+        return self.mall["labels"]
+
 
 #: What the read functions accept: one library, or a search path of them.
 Libraries = Union[Library, Sequence[Library]]

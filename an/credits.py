@@ -38,7 +38,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from an.ir.assets import AssetSource, LicenseClass, license_class, requires_attribution
+from an.ir.assets import (
+    AssetSource,
+    LicenseClass,
+    license_class,
+    provider_terms_restriction,
+    requires_attribution,
+)
 from an.stores._common import is_os_junk
 
 __all__ = [
@@ -213,6 +219,8 @@ def _detail(e: CreditEntry) -> str:
             bits.append(f"model {extra[SPEECH_EXTRA_MODEL]}")
         if extra.get("lines"):
             bits.append(f"{extra['lines']} line(s)")
+        if extra.get(SPEECH_EXTRA_TERMS):
+            bits.append(str(extra[SPEECH_EXTRA_TERMS]))
         out += " (" + ", ".join(b for b in bits if b) + ")"
     if e.covers:
         out += f" — covers {', '.join(e.covers)}"
@@ -778,6 +786,7 @@ def _part_credits(
                 source=AssetSource(
                     provider="unknown",
                     extra={
+                        NOBODY_LABELLED: True,
                         "reason": (
                             "changed or added since the library check-out: the "
                             "label it carried speaks only for the bytes it was "
@@ -796,6 +805,27 @@ def _part_credits(
                 ),
             )
     return [out[a] for a in sorted(out)]
+
+
+#: The ``extra`` flag of an entry no person's source speaks for: a part no
+#: stamp pins under a generated descriptor source, a stale or unconfirmed stamp,
+#: a file changed since a check-out. Nobody STATED anything about those bytes —
+#: a gap, which an explicit, recorded label answers (an#307), unlike a source
+#: someone wrote with a licence nobody recognises.
+NOBODY_LABELLED: str = "nobody_labelled"
+
+
+def nobody_labelled(source: Any) -> bool:
+    """Whether a credits entry's source is the walk's own placeholder for bytes nobody labelled.
+
+    >>> nobody_labelled(AssetSource(provider="unknown", extra={NOBODY_LABELLED: True}))
+    True
+    >>> nobody_labelled(AssetSource(provider="unknown"))
+    False
+    """
+    return isinstance(source, AssetSource) and bool(
+        (source.extra or {}).get(NOBODY_LABELLED)
+    )
 
 
 #: Providers whose descriptor-level source a GENERATOR writes (the character
@@ -889,6 +919,8 @@ _is_factory_stamp = is_factory_stamp
 SPEECH_PREFIX: str = "speech/"
 #: The ``extra`` key of a speech entry naming the provider's model.
 SPEECH_EXTRA_MODEL: str = "model"
+#: The ``extra`` key of a speech entry naming what its provider's terms restrict.
+SPEECH_EXTRA_TERMS: str = "terms"
 #: Providers whose speech is ``an``'s own (silence, for tests and drafts).
 OWN_SPEECH_PROVIDERS: frozenset[str] = frozenset({"offline"})
 
@@ -903,7 +935,14 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
     ``mall["voices"]`` (its ``provider``, ``voice_id`` and ``model_id``). A
     voice document may declare its own ``source`` (the provider's terms, the
     licence the user holds); otherwise the speech is listed UNVERIFIED — the
-    provider's terms decide what is owed, and nobody recorded them. A voice
+    provider's terms decide what is owed, and nobody recorded them. The licence
+    that counts for synthesized speech is a provider-terms code
+    (:data:`an.ir.assets.PROVIDER_TERMS`: ``elevenlabs-paid-plan`` is ``free``;
+    ``elevenlabs-free-plan`` is non-commercial only and owes a credit, so it is
+    not publishable and is listed with that restriction), or any licence ``an``
+    recognises;
+    it is read as the voice's provider's, so another provider's terms count for
+    nothing (an#307). A voice
     whose document names no provider (the offline default) is not listed:
     which provider spoke it is not recorded anywhere.
 
@@ -914,6 +953,9 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
     ...                            "model_id": "eleven_v3"}}}
     >>> [(e.asset, e.license_class, e.source.extra["model"]) for e in speech_credits(mall, scene)]
     [('speech/bob', 'unknown', 'eleven_v3')]
+    >>> mall["voices"]["bob"]["source"] = {"provider": "elevenlabs", "license": "elevenlabs-paid-plan"}
+    >>> [e.license_class for e in speech_credits(mall, scene)]
+    ['free']
     """
     from an.audio.voices import line_voice_id, voice_document
 
@@ -938,8 +980,14 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
         declared = doc.get("source")
         if isinstance(declared, Mapping):
             base = _source_or_unknown(declared, f"{SPEECH_PREFIX}{voice}")
+            if base.provider != "unknown" and base.provider.lower() != provider.lower():
+                # Terms declared for another provider say nothing about this one's speech.
+                said["declared_provider"] = base.provider
             source = base.model_copy(
                 update={
+                    # The provider that SPOKE it: its own terms are the ones that count
+                    # (an.ir.assets.PROVIDER_TERMS), whatever the declaration names.
+                    "provider": provider,
                     "id": base.id or doc.get("voice_id"),
                     "extra": {**(base.extra or {}), **said},
                 }
@@ -953,6 +1001,11 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
                     "reason": "synthesized speech: the provider's terms decide what "
                     "is owed; declare them as the voice's `source`",
                 },
+            )
+        restriction = provider_terms_restriction(source)
+        if restriction:
+            source = source.model_copy(
+                update={"extra": {**source.extra, SPEECH_EXTRA_TERMS: restriction}}
             )
         out.append(CreditEntry(asset=f"{SPEECH_PREFIX}{voice}", source=source))
     return out

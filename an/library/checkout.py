@@ -51,8 +51,11 @@ from an.library.api import (
     CheckoutError,
     IntegrityError,
     _stricter,
+    labelled_view,
     pop_origin,
+    stored_rights,
     verified_files,
+    version_labels,
     version_sources,
 )
 from an.library.federation import (
@@ -249,9 +252,10 @@ def checkout(
     files = verified_files(library, version)
     readers = [library, *(lib for lib in as_libraries(libraries) if lib is not library)]
     contributors = version_sources(readers, version, owner=library)
-    rights = _stricter(
-        Rights.from_dict(version.get("rights") or {}), roll_up(contributors)
-    )
+    rights = _stricter(stored_rights(library, version), roll_up(contributors))
+    # What the copy carries is the version as its labels present it (an#307):
+    # the source a relabel of its unchanged content recorded on it.
+    labelled = labelled_view(version, version_labels(library, version))
     manifest = version["manifest_sha256"]
     mall = mall if mall is not None else build_project_mall(project_dir, ensure=True)
     store = mall[kind.store]
@@ -273,7 +277,7 @@ def checkout(
         differences = drift(store, key, version)
         # A copy checked out by an older `an` lacks the record of which bytes
         # its carried label speaks for (an#264): an unedited one is re-linked.
-        outdated = bool(version.get("source")) and CHECKED_OUT_KEY not in origin
+        outdated = bool(labelled.get("source")) and CHECKED_OUT_KEY not in origin
         if same_version and not differences and not overwrite and not outdated:
             if entry_key not in lock:
                 lock[entry_key] = _pin(pinned, manifest)
@@ -326,7 +330,7 @@ def checkout(
     doc = copy.deepcopy(version["doc"])
     if kind.name in METADATA_KINDS and isinstance(doc, dict):
         added = None
-        if version.get("source") and (
+        if labelled.get("source") and (
             descriptor_source(doc, store=kind.credits_store) is None
             or gives_way_to_a_label(doc.get("source"))
         ):
@@ -334,11 +338,11 @@ def checkout(
             # generator's descriptor source speaks only for the bytes its part
             # stamps pin, so it gives way (and comes back on a re-publish).
             added = {
-                "source": copy.deepcopy(version["source"]),
+                "source": copy.deepcopy(labelled["source"]),
                 "had_key": "source" in doc,
                 "previous": doc.get("source"),
             }
-            doc["source"] = copy.deepcopy(version["source"])
+            doc["source"] = copy.deepcopy(labelled["source"])
         # What the project's own credits walk will see in the written descriptor;
         # every other contributor is recorded in the origin block.
         visible = {
@@ -358,7 +362,7 @@ def checkout(
         origin = _origin_block(pinned, version, contributors, rights, visible)
         if added is not None:
             origin[SOURCE_ADDED_KEY] = added
-        if version.get("source"):
+        if labelled.get("source"):
             # The version's asset-level label was declared on these bytes, and
             # a publish of the copy carries it for them only: `an credits` in
             # the project reads it the same way (an#264).
