@@ -60,6 +60,12 @@ dependencies = [
     # `EMBEDDED`); unversioned per the local-package convention.
     "tituli",
     "fonttools",
+    # The shot cache's data model (ADR 0004 decision 4, an#242): entries are
+    # `lacing.Artifact`s in a `lacing.ArtifactStore`. A sibling package (MIT);
+    # its closure beyond what `an` already has is `cw` (MIT, no dependencies)
+    # and `intervaltree` (Apache-2.0) with `sortedcontainers` (Apache-2.0),
+    # ~0.05 s of import on top of `an`'s own.
+    "lacing",
 ]
 
 [project.scripts]

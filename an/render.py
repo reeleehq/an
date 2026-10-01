@@ -10,9 +10,11 @@ adapters and the same flow handles them.
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable
@@ -21,6 +23,7 @@ from an.adapters._base import RenderContext, RenderResult
 from an.assemble import assemble_film, film_timeline, needs_assembly
 from an.adapters.cutout.compile import style_pack_for
 from an.adapters._base import _DEFAULT_REGISTRY
+from an.build.shot_cache import IncrementalEngine, ShotPlan, resolve_incremental
 from an.base import (
     DEFAULT_FPS,
     DEFAULT_RESOLUTION,
@@ -30,6 +33,8 @@ from an.base import (
 from an.ir.schema import Shot
 from an.project import Project, load
 
+
+logger = logging.getLogger("an.build")
 
 # Default cap so a 20-shot scene doesn't try to spawn 20 Chromiums; the user
 # can always pass a higher number explicitly.
@@ -77,8 +82,20 @@ def render_project(
     capture: str | None = None,
     step_hz: float | None = None,
     language: str = "en",
+    incremental: bool | IncrementalEngine = True,
+    force_render: bool = False,
 ) -> Path:
     """Render every shot in ``project_dir``'s scene and concatenate to one mp4.
+
+    **Incremental by default** (ADR 0004): a shot whose key — a digest of
+    everything its render reads, never its id — already has an entry in the
+    project's shot cache is not rendered again; its cached mp4 is reused. So
+    editing one shot re-renders that shot, and an unchanged project re-renders
+    nothing. ``force_render=True`` renders every shot anyway (and refreshes
+    their entries); ``incremental=False`` neither reads nor writes the cache.
+    Pass your own engine (e.g. ``ShotCache()``) to read what happened to each
+    shot afterwards from its ``report`` — the same summary is logged on the
+    ``an.build`` logger. See :func:`render`.
 
     ``tts`` and ``lipsync`` may be provider name strings (``"offline"``,
     ``"elevenlabs"``, ``"rhubarb"``) or provider instances. Defaults are
@@ -133,6 +150,8 @@ def render_project(
         capture=capture,
         step_hz=step_hz,
         language=language,
+        incremental=incremental,
+        force_render=force_render,
     )
 
 
@@ -152,8 +171,19 @@ def render(
     capture: str | None = None,
     step_hz: float | None = None,
     language: str = "en",
+    incremental: bool | IncrementalEngine = False,
+    force_render: bool = False,
 ) -> Path:
     """Lower-level: render a loaded ``Project`` to mp4.
+
+    ``incremental`` is the build-cache seam (ADR 0004 decision 5): ``True`` is
+    the built-in :class:`~an.build.ShotCache` over ``mall["shot_cache"]``, an
+    :class:`~an.build.IncrementalEngine` is used as given, and ``False`` — the
+    default HERE, unlike :func:`render_project` — renders every shot cold, as
+    this function always has. Cold is this layer's default because its other
+    callers are measurements (the bench, the golden corpus, the demo builds),
+    whose wall times and lever rebinds a reused shot would silently void.
+    ``force_render=True`` with an engine renders every shot and re-records it.
 
     ``supersample`` renders at N times the declared resolution and resolves back
     with an exact N x N block mean, in the frame stage, before anything else
@@ -296,23 +326,56 @@ def render(
             )
         shot_renderers.append((shot, r, shot_ctx))
 
-    if pool_size <= 1:
-        shot_results = [
-            _render_one(shot, renderer, shot_ctx, project)
+    # The shot cache (ADR 0004): every key is computed HERE, in this thread and
+    # before any browser launches — a key compiles its shot, so a shot that
+    # cannot compile fails now, and only the misses reach the pool.
+    engine = resolve_incremental(incremental)
+    plans: list[ShotPlan | None] = [None] * len(shot_renderers)
+    if engine is not None:
+        engine.begin(project.mall)
+        needs_frames = needs_assembly(scene, fps=effective_fps)
+        plans = [
+            engine.plan(
+                shot, renderer, shot_ctx, needs_frames=needs_frames, force=force_render
+            )
             for shot, renderer, shot_ctx in shot_renderers
         ]
+
+    shot_results: list[RenderResult | None] = [None] * len(shot_renderers)
+    todo = []
+    for i, ((shot, renderer, shot_ctx), plan) in enumerate(zip(shot_renderers, plans)):
+        if plan is not None and plan.cached is not None:
+            shot_results[i] = plan.cached
+            _archive_shot(project, shot, plan.cached)
+        else:
+            todo.append((i, shot, renderer, shot_ctx, plan))
+
+    if pool_size <= 1:
+        for i, shot, renderer, shot_ctx, plan in todo:
+            shot_results[i] = _render_one(
+                shot, renderer, shot_ctx, project, engine=engine, plan=plan
+            )
     else:
-        results_by_id: dict[str, RenderResult] = {}
         with ThreadPoolExecutor(max_workers=pool_size) as ex:
             futures = {
-                ex.submit(_render_one, shot, renderer, shot_ctx, project): shot.id
-                for shot, renderer, shot_ctx in shot_renderers
+                ex.submit(
+                    _render_one,
+                    shot,
+                    renderer,
+                    shot_ctx,
+                    project,
+                    engine=engine,
+                    plan=plan,
+                ): i
+                for i, shot, renderer, shot_ctx, plan in todo
             }
             for fut in as_completed(futures):
-                shot_id = futures[fut]
-                results_by_id[shot_id] = fut.result()
-        # Preserve scene-timeline order for ffmpeg concat.
-        shot_results = [results_by_id[s.id] for s in shots]
+                shot_results[futures[fut]] = fut.result()
+    # Scene-timeline order is kept by index, for the concat.
+
+    if engine is not None:
+        report = engine.finish()
+        logger.info("%s", report.summary())
 
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
@@ -442,17 +505,34 @@ def _render_one(
     renderer,
     ctx: RenderContext,
     project: Project,
+    *,
+    engine: IncrementalEngine | None = None,
+    plan: ShotPlan | None = None,
 ) -> RenderResult:
-    """Render one shot and persist its mp4 into ``project.mall["shots"]``.
+    """Render one shot, record it with ``engine``, and archive its mp4.
 
     Each call is self-contained: the cutout renderer creates a per-shot
     work directory, its own Chromium instance, its own http server. This
     is what makes the call thread-safe.
     """
+    t0 = time.perf_counter()
     result = renderer.render(shot, ctx)
+    render_s = time.perf_counter() - t0
+    if engine is not None and plan is not None:
+        engine.record(plan, result, render_s=render_s)
+    _archive_shot(project, shot, result)
+    return result
+
+
+def _archive_shot(project: Project, shot: Shot, result: RenderResult) -> None:
+    """Write the shot's mp4 to ``mall["shots"][shot.id]`` — an ARCHIVE, not a cache.
+
+    Keyed by the author's id, so it holds the latest render of each shot for a
+    person to look at; nothing reads it back (pillar 11). The cache is
+    ``mall["shot_cache"]``, keyed by content.
+    """
     with open(result.mp4_path, "rb") as f:
         project.mall["shots"][shot.id] = f.read()
-    return result
 
 
 def _resolve_parallel(parallel: int | str | None, *, n_shots: int) -> int:

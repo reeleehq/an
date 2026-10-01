@@ -111,10 +111,13 @@ Two caches will lie to you, and both have bitten this repo:
   else that rewinds its mtime leaves a `.pyc` that is *newer* than its source, so Python
   keeps using the stale bytecode. A mutation test then "passes" while the mutation is
   still live. Clear `__pycache__` and `touch` the file, or restore with a plain write.
-- **The per-shot mp4 cache**, keyed on `shot.id`. It does not currently include the
-  renderer's own hash, so editing `runtime.js` does not invalidate it. Delete the shot
-  from the artifacts store (`del mall["shots"][shot_id]`) — invalidation here is by
-  deletion, by design.
+- **The shot cache** (`mall["shot_cache"]`, an#242). Its key includes
+  `runtime_sha256`, so editing `runtime.js` re-renders every shot — but a runtime file
+  outside `RUNTIME_DIGEST_SUFFIXES` is invisible to it (the test in
+  `test_bench_environment.py` makes such a file fail loudly). To rule the cache out,
+  `an render --force-render` (or `--no-cache`); never delete entries by hand to
+  "invalidate" — invalidation is by digest. `mall["shots"]` is an archive nothing
+  reads.
 
 ## Checklist for any asset change
 

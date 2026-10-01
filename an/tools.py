@@ -79,8 +79,15 @@ def render(
     step_hz: float = 0.0,
     language: str = "en",
     capture: str = "",
+    force_render: bool = False,
+    no_cache: bool = False,
 ) -> str:
     """Render the project at ``project_dir`` to a single mp4.
+
+    Incremental: a shot whose inputs (its compiled document, its art's bytes,
+    its audio, the runtime, the render settings, this machine's browser and
+    ffmpeg) are unchanged since a previous render is reused from the shot cache
+    rather than rendered again, and the summary line says which were which.
 
     project_dir: path to an an project (must contain scene.md / ir/scene.json)
     output_name: filename stem under output/ (default: "main")
@@ -114,7 +121,13 @@ def render(
         read of the canvas in batches, ~7.8x faster frame stage on the corpus,
         ~2.3x at 1080p; or "screenshot", a Playwright element screenshot per
         instant. Both write frames with the same decoded pixels
+    force_render: render every shot even when the shot cache holds it (and
+        refresh its entry)
+    no_cache: neither read nor write the shot cache — every shot is rendered
+        cold, as before the cache existed
     """
+    from an.build import ShotCache
+
     parallel_arg: int | str | None
     if not parallel:
         parallel_arg = None
@@ -125,6 +138,7 @@ def render(
             parallel_arg = int(parallel)
         except ValueError:
             return f"invalid --parallel value: {parallel!r}; use a number or 'auto'"
+    cache = ShotCache()
     output_path = _render_project(
         project_dir,
         output_name=output_name,
@@ -137,8 +151,12 @@ def render(
         step_hz=step_hz or None,
         language=language,
         capture=capture or None,
+        incremental=False if no_cache else cache,
+        force_render=force_render,
     )
-    return f"rendered: {output_path}"
+    if no_cache:
+        return f"rendered: {output_path}"
+    return f"rendered: {output_path}\nshots: {cache.report.summary()}"
 
 
 def iterate(
@@ -151,7 +169,8 @@ def iterate(
 
     project_dir: path to an an project
     instruction: what to change in plain English (e.g. "make Maya's laugh longer and warmer")
-    apply_changes: persist the new scene to disk + invalidate affected shot caches (default True)
+    apply_changes: persist the new scene to disk (default True); the next render
+        re-renders exactly the shots whose content changed
     model: Anthropic model id (default claude-opus-4-7)
     """
     result = _iterate(project_dir, instruction, apply=apply_changes, model=model)

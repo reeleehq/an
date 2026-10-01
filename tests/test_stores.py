@@ -110,6 +110,7 @@ def test_mall_keys_match_spec():
             "previews",
             "props",
             "scenes",
+            "shot_cache",
             "shots",
             "sounds",
             "styles",
