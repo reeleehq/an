@@ -589,9 +589,12 @@ def scale_part_files(paths, scale: float) -> None:
         path = Path(path)
         if not path.is_file() or scale == 1.0:
             continue
-        svg = path.read_text(encoding="utf-8")
+        data = path.read_bytes()
+        svg = data.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")  # as read_text reads
         _, h = raster_size(path)
-        _drawn.write_text(path, _sized_to_height(svg, h * scale), encoding="utf-8")
+        _drawn.write_derived_text(
+            path, data, _sized_to_height(svg, h * scale), encoding="utf-8"
+        )
 
 
 def stage_extent(desc: CharacterDescriptor) -> dict[str, float]:
