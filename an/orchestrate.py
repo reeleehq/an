@@ -58,7 +58,8 @@ def validate_project(project_dir: str | Path) -> ValidationReport:
     stack-dumped on the error it should report.
     """
     try:
-        project: Project = load(project_dir)
+        # Kinds are REPORTED here, as findings, not refused at load.
+        project: Project = load(project_dir, check_kinds=False)
     except (DocumentMigrationError, SceneValidationError) as e:
         # NOT "scene.md does not parse": the md may be perfect and the stored
         # JSON from another build. Routing an agent to edit the file that is

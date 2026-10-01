@@ -309,12 +309,14 @@ def test_as_leaves_keeps_a_set_at_its_absolute_time():
     assert back.at == pytest.approx(1.75)
 
 
-def test_a_composition_tree_does_not_survive_scene_md():
-    """The reason `as_leaves` exists — if this ever starts passing, the
-    markdown writer learned composition and `as_leaves` can go."""
+def test_a_composition_tree_survives_scene_md_verbatim():
+    """It used not to (the writer dropped composites, and `as_leaves` was the
+    workaround). Since an#241's review round the writer keeps an action it has
+    no short form for VERBATIM, so a preset's tree round-trips as is;
+    `as_leaves` still gives the short, hand-editable form."""
     scene = SceneIR(meta=Meta(title="t"), timeline=[_shot([hop("charlie")])])
     back = markdown_to_ir(ir_to_markdown(scene)).timeline[0]
-    assert back.actions == []
+    assert back.actions == scene.timeline[0].actions
 
 
 @pytest.mark.browser

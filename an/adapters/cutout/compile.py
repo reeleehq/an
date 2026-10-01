@@ -43,6 +43,7 @@ from typing import Any, Callable
 
 from an.base import TRANSFORM_PROPERTIES, TRIM_PROPERTIES, swap_set_name_problem
 from an.adapters.cutout.easing import apply_easing
+from an.genres import entity_space_resolver
 from an.adapters.cutout.path import flatten_curve
 from an.adapters.cutout.coarticulate import coarticulate
 from an.expression.axes import LID_KEY_CLOSED, LID_KEY_OPEN, lid_key
@@ -808,6 +809,9 @@ class _SwapVocabulary:
     node_transforms: dict[str, TransformJSON] = field(default_factory=dict)
     #: entity id → k, the view_box → scene-pixel factor its rig was built with.
     entity_scale: dict[str, float] = field(default_factory=dict)
+    #: target → its property space (:func:`an.genres.entity_space_resolver`),
+    #: the policy `an validate` checks values with too (review-244 S7).
+    space_of: Callable[[str], Any] | None = None
     #: Node paths whose visual is a stroked path — the only nodes a
     #: `trim_start`/`trim_end` channel may target (an#160).
     path_nodes: frozenset[str] = frozenset()
@@ -933,6 +937,7 @@ def _swap_vocabulary(
         entity_scale=entity_scale,
         path_nodes=frozenset(path_nodes),
         path_trims=path_trims,
+        space_of=entity_space_resolver(shot.entities),
     )
 
 
@@ -1243,6 +1248,7 @@ def _build_scene_root(
     reached: set[str] = set()
     skipped: set[str] = set()
     raster: set[str] = set()
+    _refuse_unregistered_entity_kinds(shot)
     for entity in shot.entities:
         if entity.kind == "environment":
             node, front = _build_environment_subtree(
@@ -3067,7 +3073,12 @@ def _compile_actions(
             kfs = []
             for flat in run:
                 value = flat.action.value
-                _check_keyframe_value(value, target=target, prop=prop)
+                _check_keyframe_value(
+                    value,
+                    target=target,
+                    prop=prop,
+                    space_of=vocab.space_of if vocab is not None else None,
+                )
                 if flat.start > shot_duration:
                     warnings.warn(
                         f"set on {target!r}:{prop!r} at t={flat.start} is past "
@@ -3444,10 +3455,24 @@ def _compile_one(
             speed=action.speed,
         )
         return anim_id, _track_root_of(action.target), placed
-    raise TypeError(f"unsupported FlatAction.action type: {type(action).__name__}")
+    # A kind some genre registered that this renderer has no clip for: said
+    # by name rather than as a bare TypeError (the IR is open, ADR 0001
+    # decision 2, so "a kind the cutout compiler does not draw" is a real,
+    # reachable case, not a programming error).
+    raise CutoutCompileError(
+        f"the cutout renderer cannot draw a {getattr(action, 'kind', None)!r} "
+        f"action ({type(action).__name__}) on {getattr(action, 'target', '?')!r}: "
+        "it compiles set, tween and the cut-out genre's play and expression"
+    )
 
 
-def _check_keyframe_value(value: Any, *, target: str, prop: str) -> Any:
+def _check_keyframe_value(
+    value: Any,
+    *,
+    target: str,
+    prop: str,
+    space_of: Callable[[str], Any] | None = None,
+) -> Any:
     """Refuse keyframe values the two evaluators would disagree on.
 
     ``bool`` is the trap: Python's ``isinstance(True, int)`` would lerp it while
@@ -3465,7 +3490,53 @@ def _check_keyframe_value(value: Any, *, target: str, prop: str) -> Any:
             "evaluate differently in the Python spec and the JS runtime, so "
             "the compiler refuses them rather than pick a side silently."
         )
+    # The value must fit the field kind the stage node DECLARES for `prop`
+    # (an#239 item 2, the precondition of the declared-kinds default): a
+    # string on `x` used to compile, the runtime snapped it, and the declared
+    # evaluator now refuses it — so the compiler says so first, by name.
+    # The space comes from the target's entity kind (`space_of`, the policy
+    # `an validate` uses); without a shot's vocabulary, the stage node's.
+    from an.timing.spaces import get_space
+
+    space = space_of(target) if space_of is not None else get_space(STAGE_NODE_SPACE)
+    kind = space.kind_of(prop)
+    problem = kind.check(value)
+    if problem:
+        raise CutoutCompileError(
+            f"keyframe on {target!r}:{prop!r}: {problem}. `{prop}` is a "
+            f"{kind.name} field of a stage node (the {space.name!r} property "
+            "space), so a value of another kind cannot be keyed on it."
+        )
     return value
+
+
+def _refuse_unregistered_entity_kinds(shot: Shot) -> None:
+    """An entity whose ``kind`` nothing registered is REFUSED, naming the genre
+    that provides it — never skipped (review-244 S2). ``AssetRef.kind`` is a
+    ``str`` since ADR 0001 decision 2, so the entity dispatch below would
+    otherwise draw a typo'd ``kind: enviroment`` as nothing, and the render
+    would succeed without its backdrop."""
+    from an.genres import providers_of
+    from an.genres.registry import (
+        UnregisteredKindError,
+        entity_kind,
+        entity_kind_names,
+    )
+
+    for entity in shot.entities:
+        if entity_kind(entity.kind) is None:
+            error = UnregisteredKindError(
+                "entity kind",
+                entity.kind,
+                known=entity_kind_names(),
+                providers=providers_of(entity.kind, registry="entity kinds"),
+                where=f"shot {shot.id!r}: entity {entity.id!r}",
+            )
+            raise CutoutCompileError(str(error)) from error
+
+
+#: The property space every compiled node lives in (:mod:`an.timing.spaces`).
+STAGE_NODE_SPACE: str = "stage.node"
 
 
 def parse_tint(value: object, *, where: str) -> tuple[float, float, float]:
@@ -3563,9 +3634,15 @@ def _build_anim_for(
             from_value = vocab.path_trims.get(action.target, {}).get(action.property)
         if from_value is None:
             from_value = _rest_value_for(action.property, action.target)
-        _check_keyframe_value(from_value, target=action.target, prop=action.property)
+        space_of = vocab.space_of if vocab is not None else None
         _check_keyframe_value(
-            action.to_value, target=action.target, prop=action.property
+            from_value, target=action.target, prop=action.property, space_of=space_of
+        )
+        _check_keyframe_value(
+            action.to_value,
+            target=action.target,
+            prop=action.property,
+            space_of=space_of,
         )
         easing = _easing_to_json(action.resolved_easing(default_easing))
         # Only an easing the author actually WROTE earns a warning:

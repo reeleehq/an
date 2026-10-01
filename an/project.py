@@ -147,8 +147,24 @@ def init(
     return pdir
 
 
-def load(project_dir: str | Path) -> Project:
-    """Load an existing project. Reconciles scene.md / ir/scene.json first."""
+def load(project_dir: str | Path, *, check_kinds: bool = True) -> Project:
+    """Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+    Registers the installed genres first (:func:`an.genres.load`, ADR 0001
+    decision 3: discovery is explicit, and loading a project is one of the
+    places it happens), so the scene's genre kinds — the cut-out genre's
+    ``play``, ``expression`` and ``character`` — read as their own models.
+
+    Then refuses a scene that names an action kind, entity kind or renderer
+    nothing registered (:func:`an.ir.validate.require_registered_kinds`): the
+    schema holds those as ``str`` (ADR 0001 decision 2), so without this a
+    typo'd ``kind: enviroment`` would load and render silently without its
+    backdrop. ``check_kinds=False`` is for ``an validate``, which reports them
+    as findings instead.
+    """
+    from an.genres import load as load_genres
+
+    load_genres()
     pdir = Path(project_dir).expanduser().resolve()
     if not pdir.exists():
         raise FileNotFoundError(f"no such project directory: {pdir}")
@@ -158,6 +174,10 @@ def load(project_dir: str | Path) -> Project:
 
     mall = build_project_mall(pdir, ensure=True)
     scene = mall["scenes"]["main"]
+    if check_kinds:
+        from an.ir.validate import require_registered_kinds
+
+        require_registered_kinds(scene, where=str(pdir))
     return Project(root=pdir, mall=mall, scene=scene)
 
 

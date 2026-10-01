@@ -9,8 +9,14 @@ Design principles (locked in from the architectural plan):
   `compatible_version`. Migrations live in `an.ir.migrate`.
 - **Forward-compatible reads.** Top-level model has ``extra="allow"`` so a future
   field doesn't crash an older reader.
-- **Discriminated `Action` union.** All authoring-time and flattened actions
-  carry a `kind` literal so Pydantic dispatches to the right validator.
+- **Open `Action` union** (ADR 0001 decision 2). The union holds the core
+  kinds (``set``, ``tween``, ``sequence``, ``parallel``, ``delay``, ``loop``)
+  and ONE open member, :class:`ExtensionAction`, which a callable
+  discriminator selects for any other ``kind``. A genre registers its kinds
+  (:mod:`an.genres`); a document's ``kind: play`` then validates to the
+  registered model, and before registration it stays an ``ExtensionAction``
+  that round-trips untouched and that validate, flatten and the compiler
+  refuse by name. The union is never rebuilt at registration.
 - **Time in seconds (float).** Always.
 
 Doctest:
@@ -38,7 +44,10 @@ from pydantic import (
     model_serializer,
     BaseModel,
     ConfigDict,
+    Discriminator,
     Field,
+    SerializeAsAny,
+    Tag,
     field_validator,
     model_validator,
 )
@@ -56,7 +65,13 @@ from an.base import (
     EasingSpec,
     PathStr,
     Seconds,
-    RendererName,
+)
+from an.genres.registry import (
+    CORE_OWNER,
+    EntityKind,
+    action_kind,
+    entity_kind,
+    register_entity_kind,
 )
 
 
@@ -226,7 +241,13 @@ class AssetRef(_IRModel):
     #: ``"style"`` was retired in an#106: it selected nothing (the compiler
     #: skipped it, nothing read the styles store) and the name belonged to the
     #: renderer selector. Art direction arrives as a StylePack (#112).
-    kind: Literal["character", "environment", "voice", "prop"]
+    #:
+    #: A ``str`` in the schema, not a ``Literal`` (ADR 0001 decision 2): the
+    #: values are the REGISTERED entity kinds (:mod:`an.genres`) — the core's
+    #: ``environment``, ``prop`` and ``voice``, a genre's ``character`` — and
+    #: ``an validate`` checks it against that registry, naming the genre that
+    #: provides an unregistered one.
+    kind: str
     id: str
     store: str  # which store in the project mall
     ref: str  # key inside that store
@@ -334,7 +355,99 @@ class TweenAction(_ActionBase):
         return default
 
 
-class PlayAction(_ActionBase):
+class ExtensionAction(_ActionBase):
+    """An action of a kind the core does not define: the IR's one open member.
+
+    The schema's ``Action`` union selects this for any ``kind`` other than the
+    core's (ADR 0001 decision 2). When a genre has REGISTERED that kind
+    (:func:`an.genres.registry.register_action_kind`), validating a document
+    yields the registered model instead — a ``PlayAction`` for ``kind: play`` —
+    so code downstream sees typed actions. Before registration the action
+    stays an ``ExtensionAction``: its fields are kept as extras and round-trip
+    byte for byte, and :meth:`resolved` (called by ``flatten``, ``an validate``
+    and the compiler) refuses it naming the genre that provides it.
+
+    Every genre's action model subclasses this, which is what lets a typed
+    instance sit in the union and serialize with its own fields.
+
+    >>> ExtensionAction(kind="wave", target="flag").model_dump()
+    {'name': None, 'kind': 'wave', 'target': 'flag'}
+    """
+
+    kind: str
+
+    def __init__(self, /, **data: Any) -> None:
+        if type(self) is ExtensionAction:
+            registered = action_kind(data.get("kind"))  # type: ignore[arg-type]
+            if registered is not None and registered.model is not ExtensionAction:
+                # The validator below would hand back ANOTHER model, which
+                # `__init__` cannot return (review-244 N1): say what works.
+                raise TypeError(
+                    f"kind {data.get('kind')!r} is registered with its own model, "
+                    f"{registered.model.__name__}: construct that, or call "
+                    "ExtensionAction.model_validate(...) to get it from a dict"
+                )
+        super().__init__(**data)
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _as_registered_kind(cls, data: Any, handler: Any) -> Any:
+        """A registered kind validates to its own model; anything else stays open."""
+        if cls is ExtensionAction:
+            if isinstance(data, dict):
+                registered = action_kind(data.get("kind"))  # type: ignore[arg-type]
+                if registered is not None and registered.model is not cls:
+                    return registered.model.model_validate(data)
+            elif type(data) is ExtensionAction:
+                return data.resolved(strict=False)
+        return handler(data)
+
+    def resolved(self, *, strict: bool = True) -> "ExtensionAction":
+        """This action as its registered model.
+
+        A typed instance is returned as is. A bare ``ExtensionAction`` is
+        validated by the model its kind registered — or, unregistered, raises
+        :class:`~an.genres.registry.UnregisteredKindError` (``strict``) or
+        comes back unchanged (``strict=False``).
+        """
+        if type(self) is not ExtensionAction:
+            return self
+        registered = action_kind(self.kind)
+        if registered is None or registered.model is ExtensionAction:
+            if strict:
+                raise unregistered_action_kind(self.kind)
+            return self
+        return registered.model.model_validate(self.model_dump(exclude_unset=True))
+
+
+def unregistered_action_kind(kind: str, *, where: str = "") -> Exception:
+    """The error for an action ``kind`` no loaded genre registered.
+
+    It names the installed genres whose declaration provides the kind, read
+    without loading them (:func:`an.genres.providers_of`).
+    """
+    from an.genres import providers_of  # lazy: discovery reads entry points
+    from an.genres.registry import UnregisteredKindError, action_kind_names
+
+    return UnregisteredKindError(
+        "action kind",
+        kind,
+        known=action_kind_names(),
+        providers=providers_of(kind, registry="action kinds"),
+        where=where,
+    )
+
+
+# -----------------------------------------------------------------------------
+# The cut-out genre's action models (ADR 0001 §First slice). They are DEFINED
+# here, beside the core's, until the genre package exists (P8 moves them, with a
+# re-export), but they are not core: nothing dispatches on them unless the
+# cut-out genre is registered (``an.genres.cutout``), and a document's
+# ``kind: play`` validates to `PlayAction` only after that.
+# -----------------------------------------------------------------------------
+
+
+class PlayAction(ExtensionAction):
     """Play a named animation of the target entity's descriptor (an#7).
 
     ``animation`` names an entry of ``CharacterDescriptor.animations`` (the
@@ -388,7 +501,7 @@ class PlayAction(_ActionBase):
 DFLT_EXPRESSION_BLEND_S: float = 0.15
 
 
-class ExpressionAction(_ActionBase):
+class ExpressionAction(ExtensionAction):
     """Hold a facial expression on an entity (an#98, epic #9 Wave 6).
 
     ``preset`` names one of :data:`an.expression.presets.PRESETS`; ``axes``
@@ -447,19 +560,43 @@ class LoopAction(_ActionBase):
     count: int = 1
 
 
-#: Discriminated union of every action variant. Pydantic dispatches on `kind`.
+#: The ``kind`` of every action the core defines (the static union members).
+CORE_ACTION_KINDS: tuple[str, ...] = (
+    "set",
+    "tween",
+    "sequence",
+    "parallel",
+    "delay",
+    "loop",
+)
+
+#: The union tag of the open member.
+EXTENSION_TAG: str = "extension"
+
+
+def _action_tag(value: Any) -> str:
+    """The union member for ``value``: its own ``kind`` if core, else the open one."""
+    kind = (
+        value.get("kind") if isinstance(value, dict) else getattr(value, "kind", None)
+    )
+    return kind if kind in CORE_ACTION_KINDS else EXTENSION_TAG
+
+
+#: Every action: the core kinds plus :class:`ExtensionAction` for any other
+#: ``kind`` (a registered genre kind validates to its own model through it).
+#: ``SerializeAsAny`` makes a typed genre instance (a ``PlayAction``) serialize
+#: with its own fields rather than the open member's.
 Action = Annotated[
     Union[
-        SetAction,
-        TweenAction,
-        PlayAction,
-        ExpressionAction,
-        SequenceAction,
-        ParallelAction,
-        DelayAction,
-        LoopAction,
+        Annotated[SetAction, Tag("set")],
+        Annotated[TweenAction, Tag("tween")],
+        Annotated[SequenceAction, Tag("sequence")],
+        Annotated[ParallelAction, Tag("parallel")],
+        Annotated[DelayAction, Tag("delay")],
+        Annotated[LoopAction, Tag("loop")],
+        Annotated[SerializeAsAny[ExtensionAction], Tag(EXTENSION_TAG)],
     ],
-    Field(discriminator="kind"),
+    Discriminator(_action_tag),
 ]
 
 
@@ -793,7 +930,10 @@ class Shot(_IRModel):
     #: holds art direction) and with `AssetRef(kind="style")`; one word for two
     #: meanings is how a scene came to declare a "style" that selected a
     #: renderer while the thing that actually styles it went unread.
-    renderer: RendererName = "cutout"
+    #: A ``str`` in the schema (ADR 0001 decision 2): any name a renderer
+    #: registered (``an.adapters.register_renderer``), checked by ``an
+    #: validate``. ``cutout`` stays the persisted default (decision 9).
+    renderer: str = "cutout"
     duration: Seconds = DEFAULT_DURATION
     camera: Camera | None = None
     entities: list[AssetRef] = Field(default_factory=list)
@@ -854,7 +994,8 @@ class Meta(_IRModel):
     duration: Seconds = 0.0
     fps: int = DEFAULT_FPS
     resolution: Resolution = Field(default_factory=Resolution)
-    default_renderer: RendererName = "cutout"
+    #: Like :attr:`Shot.renderer`: a registered renderer's name.
+    default_renderer: str = "cutout"
     notes: str = ""
     #: Stepped timing for AUTHORED TWEENS, in pose updates per second; ``None``
     #: (the default) leaves every tween smooth. At 30 fps, ``15`` is "on twos"
@@ -954,3 +1095,36 @@ class SceneIR(_IRModel):
     meta: Meta = Field(default_factory=Meta)
     assets: list[AssetRef] = Field(default_factory=list)
     timeline: list[Shot] = Field(default_factory=list)
+
+
+# -----------------------------------------------------------------------------
+# The core's entity kinds (``AssetRef.kind``). A genre adds its own
+# (:class:`an.genres.EntityKind`); the cut-out genre adds ``character``.
+# -----------------------------------------------------------------------------
+
+#: The property space a 2D stage engine's node lives in (:mod:`an.timing.spaces`).
+STAGE_NODE_SPACE: str = "stage.node"
+
+CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
+    EntityKind(
+        "environment",
+        space=STAGE_NODE_SPACE,
+        store="environments",
+        description="the set / background: planes, with parallax, drawn behind",
+    ),
+    EntityKind(
+        "prop",
+        space=STAGE_NODE_SPACE,
+        store="props",
+        description="a prop or piece of set dressing; also stroked paths and text blocks",
+    ),
+    EntityKind(
+        "voice",
+        store="voices",
+        description="a voice the audio pipeline speaks with; draws nothing",
+    ),
+)
+
+for _kind in CORE_ENTITY_KINDS:
+    if entity_kind(_kind.name) is None:
+        register_entity_kind(_kind, owner=CORE_OWNER)

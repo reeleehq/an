@@ -79,6 +79,17 @@ The four Protocols live in `an.audio.tts.TTSProvider`, `an.audio.lipsync.LipSync
 3. Export it from the subpackage's `__init__.py`.
 4. Add skip-if-deps-missing tests under `tests/test_<my>.py`.
 
+## How to add an action kind, entity kind, check or md sugar (a genre)
+
+The IR is open (an#241, ADR 0001 decisions 2–4): never add an `isinstance`/`kind ==` branch to `compose.flatten`, `sync`, `validate` or the compiler's dispatch. Declare the extension and register it:
+
+1. An action kind is an `an.genres.ActionKind(name, model, duration=…, flatten=…, children=…, read_md=…, write_md=…)`, its model a subclass of `an.ir.schema.ExtensionAction` with `kind: Literal["<name>"]`. An entity kind is an `EntityKind(name, space="<property space>", store=…)` (the space is P1's `an.timing.spaces.register_space`); a semantic check is a `SemanticCheck(name, run(ctx), stage="scene"|"shot"|"finish", order=…)`; `scene.md` dialogue sugar is a `DialogueSugar` on the `[…]` brackets.
+2. List them on ONE `an.genres.Genre` object and declare it under `[project.entry-points."an.genres"]`. `an.genres.load()` (called by `an.load` and the CLI, never at import) registers it; `register_genre(obj)` does so directly.
+3. The cut-out genre is the worked example: `an/genres/cutout.py`, with its declarations in `an/characters/registration.py` and `an/expression/registration.py`. Tests run with it registered (root `conftest.py`); test the core alone under `an.genres.without_genres()`.
+4. An unregistered kind must stay an error that names its genre — at validate, flatten, compile and `scene.md` read/write — and must round-trip untouched (`tests/test_open_document_model.py`).
+
+The timing default is the DECLARED `stage.node` space (`an.timing.spaces.DFLT_TIMELINE_SPACE`); `space=VALUE_TYPED` is `runtime.js`'s rule. The compiler refuses a keyframe value that fails its field kind, which is what keeps the two equal.
+
 ## Code conventions
 
 - Public API in `an.__all__` is **curated**. Internals get an underscore prefix.

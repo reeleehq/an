@@ -32,17 +32,25 @@ from dataclasses import dataclass
 from typing import Any
 
 from an.base import EasingSpec, PathStr, Seconds
+from an.genres.registry import (
+    CORE_OWNER,
+    ActionKind,
+    action_kind,
+    register_action_kind,
+)
 from an.ir.schema import (
     DFLT_EXPRESSION_BLEND_S,
     Action,
     DelayAction,
     ExpressionAction,
+    ExtensionAction,
     LoopAction,
     ParallelAction,
     PlayAction,
     SequenceAction,
     SetAction,
     TweenAction,
+    unregistered_action_kind,
 )
 
 
@@ -203,14 +211,54 @@ def loop(action: Action, count: int) -> LoopAction:
     return LoopAction(child=action, count=count)
 
 
+def stagger(lag: Seconds, *actions: Action) -> ParallelAction:
+    """Start each action ``lag`` seconds after the previous one STARTS.
+
+    The **stagger** (Manim's ``LaggedStart``, ``previz``'s compose, a crowd
+    entering one by one): the children run in parallel, the ``i``-th delayed
+    by ``i * lag``. It is authoring sugar, not a new kind — it builds the
+    ``parallel`` of ``sequence(delay(i * lag), action)`` it means, so the
+    scene document, ``scene.md`` and every renderer see only core kinds.
+    Total duration: the latest child's end. ``scene.md`` holds it verbatim (a
+    ``kind: parallel`` entry), so it round-trips. (``an.text.reveal_units`` —
+    ``an.text.stagger`` before an#241 — is the text-block preset: a LIST of
+    per-unit actions with holds, not a combinator.)
+
+    >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
+    ...                              tween("b", "x", to=1.0, duration=1.0),
+    ...                              tween("c", "x", to=1.0, duration=1.0)))
+    >>> [(f.action.target, f.start, f.end) for f in flat]
+    [('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]
+    >>> duration_of(stagger(0.5, delay(1.0), delay(1.0)))
+    1.5
+    >>> stagger(0.1).children
+    []
+    >>> stagger(-1.0, delay(1.0))
+    Traceback (most recent call last):
+    ...
+    ValueError: stagger lag must be >= 0, got -1.0
+    """
+    if not lag >= 0:  # `not >=` also refuses NaN
+        raise ValueError(f"stagger lag must be >= 0, got {lag}")
+    return parallel(
+        *(
+            sequence(delay(i * lag), action) if i else action
+            for i, action in enumerate(actions)
+        )
+    )
+
+
 # -----------------------------------------------------------------------------
-# Duration calculation — read-only walk over a composition tree.
+# Duration and flattening — dispatched through the action-kind registry.
 # -----------------------------------------------------------------------------
 
 
 #: ``PlayAction -> seconds`` a play WITHOUT an explicit ``duration`` occupies in
 #: a ``sequence``. The default is :func:`default_play_extent`; the compiler and
-#: ``an validate`` pass one bound to the entity's descriptor.
+#: ``an validate`` pass one bound to the entity's descriptor. Generically, it is
+#: the caller's **extent resolver**: it is handed to every leaf kind's
+#: ``duration`` hook (:class:`an.genres.ActionKind`), and the kinds that have an
+#: open-ended length (the cut-out genre's ``play``) consult it.
 PlayExtent = Callable[[PlayAction], Seconds]
 
 
@@ -231,12 +279,49 @@ def default_play_extent(action: PlayAction) -> Seconds:
     return play_extent(None, action)
 
 
-def _extent_of_play(action: Any, play_extent: PlayExtent | None) -> Seconds:
-    if isinstance(action, ExpressionAction):
-        return action.duration if action.duration is not None else 0.0
-    if action.duration is not None:
-        return action.duration
-    return (play_extent or default_play_extent)(action)
+def kind_of(action: Any) -> ActionKind:
+    """The registered :class:`~an.genres.ActionKind` that governs ``action``.
+
+    Raises :class:`~an.genres.UnregisteredKindError`, naming the genre that
+    provides it, for a kind nobody registered.
+
+    >>> kind_of(delay(1.0)).name
+    'delay'
+    """
+    name = getattr(action, "kind", None)
+    registered = action_kind(name) if isinstance(name, str) else None
+    if registered is None:
+        if isinstance(name, str):
+            raise unregistered_action_kind(name)
+        raise TypeError(f"Unknown action type: {type(action).__name__}")
+    return registered
+
+
+def resolve_action(action: Any) -> Any:
+    """``action`` as its registered model (an :class:`ExtensionAction` left open
+    by a document read before its genre loaded is validated now).
+
+    >>> resolve_action(delay(0.5)).duration
+    0.5
+    """
+    if type(action) is ExtensionAction:
+        return action.resolved()
+    return action
+
+
+def iter_actions(action: Any):
+    """``action`` and every action under it, depth first (composites through
+    their kind's ``children`` hook). Unregistered kinds are yielded, not raised:
+    a validator walks with this to REPORT them.
+
+    >>> [a.kind for a in iter_actions(sequence(delay(1.0), loop(delay(0.5), 2)))]
+    ['sequence', 'delay', 'loop', 'delay']
+    """
+    yield action
+    registered = action_kind(getattr(action, "kind", None) or "")
+    if registered is not None and registered.children is not None:
+        for child in registered.children(action):
+            yield from iter_actions(child)
 
 
 def duration_of(action: Action, *, play_extent: PlayExtent | None = None) -> Seconds:
@@ -255,31 +340,11 @@ def duration_of(action: Action, *, play_extent: PlayExtent | None = None) -> Sec
     >>> duration_of(set_("a", "x", 1.0))
     0.0
     """
-    if isinstance(action, SetAction):
-        return 0.0
-    if isinstance(action, TweenAction):
-        return action.duration
-    if isinstance(action, (PlayAction, ExpressionAction)):
-        return _extent_of_play(action, play_extent)
-    if isinstance(action, DelayAction):
-        return action.duration
-    if isinstance(action, SequenceAction):
-        return sum(
-            (duration_of(c, play_extent=play_extent) for c in action.children), 0.0
-        )
-    if isinstance(action, ParallelAction):
-        return max(
-            (duration_of(c, play_extent=play_extent) for c in action.children),
-            default=0.0,
-        )
-    if isinstance(action, LoopAction):
-        return duration_of(action.child, play_extent=play_extent) * action.count
-    raise TypeError(f"Unknown action type: {type(action).__name__}")
-
-
-# -----------------------------------------------------------------------------
-# Flattening — produce the canonical-form list of FlatAction.
-# -----------------------------------------------------------------------------
+    action = resolve_action(action)
+    registered = kind_of(action)
+    if registered.duration is None:
+        raise TypeError(f"action kind {registered.name!r} declares no duration")
+    return registered.duration(action, play_extent)
 
 
 @dataclass(frozen=True, slots=True)
@@ -293,9 +358,26 @@ class FlatAction:
 
     start: Seconds
     end: Seconds
-    action: (
-        Action  # always a leaf: SetAction | TweenAction | PlayAction | ExpressionAction
-    )
+    action: Action  # always a leaf: SetAction | TweenAction | a genre's leaf (PlayAction, …)
+
+
+@dataclass(slots=True)
+class FlattenContext:
+    """What a kind's ``flatten`` hook gets: where to put leaves, how to recurse.
+
+    ``extent`` is the caller's extent resolver (:data:`PlayExtent`), passed on
+    to every leaf's ``duration`` hook.
+    """
+
+    out: list[FlatAction]
+    extent: PlayExtent | None = None
+
+    def emit(self, start: Seconds, end: Seconds, action: Any) -> None:
+        self.out.append(FlatAction(start=start, end=end, action=action))
+
+    def flatten(self, action: Any, t: Seconds) -> Seconds:
+        """Flatten ``action`` starting at ``t``; return the new cursor."""
+        return _flatten_into(action, t, self)
 
 
 def flatten(
@@ -313,48 +395,136 @@ def flatten(
     Delays are absorbed into the timeline (they don't appear in the output).
     Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
     runtime can re-roll for efficiency later.
+
+    Every node is dispatched through its registered kind
+    (:class:`~an.genres.ActionKind`), so a genre's kind flattens without an
+    edit here; a node whose kind nobody registered raises, naming the genre
+    that provides it, and an :class:`ExtensionAction` read before its genre
+    loaded is validated by the registered model on the way through.
     """
-    out: list[FlatAction] = []
-    _flatten_into(action, start, out, play_extent)
-    return out
+    ctx = FlattenContext(out=[], extent=play_extent)
+    _flatten_into(action, start, ctx)
+    return ctx.out
 
 
-def _flatten_into(
-    action: Action,
-    t: Seconds,
-    out: list[FlatAction],
-    play_extent: PlayExtent | None = None,
+def _flatten_into(action: Action, t: Seconds, ctx: FlattenContext) -> Seconds:
+    """Append leaf actions to ``ctx.out`` and return the new cursor time."""
+    action = resolve_action(action)
+    registered = kind_of(action)
+    if registered.flatten is not None:
+        return registered.flatten(action, t, ctx)
+    if registered.duration is None:
+        raise TypeError(f"action kind {registered.name!r} declares no duration")
+    d = registered.duration(action, ctx.extent)
+    ctx.emit(t, t + d, action)
+    return t + d
+
+
+# -----------------------------------------------------------------------------
+# The core kinds' hooks (the md hooks of `set`/`tween` live in `an.ir.sync`).
+# -----------------------------------------------------------------------------
+
+
+def _flatten_set(action: SetAction, t: Seconds, ctx: FlattenContext) -> Seconds:
+    # `at` is relative to enclosing scope; absolute start is t + at.
+    abs_t = t + action.at
+    ctx.emit(abs_t, abs_t, action)
+    return t  # set actions do not advance the cursor
+
+
+def _flatten_delay(action: DelayAction, t: Seconds, ctx: FlattenContext) -> Seconds:
+    return t + action.duration
+
+
+def _flatten_sequence(
+    action: SequenceAction, t: Seconds, ctx: FlattenContext
 ) -> Seconds:
-    """Append leaf actions to ``out`` and return the new cursor time."""
-    if isinstance(action, SetAction):
-        # `at` is relative to enclosing scope; absolute start is t + at.
-        abs_t = t + action.at
-        out.append(FlatAction(start=abs_t, end=abs_t, action=action))
-        return t  # set actions do not advance the cursor
-    if isinstance(action, TweenAction):
-        out.append(FlatAction(start=t, end=t + action.duration, action=action))
-        return t + action.duration
-    if isinstance(action, (PlayAction, ExpressionAction)):
-        d = _extent_of_play(action, play_extent)
-        out.append(FlatAction(start=t, end=t + d, action=action))
-        return t + d
-    if isinstance(action, DelayAction):
-        return t + action.duration
-    if isinstance(action, SequenceAction):
-        cursor = t
-        for child in action.children:
-            cursor = _flatten_into(child, cursor, out, play_extent)
-        return cursor
-    if isinstance(action, ParallelAction):
-        max_end = t
-        for child in action.children:
-            child_end = _flatten_into(child, t, out, play_extent)
-            if child_end > max_end:
-                max_end = child_end
-        return max_end
-    if isinstance(action, LoopAction):
-        cursor = t
-        for _ in range(action.count):
-            cursor = _flatten_into(action.child, cursor, out, play_extent)
-        return cursor
-    raise TypeError(f"Unknown action type: {type(action).__name__}")
+    cursor = t
+    for child in action.children:
+        cursor = ctx.flatten(child, cursor)
+    return cursor
+
+
+def _flatten_parallel(
+    action: ParallelAction, t: Seconds, ctx: FlattenContext
+) -> Seconds:
+    max_end = t
+    for child in action.children:
+        child_end = ctx.flatten(child, t)
+        if child_end > max_end:
+            max_end = child_end
+    return max_end
+
+
+def _flatten_loop(action: LoopAction, t: Seconds, ctx: FlattenContext) -> Seconds:
+    cursor = t
+    for _ in range(action.count):
+        cursor = ctx.flatten(action.child, cursor)
+    return cursor
+
+
+def _register_core_kinds() -> None:
+    """The core's six kinds, owned by the core (``an.genres.registry.CORE_OWNER``).
+
+    Their ``scene.md`` hooks are attached by :mod:`an.ir.sync`, which owns the
+    markdown form; the md-less composites have none.
+    """
+    for kind in (
+        ActionKind(
+            "set",
+            SetAction,
+            duration=lambda a, _extent: 0.0,
+            flatten=_flatten_set,
+            md_start=False,
+            description="set a property to a value at an instant",
+        ),
+        ActionKind(
+            "tween",
+            TweenAction,
+            duration=lambda a, _extent: a.duration,
+            description="interpolate a property to a value over a duration",
+        ),
+        ActionKind(
+            "sequence",
+            SequenceAction,
+            duration=lambda a, extent: sum(
+                (duration_of(c, play_extent=extent) for c in a.children), 0.0
+            ),
+            flatten=_flatten_sequence,
+            children=lambda a: a.children,
+            description="run children one after the other",
+        ),
+        ActionKind(
+            "parallel",
+            ParallelAction,
+            duration=lambda a, extent: max(
+                (duration_of(c, play_extent=extent) for c in a.children),
+                default=0.0,
+            ),
+            flatten=_flatten_parallel,
+            children=lambda a: a.children,
+            description="run children at once",
+        ),
+        ActionKind(
+            "delay",
+            DelayAction,
+            duration=lambda a, _extent: a.duration,
+            flatten=_flatten_delay,
+            description="an empty span that consumes time",
+        ),
+        ActionKind(
+            "loop",
+            LoopAction,
+            duration=lambda a, extent: (
+                duration_of(a.child, play_extent=extent) * a.count
+            ),
+            flatten=_flatten_loop,
+            children=lambda a: (a.child,),
+            description="repeat a child count times",
+        ),
+    ):
+        if action_kind(kind.name) is None:
+            register_action_kind(kind, owner=CORE_OWNER)
+
+
+_register_core_kinds()

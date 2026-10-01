@@ -10,7 +10,7 @@ Layers, each checked where it can fail:
 - the overlay is camera-immune ON THE COMPILED DOCUMENT (screen positions through
   a push-in) and IN PIXELS (the browser lane);
 - byte identity: a shot with no text serializes exactly as before;
-- the stagger preset is ordinary actions that hold, reveal and round-trip.
+- the reveal_units preset is ordinary actions that hold, reveal and round-trip.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ from an.text import (
     TextLayoutError,
     layout_text,
     resolve_text,
-    stagger,
+    reveal_units,
 )
 
 W, H = 1920, 1080
@@ -398,7 +398,7 @@ def test_a_target_the_block_does_not_build_raises_naming_its_units():
 
 def test_validate_passes_a_scene_that_compiles():
     shot, mall = _title_and_label_shot(
-        actions=stagger("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.2)
+        actions=reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.2)
     )
     compile_shot(shot, mall)
     scene = SceneIR(
@@ -417,11 +417,11 @@ def test_a_shot_with_no_text_serializes_exactly_as_before():
     assert "fonts" not in doc["meta"]
 
 
-# --- the stagger preset ---------------------------------------------------------------
+# --- the reveal_units preset ---------------------------------------------------------------
 
 
 def test_stagger_holds_each_word_hidden_until_its_turn_then_reveals_it():
-    reveal = stagger("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.4)
+    reveal = reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.4)
     shot, mall = _title_and_label_shot(actions=reveal, camera=None)
     tl = timeline_from_scene(compile_shot(shot, mall))
     at = lambda t, i: evaluate_timeline(tl, t).get((f"title/word_{i}", "alpha"))  # noqa: E731
@@ -434,7 +434,7 @@ def test_stagger_holds_each_word_hidden_until_its_turn_then_reveals_it():
 def test_stagger_round_trips_through_scene_md():
     from an.ir.sync import ir_to_markdown, markdown_to_ir
 
-    reveal = stagger("title", 2, "scale_x", to=1.0, from_=0.0, duration=0.3, step=0.2)
+    reveal = reveal_units("title", 2, "scale_x", to=1.0, from_=0.0, duration=0.3, step=0.2)
     shot, _ = _title_and_label_shot(actions=reveal)
     scene = SceneIR(meta=Meta(title="t", duration=2.0), timeline=[shot])
     again = markdown_to_ir(ir_to_markdown(scene))

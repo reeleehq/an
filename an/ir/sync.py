@@ -58,6 +58,16 @@ from an.ir.migrate import (
     readable_without_migration,
     version_tuple,
 )
+from an.genres.registry import (
+    CORE_OWNER,
+    DIALOGUE_BRACKETS,
+    UnregisteredKindError,
+    action_kind,
+    action_kind_names,
+    dialogue_sugar,
+    dialogue_sugars,
+    register_action_kind,
+)
 from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot
 from an.util import _read_text, _write_json, _write_text
 
@@ -282,7 +292,39 @@ _DIALOGUE_LINE_RE = re.compile(
 _DIALOGUE_MOD_RE = re.compile(
     r"\[(?P<bracket>[^\]]*)\]|\((?P<paren>[^)]*)\)|\{(?P<brace>[^}]*)\}"
 )
-_EMOTION_RE = re.compile(r"[\w-]+")
+#: ``Dialogue`` fields that ``scene.md`` spells ONLY through registered sugar
+#: (``maya [happy]: …``). The field is core in v1 (ADR 0001 "stays awkward");
+#: its spelling is the genre's.
+_SUGAR_ONLY_FIELDS: tuple[str, ...] = ("emotion",)
+
+
+def _sugar_providers(field_name: str) -> tuple[str, ...]:
+    """The installed genres whose dialogue sugar fills ``field_name``."""
+    from an.genres import genres_declaring
+
+    return genres_declaring(
+        lambda g: any(sugar.field == field_name for sugar in g.dialogue_sugar)
+    )
+
+
+def _unregistered_sugar_message(opener: str, content: str) -> str:
+    from an.genres import genres_declaring
+
+    providers = genres_declaring(
+        lambda g: any(sugar.opener == opener for sugar in g.dialogue_sugar)
+    )
+    who = (
+        f"the genre(s) {list(providers)} define it but are not loaded — call "
+        "`an.genres.load()` (the CLI and `an.load(project)` do)"
+        if providers
+        else "no installed genre defines it"
+    )
+    return (
+        f"has {opener}{content.strip()}{DIALOGUE_BRACKETS[opener]}, which is "
+        f"genre sugar no loaded genre registered: {who}"
+    )
+
+
 #: ``(pause 1.5)``, ``(pause 1.5s)``, ``(at 3)``, ``(at 3.0s)`` — the timing a
 #: dialogue line may carry in ``scene.md`` (an#187). Parentheses hold timing,
 #: square brackets hold the emotion.
@@ -329,12 +371,19 @@ def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
             kwargs["direction"] = cues
             continue
         if mod.group("bracket") is not None:
-            emotion = mod.group("bracket").strip()
-            if not _EMOTION_RE.fullmatch(emotion):
-                raise refuse(f"has [{emotion}], which is not an emotion name")
-            if "emotion" in kwargs:
-                raise refuse("names two emotions")
-            kwargs["emotion"] = emotion.lower()
+            # `[…]` is genre SUGAR (the cut-out genre's `[emotion]`), looked up
+            # in the registry rather than known here (ADR 0001 decision 4).
+            content = mod.group("bracket")
+            sugar = dialogue_sugar("[")
+            if sugar is None:
+                raise refuse(_unregistered_sugar_message("[", content))
+            try:
+                value = sugar.parse(content)
+            except ValueError as e:
+                raise refuse(str(e)) from None
+            if sugar.field in kwargs:
+                raise refuse(f"names two {sugar.name}s")
+            kwargs[sugar.field] = value
             continue
         timing = _DIALOGUE_TIMING_RE.match(mod.group("paren"))
         if not timing:
@@ -356,8 +405,23 @@ def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
 def _format_dialogue_line(line: Dialogue) -> str:
     """The `scene.md` spelling of ``line`` — `_parse_dialogue_line`'s inverse."""
     head = line.speaker
-    if line.emotion:
-        head += f" [{line.emotion}]"
+    for sugar in dialogue_sugars():
+        content = sugar.format(line)
+        if content:
+            head += f" {sugar.opener}{content}{sugar.closer}"
+    for field_name in _SUGAR_ONLY_FIELDS:
+        if getattr(line, field_name, None) and not any(
+            s.field == field_name for s in dialogue_sugars()
+        ):
+            # Writing the line without it would drop it from scene.md, and
+            # the next md edit would drop it from the JSON: refuse instead.
+            raise UnregisteredKindError(
+                "dialogue sugar for",
+                field_name,
+                known=[s.name for s in dialogue_sugars()],
+                providers=_sugar_providers(field_name),
+                where=f"dialogue line {line.text!r} has {field_name}={getattr(line, field_name)!r}",
+            )
     if line.direction:
         head += " {" + ", ".join(line.direction) + "}"
     for key in ("pause", "at"):
@@ -429,36 +493,26 @@ def _extract_entities_block(text: str) -> list[AssetRef]:
     return out
 
 
-def _play_args(raw: Any, *, index: int) -> dict[str, Any] | None:
-    """A ``play``'s ``args:`` — a mapping of motion-preset parameters, or absent."""
-    if raw is None:
-        return None
-    if not isinstance(raw, dict):
-        raise SceneMarkdownError(
-            f"actions[{index}].args must be a mapping of motion-preset "
-            f"parameters (e.g. `args: {{height: 30}}`); got {raw!r}"
-        )
-    return {str(k): v for k, v in raw.items()}
-
-
 def _extract_actions_block(text: str) -> list:
     """Parse a ```yaml actions block: a list of leaf-action dicts.
 
-    Supported entry shapes (one per item in the YAML list):
+    Each item's ``kind`` is looked up in the action-kind registry and read by
+    that kind's ``read_md`` hook (ADR 0001 decision 4), so a genre's kinds
+    parse without an edit here. The core's two:
+
       - ``{kind: tween, target, property, to, duration, [from_], [easing], [start]}``
       - ``{kind: set,   target, property, value, [at]}`` — `at`, never
         `start`: a `set` is instantaneous, and `start` on one RAISES rather
         than being silently dropped as it was before an#108.
-      - ``{kind: play,  target, animation, [duration], [speed], [loop], [args], [start]}``
-        — resolved at compile against the target entity's descriptor
-        ``animations`` (an#7), falling back to the motion presets of
-        ``an.motion.PRESETS`` for a name the descriptor does not declare, with
-        ``args`` as the preset's parameters (an#166). ``loop`` omitted means
-        the animation's own.
 
-    A leaf action with a ``start`` key is wrapped in ``sequence(delay(start),
-    action)`` so flatten yields the correct absolute time. ``set`` uses ``at``
-    instead (built into the schema). Returns the list of authoring Actions.
+    and, with the cut-out genre loaded, ``play`` (an#7, an#166) and
+    ``expression`` (an#98) — see :mod:`an.characters.registration` and
+    :mod:`an.expression.registration`.
+
+    A leaf action with a ``start`` key (any kind registered with
+    ``md_start=True``) is wrapped in ``sequence(delay(start), action)`` so
+    flatten yields the correct absolute time. ``set`` uses ``at`` instead
+    (built into the schema). Returns the list of authoring Actions.
     """
     raw = _extract_yaml_list_block(text, "actions")
     if not raw:
@@ -473,102 +527,157 @@ def _extract_actions_block(text: str) -> list:
                 f"each entry under `yaml actions` must be a mapping; got {item!r}"
             )
         kind = item.get("kind")
-        start = (
-            item.pop("start", None) if kind in ("tween", "play", "expression") else None
-        )
-        if kind == "tween":
-            target = item["target"]
-            property_ = item["property"]
-            to = item["to"]
-            duration = float(item["duration"])
-            from_ = item.get("from_") if "from_" in item else item.get("from")
-            # An `easing:` key the author did not write stays UNSET, so the
-            # scene's `default_easing` reaches it (an#166); `easing: null` is
-            # an explicit linear ramp, so presence — not truthiness — decides.
-            action = _compose.tween(
-                target,
-                property_,
-                to=to,
-                duration=duration,
-                from_=from_,
-                easing=item["easing"] if "easing" in item else _compose.INHERIT,
-            )
-        elif kind == "set":
-            if "start" in item:
-                # A REFUSAL, not an alias. `start` is the wrapper key for
-                # actions that HAVE a duration — the parser turns it into
-                # `sequence(delay(start), action)`. A `set` is instantaneous,
-                # so its time IS `at`, and giving one number two names is how
-                # a scene ends up with both.
-                #
-                # It was silently dropped before an#108: `start` is popped only
-                # for tween/play/expression, and this branch reads `at` alone,
-                # so `{kind: set, start: 1.0}` compiled to a swap at t=0. The
-                # author sees a lamp that is lit from the first frame and no
-                # message anywhere.
-                raise SceneMarkdownError(
-                    f"actions[{i}] is a `set` with `start: {item['start']!r}`, "
-                    "which does nothing: a `set` is instantaneous and its time "
-                    f"is `at:`. Write `at: {item['start']!r}`."
-                )
-            action = _compose.set_(
-                item["target"],
-                item["property"],
-                item["value"],
-                at=float(item.get("at", 0.0)),
-            )
-        elif kind == "play":
-            # `{kind: play, target, animation, [duration], [speed], [loop],
-            # [start]}` — resolved at compile against the target entity's
-            # descriptor `animations` (an#7). This reader accepted the shape
-            # from the start, then #24 made it refuse (nothing resolved a
-            # play) while the writer below kept emitting it — three days of
-            # a project's own scene.md failing to parse, ended here.
-            action = _compose.play(
-                item["target"],
-                item["animation"],
-                duration=(
-                    float(item["duration"])
-                    if item.get("duration") is not None
-                    else None
-                ),
-                speed=float(item.get("speed", 1.0)),
-                loop=(bool(item["loop"]) if item.get("loop") is not None else None),
-                args=_play_args(item.get("args"), index=i),
-            )
-        elif kind == "expression":
-            # `{kind: expression, target, [preset], [axes], [intensity],
-            # [duration], [blend], [start]}` (an#98). Landed with its writer
-            # and round trip in one commit: the writer skips unknown leaves
-            # silently, so a parser-only entry would vanish from scene.md on
-            # the next sync and then from the JSON on the next md edit.
-            raw_axes = item.get("axes") or {}
-            if not isinstance(raw_axes, dict):
-                raise SceneMarkdownError(
-                    f"actions[{i}].axes must be a mapping; got {raw_axes!r}"
-                )
-            action = _compose.expression(
-                item["target"],
-                item.get("preset"),
-                axes={str(k): float(v) for k, v in raw_axes.items()},
-                intensity=float(item.get("intensity", 1.0)),
-                duration=(
-                    float(item["duration"])
-                    if item.get("duration") is not None
-                    else None
-                ),
-                blend=float(item["blend"])
-                if item.get("blend") is not None
-                else _compose.DFLT_EXPRESSION_BLEND_S,
-            )
+        registered = action_kind(kind) if isinstance(kind, str) else None
+        if registered is None:
+            raise SceneMarkdownError(_unknown_md_kind_message(i, kind))
+        start = item.pop("start", None) if registered.md_start else None
+        if registered.read_md is not None:
+            action = registered.read_md(item, index=i)
         else:
-            raise SceneMarkdownError(
-                f"actions[{i}].kind must be one of tween/set/play/expression; got {kind!r}"
-            )
+            # A kind with no short form (a composite, a genre leaf without md
+            # hooks) is written verbatim; it reads back through the schema.
+            action = _validate_action(item, index=i)
         if start is not None and float(start) > 0:
             action = _compose.sequence(_compose.delay(float(start)), action)
         out.append(action)
     return out
+
+
+def _validate_action(item: dict[str, Any], *, index: int) -> Any:
+    """A verbatim ``yaml actions`` entry, validated by the schema's union."""
+    from pydantic import TypeAdapter
+
+    from an.ir.schema import Action
+
+    try:
+        return TypeAdapter(Action).validate_python(item)
+    except ValidationError as e:
+        raise SceneMarkdownError(f"actions[{index}] is not a valid action: {e}") from e
+
+
+def _md_kinds() -> list[str]:
+    """The action kinds ``scene.md`` can spell, in registration order."""
+    return list(action_kind_names())
+
+
+def _unknown_md_kind_message(index: int, kind: Any) -> str:
+    message = (
+        f"actions[{index}].kind must be one of {'/'.join(_md_kinds())}; got {kind!r}"
+    )
+    if isinstance(kind, str):
+        from an.genres import providers_of
+
+        providers = providers_of(kind)
+        if providers:
+            message += (
+                f" — `{kind}` is defined by the genre(s) {list(providers)}, which "
+                "are installed but not loaded: call `an.genres.load()` (the CLI "
+                "and `an.load(project)` do)"
+            )
+    return message
+
+
+def _read_tween_md(item: dict[str, Any], *, index: int) -> Any:
+    """``{kind: tween, target, property, to, duration, [from_], [easing]}``."""
+    from an.ir import compose as _compose
+
+    target = item["target"]
+    property_ = item["property"]
+    to = item["to"]
+    duration = float(item["duration"])
+    from_ = item.get("from_") if "from_" in item else item.get("from")
+    # An `easing:` key the author did not write stays UNSET, so the
+    # scene's `default_easing` reaches it (an#166); `easing: null` is
+    # an explicit linear ramp, so presence — not truthiness — decides.
+    return _compose.tween(
+        target,
+        property_,
+        to=to,
+        duration=duration,
+        from_=from_,
+        easing=item["easing"] if "easing" in item else _compose.INHERIT,
+    )
+
+
+def _read_set_md(item: dict[str, Any], *, index: int) -> Any:
+    """``{kind: set, target, property, value, [at]}``."""
+    from an.ir import compose as _compose
+
+    if "start" in item:
+        # A REFUSAL, not an alias. `start` is the wrapper key for
+        # actions that HAVE a duration — the parser turns it into
+        # `sequence(delay(start), action)`. A `set` is instantaneous,
+        # so its time IS `at`, and giving one number two names is how
+        # a scene ends up with both.
+        #
+        # It was silently dropped before an#108: `start` is popped only
+        # for kinds registered with `md_start`, and this reader reads `at`
+        # alone, so `{kind: set, start: 1.0}` compiled to a swap at t=0. The
+        # author sees a lamp that is lit from the first frame and no
+        # message anywhere.
+        raise SceneMarkdownError(
+            f"actions[{index}] is a `set` with `start: {item['start']!r}`, "
+            "which does nothing: a `set` is instantaneous and its time "
+            f"is `at:`. Write `at: {item['start']!r}`."
+        )
+    return _compose.set_(
+        item["target"],
+        item["property"],
+        item["value"],
+        at=float(item.get("at", 0.0)),
+    )
+
+
+def _write_tween_md(leaf: Any) -> dict[str, Any]:
+    entry: dict[str, Any] = {
+        "kind": "tween",
+        "target": leaf.target,
+        "property": leaf.property,
+        "to": leaf.to_value,
+        "duration": leaf.duration,
+    }
+    if leaf.from_value is not None:
+        entry["from"] = leaf.from_value
+    # Written exactly when the author set it — `ease_in_out` included,
+    # because under a scene `default_easing` an explicit ease_in_out
+    # and an unset easing draw different curves (an#166).
+    if "easing" in leaf.model_fields_set:
+        entry["easing"] = (
+            list(leaf.easing) if isinstance(leaf.easing, tuple) else leaf.easing
+        )
+    return entry
+
+
+def _write_set_md(leaf: Any) -> dict[str, Any]:
+    entry: dict[str, Any] = {
+        "kind": "set",
+        "target": leaf.target,
+        "property": leaf.property,
+        "value": leaf.value,
+    }
+    if leaf.at:
+        entry["at"] = leaf.at
+    return entry
+
+
+def _attach_core_md_hooks() -> None:
+    """Give the core's ``set`` and ``tween`` (registered by :mod:`an.ir.compose`)
+    their ``scene.md`` hooks: this module owns the markdown form."""
+    from dataclasses import replace
+
+    from an.ir import compose as _compose  # noqa: F401 — registers the core kinds
+
+    for name, read, write in (
+        ("set", _read_set_md, _write_set_md),
+        ("tween", _read_tween_md, _write_tween_md),
+    ):
+        current = action_kind(name)
+        if current is not None and current.read_md is None:
+            register_action_kind(
+                replace(current, read_md=read, write_md=write),
+                owner=CORE_OWNER,
+                replace=True,
+            )
 
 
 def _extract_yaml_list_block(text: str, label: str) -> list[Any] | None:
@@ -687,24 +796,32 @@ def ir_to_markdown(scene: SceneIR) -> str:
 def _actions_to_yaml_list(actions: list) -> list[dict]:
     """Convert authoring Action objects back to the markdown-friendly dicts.
 
-    Only handles the leaf-action shapes that the markdown parser also accepts:
-    set, tween, play, plus the ``sequence(delay(start), <leaf>)`` wrapper that
-    the parser produces for actions with a ``start`` time. Composition trees
-    that don't fit those shapes are skipped (logged via the JSON fallback —
-    no data loss, just no markdown round-trip).
+    A leaf whose registered kind has a ``write_md`` hook (the core's set and
+    tween, a genre's leaves such as ``play``) is written in its short form,
+    and so is the ``sequence(delay(start), <leaf>)`` wrapper the parser
+    produces for a ``start:`` key. Anything else — a ``parallel`` (``stagger``
+    builds one), a ``loop``, a nested ``sequence``, a genre leaf with no md
+    form — is written VERBATIM, as the action's own JSON form, which the reader
+    validates back through the schema. Nothing is ever dropped: scene.md is
+    what the JSON is regenerated from on the next md edit (review-244 S4/S5).
+
+    An action whose kind no loaded genre registered — a bare
+    ``ExtensionAction``, or a typed genre action built in Python while its
+    genre is not registered — is REFUSED, naming the genre that provides it.
     """
+    from an.ir.compose import iter_actions
     from an.ir.schema import (
-        DFLT_EXPRESSION_BLEND_S,
         DelayAction,
-        ExpressionAction,
-        PlayAction,
+        ExtensionAction,
         SequenceAction,
-        SetAction,
-        TweenAction,
+        unregistered_action_kind,
     )
 
     out: list[dict] = []
     for action in actions:
+        for node in iter_actions(action):
+            if action_kind(getattr(node, "kind", None) or "") is None:
+                raise unregistered_action_kind(str(getattr(node, "kind", None)))
         # Unwrap sequence(delay(start), leaf) → leaf with start.
         start = None
         leaf = action
@@ -715,70 +832,36 @@ def _actions_to_yaml_list(actions: list) -> list[dict]:
         ):
             start = action.children[0].duration
             leaf = action.children[1]
-        if isinstance(leaf, TweenAction):
-            entry = {
-                "kind": "tween",
-                "target": leaf.target,
-                "property": leaf.property,
-                "to": leaf.to_value,
-                "duration": leaf.duration,
-            }
-            if leaf.from_value is not None:
-                entry["from"] = leaf.from_value
-            # Written exactly when the author set it — `ease_in_out` included,
-            # because under a scene `default_easing` an explicit ease_in_out
-            # and an unset easing draw different curves (an#166).
-            if "easing" in leaf.model_fields_set:
-                entry["easing"] = (
-                    list(leaf.easing) if isinstance(leaf.easing, tuple) else leaf.easing
-                )
-            if start is not None:
-                entry["start"] = start
-            out.append(entry)
-        elif isinstance(leaf, SetAction):
-            entry = {
-                "kind": "set",
-                "target": leaf.target,
-                "property": leaf.property,
-                "value": leaf.value,
-            }
-            if leaf.at:
-                entry["at"] = leaf.at
-            out.append(entry)
-        elif isinstance(leaf, PlayAction):
-            entry = {
-                "kind": "play",
-                "target": leaf.target,
-                "animation": leaf.animation,
-            }
-            if leaf.duration is not None:
-                entry["duration"] = leaf.duration
-            if leaf.speed != 1.0:
-                entry["speed"] = leaf.speed
-            if leaf.loop is not None:
-                entry["loop"] = bool(leaf.loop)
-            if leaf.args is not None:
-                entry["args"] = dict(leaf.args)
-            if start is not None:
-                entry["start"] = start
-            out.append(entry)
-        elif isinstance(leaf, ExpressionAction):
-            entry = {"kind": "expression", "target": leaf.target}
-            if leaf.preset is not None:
-                entry["preset"] = leaf.preset
-            if leaf.axes:
-                entry["axes"] = dict(leaf.axes)
-            if leaf.intensity != 1.0:
-                entry["intensity"] = leaf.intensity
-            if leaf.duration is not None:
-                entry["duration"] = leaf.duration
-            if leaf.blend != DFLT_EXPRESSION_BLEND_S:
-                entry["blend"] = leaf.blend
-            if start is not None:
-                entry["start"] = start
-            out.append(entry)
-        # else: skip (composition trees that don't round-trip cleanly to md).
+        if type(leaf) is ExtensionAction:
+            leaf = leaf.resolved()
+        registered = action_kind(leaf.kind)
+        entry = None
+        if registered.write_md is not None and (start is None or registered.md_start):
+            entry = registered.write_md(leaf)
+        if entry is None:
+            out.append(_verbatim_action(action))
+            continue
+        if start is not None:
+            entry["start"] = start
+        out.append(entry)
     return out
+
+
+def _verbatim_action(action: Any) -> dict:
+    """``action``'s own JSON form, minus the ``name: null`` noise on every node."""
+
+    def strip(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                k: strip(v) for k, v in value.items() if not (k == "name" and v is None)
+            }
+        if isinstance(value, list):
+            return [strip(v) for v in value]
+        return value
+
+    if type(action) is not dict:
+        action = action.model_dump(mode="json")
+    return strip(action)
 
 
 # -----------------------------------------------------------------------------
@@ -925,3 +1008,6 @@ def sync(project_dir: str | Path) -> SyncResult:
             result.wrote_json = True
         # else: within tolerance, no rewrite needed.
     return result
+
+
+_attach_core_md_hooks()

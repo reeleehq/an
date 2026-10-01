@@ -210,6 +210,11 @@ def register_space(
     ``owner`` names who registered it; only :data:`CORE_OWNER`'s spaces reach
     `an`'s contract files, so an installed genre never edits the core contract.
     """
+    if space.name == VALUE_TYPED:
+        raise SpaceError(
+            f"{VALUE_TYPED!r} is reserved: `space={VALUE_TYPED!r}` asks "
+            "evaluate_timeline for the value-typed rule"
+        )
     if not replace and space.name in _REGISTRY:
         raise SpaceError(f"property space {space.name!r} is already registered")
     _REGISTRY[space.name] = space
@@ -231,10 +236,33 @@ def space_names(*, owner: str | None = None) -> tuple[str, ...]:
     return tuple(k for k in _REGISTRY if owner is None or _OWNERS[k] == owner)
 
 
-#: The space whose write groups the value-typed rule (``space=None``) uses:
+#: The space whose write groups the value-typed rule (:data:`VALUE_TYPED`) uses:
 #: the stage engine's node, resolved BY NAME at call time, so moving the stage's
 #: registration (P3: into ``an.stage``) or replacing it needs no kernel edit.
 DFLT_VALUE_TYPED_SPACE: str = "stage.node"
+
+#: What ``evaluate_timeline(..., space=None)`` evaluates with: DECLARED field
+#: kinds from this registered space, resolved by name at call time (ADR 0001
+#: decision 11: field kinds are declared, never inferred). The flip from the
+#: value-typed rule happened in P2 (an#239 item 2), once the compiler refused
+#: every keyframe value that fails its field kind — so the two rules agree on
+#: everything the compiler emits (the corpus-frame test and the golden vectors,
+#: which hold both). Every caller — compile's from-less start, ``impacts``'
+#: truth projections, the bench — inherits it. ``None`` here would restore the
+#: value-typed rule as the default.
+#:
+#: ONE space for every target, by design for now: a compiled stage document's
+#: nodes are all stage nodes and it does not carry its entities' kinds. The
+#: per-entity policy (:func:`an.genres.entity_space_resolver`) is what
+#: ``an validate`` and the compiler's keyframe check use; making it the
+#: evaluator's default too belongs to the ``Engine`` seam (P3, an#245), where
+#: an engine knows its document's entities (review-244 S7).
+DFLT_TIMELINE_SPACE: str | None = "stage.node"
+
+#: Pass as ``space=`` to ask for the value-typed rule ``runtime.js`` implements
+#: (interpolate by the value's runtime type, the :data:`DFLT_VALUE_TYPED_SPACE`
+#: write groups) — what the contract's parity lane holds the stage runtime to.
+VALUE_TYPED: str = "value-typed"
 
 
 #: What an evaluator accepts as "the space": one space for every target, a
