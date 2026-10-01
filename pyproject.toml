@@ -105,6 +105,9 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "ruff>=0.1.0",
+    # The timing contract's schemas (an/data/timing/*.schema.json) are checked
+    # against what the stage actually compiles (tests/test_timing_contract.py).
+    "jsonschema",
 ]
 docs = [
     "sphinx>=6.0",

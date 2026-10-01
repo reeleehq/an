@@ -1,0 +1,117 @@
+"""Clip: a named bundle of channels with a duration and loop mode.
+
+A clip is what you'd call an "animation" in Spine / Rive terminology — a
+reusable unit (e.g. ``"walk_cycle"``, ``"wave"``). Evaluating a clip at time
+``t`` produces a `Pose` by evaluating each of its channels at ``t``.
+
+Loop modes:
+
+- ``LoopMode.ONCE`` — past ``duration``, the last frame holds.
+- ``LoopMode.LOOP`` — ``t`` wraps modulo ``duration``.
+- ``LoopMode.PING_PONG`` — ``t`` ping-pongs over ``[0, duration]``.
+
+>>> from an.timing.channel import Channel, Keyframe
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> clip = Clip("walk", duration=1.0, channels=[ch], loop_mode=LoopMode.LOOP)
+>>> evaluate(clip, 0.5)[("a", "x")]
+5.0
+>>> evaluate(clip, 1.25)[("a", "x")]  # loop wraps
+2.5
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, TypeAlias
+
+from an.timing.channel import Channel
+from an.timing.channel import evaluate as _evaluate_channel
+from an.timing.kinds import FieldKind
+
+#: Mapping of (target_path, property_name) -> value — the universal output of
+#: animation evaluation. Application happens in ``runtime.js`` (``applyPose``);
+#: the Python side only ever *produces* poses (an#86 deleted the Python
+#: applier, which structurally could not apply swap or alpha values).
+Pose: TypeAlias = dict[tuple[str, str], Any]
+
+#: ``(target, property) -> FieldKind``: the declared kind of each channel.
+KindOf: TypeAlias = Callable[[str, str], FieldKind]
+
+
+def merge_poses(*poses: Pose) -> Pose:
+    """Merge multiple poses with **override semantics** (later wins per key).
+
+    Used by the timeline to combine concurrent clips on the same target.
+
+    >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
+    {('a', 'x'): 2.0, ('a', 'y'): 3.0}
+    """
+    out: Pose = {}
+    for p in poses:
+        out.update(p)
+    return out
+
+
+class LoopMode(str, Enum):
+    """How a clip behaves past its natural duration."""
+
+    ONCE = "once"
+    LOOP = "loop"
+    PING_PONG = "ping_pong"
+
+
+@dataclass(slots=True)
+class Clip:
+    """Named animation: a duration + a bundle of channels."""
+
+    name: str
+    duration: float
+    channels: list[Channel] = field(default_factory=list)
+    loop_mode: LoopMode = LoopMode.ONCE
+
+    def __post_init__(self) -> None:
+        if self.duration <= 0:
+            raise ValueError(
+                f"Clip {self.name!r} duration must be > 0; got {self.duration}"
+            )
+
+
+def _wrap_time(t: float, duration: float, loop_mode: LoopMode) -> float:
+    """Apply the loop mode to ``t``, returning a time within ``[0, duration]``."""
+    if t < 0:
+        return 0.0
+    if loop_mode == LoopMode.ONCE:
+        return min(t, duration)
+    if loop_mode == LoopMode.LOOP:
+        return t % duration if duration > 0 else 0.0
+    # PING_PONG: bounce between 0 and duration over period 2*duration.
+    # The duration guard mirrors LOOP's: `Clip` forbids duration <= 0, but this
+    # function is also the spec the JS runtime ports, and a hand-written or
+    # programmatically-built descriptor has no `Clip` to validate it. Without the
+    # guard this raised ZeroDivisionError where LOOP returned 0.0 — the two modes
+    # disagreeing on the same degenerate input.
+    if duration <= 0:
+        return 0.0
+    period = 2.0 * duration
+    phase = t % period
+    return phase if phase <= duration else period - phase
+
+
+#: The public name of the loop rule (the contract's; ``_wrap_time`` is kept for
+#: the callers and tests that already import it).
+wrap_time = _wrap_time
+
+
+def evaluate(clip: Clip, t: float, *, kind_of: KindOf | None = None) -> Pose:
+    """Evaluate ``clip`` at time ``t``, returning a `Pose`.
+
+    ``kind_of`` declares each channel's field kind; ``None`` interpolates by
+    value type, as ``runtime.js`` does (see :mod:`an.timing.channel`).
+    """
+    wrapped = _wrap_time(t, clip.duration, clip.loop_mode)
+    pose: Pose = {}
+    for ch in clip.channels:
+        kind = None if kind_of is None else kind_of(ch.target, ch.property)
+        pose[(ch.target, ch.property)] = _evaluate_channel(ch, wrapped, kind=kind)
+    return pose

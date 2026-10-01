@@ -1,0 +1,117 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/thorwhalen/an/blob/main/an/data/timing/timeline.schema.json",
+ "title": "an flat timeline",
+ "description": "The authored flat timeline: every action at absolute seconds, as (start, end, address, change). A change is 'set' or 'tween'; a tween without 'from' starts from whatever the property has at 'start'.",
+ "type": "object",
+ "required": [
+  "format",
+  "version",
+  "actions"
+ ],
+ "properties": {
+  "format": {
+   "const": "an.timeline"
+  },
+  "version": {
+   "const": 1
+  },
+  "duration": {
+   "type": "number",
+   "minimum": 0
+  },
+  "actions": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/action"
+   }
+  }
+ },
+ "$defs": {
+  "address": {
+   "type": "string",
+   "pattern": "^[^:/@\\s](?:[^:/@]*[^:/@\\s])?(?:/[^:/@\\s](?:[^:/@]*[^:/@\\s])?)*:[^:/@.\\s](?:[^:/@.]*[^:/@.\\s])?(?:\\.[^:/@.\\s](?:[^:/@.]*[^:/@.\\s])?)*(?:@[^:/@\\s](?:[^:/@]*[^:/@\\s])?)?$",
+   "description": "<entity>[/<node>...]:<field>[@<qualifier>]; the field may be dotted"
+  },
+  "easing": {
+   "description": "null (linear), a name or parametrised spec from easing.json, or a 4-number cubic-Bezier control list solved by an's legacy solver",
+   "anyOf": [
+    {
+     "type": "null"
+    },
+    {
+     "type": "string",
+     "minLength": 1
+    },
+    {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "minItems": 4,
+     "maxItems": 4
+    }
+   ]
+  },
+  "action": {
+   "type": "object",
+   "required": [
+    "start",
+    "end",
+    "address",
+    "change"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "start": {
+     "type": "number"
+    },
+    "end": {
+     "type": "number"
+    },
+    "address": {
+     "$ref": "#/$defs/address"
+    },
+    "change": {
+     "$ref": "#/$defs/change"
+    }
+   }
+  },
+  "change": {
+   "oneOf": [
+    {
+     "type": "object",
+     "required": [
+      "kind",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "kind": {
+       "const": "set"
+      },
+      "value": {}
+     }
+    },
+    {
+     "type": "object",
+     "required": [
+      "kind",
+      "to"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "kind": {
+       "const": "tween"
+      },
+      "from": {},
+      "to": {},
+      "easing": {
+       "$ref": "#/$defs/easing"
+      }
+     }
+    }
+   ]
+  }
+ }
+}

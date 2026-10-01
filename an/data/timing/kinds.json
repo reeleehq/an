@@ -1,0 +1,1223 @@
+{
+ "format": "an.timing.kinds",
+ "version": 1,
+ "description": "Each field kind's parameters (with defaults) and sample interpolations. 'u' is the eased progress handed to the kind; a discrete kind ignores it and switches on time t in 'segment' = [a.time, b.time). An undeclared property is {'kind': 'discrete'} (switch_at 0.5).",
+ "kinds": [
+  {
+   "kind": "number",
+   "description": "A continuous scalar. ``space=\"log\"`` interpolates the logarithm (zoom, scale).",
+   "params": {
+    "space": "linear"
+   },
+   "examples": [
+    {
+     "spec": {
+      "kind": "number"
+     },
+     "samples": [
+      {
+       "a": -2.0,
+       "b": 3.0,
+       "u": 0.0,
+       "value": -2.0
+      },
+      {
+       "a": -2.0,
+       "b": 3.0,
+       "u": 0.25,
+       "value": -0.75
+      },
+      {
+       "a": -2.0,
+       "b": 3.0,
+       "u": 0.5,
+       "value": 0.5
+      },
+      {
+       "a": -2.0,
+       "b": 3.0,
+       "u": 0.75,
+       "value": 1.75
+      },
+      {
+       "a": -2.0,
+       "b": 3.0,
+       "u": 1.0,
+       "value": 3.0
+      },
+      {
+       "a": -2.0,
+       "b": 3.0,
+       "u": 1.25,
+       "value": 4.25
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "number",
+      "space": "log"
+     },
+     "samples": [
+      {
+       "a": 1.0,
+       "b": 4.0,
+       "u": 0.0,
+       "value": 1.0
+      },
+      {
+       "a": 1.0,
+       "b": 4.0,
+       "u": 0.25,
+       "value": 1.4142135623730951
+      },
+      {
+       "a": 1.0,
+       "b": 4.0,
+       "u": 0.5,
+       "value": 2.0
+      },
+      {
+       "a": 1.0,
+       "b": 4.0,
+       "u": 0.75,
+       "value": 2.8284271247461903
+      },
+      {
+       "a": 1.0,
+       "b": 4.0,
+       "u": 1.0,
+       "value": 4.0
+      },
+      {
+       "a": 1.0,
+       "b": 4.0,
+       "u": 1.25,
+       "value": 5.656854249492381
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "angle",
+   "description": "An angle: the shortest arc when ``wrap``, else the raw numbers. Interpolated\n    angles are not re-normalised (350 -> 10 passes through 360).",
+   "params": {
+    "unit": "deg",
+    "wrap": true
+   },
+   "examples": [
+    {
+     "spec": {
+      "kind": "angle"
+     },
+     "samples": [
+      {
+       "a": 350.0,
+       "b": 10.0,
+       "u": 0.0,
+       "value": 350.0
+      },
+      {
+       "a": 350.0,
+       "b": 10.0,
+       "u": 0.25,
+       "value": 355.0
+      },
+      {
+       "a": 350.0,
+       "b": 10.0,
+       "u": 0.5,
+       "value": 360.0
+      },
+      {
+       "a": 350.0,
+       "b": 10.0,
+       "u": 0.75,
+       "value": 365.0
+      },
+      {
+       "a": 350.0,
+       "b": 10.0,
+       "u": 1.0,
+       "value": 10.0
+      },
+      {
+       "a": 350.0,
+       "b": 10.0,
+       "u": 1.25,
+       "value": 375.0
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "angle"
+     },
+     "samples": [
+      {
+       "a": 10.0,
+       "b": 350.0,
+       "u": 0.0,
+       "value": 10.0
+      },
+      {
+       "a": 10.0,
+       "b": 350.0,
+       "u": 0.25,
+       "value": 5.0
+      },
+      {
+       "a": 10.0,
+       "b": 350.0,
+       "u": 0.5,
+       "value": 0.0
+      },
+      {
+       "a": 10.0,
+       "b": 350.0,
+       "u": 0.75,
+       "value": -5.0
+      },
+      {
+       "a": 10.0,
+       "b": 350.0,
+       "u": 1.0,
+       "value": 350.0
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "angle",
+      "unit": "rad"
+     },
+     "samples": [
+      {
+       "a": 0.1,
+       "b": 6.1,
+       "u": 0.0,
+       "value": 0.1
+      },
+      {
+       "a": 0.1,
+       "b": 6.1,
+       "u": 0.25,
+       "value": 0.029203673205103448
+      },
+      {
+       "a": 0.1,
+       "b": 6.1,
+       "u": 0.5,
+       "value": -0.04159265358979311
+      },
+      {
+       "a": 0.1,
+       "b": 6.1,
+       "u": 0.75,
+       "value": -0.11238898038468967
+      },
+      {
+       "a": 0.1,
+       "b": 6.1,
+       "u": 1.0,
+       "value": 6.1
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "angle",
+      "wrap": false
+     },
+     "samples": [
+      {
+       "a": 0.0,
+       "b": 720.0,
+       "u": 0.0,
+       "value": 0.0
+      },
+      {
+       "a": 0.0,
+       "b": 720.0,
+       "u": 0.25,
+       "value": 180.0
+      },
+      {
+       "a": 0.0,
+       "b": 720.0,
+       "u": 0.5,
+       "value": 360.0
+      },
+      {
+       "a": 0.0,
+       "b": 720.0,
+       "u": 0.75,
+       "value": 540.0
+      },
+      {
+       "a": 0.0,
+       "b": 720.0,
+       "u": 1.0,
+       "value": 720.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "vector",
+   "description": "A fixed-length list of numbers, interpolated componentwise.",
+   "params": {},
+   "examples": [
+    {
+     "spec": {
+      "kind": "vector"
+     },
+     "samples": [
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0
+       ],
+       "b": [
+        1.0,
+        -2.0,
+        4.0
+       ],
+       "u": 0.0,
+       "value": [
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0
+       ],
+       "b": [
+        1.0,
+        -2.0,
+        4.0
+       ],
+       "u": 0.25,
+       "value": [
+        0.25,
+        -0.5,
+        1.0
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0
+       ],
+       "b": [
+        1.0,
+        -2.0,
+        4.0
+       ],
+       "u": 0.5,
+       "value": [
+        0.5,
+        -1.0,
+        2.0
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0
+       ],
+       "b": [
+        1.0,
+        -2.0,
+        4.0
+       ],
+       "u": 0.75,
+       "value": [
+        0.75,
+        -1.5,
+        3.0
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0
+       ],
+       "b": [
+        1.0,
+        -2.0,
+        4.0
+       ],
+       "u": 1.0,
+       "value": [
+        1.0,
+        -2.0,
+        4.0
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "quaternion",
+   "description": "A unit quaternion ``[x, y, z, w]``, interpolated by slerp after a sign fix.",
+   "params": {},
+   "examples": [
+    {
+     "spec": {
+      "kind": "quaternion"
+     },
+     "samples": [
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ],
+       "b": [
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.5
+       ],
+       "u": 0.0,
+       "value": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ],
+       "b": [
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.5
+       ],
+       "u": 0.25,
+       "value": [
+        0.14942924536134225,
+        0.14942924536134225,
+        0.14942924536134225,
+        0.9659258262890683
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ],
+       "b": [
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.5
+       ],
+       "u": 0.5,
+       "value": [
+        0.28867513459481287,
+        0.28867513459481287,
+        0.28867513459481287,
+        0.8660254037844386
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ],
+       "b": [
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.5
+       ],
+       "u": 0.75,
+       "value": [
+        0.408248290463863,
+        0.408248290463863,
+        0.408248290463863,
+        0.7071067811865475
+       ]
+      },
+      {
+       "a": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ],
+       "b": [
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.5
+       ],
+       "u": 1.0,
+       "value": [
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.5
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "color",
+   "description": "A colour (hex or ``[r, g, b, a?]`` in 0..1), written back in the form of\n    the start value. ``oklab`` mixes perceptually with premultiplied alpha;\n    ``srgb`` lerps the encoded channels (Manim's and the stage tint's rule).",
+   "params": {
+    "space": "oklab"
+   },
+   "examples": [
+    {
+     "spec": {
+      "kind": "color"
+     },
+     "samples": [
+      {
+       "a": "#ff0000",
+       "b": "#00ff00",
+       "u": 0.0,
+       "value": "#ff0000"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#00ff00",
+       "u": 0.25,
+       "value": "#ed7300"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#00ff00",
+       "u": 0.5,
+       "value": "#d0a800"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#00ff00",
+       "u": 0.75,
+       "value": "#a0d500"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#00ff00",
+       "u": 1.0,
+       "value": "#00ff00"
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "color"
+     },
+     "samples": [
+      {
+       "a": [
+        0.2,
+        0.4,
+        0.6
+       ],
+       "b": [
+        1.0,
+        0.5,
+        0.0,
+        0.5
+       ],
+       "u": 0.0,
+       "value": [
+        0.2,
+        0.4,
+        0.6
+       ]
+      },
+      {
+       "a": [
+        0.2,
+        0.4,
+        0.6
+       ],
+       "b": [
+        1.0,
+        0.5,
+        0.0,
+        0.5
+       ],
+       "u": 0.25,
+       "value": [
+        0.3412632301504058,
+        0.42994823822200007,
+        0.5621107355953756,
+        0.875
+       ]
+      },
+      {
+       "a": [
+        0.2,
+        0.4,
+        0.6
+       ],
+       "b": [
+        1.0,
+        0.5,
+        0.0,
+        0.5
+       ],
+       "u": 0.5,
+       "value": [
+        0.4977577530337531,
+        0.4613242666851633,
+        0.5044929140048586,
+        0.75
+       ]
+      },
+      {
+       "a": [
+        0.2,
+        0.4,
+        0.6
+       ],
+       "b": [
+        1.0,
+        0.5,
+        0.0,
+        0.5
+       ],
+       "u": 0.75,
+       "value": [
+        0.7011785406415162,
+        0.4902019923185253,
+        0.40190839898144026,
+        0.625
+       ]
+      },
+      {
+       "a": [
+        0.2,
+        0.4,
+        0.6
+       ],
+       "b": [
+        1.0,
+        0.5,
+        0.0,
+        0.5
+       ],
+       "u": 1.0,
+       "value": [
+        1.0,
+        0.5,
+        0.0,
+        0.5
+       ]
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "color",
+      "space": "srgb"
+     },
+     "samples": [
+      {
+       "a": "#ff0000",
+       "b": "#0000ff80",
+       "u": 0.0,
+       "value": "#ff0000"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#0000ff80",
+       "u": 0.25,
+       "value": "#bf0040df"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#0000ff80",
+       "u": 0.5,
+       "value": "#800080c0"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#0000ff80",
+       "u": 0.75,
+       "value": "#4000bfa0"
+      },
+      {
+       "a": "#ff0000",
+       "b": "#0000ff80",
+       "u": 1.0,
+       "value": "#0000ff80"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "orbit",
+   "description": "A camera orbiting a target: ``{azimuth, elevation, distance, target?}``.",
+   "params": {
+    "unit": "deg"
+   },
+   "examples": [
+    {
+     "spec": {
+      "kind": "orbit"
+     },
+     "samples": [
+      {
+       "a": {
+        "azimuth": 340.0,
+        "elevation": 10.0,
+        "distance": 2.0,
+        "target": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "projection": "perspective"
+       },
+       "b": {
+        "azimuth": 30.0,
+        "elevation": 60.0,
+        "distance": 8.0,
+        "target": [
+         1.0,
+         2.0,
+         3.0
+        ],
+        "projection": "orthographic"
+       },
+       "u": 0.0,
+       "value": {
+        "azimuth": 340.0,
+        "elevation": 10.0,
+        "distance": 2.0,
+        "target": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "projection": "perspective"
+       }
+      },
+      {
+       "a": {
+        "azimuth": 340.0,
+        "elevation": 10.0,
+        "distance": 2.0,
+        "target": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "projection": "perspective"
+       },
+       "b": {
+        "azimuth": 30.0,
+        "elevation": 60.0,
+        "distance": 8.0,
+        "target": [
+         1.0,
+         2.0,
+         3.0
+        ],
+        "projection": "orthographic"
+       },
+       "u": 0.25,
+       "value": {
+        "azimuth": 352.5,
+        "elevation": 22.5,
+        "distance": 2.8284271247461903,
+        "target": [
+         0.25,
+         0.5,
+         0.75
+        ],
+        "projection": "perspective"
+       }
+      },
+      {
+       "a": {
+        "azimuth": 340.0,
+        "elevation": 10.0,
+        "distance": 2.0,
+        "target": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "projection": "perspective"
+       },
+       "b": {
+        "azimuth": 30.0,
+        "elevation": 60.0,
+        "distance": 8.0,
+        "target": [
+         1.0,
+         2.0,
+         3.0
+        ],
+        "projection": "orthographic"
+       },
+       "u": 0.5,
+       "value": {
+        "azimuth": 365.0,
+        "elevation": 35.0,
+        "distance": 4.0,
+        "target": [
+         0.5,
+         1.0,
+         1.5
+        ],
+        "projection": "orthographic"
+       }
+      },
+      {
+       "a": {
+        "azimuth": 340.0,
+        "elevation": 10.0,
+        "distance": 2.0,
+        "target": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "projection": "perspective"
+       },
+       "b": {
+        "azimuth": 30.0,
+        "elevation": 60.0,
+        "distance": 8.0,
+        "target": [
+         1.0,
+         2.0,
+         3.0
+        ],
+        "projection": "orthographic"
+       },
+       "u": 0.75,
+       "value": {
+        "azimuth": 377.5,
+        "elevation": 47.5,
+        "distance": 5.656854249492381,
+        "target": [
+         0.75,
+         1.5,
+         2.25
+        ],
+        "projection": "orthographic"
+       }
+      },
+      {
+       "a": {
+        "azimuth": 340.0,
+        "elevation": 10.0,
+        "distance": 2.0,
+        "target": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "projection": "perspective"
+       },
+       "b": {
+        "azimuth": 30.0,
+        "elevation": 60.0,
+        "distance": 8.0,
+        "target": [
+         1.0,
+         2.0,
+         3.0
+        ],
+        "projection": "orthographic"
+       },
+       "u": 1.0,
+       "value": {
+        "azimuth": 30.0,
+        "elevation": 60.0,
+        "distance": 8.0,
+        "target": [
+         1.0,
+         2.0,
+         3.0
+        ],
+        "projection": "orthographic"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "discrete",
+   "description": "Holds ``a`` and switches to ``b`` on TIME (see the module docstring).",
+   "params": {
+    "switch_at": 0.5
+   },
+   "examples": [
+    {
+     "spec": {
+      "kind": "discrete"
+     },
+     "samples": [
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.0,
+        1.0
+       ],
+       "t": 0.0,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.0,
+        1.0
+       ],
+       "t": 0.25,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.0,
+        1.0
+       ],
+       "t": 0.5,
+       "value": "B"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.0,
+        1.0
+       ],
+       "t": 0.75,
+       "value": "B"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.0,
+        1.0
+       ],
+       "t": 0.9999999999999999,
+       "value": "B"
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "discrete",
+      "switch_at": 0.25
+     },
+     "samples": [
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        2.0,
+        4.0
+       ],
+       "t": 2.0,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        2.0,
+        4.0
+       ],
+       "t": 2.49,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        2.0,
+        4.0
+       ],
+       "t": 2.5,
+       "value": "B"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        2.0,
+        4.0
+       ],
+       "t": 3.0,
+       "value": "B"
+      }
+     ]
+    },
+    {
+     "spec": {
+      "kind": "discrete",
+      "switch_at": 1
+     },
+     "note": "switch_at == 1 is t >= b.time with no arithmetic: at the float below b.time, (t - a.time) / span rounds to 1.0 and the value is still 'A'",
+     "samples": [
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.1524221856720187,
+        9.767899248713501
+       ],
+       "t": 0.1524221856720187,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.1524221856720187,
+        9.767899248713501
+       ],
+       "t": 5.0,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.1524221856720187,
+        9.767899248713501
+       ],
+       "t": 9.7678992487135,
+       "value": "A"
+      },
+      {
+       "a": "A",
+       "b": "B",
+       "segment": [
+        0.1524221856720187,
+        9.767899248713501
+       ],
+       "t": 9.767899248713501,
+       "value": "B"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "spaces": [
+  {
+   "name": "stage.node",
+   "version": 1,
+   "fields": [
+    {
+     "pattern": "alpha",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "fraction"
+    },
+    {
+     "pattern": "dash_offset",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "pivot_x",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "pivot_y",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "rotation",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "rad"
+    },
+    {
+     "pattern": "rotation_rad",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "rad",
+     "writes": "rotation"
+    },
+    {
+     "pattern": "scale_x",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "ratio"
+    },
+    {
+     "pattern": "scale_y",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "ratio"
+    },
+    {
+     "pattern": "skew_x",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "rad"
+    },
+    {
+     "pattern": "skew_y",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "rad"
+    },
+    {
+     "pattern": "tint_b",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "fraction"
+    },
+    {
+     "pattern": "tint_g",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "fraction"
+    },
+    {
+     "pattern": "tint_r",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "fraction"
+    },
+    {
+     "pattern": "trim_end",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "fraction"
+    },
+    {
+     "pattern": "trim_start",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "fraction"
+    },
+    {
+     "pattern": "x",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "y",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "*@*",
+     "spec": {
+      "kind": "discrete",
+      "switch_at": 1
+     },
+     "writes": "<swap>",
+     "description": "a variant swap set (viseme@happy): replacement animation"
+    },
+    {
+     "pattern": "*",
+     "spec": {
+      "kind": "discrete",
+      "switch_at": 1
+     },
+     "writes": "<swap>",
+     "description": "any other property names a swap set: replacement animation"
+    }
+   ],
+   "description": "a node of the 2D stage engine: transform properties interpolate as plain numbers; every other property is a swap set that switches at its own key"
+  },
+  {
+   "name": "stage.camera",
+   "version": 1,
+   "fields": [
+    {
+     "pattern": "x",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "y",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "zoom",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "ratio"
+    },
+    {
+     "pattern": "rotation",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "rad"
+    }
+   ],
+   "description": "the 2D stage's framing camera (lowered onto root.pivot, root.scale and root.rotation); all plain numbers, reproducing the cut-out output"
+  }
+ ]
+}
