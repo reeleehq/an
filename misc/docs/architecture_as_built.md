@@ -339,7 +339,7 @@ Project.load(dir)
    └─ return IterateResult(success, summary, patches, affected_shots, new_scene, validation)
 ```
 
-Then `an render` regenerates only the invalidated shots, reusing the rest from `mall["shots"]`.
+The deletion is **inert**: `an render` re-renders every shot, because nothing reads `mall["shots"]` (§6). Incremental re-rendering is proposed in `misc/docs/adr/0004-incremental-reprocessing.md`.
 
 ### 5.3 `an validate <dir>` (cheap pre-flight)
 
@@ -572,6 +572,8 @@ The seven research reports next to this file describe the design space:
 - `Annotation systems...md` — interval data structures, rational time, A/V sync
 
 When a subsystem is being extended, read the matching report before designing.
+
+The design principles every change is checked against are `misc/docs/design_principles.md`; the October 2026 framework review (`framework_review_2026-10.md`, `cutout_framework_review_2026-10.md`) and the proposed ADRs in `misc/docs/adr/` describe where the architecture is meant to go (core/genre split, capability registry, one semantic layer, incremental re-rendering).
 
 ---
 
