@@ -81,6 +81,7 @@ from an.library.ids import (
 from an.library.kinds import ASSET_KINDS, UnknownKindError, asset_kind_info
 from an.library.registry import RegistryError
 from an.library.rights import (
+    ASSET_SOURCE_LABEL,
     LICENSE_CLASS_ORDER,
     PUBLISHABLE_CLASSES,
     Rights,
@@ -157,8 +158,18 @@ RELICENSE_FIELD: str = "relicense"
 PREVIOUS_FIELD: str = "previous"
 #: The version field listing the files a CARRIED asset-level source does not
 #: speak for: changed or added since the version the source was declared on
-#: (S1 of review-259). Each is ``unknown`` until a publish labels it again.
+#: (S1 of review-259). Each is ``unknown`` — on this version and, through
+#: ``previous``, on every later one — until a publish labels it: an explicit
+#: ``source=`` with a recorded ``relabel`` (:data:`RELABEL_FIELD`), or a relicence.
 UNLABELLED_FIELD: str = "unlabelled"
+#: The version field recording an explicit LABEL of bytes nobody labelled:
+#: ``{"by": who, "reason": why}``, beside an explicit ``source`` (an#263). It
+#: answers the GAPS of the asset's own version chain — a file an earlier version
+#: recorded as ``unlabelled``, an earlier version that recorded no source at
+#: all — with that source. It is a first statement, not a relaxation: it answers
+#: nothing anyone stated (a private or any other licence, a per-part source, a
+#: version it derives from, another asset's statement about the same bytes).
+RELABEL_FIELD: str = "relabel"
 #: How many labels a publish tries when another publisher takes the one it chose.
 MAX_PUBLISH_ATTEMPTS: int = 8
 #: How many close capability names a typo's error suggests.
@@ -345,6 +356,7 @@ def _manifest(
     *,
     previous: str | None = None,
     relicense: Mapping[str, Any] | None = None,
+    relabel: Mapping[str, Any] | None = None,
     unlabelled: Iterable[str] = (),
 ) -> str:
     payload: dict[str, Any] = {
@@ -357,6 +369,8 @@ def _manifest(
         payload[PREVIOUS_FIELD] = previous
     if relicense:
         payload[RELICENSE_FIELD] = dict(relicense)
+    if relabel:
+        payload[RELABEL_FIELD] = dict(relabel)
     if unlabelled:
         payload[UNLABELLED_FIELD] = sorted(unlabelled)
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
@@ -375,6 +389,7 @@ def version_manifest(version: Mapping[str, Any]) -> str:
         version.get("derived_from") or [],
         previous=version.get(PREVIOUS_FIELD),
         relicense=version.get(RELICENSE_FIELD),
+        relabel=version.get(RELABEL_FIELD),
         unlabelled=version.get(UNLABELLED_FIELD) or (),
     )
 
@@ -420,6 +435,16 @@ def read_version(library: Library, asset_id: str, label: str) -> dict[str, Any]:
 
 def _relicense_note(relicense: Mapping[str, Any]) -> str:
     return f"relicensed by {relicense.get('by')}: {relicense.get('reason')}"
+
+
+def _relabel_note(relabel: Mapping[str, Any]) -> str:
+    return f"labelled by {relabel.get('by')}: {relabel.get('reason')}"
+
+
+#: How to label bytes nobody labelled, named wherever such a gap is reported.
+LABEL_HINT: str = (
+    "a publish with --license/--provider and --relabel-by/--relabel-reason labels it"
+)
 
 
 def _digest_of(source: AssetSource) -> str | None:
@@ -480,6 +505,8 @@ def version_sources(
     floor: BlobFloor | None = _MACHINE,
     _prefix: str = "",
     _seen: set[str] | None = None,
+    _walked: set[str] | None = None,
+    _answer: tuple[str, AssetSource | None] | None = None,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source a version's rights depend on — its own, its lineage, its bytes.
 
@@ -489,7 +516,9 @@ def version_sources(
     - the **floor** of every file: what any OTHER asset in any library on this
       machine says about the same bytes (:mod:`an.library.floor`), labelled
       ``<path>: same bytes as <asset>@<version>``. A blob is as restricted as the
-      strictest statement made about it anywhere.
+      strictest statement made about it anywhere. A statement made by a version
+      this walk reads in full (itself, its lineage) is not read twice from the
+      floor: the walk already holds everything it said.
 
     floor: a :class:`~an.library.floor.BlobFloor` to read (default: every
         library on the machine); ``None`` leaves the floor out — what the
@@ -497,11 +526,17 @@ def version_sources(
 
     A version carrying an explicit ``relicense`` (who, why) contributes its
     asset-level source alone: that recorded statement replaces everything it
-    would otherwise inherit, and is the only way to relax rights. A parent no
-    library on the path holds falls back to the rights recorded at publish, or
-    ``unknown`` — never silence.
+    would otherwise inherit, and is the only way to relax rights. A version
+    carrying a ``relabel`` (who, why, beside an explicit source) answers the
+    GAPS of its own ``previous`` chain with that source — a file recorded
+    ``unlabelled``, a version that recorded no source at all — and nothing else
+    (:data:`RELABEL_FIELD`). A parent no library on the path holds falls back to
+    the rights recorded at publish, or ``unknown`` — never silence.
     """
     seen = set() if _seen is None else _seen
+    walked = set() if _walked is None else _walked
+    if version.get("manifest_sha256"):
+        walked.add(version["manifest_sha256"])
     if floor is _MACHINE:
         floor = BlobFloor(libraries)
     relicense = version.get(RELICENSE_FIELD)
@@ -512,9 +547,20 @@ def version_sources(
                 _source_model(version.get("source")),
             )
         ]
+
+    def gap(label: str, unanswered: str) -> tuple[str, AssetSource | None]:
+        # Nobody ever said anything here: answered by a later version's
+        # explicit, recorded label of this chain, else unknown.
+        if _answer is None:
+            return (f"{label}{unanswered}", None)
+        note, answer = _answer
+        return (f"{label} ({note})", answer)
+
     kind = ASSET_KINDS.get(version.get("doc_kind") or "")
     out = [
-        (f"{_prefix}{label}", src)
+        gap(f"{_prefix}{label}", "")
+        if src is None and label == ASSET_SOURCE_LABEL
+        else (f"{_prefix}{label}", src)
         for label, src in sources_in(
             version.get("doc") or {},
             store=kind.credits_store if kind else None,
@@ -523,17 +569,25 @@ def version_sources(
         )
     ]
     out += [
-        (
-            f"{_prefix}{path} (changed since the carried source was declared; "
-            "not labelled)",
-            None,
+        gap(
+            f"{_prefix}{path}",
+            " (changed since the carried source was declared; not labelled: "
+            f"{LABEL_HINT})",
         )
         for path in version.get(UNLABELLED_FIELD) or []
     ]
+    relabel = version.get(RELABEL_FIELD)
+    own_answer = (
+        (_relabel_note(relabel), _source_model(version.get("source")))
+        if relabel and version.get("source")
+        else None
+    )
     lineage = [
-        (ref, f"previous version {ref}") for ref in [version.get(PREVIOUS_FIELD)] if ref
-    ] + [(ref, ref) for ref in version.get("derived_from") or []]
-    for parent, label in lineage:
+        (ref, f"previous version {ref}", own_answer or _answer)
+        for ref in [version.get(PREVIOUS_FIELD)]
+        if ref
+    ] + [(ref, ref, None) for ref in version.get("derived_from") or []]
+    for parent, label, answer in lineage:
         try:
             _, pinned, parent_version = resolve(libraries, parent)
         except (AssetNotFoundError, AssetIdError):
@@ -558,15 +612,20 @@ def version_sources(
             floor=floor,
             _prefix=f"{_prefix}{label} > ",
             _seen=seen,
+            _walked=walked,
+            _answer=answer,
         )
     if floor is not None:
-        own_manifest = version.get("manifest_sha256")
         for path, raw in sorted((version.get("files") or {}).items()):
             digest = ContentRef.from_json(raw).item_id
-            for asset_key, statement in sorted(floor.statements(digest).items()):
-                if statement.get("class") == "free" or (
-                    own_manifest and statement.get("manifest") == own_manifest
-                ):
+            # A statement whose manifest is a version this walk reads in full
+            # (this one, its lineage) adds nothing the walk does not hold —
+            # and read here, an earlier version's gap would bind past the
+            # label that answers it. Every other statement binds.
+            for asset_key, statement in sorted(
+                floor.statements(digest, exclude=walked).items()
+            ):
+                if statement.get("class") == "free":
                     continue
                 ref = f"{asset_key}@{statement.get('version')}"
                 out.append(
@@ -748,6 +807,9 @@ def effective_rights(
         return Rights(
             rights.license_class, [*rights.reasons, _relicense_note(relicense)]
         )
+    relabel = version.get(RELABEL_FIELD)
+    if relabel:
+        return Rights(rights.license_class, [*rights.reasons, _relabel_note(relabel)])
     return rights
 
 
@@ -793,6 +855,7 @@ def _same_as_head(
         or _file_hashes(head.get("files") or {}) != dict(hashes)
         or head.get("source") != pending["source"]
         or (head.get(RELICENSE_FIELD) or None) != (pending.get(RELICENSE_FIELD) or None)
+        or (head.get(RELABEL_FIELD) or None) != (pending.get(RELABEL_FIELD) or None)
         or sorted(head.get(UNLABELLED_FIELD) or [])
         != sorted(pending.get(UNLABELLED_FIELD) or [])
     ):
@@ -838,6 +901,7 @@ def publish(
     *,
     source: AssetSource | Mapping[str, Any] | None = None,
     relicense: Mapping[str, str] | None = None,
+    relabel: Mapping[str, str] | None = None,
     derived_from: Iterable[str] = (),
     title: str | None = None,
     family: str | None = None,
@@ -865,9 +929,10 @@ def publish(
         or exactly what the head's declared, the source of the previous version
         carries forward (``carry_source``) — for the bytes it was declared on
         only: a file changed or added since is recorded as ``unlabelled`` on the
-        version and is ``unknown`` until a publish passes ``source=`` (or a
-        relicence) again; with no source at all the version is ``unknown`` —
-        recorded and visible, not refused
+        version and is ``unknown``. Later versions inherit that gap through
+        ``previous`` even when they pass ``source=``; ``relabel`` (or a
+        relicence) answers it. With no source at all the version is ``unknown``
+        — recorded and visible, not refused
     relicense: ``{"by": who, "reason": why}`` — the ONLY way to relax rights.
         Rights attach to the bytes and the lineage: a new version inherits the
         version it follows (``previous``), every version it derives from, and
@@ -876,6 +941,14 @@ def publish(
         never relabels private art. A relicence makes ``source`` (required) the
         whole statement, records who and why on the version (and in its
         manifest and reasons), and covers these bytes for later versions
+    relabel: ``{"by": who, "reason": why}`` beside an explicit ``source=``
+        (required) — a first statement about bytes NOBODY labelled (an#263):
+        the gaps of this asset's own version chain (files an earlier version
+        recorded ``unlabelled``, an earlier version with no source at all) are
+        answered with ``source``. It relaxes no statement anyone made: a private
+        (or any) licence, a per-part source, a version this one derives from,
+        and every other asset's statement about the same bytes still bind.
+        Recorded on the version, in its manifest and in its reasons
     derived_from: library references this version derives from (an earlier version,
         the original of a recolour); each must resolve, and its rights are inherited.
         A descriptor checked out of a library derives from its origin by default
@@ -912,6 +985,23 @@ def publish(
             raise LibraryError(
                 "a relicence needs the source= it relicenses the asset under "
                 "(--license and --provider)"
+            )
+    if relabel is not None:
+        relabel = {k: str(v).strip() for k, v in dict(relabel).items()}
+        if not relabel.get("by") or not relabel.get("reason"):
+            raise LibraryError(
+                "a label of unlabelled bytes records who and why: relabel={'by': …, "
+                "'reason': …} (--relabel-by, --relabel-reason)"
+            )
+        if source is None:
+            raise LibraryError(
+                "a relabel needs the source= it labels the bytes with "
+                "(--license and --provider)"
+            )
+        if relicense is not None:
+            raise LibraryError(
+                "relabel and relicense are exclusive: a relicence already replaces "
+                "every statement the version inherits"
             )
     doc = _doc_dict(doc)
     origin_block = pop_origin(doc)
@@ -998,6 +1088,8 @@ def publish(
         pending[PREVIOUS_FIELD] = str(LibraryRef(asset_id, head, library.name))
     if relicense:
         pending[RELICENSE_FIELD] = relicense
+    if relabel:
+        pending[RELABEL_FIELD] = relabel
     if unlabelled:
         pending[UNLABELLED_FIELD] = unlabelled
     floor = BlobFloor(readers)
@@ -1009,6 +1101,7 @@ def publish(
         pinned_parents,
         previous=pending.get(PREVIOUS_FIELD),
         relicense=relicense,
+        relabel=relabel,
         unlabelled=unlabelled,
     )
     _load_genres()  # the analysers are the genres' (P7): never an empty facet by accident
@@ -1663,6 +1756,9 @@ def promote(
         verified_files(library, version),
         source=version.get("source"),
         relicense=version.get(RELICENSE_FIELD),
+        # No relabel: it was a statement about the SOURCE asset's chain, which
+        # the copy inherits through derived_from; it says nothing about the
+        # target's own earlier versions.
         derived_from=[str(pinned)],
         title=record.get("title"),
         family=record.get("family"),

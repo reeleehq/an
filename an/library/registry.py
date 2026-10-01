@@ -32,6 +32,11 @@ there the location is as stable as that variable.)
   asset at the same root — so a relicence there still speaks, as in the
   library's own index. A file that cannot be parsed counts as ``unknown``.
 
+Deleting the registry folder wholesale deletes that memory with it — nothing
+left on disk tells a deleted registry from a first use — so whenever the
+registry is created from nothing, the first write warns
+(:class:`RegistryWarning`). Prune it; never delete it.
+
 Both are read **fail-closed**: a registry or memory that exists but cannot be
 read raises :class:`RegistryError` — a floor that silently read less would let
 private bytes out. Libraries with injected stores (no root on disk: an S3 or
@@ -100,7 +105,7 @@ class RegistryError(OSError):
 
 
 class RegistryWarning(UserWarning):
-    """The registry was absent while libraries exist on disk (first use, or lost)."""
+    """The registry was absent and is being created from nothing (first use, or deleted)."""
 
 
 def _account_home() -> Path:

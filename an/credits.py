@@ -273,6 +273,17 @@ def collect_credits(
             if source is None and isinstance(descriptor, Mapping):
                 raw = descriptor.get("source")
                 source = _source_or_unknown(raw, f"{store_name}/{key}") if raw else None
+                left = _checked_out(descriptor)
+                if source is None and left is not None and left.get("source"):
+                    # The label a library check-out left here was removed: what
+                    # the copy is now, nobody has said (an#264). Never silence.
+                    source = AssetSource(
+                        provider="unknown",
+                        extra={
+                            "reason": "the source a library check-out left on this "
+                            "copy was removed since"
+                        },
+                    )
             if source is None and store_name == "characters":
                 source = _reconstruct_legacy_source(descriptor)
             found: list[CreditEntry] = []
@@ -352,6 +363,26 @@ def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
 #: Where a library check-out records itself in a descriptor (ADR 0005); the
 #: library writes it (`an.library.api.ORIGIN_KEY`), this walk only reads it.
 LIBRARY_ORIGIN_KEY: str = "library_origin"
+#: The origin-block entry a check-out of a version with an asset-level source
+#: writes (an#264): ``{"source": <the descriptor's source as the check-out left
+#: it>, "files": {path: sha256}}``. That label was declared on those bytes, so
+#: in the copy it speaks only for them — as the library reads it when the copy
+#: is published back (a carried source covers only files unchanged since).
+CHECKED_OUT_KEY: str = "checked_out"
+
+
+def _origin_of(raw: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    metadata = raw.get("metadata")
+    origin = metadata.get(LIBRARY_ORIGIN_KEY) if isinstance(metadata, Mapping) else None
+    return origin if isinstance(origin, Mapping) else None
+
+
+def _checked_out(raw: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """The ``checked_out`` block of a library check-out, if this copy has one."""
+    block = (_origin_of(raw) or {}).get(CHECKED_OUT_KEY)
+    if isinstance(block, Mapping) and isinstance(block.get("files"), Mapping):
+        return block
+    return None
 
 
 def _library_origin_credits(
@@ -377,9 +408,8 @@ def _library_origin_credits(
     raw = descriptor if isinstance(descriptor, Mapping) else None
     if raw is None and hasattr(descriptor, "model_dump"):
         raw = descriptor.model_dump(mode="json")
-    metadata = (raw or {}).get("metadata")
-    origin = metadata.get(LIBRARY_ORIGIN_KEY) if isinstance(metadata, Mapping) else None
-    if not isinstance(origin, Mapping):
+    origin = _origin_of(raw or {})
+    if origin is None:
         return []
     out: list[CreditEntry] = []
     for item in origin.get("sources") or []:
@@ -468,9 +498,18 @@ def _part_credits(
       speaks for nothing: it is UNVERIFIED, unless the descriptor declares a
       source a PERSON wrote, which then speaks for it. A stale claim that is
       ``private`` is still listed as such — stricter never gives way;
-    - under a generator's descriptor-level source (the factory's, DiceBear's)
-      that pins a digest, every file no stamp pins is UNVERIFIED: a generator
-      made claims only about the bytes it produced.
+    - under a generator's descriptor-level source (the factory's, DiceBear's),
+      every file no stamp pins is UNVERIFIED: a generator made claims only about
+      the bytes it produced. A LEGACY generated source that pins no digest
+      (DiceBear before an#259) pins nothing, so it speaks for nothing either
+      (an#264, R2b-N3) — the factory re-pins it on its next touch
+      (``stamp_generated_head``);
+    - in a library check-out, the source the check-out left in the descriptor
+      (the version's asset-level label, ``metadata.library_origin.checked_out``)
+      was declared on the version's bytes: while the descriptor still holds it,
+      a file changed or added since the check-out is UNVERIFIED (an#264) — what
+      the library says when the copy is published back. A source a person
+      writes in its place speaks for the copy as it is.
 
     The asset library reads the same walk (:mod:`an.library.rights`), so the
     library and ``an credits`` agree about which bytes are the factory's.
@@ -524,10 +563,22 @@ def _part_credits(
                     out[asset] = CreditEntry(
                         asset=asset, source=_source_or_unknown(source, asset)
                     )
-    if not covered:
-        unpinned = set(stale - pinned)
-        files = known() if generated and _stamp_digest(own) else None
-        if files is not None:
+    left = _checked_out(raw)
+    since = (
+        left["files"]
+        if covered and left is not None and left.get("source") == own
+        else None
+    )
+    if not covered or since is not None:
+        unpinned = set(stale - pinned) if not covered else set()
+        files = known() if generated or since is not None else None
+        changed: set[str] = set()
+        if files is not None and since is not None:
+            # As the library reads a carried label: every file changed or
+            # added since, whatever stamp it carries (an.library.api.publish).
+            changed = {path for path, digest in files.items() if since.get(path) != digest}
+            unpinned |= changed
+        elif files is not None:
             svg = raw.get("source_svg")
             unpinned |= {
                 path
@@ -546,7 +597,11 @@ def _part_credits(
                     provider="unknown",
                     extra={
                         "reason": (
-                            "the stamp on this part no longer matches its bytes "
+                            "changed or added since the library check-out: the "
+                            "label it carried speaks only for the bytes it was "
+                            "declared on"
+                            if path in changed
+                            else "the stamp on this part no longer matches its bytes "
                             "(re-drawn or re-carved)"
                             if path in stale
                             else "no stamp pins these bytes, and the descriptor's "

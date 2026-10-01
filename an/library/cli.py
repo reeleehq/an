@@ -146,6 +146,8 @@ def publish(
     source_url: str = "",
     relicense_by: str = "",
     relicense_reason: str = "",
+    relabel_by: str = "",
+    relabel_reason: str = "",
     expect_head: str = "",
     replace_curation: bool = False,
     extra: str = "",
@@ -170,6 +172,8 @@ def publish(
     source_url: where it was fetched from
     relicense_by: who relicenses the asset (with --relicense-reason and --license): the only way to relax inherited rights
     relicense_reason: why — recorded on the version and shown in its rights
+    relabel_by: who labels bytes nobody labelled (with --relabel-reason and --license): answers the asset's earlier unlabelled files and sourceless versions, never a stricter statement
+    relabel_reason: why — recorded on the version and shown in its rights
     expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet
     replace_curation: --style/--tags replace the record's lists instead of adding to them
     extra: further libraries where --derived-from resolves, by package name, comma-separated
@@ -196,6 +200,11 @@ def publish(
             if relicense_by or relicense_reason
             else None
         ),
+        relabel=(
+            {"by": relabel_by, "reason": relabel_reason}
+            if relabel_by or relabel_reason
+            else None
+        ),
         replace_curation=replace_curation,
         search=others or None,
         **(
@@ -204,14 +213,21 @@ def publish(
             else {}
         ),
     )
+    lines = [str(result)]
+    if result.rights.license_class == "unknown":
+        lines.append(
+            f"unknown (never publishable): {'; '.join(result.rights.reasons)}. "
+            "To label bytes nobody labelled, publish again with --license … "
+            "--provider … --relabel-by <who> --relabel-reason <why>; that relaxes no "
+            "statement anyone made (that takes --relicense-by/--relicense-reason)."
+        )
     project = _project_of(folder)
-    if project is None:
-        return str(result)
-    return (
-        f"{result}\n"
-        f"to link the project's copy to it (pin it in assets.lock.json): "
-        f"an library checkout {project} {result.ref}"
-    )
+    if project is not None:
+        lines.append(
+            f"to link the project's copy to it (pin it in assets.lock.json): "
+            f"an library checkout {project} {result.ref}"
+        )
+    return "\n".join(lines)
 
 
 @_refusing
