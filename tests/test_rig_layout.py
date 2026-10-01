@@ -103,3 +103,36 @@ def test_legs_hang_from_the_hip_to_the_ground(compiled, leg):
     torso_bottom = boxes["torso"][3]
     assert abs(boxes[leg][1] - torso_bottom) <= TOL_PX, "leg detached from the torso"
     assert abs(boxes[leg][3] - ground) <= TOL_PX, "leg does not reach the ground"
+
+
+@pytest.mark.parametrize("build, head_scale", LAYOUTS)
+def test_stage_extent_says_where_the_compiled_art_reaches(build, head_scale):
+    """`an character new` prints how far the art reaches above and below the
+    stage point (an#252 follow-up: the feet sit at a different depth per build,
+    so one rule of thumb for the regular build misplaced every other one). It
+    must be what the compiled scene does: the head's top edge and the ground."""
+    from an.characters.factory import stage_extent
+
+    with tempfile.TemporaryDirectory() as d:
+        root = init(Path(d) / "p")
+        desc_path = new_character(
+            root / "assets" / "characters", name="c", seed="c", use_dicebear=False,
+            build=build, head_scale=head_scale,
+        )
+        desc = CharacterDescriptor.model_validate_json(desc_path.read_text("utf-8"))
+        shot = Shot(
+            id="s", renderer="cutout", duration=1.0,
+            entities=[AssetRef(kind="character", id="c", store="characters", ref="c")],
+        )
+        doc = to_dict(compile_shot(shot, mall=load(root).mall, fps=24, strict_assets=True))
+    (char,) = doc["scene"]["children"]
+    head = next(n for n in char["children"] if n["name"] == "head")
+    t, v = head["transform"], head["visual"]
+    head_top = char["transform"]["y"] + t["y"] - v["anchor_y"] * v["height"]
+    bones = _bone_positions(desc)
+    k = SCENE_PX_PER_VIEW_BOX / desc.view_box[3]
+    ground = char["transform"]["y"] + (bones["root"][1] - _rig_origin(bones)[1]) * k
+    placed = char["transform"]["y"]
+    ext = stage_extent(desc)
+    assert ext["top"] == pytest.approx(placed - head_top, abs=0.1)
+    assert ext["feet"] == pytest.approx(ground - placed, abs=0.1)

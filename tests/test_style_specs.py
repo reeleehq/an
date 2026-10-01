@@ -175,10 +175,12 @@ def test_the_dialogue_styles_turn_with_the_preset(style):
 
 
 #: `live.characters` keys that are `new_character` keyword arguments, with how a
-#: spec may spell each: `hat` lists the choices a cast picks from, and `palette`
-#: is `per_character` (the style's identity is each figure's own costume) or a
-#: role -> colour map.
-FACTORY_KNOBS = ("build", "head_scale", "hat", "sash", "palette")
+#: spec may spell each: `hat`, `hair_style` and `hair_length` list the choices a
+#: cast picks from, and `palette` is `per_character` (the style's identity is
+#: each figure's own costume) or a role -> colour map.
+FACTORY_KNOBS = ("build", "head_scale", "hat", "hair_style", "hair_length", "sash", "palette")
+#: The knobs a spec spells as a list of choices, with the factory's choices.
+CHOICE_KNOBS = ("hat", "hair_style", "hair_length")
 
 
 def test_character_knobs_are_live_factory_settings(spec, tmp_path):
@@ -187,7 +189,7 @@ def test_character_knobs_are_live_factory_settings(spec, tmp_path):
     import inspect
 
     from an.characters import new_character
-    from an.characters.factory import BUILDS, HATS
+    from an.characters.factory import BUILDS, HAIR_LENGTHS, HAIR_STYLES, HATS
 
     chars = spec["live"]["characters"]
     knobs = {k: chars[k] for k in FACTORY_KNOBS if k in chars}
@@ -197,16 +199,29 @@ def test_character_knobs_are_live_factory_settings(spec, tmp_path):
     assert set(knobs) <= set(params), set(knobs) - set(params)
     if "build" in knobs:
         assert knobs["build"] in BUILDS
-    hats = knobs.pop("hat", ["none"])
-    assert isinstance(hats, list) and set(hats) <= set(HATS)
+    known = {"hat": HATS, "hair_style": HAIR_STYLES, "hair_length": HAIR_LENGTHS}
+    choices = {k: knobs.pop(k) for k in CHOICE_KNOBS if k in knobs}
+    for k, listed in choices.items():
+        assert isinstance(listed, list) and set(listed) <= set(known[k]), (k, listed)
     palette = knobs.pop("palette", None)
     assert palette == "per_character" or isinstance(palette, (dict, type(None)))
     if isinstance(palette, dict):
         knobs["palette"] = palette
     if chars["generate"] != "offline":
         return
-    for i, hat in enumerate(hats):
-        new_character(tmp_path, name=f"c{i}", use_dicebear=False, hat=hat, **knobs)
+    # One character per listed choice (the others at their defaults): each
+    # choice the spec offers is one the factory builds with the style's knobs.
+    built = 0
+    for k, listed in choices.items():
+        for value in listed:
+            if k == "hair_length" and choices.get("hair_style") == ["bald"]:
+                continue  # a cast of bald figures has no hair to grow
+            new_character(
+                tmp_path, name=f"c{built}", use_dicebear=False, **{k: value}, **knobs
+            )
+            built += 1
+    if not built:
+        new_character(tmp_path, name="c0", use_dicebear=False, **knobs)
 
 
 def test_targets_are_measurable(spec):

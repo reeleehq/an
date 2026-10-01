@@ -24,6 +24,7 @@ import json
 import shutil
 import textwrap
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Mapping, Optional
 from xml.etree import ElementTree as ET
@@ -55,6 +56,14 @@ from an.characters.mouth_set import (
     DEFAULT_MOUTH_VARIANTS,
     mouth_attachment_name,
     write_default_mouths,
+)
+from an.characters.brows import (
+    BROW_CANVAS,
+    BROW_STROKE,
+    BROWS_FEATURE,
+    Seat,
+    brow_path_d,
+    seat_above_brows,
 )
 from an.characters.colour_roles import distinct_literal, normalise_hex
 from an.characters.schema import (
@@ -117,10 +126,12 @@ _ACCESSORY_TONES: tuple[str, ...] = (
     "#34495e",  # slate
 )
 
-#: Hats, drawn inside the offline head's 80x80 drawing, ABOVE the brow line
-#: (the brows sit at y~25 and the eyes at y~35 of it): the face parts are
-#: overlays drawn over the head, so a hat reaching lower would wear the eyes on
-#: its brim. ``{acc}`` is the accessory colour, ``{ink}`` the outline.
+#: Hats, drawn inside the offline head's 80x80 drawing. These are the hats as
+#: DRAWN; where one is WORN is :func:`_hat_seat`'s: lifted (and, if need be,
+#: flattened toward its crown) above the brows' acting range at the character's
+#: head scale, so a raised brow never lands on a brim (an#252). The face parts
+#: are overlays drawn over the head, so a hat reaching lower would wear the
+#: brows on its brim. ``{acc}`` is the accessory colour, ``{ink}`` the outline.
 _HAT_SVG: dict[str, str] = {
     "none": "",
     "cap": (
@@ -145,6 +156,152 @@ _HAT_SVG: dict[str, str] = {
 #: The hats :func:`new_character` can draw.
 HATS: tuple[str, ...] = tuple(_HAT_SVG)
 DFLT_HAT: str = "none"
+#: The views a hat is measured on against the brows (the back shows none).
+_BROW_VIEWS: tuple[str, ...] = ("front", "three_quarter", "side")
+
+
+def _hat_fragment(
+    hat: str, view: str, *, accessory: str, seat: str | None = None
+) -> str:
+    """The hat seen from ``view``, in the head's drawing, worn at ``seat`` (a
+    transform; ``None``: where it is drawn). Empty for no hat."""
+    if hat == DFLT_HAT:
+        return ""
+    svg = (
+        _HAT_VIEW_SVG.get(view, {})
+        .get(hat, _HAT_SVG[hat])
+        .format(acc=accessory, ink=OUTLINE_COLOUR)
+    )
+    return f'<g transform="{seat}">{svg}</g>' if seat else svg
+
+
+@lru_cache(maxsize=None)
+def _hat_seat(hat: str, head_scale: float) -> Seat:
+    """Where ``hat`` is worn on a head drawn at ``head_scale``: above the
+    brows' acting range in every view that shows a brow
+    (:func:`~an.characters.brows.seat_above_brows`), or as near as it gets —
+    ``covers`` then says the brows are hidden, and the factory records it."""
+    if hat == DFLT_HAT:
+        return Seat()
+    return seat_above_brows(
+        {v: _hat_fragment(hat, v, accessory="#000000") for v in _BROW_VIEWS},
+        head_scale=head_scale,
+    )
+
+
+# -----------------------------------------------------------------------------
+# Hair: a style (how it sits on the head) and a length (how far it falls)
+# -----------------------------------------------------------------------------
+
+
+#: The four-arc circle approximation's handle length, for a unit radius.
+_KAPPA: float = 0.5523
+
+
+def _disc_d(cx: float, cy: float, r: float) -> str:
+    """A circle as a closed path of four cubic arcs (no ``<circle>``: the head's
+    first circle is its skin, which `add_gaze` reads the lid's tone off)."""
+    k = round(r * _KAPPA, 2)
+    return (
+        f"M {cx - r:g} {cy:g} "
+        f"C {cx - r:g} {cy - k:g} {cx - k:g} {cy - r:g} {cx:g} {cy - r:g} "
+        f"C {cx + k:g} {cy - r:g} {cx + r:g} {cy - k:g} {cx + r:g} {cy:g} "
+        f"C {cx + r:g} {cy + k:g} {cx + k:g} {cy + r:g} {cx:g} {cy + r:g} "
+        f"C {cx - k:g} {cy + r:g} {cx - r:g} {cy + k:g} {cx - r:g} {cy:g} Z"
+    )
+
+
+#: Hair styles: ``peak`` (the factory's original hair, a widow's peak — the
+#: default), ``bald``, ``bun`` (the hair gathered in a bun on the crown) and
+#: ``curly`` (a halo of curls around the crown). Every style keeps the default
+#: hairline over the forehead — none draws lower over the brows (tests) — so a
+#: hair style never costs brow acting.
+HAIR_STYLES: tuple[str, ...] = ("peak", "bald", "bun", "curly")
+DFLT_HAIR_STYLE: str = "peak"
+#: Hair lengths: ``short`` (nothing below the crown — the default), ``medium``
+#: (falling beside the face to the jaw) and ``long`` (past the chin, in locks
+#: that keep clear of the neck and the collar).
+HAIR_LENGTHS: tuple[str, ...] = ("short", "medium", "long")
+DFLT_HAIR_LENGTH: str = "short"
+
+#: The volume a style draws BEHIND the head (only what clears the skull shows):
+#: ``{style: {view: [(cx, cy, r), ...]}}``, in the head's 80x80 drawing. The
+#: back view mirrors the front; a profile (facing right) carries it to the back.
+_HAIR_VOLUME: dict[str, dict[str, tuple[tuple[float, float, float], ...]]] = {
+    "bun": {
+        "front": ((40, 9, 8),),
+        "back": ((40, 9, 8),),
+        "side": ((24, 13, 8),),
+        "three_quarter": ((30, 10, 8),),
+    },
+    "curly": {
+        "front": ((14, 34, 7), (18, 23, 8), (27, 15, 8), (40, 12, 8), (53, 15, 8), (62, 23, 8), (66, 34, 7)),
+        "back": ((14, 34, 7), (18, 23, 8), (27, 15, 8), (40, 12, 8), (53, 15, 8), (62, 23, 8), (66, 34, 7)),
+        "side": ((13, 40, 7), (15, 28, 8), (23, 18, 8), (35, 13, 8), (48, 13, 7)),
+        "three_quarter": ((13, 38, 7), (16, 26, 8), (25, 17, 8), (37, 12, 8), (50, 13, 7), (60, 19, 6)),
+    },
+}
+#: Hair below the crown, ``{length: {view: (path, where)}}``: ``behind`` the
+#: head (the front, where it shows beside the face) or ``over`` it (the back of
+#: the skull, seen from behind or turned away). Locks stop at the head's
+#: drawing edge and keep off the middle below the chin, where the collar is.
+_HAIR_FALL: dict[str, dict[str, tuple[str, str]]] = {
+    "medium": {
+        "front": (
+            "M 9 44 C 8 20 20 13 40 13 C 60 13 72 20 71 44 L 71 62 Q 67 66 62 61 "
+            "L 18 61 Q 13 66 9 62 Z",
+            "behind",
+        ),
+        "back": ("M 12 42 Q 12 14 40 14 Q 68 14 68 42 L 70 64 Q 40 70 10 64 Z", "over"),
+        "side": ("M 13 44 Q 10 56 14 64 Q 22 68 30 62 Q 30 54 32 48 Z", "over"),
+        "three_quarter": ("M 12 38 Q 8 52 11 63 Q 17 67 22 61 Q 18 50 20 38 Z", "over"),
+    },
+    "long": {
+        "front": (
+            "M 8 44 C 7 20 20 13 40 13 C 60 13 73 20 72 44 L 75 76 Q 70 80 64 76 "
+            "L 60 62 L 20 62 L 16 76 Q 10 80 5 76 Z",
+            "behind",
+        ),
+        "back": ("M 12 42 Q 12 14 40 14 Q 68 14 68 42 L 73 76 Q 40 80 7 76 Z", "over"),
+        "side": ("M 13 44 Q 9 62 12 78 L 28 78 Q 26 62 32 48 Z", "over"),
+        "three_quarter": ("M 12 38 Q 7 58 9 78 L 22 78 Q 18 58 20 38 Z", "over"),
+    },
+}
+
+
+def _check_hair(hair_style: str, hair_length: str) -> None:
+    if hair_style not in HAIR_STYLES:
+        raise ValueError(
+            f"unknown hair style {hair_style!r}; known: {', '.join(HAIR_STYLES)}"
+        )
+    if hair_length not in HAIR_LENGTHS:
+        raise ValueError(
+            f"unknown hair length {hair_length!r}; known: {', '.join(HAIR_LENGTHS)}"
+        )
+    if hair_style == "bald" and hair_length != DFLT_HAIR_LENGTH:
+        raise ValueError(
+            f"a bald head has no hair to grow {hair_length}: pass hair_length="
+            f"{DFLT_HAIR_LENGTH!r} with hair_style='bald', or another style"
+        )
+
+
+def _hair_layers(
+    view: str, *, hair: str, hair_style: str, hair_length: str
+) -> tuple[str, str]:
+    """``(behind, over)``: the hair a style and a length add to ``view``'s head,
+    drawn behind the skull and over it (after the crown hair). Both empty for
+    the defaults, which is what keeps a default head byte-identical."""
+    behind: list[str] = []
+    over: list[str] = []
+    fall = _HAIR_FALL.get(hair_length, {}).get(view)
+    if fall is not None:
+        d, where = fall
+        (behind if where == "behind" else over).append(f'<path d="{d}" fill="{hair}"/>')
+    discs = _HAIR_VOLUME.get(hair_style, {}).get(view, ())
+    if discs:
+        d = " ".join(_disc_d(*c) for c in discs)
+        behind.append(f'<path d="{d}" fill="{hair}"/>')
+    return "".join(behind), "".join(over)
 
 #: The largest head scale accepted — past it the head no longer fits the
 #: 1024-unit view box above a regular body.
@@ -308,7 +465,15 @@ class _Looks:
     accessory: str
 
 
-def _resolve_looks(seed: str, palette: Mapping[str, str], *, hat: str) -> _Looks:
+def _resolve_looks(
+    seed: str,
+    palette: Mapping[str, str],
+    *,
+    hat: str,
+    hat_seat: str | None = None,
+    hair_style: str = DFLT_HAIR_STYLE,
+    hair_length: str = DFLT_HAIR_LENGTH,
+) -> _Looks:
     h = _stable_hash(seed)
     ink = OUTLINE_COLOUR
     # The head keeps its own two tables (see `_fallback_face_svg`); the body
@@ -334,7 +499,14 @@ def _resolve_looks(seed: str, palette: Mapping[str, str], *, hat: str) -> _Looks
     hand = distinct_literal(palette.get("skin") or DFLT_HAND_COLOUR, {clothing, ink})
     return _Looks(
         head_svg=_fallback_face_svg(
-            seed, skin=head_skin, hair=head_hair, hat=hat, accessory=head_acc
+            seed,
+            skin=head_skin,
+            hair=head_hair,
+            hat=hat,
+            accessory=head_acc,
+            hat_seat=hat_seat,
+            hair_style=hair_style,
+            hair_length=hair_length,
         ),
         head_roles=head_roles,
         clothing=clothing,
@@ -392,6 +564,44 @@ def scale_part_files(paths, scale: float) -> None:
         path.write_text(_sized_to_height(svg, h * scale), encoding="utf-8")
 
 
+def stage_extent(desc: CharacterDescriptor) -> dict[str, float]:
+    """How far a character's art reaches above and below its stage point, in
+    scene pixels at ``stage.scale: 1``: ``{"top", "feet", "height"}``.
+
+    The stage point (``stage.at``) is not the feet: the compiler places a rig
+    by the middle of its bones' extent, between the neck and the feet, so
+    where the feet land depends on the build and the head scale (a squat
+    figure's feet sit about half as far below the point as a tall one's).
+    Read from the compiler's own placement rule and the head's art, so this is
+    what the compiled scene does, not a second guess at it. Multiply by
+    ``stage.scale``. The head reaches its drawing's top edge (a hat stays
+    inside it).
+
+    >>> e = stage_extent(CharacterDescriptor(name="c"))
+    >>> round(e["top"]), round(e["feet"])
+    (169, 94)
+    """
+    from an.adapters.cutout.compile import (
+        SCENE_PX_PER_VIEW_BOX,
+        _bone_positions,
+        _rig_origin,
+    )
+
+    bones = _bone_positions(desc)
+    origin_y = _rig_origin(bones)[1]
+    k = SCENE_PX_PER_VIEW_BOX / float(desc.view_box[3] or 1)
+    head_scale = float(desc.metadata.get("head_scale") or 1.0)
+    head = desc.skins["default"].slots["head"]
+    anchor_y = next(iter(head.values())).anchor[1]
+    top = bones["head"][1] - anchor_y * REFERENCE_HEAD_HEIGHT * head_scale
+    feet = bones["root"][1]
+    return {
+        "top": round((origin_y - top) * k, 1),
+        "feet": round((feet - origin_y) * k, 1),
+        "height": round((feet - top) * k, 1),
+    }
+
+
 def _check_style_is_usable(style: str, *, acknowledge_attribution: bool) -> None:
     """Refuse a style whose licence puts a duty on the user, unless acknowledged.
 
@@ -436,6 +646,8 @@ def new_character(
     hat: str = DFLT_HAT,
     sash: bool = False,
     views: bool = True,
+    hair_style: str = DFLT_HAIR_STYLE,
+    hair_length: str = DFLT_HAIR_LENGTH,
 ) -> Path:
     """Build a complete character on disk.
 
@@ -451,7 +663,16 @@ def new_character(
       short legs), ``tall``, ``stick`` (small blocky body, stick limbs).
     - ``head_scale`` — the head and its whole face (eyes, brows, mouths, their
       offsets, the pupil travel) scaled together, so a big head keeps its face.
-    - ``hat`` — a key of :data:`HATS` (offline head only), in ``accessory``.
+    - ``hat`` — a key of :data:`HATS` (offline head only), in ``accessory``,
+      worn above the brows' acting range at this head scale (an#252): lifted,
+      and flattened toward its crown when lifting is not enough. A hat that
+      still covers the brows (a very small head) is recorded in the
+      descriptor's ``occluded``, so the character does not afford
+      ``face.brows`` and expressions fall to the lids, gaze and mouth.
+    - ``hair_style`` — :data:`HAIR_STYLES`: ``peak`` (the default), ``bald``,
+      ``bun``, ``curly``; ``hair_length`` — :data:`HAIR_LENGTHS`: ``short``
+      (the default), ``medium``, ``long`` (offline head only). Drawn in the
+      ``hair`` role (the palette's ``hair`` colours them), in every view.
     - ``sash`` — a diagonal band across the torso, in ``accessory``.
     - ``views`` (an#197) — draw the turnaround: ``back``, ``side`` (a profile
       facing the viewer's right) and ``three_quarter`` beside the front, as a
@@ -501,10 +722,14 @@ def new_character(
         )
     if hat not in HATS:
         raise ValueError(f"unknown hat {hat!r}; known: {', '.join(HATS)}")
-    if hat != DFLT_HAT and use_dicebear:
+    _check_hair(hair_style, hair_length)
+    if use_dicebear and (
+        hat != DFLT_HAT
+        or (hair_style, hair_length) != (DFLT_HAIR_STYLE, DFLT_HAIR_LENGTH)
+    ):
         raise ValueError(
-            "hats are drawn for the offline head (its geometry is known); a DiceBear "
-            "avatar's is not. Pass use_dicebear=False (`--offline`)."
+            "hats and hair are drawn for the offline head (its geometry is known); "
+            "a DiceBear avatar's is not. Pass use_dicebear=False (`--offline`)."
         )
     out = Path(out_dir) / name
     if out.exists():
@@ -519,7 +744,15 @@ def new_character(
 
     # Step 1 & 2: source art
     seed_used = seed or name
-    looks = _resolve_looks(seed_used, palette_, hat=hat)
+    seat = _hat_seat(hat, float(head_scale))
+    looks = _resolve_looks(
+        seed_used,
+        palette_,
+        hat=hat,
+        hat_seat=seat.transform,
+        hair_style=hair_style,
+        hair_length=hair_length,
+    )
     metadata: dict[str, object] = {"art_provenance": "fallback_geometric"}
     source: AssetSource | None = None
     if use_dicebear:
@@ -623,6 +856,13 @@ def new_character(
             else {"bones": _bones_for(body, head_scale=head_scale)}
         ),
     )
+    if seat.covers and head_is_ours:
+        # Measured, not guessed: even worn as high and as flat as it goes, the
+        # hat overlaps the brows' acting range — said where the capability
+        # analyser reads it (`face.brows`), never left to a render to show.
+        descriptor.occluded = {
+            BROWS_FEATURE: f"the {hat} hat at head_scale {head_scale:g}"
+        }
     declare_mouth_variants(descriptor, variants)
     descriptor.metadata["seed"] = seed_used
     # The knobs, recorded only when set — so a default character's descriptor
@@ -630,6 +870,8 @@ def new_character(
     for key, value, default in (
         ("build", build, DFLT_BUILD),
         ("hat", hat, DFLT_HAT),
+        ("hair_style", hair_style, DFLT_HAIR_STYLE),
+        ("hair_length", hair_length, DFLT_HAIR_LENGTH),
         ("sash", sash, False),
         ("palette", dict(palette_), {}),
     ):
@@ -898,6 +1140,9 @@ def _fallback_face_svg(
     hair: str | None = None,
     hat: str = "none",
     accessory: str | None = None,
+    hat_seat: str | None = None,
+    hair_style: str = DFLT_HAIR_STYLE,
+    hair_length: str = DFLT_HAIR_LENGTH,
 ) -> str:
     """Tiny fallback face SVG used when DiceBear is unavailable.
 
@@ -906,22 +1151,40 @@ def _fallback_face_svg(
     brows / mouth baked in — those are added by the overlay slots so
     they can blink and lip-sync. Phase 11d fix for the "four eyes" bug.
 
-    ``hat`` (a key of :data:`HATS`) is drawn over the hair in ``accessory``.
+    ``hat`` (a key of :data:`HATS`) is drawn over the hair in ``accessory``,
+    worn at ``hat_seat`` (:func:`_hat_seat`); ``hair_style`` and
+    ``hair_length`` (:data:`HAIR_STYLES`, :data:`HAIR_LENGTHS`) shape the hair.
+    The defaults draw exactly the original head.
     """
     h = _stable_hash(seed)
     skin = skin or _SKIN_TONES[h % len(_SKIN_TONES)]
     hair = hair or _HAIR_TONES[(h >> 16) % len(_HAIR_TONES)]
-    hat_svg = _HAT_SVG[hat].format(
-        acc=accessory or _ACCESSORY_TONES[(h >> 32) % len(_ACCESSORY_TONES)],
-        ink=OUTLINE_COLOUR,
+    hat_svg = _hat_fragment(
+        hat,
+        "front",
+        accessory=accessory or _ACCESSORY_TONES[(h >> 32) % len(_ACCESSORY_TONES)],
+        seat=hat_seat,
     )
     hat_line = f"\n          {hat_svg}" if hat_svg else ""
+    behind, over = _hair_layers(
+        "front", hair=hair, hair_style=hair_style, hair_length=hair_length
+    )
+    behind_line = f"\n          {behind}" if behind else ""
+    crown_line = (
+        ""
+        if hair_style == "bald"
+        else f'\n          <path d="{_CROWN_HAIR_D}" fill="{hair}"/>'
+    )
+    over_line = f"\n          {over}" if over else ""
     return textwrap.dedent(
-        f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
-          <circle cx="40" cy="44" r="28" fill="{skin}"/>
-          <path d="M 12 36 Q 40 4 68 36 L 60 24 L 40 14 L 20 24 Z" fill="{hair}"/>{hat_line}
+        f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">{behind_line}
+          <circle cx="40" cy="44" r="28" fill="{skin}"/>{crown_line}{over_line}{hat_line}
         </svg>"""
     )
+
+
+#: The crown hair of the front head (every style but ``bald``): the hairline.
+_CROWN_HAIR_D: str = "M 12 36 Q 40 4 68 36 L 60 24 L 40 14 L 20 24 Z"
 
 
 #: The eye's geometry in its 64x32 canvas, shared by the four synthesizers so
@@ -1384,13 +1647,15 @@ def _write_leg_part(
 
 
 def _synthesize_brow(path: Path, *, side: str, color: str = DFLT_BROW_COLOUR) -> Path:
-    tilt = 4 if side == "l" else -4
+    """The brow: one stroke (:func:`~an.characters.brows.brow_path_d`), the
+    drawing :func:`~an.characters.brows.brow_range` measures."""
+    w, h = BROW_CANVAS
     svg = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<svg xmlns="{SVG_NS}" viewBox="0 0 80 24" width="80" height="24">'
+        f'<svg xmlns="{SVG_NS}" viewBox="0 0 {w} {h}" width="{w}" height="{h}">'
         f'<g id="brow_{side}">'
-        f'<path d="M 8 {12 + tilt} Q 40 4 72 {12 - tilt}" '
-        f'stroke="{color}" stroke-width="6" fill="none" stroke-linecap="round"/>'
+        f'<path d="{brow_path_d(side)}" '
+        f'stroke="{color}" stroke-width="{BROW_STROKE:g}" fill="none" stroke-linecap="round"/>'
         "</g></svg>"
     )
     path.write_text(svg, encoding="utf-8")
@@ -1439,47 +1704,65 @@ _HAT_VIEW_SVG: dict[str, dict[str, str]] = {
 #: drawing — the SAME canvas as the front, so a turn swaps texture only and
 #: emits no per-key geometry (an#87; a key on another canvas would carry its
 #: own box since an#211, but one canvas keeps the document unchanged). ``{skin}``/``{hair}``/``{ink}``.
-#: The ear is outlined in ink: skin on skin would not show.
-_VIEW_HEAD_SVG: dict[str, str] = {
+#: The ear is outlined in ink: skin on skin would not show. Each view is
+#: ``(under, crown hair, over)`` — the crown hair is what a ``bald`` head drops,
+#: and a hair style's volume goes before ``under``, a fall after the crown hair.
+_VIEW_HEAD_PARTS: dict[str, tuple[str, str, str]] = {
     # From behind: the hair covers the head down to the nape; the ears show.
     "back": (
         '<ellipse cx="12.5" cy="46" rx="3.5" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
         '<ellipse cx="67.5" cy="46" rx="3.5" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
-        '<circle cx="40" cy="44" r="28" fill="{skin}"/>'
-        '<path d="M 12 42 Q 12 14 40 14 Q 68 14 68 42 Q 68 58 58 64 Q 40 60 22 64 Q 12 58 12 42 Z" fill="{hair}"/>'
+        '<circle cx="40" cy="44" r="28" fill="{skin}"/>',
+        '<path d="M 12 42 Q 12 14 40 14 Q 68 14 68 42 Q 68 58 58 64 Q 40 60 22 64 Q 12 58 12 42 Z" fill="{hair}"/>',
+        "",
     ),
     # A profile facing right: the nose past the edge, the ear mid-head, the
     # hair over the crown and down the back of the skull.
     "side": (
         '<circle cx="40" cy="44" r="28" fill="{skin}"/>'
-        '<path d="M 66 38 Q 75 44 66.5 49 Z" fill="{skin}"/>'
-        '<path d="M 13 50 Q 9 18 40 15 Q 62 14 68 34 L 58 25 Q 46 21 38 27 Q 31 36 32 52 Q 22 60 13 50 Z" fill="{hair}"/>'
-        '<ellipse cx="36" cy="47" rx="4" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
+        '<path d="M 66 38 Q 75 44 66.5 49 Z" fill="{skin}"/>',
+        '<path d="M 13 50 Q 9 18 40 15 Q 62 14 68 34 L 58 25 Q 46 21 38 27 Q 31 36 32 52 Q 22 60 13 50 Z" fill="{hair}"/>',
+        '<ellipse cx="36" cy="47" rx="4" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>',
     ),
     # Turned partway right: the part of the hair and one ear swing left.
     "three_quarter": (
         '<ellipse cx="13" cy="46" rx="3.5" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
-        '<circle cx="40" cy="44" r="28" fill="{skin}"/>'
-        '<path d="M 12 40 Q 22 6 56 16 Q 66 22 68 34 L 58 24 L 42 17 L 24 26 Q 16 32 15 44 Z" fill="{hair}"/>'
+        '<circle cx="40" cy="44" r="28" fill="{skin}"/>',
+        '<path d="M 12 40 Q 22 6 56 16 Q 66 22 68 34 L 58 24 L 42 17 L 24 26 Q 16 32 15 44 Z" fill="{hair}"/>',
+        "",
     ),
 }
 
 
-def _view_head_svg(view: str, *, skin: str, hair: str, hat: str, accessory: str) -> str:
+def _view_head_svg(
+    view: str,
+    *,
+    skin: str,
+    hair: str,
+    hat: str,
+    accessory: str,
+    hat_seat: str | None = None,
+    hair_style: str = DFLT_HAIR_STYLE,
+    hair_length: str = DFLT_HAIR_LENGTH,
+) -> str:
     """The offline head of ``view`` (not ``front``, which is
-    :func:`_fallback_face_svg`), with its hat seen from that side."""
-    hat_svg = (
-        _HAT_VIEW_SVG.get(view, {})
-        .get(hat, _HAT_SVG[hat])
-        .format(acc=accessory, ink=OUTLINE_COLOUR)
-    )
+    :func:`_fallback_face_svg`), with its hat seen from that side, worn at
+    ``hat_seat``, and the hair's style and length seen from that side."""
+    hat_svg = _hat_fragment(hat, view, accessory=accessory, seat=hat_seat)
     # The ear's outline is the drawing's ink — unless the skin or hair IS that
     # literal, when a pack recolouring the role would repaint the outline too.
     ink = distinct_literal(OUTLINE_COLOUR, {skin, hair})
-    body = _VIEW_HEAD_SVG[view].format(skin=skin, hair=hair, ink=ink)
+    under, crown, over = (
+        part.format(skin=skin, hair=hair, ink=ink) for part in _VIEW_HEAD_PARTS[view]
+    )
+    behind, fall = _hair_layers(
+        view, hair=hair, hair_style=hair_style, hair_length=hair_length
+    )
+    if hair_style == "bald":
+        crown = ""
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">'
-        f"{body}{hat_svg}</svg>"
+        f"{behind}{under}{crown}{fall}{over}{hat_svg}</svg>"
     )
 
 
@@ -1585,9 +1868,13 @@ SIDE_MOUTH_SQUASH: float = 0.6
 #: widths off the centre line — and splayed so the FEET part: the shoe centres
 #: land ``SIDE_FOOT_SPREAD`` leg widths apart, on every build (a stubby leg
 #: splays more). Both legs show, even as one silhouette, and a walk in profile
-#: has two legs to alternate (an#203).
+#: has two legs to alternate (an#203). A stick leg is thinner than its shoe,
+#: so leg widths alone would leave the two shoes on top of each other — a
+#: one-legged stand; the shoes part by at least ``SIDE_FOOT_MIN_SHOES`` shoe
+#: lengths (a floor every other build already clears, so they are unchanged).
 SIDE_LEG_OFFSET: float = 0.25
 SIDE_FOOT_SPREAD: float = 1.8
+SIDE_FOOT_MIN_SHOES: float = 2.0
 #: Three-quarter (facing right): the whole face slides toward the facing side,
 #: the far eye narrows, the far arm tucks in toward the body and the legs in.
 THREE_QUARTER_FACE_SHIFT: float = 20.0
@@ -1601,7 +1888,7 @@ def _profile_legs(body: BodyBuild) -> tuple["SlotPose", "SlotPose"]:
     """The far (``leg_l``) and near (``leg_r``) leg of a right-facing profile:
     hips :data:`SIDE_LEG_OFFSET` leg widths either side of the centre line, and
     each leg turned about its hip so the feet are :data:`SIDE_FOOT_SPREAD` leg
-    widths apart. The near leg reaches FORWARD (toward +x): a PixiJS rotation
+    widths apart (and at least :data:`SIDE_FOOT_MIN_SHOES` shoe lengths). The near leg reaches FORWARD (toward +x): a PixiJS rotation
     is clockwise, which swings a hanging foot toward -x, so its angle is
     negative.
 
@@ -1612,7 +1899,8 @@ def _profile_legs(body: BodyBuild) -> tuple["SlotPose", "SlotPose"]:
     from an.characters.schema import SlotPose
 
     hip = SIDE_LEG_OFFSET * body.leg_width
-    reach = (SIDE_FOOT_SPREAD * body.leg_width / 2 - hip) / body.leg_length
+    spread = max(SIDE_FOOT_SPREAD * body.leg_width, SIDE_FOOT_MIN_SHOES * body.shoe_size[0])
+    reach = (spread / 2 - hip) / body.leg_length
     angle = math.asin(max(-1.0, min(1.0, reach)))
     far = SlotPose(x=body.hip_x - hip, rotation=angle)
     near = SlotPose(x=-body.hip_x + hip, rotation=-angle)
@@ -1680,7 +1968,7 @@ def add_views(char_dir: str | Path) -> Path:
     descriptor path.
 
     The views are REDRAWN from the recorded knobs (seed, palette, build, hat,
-    sash, head scale), so it refuses a rig whose head is not this factory's
+    hair style and length, sash, head scale), so it refuses a rig whose head is not this factory's
     drawing for them — a DiceBear head (its face is baked, and there is no
     back of it to draw), a promoted hand rig, or an edited head: its views are
     an illustrator's to draw, declared the same way (a ``view`` set whose keys
@@ -1713,18 +2001,31 @@ def add_views(char_dir: str | Path) -> Path:
             "character with `an character new --offline`."
         )
     hat = str(meta.get("hat") or DFLT_HAT)
+    hair_style = str(meta.get("hair_style") or DFLT_HAIR_STYLE)
+    hair_length = str(meta.get("hair_length") or DFLT_HAIR_LENGTH)
+    _check_hair(hair_style, hair_length)
     body = _check_build(str(meta.get("build") or DFLT_BUILD))
     head_scale = float(meta.get("head_scale") or 1.0)
-    looks = _resolve_looks(
-        str(meta.get("seed") or desc.name),
-        _check_palette(meta.get("palette")),
-        hat=hat,
-    )
     height = REFERENCE_HEAD_HEIGHT * head_scale
     head_path = parts / "head.svg"
-    if not head_path.is_file() or head_path.read_text(encoding="utf-8") != (
-        _head_part_text(looks.head_svg, height=height)
-    ):
+    head_text = head_path.read_text(encoding="utf-8") if head_path.is_file() else None
+    # The hat as this factory wears it now, else where it was drawn before
+    # hats were seated above the brows (an#252): a character made then keeps
+    # its hat where its front has it, in every view.
+    looks = None
+    for hat_seat in dict.fromkeys((_hat_seat(hat, head_scale).transform, None)):
+        candidate = _resolve_looks(
+            str(meta.get("seed") or desc.name),
+            _check_palette(meta.get("palette")),
+            hat=hat,
+            hat_seat=hat_seat,
+            hair_style=hair_style,
+            hair_length=hair_length,
+        )
+        if head_text == _head_part_text(candidate.head_svg, height=height):
+            looks = candidate
+            break
+    if looks is None:
         raise ValueError(
             f"{desc.name!r}'s head art is not the factory's drawing for its recorded "
             "seed and knobs (edited by hand?), so views drawn from them would not "
@@ -1750,7 +2051,14 @@ def add_views(char_dir: str | Path) -> Path:
         (char_dir / head_rel).write_text(
             _head_part_text(
                 _view_head_svg(
-                    view, skin=head_skin, hair=head_hair, hat=hat, accessory=head_acc
+                    view,
+                    skin=head_skin,
+                    hair=head_hair,
+                    hat=hat,
+                    accessory=head_acc,
+                    hat_seat=hat_seat,
+                    hair_style=hair_style,
+                    hair_length=hair_length,
                 ),
                 height=height,
             ),

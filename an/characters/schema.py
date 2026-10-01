@@ -597,6 +597,32 @@ class CharacterDescriptor(_CharModel):
     #: registry. Omitted from the stored document when unset.
     speech: Optional[Union[str, dict[str, Any]]] = None
 
+    #: The face features another drawing of this character covers, and what
+    #: covers them — ``{feature: what}``, e.g. ``{"brows": "the cap hat at
+    #: head_scale 0.3"}`` (an#252). A **declared fact**, written by whoever
+    #: knows the geometry: the factory measures its hat against the brows'
+    #: acting range and records an overlap it could not seat away; an
+    #: illustrator declares a helmet over the brows. Read by the character
+    #: analyser: a covered feature is not afforded (``brows`` →
+    #: ``face.brows``), so the methods needing it fall to their default, said
+    #: by ``an character capabilities``. Keys are
+    #: :data:`~an.characters.brows.OCCLUDABLE_FEATURES`. Omitted from the
+    #: stored document when empty.
+    occluded: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("occluded")
+    @classmethod
+    def _check_occluded(cls, v: dict[str, str]):
+        from an.characters.brows import OCCLUDABLE_FEATURES
+
+        unknown = sorted(set(v) - set(OCCLUDABLE_FEATURES))
+        if unknown:
+            raise ValueError(
+                f"occluded names {unknown}, which no capability reads; the "
+                f"features a drawing can cover: {list(OCCLUDABLE_FEATURES)}"
+            )
+        return v
+
     @field_validator("speech")
     @classmethod
     def _check_speech(cls, v):
@@ -616,13 +642,16 @@ class CharacterDescriptor(_CharModel):
 
     @model_serializer(mode="wrap")
     def _omit_unset_view_facts(self, handler):
-        """``rest_view``/``gait`` unset are written out of existence, so every
-        stored descriptor reads back byte-identical (an#220)."""
+        """``rest_view``/``gait``/``speech`` unset and ``occluded`` empty are
+        written out of existence, so every stored descriptor reads back
+        byte-identical (an#220)."""
         data = handler(self)
         if isinstance(data, dict):
             for name in ("rest_view", "gait", "speech"):
                 if data.get(name) is None:
                     data.pop(name, None)
+            if not data.get("occluded"):
+                data.pop("occluded", None)
         return data
 
     def model_post_init(self, __context: Any) -> None:

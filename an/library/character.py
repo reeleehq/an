@@ -7,8 +7,8 @@ slice: P7's capability registry adopts :func:`character_affordances` as
 **What it reads is what the compiler reads**, or the facets would lie (ADR 0005,
 Risks): the limb pairs ``walk`` resolves (:data:`an.motion.WALK_LEG_NAMES`,
 :data:`an.motion.WALK_ARM_NAMES`), the ``view`` and ``viseme`` swap sets
-(``asset_sets``), the declared facts ``rest_view`` and
-``face_overlay``. And **art must be present**: a slot or swap key counts only
+(``asset_sets``), the declared facts ``rest_view``,
+``face_overlay`` and ``occluded``. And **art must be present**: a slot or swap key counts only
 when an attachment it names has its file among the asset's files — a descriptor
 promising a side view whose drawing is missing does not afford one.
 
@@ -28,6 +28,8 @@ capability             afforded when                                         ``k
                        art (``swappable``: whether it can turn at all)
 ``face.mouth``         an overlay face (``face_overlay``) whose ``viseme``   the chart (``rhubarb9``
                        set has drawings                                      or ``custom``)
+``face.brows``         an overlay face whose two brow slots have art, with   —
+                       nothing recorded over them (``occluded``, an#252)
 =====================  ====================================================  ==========================
 """
 
@@ -48,7 +50,8 @@ __all__ = [
 ]
 
 #: Bump when the derivation can answer differently for the same input.
-CHARACTER_ANALYSER_VERSION: str = "0.1.0"
+#: 0.2.0: ``face.brows`` (an#252).
+CHARACTER_ANALYSER_VERSION: str = "0.2.0"
 #: The chart name of the nine Rhubarb mouth shapes (A–H, X) — ``an``'s default.
 MOUTH_CHART_RHUBARB: str = "rhubarb9"
 #: The chart name of any other viseme set.
@@ -91,6 +94,21 @@ FACE_MOUTH = Capability(
         "face_overlay: true — a face baked into the head art cannot lip-sync"
     ),
     command="an character mouths",
+)
+
+FACE_BROWS = Capability(
+    "face.brows",
+    description=(
+        "two brows on an overlay face that an expression raises, lowers and "
+        "angles, with nothing recorded over their acting range (slots: the brow slots)"
+    ),
+    remedy=(
+        "give the overlay face two brow slots (left_brow/right_brow) with their art, "
+        "and keep hats off the brows' acting range: a factory hat that cannot sit "
+        "above them is recorded in character.json's `occluded` — `an character new` "
+        "with a larger --head-scale, another --hat or --hat none; for drawn art, "
+        "redraw the cover above the brows and remove its `occluded` entry"
+    ),
 )
 
 
@@ -255,6 +273,11 @@ def character_affordances(
             "variants": variants,
         }
 
+    from an.characters.brows import brow_affordance
+
+    brows = brow_affordance(desc, drawn)
+    if brows is not None:
+        out[FACE_BROWS.name] = brows
     return out
 
 
@@ -264,11 +287,12 @@ CHARACTER_CAPABILITIES: tuple[Capability, ...] = (
     LIMBS_ARMS,
     SWAP_VIEW,
     FACE_MOUTH,
+    FACE_BROWS,
 )
 #: The character analyser (declared by the cut-out genre, registered with it).
 CHARACTER_ANALYSER: Analyser = Analyser(
     "character",
     CHARACTER_ANALYSER_VERSION,
     character_affordances,
-    declares=("rest_view", "face_overlay", "gait", "speech"),
+    declares=("rest_view", "face_overlay", "gait", "speech", "occluded"),
 )
