@@ -79,6 +79,7 @@ __all__ = [
     "shot_parts",
     "shot_windows",
     "transition_problems",
+    "write_film_frames",
 ]
 
 
@@ -594,6 +595,34 @@ def _compose_frame(
         mode = "RGBA" if a.shape[-1] == 4 else "RGB"
         b = np.asarray(Image.fromarray(b).convert(mode))
     Image.fromarray(blend(a, b, jb + 1, k + 1)).save(out, format="PNG")
+
+
+def write_film_frames(
+    timeline: FilmTimeline,
+    frame_of: Any,
+    out_dir: Path,
+    *,
+    pattern: str | None = None,
+) -> list[Path]:
+    """Every frame of the film as a PNG, in ``out_dir`` — what the delivered
+    picture shows, frame for frame, BEFORE it is encoded.
+
+    The film itself is a concat of segments (an#260) and never holds this
+    sequence on disk; a measurement that needs the composed picture — the
+    bench's reference for an assembled scene (an#279) — builds it here, with
+    the same per-frame composition (:func:`_compose_frame`) the segments use.
+    ``frame_of(i, j)`` is the PNG of frame ``j`` of shot ``i``.
+    """
+    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
+
+    pattern = pattern or DEFAULT_FRAME_PNG_PATTERN
+    out_dir = _fresh_dir(Path(out_dir))
+    written = []
+    for index, sources in enumerate(_frame_sources(timeline)):
+        path = out_dir / (pattern % index)
+        _compose_frame(timeline, sources, frame_of, path)
+        written.append(path)
+    return written
 
 
 def _video_only(mp4: Path, out: Path) -> None:

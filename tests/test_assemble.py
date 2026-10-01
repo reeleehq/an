@@ -189,9 +189,19 @@ def test_every_committed_scene_takes_the_old_concat_path():
         REPO.glob("misc/bench/corpus/*/ir/scene.json")
     )
     assert mds and jsons
+    # The ONE committed scene that opts in, on purpose: the core corpus's
+    # `transitions` fixture (an#279), the bench's gate for the assembled path.
+    # Asserted to opt in, so the exemption cannot outlive its reason.
+    assembled = {REPO / "misc/bench/corpus/transitions/scene.md"}
+    for md in assembled:
+        assert needs_assembly(markdown_to_ir(md.read_text(encoding="utf-8"))), md
     for md in mds:
+        if md in assembled:
+            continue
         assert not needs_assembly(markdown_to_ir(md.read_text(encoding="utf-8"))), md
     for js in jsons:
+        if js.parent.parent / "scene.md" in assembled:
+            continue
         doc = json.loads(js.read_text(encoding="utf-8"))
         assert not needs_assembly(scene_from_json_doc(doc)), js
         # ...and re-serializing it adds no trace of the new fields.

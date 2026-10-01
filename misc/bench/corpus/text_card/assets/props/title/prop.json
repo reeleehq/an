@@ -1,0 +1,10 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "title",
+  "text": "CORE CORPUS",
+  "layer": "overlay",
+  "unit": "word",
+  "size": 0.14,
+  "color": "#f2a541"
+}

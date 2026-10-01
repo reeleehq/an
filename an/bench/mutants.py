@@ -525,7 +525,7 @@ MUTANTS: tuple[Mutant, ...] = (
     ),
     Mutant(
         name="capture_inherits_the_previous_renders_shots",
-        file="an/bench/capture.py",
+        file="an/bench/core_corpus.py",  # moved there with stage_copy (an#279)
         old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)',
         new="IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()",
         caught_by="tests/test_bench_corpus.py",
@@ -538,7 +538,7 @@ MUTANTS: tuple[Mutant, ...] = (
     ),
     Mutant(
         name="capture_excludes_shots_by_basename_at_any_depth",
-        file="an/bench/capture.py",
+        file="an/bench/core_corpus.py",  # moved there with stage_copy (an#279)
         old="            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY",
         new=(
             "            n\n"

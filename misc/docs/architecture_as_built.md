@@ -45,6 +45,7 @@ What exists, and where, moved here from `CLAUDE.md` (an#156) so there is one map
 | Live preview with file-watch reload, `an preview <dir>` | `an/stage/preview.py` — `preview_project()`, `preview.html` | shipped (visuals only, no audio) |
 | Metrics ledger: `an bench` renders a fixed corpus and writes one row per (date, commit) | `an/bench/` — `run_bench()`, `METRICS`, `build_scene_block()` | shipped (an#36) |
 | Golden corpus: 26 committed PNGs across ten scenes, compared on DECODED pixels, `an bench --bless "<reason>"` | `an/bench/{png,golden}.py`, `misc/bench/{corpus,golden}/` | shipped (an#38) |
+| **The core corpus** (an#279, ADR 0001 decision 7): `an.bench.core_corpus.CORE_FIXTURES` — `path_draw` (paths), `stage_pan` (planes, camera translation), `text_card` (overlay and world text under a camera zoom and roll), `transitions` (a fade in and a dissolve) — character-free scenes on `an.stage`, run by `an bench` beside the cut-out corpus with goldens and bless records of their own. An ASSEMBLED scene is measured on its composed film frames (`SceneCapture.film`, segment id `film`: what the delivered mp4 shows), never on its shots' frames. `tests/test_core_corpus.py` compiles (default leg, against each bless record's contract hash) and renders (labelled lane, against the goldens) every core scene in a fresh interpreter with **no genre registered**, importing no cut-out module the core had not already imported. **Not yet proven: that no cut-out code runs** — `an.stage.compile`/`props` import `an.characters`/`an.expression` at module level and a stage render executes `an.characters.play`; the proof with every cut-out module poisoned before `import an` is two **strict xfail** tests that P8's B0c (an#225) must flip. The fixture type, the pinned render knobs, `stage_copy` and the browser-free `compiled_contract_sha256` moved to this core module (re-exported by `an.bench.corpus`/`capture`). The bench palette reads `data:` SVG srcs (text glyphs) | `an/bench/core_corpus.py`, `an/bench/{capture,run,golden,palette}.py`, `misc/bench/corpus/{text_card,transitions}/`, `misc/bench/golden/{text_card,transitions}/` | shipped; render half verified on a developer machine and on the labelled lane |
 | Row comparison: `an bench-compare`, per-mutation signs, refuses incomparable rows; a threshold counter's direction that its own parameter sweep contradicts is `unstable` and never counts (an#140) | `an/bench/compare.py` — `sweep_verdict` | shipped (an#40, an#140) |
 | Mutation levers (`high_crf`, `disabled_aa`, `supersample`) + the guard-mutant registry, `an bench-mutants` | `an/bench/{mutations,mutants}.py` | shipped (an#41, an#56) |
 | Determinism perimeter: the runtime probes, `an/determinism.py` judges, enforced by default | `an/stage/runtime/runtime.js` `anDeterminismReport` + `an/determinism.py` | shipped (an#37) |
@@ -200,7 +201,9 @@ an/
 │                            PrivateStudyWarning (an#211)
 │
 ├── bench/                   the measurement instrument (an#36) — never imported by __init__
-│   ├── corpus.py            fixtures + pinned render knobs; the render-path assertion
+│   ├── core_corpus.py       the CORE corpus (paths, text, planes, camera, transitions), the
+│   │                        fixture type, pinned render knobs, stage_copy, browser-free contract hash
+│   ├── corpus.py            the cut-out fixtures (+ the core ones); the render-path assertion
 │   ├── capture.py           render one fixture into a throwaway copy
 │   ├── imageio.py           the four PINNED ffmpeg decodes + the lossless re-encode
 │   ├── masks.py             edge / flat / held / ring, all from the REFERENCE frames
