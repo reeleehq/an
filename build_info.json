@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-01T07:34:31Z",
+  "built_at": "2026-10-01T07:50:22Z",
   "package": {
     "name": "an",
-    "version": "0.1.125",
+    "version": "0.1.126",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "a830eac2b0b9019fc2d532c093f96650099dd5fe",
-    "short_commit": "a830eac",
+    "commit": "16b02cc48980725a919586289595d7047f65e2d9",
+    "short_commit": "16b02cc",
     "branch": "main",
     "tags": [
-      "0.1.125"
+      "0.1.126"
     ],
     "dirty": false,
     "remote_url": "https://github.com/thorwhalen/an",
-    "commit_url": "https://github.com/thorwhalen/an/commit/a830eac2b0b9019fc2d532c093f96650099dd5fe",
+    "commit_url": "https://github.com/thorwhalen/an/commit/16b02cc48980725a919586289595d7047f65e2d9",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "thorwhalen/an",
-    "sha": "cacb7161be7e72c94cc2304b1bfb2ef9c8153d29",
+    "sha": "9be5091b2745075b511af90b4794da962187d3ad",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "36830715711",
-    "run_url": "https://github.com/thorwhalen/an/actions/runs/36830715711",
+    "run_id": "36832036466",
+    "run_url": "https://github.com/thorwhalen/an/actions/runs/36832036466",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,16 +62,14 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.124",
-    "relation": "ahead",
+    "latest": "0.1.126",
+    "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout a830eac2b0b9019fc2d532c093f96650099dd5fe\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout 16b02cc48980725a919586289595d7047f65e2d9\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": false,
-    "notes": [
-      "The documented version (0.1.125) is ahead of the latest release on PyPI (0.1.124): these docs describe unreleased code."
-    ]
+    "aligned": true,
+    "notes": []
   }
 }
