@@ -41,10 +41,11 @@ reaches an existing seam from the outside:
   ``runtime.js`` is never written to.
 - ``supersample`` reaches the SAME runtime seam — ``resolution: k,
   autoDensity: false`` in the Pixi application options — and then a second one
-  it cannot do without: it rebinds
-  ``an.adapters.cutout.render._capture_frames`` so the k-times PNGs are
-  block-mean-resolved back to the declared size **in the frame stage**, before
-  ffmpeg or the metrics or the golden gate read them. That is not tidiness. A
+  it cannot do without: it rebinds ``an.engines.capture.capture_frames`` (the
+  core frame stage's capture loop since an#247; before it, the stage's own
+  ``_capture_frames``) so the k-times PNGs are block-mean-resolved back to the
+  declared size **in the frame stage**, before ffmpeg or the metrics or the
+  golden gate read them. That is not tidiness. A
   lever must measure what the product will produce, and everything downstream
   reads the declared resolution off the STAGED SCENE, never off the files.
 
@@ -386,38 +387,37 @@ def _supersample() -> Iterator[None]:
     supersampled buffer would be declaring directions for a picture nobody will
     ever see.
 
-    `render._capture_frames` is called as a module global from
-    `CutoutRenderer.render`, and per-shot fan-out is a `ThreadPoolExecutor` in
-    this process, so the rebinding reaches every shot at any `parallel`.
+    `capture.capture_frames` is called as a module attribute, at call time,
+    from the core frame stage (`an.engines.frame_stage`), and per-shot fan-out
+    is a `ThreadPoolExecutor` in this process, so the rebinding reaches every
+    shot at any `parallel`.
     """
-    from an.adapters.cutout import render
+    from an.engines import capture
 
     with _patched_runtime(
         lambda source: _supersample_patch(source, k=SUPERSAMPLE_K),
         prefix="an-mutation-supersample-",
     ):
-        original = render._capture_frames
+        original = capture.capture_frames
 
-        def _capture_then_resolve(
-            page, total_frames, fps, frames_dir, _factor=None, **kwargs
-        ):
-            # Forces the PRODUCT's own `supersample` parameter (an#58) rather
-            # than resolving separately, so this lever runs the exact path a
-            # user gets from `an render --supersample 2` — same function, same
-            # place in the pipeline. It has to be forced here because the bench
+        def _capture_then_resolve(session, requests, frames_dir, **kwargs):
+            # Forces the PRODUCT's own `factor` parameter (an#58) rather than
+            # resolving separately, so this lever runs the exact path a user
+            # gets from `an render --supersample 2` — same function, same place
+            # in the pipeline. It has to be forced here because the bench
             # cannot pass it through `BENCH_RENDER_KWARGS`: that dict is a
-            # comparability key, and a factor in it would refuse every metric in
-            # the row rather than measure one.
-            # `**kwargs` forwarded (`frame_samples`, and whatever the capture
-            # stage grows next) so the lever keeps running the product's path
-            # rather than a frozen copy of its signature.
-            original(page, total_frames, fps, frames_dir, SUPERSAMPLE_K, **kwargs)
+            # comparability key, and a factor in it would refuse every metric
+            # in the row rather than measure one. `**kwargs` forwarded (`size`,
+            # and whatever the capture stage grows next) so the lever keeps
+            # running the product's path rather than a frozen copy of its
+            # signature.
+            original(session, requests, frames_dir, **{**kwargs, "factor": SUPERSAMPLE_K})
 
-        render._capture_frames = _capture_then_resolve
+        capture.capture_frames = _capture_then_resolve
         try:
             yield
         finally:
-            render._capture_frames = original
+            capture.capture_frames = original
 
 
 #: The levers, keyed by the mutation name the registry declares. At least one

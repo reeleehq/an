@@ -613,7 +613,7 @@ MUTANTS: tuple[Mutant, ...] = (
     # ---------------------------------------------------------------- an#59
     Mutant(
         name="pix_fmt_knob_cannot_reach_the_encode",
-        file="an/adapters/cutout/render.py",
+        file="an/media/mp4.py",
         old="    resolved = pix_fmt or DEFAULT_PIX_FMT",
         new='    resolved = pix_fmt or "yuv420p"',
         caught_by="tests/test_encode_pins.py",
@@ -631,7 +631,7 @@ MUTANTS: tuple[Mutant, ...] = (
     ),
     Mutant(
         name="mux_argv_is_checked_by_subset_not_equality",
-        file="an/adapters/cutout/render.py",
+        file="an/media/mp4.py",
         # Anchored ACROSS the insertion point — `"-pix_fmt",` is in the `old`
         # text purely so the mutation *splits* it rather than prefixing it. An
         # earlier spelling put the two new flags in front of `-c:v`, which made
@@ -710,8 +710,8 @@ MUTANTS: tuple[Mutant, ...] = (
     Mutant(
         name="supersample_skips_the_frame_stage",
         file="an/bench/mutations.py",
-        old="        render._capture_frames = _capture_then_resolve",
-        new="        render._capture_frames = original",
+        old="        capture.capture_frames = _capture_then_resolve",
+        new="        capture.capture_frames = original",
         caught_by="tests/test_bench_supersample_lever.py",
         why=(
             "drops the resolve, leaving k-times PNGs on disk. Before an#54 that "

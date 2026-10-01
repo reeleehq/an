@@ -89,19 +89,50 @@ def test_off_is_free_and_returns_the_bytes_untouched():
 
 
 def test_a_factor_that_cannot_resolve_exactly_is_refused_before_the_browser_starts():
-    """MUTATION: drop the `check_factor` call at the top of `CutoutRenderer.render`.
+    """MUTATION: drop the `check_factor` call at the top of the frame stage.
 
     A bad factor would then surface minutes later, from inside the frame loop,
     after a browser launch and a scene compile — and on the SECOND shot of a
     parallel render, from a thread.
-    """
-    from an.adapters.cutout import render as render_mod
 
-    source = inspect.getsource(render_mod.CutoutRenderer.render)
+    Since an#247 the check is the core frame stage's (`FrameStageRenderer`,
+    which `CutoutRenderer` is), ahead of `engine.open` — where the stage
+    engine imports Playwright, compiles and launches Chromium. Asserted on the
+    source AND by behaviour: an engine whose `open` fails the test.
+    """
+    from contextlib import contextmanager
+    from pathlib import Path
+
+    from an.adapters._base import RenderContext
+    from an.adapters.cutout import render as render_mod
+    from an.engines.frame_stage import FrameStageRenderer
+    from an.ir.schema import Shot
+
+    assert isinstance(render_mod.CutoutRenderer(), FrameStageRenderer)
+    source = inspect.getsource(FrameStageRenderer._render)
     assert "check_factor(ctx.supersample)" in source
-    assert source.index("check_factor") < source.index("sync_playwright"), (
+    assert source.index("check_factor") < source.index("self.engine.open"), (
         "validate before anything expensive starts"
     )
+
+    class _MustNotOpen:
+        name = "must-not-open"
+
+        @contextmanager
+        def open(self, job):
+            pytest.fail("the engine was opened before the factor was checked")
+            yield
+
+    renderer = render_mod.CutoutRenderer(engine=_MustNotOpen())
+    ctx = RenderContext(mall={}, work_dir=Path("."), supersample=0)
+    import an.media.mp4 as mp4
+
+    original, mp4.ensure_ffmpeg = mp4.ensure_ffmpeg, lambda: None
+    try:
+        with pytest.raises(SupersampleError):
+            renderer.render(Shot(id="s", duration=0.1), ctx)
+    finally:
+        mp4.ensure_ffmpeg = original
 
     for bad in (0, -1, 1.5, "2", True):
         with pytest.raises(SupersampleError):

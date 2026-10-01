@@ -10,7 +10,7 @@ shots meet and what is heard over them. It runs only when a scene asks for it
 
 - *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,
   in exact integer arithmetic, and the film is muxed ONCE by the same
-  ``_ffmpeg_mux`` every shot uses. Composing in ffmpeg (``xfade``) would decode
+  ``an.media.mp4.mux_frames`` every shot uses. Composing in ffmpeg (``xfade``) would decode
   already-encoded shots and re-encode them — a second generation of x264 loss
   on every frame of the film, not just the transition — and would retire the
   render pipeline's "ffmpeg never touches a frame" clause. A frame no
@@ -698,7 +698,8 @@ def assemble_film(
     # frame grid would lead the picture by 23 ms and drift at every shot whose
     # duration is not a whole number of frames (both measured, an#163 review).
     # One mux of the frame sequence puts frame i at exactly i / fps.
-    from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN, _ffmpeg_mux
+    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
+    from an.media.mp4 import mux_frames
 
     frames = compose_frames(
         timeline,
@@ -708,7 +709,7 @@ def assemble_film(
     )
     if len(frames) != timeline.total_frames:  # pragma: no cover — invariant
         raise AssemblyError("composed frame count disagrees with the timeline")
-    _ffmpeg_mux(work / "frames", fps, picture, pix_fmt)
+    mux_frames(work / "frames", fps, picture, pix_fmt)
     plan = mix_plan(scene, timeline, mall, work / "audio")
     _run(mix_command(plan, picture, output), doing="mixing the film's sound")
     return output

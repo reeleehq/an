@@ -329,7 +329,9 @@ product's own parameter* rather than carrying a second copy of the resolve —
 a lever that reproduces the code it examines is examining itself. Each lever
 reaches an existing seam from outside:
 
-- `high_crf` rebinds `render.DETERMINISTIC_X264_ARGS`. `_ffmpeg_mux` reads that
+- `high_crf` rebinds `render.DETERMINISTIC_X264_ARGS` — since an#247 a LIVE alias
+  (`an/_shims.py`) of `an.media.mp4.DETERMINISTIC_X264_ARGS`, so the rebind lands
+  there. The mux (`an.media.mp4.mux_frames`, old name `_ffmpeg_mux`) reads that
   name as a module global at call time so the rebinding reaches the delivered
   encode — and it does **not** reach `imageio.lossless_encode_command`, which
   bound the tuple at import. That is exactly right: the lossless reference must
@@ -339,7 +341,9 @@ reaches an existing seam from outside:
   copy, and rebinds `render.runtime_dir`. The shipped `runtime.js` is untouched.
 - `supersample` reaches that **same** runtime seam — `resolution: k,
   autoDensity: false` in the Pixi application options — and then a second one it
-  cannot do without: it rebinds `render._capture_frames` so the k-times PNGs are
+  cannot do without: it rebinds the core capture loop
+  `an.engines.capture.capture_frames` (since an#247; before it, the stage's
+  `render._capture_frames`), forcing `factor=k`, so the k-times PNGs are
   block-mean-resolved back to the declared size **in the frame stage**. Not
   tidiness: nothing downstream reads a resolution off the files.
   `capture.resolution` comes from the staged scene's `meta`, so unresolved
