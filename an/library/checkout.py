@@ -1,0 +1,402 @@
+"""Check-out: materialise a library version into a project, carrying its rights with it.
+
+The v1 resolution strategy (ADR 0005 decision 8). The descriptor and its files
+land in the project's existing store layout (``assets/characters/<key>/``), so the
+compiler, validator and renderer read the project as they always have. Three
+things travel with the copy, because the project is where ``an credits`` and the
+render-time private-study warning look:
+
+- ``metadata.library_origin``: the pinned reference, the version's manifest,
+  its recomputed ``rights``, and every source those rights depend on that the
+  descriptor itself does not hold (the asset-level source, the sources of every
+  version it derives from). ``an credits`` reads them
+  (``an.credits._library_origin_credits``);
+- the asset-level source, written into a descriptor that declares none;
+- the pin in ``assets.lock.json``.
+
+One asymmetry, deliberate: a RELICENSED version's copy still carries the
+descriptor's and the parts' own sources, so ``an credits`` in the project can
+be stricter than the library — never looser.
+
+The pin records provenance. It is not a cache key: a checked-out copy can be
+edited after it is pinned. :func:`verify_checkout` says whether each pinned copy
+is still byte-for-byte its version.
+"""
+
+from __future__ import annotations
+
+import copy
+import os
+import re
+import warnings
+from collections.abc import Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from dol.content import ContentRef, content_hash
+
+from an.library.api import (
+    METADATA_ADDED_FLAG,
+    ORIGIN_KEY,
+    SOURCE_ADDED_KEY,
+    CheckoutError,
+    IntegrityError,
+    _stricter,
+    pop_origin,
+    verified_files,
+    version_sources,
+)
+from an.library.federation import Libraries, as_libraries, resolve
+from an.library.ids import SHA256_PREFIX, LibraryRef, parse_ref
+from an.library.kinds import asset_kind_info
+from an.library.lock import ProjectLock, lock_key
+from an.library.rights import (
+    ASSET_SOURCE_LABEL,
+    Rights,
+    descriptor_source,
+    roll_up,
+    sources_in,
+)
+from an.library.root import LibraryLocationWarning, git_worktree_of
+
+__all__ = ["CheckoutResult", "check_pins", "checkout", "verify_checkout"]
+
+#: Kinds whose descriptor has a ``metadata`` dict to carry the origin block.
+METADATA_KINDS: frozenset[str] = frozenset(
+    {"character", "prop", "environment", "sound"}
+)
+#: A project-store key: one folder name.
+_KEY_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+
+
+@dataclass(frozen=True)
+class CheckoutResult:
+    """Where a checked-out version landed in the project, and its pin."""
+
+    ref: LibraryRef
+    store: str
+    key: str
+    manifest_sha256: str
+    files: int
+    changed: bool
+    rights: Rights
+
+    def asset_ref(self, entity_id: str | None = None) -> Any:
+        """An :class:`~an.ir.schema.AssetRef` casting this asset, pinned by ``library``."""
+        from an.ir.schema import AssetRef
+
+        return AssetRef(
+            kind=self.ref.kind,
+            id=entity_id or self.key,
+            store=self.store,
+            ref=self.key,
+            library=str(self.ref),
+        )
+
+    def __str__(self) -> str:
+        what = "checked out" if self.changed else "already checked out"
+        return (
+            f"{what}: {self.ref} -> {self.store}/{self.key} "
+            f"({self.files} files) [{self.rights.license_class}]"
+        )
+
+
+def _entry_dir(store: Any, key: str) -> Path | None:
+    meta = getattr(store, "META_NAME", None)
+    if not hasattr(store, "sidecar_path") or meta is None:
+        return None
+    return Path(store.sidecar_path(key, meta)).parent
+
+
+def drift(store: Any, key: str, version: Mapping[str, Any]) -> list[str]:
+    """How the project's ``store[key]`` differs from ``version`` — empty when it is that version.
+
+    The descriptor is compared with the check-out's additions removed; every
+    file is compared by hash, and files the version does not have count too.
+    """
+    if key not in store:
+        return ["missing from the project"]
+    out: list[str] = []
+    doc = copy.deepcopy(dict(store[key]))
+    pop_origin(doc)
+    if doc != version.get("doc"):
+        out.append("descriptor edited")
+    entry = _entry_dir(store, key)
+    files = version.get("files") or {}
+    if entry is None:
+        return out + (["files expected, but the store keeps none"] if files else [])
+    meta = getattr(store, "META_NAME", "")
+    on_disk = {
+        p.relative_to(entry).as_posix()
+        for p in entry.rglob("*")
+        if p.is_file() and p.relative_to(entry).as_posix() != meta
+    }
+    for path, raw in sorted(files.items()):
+        target = entry.joinpath(*path.split("/"))
+        if path not in on_disk:
+            out.append(f"{path} missing")
+        elif content_hash(target.read_bytes()) != ContentRef.from_json(raw).item_id:
+            out.append(f"{path} edited")
+    out += [f"{path} added" for path in sorted(on_disk - set(files))]
+    return out
+
+
+def _origin_block(
+    pinned: LibraryRef,
+    version: Mapping[str, Any],
+    contributors: list[tuple[str, Any]],
+    rights: Rights,
+    visible: set[str],
+) -> dict[str, Any]:
+    return {
+        "library": str(pinned),
+        "manifest_sha256": version["manifest_sha256"],
+        "rights": rights.to_dict(),
+        "sources": [
+            {
+                "label": label,
+                "source": source.model_dump(mode="json", exclude_defaults=True)
+                if source is not None
+                else None,
+            }
+            for label, source in contributors
+            if label not in visible
+        ],
+    }
+
+
+def checkout(
+    libraries: Libraries,
+    project_dir: str | os.PathLike,
+    ref: str | LibraryRef,
+    *,
+    key: str | None = None,
+    mall: Mapping[str, Any] | None = None,
+    lock: Any | None = None,
+    overwrite: bool = False,
+) -> CheckoutResult:
+    """Materialise a library version into a project, carry its rights, pin it.
+
+    project_dir: the project to check out into
+    ref: ``[<library>:]<asset_id>[@<version>]``; ``latest`` (or no version) is
+        resolved now and pinned
+    key: the key in the project store (default: the asset id's slug)
+    mall: the project mall (default: ``build_project_mall(project_dir)``)
+    lock: the lockfile mapping (default: ``<project_dir>/assets.lock.json``)
+    overwrite: replace an existing entry that is not exactly this version — a
+        local fork (any edited file or descriptor) or another asset; without it
+        that is refused
+
+    Every stored path, blob and the manifest are verified before anything is
+    written, and every file is written inside the entry's folder or not at all.
+    Editing the checked-out copy forks it; ``publish`` of the edited folder
+    sends it back as a new version derived from this one.
+    """
+    from an.stores import build_project_mall
+
+    if key is not None and not _KEY_RE.fullmatch(key):
+        raise CheckoutError(
+            f"key {key!r} must be one folder name (letters, digits, '.', '_', '-')"
+        )
+    library, pinned, version = resolve(libraries, ref)
+    kind = asset_kind_info(pinned.kind)
+    if kind.store is None:
+        raise CheckoutError(
+            f"a {kind.name} has no project store to check out into (yet)"
+        )
+    files = verified_files(library, version)
+    readers = [library, *(lib for lib in as_libraries(libraries) if lib is not library)]
+    contributors = version_sources(readers, version)
+    rights = _stricter(
+        Rights.from_dict(version.get("rights") or {}), roll_up(contributors)
+    )
+    manifest = version["manifest_sha256"]
+    mall = mall if mall is not None else build_project_mall(project_dir, ensure=True)
+    store = mall[kind.store]
+    key = key or pinned.asset_id.split(".", 1)[1]
+    lock = lock if lock is not None else ProjectLock(project_dir)
+    entry_key = lock_key(kind.store, key)
+    if key in store:
+        existing = store[key]
+        origin = (
+            (existing.get("metadata") or {}) if isinstance(existing, Mapping) else {}
+        ).get(ORIGIN_KEY) or {}
+        same_version = origin.get("library") == str(pinned) or (
+            lock.get(entry_key, {}) if entry_key in lock else {}
+        ).get("library") == str(pinned)
+        differences = drift(store, key, version)
+        if same_version and not differences and not overwrite:
+            if entry_key not in lock:
+                lock[entry_key] = _pin(pinned, manifest)
+            return CheckoutResult(
+                pinned, kind.store, key, manifest, len(files), False, rights
+            )
+        if not overwrite:
+            what = (
+                f"a fork of it ({', '.join(differences)})"
+                if same_version
+                else "a local fork or another asset"
+            )
+            raise CheckoutError(
+                f"the project already has {kind.store}/{key}, and it is not {pinned} "
+                f"as published: it is {what}. Pass overwrite=True to replace it, or "
+                "key=… to check out beside it"
+            )
+        del store[key]
+    if files and not hasattr(store, "sidecar_path"):
+        raise CheckoutError(
+            f"the project's {kind.store!r} store keeps no files beside its documents, "
+            f"so the {len(files)} files of {pinned} have nowhere to go"
+        )
+    if rights.license_class == "private":
+        repo = git_worktree_of(project_dir)
+        if repo is not None:
+            warnings.warn(
+                f"checking private-study material ({pinned}) out into {project_dir}, "
+                f"inside the git work tree {repo}: never commit it",
+                LibraryLocationWarning,
+                stacklevel=2,
+            )
+    if files:
+        entry = Path(store.sidecar_path(key, "_")).parent.resolve()
+        targets = {}
+        for path in files:
+            target = Path(store.sidecar_path(key, path))
+            if not target.resolve().is_relative_to(entry):
+                raise IntegrityError(
+                    f"{pinned}: file {path!r} would land outside {entry}"
+                )
+            targets[path] = target
+        for path, data in sorted(files.items()):
+            targets[path].parent.mkdir(parents=True, exist_ok=True)
+            targets[path].write_bytes(data)
+    doc = copy.deepcopy(version["doc"])
+    if kind.name in METADATA_KINDS and isinstance(doc, dict):
+        added = None
+        if (
+            version.get("source")
+            and descriptor_source(doc, store=kind.credits_store) is None
+        ):
+            added = {
+                "source": copy.deepcopy(version["source"]),
+                "had_key": "source" in doc,
+                "previous": doc.get("source"),
+            }
+            doc["source"] = copy.deepcopy(version["source"])
+        # What the project's own credits walk will see in the written descriptor;
+        # every other contributor is recorded in the origin block.
+        visible = {
+            label
+            for label, _ in sources_in(doc, store=kind.credits_store)
+            if label != ASSET_SOURCE_LABEL
+        }
+        if added is not None:
+            visible.add(ASSET_SOURCE_LABEL)
+        origin = _origin_block(pinned, version, contributors, rights, visible)
+        if added is not None:
+            origin[SOURCE_ADDED_KEY] = added
+        if not isinstance(doc.get("metadata"), dict):
+            doc["metadata"] = {}
+            origin[METADATA_ADDED_FLAG] = True
+        doc["metadata"][ORIGIN_KEY] = origin
+    store[key] = doc
+    lock[entry_key] = _pin(pinned, manifest)
+    return CheckoutResult(pinned, kind.store, key, manifest, len(files), True, rights)
+
+
+def _pin(pinned: LibraryRef, manifest: str) -> dict[str, Any]:
+    from an.library.api import _now
+
+    return {
+        "library": str(pinned),
+        "asset": pinned.asset_id,
+        "version": pinned.version,
+        "manifest_sha256": manifest,
+        "checked_out": _now(),
+    }
+
+
+def verify_checkout(
+    libraries: Libraries,
+    project_dir: str | os.PathLike,
+    *,
+    mall: Mapping[str, Any] | None = None,
+    lock: Any | None = None,
+) -> dict[str, list[str]]:
+    """``{<store>/<key>: differences}`` for every pinned entry; empty lists are intact copies.
+
+    What makes a pin usable as more than provenance: an entry with no
+    differences is byte-for-byte the version its pin names.
+    """
+    from an.stores import build_project_mall
+
+    mall = mall if mall is not None else build_project_mall(project_dir)
+    lock = lock if lock is not None else ProjectLock(project_dir)
+    out: dict[str, list[str]] = {}
+    for entry_key in lock:
+        store_name, _, key = entry_key.partition("/")
+        try:
+            _, _, version = resolve(libraries, lock[entry_key]["library"])
+        except Exception as e:  # noqa: BLE001 — reported per entry
+            out[entry_key] = [f"pinned version unavailable: {e}"]
+            continue
+        out[entry_key] = drift(mall[store_name], key, version)
+    return out
+
+
+def _same_pin(said: LibraryRef, pinned: LibraryRef, manifest: str) -> bool:
+    if said.asset_id != pinned.asset_id or said.namespace not in (
+        None,
+        pinned.namespace,
+    ):
+        return False
+    version = said.version or ""
+    if version.startswith(SHA256_PREFIX):
+        return manifest.startswith(version[len(SHA256_PREFIX) :])
+    return version == pinned.version
+
+
+def check_pins(scene: Any, lock: Mapping[str, Any]) -> list[Any]:
+    """Findings where a scene's ``AssetRef.library`` and the project lockfile disagree.
+
+    Two records of one pin can drift (a re-check-out updates the lockfile, not
+    the scene). Until the lockfile joins the project mall and ``an validate``
+    runs this (an#240), call it yourself; each disagreement is a ``warning``.
+    """
+    from an.verify._base import Finding
+
+    out: list[Finding] = []
+    for i, shot in enumerate(getattr(scene, "timeline", None) or []):
+        for j, entity in enumerate(shot.entities):
+            if entity.library is None:
+                continue
+            where = f"timeline/{i}/entities/{j}/library"
+            pin = (
+                lock.get(lock_key(entity.store, entity.ref))
+                if lock_key(entity.store, entity.ref) in lock
+                else None
+            )
+            if pin is None:
+                out.append(
+                    Finding(
+                        "warning",
+                        where,
+                        f"{entity.library} is not pinned in the lockfile for {entity.store}/{entity.ref}",
+                        "check the asset out (an library checkout) or remove the library field",
+                    )
+                )
+                continue
+            said, pinned = parse_ref(entity.library), parse_ref(pin["library"])
+            same = _same_pin(said, pinned, pin.get("manifest_sha256") or "")
+            if not same:
+                out.append(
+                    Finding(
+                        "warning",
+                        where,
+                        f"the scene says {entity.library} but {entity.store}/{entity.ref} "
+                        f"is checked out from {pin['library']}",
+                        f'set library: "{pin["library"]}" or check out {entity.library}',
+                    )
+                )
+    return out

@@ -66,8 +66,26 @@ def _factory_digest(char_dir: Path) -> str:
         h.update(f.relative_to(char_dir).as_posix().encode())
         h.update(f.read_bytes().replace(b"\r\n", b"\n"))
     desc = json.loads((char_dir / "character.json").read_text("utf-8"))
+    _drop_factory_stamps(desc)
     h.update(json.dumps({k: desc.get(k) for k in DESCRIPTOR_KEYS}, sort_keys=True).encode())
     return h.hexdigest()[:16]
+
+
+def _drop_factory_stamps(desc: dict) -> None:
+    """Remove the per-part provenance stamps the factory adds (an#236), in place.
+
+    They record that the factory drew each part (``cc0``, pinned to the part's
+    digest) for the asset library; they are not art or rig. Dropping exactly
+    them keeps this golden what it says it is — the pre-knob art and rig —
+    and still fails on any other change to an attachment.
+    """
+    from an.characters.factory import FACTORY_PROVIDER
+
+    for skin in (desc.get("skins") or {}).values():
+        for attachments in (skin.get("slots") or {}).values():
+            for att in attachments.values():
+                if (att.get("source") or {}).get("provider") == FACTORY_PROVIDER:
+                    del att["source"]  # an unset source is not written
 
 
 def _make(tmp: Path, name: str = "c", **knobs) -> Path:

@@ -244,7 +244,57 @@ def collect_credits(
                 report.entries.extend(_plane_credits(key, descriptor))
             if store_name in ("characters", "props"):
                 report.entries.extend(_part_credits(store_name, key, descriptor))
+            report.entries.extend(_library_origin_credits(store_name, key, descriptor))
     return report
+
+
+#: Where a library check-out records itself in a descriptor (ADR 0005); the
+#: library writes it (`an.library.api.ORIGIN_KEY`), this walk only reads it.
+LIBRARY_ORIGIN_KEY: str = "library_origin"
+
+
+def _library_origin_credits(
+    store_name: str, key: str, descriptor: Any
+) -> list[CreditEntry]:
+    """The sources a library check-out recorded BESIDE the descriptor (an#234).
+
+    A library version's rights can come from places the descriptor does not
+    hold: a source the publisher declared for the asset as a whole, and the
+    rights of every version it derives from (a recolour of a carved puppet is
+    as private as the puppet). Check-out records those contributors in
+    ``metadata.library_origin.sources``; without this walk they would vanish
+    from the project, and the private-study warning would never fire for
+    checked-out study material — the false clean bill this module exists to
+    prevent.
+
+    >>> d = {"metadata": {"library_origin": {"library": "cutan:prop.vase@v001",
+    ...     "sources": [{"label": "asset", "source": {"provider": "film",
+    ...                  "license": "all-rights-reserved"}}]}}}
+    >>> [(e.asset, e.license_class) for e in _library_origin_credits("props", "vase", d)]
+    [('props/vase/via-library/asset', 'private')]
+    """
+    raw = descriptor if isinstance(descriptor, Mapping) else None
+    if raw is None and hasattr(descriptor, "model_dump"):
+        raw = descriptor.model_dump(mode="json")
+    metadata = (raw or {}).get("metadata")
+    origin = metadata.get(LIBRARY_ORIGIN_KEY) if isinstance(metadata, Mapping) else None
+    if not isinstance(origin, Mapping):
+        return []
+    out: list[CreditEntry] = []
+    for item in origin.get("sources") or []:
+        if not isinstance(item, Mapping):
+            continue
+        asset = f"{store_name}/{key}/via-library/{item.get('label', '?')}"
+        raw_source = item.get("source")
+        source = (
+            _source_or_unknown(raw_source, asset)
+            if raw_source
+            else AssetSource(
+                provider="unknown", extra={"library": origin.get("library")}
+            )
+        )
+        out.append(CreditEntry(asset=asset, source=source))
+    return out
 
 
 def _source_or_unknown(raw: Any, asset: str) -> AssetSource:
@@ -318,12 +368,27 @@ def _part_credits(store_name: str, key: str, descriptor: Any) -> list[CreditEntr
             for att in attachments.values():
                 if not isinstance(att, Mapping) or att.get("source") is None:
                     continue  # an empty `{}` is still a claim: reported UNKNOWN
+                if _is_factory_stamp(att["source"]):
+                    continue  # this package drew it: nothing owed, not third-party
                 asset = f"{store_name}/{key}/{att.get('path', '?')}"
                 if asset not in out:
                     out[asset] = CreditEntry(
                         asset=asset, source=_source_or_unknown(att["source"], asset)
                     )
     return [out[a] for a in sorted(out)]
+
+
+def _is_factory_stamp(raw: Any) -> bool:
+    """Whether a per-part source is the character factory's own stamp (an#236).
+
+    The factory stamps every part it draws ``cc0`` with the part's digest, so the
+    asset library can tell its shared parts from carved ones. It is ``an``'s own
+    work, not third-party: a credits report lists what is OWED, and listing
+    fifty generated parts per character would bury the one carved head.
+    """
+    from an.characters.factory import FACTORY_PROVIDER
+
+    return isinstance(raw, Mapping) and raw.get("provider") == FACTORY_PROVIDER
 
 
 def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:

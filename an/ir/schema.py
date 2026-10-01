@@ -262,9 +262,35 @@ class AssetRef(_IRModel):
     #: it. So this field can grow without retiring a single ledger row.
     stage: StagePlacement | None = None
 
+    #: The asset-library version this entry was checked out from (ADR 0005
+    #: decision 8): ``"[<library>:]<asset_id>@<version>"``, e.g.
+    #: ``"cutan:character.alice-reiniger@v003"`` (grammar:
+    #: :func:`an.library.ids.parse_ref`, a pinned version required: ``vNNN`` or
+    #: ``sha256:<prefix>``, never ``latest``). ``None`` — the
+    #: default, and every document written before the library existed — means
+    #: the asset is the project's own. Today the strategy is check-out, so
+    #: ``ref`` still names the project-store key the compiler reads and this
+    #: field is the pin beside it; live reference resolves it instead, later.
+    #:
+    #: Additive and omit-when-unset, like ``stage``: an unset ``library``
+    #: leaves no trace in a dump, so no stored scene changes and no schema
+    #: version moves.
+    library: str | None = None
+
+    @field_validator("library")
+    @classmethod
+    def _check_library_ref(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        # Imported here, not at module top: the IR must not depend on the
+        # library package at import time (it imports the IR's neighbours).
+        from an.library.ids import parse_ref
+
+        return str(parse_ref(v, require_pin=True))
+
     @model_serializer(mode="wrap")
     def _omit_unset_stage(self, handler):
-        """Serialize ``stage: null`` out of existence when it is unset.
+        """Serialize ``stage: null`` and ``library: null`` out of existence when unset.
 
         The precedent is `serialize._omit_unset_step_hz`, and the reason is
         the same one scaled down: every committed `ir/scene.json` in this repo
@@ -273,11 +299,13 @@ class AssetRef(_IRModel):
         `AssetRef` would rewrite all of them on the next `an sync`, and
         `test_every_speaking_corpus_scene_ir_is_reproducible_from_its_md`
         would be red until each was regenerated. A field nobody set should
-        leave no trace (an#108).
+        leave no trace (an#108; ``library`` joined it under ADR 0005).
         """
         data = handler(self)
         if self.stage is None:
             data.pop("stage", None)
+        if self.library is None:
+            data.pop("library", None)
         return data
 
 
