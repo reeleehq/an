@@ -24,6 +24,7 @@ import textwrap
 from pathlib import Path
 from typing import Optional
 
+from an.characters.factory import DFLT_HAIR_LENGTH, DFLT_HAIR_STYLE
 from an.characters.factory import new_character as _new_character
 from an.characters.validate import format_report as _format_report
 from an.characters.validate import render_contract as _render_contract
@@ -57,6 +58,8 @@ def new(
     hat: str = "none",
     sash: bool = False,
     views: bool = True,
+    hair_style: str = DFLT_HAIR_STYLE,
+    hair_length: str = DFLT_HAIR_LENGTH,
 ) -> str:
     """Create a new character at ``out_dir``/``name``.
 
@@ -80,7 +83,13 @@ def new(
         stick (small blocky body, stick limbs)
     head_scale: the head and its whole face scaled together (1.0 = regular)
     hat: none, cap, beanie, bowler or bicorne (offline head only), in the
-        accessory colour
+        accessory colour, worn above the brows so expressions read (a hat that
+        cannot clear them on a very small head is recorded, and
+        `an character capabilities` says the brows cannot act)
+    hair_style: peak (the default), bald, bun or curly (offline head only),
+        in the hair colour
+    hair_length: short (the default), medium (to the jaw) or long (past the
+        chin) (offline head only); bald takes short
     sash: a diagonal band across the torso, in the accessory colour
     views: draw the turnaround — back, side (a profile facing right) and
         three_quarter beside the front, as a `view` swap set (offline head
@@ -112,6 +121,8 @@ def new(
             hat=hat,
             sash=sash,
             views=views,
+            hair_style=hair_style,
+            hair_length=hair_length,
         )
     except ValueError as e:
         # A licence refusal is a message for a human, not a traceback. The
@@ -119,15 +130,29 @@ def new(
         # gate added below the CLI without a flag above it made every CC BY
         # style unreachable AND ugly.
         return str(e)
+    doc = json.loads(desc.read_text(encoding="utf-8"))
     note = (
         "; no views: a DiceBear head's face is baked, so its back and profile "
         "cannot be drawn (use --offline to turn it)"
-        if views
-        and not offline
-        and "view"
-        not in json.loads(desc.read_text(encoding="utf-8")).get("asset_sets", {})
+        if views and not offline and "view" not in doc.get("asset_sets", {})
         else ""
     )
+    from an.characters.factory import stage_extent
+    from an.characters.schema import CharacterDescriptor
+    from an.ir.migrate import migrate
+
+    ext = stage_extent(
+        CharacterDescriptor.model_validate(migrate(doc, kind="CharacterDescriptor"))
+    )
+    note += (
+        f"; stands {ext['height']:g} px tall at stage.scale 1 — its top "
+        f"{ext['top']:g} px above its stage point, its feet {ext['feet']:g} px below"
+    )
+    for feature, cover in (doc.get("occluded") or {}).items():
+        note += (
+            f"; {cover} covers the {feature}, so expressions cannot act with them "
+            "(see `an character capabilities`)"
+        )
     return f"created character at {desc.parent} (descriptor: {desc.name}){note}"
 
 

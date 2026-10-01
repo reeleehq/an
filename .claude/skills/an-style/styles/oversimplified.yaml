@@ -31,7 +31,9 @@ live:
     mouth_variants: [happy, sad]
     build: stick             # `--build stick`: a small blocky body with stick limbs
     head_scale: 1.7          # `--head-scale 1.7`: the oversized head
-    hat: [bicorne, bowler, cap, none]   # `--hat`: period headgear tells figures apart
+    hat: [bicorne, bowler, cap, none]   # `--hat`: period headgear tells figures apart; worn above the brows, so expressions still read
+    hair_style: [peak, bald, bun, curly]   # `--hair-style`: with the length, tells figures (and women from men) apart
+    hair_length: [short, medium, long]     # `--hair-length`
     sash: true               # `--sash` on the figures that wear one (officers, royalty)
     palette: per_character   # `--palette clothing=#..,accessory=#..`: costume colour is identity
   transitions:
@@ -109,7 +111,7 @@ prosody_targets:
 
 guidance:
   construction: blocky body, stick limbs, oversized head (all live as `characters` knobs); brows and mouth only, no nose or ears
-  identity: costume colour, hat, sash tell figures apart (live as `characters.palette`, `hat` and `sash`); beards, crowns and uniforms beyond a sash are not
+  identity: costume colour, hat, hair and sash tell figures apart (live as `characters.palette`, `hat`, `hair_style`/`hair_length` and `sash`); beards, crowns and uniforms beyond a sash are not
   crowds: dozens of identical figures; no instancing macro ships, so repeat entities by hand
   structure: [narrated_map, dramatization, date_card]
   narration: one narrator voices every character, third person

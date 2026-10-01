@@ -330,6 +330,7 @@ def test_a_complete_rig_affords_everything_the_first_analyser_knows(alice_dir):
     publish_dir(lib, alice_dir, "character.alice", source=MIT)
     a = _afford(lib, "character.alice")
     assert sorted(a) == [
+        "face.brows",  # an#252
         "face.mouth",
         "limbs.arms",
         "limbs.legs",

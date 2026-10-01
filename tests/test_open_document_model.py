@@ -350,6 +350,7 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
     assert set(provides["checks"]) == {
         "cutout.play",
         "cutout.expression",
+        "cutout.brow_acting",
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",
         "cutout.character_refs",
@@ -680,6 +681,7 @@ def test_the_report_order_is_pinned():
         "framing",
         "cutout.play",
         "cutout.expression",
+        "cutout.brow_acting",  # an#252: right after the expression check it extends
         "swap_references",
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",

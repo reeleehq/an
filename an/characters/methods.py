@@ -10,6 +10,8 @@ locomotion     ``loco.hem_sway`` (``hem``)                     ``limbs.legs``   
 locomotion     ``loco.rock`` (``rock``)                        nothing                last link
 speech         ``speech.mouth_chart`` (``mouth_chart``)        ``face.mouth``         1st
 speech         ``speech.pose_only`` (``pulse``)                nothing                last link
+expression     ``expr.full_face`` (``full_face``)              ``face.brows``         1st
+expression     ``expr.without_brows`` (``without_brows``)      nothing                last link
 =============  ==============================================  =====================  ==========
 
 **Locomotion is today's walk/gait chain, moved, not changed** (ADR 0002
@@ -25,6 +27,15 @@ requested gait the rig cannot honour (``hem`` on a legless blob) is a
 into its art (``face_overlay: false``) used to speak with a frozen mouth; it now
 pulses its head on each syllable (:func:`an.motion.speech_pulse`, parametrised:
 ``strength``, ``part``, ``attack``, ``release``; ``strength: 0`` is a mime).
+
+**Expression names what reads when the brows cannot** (an#252). A hat the
+factory could not seat above the brows (recorded in ``occluded``), or brow
+slots without art, leave ``face.brows`` unafforded: the face then acts with
+the lids, the gaze and the mouth form (``expr.without_brows``), recorded. Both
+methods compile to the same face channels — the solver drives whatever the
+rig binds — so the aspect is not consulted by the compiler; ``an validate``
+reports the fall (:func:`check_brow_acting`) and ``an character
+capabilities`` shows it with the remedy.
 
 The asset profile the compiler resolves against is the character analyser's
 (``an.capabilities.affordances``), fed what the compiler actually has: the
@@ -48,8 +59,10 @@ from an.semantic.seeds import schema_of_callable
 __all__ = [
     "CUTOUT_ASPECTS",
     "CUTOUT_METHODS",
+    "EXPRESSION",
     "LOCOMOTION",
     "SPEECH",
+    "check_brow_acting",
     "check_declared_speech",
     "compile_profile",
     "speech_problems",
@@ -64,6 +77,7 @@ __all__ = [
 #: The aspect names (persisted in substitution records).
 LOCOMOTION: str = "locomotion"
 SPEECH: str = "speech"
+EXPRESSION: str = "expression"
 
 #: The entity kind whose assets have an analyser, and so resolve on the registry.
 CHARACTER_KIND: str = "character"
@@ -210,6 +224,40 @@ SPEECH_PULSE = Method(
     expand=_pulse_expand,
 )
 
+EXPR_FULL_FACE = Method(
+    "expr.full_face",
+    aspect=EXPRESSION,
+    name="full_face",
+    title="full-face expression",
+    description=(
+        "the expression acts with the whole face: the brows rise, knit and "
+        "tilt, the lids open and close, the pupils move and the mouth takes "
+        "the preset's form"
+    ),
+    requires=("face.brows",),
+    remedies={
+        "face.brows": (
+            "keep the brows clear: `an character new` seats a hat above them at "
+            "most head scales — at this one it could not, so use a larger "
+            "--head-scale, another --hat or --hat none; for drawn art, redraw "
+            "what covers the brows and remove the descriptor's `occluded` "
+            "entry, or give the face brow slots (left_brow/right_brow) with art"
+        )
+    },
+    examples=({"kind": "expression", "target": "ned", "preset": "surprised"},),
+)
+EXPR_WITHOUT_BROWS = Method(
+    "expr.without_brows",
+    aspect=EXPRESSION,
+    name="without_brows",
+    title="expression without brows",
+    description=(
+        "the brows cannot be seen acting (covered, or not drawn): the lids, the "
+        "gaze and the mouth form carry the expression"
+    ),
+    examples=("a character whose hat covers its brows takes [surprised]",),
+)
+
 #: The genre's methods, as vocabulary entries (kind ``method``).
 CUTOUT_METHODS: tuple[Method, ...] = (
     LOCO_LEGGED,
@@ -217,6 +265,8 @@ CUTOUT_METHODS: tuple[Method, ...] = (
     LOCO_ROCK,
     SPEECH_CHART,
     SPEECH_PULSE,
+    EXPR_FULL_FACE,
+    EXPR_WITHOUT_BROWS,
 )
 #: The genre's aspects: each chain ends in a method that requires nothing.
 CUTOUT_ASPECTS: tuple[Aspect, ...] = (
@@ -235,6 +285,15 @@ CUTOUT_ASPECTS: tuple[Aspect, ...] = (
         # character that falls to it without declaring it is recorded, so
         # `--strict-assets` sees it (review-256 S1). Declare `speech: pulse`
         # to make it the request.
+        records_fallback=True,
+    ),
+    Aspect(
+        EXPRESSION,
+        chain=(EXPR_FULL_FACE.id, EXPR_WITHOUT_BROWS.id),
+        description="how a character's face shows an emotion.",
+        applies_to=frozenset({CHARACTER_KIND}),
+        # Brows that cannot act are a loss the author did not choose: said,
+        # every time (an#252).
         records_fallback=True,
     ),
 )
@@ -376,6 +435,94 @@ def check_declared_speech(ctx) -> None:
         for problem in speech_problems(declared):
             ctx.report.add(
                 "error", f"{ctx.path}/entities/{j}", f"{entity.ref}: {problem}"
+            )
+
+
+def _brow_moves(preset: str | None, axes: Mapping[str, float] | None = None) -> bool:
+    """Whether an expression (a preset, with axis overrides) moves a brow."""
+    from an.expression.axes import BROW_AXES
+    from an.expression.presets import preset_axes
+
+    try:
+        moved = preset_axes(preset, axes=axes)
+    except ValueError:
+        return False  # an unknown preset or axis is `cutout.expression`'s error
+    return any(moved.get(a) for a in BROW_AXES)
+
+
+def brow_acting_problem(doc: Any, *, entity: str) -> str | None:
+    """Why ``entity``'s brows cannot act (its expression falls to
+    ``expr.without_brows``), with the remedy — or ``None`` when they can, or when
+    the character has no brow slots at all (nothing it ever had is lost).
+
+    ``doc`` is the character's stored document; a procedural rig (no
+    descriptor) has no brows to lose.
+    """
+    from an.characters.brows import brow_slots
+    from an.characters.schema import CharacterDescriptor
+    from an.ir.migrate import migrate
+    from an.semantic import resolve
+
+    if not isinstance(doc, Mapping) or doc.get("kind") != "CharacterDescriptor":
+        return None
+    desc = CharacterDescriptor.model_validate(migrate(dict(doc), kind="CharacterDescriptor"))
+    if not desc.face_overlay or not brow_slots(desc):
+        return None  # a face whose binding moves no brow has nothing to lose
+    r = resolve(EXPRESSION, compile_profile(desc), entity=entity, entity_kind=CHARACTER_KIND)
+    if r.substitution is None:
+        return None
+    from an.characters.brows import BROWS_FEATURE
+
+    cover = desc.occluded.get(BROWS_FEATURE)
+    why = f"{cover} covers its brows" if cover else "its brow slots have no art"
+    remedy = EXPR_FULL_FACE.remedies["face.brows"]
+    return (
+        f"{why}, so the brows cannot be seen acting: the expression reads through "
+        f"the lids, the gaze and the mouth only ({r.method.id}). To act with the "
+        f"brows: {remedy}"
+    )
+
+
+def check_brow_acting(ctx) -> None:
+    """The cut-out genre's semantic check: an expression that moves the brows of
+    a character whose brows cannot act is reported (a warning) — the expression
+    aspect's recorded fall to ``expr.without_brows`` (an#252)."""
+    from an.ir.compose import flatten
+
+    store = ctx.stores.get("characters")
+    if store is None:
+        return
+    refs = {
+        e.id: e.ref for e in ctx.shot.entities if e.kind == CHARACTER_KIND and e.ref in store
+    }
+    problems: dict[str, str | None] = {}
+
+    def problem(entity: str) -> str | None:
+        if entity not in problems:
+            try:
+                doc = store[refs[entity]]
+            except KeyError:
+                doc = None
+            problems[entity] = brow_acting_problem(doc, entity=entity)
+        return problems[entity]
+
+    for k, action in enumerate(ctx.shot.actions or ()):
+        for flat in flatten(action):
+            leaf = flat.action
+            if getattr(leaf, "kind", None) != "expression":
+                continue
+            entity = (getattr(leaf, "target", "") or "").split("/", 1)[0]
+            if entity not in refs or not _brow_moves(leaf.preset, leaf.axes):
+                continue
+            if (p := problem(entity)) is not None:
+                ctx.report.add("warning", f"{ctx.path}/actions/{k}", f"{entity}: {p}")
+    for j, line in enumerate(ctx.shot.dialogue or ()):
+        emotion = (line.emotion or "").strip().lower()
+        if not emotion or line.speaker not in refs or not _brow_moves(emotion):
+            continue
+        if (p := problem(line.speaker)) is not None:
+            ctx.report.add(
+                "warning", f"{ctx.path}/dialogue/{j}/emotion", f"{line.speaker}: {p}"
             )
 
 

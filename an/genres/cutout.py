@@ -9,14 +9,16 @@ wired into the core. :data:`CUTOUT` lists:
   ``expression`` (:mod:`an.expression.registration`);
 - **entity kind** ``character``, whose nodes are stage nodes (``stage.node``);
 - the **``[emotion]``** dialogue sugar;
-- its **semantic checks**: ``play`` and ``expression`` resolution, the turn
+- its **semantic checks**: ``play`` and ``expression`` resolution, brow
+  acting on a character whose brows cannot act (an#252), the turn
   checks (contradicted ``from_direction``, a mouth hidden while speaking) and
   view continuity across a cut, placed in the report where they always were;
 - its **capabilities** and the **character analyser** (ADR 0002:
   :mod:`an.library.character`), its **vocabulary** (motion and expression
   presets, IR-field notes: :mod:`an.characters.vocabulary`; the methods:
-  :mod:`an.characters.methods`) and its **aspects**, ``locomotion`` and
-  ``speech``, each with a default chain that ends in a method requiring nothing.
+  :mod:`an.characters.methods`) and its **aspects**, ``locomotion``,
+  ``speech`` and ``expression``, each with a default chain that ends in a
+  method requiring nothing.
 
 Its ``name`` is the persisted genre slug ``cutout_animation``, the one
 :mod:`an.genre` declares to ``nw`` (ADR 0001 decision 9: persisted
@@ -33,7 +35,12 @@ Importing this module registers nothing: :func:`an.genres.load` (or
 
 from __future__ import annotations
 
-from an.characters.methods import CUTOUT_ASPECTS, CUTOUT_METHODS, check_declared_speech
+from an.characters.methods import (
+    CUTOUT_ASPECTS,
+    CUTOUT_METHODS,
+    check_brow_acting,
+    check_declared_speech,
+)
 from an.characters.registration import CHARACTER, PLAY
 from an.characters.vocabulary import CUTOUT_VOCABULARY
 from an.expression.registration import EMOTION, EXPRESSION
@@ -70,6 +77,15 @@ CUTOUT = Genre(
             _validate.check_expression_actions,
             order=41,
             description="an `expression` and a dialogue `[emotion]` resolve",
+        ),
+        SemanticCheck(
+            "cutout.brow_acting",
+            check_brow_acting,
+            order=41.5,
+            description=(
+                "an expression that moves the brows targets a character whose "
+                "brows can act (else it reads through the lids and mouth only)"
+            ),
         ),
         SemanticCheck(
             "cutout.turns",
