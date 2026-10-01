@@ -383,8 +383,14 @@ def referenced_paths(descriptor: Any) -> frozenset[str]:
     if isinstance(raw.get("source_svg"), str):
         out.add(raw["source_svg"])
     for skin in (raw.get("skins") or {}).values():
-        for attachments in ((skin or {}).get("slots") or {}).values() if isinstance(skin, Mapping) else ():
-            for att in (attachments or {}).values() if isinstance(attachments, Mapping) else ():
+        for attachments in (
+            ((skin or {}).get("slots") or {}).values()
+            if isinstance(skin, Mapping)
+            else ()
+        ):
+            for att in (
+                (attachments or {}).values() if isinstance(attachments, Mapping) else ()
+            ):
                 if isinstance(att, Mapping) and isinstance(att.get("path"), str):
                     out.add(att["path"])
     for plane in raw.get("planes") or []:
@@ -688,7 +694,9 @@ def _part_credits(
     pinned: set[str] = set()
     pinned_here: set[str] = set()  # a source pinned to the file's CURRENT bytes
     stale: set[str] = set()
-    unconfirmed: set[str] = set()  # factory stamps the factory's record does not confirm
+    unconfirmed: set[str] = (
+        set()
+    )  # factory stamps the factory's record does not confirm
     for skin in (raw.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
             continue

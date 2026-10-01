@@ -256,8 +256,10 @@ def checkout(
     mall = mall if mall is not None else build_project_mall(project_dir, ensure=True)
     store = mall[kind.store]
     lock = _project_lock(lock, mall, project_dir)
-    key = key or _unedited_copy(store, lock, kind.store, pinned, version) or (
-        pinned.asset_id.split(".", 1)[1]
+    key = (
+        key
+        or _unedited_copy(store, lock, kind.store, pinned, version)
+        or (pinned.asset_id.split(".", 1)[1])
     )
     entry_key = lock_key(kind.store, key)
     if key in store:
@@ -379,7 +381,11 @@ def checkout(
 
 
 def _unedited_copy(
-    store: Any, lock: Any, store_name: str, pinned: LibraryRef, version: Mapping[str, Any]
+    store: Any,
+    lock: Any,
+    store_name: str,
+    pinned: LibraryRef,
+    version: Mapping[str, Any],
 ) -> str | None:
     """The key of a project entry that already IS ``version``, byte for byte, if any.
 

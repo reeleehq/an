@@ -193,7 +193,9 @@ def mouths(
     from an.characters.factory import recording_drawn
 
     with recording_drawn(char_dir):
-        written = write_default_mouths(target, palette=palette_dict, variants=variant_map)
+        written = write_default_mouths(
+            target, palette=palette_dict, variants=variant_map
+        )
         _stamp_mouths(char_dir, written, variant_map)
     return f"wrote {len(written)} mouth shapes to {target}"
 

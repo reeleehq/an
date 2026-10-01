@@ -433,7 +433,9 @@ def pop_origin(doc: dict[str, Any]) -> Mapping[str, Any] | None:
         if origin.get(METADATA_ADDED_FLAG) and not meta:
             del doc["metadata"]
         added = origin.get(SOURCE_ADDED_KEY)
-        if isinstance(added, Mapping) and same_source(doc.get("source"), added.get("source")):
+        if isinstance(added, Mapping) and same_source(
+            doc.get("source"), added.get("source")
+        ):
             if added.get("had_key"):
                 doc["source"] = added.get("previous")
             else:

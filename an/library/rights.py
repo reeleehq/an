@@ -195,7 +195,9 @@ def _descriptor_sources(
     own = next((e.source for e in entries if e.asset == prefix), None)
     if own is None and isinstance(doc.get("source"), Mapping):
         own = AssetSource.model_validate(doc["source"])
-    if covering is not None and (own is None or gives_way_to_a_label(doc.get("source"))):
+    if covering is not None and (
+        own is None or gives_way_to_a_label(doc.get("source"))
+    ):
         # What the checked-out copy will hold (an.library.checkout): the
         # asset-level source written in as the descriptor's — in place of
         # nothing, or of a generator's own source that owes nothing (the
