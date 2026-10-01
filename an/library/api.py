@@ -630,10 +630,11 @@ def version_sources(
     if floor is not None:
         for path, raw in sorted((version.get("files") or {}).items()):
             digest = ContentRef.from_json(raw).item_id
-            # A statement whose manifest is a version this walk reads in full
-            # (this one, its lineage) adds nothing the walk does not hold —
-            # and read here, an earlier version's gap would bind past the
-            # label that answers it. Every other statement binds.
+            # A statement made by a version this walk reads in full (this
+            # one, its lineage — the same manifest IN THE SAME library) adds
+            # nothing the walk does not hold; read here, an earlier version's
+            # gap would bind past the label that answers it. Every other
+            # statement binds, a same-named library's twin version included.
             for asset_key, statement in sorted(
                 floor.statements(digest, exclude=walked).items()
             ):
