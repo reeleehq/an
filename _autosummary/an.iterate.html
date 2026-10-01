@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.validate" href="an.ir.validate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -363,6 +363,11 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
@@ -674,8 +679,10 @@ agent can review what changed across runs.</p>
 append to mall[“decisions”].</p></li>
 </ol>
 </div></blockquote>
-<p>The caller is responsible for re-rendering. <code class="docutils literal notranslate"><span class="pre">IterateResult.affected_shots</span></code>
-enumerates which shots changed so the orchestrator can render only those.</p>
+<p>The caller is responsible for re-rendering: <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> then re-renders
+exactly the shots whose content changed, found by digest (the shot cache,
+ADR 0004) — <code class="docutils literal notranslate"><span class="pre">IterateResult.affected_shots</span></code> is the model’s account of
+which those are, for the reader, not the mechanism.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.iterate.IterateResult" title="an.iterate.IterateResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterateResult</span></code></a></span></p>

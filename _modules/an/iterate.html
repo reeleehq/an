@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -984,8 +984,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">      5. If valid and ``apply=True``, persist to mall["scenes"]["main"] and</span>
 <span class="sd">         append to mall["decisions"].</span>
 
-<span class="sd">    The caller is responsible for re-rendering. ``IterateResult.affected_shots``</span>
-<span class="sd">    enumerates which shots changed so the orchestrator can render only those.</span>
+<span class="sd">    The caller is responsible for re-rendering: `an render` then re-renders</span>
+<span class="sd">    exactly the shots whose content changed, found by digest (the shot cache,</span>
+<span class="sd">    ADR 0004) — ``IterateResult.affected_shots`` is the model's account of</span>
+<span class="sd">    which those are, for the reader, not the mechanism.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ANTHROPIC_API_KEY"</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">IterateError</span><span class="p">(</span>
@@ -1041,13 +1043,12 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">if</span> <span class="n">apply</span><span class="p">:</span>
-        <span class="c1"># Invalidate any cached per-shot artifacts for affected shots so the</span>
-        <span class="c1"># next render regenerates them.</span>
-        <span class="k">for</span> <span class="n">shot_id</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">affected_shots</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">del</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"shots"</span><span class="p">][</span><span class="n">shot_id</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">pass</span>
+        <span class="c1"># No invalidation step, by design (ADR 0004 decision 6): a shot the</span>
+        <span class="c1"># patches changed compiles to a different document, so its shot-cache</span>
+        <span class="c1"># key moves and the next render renders it; the shots it did not change</span>
+        <span class="c1"># keep their keys and are reused. `affected_shots` is the model's</span>
+        <span class="c1"># CLAIM about that, recorded below — it is never what decides a</span>
+        <span class="c1"># re-render, so a wrong claim cannot leave a stale shot in the film.</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"scenes"</span><span class="p">][</span><span class="s2">"main"</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_scene</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"decisions"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">kind</span><span class="o">=</span><span class="s2">"iterate"</span><span class="p">,</span>

@@ -147,7 +147,10 @@ Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.
 
 project_dir: path to an an project
 instruction: what to change in plain English (e.g. “make Maya’s laugh longer and warmer”)
-apply_changes: persist the new scene to disk + invalidate affected shot caches (default True)
+apply_changes: persist the new scene to disk (default True); the next render
+
+> re-renders exactly the shots whose content changed
+
 model: Anthropic model id (default claude-opus-4-7)
 
 * **Return type:**
@@ -168,9 +171,14 @@ no_browser: don’t auto-open the default browser
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='')
+### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
 Render the project at `project_dir` to a single mp4.
+
+Incremental: a shot whose inputs (its compiled document, its art’s bytes,
+its audio, the runtime, the render settings, this machine’s browser and
+ffmpeg) are unchanged since a previous render is reused from the shot cache
+rather than rendered again, and the summary line says which were which.
 
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
@@ -212,6 +220,16 @@ capture: how frames leave the browser — “canvas” (the default), an in-page
 : read of the canvas in batches, ~7.8x faster frame stage on the corpus,
   ~2.3x at 1080p; or “screenshot”, a Playwright element screenshot per
   instant. Both write frames with the same decoded pixels
+
+force_render: render every shot even when the shot cache holds it (and
+: refresh its entry)
+
+no_cache: neither read nor write the shot cache — every shot is rendered
+: cold, as before the cache existed
+
+cache_frames: also cache each shot’s frames, so a film with transitions or
+: a sound layer reuses its shots too. Off by default: a 1080p shot’s
+  frames are hundreds of MB, and nothing collects old entries yet
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

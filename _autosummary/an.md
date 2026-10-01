@@ -671,6 +671,7 @@ skip that shot rather than crash.
 | [`audio`](an.audio.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
 | [`base`](an.base.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
 | [`bench`](an.bench.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
+| [`build`](an.build.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                  |
 | [`captions`](an.captions.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).           |
 | [`characters`](an.characters.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                          |
 | [`conftest`](an.conftest.md#module-an.conftest)         | Collection rules for the package's own doctests.                                       |

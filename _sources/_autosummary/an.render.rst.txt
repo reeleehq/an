@@ -4,6 +4,14 @@ an.render
 .. automodule:: an.render
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      RENDER_RUNS_DIR
+      RUN_LIVE_MARKER
+      RUN_DONE_MARKER
+   
    .. rubric:: Functions
 
    .. autosummary::

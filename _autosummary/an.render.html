@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.raster" href="an.raster.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -365,6 +365,11 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
@@ -559,6 +564,21 @@
 per-shot outputs into one final mp4 written to <code class="docutils literal notranslate"><span class="pre">project.mall[&quot;output&quot;]</span></code>.</p>
 <p>Phase 2D ships the cutout path; later phases register Manim / Remotion / etc.
 adapters and the same flow handles them.</p>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.RENDER_RUNS_DIR" title="an.render.RENDER_RUNS_DIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RENDER_RUNS_DIR</span></code></a></p></td>
+<td><p>one directory per CACHED render run.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.RUN_LIVE_MARKER" title="an.render.RUN_LIVE_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUN_LIVE_MARKER</span></code></a></p></td>
+<td><p>the pid of the process rendering it (written at start).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.RUN_DONE_MARKER" title="an.render.RUN_DONE_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUN_DONE_MARKER</span></code></a></p></td>
+<td><p>written when the run delivered its film.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -580,6 +600,39 @@ adapters and the same flow handles them.</p>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.render.RENDER_RUNS_DIR">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RENDER_RUNS_DIR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'runs'</span></span><a class="headerlink" href="#an.render.RENDER_RUNS_DIR" title="Link to this definition">#</a></dt>
+<dd><p>one directory per CACHED render run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Under <code class="docutils literal notranslate"><span class="pre">.an/render_work/</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.render.RUN_DONE_MARKER">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RUN_DONE_MARKER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.done'</span></span><a class="headerlink" href="#an.render.RUN_DONE_MARKER" title="Link to this definition">#</a></dt>
+<dd><p>written when the run delivered its film.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>In a run directory</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.render.RUN_LIVE_MARKER">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RUN_LIVE_MARKER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.live'</span></span><a class="headerlink" href="#an.render.RUN_LIVE_MARKER" title="Link to this definition">#</a></dt>
+<dd><p>the pid of the process rendering it (written at start).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>In a run directory</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.render.RenderError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RenderError</span></span><a class="reference internal" href="../_modules/an/render.html#RenderError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.RenderError" title="Link to this definition">#</a></dt>
@@ -589,8 +642,16 @@ adapters and the same flow handles them.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.render.render">
-<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.render" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incremental</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.render" title="Link to this definition">#</a></dt>
 <dd><p>Lower-level: render a loaded <code class="docutils literal notranslate"><span class="pre">Project</span></code> to mp4.</p>
+<p><code class="docutils literal notranslate"><span class="pre">incremental</span></code> is the build-cache seam (ADR 0004 decision 5): <code class="docutils literal notranslate"><span class="pre">True</span></code> is
+the built-in <a class="reference internal" href="an.build.html#an.build.ShotCache" title="an.build.ShotCache"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotCache</span></code></a> over <code class="docutils literal notranslate"><span class="pre">mall[&quot;shot_cache&quot;]</span></code>, an
+<a class="reference internal" href="an.build.html#an.build.IncrementalEngine" title="an.build.IncrementalEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a> is used as given, and <code class="docutils literal notranslate"><span class="pre">False</span></code> — the
+default HERE, unlike <a class="reference internal" href="#an.render.render_project" title="an.render.render_project"><code class="xref py py-func docutils literal notranslate"><span class="pre">render_project()</span></code></a> — renders every shot cold, as
+this function always has. Cold is this layer’s default because its other
+callers are measurements (the bench, the golden corpus, the demo builds),
+whose wall times and lever rebinds a reused shot would silently void.
+<code class="docutils literal notranslate"><span class="pre">force_render=True</span></code> with an engine renders every shot and re-records it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">supersample</span></code> renders at N times the declared resolution and resolves back
 with an exact N x N block mean, in the frame stage, before anything else
 reads the frames. <strong>Opt-in, and 1 costs nothing</strong>: at 1 Chromium writes
@@ -650,8 +711,17 @@ different picture (an#33).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.render.render_project">
-<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">render_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#render_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.render_project" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">render_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incremental</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#render_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.render_project" title="Link to this definition">#</a></dt>
 <dd><p>Render every shot in <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>’s scene and concatenate to one mp4.</p>
+<p><strong>Incremental by default</strong> (ADR 0004): a shot whose key — a digest of
+everything its render reads, never its id — already has an entry in the
+project’s shot cache is not rendered again; its cached mp4 is reused. So
+editing one shot re-renders that shot, and an unchanged project re-renders
+nothing. <code class="docutils literal notranslate"><span class="pre">force_render=True</span></code> renders every shot anyway (and refreshes
+their entries); <code class="docutils literal notranslate"><span class="pre">incremental=False</span></code> neither reads nor writes the cache.
+Pass your own engine (e.g. <code class="docutils literal notranslate"><span class="pre">ShotCache()</span></code>) to read what happened to each
+shot afterwards from its <code class="docutils literal notranslate"><span class="pre">report</span></code> — the same summary is logged on the
+<code class="docutils literal notranslate"><span class="pre">an.build</span></code> logger. See <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tts</span></code> and <code class="docutils literal notranslate"><span class="pre">lipsync</span></code> may be provider name strings (<code class="docutils literal notranslate"><span class="pre">&quot;offline&quot;</span></code>,
 <code class="docutils literal notranslate"><span class="pre">&quot;elevenlabs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;rhubarb&quot;</span></code>) or provider instances. Defaults are
 offline so no API keys are required. Switching providers triggers a
@@ -739,6 +809,9 @@ provider <em>instance</em> carries its own.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_RUNS_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_RUNS_DIR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RUN_DONE_MARKER"><code class="docutils literal notranslate"><span class="pre">RUN_DONE_MARKER</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RUN_LIVE_MARKER"><code class="docutils literal notranslate"><span class="pre">RUN_LIVE_MARKER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RenderError"><code class="docutils literal notranslate"><span class="pre">RenderError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render"><code class="docutils literal notranslate"><span class="pre">render()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render_project"><code class="docutils literal notranslate"><span class="pre">render_project()</span></code></a></li>

@@ -9,6 +9,13 @@ per-shot outputs into one final mp4 written to `project.mall["output"]`.
 Phase 2D ships the cutout path; later phases register Manim / Remotion / etc.
 adapters and the same flow handles them.
 
+### Module Attributes
+
+| [`RENDER_RUNS_DIR`](#an.render.RENDER_RUNS_DIR)   | one directory per CACHED render run.                    |
+|--------------------------------------------------------------------|---------------------------------------------------------|
+| [`RUN_LIVE_MARKER`](#an.render.RUN_LIVE_MARKER)   | the pid of the process rendering it (written at start). |
+| [`RUN_DONE_MARKER`](#an.render.RUN_DONE_MARKER)   | written when the run delivered its film.                |
+
 ### Functions
 
 | [`render`](#an.render.render)(project, \*[, output_name, fps, ...])   | Lower-level: render a loaded `Project` to mp4.                         |
@@ -20,15 +27,45 @@ adapters and the same flow handles them.
 | [`RenderError`](#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
 
+### an.render.RENDER_RUNS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'runs'*
+
+one directory per CACHED render run.
+
+* **Type:**
+  Under `.an/render_work/`
+
+### an.render.RUN_DONE_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.done'*
+
+written when the run delivered its film.
+
+* **Type:**
+  In a run directory
+
+### an.render.RUN_LIVE_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.live'*
+
+the pid of the process rendering it (written at start).
+
+* **Type:**
+  In a run directory
+
 ### *exception* an.render.RenderError
 
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised on render-pipeline failures with actionable detail.
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False)
 
 Lower-level: render a loaded `Project` to mp4.
+
+`incremental` is the build-cache seam (ADR 0004 decision 5): `True` is
+the built-in [`ShotCache`](an.build.html.md#an.build.ShotCache) over `mall["shot_cache"]`, an
+[`IncrementalEngine`](an.build.html.md#an.build.IncrementalEngine) is used as given, and `False` — the
+default HERE, unlike [`render_project()`](#an.render.render_project) — renders every shot cold, as
+this function always has. Cold is this layer’s default because its other
+callers are measurements (the bench, the golden corpus, the demo builds),
+whose wall times and lever rebinds a reused shot would silently void.
+`force_render=True` with an engine renders every shot and re-records it.
 
 `supersample` renders at N times the declared resolution and resolves back
 with an exact N x N block mean, in the frame stage, before anything else
@@ -76,9 +113,19 @@ different picture (an#33).
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False)
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
+
+**Incremental by default** (ADR 0004): a shot whose key — a digest of
+everything its render reads, never its id — already has an entry in the
+project’s shot cache is not rendered again; its cached mp4 is reused. So
+editing one shot re-renders that shot, and an unchanged project re-renders
+nothing. `force_render=True` renders every shot anyway (and refreshes
+their entries); `incremental=False` neither reads nor writes the cache.
+Pass your own engine (e.g. `ShotCache()`) to read what happened to each
+shot afterwards from its `report` — the same summary is logged on the
+`an.build` logger. See [`render()`](#an.render.render).
 
 `tts` and `lipsync` may be provider name strings (`"offline"`,
 `"elevenlabs"`, `"rhubarb"`) or provider instances. Defaults are

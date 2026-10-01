@@ -4,8 +4,8 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s), final output and its caption
-sidecar, and the agent’s
+artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
+final output and its caption sidecar, and the agent’s
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
@@ -16,7 +16,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'output', 'previews', 'props', 'scenes', 'shots',
+...         'output', 'previews', 'props', 'scenes', 'shot_cache', 'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True

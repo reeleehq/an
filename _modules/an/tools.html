@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -805,8 +805,16 @@ window.runMermaid = runMermaid;</script>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
     <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">force_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">no_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">cache_frames</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Render the project at ``project_dir`` to a single mp4.</span>
+
+<span class="sd">    Incremental: a shot whose inputs (its compiled document, its art's bytes,</span>
+<span class="sd">    its audio, the runtime, the render settings, this machine's browser and</span>
+<span class="sd">    ffmpeg) are unchanged since a previous render is reused from the shot cache</span>
+<span class="sd">    rather than rendered again, and the summary line says which were which.</span>
 
 <span class="sd">    project_dir: path to an an project (must contain scene.md / ir/scene.json)</span>
 <span class="sd">    output_name: filename stem under output/ (default: "main")</span>
@@ -840,7 +848,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        read of the canvas in batches, ~7.8x faster frame stage on the corpus,</span>
 <span class="sd">        ~2.3x at 1080p; or "screenshot", a Playwright element screenshot per</span>
 <span class="sd">        instant. Both write frames with the same decoded pixels</span>
+<span class="sd">    force_render: render every shot even when the shot cache holds it (and</span>
+<span class="sd">        refresh its entry)</span>
+<span class="sd">    no_cache: neither read nor write the shot cache — every shot is rendered</span>
+<span class="sd">        cold, as before the cache existed</span>
+<span class="sd">    cache_frames: also cache each shot's frames, so a film with transitions or</span>
+<span class="sd">        a sound layer reuses its shots too. Off by default: a 1080p shot's</span>
+<span class="sd">        frames are hundreds of MB, and nothing collects old entries yet</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.build</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotCache</span>
+
     <span class="n">parallel_arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">parallel</span><span class="p">:</span>
         <span class="n">parallel_arg</span> <span class="o">=</span> <span class="kc">None</span>
@@ -851,6 +868,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">parallel_arg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parallel</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">"invalid --parallel value: </span><span class="si">{</span><span class="n">parallel</span><span class="si">!r}</span><span class="s2">; use a number or 'auto'"</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">ShotCache</span><span class="p">(</span><span class="n">cache_frames</span><span class="o">=</span><span class="n">cache_frames</span><span class="p">)</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="n">_render_project</span><span class="p">(</span>
         <span class="n">project_dir</span><span class="p">,</span>
         <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
@@ -863,8 +881,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
         <span class="n">capture</span><span class="o">=</span><span class="n">capture</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">incremental</span><span class="o">=</span><span class="kc">False</span> <span class="k">if</span> <span class="n">no_cache</span> <span class="k">else</span> <span class="n">cache</span><span class="p">,</span>
+        <span class="n">force_render</span><span class="o">=</span><span class="n">force_render</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">"rendered: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">"</span></div>
+    <span class="k">if</span> <span class="n">no_cache</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"rendered: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"rendered: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">shots: </span><span class="si">{</span><span class="n">cache</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span></div>
 
 
 
@@ -880,7 +902,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    project_dir: path to an an project</span>
 <span class="sd">    instruction: what to change in plain English (e.g. "make Maya's laugh longer and warmer")</span>
-<span class="sd">    apply_changes: persist the new scene to disk + invalidate affected shot caches (default True)</span>
+<span class="sd">    apply_changes: persist the new scene to disk (default True); the next render</span>
+<span class="sd">        re-renders exactly the shots whose content changed</span>
 <span class="sd">    model: Anthropic model id (default claude-opus-4-7)</span>
 <span class="sd">    """</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_iterate</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">instruction</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="n">apply_changes</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>

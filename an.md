@@ -1,4 +1,4 @@
-> built 2026-10-01 14:35 UTC from 89ebf2e (main) · an 0.1.134. Details: build_info.json
+> built 2026-10-01 15:07 UTC from 53a9e54 (main) · an 0.1.135. Details: build_info.json
 
 # index.html.md
 
@@ -274,6 +274,242 @@ list described.
   thing that renders; `character_gallery/build.py` goes end to end from character creation.
 
 <p class="epythet-aggregates">This documentation as a single file: <a href="an.md">an.md</a> (Markdown, for agents).</p>
+
+
+# _autosummary/an.adapters.cutout.cache_key.html.md
+
+# an.adapters.cutout.cache_key
+
+What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).
+
+The cut-out render is a pure function of these, and of nothing else:
+
+- **the compiled document** — `compile_shot()` with exactly the arguments
+  `CutoutRenderer.render` passes; digested as `scene_contract_sha256`, so the
+  cache key and the bench’s contract hash agree about what “the same document”
+  means while staying two different things (the key covers more);
+- **the bytes of every texture it stages** — SVG included. Raster art already
+  carries its digest in the document (an#211); SVG art is addressed by path,
+  so an SVG edited in place would otherwise leave the key unchanged. The
+  digests go into the KEY only: the wire shape and `scene_contract_sha256`
+  do not move (ADR 0004 decision 2);
+- **the version of every easing the document names** (an#239 item 1): a
+  compiled keyframe carries a bare name, so a v2 of a curve would change
+  pixels under an unchanged document;
+- **the dialogue audio it muxes** — each line’s `audio_ref`,
+  `viseme_ref`, start and the digest of the bytes the store returns for it,
+  and the picture’s length the mux cuts to;
+- **the JS runtime** (`runtime_sha256`) and **every render knob**, each
+  RESOLVED the way the render resolves it (`pix_fmt=None` is the module
+  default at call time, which is what the bench’s lever rebinds), plus the
+  pinned Chromium and x264 argv.
+- **the render path’s Python source** ([`render_code_digest()`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.render_code_digest)): the
+  capture loop, the canvas readback, the supersample and shutter resolves, the
+  audio mux — everything that turns the document into an mp4 after compile.
+  The Python twin of `runtime_sha256`: an `an` upgrade that changes how a
+  shot is encoded (an#195 did, with no knob and no runtime change) re-renders
+  every shot instead of serving an old mp4. Computed by walking the imports
+  from [`RENDER_PATH_ROOT`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.RENDER_PATH_ROOT), so a new helper module cannot fall outside it.
+
+The machine — Chromium build, Playwright, the full ffmpeg build and the x264
+build it encodes with, ISA — is the separate environment part
+([`cutout_environment()`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.cutout_environment)), never mixed into the content. Fonts: a text
+unit’s glyphs are outlined in Python and travel INSIDE the document (`data:`
+srcs), so a different face is a different compiled digest; but SVG ART may
+carry its own `<text>`, which Chromium draws with the machine’s fonts — so a
+shot that stages such a part gets a `fonts` part, a digest of the installed
+font set ([`system_fonts_digest()`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.system_fonts_digest)).
+
+### Module Attributes
+
+| [`EASING_KEYS`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.EASING_KEYS)          | Keys in the compiled document whose string value names an easing.                                      |
+|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| [`RENDER_PATH_ROOT`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.RENDER_PATH_ROOT)     | the module whose `CutoutRenderer.render` turns a shot into an mp4.                                     |
+| [`RENDER_PATH_EXCLUDED`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.RENDER_PATH_EXCLUDED) | Modules the walk does NOT enter, each with the reason its change is already in the key some other way. |
+| [`SVG_TEXT_MARKERS`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.SVG_TEXT_MARKERS)     | A byte sequence that marks an SVG part drawing text with the MACHINE's fonts.                          |
+| [`FONT_DIRS`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.FONT_DIRS)            | Font folders listed when `fc-list` is absent.                                                          |
+
+### Functions
+
+| [`compiled_document`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.compiled_document)(shot, ctx)          | The document `CutoutRenderer.render` will compile for `shot` under `ctx`.                                                                                                                              |
+|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cutout_environment`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.cutout_environment)()                  | The cut-out render's machine: the bench's own probes, minus what is not identity.                                                                                                                      |
+| [`cutout_shot_inputs`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.cutout_shot_inputs)(shot, ctx)         | The cut-out renderer's [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer).                                                                                             |
+| [`easing_versions`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.easing_versions)(doc)                  | `{name: version}` for every registered easing the compiled document names.                                                                                                                             |
+| [`ffmpeg_build`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.ffmpeg_build)()                        | The whole `ffmpeg -version` (every library's version and the configure line), not its first line: the banner is unchanged by `brew upgrade x264`, which swaps the dynamically linked encoder under it. |
+| [`muxed_audio`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.muxed_audio)(shot, ctx)                | What `_mux_shot` lays under the picture, as data: one entry per muxed line.                                                                                                                            |
+| [`render_code_digest`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.render_code_digest)()                  | sha256 over the source of every module on the render path (by module name).                                                                                                                            |
+| [`render_knobs`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.render_knobs)(shot, ctx)               | Every `RenderContext` knob, resolved the way `CutoutRenderer.render` resolves it.                                                                                                                      |
+| [`render_path_modules`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.render_path_modules)([root, excluded]) | `{module: source path}` for every `an` module the render path reaches.                                                                                                                                 |
+| [`system_fonts_digest`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.system_fonts_digest)()                 | A digest of the fonts this machine can draw SVG `<text>` with; once per process.                                                                                                                       |
+| [`texture_digests`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.texture_digests)(scene_json, mall)     | `{alias: sha256 of the bytes staged for it}` for every texture the document declares.                                                                                                                  |
+| [`x264_build`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.x264_build)()                          | The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.                                                                                                                              |
+
+### an.adapters.cutout.cache_key.EASING_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'easing'})*
+
+Keys in the compiled document whose string value names an easing.
+
+### an.adapters.cutout.cache_key.FONT_DIRS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]]* *= {'Darwin': ('/System/Library/Fonts', '/Library/Fonts', '~/Library/Fonts'), 'Linux': ('/usr/share/fonts', '/usr/local/share/fonts', '~/.local/share/fonts', '~/.fonts'), 'Windows': ('C:/Windows/Fonts',)}*
+
+Font folders listed when `fc-list` is absent.
+
+### an.adapters.cutout.cache_key.RENDER_PATH_EXCLUDED *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'an.adapters._base': 'the RenderContext/RenderResult types; their values are \`knobs\`', 'an.adapters.cutout.compile': 'its output is the \`compiled\` part', 'an.adapters.cutout.serialize': 'its output is the \`compiled\` part', 'an.adapters.cutout.text': 'compile-side; only INLINE_SRC_PREFIX is read at render', 'an.ir.schema': 'the IR model; what it means for a render reaches \`compiled\`/\`knobs\`'}*
+
+Modules the walk does NOT enter, each with the reason its change is already
+in the key some other way. Everything else it reaches is hashed.
+
+### an.adapters.cutout.cache_key.RENDER_PATH_ROOT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.adapters.cutout.render'*
+
+the module whose `CutoutRenderer.render`
+turns a shot into an mp4. [`render_path_modules()`](_autosummary/an.adapters.cutout.cache_key.html.md#an.adapters.cutout.cache_key.render_path_modules) walks its `an.*`
+imports (module-level and function-local) from here.
+
+* **Type:**
+  Where the render path starts
+
+### an.adapters.cutout.cache_key.SVG_TEXT_MARKERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[bytes](https://docs.python.org/3/builtins/stdtypes.html#bytes), ...]* *= (b'<text', b':text')*
+
+A byte sequence that marks an SVG part drawing text with the MACHINE’s fonts.
+
+### an.adapters.cutout.cache_key.compiled_document(shot, ctx)
+
+The document `CutoutRenderer.render` will compile for `shot` under `ctx`.
+
+The SAME call, argument for argument — `tests/test_shot_cache.py` pins the
+two against each other, so a knob added to one and not the other fails
+there rather than in a stale render.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.adapters.cutout.cache_key.cutout_environment()
+
+The cut-out render’s machine: the bench’s own probes, minus what is not identity.
+
+Chromium’s build and WebGL identity (one browser launch), Playwright, the
+full ffmpeg build and the x264 build it encodes with (one 16x16 encode),
+the ISA and OS family, and the Python imaging stack the frame stage decodes
+and resolves with. The executable PATH is left out — it names a home
+directory, not a build. A failed probe is recorded as its error, never as
+“fine”.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.cutout.cache_key.cutout_shot_inputs(shot, ctx)
+
+The cut-out renderer’s [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer).
+
+Compiles the shot (timed, as `compile_s`) and digests everything the
+render reads beside the document. Compile warnings are re-emitted only when
+asked: on a cache MISS the render compiles again and warns itself, so the
+engine collects them here (`details["warnings"]`) and replays them only
+for a shot it reuses, where they would otherwise never be seen.
+
+* **Return type:**
+  [`ShotKeyInputs`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyInputs)
+
+### an.adapters.cutout.cache_key.easing_versions(doc)
+
+`{name: version}` for every registered easing the compiled document names.
+
+A parametrised spec (`cubic-bezier(...)`) or a control-point list carries
+its meaning in the document itself and has no version; a name the registry
+does not know is left to the compiler, which refuses it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
+```pycon
+>>> easing_versions({"animations": {"a": {"channels": [{"keyframes": [
+...     {"time": 0, "value": 0, "easing": "ease_in_out"},
+...     {"time": 1, "value": 1, "easing": [0.1, 0.2, 0.3, 0.4]}]}]}}})
+{'ease_in_out': 1}
+```
+
+### an.adapters.cutout.cache_key.ffmpeg_build()
+
+The whole `ffmpeg -version` (every library’s version and the configure
+line), not its first line: the banner is unchanged by `brew upgrade x264`,
+which swaps the dynamically linked encoder under it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.cutout.cache_key.muxed_audio(shot, ctx)
+
+What `_mux_shot` lays under the picture, as data: one entry per muxed line.
+
+Mirrors `_stage_audio_inputs`: a line without an `audio_ref` or a start
+is not muxed, and neither is one whose ref the store does not hold. The
+bytes’ digest sits beside the ref because the ref keys the SYNTHESIS
+inputs, not the bytes, and the mux reads the bytes.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.cutout.cache_key.render_code_digest()
+
+sha256 over the source of every module on the render path (by module name).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.adapters.cutout.cache_key.render_knobs(shot, ctx)
+
+Every `RenderContext` knob, resolved the way `CutoutRenderer.render` resolves it.
+
+Validated here too — an invalid `pix_fmt` or supersample factor raises
+the render’s own error before anything launches.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.cutout.cache_key.render_path_modules(root='an.adapters.cutout.render', , excluded={'an.adapters._base': 'the RenderContext/RenderResult types; their values are \`knobs\`', 'an.adapters.cutout.compile': 'its output is the \`compiled\` part', 'an.adapters.cutout.serialize': 'its output is the \`compiled\` part', 'an.adapters.cutout.text': 'compile-side; only INLINE_SRC_PREFIX is read at render', 'an.ir.schema': 'the IR model; what it means for a render reaches \`compiled\`/\`knobs\`'})
+
+`{module: source path}` for every `an` module the render path reaches.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
+```pycon
+>>> mods = render_path_modules()
+>>> "an.adapters.cutout.canvas_capture" in mods and "an.adapters.cutout.compile" not in mods
+True
+```
+
+### an.adapters.cutout.cache_key.system_fonts_digest()
+
+A digest of the fonts this machine can draw SVG `<text>` with; once per process.
+
+`fc-list` where fontconfig exists (Linux, and macOS with it installed);
+otherwise the listing (name, size, mtime) of the platform’s font folders.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.adapters.cutout.cache_key.texture_digests(scene_json, mall)
+
+`{alias: sha256 of the bytes staged for it}` for every texture the document declares.
+
+Resolved exactly as `_stage_scene_assets` resolves them — the prefix map,
+the store’s root, the versioned `src` stripped — so what is digested is
+what is staged. Inline (`data:`) textures are already in the document and
+are skipped; anything unresolvable is `ABSENT` with its `src`, so
+it still moves the key the day it appears.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.adapters.cutout.cache_key.x264_build()
+
+The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.
+
+The bench’s own comparability key (`an.bench.environment.x264_sei`), so
+the cache and the ledger agree about what “the same encoder” means.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.adapters.cutout.canvas_capture.html.md
@@ -2005,24 +2241,25 @@ clothes (an#33).
 
 ### Modules
 
-| [`canvas_capture`](_autosummary/an.adapters.cutout.canvas_capture.html.md#module-an.adapters.cutout.canvas_capture)   | The canvas capture path: frames read from the page, not photographed off the screen.                                                              |
-|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)                 | Channel evaluation — moved to [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel) (the timing kernel).    |
-| [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                       | Clips, loop modes and poses — moved to [`an.timing.clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip) (the timing kernel). |
-| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)       | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).   |
-| [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)                 | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                          |
-| [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)                   | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing).       |
-| [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)               | How faithfully a compiled scene reproduces the art it was built from.                                                                             |
-| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                       | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                           |
-| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                       | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                        |
-| [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                   | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                        |
-| [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)     | Locate the bundled cutout JS runtime files.                                                                                                       |
-| [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)             | JSON contract between the Python compiler and the (future) JS runtime.                                                                            |
-| [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)                 | The temporal half of the frame stage: average several instants into one frame.                                                                    |
-| [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)         | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                     |
-| [`surface`](_autosummary/an.adapters.cutout.surface.html.md#module-an.adapters.cutout.surface)                 | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                              |
-| [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                           |
-| [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)               | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                                     |
+| [`cache_key`](_autosummary/an.adapters.cutout.cache_key.html.md#module-an.adapters.cutout.cache_key)           | What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).                                                                 |
+|----------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`canvas_capture`](_autosummary/an.adapters.cutout.canvas_capture.html.md#module-an.adapters.cutout.canvas_capture) | The canvas capture path: frames read from the page, not photographed off the screen.                                                              |
+| [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)               | Channel evaluation — moved to [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel) (the timing kernel).    |
+| [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                     | Clips, loop modes and poses — moved to [`an.timing.clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip) (the timing kernel). |
+| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)     | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).   |
+| [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)               | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                          |
+| [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)                 | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing).       |
+| [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                             |
+| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                     | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                           |
+| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                     | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                        |
+| [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                 | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                        |
+| [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                       |
+| [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                            |
+| [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)               | The temporal half of the frame stage: average several instants into one frame.                                                                    |
+| [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)       | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                     |
+| [`surface`](_autosummary/an.adapters.cutout.surface.html.md#module-an.adapters.cutout.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                              |
+| [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                     | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                           |
+| [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                                     |
 
 
 # _autosummary/an.adapters.cutout.path.html.md
@@ -7050,7 +7287,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -10794,6 +11031,832 @@ anti-aliased edge pixel from its neighbour.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
+
+# _autosummary/an.build.html.md
+
+# an.build
+
+Incremental re-processing: content-addressed build stages (ADR 0004).
+
+A draft must stay adjustable without re-processing everything: an edit
+re-renders only what depends on it. The first slice is the **shot cache** —
+`an render` skips any shot whose key (everything its render reads, digested;
+never `shot.id`) already has an entry, and reuses that entry’s mp4.
+
+- [`an.build.keys`](_autosummary/an.build.keys.html.md#module-an.build.keys) — canonical digests, the project-wide fallback
+  dependency, and the registry through which a renderer says what its shot
+  render reads ([`register_shot_keyer()`](_autosummary/an.build.html.md#an.build.register_shot_keyer)).
+- [`an.build.shot_cache`](_autosummary/an.build.shot_cache.html.md#module-an.build.shot_cache) — the `incremental=` seam
+  ([`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine)), its built-in engine [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache), and
+  the entries, shaped as `lacing` artifacts in a `lacing.ArtifactStore`.
+
+The core names no renderer; the cut-out keyer lives with the cut-out backend
+(`an.adapters.cutout.cache_key`) and registers on its import.
+
+```pycon
+>>> from an.build import ShotCache, resolve_incremental
+>>> isinstance(resolve_incremental(True), ShotCache)
+True
+```
+
+### Functions
+
+| [`canonical_digest`](_autosummary/an.build.html.md#an.build.canonical_digest)(obj)                          | The hex sha256 of `canonical_json()` of `obj`.                                  |
+|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [`compose_shot_key`](_autosummary/an.build.html.md#an.build.compose_shot_key)(parts)                        | The shot key: one digest over the named parts and the key's own version.        |
+| [`default_environment_digest`](_autosummary/an.build.html.md#an.build.default_environment_digest)(renderer_name)      | The digest of `renderer_name`'s registered environment probe, once per process. |
+| [`in_memory_shot_cache_store`](_autosummary/an.build.html.md#an.build.in_memory_shot_cache_store)()                   | A shot cache held in dicts — for tests, and for a mall with no disk.            |
+| [`project_assets_digest`](_autosummary/an.build.html.md#an.build.project_assets_digest)(mall, \*[, stores, ...]) | One digest over every asset store of the project (ADR 0004 decision 3).         |
+| [`register_shot_keyer`](_autosummary/an.build.html.md#an.build.register_shot_keyer)(renderer_name, keyer, \*)  | Declare how shots of `renderer_name` are keyed, and how its machine is probed.  |
+| [`registered_shot_keyers`](_autosummary/an.build.html.md#an.build.registered_shot_keyers)()                       | The renderer names that have a keyer.                                           |
+| [`resolve_incremental`](_autosummary/an.build.html.md#an.build.resolve_incremental)(incremental)               | `incremental=` → an engine, or `None` for "render every shot cold".             |
+| [`shot_artifact_type`](_autosummary/an.build.html.md#an.build.shot_artifact_type)()                           | The record type (`lacing.Artifact` subclass), built on first use.               |
+| [`shot_cache_store`](_autosummary/an.build.html.md#an.build.shot_cache_store)(root)                         | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).  |
+| [`shot_keyer_for`](_autosummary/an.build.html.md#an.build.shot_keyer_for)(renderer)                       | The keyer that describes `renderer` (an instance, or a name), or `None`.        |
+
+### Classes
+
+| [`BuildReport`](_autosummary/an.build.html.md#an.build.BuildReport)([outcomes])                         | Every shot's outcome, in timeline order.                                      |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine)(\*args, \*\*kwargs)           | The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).          |
+| [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache)([store, environment, ...])            | The built-in engine: look a shot's key up in an ArtifactStore; record misses. |
+| [`ShotKeyInputs`](_autosummary/an.build.html.md#an.build.ShotKeyInputs)(parts[, compile_s, details])      | What a renderer's keyer returns for one shot.                                 |
+| [`ShotOutcome`](_autosummary/an.build.html.md#an.build.ShotOutcome)(shot_id, renderer, status[, ...])   | What happened to one shot in one render, with its wall times (seconds).       |
+| [`ShotPlan`](_autosummary/an.build.html.md#an.build.ShotPlan)(shot_id, renderer, key[, inputs, ...]) | The engine's answer for one shot: its key, and what to reuse if anything.     |
+
+### Exceptions
+
+| [`ShotCacheWarning`](_autosummary/an.build.html.md#an.build.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------|
+
+### *class* an.build.BuildReport(outcomes=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Every shot’s outcome, in timeline order.
+
+#### summary()
+
+One line: what was rendered, what reused, and WHY each rendered shot
+was not reused — a cache that silently re-renders everything reads as
+a broken cache (an#243 review, R2-1).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
+'1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
+```
+
+#### timing_table()
+
+A Markdown table of the per-shot wall times.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### *class* an.build.IncrementalEngine(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).
+
+`begin` once per render with the project mall (and its root, for the
+root files every shot depends on); `plan` once per shot,
+BEFORE any shot renders (in the calling thread); `record` once per shot
+that was rendered (possibly from a worker thread); `finish` returns the
+report.
+
+### *class* an.build.ShotCache(store=None, \*, environment=<function default_environment_digest>, dependencies=<function project_assets_digest>, cache_frames=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The built-in engine: look a shot’s key up in an ArtifactStore; record misses.
+
+`store` is the injected `lacing.ArtifactStore`; `None` means the
+mall’s `shot_cache` (resolved in `begin()`), and a mall without one
+renders every shot. `environment(renderer_name) -> digest` is the
+environment seam — injectable so a test (or a remote-render backend) can
+state its machine rather than probe this one. `dependencies` is the
+project-wide dependency strategy (see `Dependencies`); `None` keys
+a shot on its own parts alone (its document and the bytes of the textures
+it stages) — and then drops the lockfile too, so use it knowingly.
+`cache_frames` also stores each shot’s PNG sequence, which an ASSEMBLED
+film (transitions, a sound layer) needs to reuse a shot; off by default,
+because a 1080p shot’s frames are hundreds of MB and nothing collects
+unreachable entries yet — so an assembled film re-renders its shots.
+
+After a render, `report` holds what happened to each shot.
+
+### *exception* an.build.ShotCacheWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+The shot cache could not do something it should have; the render still stands.
+
+### *class* an.build.ShotKeyInputs(parts, compile_s=None, details=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a renderer’s keyer returns for one shot.
+
+`parts` are named sha256 hex digests (the key’s content half); the engine
+adds `renderer`, `project` and `environment`. `compile_s` is the
+wall time of the compile the keyer ran to get its digest, or `None` for a
+renderer that has no compile stage.
+
+#### details *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+
+Diagnostics a keyer wants on the record beside the digests — never part
+of the key (the digests are).
+
+### *class* an.build.ShotOutcome(shot_id, renderer, status, key=None, reason='', key_s=None, compile_s=None, render_s=None, cached_render_s=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What happened to one shot in one render, with its wall times (seconds).
+
+`key_s` is the whole key computation, of which `compile_s` is the
+compile; `render_s` is this render’s wall time (`None` when reused) and
+`cached_render_s` the wall time of the render being reused.
+
+### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The engine’s answer for one shot: its key, and what to reuse if anything.
+
+### an.build.canonical_digest(obj)
+
+The hex sha256 of `canonical_json()` of `obj`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.compose_shot_key(parts)
+
+The shot key: one digest over the named parts and the key’s own version.
+
+The parts are a MAPPING so the record can keep them by name, and a
+re-render can be explained (”`textures` moved”) rather than merely
+observed.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.default_environment_digest(renderer_name)
+
+The digest of `renderer_name`’s registered environment probe, once per process.
+
+Memoised per renderer NAME (each backend has its own machine: Chromium and
+ffmpeg for cut-out, a Manim install for Manim), and once per process,
+because the cut-out probe launches a browser and encodes a frame. So a
+long-lived host does not see a `playwright install` or a `brew upgrade`
+made after its first render: restart it, or pass `force_render`. A
+renderer with no probe has the empty environment.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.in_memory_shot_cache_store()
+
+A shot cache held in dicts — for tests, and for a mall with no disk.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.project_assets_digest(mall, , stores=('characters', 'environments', 'props', 'styles', 'voices', 'sounds'), project_root=None, root_files=('assets.lock.json',))
+
+One digest over every asset store of the project (ADR 0004 decision 3).
+
+The first slice’s dependency edge for every shot: safe — no asset can change
+without every shot’s key moving — at the price of the per-character saving,
+which read recording buys back. A store the mall does not have is recorded
+as absent rather than skipped, so adding one later moves the digest.
+
+With `project_root`, the files in `root_files` (the library lockfile)
+are hashed by PATH as well — so a re-pin moves every key whether or not
+the mall has a store for the file yet.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
+>>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
+>>> a == b
+False
+```
+
+### an.build.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, replace=False)
+
+Declare how shots of `renderer_name` are keyed, and how its machine is probed.
+
+The registration seam for every backend (cut-out here; Manim’s opaque
+shots, keyed on source hash + Manim version + quality, are the next).
+`renderer_type` binds the keyer to one renderer class: a renderer whose
+type is not exactly it is never cached. A second registration for a name
+is refused unless `replace=True` — a silent replacement would drop the
+first keyer’s parts from every key without anyone saying so.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.build.registered_shot_keyers()
+
+The renderer names that have a keyer.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> import an.adapters  # registers the built-in renderers and their keyers
+>>> "cutout" in registered_shot_keyers()
+True
+```
+
+### an.build.resolve_incremental(incremental)
+
+`incremental=` → an engine, or `None` for “render every shot cold”.
+
+`True` is a fresh [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache) over the mall’s store; `False` or
+`None` is off; anything else must be an [`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine).
+
+* **Return type:**
+  [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> resolve_incremental(False) is None
+True
+>>> isinstance(resolve_incremental(True), ShotCache)
+True
+```
+
+### an.build.shot_artifact_type()
+
+The record type (`lacing.Artifact` subclass), built on first use.
+
+### an.build.shot_cache_store(root)
+
+A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.shot_keyer_for(renderer)
+
+The keyer that describes `renderer` (an instance, or a name), or `None`.
+
+`None` means the shot is never cached: no keyer for the name, or a
+renderer whose class is not the one the keyer was registered for.
+
+* **Return type:**
+  `_KeyerEntry` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### Modules
+
+| [`keys`](_autosummary/an.build.keys.html.md#module-an.build.keys)             | Cache keys for build stages: canonical digests, the project fallback, keyers.         |
+|----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`shot_cache`](_autosummary/an.build.shot_cache.html.md#module-an.build.shot_cache) | The content-keyed shot cache: ADR 0004's first slice, behind the `incremental=` seam. |
+
+
+# _autosummary/an.build.keys.html.md
+
+# an.build.keys
+
+Cache keys for build stages: canonical digests, the project fallback, keyers.
+
+ADR 0004 decision 2: *every key covers everything that changes the output*, and
+`shot.id` is never one of them (pillar 11). A shot key is composed from NAMED
+parts, each a sha256 hex digest, so a re-render can say which input moved:
+
+The core names no renderer: a backend joins by [`register_shot_keyer()`](_autosummary/an.build.keys.html.md#an.build.keys.register_shot_keyer). A
+renderer with no keyer is never cached, which is the safe default — an opaque
+shot is re-rendered, never reused on a guess.
+
+```pycon
+>>> canonical_digest({"b": 1, "a": [1, 2]}) == canonical_digest({"a": [1, 2], "b": 1})
+True
+>>> len(compose_shot_key({"renderer": canonical_digest("cutout")}))
+64
+```
+
+### Module Attributes
+
+| [`SHOT_KEY_IMPL_VERSION`](_autosummary/an.build.keys.html.md#an.build.keys.SHOT_KEY_IMPL_VERSION)       | The key's own version — the `impl_version` salt of `nw.Transform` and of `burns.RESOLVER_IMPL_VERSION` ("a lock, not a receipt").                                                                            |
+|------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROJECT_ASSET_STORES`](_autosummary/an.build.keys.html.md#an.build.keys.PROJECT_ASSET_STORES)        | The mall stores that make up "every asset in the project" for decision 3's fallback: the art the compiler reads (characters, environments, props, styles) and the two the audio path reads (voices, sounds). |
+| [`PROJECT_ROOT_FILES`](_autosummary/an.build.keys.html.md#an.build.keys.PROJECT_ROOT_FILES)          | Files at the project ROOT that every shot depends on, whether or not a mall store exposes them.                                                                                                              |
+| [`IGNORED_ASSET_NAME_PREFIXES`](_autosummary/an.build.keys.html.md#an.build.keys.IGNORED_ASSET_NAME_PREFIXES) | an OS's folder metadata must not re-render a film.                                                                                                                                                           |
+| [`ABSENT`](_autosummary/an.build.keys.html.md#an.build.keys.ABSENT)                      | a missing texture, an audio ref the store does not hold.                                                                                                                                                     |
+| [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer)                   | `keyer(shot, ctx) -> ShotKeyInputs`.                                                                                                                                                                         |
+| [`EnvironmentProbe`](_autosummary/an.build.keys.html.md#an.build.keys.EnvironmentProbe)            | the renderer's environment record.                                                                                                                                                                           |
+| [`ShotKeyPart`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyPart)                 | one more named digest for a renderer's key — the additive seam for an input read OUTSIDE the compiled document (a genre's side file, a vocabulary entry's version).                                          |
+
+### Functions
+
+| [`bytes_digest`](_autosummary/an.build.keys.html.md#an.build.keys.bytes_digest)(data)                                 | The hex sha256 of `data`.                                                                     |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`callable_identity`](_autosummary/an.build.keys.html.md#an.build.keys.callable_identity)(obj)                             | `module.qualname` of a function or class (of an instance: of its type).                       |
+| [`canonical_digest`](_autosummary/an.build.keys.html.md#an.build.keys.canonical_digest)(obj)                              | The hex sha256 of [`canonical_json()`](_autosummary/an.build.keys.html.md#an.build.keys.canonical_json) of `obj`. |
+| [`canonical_json`](_autosummary/an.build.keys.html.md#an.build.keys.canonical_json)(obj)                                | `obj` as sorted, whitespace-free JSON — the one spelling every digest hashes.                 |
+| [`compose_shot_key`](_autosummary/an.build.keys.html.md#an.build.keys.compose_shot_key)(parts)                            | The shot key: one digest over the named parts and the key's own version.                      |
+| [`file_digest`](_autosummary/an.build.keys.html.md#an.build.keys.file_digest)(path)                                  | The hex sha256 of a file's bytes, read NOW.                                                   |
+| [`project_assets_digest`](_autosummary/an.build.keys.html.md#an.build.keys.project_assets_digest)(mall, \*[, stores, ...])     | One digest over every asset store of the project (ADR 0004 decision 3).                       |
+| [`project_root_files_digest`](_autosummary/an.build.keys.html.md#an.build.keys.project_root_files_digest)(project_root, \*[, ...]) | `{name: sha256 or ABSENT}` for the project-root files every shot depends on.                  |
+| [`register_shot_key_part`](_autosummary/an.build.keys.html.md#an.build.keys.register_shot_key_part)(renderer_name, ...)         | Add one named input to every key of `renderer_name`'s shots — additively.                     |
+| [`register_shot_keyer`](_autosummary/an.build.keys.html.md#an.build.keys.register_shot_keyer)(renderer_name, keyer, \*)      | Declare how shots of `renderer_name` are keyed, and how its machine is probed.                |
+| [`registered_shot_keyers`](_autosummary/an.build.keys.html.md#an.build.keys.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                         |
+| [`shot_keyer_for`](_autosummary/an.build.keys.html.md#an.build.keys.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                      |
+| [`store_digest`](_autosummary/an.build.keys.html.md#an.build.keys.store_digest)(store)                                | A digest of one store's whole content.                                                        |
+
+### Classes
+
+| [`ShotKeyInputs`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyInputs)(parts[, compile_s, details])   | What a renderer's keyer returns for one shot.   |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------|
+
+### Exceptions
+
+| [`ShotKeyerRegistrationError`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyerRegistrationError)   | A shot keyer or key part was registered twice, or collides with another.   |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+
+### an.build.keys.ABSENT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'absent'*
+
+a missing texture, an
+audio ref the store does not hold. Still deterministic, and different from
+any present value, so a part that later appears re-renders.
+
+* **Type:**
+  A part’s value when the thing it digests is absent
+
+### an.build.keys.EnvironmentProbe
+
+the renderer’s environment record. Called once per
+process per renderer (see `ShotCache`), because a browser probe costs a
+launch.
+
+* **Type:**
+  `probe() -> Mapping`
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.build.keys.IGNORED_ASSET_NAME_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.',)*
+
+an OS’s folder
+metadata must not re-render a film.
+
+* **Type:**
+  File names under an asset root that are never assets
+
+### an.build.keys.PROJECT_ASSET_STORES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('characters', 'environments', 'props', 'styles', 'voices', 'sounds')*
+
+The mall stores that make up “every asset in the project” for decision 3’s
+fallback: the art the compiler reads (characters, environments, props,
+styles) and the two the audio path reads (voices, sounds). The scene
+document is deliberately NOT here — each shot’s own slice reaches its key
+through its compiled document, which is what lets an edit to one shot
+re-render only that shot.
+
+### an.build.keys.PROJECT_ROOT_FILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('assets.lock.json',)*
+
+Files at the project ROOT that every shot depends on, whether or not a mall
+store exposes them. `assets.lock.json` is the asset library’s lockfile of
+pinned library versions (ADR 0005, P5): a re-pin changes what is checked out,
+so it must move every key — and it must do so before (and independently of)
+its registration in the mall (an#240). Read by path, through
+[`project_root_files_digest()`](_autosummary/an.build.keys.html.md#an.build.keys.project_root_files_digest); an absent file is recorded as absent.
+
+### an.build.keys.SHOT_KEY_IMPL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+
+The key’s own version — the `impl_version` salt of `nw.Transform` and of
+`burns.RESOLVER_IMPL_VERSION` (“a lock, not a receipt”). Bump it when the
+COMPOSITION of a key changes (a part added, renamed or re-spelled). It is
+NOT how a renderer’s code changes reach the key — a hand-bumped constant is
+one someone forgets — that is each keyer’s `code` part, a digest of the
+render path’s source. Bumping it orphans every entry; nothing is deleted
+(decision 6).
+
+### *class* an.build.keys.ShotKeyInputs(parts, compile_s=None, details=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a renderer’s keyer returns for one shot.
+
+`parts` are named sha256 hex digests (the key’s content half); the engine
+adds `renderer`, `project` and `environment`. `compile_s` is the
+wall time of the compile the keyer ran to get its digest, or `None` for a
+renderer that has no compile stage.
+
+#### details *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+
+Diagnostics a keyer wants on the record beside the digests — never part
+of the key (the digests are).
+
+### an.build.keys.ShotKeyPart
+
+one more named digest for a renderer’s key —
+the additive seam for an input read OUTSIDE the compiled document (a genre’s
+side file, a vocabulary entry’s version). See [`register_shot_key_part()`](_autosummary/an.build.keys.html.md#an.build.keys.register_shot_key_part).
+
+* **Type:**
+  `part(shot, ctx) -> str`
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.build.keys.ShotKeyer
+
+`keyer(shot, ctx) -> ShotKeyInputs`. Raises what the render itself would
+raise for the same inputs (a compile error, an invalid knob), so a bad shot
+fails before any browser launches.
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`ShotKeyInputs`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyInputs)]
+
+### *exception* an.build.keys.ShotKeyerRegistrationError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A shot keyer or key part was registered twice, or collides with another.
+
+### an.build.keys.bytes_digest(data)
+
+The hex sha256 of `data`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> bytes_digest(b"")[:8]
+'e3b0c442'
+```
+
+### an.build.keys.callable_identity(obj)
+
+`module.qualname` of a function or class (of an instance: of its type).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> callable_identity(callable_identity)
+'an.build.keys.callable_identity'
+```
+
+### an.build.keys.canonical_digest(obj)
+
+The hex sha256 of [`canonical_json()`](_autosummary/an.build.keys.html.md#an.build.keys.canonical_json) of `obj`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.keys.canonical_json(obj)
+
+`obj` as sorted, whitespace-free JSON — the one spelling every digest hashes.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> canonical_json({"b": (1, 2), "a": None})
+'{"a":null,"b":[1,2]}'
+```
+
+### an.build.keys.compose_shot_key(parts)
+
+The shot key: one digest over the named parts and the key’s own version.
+
+The parts are a MAPPING so the record can keep them by name, and a
+re-render can be explained (”`textures` moved”) rather than merely
+observed.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.keys.file_digest(path)
+
+The hex sha256 of a file’s bytes, read NOW.
+
+Deliberately unmemoised. A (path, mtime, size) memo — `an.raster`’s, which
+is fine for a texture alias inside one compile — let a same-size edit whose
+mtime was restored (`cp -p`, `rsync -t`, `tar x`, a sync client) be
+served stale from cache in a long-running process (an#243 review, S2). A
+cache KEY is only as good as its weakest input, so every byte is read on
+every render; on the golden corpus the whole project digest is under 10 ms.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.keys.project_assets_digest(mall, , stores=('characters', 'environments', 'props', 'styles', 'voices', 'sounds'), project_root=None, root_files=('assets.lock.json',))
+
+One digest over every asset store of the project (ADR 0004 decision 3).
+
+The first slice’s dependency edge for every shot: safe — no asset can change
+without every shot’s key moving — at the price of the per-character saving,
+which read recording buys back. A store the mall does not have is recorded
+as absent rather than skipped, so adding one later moves the digest.
+
+With `project_root`, the files in `root_files` (the library lockfile)
+are hashed by PATH as well — so a re-pin moves every key whether or not
+the mall has a store for the file yet.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
+>>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
+>>> a == b
+False
+```
+
+### an.build.keys.project_root_files_digest(project_root, , files=('assets.lock.json',))
+
+`{name: sha256 or ABSENT}` for the project-root files every shot depends on.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     project_root_files_digest(d, files=["assets.lock.json"])
+{'assets.lock.json': 'absent'}
+```
+
+### an.build.keys.register_shot_key_part(renderer_name, part_name, part)
+
+Add one named input to every key of `renderer_name`’s shots — additively.
+
+For an input the render reads OUTSIDE its compiled document (whatever
+changes the document is already covered by the `compiled` part, with
+early cutoff for free): a genre package’s side file, a vocabulary entry’s
+version (P7). Refuses a duplicate `part_name`; a name that collides with
+one of the keyer’s own parts is refused when the key is computed.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.build.keys.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, replace=False)
+
+Declare how shots of `renderer_name` are keyed, and how its machine is probed.
+
+The registration seam for every backend (cut-out here; Manim’s opaque
+shots, keyed on source hash + Manim version + quality, are the next).
+`renderer_type` binds the keyer to one renderer class: a renderer whose
+type is not exactly it is never cached. A second registration for a name
+is refused unless `replace=True` — a silent replacement would drop the
+first keyer’s parts from every key without anyone saying so.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.build.keys.registered_shot_keyers()
+
+The renderer names that have a keyer.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> import an.adapters  # registers the built-in renderers and their keyers
+>>> "cutout" in registered_shot_keyers()
+True
+```
+
+### an.build.keys.shot_keyer_for(renderer)
+
+The keyer that describes `renderer` (an instance, or a name), or `None`.
+
+`None` means the shot is never cached: no keyer for the name, or a
+renderer whose class is not the one the keyer was registered for.
+
+* **Return type:**
+  `_KeyerEntry` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.build.keys.store_digest(store)
+
+A digest of one store’s whole content.
+
+A filesystem store (one exposing `_root`) is digested from its FILES,
+sidecars included — a character’s `meta.json` is not its art; the SVG
+parts beside it are. That reads behind the mapping, which is ADR 0004’s gap
+3 (“art bypasses the mall”), and it is exactly why this is the fallback:
+once art is read through the stores (the asset library, ADR 0005), a
+read-recording view replaces it with the keys a shot actually read. Any
+other mapping is digested from its items.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 1}})
+True
+>>> store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 2}})
+False
+```
+
+
+# _autosummary/an.build.shot_cache.html.md
+
+# an.build.shot_cache
+
+The content-keyed shot cache: ADR 0004’s first slice, behind the `incremental=` seam.
+
+`render_project` asks an *incremental engine*, per shot, for a plan: the
+shot’s key, and — when an entry with that key exists — the rendered shot to
+reuse. It renders only the misses, and hands each fresh render back to be
+recorded. The engine is a seam (`incremental=` on `an.render.render`), and
+[`ShotCache`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache) is its built-in default; an `nw`-backed engine is the
+planned alternative (ADR 0004 decision 5).
+
+\*\*Data model: `lacing`’s\*\* (decision 4). An entry is a `ShotArtifact` —
+a `lacing.Artifact` (`asset_id` = sha256 of the mp4, W3C-PROV provenance
+whose `was_derived_from` lists the key’s input digests) plus the named parts
+of its key and the timings that produced it. Entries live in a
+`lacing.ArtifactStore`: a catalog (`key -> record`) and a content-addressed
+blob store, both injected `dol` mappings. In a project the store is
+`mall["shot_cache"]` (`artifacts/shot_cache/{catalog,blobs}/`).
+
+A film ASSEMBLED from frames (transitions, a sound layer) needs each shot’s
+PNGs too; those are cached only with `ShotCache(cache_frames=True)`, so by
+default such a film re-renders its shots.
+
+**Invalidation is by digest, never by deletion** (decision 6): a changed input
+is a different key, and the old entry simply stops being asked for. The
+pre-cache `artifacts/shots/<shot.id>.mp4` archive is not read. Collecting
+unreachable blobs is a separate, explicit command (not in this slice).
+
+```pycon
+>>> from an.build.shot_cache import BuildReport, ShotOutcome
+>>> r = BuildReport([ShotOutcome("a", "cutout", "reused", key="k" * 64),
+...                  ShotOutcome("b", "cutout", "rendered", key="j" * 64, reason="new or changed")])
+>>> r.summary()
+'2 shot(s): 1 rendered (b), 1 reused (a); not reused: new or changed (b)'
+```
+
+### Module Attributes
+
+| [`SHOT_CACHE_STORE`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.SHOT_CACHE_STORE)   | The mall key of the shot cache.   |
+|---------------------------------------------------------------------|-----------------------------------|
+
+### Functions
+
+| [`default_environment_digest`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.default_environment_digest)(renderer_name)   | The digest of `renderer_name`'s registered environment probe, once per process.   |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`in_memory_shot_cache_store`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.in_memory_shot_cache_store)()                | A shot cache held in dicts — for tests, and for a mall with no disk.              |
+| [`resolve_incremental`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.resolve_incremental)(incremental)            | `incremental=` → an engine, or `None` for "render every shot cold".               |
+| [`shot_artifact_type`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.shot_artifact_type)()                        | The record type (`lacing.Artifact` subclass), built on first use.                 |
+| [`shot_cache_store`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.shot_cache_store)(root)                      | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).    |
+
+### Classes
+
+| [`BuildReport`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.BuildReport)([outcomes])                         | Every shot's outcome, in timeline order.                                      |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine)(\*args, \*\*kwargs)           | The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).          |
+| [`ShotCache`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache)([store, environment, ...])            | The built-in engine: look a shot's key up in an ArtifactStore; record misses. |
+| [`ShotOutcome`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotOutcome)(shot_id, renderer, status[, ...])   | What happened to one shot in one render, with its wall times (seconds).       |
+| [`ShotPlan`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotPlan)(shot_id, renderer, key[, inputs, ...]) | The engine's answer for one shot: its key, and what to reuse if anything.     |
+
+### Exceptions
+
+| [`ShotCacheWarning`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------|
+
+### *class* an.build.shot_cache.BuildReport(outcomes=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Every shot’s outcome, in timeline order.
+
+#### summary()
+
+One line: what was rendered, what reused, and WHY each rendered shot
+was not reused — a cache that silently re-renders everything reads as
+a broken cache (an#243 review, R2-1).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
+'1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
+```
+
+#### timing_table()
+
+A Markdown table of the per-shot wall times.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### *class* an.build.shot_cache.IncrementalEngine(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).
+
+`begin` once per render with the project mall (and its root, for the
+root files every shot depends on); `plan` once per shot,
+BEFORE any shot renders (in the calling thread); `record` once per shot
+that was rendered (possibly from a worker thread); `finish` returns the
+report.
+
+### an.build.shot_cache.SHOT_CACHE_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'shot_cache'*
+
+The mall key of the shot cache.
+
+### *class* an.build.shot_cache.ShotCache(store=None, \*, environment=<function default_environment_digest>, dependencies=<function project_assets_digest>, cache_frames=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The built-in engine: look a shot’s key up in an ArtifactStore; record misses.
+
+`store` is the injected `lacing.ArtifactStore`; `None` means the
+mall’s `shot_cache` (resolved in `begin()`), and a mall without one
+renders every shot. `environment(renderer_name) -> digest` is the
+environment seam — injectable so a test (or a remote-render backend) can
+state its machine rather than probe this one. `dependencies` is the
+project-wide dependency strategy (see `Dependencies`); `None` keys
+a shot on its own parts alone (its document and the bytes of the textures
+it stages) — and then drops the lockfile too, so use it knowingly.
+`cache_frames` also stores each shot’s PNG sequence, which an ASSEMBLED
+film (transitions, a sound layer) needs to reuse a shot; off by default,
+because a 1080p shot’s frames are hundreds of MB and nothing collects
+unreachable entries yet — so an assembled film re-renders its shots.
+
+After a render, `report` holds what happened to each shot.
+
+### *exception* an.build.shot_cache.ShotCacheWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+The shot cache could not do something it should have; the render still stands.
+
+### *class* an.build.shot_cache.ShotOutcome(shot_id, renderer, status, key=None, reason='', key_s=None, compile_s=None, render_s=None, cached_render_s=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What happened to one shot in one render, with its wall times (seconds).
+
+`key_s` is the whole key computation, of which `compile_s` is the
+compile; `render_s` is this render’s wall time (`None` when reused) and
+`cached_render_s` the wall time of the render being reused.
+
+### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The engine’s answer for one shot: its key, and what to reuse if anything.
+
+### an.build.shot_cache.default_environment_digest(renderer_name)
+
+The digest of `renderer_name`’s registered environment probe, once per process.
+
+Memoised per renderer NAME (each backend has its own machine: Chromium and
+ffmpeg for cut-out, a Manim install for Manim), and once per process,
+because the cut-out probe launches a browser and encodes a frame. So a
+long-lived host does not see a `playwright install` or a `brew upgrade`
+made after its first render: restart it, or pass `force_render`. A
+renderer with no probe has the empty environment.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.shot_cache.in_memory_shot_cache_store()
+
+A shot cache held in dicts — for tests, and for a mall with no disk.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.shot_cache.resolve_incremental(incremental)
+
+`incremental=` → an engine, or `None` for “render every shot cold”.
+
+`True` is a fresh [`ShotCache`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache) over the mall’s store; `False` or
+`None` is off; anything else must be an [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine).
+
+* **Return type:**
+  [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> resolve_incremental(False) is None
+True
+>>> isinstance(resolve_incremental(True), ShotCache)
+True
+```
+
+### an.build.shot_cache.shot_artifact_type()
+
+The record type (`lacing.Artifact` subclass), built on first use.
+
+### an.build.shot_cache.shot_cache_store(root)
+
+A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.captions.html.md
@@ -17781,6 +18844,7 @@ skip that shot rather than crash.
 | [`audio`](_autosummary/an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
 | [`base`](_autosummary/an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
 | [`bench`](_autosummary/an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
+| [`build`](_autosummary/an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                  |
 | [`captions`](_autosummary/an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).           |
 | [`characters`](_autosummary/an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                          |
 | [`conftest`](_autosummary/an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                       |
@@ -21782,8 +22846,10 @@ Steps:
 > 5. If valid and `apply=True`, persist to mall[“scenes”][“main”] and
 >    append to mall[“decisions”].
 
-The caller is responsible for re-rendering. `IterateResult.affected_shots`
-enumerates which shots changed so the orchestrator can render only those.
+The caller is responsible for re-rendering: `an render` then re-renders
+exactly the shots whose content changed, found by digest (the shot cache,
+ADR 0004) — `IterateResult.affected_shots` is the model’s account of
+which those are, for the reader, not the mechanism.
 
 * **Return type:**
   [`IterateResult`](_autosummary/an.iterate.html.md#an.iterate.IterateResult)
@@ -25711,6 +26777,13 @@ per-shot outputs into one final mp4 written to `project.mall["output"]`.
 Phase 2D ships the cutout path; later phases register Manim / Remotion / etc.
 adapters and the same flow handles them.
 
+### Module Attributes
+
+| [`RENDER_RUNS_DIR`](_autosummary/an.render.html.md#an.render.RENDER_RUNS_DIR)   | one directory per CACHED render run.                    |
+|--------------------------------------------------------------------|---------------------------------------------------------|
+| [`RUN_LIVE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_LIVE_MARKER)   | the pid of the process rendering it (written at start). |
+| [`RUN_DONE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_DONE_MARKER)   | written when the run delivered its film.                |
+
 ### Functions
 
 | [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...])   | Lower-level: render a loaded `Project` to mp4.                         |
@@ -25722,15 +26795,45 @@ adapters and the same flow handles them.
 | [`RenderError`](_autosummary/an.render.html.md#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
 
+### an.render.RENDER_RUNS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'runs'*
+
+one directory per CACHED render run.
+
+* **Type:**
+  Under `.an/render_work/`
+
+### an.render.RUN_DONE_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.done'*
+
+written when the run delivered its film.
+
+* **Type:**
+  In a run directory
+
+### an.render.RUN_LIVE_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.live'*
+
+the pid of the process rendering it (written at start).
+
+* **Type:**
+  In a run directory
+
 ### *exception* an.render.RenderError
 
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised on render-pipeline failures with actionable detail.
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False)
 
 Lower-level: render a loaded `Project` to mp4.
+
+`incremental` is the build-cache seam (ADR 0004 decision 5): `True` is
+the built-in [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache) over `mall["shot_cache"]`, an
+[`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine) is used as given, and `False` — the
+default HERE, unlike [`render_project()`](_autosummary/an.render.html.md#an.render.render_project) — renders every shot cold, as
+this function always has. Cold is this layer’s default because its other
+callers are measurements (the bench, the golden corpus, the demo builds),
+whose wall times and lever rebinds a reused shot would silently void.
+`force_render=True` with an engine renders every shot and re-records it.
 
 `supersample` renders at N times the declared resolution and resolves back
 with an exact N x N block mean, in the frame stage, before anything else
@@ -25778,9 +26881,19 @@ different picture (an#33).
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False)
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
+
+**Incremental by default** (ADR 0004): a shot whose key — a digest of
+everything its render reads, never its id — already has an entry in the
+project’s shot cache is not rendered again; its cached mp4 is reused. So
+editing one shot re-renders that shot, and an unchanged project re-renders
+nothing. `force_render=True` renders every shot anyway (and refreshes
+their entries); `incremental=False` neither reads nor writes the cache.
+Pass your own engine (e.g. `ShotCache()`) to read what happened to each
+shot afterwards from its `report` — the same summary is logged on the
+`an.build` logger. See [`render()`](_autosummary/an.render.html.md#an.render.render).
 
 `tts` and `lipsync` may be provider name strings (`"offline"`,
 `"elevenlabs"`, `"rhubarb"`) or provider instances. Defaults are
@@ -26147,8 +27260,8 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s), final output and its caption
-sidecar, and the agent’s
+artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
+final output and its caption sidecar, and the agent’s
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
@@ -26159,7 +27272,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'output', 'previews', 'props', 'scenes', 'shots',
+...         'output', 'previews', 'props', 'scenes', 'shot_cache', 'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
@@ -29853,7 +30966,10 @@ Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.
 
 project_dir: path to an an project
 instruction: what to change in plain English (e.g. “make Maya’s laugh longer and warmer”)
-apply_changes: persist the new scene to disk + invalidate affected shot caches (default True)
+apply_changes: persist the new scene to disk (default True); the next render
+
+> re-renders exactly the shots whose content changed
+
 model: Anthropic model id (default claude-opus-4-7)
 
 * **Return type:**
@@ -29874,9 +30990,14 @@ no_browser: don’t auto-open the default browser
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='')
+### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
 Render the project at `project_dir` to a single mp4.
+
+Incremental: a shot whose inputs (its compiled document, its art’s bytes,
+its audio, the runtime, the render settings, this machine’s browser and
+ffmpeg) are unchanged since a previous render is reused from the shot cache
+rather than rendered again, and the summary line says which were which.
 
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
@@ -29918,6 +31039,16 @@ capture: how frames leave the browser — “canvas” (the default), an in-page
 : read of the canvas in batches, ~7.8x faster frame stage on the corpus,
   ~2.3x at 1080p; or “screenshot”, a Playwright element screenshot per
   instant. Both write frames with the same decoded pixels
+
+force_render: render every shot even when the shot cache holds it (and
+: refresh its entry)
+
+no_cache: neither read nor write the shot cache — every shot is rendered
+: cold, as before the cache existed
+
+cache_frames: also cache each shot’s frames, so a film with transitions or
+: a sound layer reuses its shots too. Off by default: a 1080p shot’s
+  frames are hundreds of MB, and nothing collects old entries yet
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -30740,20 +31871,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 14:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/89ebf2e2594c50c58e7b866faec201103d799996"><code>89ebf2e</code></a> on branch <code>main</code>, for **an 0.1.134** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 15:07 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/53a9e540858604a4c12830528d5445b8f8b649be"><code>53a9e54</code></a> on branch <code>main</code>, for **an 0.1.135** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.134) is ahead of the latest release on PyPI (0.1.133): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/89ebf2e2594c50c58e7b866faec201103d799996"><code>89ebf2e2594c50c58e7b866faec201103d799996</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/53a9e540858604a4c12830528d5445b8f8b649be"><code>53a9e540858604a4c12830528d5445b8f8b649be</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.134</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.135</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -30762,9 +31891,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36876893857">36876893857</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36881096457">36881096457</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>9803f00e71328efcf2c9eca2477f47c1cb5dbc85</code> (in the history of the built commit) |
+| Event commit | <code>525ee56c09d9b58540a109062a8a963d60208339</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -30789,13 +31918,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.133/">0.1.133</a>, older than the documented version (0.1.134).
+Latest release: <a href="https://pypi.org/project/an/0.1.135/">0.1.135</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 89ebf2e2594c50c58e7b866faec201103d799996
+git checkout 53a9e540858604a4c12830528d5445b8f8b649be
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

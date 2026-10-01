@@ -52,6 +52,7 @@
    audio
    base
    bench
+   build
    captions
    characters
    conftest

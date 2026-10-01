@@ -40,6 +40,7 @@ an.adapters.cutout
    :toctree:
    :recursive:
 
+   cache_key
    canvas_capture
    channel
    clip

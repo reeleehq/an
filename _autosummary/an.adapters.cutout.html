@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.adapters.cutout.canvas_capture" href="an.adapters.cutout.canvas_capture.html" />
+    <link rel="next" title="an.adapters.cutout.cache_key" href="an.adapters.cutout.cache_key.html" />
     <link rel="prev" title="an.adapters" href="an.adapters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -363,6 +363,11 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
@@ -1017,55 +1022,58 @@ clothes (an#33).</p>
 <p class="rubric">Modules</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.canvas_capture.html#module-an.adapters.cutout.canvas_capture" title="an.adapters.cutout.canvas_capture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canvas_capture</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.cache_key.html#module-an.adapters.cutout.cache_key" title="an.adapters.cutout.cache_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_key</span></code></a></p></td>
+<td><p>What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.canvas_capture.html#module-an.adapters.cutout.canvas_capture" title="an.adapters.cutout.canvas_capture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canvas_capture</span></code></a></p></td>
 <td><p>The canvas capture path: frames read from the page, not photographed off the screen.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.channel.html#module-an.adapters.cutout.channel" title="an.adapters.cutout.channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channel</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.channel.html#module-an.adapters.cutout.channel" title="an.adapters.cutout.channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channel</span></code></a></p></td>
 <td><p>Channel evaluation — moved to <a class="reference internal" href="an.timing.channel.html#module-an.timing.channel" title="an.timing.channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.channel</span></code></a> (the timing kernel).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.clip.html#module-an.adapters.cutout.clip" title="an.adapters.cutout.clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.clip.html#module-an.adapters.cutout.clip" title="an.adapters.cutout.clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip</span></code></a></p></td>
 <td><p>Clips, loop modes and poses — moved to <a class="reference internal" href="an.timing.clip.html#module-an.timing.clip" title="an.timing.clip"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.clip</span></code></a> (the timing kernel).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.coarticulate.html#module-an.adapters.cutout.coarticulate" title="an.adapters.cutout.coarticulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coarticulate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.coarticulate.html#module-an.adapters.cutout.coarticulate" title="an.adapters.cutout.coarticulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coarticulate</span></code></a></p></td>
 <td><p>Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.compile.html#module-an.adapters.cutout.compile" title="an.adapters.cutout.compile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.compile.html#module-an.adapters.cutout.compile" title="an.adapters.cutout.compile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile</span></code></a></p></td>
 <td><p>Compile a top-level <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> (renderer=&quot;cutout&quot;) into a <code class="code docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.easing.html#module-an.adapters.cutout.easing" title="an.adapters.cutout.easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.easing.html#module-an.adapters.cutout.easing" title="an.adapters.cutout.easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing</span></code></a></p></td>
 <td><p>The stage engine's easing vocabulary — a view of <a class="reference internal" href="an.timing.easing.html#module-an.timing.easing" title="an.timing.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.easing</span></code></a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.fidelity.html#module-an.adapters.cutout.fidelity" title="an.adapters.cutout.fidelity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fidelity</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.fidelity.html#module-an.adapters.cutout.fidelity" title="an.adapters.cutout.fidelity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fidelity</span></code></a></p></td>
 <td><p>How faithfully a compiled scene reproduces the art it was built from.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.gaze.html#module-an.adapters.cutout.gaze" title="an.adapters.cutout.gaze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gaze</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.gaze.html#module-an.adapters.cutout.gaze" title="an.adapters.cutout.gaze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gaze</span></code></a></p></td>
 <td><p>Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.path.html#module-an.adapters.cutout.path" title="an.adapters.cutout.path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.path.html#module-an.adapters.cutout.path" title="an.adapters.cutout.path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></a></p></td>
 <td><p>Stroked-path geometry — the executable spec of <code class="docutils literal notranslate"><span class="pre">runtime.js::pathGeometry</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.render.html#module-an.adapters.cutout.render" title="an.adapters.cutout.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.render.html#module-an.adapters.cutout.render" title="an.adapters.cutout.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.runtime_files.html#module-an.adapters.cutout.runtime_files" title="an.adapters.cutout.runtime_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_files</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.runtime_files.html#module-an.adapters.cutout.runtime_files" title="an.adapters.cutout.runtime_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_files</span></code></a></p></td>
 <td><p>Locate the bundled cutout JS runtime files.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.serialize.html#module-an.adapters.cutout.serialize" title="an.adapters.cutout.serialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">serialize</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.serialize.html#module-an.adapters.cutout.serialize" title="an.adapters.cutout.serialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">serialize</span></code></a></p></td>
 <td><p>JSON contract between the Python compiler and the (future) JS runtime.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.shutter.html#module-an.adapters.cutout.shutter" title="an.adapters.cutout.shutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shutter</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.shutter.html#module-an.adapters.cutout.shutter" title="an.adapters.cutout.shutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shutter</span></code></a></p></td>
 <td><p>The temporal half of the frame stage: average several instants into one frame.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.supersample.html#module-an.adapters.cutout.supersample" title="an.adapters.cutout.supersample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supersample</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.supersample.html#module-an.adapters.cutout.supersample" title="an.adapters.cutout.supersample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supersample</span></code></a></p></td>
 <td><p>Render bigger, then resolve back exactly — the supersample knob's two halves.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.surface.html#module-an.adapters.cutout.surface" title="an.adapters.cutout.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.surface.html#module-an.adapters.cutout.surface" title="an.adapters.cutout.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
 <td><p>Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.text.html#module-an.adapters.cutout.text" title="an.adapters.cutout.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.text.html#module-an.adapters.cutout.text" title="an.adapters.cutout.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
 <td><p>A text block, compiled: one node per unit, each an SVG sprite (an#155).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.timeline.html#module-an.adapters.cutout.timeline" title="an.adapters.cutout.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.timeline.html#module-an.adapters.cutout.timeline" title="an.adapters.cutout.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
 <td><p>Stage timeline helpers: the compiled scene as a <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>, and screen space.</p></td>
 </tr>
 </tbody>
@@ -1093,11 +1101,11 @@ clothes (an#33).</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.adapters.cutout.canvas_capture.html"
+       href="an.adapters.cutout.cache_key.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.adapters.cutout.canvas_capture</p>
+        <p class="prev-next-title">an.adapters.cutout.cache_key</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

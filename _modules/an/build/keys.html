@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="keys.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.build.keys &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../../_static/documentation_options.js?v=a8046c5d"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/build/keys';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.135" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.build.keys</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.build.keys</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Cache keys for build stages: canonical digests, the project fallback, keyers.</span>
+
+<span class="sd">ADR 0004 decision 2: *every key covers everything that changes the output*, and</span>
+<span class="sd">``shot.id`` is never one of them (pillar 11). A shot key is composed from NAMED</span>
+<span class="sd">parts, each a sha256 hex digest, so a re-render can say which input moved:</span>
+
+<span class="sd">========== ===================================================================</span>
+<span class="sd">part       what it covers</span>
+<span class="sd">========== ===================================================================</span>
+<span class="sd">renderer   the backend's registered identity: its class and its keyer, by</span>
+<span class="sd">           qualified name (two implementations never share an entry)</span>
+<span class="sd">impl       :data:`SHOT_KEY_IMPL_VERSION`, the salt bumped when the key's own</span>
+<span class="sd">           composition changes</span>
+<span class="sd">project    every asset in the project (ADR 0004 decision 3's fallback, until</span>
+<span class="sd">           reads are recorded): :func:`project_assets_digest`</span>
+<span class="sd">environment the machine's render environment, from the renderer's registered</span>
+<span class="sd">           probe — separate, so a machine change invalidates renders without</span>
+<span class="sd">           pretending the content changed</span>
+<span class="sd">(keyer)    whatever the renderer's registered :data:`ShotKeyer` returns — for</span>
+<span class="sd">           the cut-out renderer: the compiled document, its textures' bytes,</span>
+<span class="sd">           the easing versions it names, the audio it muxes, the runtime,</span>
+<span class="sd">           the render path's Python source and every render knob</span>
+<span class="sd">           (`an.adapters.cutout.cache_key`)</span>
+<span class="sd">========== ===================================================================</span>
+
+<span class="sd">The core names no renderer: a backend joins by :func:`register_shot_keyer`. A</span>
+<span class="sd">renderer with no keyer is never cached, which is the safe default — an opaque</span>
+<span class="sd">shot is re-rendered, never reused on a guess.</span>
+
+<span class="sd">&gt;&gt;&gt; canonical_digest({"b": 1, "a": [1, 2]}) == canonical_digest({"a": [1, 2], "b": 1})</span>
+<span class="sd">True</span>
+<span class="sd">&gt;&gt;&gt; len(compose_shot_key({"renderer": canonical_digest("cutout")}))</span>
+<span class="sd">64</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="c1">#: The key's own version — the ``impl_version`` salt of `nw.Transform` and of</span>
+<span class="c1">#: `burns.RESOLVER_IMPL_VERSION` ("a lock, not a receipt"). Bump it when the</span>
+<span class="c1">#: COMPOSITION of a key changes (a part added, renamed or re-spelled). It is</span>
+<span class="c1">#: NOT how a renderer's code changes reach the key — a hand-bumped constant is</span>
+<span class="c1">#: one someone forgets — that is each keyer's ``code`` part, a digest of the</span>
+<span class="c1">#: render path's source. Bumping it orphans every entry; nothing is deleted</span>
+<span class="c1">#: (decision 6).</span>
+<span class="n">SHOT_KEY_IMPL_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1">#: The mall stores that make up "every asset in the project" for decision 3's</span>
+<span class="c1">#: fallback: the art the compiler reads (characters, environments, props,</span>
+<span class="c1">#: styles) and the two the audio path reads (voices, sounds). The scene</span>
+<span class="c1">#: document is deliberately NOT here — each shot's own slice reaches its key</span>
+<span class="c1">#: through its compiled document, which is what lets an edit to one shot</span>
+<span class="c1">#: re-render only that shot.</span>
+<span class="n">PROJECT_ASSET_STORES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"characters"</span><span class="p">,</span>
+    <span class="s2">"environments"</span><span class="p">,</span>
+    <span class="s2">"props"</span><span class="p">,</span>
+    <span class="s2">"styles"</span><span class="p">,</span>
+    <span class="s2">"voices"</span><span class="p">,</span>
+    <span class="s2">"sounds"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: Files at the project ROOT that every shot depends on, whether or not a mall</span>
+<span class="c1">#: store exposes them. ``assets.lock.json`` is the asset library's lockfile of</span>
+<span class="c1">#: pinned library versions (ADR 0005, P5): a re-pin changes what is checked out,</span>
+<span class="c1">#: so it must move every key — and it must do so before (and independently of)</span>
+<span class="c1">#: its registration in the mall (an#240). Read by path, through</span>
+<span class="c1">#: :func:`project_root_files_digest`; an absent file is recorded as absent.</span>
+<span class="n">PROJECT_ROOT_FILES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"assets.lock.json"</span><span class="p">,)</span>
+
+<span class="c1">#: File names under an asset root that are never assets: an OS's folder</span>
+<span class="c1">#: metadata must not re-render a film.</span>
+<span class="n">IGNORED_ASSET_NAME_PREFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"."</span><span class="p">,)</span>
+
+<span class="c1">#: A part's value when the thing it digests is absent: a missing texture, an</span>
+<span class="c1">#: audio ref the store does not hold. Still deterministic, and different from</span>
+<span class="c1">#: any present value, so a part that later appears re-renders.</span>
+<span class="n">ABSENT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"absent"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_jsonable</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``json.dumps``' ``default``: paths, tuples-in-sets, models, the rest by repr."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">repr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"sha256"</span><span class="p">:</span> <span class="n">bytes_digest</span><span class="p">(</span><span class="n">obj</span><span class="p">)}</span>
+    <span class="n">dump</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">dump</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="canonical_json">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.canonical_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">canonical_json</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``obj`` as sorted, whitespace-free JSON — the one spelling every digest hashes.</span>
+
+<span class="sd">    &gt;&gt;&gt; canonical_json({"b": (1, 2), "a": None})</span>
+<span class="sd">    '{"a":null,"b":[1,2]}'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">":"</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="n">_jsonable</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="bytes_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.bytes_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bytes_digest</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The hex sha256 of ``data``.</span>
+
+<span class="sd">    &gt;&gt;&gt; bytes_digest(b"")[:8]</span>
+<span class="sd">    'e3b0c442'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="canonical_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.canonical_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">canonical_digest</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The hex sha256 of :func:`canonical_json` of ``obj``."""</span>
+    <span class="k">return</span> <span class="n">bytes_digest</span><span class="p">(</span><span class="n">canonical_json</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="file_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.file_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">file_digest</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The hex sha256 of a file's bytes, read NOW.</span>
+
+<span class="sd">    Deliberately unmemoised. A (path, mtime, size) memo — `an.raster`'s, which</span>
+<span class="sd">    is fine for a texture alias inside one compile — let a same-size edit whose</span>
+<span class="sd">    mtime was restored (``cp -p``, ``rsync -t``, ``tar x``, a sync client) be</span>
+<span class="sd">    served stale from cache in a long-running process (an#243 review, S2). A</span>
+<span class="sd">    cache KEY is only as good as its weakest input, so every byte is read on</span>
+<span class="sd">    every render; on the golden corpus the whole project digest is under 10 ms.</span>
+<span class="sd">    """</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">chunk</span> <span class="o">:=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">):</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="compose_shot_key">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.compose_shot_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compose_shot_key</span><span class="p">(</span><span class="n">parts</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The shot key: one digest over the named parts and the key's own version.</span>
+
+<span class="sd">    The parts are a MAPPING so the record can keep them by name, and a</span>
+<span class="sd">    re-render can be explained ("``textures`` moved") rather than merely</span>
+<span class="sd">    observed.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">canonical_digest</span><span class="p">({</span><span class="s2">"impl"</span><span class="p">:</span> <span class="n">SHOT_KEY_IMPL_VERSION</span><span class="p">,</span> <span class="s2">"parts"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parts</span><span class="p">)})</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Decision 3's fallback: every shot depends on every asset in its project</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_iter_asset_files</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)):</span>
+        <span class="n">rel</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">IGNORED_ASSET_NAME_PREFIXES</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">rel</span><span class="o">.</span><span class="n">parts</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">path</span>
+
+
+<div class="viewcode-block" id="store_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.store_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">store_digest</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A digest of one store's whole content.</span>
+
+<span class="sd">    A filesystem store (one exposing ``_root``) is digested from its FILES,</span>
+<span class="sd">    sidecars included — a character's ``meta.json`` is not its art; the SVG</span>
+<span class="sd">    parts beside it are. That reads behind the mapping, which is ADR 0004's gap</span>
+<span class="sd">    3 ("art bypasses the mall"), and it is exactly why this is the fallback:</span>
+<span class="sd">    once art is read through the stores (the asset library, ADR 0005), a</span>
+<span class="sd">    read-recording view replaces it with the keys a shot actually read. Any</span>
+<span class="sd">    other mapping is digested from its items.</span>
+
+<span class="sd">    &gt;&gt;&gt; store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 1}})</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 2}})</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">canonical_digest</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">(),</span> <span class="n">file_digest</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_iter_asset_files</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — an unreadable entry is a fact, not a crash</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"unreadable"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">}</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">canonical_digest</span><span class="p">(</span><span class="n">value</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">canonical_digest</span><span class="p">(</span><span class="n">items</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="project_root_files_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.project_root_files_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">project_root_files_digest</span><span class="p">(</span>
+    <span class="n">project_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">PROJECT_ROOT_FILES</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{name: sha256 or ABSENT}`` for the project-root files every shot depends on.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tempfile</span>
+<span class="sd">    &gt;&gt;&gt; with tempfile.TemporaryDirectory() as d:</span>
+<span class="sd">    ...     project_root_files_digest(d, files=["assets.lock.json"])</span>
+<span class="sd">    {'assets.lock.json': 'absent'}</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">file_digest</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="k">else</span> <span class="n">ABSENT</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">files</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="project_assets_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.project_assets_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">project_assets_digest</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">PROJECT_ASSET_STORES</span><span class="p">,</span>
+    <span class="n">project_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">root_files</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">PROJECT_ROOT_FILES</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One digest over every asset store of the project (ADR 0004 decision 3).</span>
+
+<span class="sd">    The first slice's dependency edge for every shot: safe — no asset can change</span>
+<span class="sd">    without every shot's key moving — at the price of the per-character saving,</span>
+<span class="sd">    which read recording buys back. A store the mall does not have is recorded</span>
+<span class="sd">    as absent rather than skipped, so adding one later moves the digest.</span>
+
+<span class="sd">    With ``project_root``, the files in ``root_files`` (the library lockfile)</span>
+<span class="sd">    are hashed by PATH as well — so a re-pin moves every key whether or not</span>
+<span class="sd">    the mall has a store for the file yet.</span>
+
+<span class="sd">    &gt;&gt;&gt; a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])</span>
+<span class="sd">    &gt;&gt;&gt; b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])</span>
+<span class="sd">    &gt;&gt;&gt; a == b</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">store_digest</span><span class="p">(</span><span class="n">mall</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">if</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ABSENT</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">stores</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">project_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">digest</span><span class="p">[</span><span class="s2">"root_files"</span><span class="p">]</span> <span class="o">=</span> <span class="n">project_root_files_digest</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">root_files</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">canonical_digest</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Renderer keyers: how a backend says what its shot render reads</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="ShotKeyInputs">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.ShotKeyInputs">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShotKeyInputs</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a renderer's keyer returns for one shot.</span>
+
+<span class="sd">    ``parts`` are named sha256 hex digests (the key's content half); the engine</span>
+<span class="sd">    adds ``renderer``, ``project`` and ``environment``. ``compile_s`` is the</span>
+<span class="sd">    wall time of the compile the keyer ran to get its digest, or ``None`` for a</span>
+<span class="sd">    renderer that has no compile stage.</span>
+<span class="sd">    """</span>
+
+    <span class="n">parts</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">compile_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Diagnostics a keyer wants on the record beside the digests — never part</span>
+    <span class="c1">#: of the key (the digests are).</span>
+    <span class="n">details</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: ``keyer(shot, ctx) -&gt; ShotKeyInputs``. Raises what the render itself would</span>
+<span class="c1">#: raise for the same inputs (a compile error, an invalid knob), so a bad shot</span>
+<span class="c1">#: fails before any browser launches.</span>
+<span class="n">ShotKeyer</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">ShotKeyInputs</span><span class="p">]</span>
+
+<span class="c1">#: ``probe() -&gt; Mapping``: the renderer's environment record. Called once per</span>
+<span class="c1">#: process per renderer (see `ShotCache`), because a browser probe costs a</span>
+<span class="c1">#: launch.</span>
+<span class="n">EnvironmentProbe</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+
+
+<span class="c1">#: ``part(shot, ctx) -&gt; str``: one more named digest for a renderer's key —</span>
+<span class="c1">#: the additive seam for an input read OUTSIDE the compiled document (a genre's</span>
+<span class="c1">#: side file, a vocabulary entry's version). See :func:`register_shot_key_part`.</span>
+<span class="n">ShotKeyPart</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="callable_identity">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.callable_identity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">callable_identity</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``module.qualname`` of a function or class (of an instance: of its type).</span>
+
+<span class="sd">    &gt;&gt;&gt; callable_identity(callable_identity)</span>
+<span class="sd">    'an.build.keys.callable_identity'</span>
+<span class="sd">    """</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">obj</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">callable</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"__qualname__"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="s1">'__module__'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="s1">'__qualname__'</span><span class="p">,</span><span class="w"> </span><span class="nb">repr</span><span class="p">(</span><span class="n">target</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_KeyerEntry</span><span class="p">:</span>
+    <span class="n">keyer</span><span class="p">:</span> <span class="n">ShotKeyer</span>
+    <span class="n">environment</span><span class="p">:</span> <span class="n">EnvironmentProbe</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="c1">#: The renderer CLASS this keyer describes. A renderer of any other class —</span>
+    <span class="c1">#: a subclass that adds a watermark, a test double that borrowed the name —</span>
+    <span class="c1">#: gets no keyer, and so is never cached: the keyer's claim "this is</span>
+    <span class="c1">#: everything the render reads" is about one implementation (review S4).</span>
+    <span class="n">renderer_type</span><span class="p">:</span> <span class="nb">type</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ShotKeyPart</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">identity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""What the ``renderer`` part digests: the class and the keyer, by name."""</span>
+        <span class="k">return</span> <span class="n">canonical_json</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"renderer_type"</span><span class="p">:</span> <span class="n">callable_identity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">renderer_type</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">renderer_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"keyer"</span><span class="p">:</span> <span class="n">callable_identity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keyer</span><span class="p">),</span>
+                <span class="s2">"parts"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">callable_identity</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">items</span><span class="p">())},</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+
+<span class="n">_KEYERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">_KeyerEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="ShotKeyerRegistrationError">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.ShotKeyerRegistrationError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShotKeyerRegistrationError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A shot keyer or key part was registered twice, or collides with another."""</span></div>
+
+
+
+<div class="viewcode-block" id="register_shot_keyer">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.register_shot_keyer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_shot_keyer</span><span class="p">(</span>
+    <span class="n">renderer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">keyer</span><span class="p">:</span> <span class="n">ShotKeyer</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">environment</span><span class="p">:</span> <span class="n">EnvironmentProbe</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">renderer_type</span><span class="p">:</span> <span class="nb">type</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Declare how shots of ``renderer_name`` are keyed, and how its machine is probed.</span>
+
+<span class="sd">    The registration seam for every backend (cut-out here; Manim's opaque</span>
+<span class="sd">    shots, keyed on source hash + Manim version + quality, are the next).</span>
+<span class="sd">    ``renderer_type`` binds the keyer to one renderer class: a renderer whose</span>
+<span class="sd">    type is not exactly it is never cached. A second registration for a name</span>
+<span class="sd">    is refused unless ``replace=True`` — a silent replacement would drop the</span>
+<span class="sd">    first keyer's parts from every key without anyone saying so.</span>
+<span class="sd">    """</span>
+    <span class="n">new</span> <span class="o">=</span> <span class="n">_KeyerEntry</span><span class="p">(</span><span class="n">keyer</span><span class="o">=</span><span class="n">keyer</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="n">environment</span><span class="p">,</span> <span class="n">renderer_type</span><span class="o">=</span><span class="n">renderer_type</span><span class="p">)</span>
+    <span class="n">old</span> <span class="o">=</span> <span class="n">_KEYERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">renderer_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="n">old</span><span class="o">.</span><span class="n">identity</span><span class="p">()</span> <span class="o">==</span> <span class="n">new</span><span class="o">.</span><span class="n">identity</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="n">callable_identity</span><span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span> <span class="k">if</span> <span class="n">old</span><span class="o">.</span><span class="n">environment</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">callable_identity</span><span class="p">(</span><span class="n">environment</span><span class="p">)</span> <span class="k">if</span> <span class="n">environment</span> <span class="k">else</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># The SAME keyer again — a module re-executed by `importlib.reload` or</span>
+        <span class="c1"># IPython's autoreload. Take the new objects (a reloaded renderer class</span>
+        <span class="c1"># is a new class), keep the registered parts (an#243 review, R2-4).</span>
+        <span class="n">replace</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">old</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">replace</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ShotKeyerRegistrationError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"a shot keyer for renderer </span><span class="si">{</span><span class="n">renderer_name</span><span class="si">!r}</span><span class="s2"> is already registered "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">callable_identity</span><span class="p">(</span><span class="n">_KEYERS</span><span class="p">[</span><span class="n">renderer_name</span><span class="p">]</span><span class="o">.</span><span class="n">keyer</span><span class="p">)</span><span class="si">}</span><span class="s2">); pass replace=True "</span>
+            <span class="s2">"to replace it, or add an input with register_shot_key_part"</span>
+        <span class="p">)</span>
+    <span class="n">old_parts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_KEYERS</span><span class="p">[</span><span class="n">renderer_name</span><span class="p">]</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">renderer_name</span> <span class="ow">in</span> <span class="n">_KEYERS</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">_KEYERS</span><span class="p">[</span><span class="n">renderer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_KeyerEntry</span><span class="p">(</span>
+        <span class="n">keyer</span><span class="o">=</span><span class="n">keyer</span><span class="p">,</span>
+        <span class="n">environment</span><span class="o">=</span><span class="n">environment</span><span class="p">,</span>
+        <span class="n">renderer_type</span><span class="o">=</span><span class="n">renderer_type</span><span class="p">,</span>
+        <span class="n">parts</span><span class="o">=</span><span class="n">old_parts</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="register_shot_key_part">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.register_shot_key_part">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_shot_key_part</span><span class="p">(</span><span class="n">renderer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">part_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">part</span><span class="p">:</span> <span class="n">ShotKeyPart</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Add one named input to every key of ``renderer_name``'s shots — additively.</span>
+
+<span class="sd">    For an input the render reads OUTSIDE its compiled document (whatever</span>
+<span class="sd">    changes the document is already covered by the ``compiled`` part, with</span>
+<span class="sd">    early cutoff for free): a genre package's side file, a vocabulary entry's</span>
+<span class="sd">    version (P7). Refuses a duplicate ``part_name``; a name that collides with</span>
+<span class="sd">    one of the keyer's own parts is refused when the key is computed.</span>
+<span class="sd">    """</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">_KEYERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">renderer_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ShotKeyerRegistrationError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no shot keyer for renderer </span><span class="si">{</span><span class="n">renderer_name</span><span class="si">!r}</span><span class="s2">; register one first "</span>
+            <span class="sa">f</span><span class="s2">"(registered: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_KEYERS</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">part_name</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ShotKeyerRegistrationError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"key part </span><span class="si">{</span><span class="n">part_name</span><span class="si">!r}</span><span class="s2"> is already registered for </span><span class="si">{</span><span class="n">renderer_name</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">entry</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="n">part_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">part</span></div>
+
+
+
+<div class="viewcode-block" id="shot_keyer_for">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.shot_keyer_for">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shot_keyer_for</span><span class="p">(</span><span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_KeyerEntry</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The keyer that describes ``renderer`` (an instance, or a name), or ``None``.</span>
+
+<span class="sd">    ``None`` means the shot is never cached: no keyer for the name, or a</span>
+<span class="sd">    renderer whose class is not the one the keyer was registered for.</span>
+<span class="sd">    """</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">renderer</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">_KEYERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">entry</span>
+    <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">renderer_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">renderer_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">entry</span></div>
+
+
+
+<div class="viewcode-block" id="registered_shot_keyers">
+<a class="viewcode-back" href="../../../_autosummary/an.build.keys.html#an.build.registered_shot_keyers">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">registered_shot_keyers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The renderer names that have a keyer.</span>
+
+<span class="sd">    &gt;&gt;&gt; import an.adapters  # registers the built-in renderers and their keyers</span>
+<span class="sd">    &gt;&gt;&gt; "cutout" in registered_shot_keyers()</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_KEYERS</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

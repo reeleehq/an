@@ -1,0 +1,38 @@
+an.build.shot\_cache
+====================
+
+.. automodule:: an.build.shot_cache
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SHOT_CACHE_STORE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      default_environment_digest
+      in_memory_shot_cache_store
+      resolve_incremental
+      shot_artifact_type
+      shot_cache_store
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BuildReport
+      IncrementalEngine
+      ShotCache
+      ShotOutcome
+      ShotPlan
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ShotCacheWarning
+   

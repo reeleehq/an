@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -722,9 +722,11 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
@@ -733,6 +735,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">assemble_film</span><span class="p">,</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">needs_assembly</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">style_pack_for</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DEFAULT_REGISTRY</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncrementalEngine</span><span class="p">,</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">resolve_incremental</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DEFAULT_FPS</span><span class="p">,</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
@@ -741,6 +744,66 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Shot</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">load</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"an.build"</span><span class="p">)</span>
+
+<span class="c1">#: Under ``.an/render_work/``: one directory per CACHED render run.</span>
+<span class="n">RENDER_RUNS_DIR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"runs"</span>
+
+<span class="c1">#: In a run directory: the pid of the process rendering it (written at start).</span>
+<span class="n">RUN_LIVE_MARKER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">".live"</span>
+<span class="c1">#: In a run directory: written when the run delivered its film.</span>
+<span class="n">RUN_DONE_MARKER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">".done"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">secrets</span>
+
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y%m</span><span class="si">%d</span><span class="s1">T%H%M%S'</span><span class="p">)</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_start_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">work_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">work_dir</span> <span class="o">/</span> <span class="n">RUN_LIVE_MARKER</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pid_alive</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``pid`` runs; ``None`` where that cannot be asked safely (Windows)."""</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">"posix"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ProcessLookupError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_finished</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A run is finished when it says so, or when the process that ran it is gone."""</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">/</span> <span class="n">RUN_DONE_MARKER</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">d</span> <span class="o">/</span> <span class="n">RUN_LIVE_MARKER</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># no marker we can read: not ours to judge</span>
+    <span class="k">return</span> <span class="n">pid</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span> <span class="ow">and</span> <span class="n">_pid_alive</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_finish_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Mark this run done and remove every OTHER finished run — promptly, not</span>
+<span class="sd">    after hours: each run holds a whole render's PNGs (an#243 review, R2-2).</span>
+<span class="sd">    This run is kept, as the latest, for inspection; a run still in progress</span>
+<span class="sd">    (its process alive, no done marker) is never touched."""</span>
+    <span class="p">(</span><span class="n">work_dir</span> <span class="o">/</span> <span class="n">RUN_DONE_MARKER</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">runs</span> <span class="o">=</span> <span class="n">work_dir</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">runs</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">runs</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="k">else</span> <span class="p">():</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="n">work_dir</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">_run_finished</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="c1"># Default cap so a 20-shot scene doesn't try to spawn 20 Chromiums; the user</span>
@@ -794,8 +857,20 @@ window.runMermaid = runMermaid;</script>
     <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
+    <span class="n">incremental</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">IncrementalEngine</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">force_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Render every shot in ``project_dir``'s scene and concatenate to one mp4.</span>
+
+<span class="sd">    **Incremental by default** (ADR 0004): a shot whose key — a digest of</span>
+<span class="sd">    everything its render reads, never its id — already has an entry in the</span>
+<span class="sd">    project's shot cache is not rendered again; its cached mp4 is reused. So</span>
+<span class="sd">    editing one shot re-renders that shot, and an unchanged project re-renders</span>
+<span class="sd">    nothing. ``force_render=True`` renders every shot anyway (and refreshes</span>
+<span class="sd">    their entries); ``incremental=False`` neither reads nor writes the cache.</span>
+<span class="sd">    Pass your own engine (e.g. ``ShotCache()``) to read what happened to each</span>
+<span class="sd">    shot afterwards from its ``report`` — the same summary is logged on the</span>
+<span class="sd">    ``an.build`` logger. See :func:`render`.</span>
 
 <span class="sd">    ``tts`` and ``lipsync`` may be provider name strings (``"offline"``,</span>
 <span class="sd">    ``"elevenlabs"``, ``"rhubarb"``) or provider instances. Defaults are</span>
@@ -850,6 +925,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
         <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
         <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
+        <span class="n">incremental</span><span class="o">=</span><span class="n">incremental</span><span class="p">,</span>
+        <span class="n">force_render</span><span class="o">=</span><span class="n">force_render</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -872,8 +949,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
+    <span class="n">incremental</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">IncrementalEngine</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">force_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Lower-level: render a loaded ``Project`` to mp4.</span>
+
+<span class="sd">    ``incremental`` is the build-cache seam (ADR 0004 decision 5): ``True`` is</span>
+<span class="sd">    the built-in :class:`~an.build.ShotCache` over ``mall["shot_cache"]``, an</span>
+<span class="sd">    :class:`~an.build.IncrementalEngine` is used as given, and ``False`` — the</span>
+<span class="sd">    default HERE, unlike :func:`render_project` — renders every shot cold, as</span>
+<span class="sd">    this function always has. Cold is this layer's default because its other</span>
+<span class="sd">    callers are measurements (the bench, the golden corpus, the demo builds),</span>
+<span class="sd">    whose wall times and lever rebinds a reused shot would silently void.</span>
+<span class="sd">    ``force_render=True`` with an engine renders every shot and re-records it.</span>
 
 <span class="sd">    ``supersample`` renders at N times the declared resolution and resolves back</span>
 <span class="sd">    with an exact N x N block mean, in the frame stage, before anything else</span>
@@ -951,7 +1039,16 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">timed_shots_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">resolve_incremental</span><span class="p">(</span><span class="n">incremental</span><span class="p">)</span>
     <span class="n">work_dir</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="s2">".an"</span> <span class="o">/</span> <span class="s2">"render_work"</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># A cached render works in a directory of its OWN: two renders of one</span>
+        <span class="c1"># project at once (a 4:4:4 master and a 4:2:0 delivery, a person and an</span>
+        <span class="c1"># agent) would otherwise write the same `shot_&lt;id&gt;/&lt;id&gt;.mp4` and each</span>
+        <span class="c1"># record whatever bytes were there under its own key — poisoning the</span>
+        <span class="c1"># cache durably, where before it spoiled one run (an#243 review, S1).</span>
+        <span class="n">work_dir</span> <span class="o">=</span> <span class="n">work_dir</span> <span class="o">/</span> <span class="n">RENDER_RUNS_DIR</span> <span class="o">/</span> <span class="n">_run_id</span><span class="p">()</span>
+        <span class="n">_start_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
     <span class="n">work_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">effective_fps</span> <span class="o">=</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span> <span class="ow">or</span> <span class="n">DEFAULT_FPS</span>
@@ -1016,23 +1113,55 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="n">shot_renderers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shot</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="n">pool_size</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">shot_results</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">_render_one</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+    <span class="c1"># The shot cache (ADR 0004): every key is computed HERE, in this thread and</span>
+    <span class="c1"># before any browser launches — a key compiles its shot, so a shot that</span>
+    <span class="c1"># cannot compile fails now, and only the misses reach the pool.</span>
+    <span class="n">plans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotPlan</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_renderers</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">project_root</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">needs_frames</span> <span class="o">=</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">)</span>
+        <span class="n">plans</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">plan</span><span class="p">(</span>
+                <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">needs_frames</span><span class="o">=</span><span class="n">needs_frames</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force_render</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
         <span class="p">]</span>
+
+    <span class="n">shot_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">RenderResult</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_renderers</span><span class="p">)</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">((</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">),</span> <span class="n">plan</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">shot_renderers</span><span class="p">,</span> <span class="n">plans</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">plan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">plan</span><span class="o">.</span><span class="n">cached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shot_results</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">cached</span>
+            <span class="n">_archive_shot</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">cached</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">todo</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">plan</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">pool_size</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">plan</span> <span class="ow">in</span> <span class="n">todo</span><span class="p">:</span>
+            <span class="n">shot_results</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_render_one</span><span class="p">(</span>
+                <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="n">plan</span>
+            <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">results_by_id</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RenderResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">pool_size</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_render_one</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span>
-                <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
+                <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                    <span class="n">_render_one</span><span class="p">,</span>
+                    <span class="n">shot</span><span class="p">,</span>
+                    <span class="n">renderer</span><span class="p">,</span>
+                    <span class="n">shot_ctx</span><span class="p">,</span>
+                    <span class="n">project</span><span class="p">,</span>
+                    <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>
+                    <span class="n">plan</span><span class="o">=</span><span class="n">plan</span><span class="p">,</span>
+                <span class="p">):</span> <span class="n">i</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">plan</span> <span class="ow">in</span> <span class="n">todo</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
-                <span class="n">shot_id</span> <span class="o">=</span> <span class="n">futures</span><span class="p">[</span><span class="n">fut</span><span class="p">]</span>
-                <span class="n">results_by_id</span><span class="p">[</span><span class="n">shot_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-        <span class="c1"># Preserve scene-timeline order for ffmpeg concat.</span>
-        <span class="n">shot_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">results_by_id</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shots</span><span class="p">]</span>
+                <span class="n">shot_results</span><span class="p">[</span><span class="n">futures</span><span class="p">[</span><span class="n">fut</span><span class="p">]]</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="c1"># Scene-timeline order is kept by index, for the concat.</span>
+
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
 
     <span class="c1"># Concatenate per-shot mp4s.</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"output"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">.mp4"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
@@ -1065,6 +1194,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_write_caption_sidecar</span><span class="p">(</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_finish_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
     <span class="c1"># Last, so it is the last word about the file (an#211): a render that used</span>
     <span class="c1"># all-rights-reserved, private-study material must not read as shippable.</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
@@ -1163,17 +1294,34 @@ window.runMermaid = runMermaid;</script>
     <span class="n">renderer</span><span class="p">,</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">,</span>
     <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">IncrementalEngine</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RenderResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Render one shot and persist its mp4 into ``project.mall["shots"]``.</span>
+<span class="w">    </span><span class="sd">"""Render one shot, record it with ``engine``, and archive its mp4.</span>
 
 <span class="sd">    Each call is self-contained: the cutout renderer creates a per-shot</span>
 <span class="sd">    work directory, its own Chromium instance, its own http server. This</span>
 <span class="sd">    is what makes the call thread-safe.</span>
 <span class="sd">    """</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="n">render_s</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">plan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">render_s</span><span class="o">=</span><span class="n">render_s</span><span class="p">)</span>
+    <span class="n">_archive_shot</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_archive_shot</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">RenderResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write the shot's mp4 to ``mall["shots"][shot.id]`` — an ARCHIVE, not a cache.</span>
+
+<span class="sd">    Keyed by the author's id, so it holds the latest render of each shot for a</span>
+<span class="sd">    person to look at; nothing reads it back (pillar 11). The cache is</span>
+<span class="sd">    ``mall["shot_cache"]``, keyed by content.</span>
+<span class="sd">    """</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">mp4_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"shots"</span><span class="p">][</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">result</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_parallel</span><span class="p">(</span><span class="n">parallel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

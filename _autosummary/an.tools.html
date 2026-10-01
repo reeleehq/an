@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.timeline" href="an.timing.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -363,6 +363,11 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
@@ -735,8 +740,11 @@ force: overwrite an existing scene.md</p>
 <dd><p>Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.</p>
 <p>project_dir: path to an an project
 instruction: what to change in plain English (e.g. “make Maya’s laugh longer and warmer”)
-apply_changes: persist the new scene to disk + invalidate affected shot caches (default True)
-model: Anthropic model id (default claude-opus-4-7)</p>
+apply_changes: persist the new scene to disk (default True); the next render</p>
+<blockquote>
+<div><p>re-renders exactly the shots whose content changed</p>
+</div></blockquote>
+<p>model: Anthropic model id (default claude-opus-4-7)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -763,8 +771,12 @@ no_browser: don’t auto-open the default browser</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.render">
-<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.render" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.render" title="Link to this definition">#</a></dt>
 <dd><p>Render the project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> to a single mp4.</p>
+<p>Incremental: a shot whose inputs (its compiled document, its art’s bytes,
+its audio, the runtime, the render settings, this machine’s browser and
+ffmpeg) are unchanged since a previous render is reused from the shot cache
+rather than rendered again, and the summary line says which were which.</p>
 <p>project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
 tts: TTS provider — “offline” (silent) or “elevenlabs” (needs ELEVEN_API_KEY)
@@ -799,6 +811,13 @@ without one (an#96)</p>
 <dt>capture: how frames leave the browser — “canvas” (the default), an in-page</dt><dd><p>read of the canvas in batches, ~7.8x faster frame stage on the corpus,
 ~2.3x at 1080p; or “screenshot”, a Playwright element screenshot per
 instant. Both write frames with the same decoded pixels</p>
+</dd>
+<dt>force_render: render every shot even when the shot cache holds it (and</dt><dd><p>refresh its entry)</p>
+</dd>
+<dt>no_cache: neither read nor write the shot cache — every shot is rendered</dt><dd><p>cold, as before the cache existed</p>
+</dd>
+<dt>cache_frames: also cache each shot’s frames, so a film with transitions or</dt><dd><p>a sound layer reuses its shots too. Off by default: a 1080p shot’s
+frames are hundreds of MB, and nothing collects old entries yet</p>
 </dd>
 </dl>
 <dl class="field-list simple">

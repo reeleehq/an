@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=0c7ce844"></script>
+    <script src="../../../_static/documentation_options.js?v=a8046c5d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.134" />
+  <meta name="docsearch:version" content="0.1.135" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1012,7 +1012,11 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">capture_path</span> <span class="o">=</span> <span class="n">_check_capture</span><span class="p">(</span><span class="n">BENCH_RENDER_KWARGS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"capture"</span><span class="p">))</span>
     <span class="n">started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-    <span class="n">output_mp4</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">render</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="o">**</span><span class="n">BENCH_RENDER_KWARGS</span><span class="p">))</span>
+    <span class="c1"># Cold, and SAID so (an#243 review): a measurement answered from the shot</span>
+    <span class="c1"># cache times nothing, and a lever that rebinds code outside the key would</span>
+    <span class="c1"># "apply" with no effect. Passed here, not added to BENCH_RENDER_KWARGS,</span>
+    <span class="c1"># because that dict is recorded into every ledger row and compared.</span>
+    <span class="n">output_mp4</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">render</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="o">**</span><span class="n">BENCH_RENDER_KWARGS</span><span class="p">,</span> <span class="n">incremental</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
     <span class="n">wall</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span>
 
     <span class="n">work_dir</span> <span class="o">=</span> <span class="n">work_copy</span> <span class="o">/</span> <span class="n">RENDER_WORK_RELPATH</span>
