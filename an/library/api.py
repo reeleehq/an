@@ -45,7 +45,7 @@ from typing import Any
 from dol.content import ContentRef, content_hash
 
 from an.ir.assets import PRIVATE_STUDY, PUBLIC_DOMAIN, AssetSource, license_class
-from an.credits import is_generated_source
+from an.credits import is_generated_source, same_source
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 from an.library import character as _character
 from an.library.affordances import (
@@ -427,7 +427,7 @@ def pop_origin(doc: dict[str, Any]) -> Mapping[str, Any] | None:
         if origin.get(METADATA_ADDED_FLAG) and not meta:
             del doc["metadata"]
         added = origin.get(SOURCE_ADDED_KEY)
-        if isinstance(added, Mapping) and doc.get("source") == added.get("source"):
+        if isinstance(added, Mapping) and same_source(doc.get("source"), added.get("source")):
             if added.get("had_key"):
                 doc["source"] = added.get("previous")
             else:
@@ -1215,13 +1215,17 @@ def publish(
         # The carried source was a statement about the bytes it was declared
         # on. A file changed or added since is bytes nobody has labelled: it
         # stays `unknown` (in the floor, in the rights, in the credits of a
-        # check-out) until a publish passes `source=` again.
+        # check-out) until a publish passes `source=` again — unless the
+        # descriptor itself labels those very bytes, a per-part source pinned
+        # to their digest (the factory re-stamping the mouths it redrew:
+        # an#281), which then speaks for them as it would on any publish.
         before = _file_hashes(head_version.get("files") or {})
         still = set(head_version.get(UNLABELLED_FIELD) or [])
         unlabelled = sorted(
             path
             for path, digest in hashes.items()
-            if before.get(path) != digest or path in still
+            if (before.get(path) != digest or path in still)
+            and itemising_source({"doc": doc}, path, digest) is None
         )
     pending: dict[str, Any] = {
         "doc_kind": kind.name,
@@ -1633,6 +1637,21 @@ def _counts(entries: Iterable[IndexEntry]) -> dict[str, dict[str, int]]:
     return {facet: dict(sorted(c.items())) for facet, c in sorted(counters.items())}
 
 
+#: How a style mismatch is named among a near miss's ``missing`` terms.
+STYLE_GAP_PREFIX: str = "style:"
+
+
+def _restyle_remedy(wanted: Iterable[str], has: Iterable[str]) -> str:
+    want = " or ".join(wanted)
+    now = ", ".join(sorted(has)) or "no style"
+    return (
+        f"restyle it to {want} (it is curated as {now}): apply the {want} style's "
+        "policy over its art — a tint, a palette, the style's speech and view "
+        "rules (the an-style skill) — and publish the result as a sibling id in "
+        "the same --family, with --style " + want
+    )
+
+
 def find(
     libraries: Libraries,
     *,
@@ -1658,7 +1677,9 @@ def find(
         (``free`` + ``attribution``), or licence classes. Rights are recomputed
         from each version's sources and lineage, not read from its cache
     near: also return assets that pass every other facet but miss some
-        capabilities, each with what is missing and the remedy that would add it
+        capabilities, or are curated for another style than asked, each with
+        what is missing and the remedy that would add it (a style mismatch is
+        listed as ``style:<wanted>``, remedied by restyling: an#271)
     index: the index to read (default: a scan of the stores)
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -1695,19 +1716,29 @@ def find(
                 )
                 entry = replace(entry, rights=_stricter(entry.rights, recomputed))
             values = entry.facet_values()
-            if any(
-                want is not None and not (values[f] & set(want))
+            failed = {
+                f
                 for f, want in asked.items()
-            ):
+                if want is not None and not (values[f] & set(want))
+            }
+            # Only the style differs: with near=True, a restyle away (an#271).
+            restyle = near and failed == {"style"}
+            if failed and not restyle:
                 continue
             if license_classes is not None and not (
                 values["license_class"] & license_classes
             ):
                 continue
             gaps = missing(entry.affordances, wanted)
+            remedies = {g: remedy_for(g) for g in gaps}
+            if restyle:
+                term = STYLE_GAP_PREFIX + "|".join(asked["style"] or [])
+                gaps = [term, *gaps]
+                remedies[term] = _restyle_remedy(asked["style"] or [], values["style"])
             if gaps and not near:
                 continue
-            score = (len(wanted) - len(gaps)) / len(wanted) if wanted else 1.0
+            asks = len(wanted) + (1 if asked["style"] else 0)
+            score = (asks - len(gaps)) / asks if asks else 1.0
             hit = Hit(
                 entry.library,
                 entry.asset_id,
@@ -1716,7 +1747,7 @@ def find(
                 title=entry.record.get("title"),
                 license_class=entry.rights.license_class,
                 missing=gaps,
-                remedies={g: remedy_for(g) for g in gaps},
+                remedies=remedies,
                 federated=federated,
             )
             if gaps:

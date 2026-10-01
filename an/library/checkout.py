@@ -17,7 +17,8 @@ render-time private-study warning look:
   UNVERIFIED in ``an credits``, as it is ``unknown`` when the copy is published
   back (an#264);
 - the asset-level source, written into a descriptor that declares none (or
-  only the character factory's own stamp, which it then stands in for);
+  only a generator's own source that owes nothing — the character factory's
+  stamp, a free DiceBear style — which it then stands in for: an#281);
 - the pin in ``assets.lock.json`` — the project mall's ``library_lock`` store,
   the single source of truth for which version a project holds (an#240).
 
@@ -71,7 +72,7 @@ from an.library.rights import (
     roll_up,
     sources_in,
 )
-from an.credits import CHECKED_OUT_KEY, checked_out_seal, is_factory_stamp
+from an.credits import CHECKED_OUT_KEY, checked_out_seal, gives_way_to_a_label
 from an.stores._common import is_os_junk
 from an.library.root import LibraryLocationWarning, git_worktree_of
 
@@ -248,8 +249,10 @@ def checkout(
     manifest = version["manifest_sha256"]
     mall = mall if mall is not None else build_project_mall(project_dir, ensure=True)
     store = mall[kind.store]
-    key = key or pinned.asset_id.split(".", 1)[1]
     lock = _project_lock(lock, mall, project_dir)
+    key = key or _unedited_copy(store, lock, kind.store, pinned, version) or (
+        pinned.asset_id.split(".", 1)[1]
+    )
     entry_key = lock_key(kind.store, key)
     if key in store:
         existing = store[key]
@@ -317,10 +320,10 @@ def checkout(
         added = None
         if version.get("source") and (
             descriptor_source(doc, store=kind.credits_store) is None
-            or is_factory_stamp(doc.get("source"))
+            or gives_way_to_a_label(doc.get("source"))
         ):
             # The asset-level source speaks for every file nothing itemises; the
-            # factory's descriptor stamp speaks only for the bytes its part
+            # generator's descriptor source speaks only for the bytes its part
             # stamps pin, so it gives way (and comes back on a re-publish).
             added = {
                 "source": copy.deepcopy(version["source"]),
@@ -367,6 +370,36 @@ def checkout(
     store[key] = doc
     lock[entry_key] = _pin(pinned, manifest)
     return CheckoutResult(pinned, kind.store, key, manifest, len(files), True, rights)
+
+
+def _unedited_copy(
+    store: Any, lock: Any, store_name: str, pinned: LibraryRef, version: Mapping[str, Any]
+) -> str | None:
+    """The key of a project entry that already IS ``version``, byte for byte, if any.
+
+    The natural first round trip publishes a project's ``characters/alice``
+    as ``character.alice-reiniger``; checking that back out must link the
+    folder it came from, not copy it beside it under the asset's slug and leave
+    the original unpinned (an#271). The asset's own slug is preferred when it
+    holds the version; an entry already pinned to ANOTHER version is never
+    taken over.
+    """
+    slug = pinned.asset_id.split(".", 1)[1]
+    try:
+        keys = sorted(store, key=lambda k: (k != slug, k))
+    except Exception:  # noqa: BLE001 — a store that cannot be listed: the slug
+        return None
+    for candidate in keys:
+        entry_key = lock_key(store_name, candidate)
+        held = (lock[entry_key] or {}).get("library") if entry_key in lock else None
+        if held not in (None, str(pinned)):
+            continue
+        try:
+            if not drift(store, candidate, version):
+                return candidate
+        except Exception:  # noqa: BLE001 — an unreadable entry is not this version
+            continue
+    return None
 
 
 def _project_lock(lock: Any, mall: Mapping[str, Any], project_dir: Any) -> Any:

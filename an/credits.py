@@ -49,6 +49,7 @@ __all__ = [
     "collect_credits",
     "credits_for_project",
     "credits_for_scene",
+    "speech_credits",
     "warn_if_private_study",
 ]
 
@@ -59,6 +60,9 @@ class CreditEntry:
 
     asset: str
     source: AssetSource
+    #: Files this source speaks for that have none of their own, listed so
+    #: they are visible in the report (an environment's plates: an#271).
+    covers: tuple[str, ...] = ()
 
     @property
     def attribution_required(self) -> bool | None:
@@ -124,7 +128,11 @@ class CreditsReport:
     def to_dict(self) -> dict[str, Any]:
         return {
             "assets": [
-                {"asset": e.asset, **e.source.model_dump(exclude_none=True)}
+                {
+                    "asset": e.asset,
+                    **e.source.model_dump(exclude_none=True),
+                    **({"covers": list(e.covers)} if e.covers else {}),
+                }
                 for e in self.entries
             ],
             "attribution_required": [
@@ -172,7 +180,7 @@ class CreditsReport:
                     f"(licence {e.source.license!r} requires attribution but none "
                     "was recorded — the record is incomplete)"
                 )
-                lines.append(f"  {e.asset}: {text}")
+                lines.append(f"  {e.asset}: {text}{_detail(e)}")
         if self.unverified:
             lines.append("")
             lines.append(
@@ -180,18 +188,35 @@ class CreditsReport:
                 "the same as unencumbered; check before shipping:"
             )
             for e in self.unverified:
-                lines.append(f"  {e.asset}: license={e.source.license!r}")
+                lines.append(f"  {e.asset}: license={e.source.license!r}{_detail(e)}")
         clear = [e for e in third_party if e.license_class == "free"]
         if clear:
             lines.append("")
             lines.append(f"No attribution required ({len(clear)}):")
             for e in clear:
-                lines.append(f"  {e.asset}: {e.source.license}")
+                lines.append(f"  {e.asset}: {e.source.license}{_detail(e)}")
         if own:
             lines.append("")
             lines.append(f"Made by an itself, nothing owed ({len(own)}):")
             lines += [f"  {e.asset}: {e.source.provider}" for e in own]
         return "\n".join(lines)
+
+
+def _detail(e: CreditEntry) -> str:
+    """What a report line adds after the licence: a speech take's provider,
+    voice and model, and the files a source covers."""
+    out = ""
+    extra = e.source.extra or {}
+    if SPEECH_EXTRA_MODEL in extra or e.asset.startswith(SPEECH_PREFIX):
+        bits = [e.source.provider, f"voice {e.source.id}" if e.source.id else ""]
+        if extra.get(SPEECH_EXTRA_MODEL):
+            bits.append(f"model {extra[SPEECH_EXTRA_MODEL]}")
+        if extra.get("lines"):
+            bits.append(f"{extra['lines']} line(s)")
+        out += " (" + ", ".join(b for b in bits if b) + ")"
+    if e.covers:
+        out += f" — covers {', '.join(e.covers)}"
+    return out
 
 
 def _private_label(source: AssetSource) -> str:
@@ -291,7 +316,28 @@ def collect_credits(
             if source is not None:
                 found.append(CreditEntry(asset=f"{store_name}/{key}", source=source))
             if store_name == "environments":
-                found.extend(_plane_credits(key, descriptor))
+                planes = _plane_credits(key, descriptor)
+                plates = _unsourced_plates(descriptor)
+                if found:
+                    # The environment's source speaks for its plates: say which.
+                    found[0] = CreditEntry(found[0].asset, found[0].source, plates)
+                else:
+                    # No source anywhere: each plate is unverified, never silent.
+                    planes += [
+                        CreditEntry(
+                            asset=f"environments/{key}/planes/{name}",
+                            source=AssetSource(
+                                provider="unknown",
+                                extra={
+                                    "reason": "a plate with no source, in an "
+                                    "environment that declares none",
+                                    "file": src,
+                                },
+                            ),
+                        )
+                        for name, src in _unsourced_plate_names(descriptor)
+                    ]
+                found.extend(planes)
             if store_name in ("characters", "props"):
                 parts = _part_credits(
                     store_name, key, descriptor, digests=_digests_of(store, key)
@@ -376,6 +422,33 @@ def _origin_of(raw: Mapping[str, Any]) -> Mapping[str, Any] | None:
     metadata = raw.get("metadata")
     origin = metadata.get(LIBRARY_ORIGIN_KEY) if isinstance(metadata, Mapping) else None
     return origin if isinstance(origin, Mapping) else None
+
+
+def same_source(a: Any, b: Any) -> bool:
+    """Whether two recorded sources say the same thing, however they were serialised.
+
+    A tool that rewrites a descriptor through its model (``an character
+    mouths``) writes every default out (``"attribution": null``…); that is
+    still the source a check-out left there, not a new one a person wrote.
+
+    >>> same_source({"provider": "me", "license": "cc0-1.0"},
+    ...             {"provider": "me", "license": "cc0-1.0", "attribution": None, "extra": {}})
+    True
+    >>> same_source({"provider": "me"}, {"provider": "you"}), same_source(None, None)
+    (False, True)
+    """
+    if a is None or b is None:
+        return a is b
+
+    def norm(raw: Any) -> Any:
+        try:
+            return AssetSource.model_validate(dict(raw)).model_dump(
+                mode="json", exclude_none=True, exclude_defaults=True
+            )
+        except (TypeError, ValueError):
+            return raw
+
+    return norm(a) == norm(b)
 
 
 def checked_out_seal(source: Any, files: Mapping[str, str]) -> str:
@@ -468,6 +541,25 @@ def _source_or_unknown(raw: Any, asset: str) -> AssetSource:
         return AssetSource(provider="unknown", extra={"raw": raw})
 
 
+def _unsourced_plate_names(descriptor: Any) -> list[tuple[str, str]]:
+    """``(plane name, file)`` of every image plane that declares no source of its own."""
+    raw = descriptor if isinstance(descriptor, Mapping) else None
+    if raw is None and hasattr(descriptor, "model_dump"):
+        raw = descriptor.model_dump(mode="json")
+    out: list[tuple[str, str]] = []
+    for plane in (raw or {}).get("planes") or []:
+        if not isinstance(plane, Mapping) or plane.get("source"):
+            continue
+        art = plane.get("art")
+        if isinstance(art, Mapping) and art.get("kind") == "image" and art.get("src"):
+            out.append((str(plane.get("name", "?")), str(art["src"])))
+    return out
+
+
+def _unsourced_plates(descriptor: Any) -> tuple[str, ...]:
+    return tuple(src for _, src in _unsourced_plate_names(descriptor))
+
+
 def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
     """One entry per plane that declares its OWN `source` (an#211).
 
@@ -555,6 +647,7 @@ def _part_credits(
 
     out: dict[str, CreditEntry] = {}
     pinned: set[str] = set()
+    pinned_here: set[str] = set()  # a source pinned to the file's CURRENT bytes
     stale: set[str] = set()
     for skin in (raw.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
@@ -572,6 +665,8 @@ def _part_credits(
                     files = known()
                     if files is None or sha == files.get(path):
                         pinned.add(path)
+                        if files is not None:
+                            pinned_here.add(path)
                     else:
                         stale.add(path)  # a claim about other bytes
                 else:
@@ -586,7 +681,7 @@ def _part_credits(
     left = _checked_out(raw)
     since = (
         left["files"]
-        if covered and left is not None and left.get("source") == own
+        if covered and left is not None and same_source(left.get("source"), own)
         else None
     )
     if not covered or since is not None:
@@ -595,9 +690,12 @@ def _part_credits(
         changed: set[str] = set()
         if files is not None and since is not None:
             # As the library reads a carried label: every file changed or
-            # added since, whatever stamp it carries (an.library.api.publish).
+            # added since, unless a source pinned to its new bytes labels it
+            # (an.library.api.publish; an#281).
             changed = {
-                path for path, digest in files.items() if since.get(path) != digest
+                path
+                for path, digest in files.items()
+                if since.get(path) != digest and path not in pinned_here
             }
             unpinned |= changed
         elif files is not None:
@@ -641,6 +739,32 @@ def _part_credits(
 GENERATED_PROVIDERS: frozenset[str] = frozenset({"dicebear"})
 
 
+def gives_way_to_a_label(raw: Any) -> bool:
+    """Whether an explicit asset-level label may stand in for this descriptor source (an#281).
+
+    A generator's own source that owes nothing — the factory's stamp, or a
+    DiceBear style under a free licence — speaks only for the bytes it pins,
+    so an explicit label may speak for the rest in its place. One that owes
+    something (a CC BY style) never gives way: replacing it would drop the
+    attribution it obliges.
+
+    >>> gives_way_to_a_label({"provider": "dicebear", "license": "cc0-1.0"})
+    True
+    >>> gives_way_to_a_label({"provider": "dicebear", "license": "cc-by-4.0"})
+    False
+    >>> gives_way_to_a_label({"provider": "a person", "license": "cc0-1.0"})
+    False
+    """
+    if is_factory_stamp(raw):
+        return True
+    if not is_generated_source(raw):
+        return False
+    try:
+        return license_class(AssetSource.model_validate(dict(raw))) == "free"
+    except (TypeError, ValueError):
+        return False
+
+
 def is_generated_source(raw: Any) -> bool:
     """Whether a descriptor's source was written by a generator rather than a person.
 
@@ -682,6 +806,79 @@ def is_factory_stamp(raw: Any) -> bool:
 _is_factory_stamp = is_factory_stamp
 
 
+#: Where synthesized speech is listed in a report.
+SPEECH_PREFIX: str = "speech/"
+#: The ``extra`` key of a speech entry naming the provider's model.
+SPEECH_EXTRA_MODEL: str = "model"
+#: Providers whose speech is ``an``'s own (silence, for tests and drafts).
+OWN_SPEECH_PROVIDERS: frozenset[str] = frozenset({"offline"})
+
+
+def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
+    """One entry per voice whose lines a render synthesized with a named provider (an#271).
+
+    Read from what the audio pipeline already keeps — no record of its own:
+    the scene's lines that carry an ``audio_ref`` (stamped when synthesized),
+    each line's voice as the pipeline resolves it
+    (:func:`an.audio.voices.line_voice_id`), and that voice's document in
+    ``mall["voices"]`` (its ``provider``, ``voice_id`` and ``model_id``). A
+    voice document may declare its own ``source`` (the provider's terms, the
+    licence the user holds); otherwise the speech is listed UNVERIFIED — the
+    provider's terms decide what is owed, and nobody recorded them. A voice
+    whose document names no provider (the offline default) is not listed:
+    which provider spoke it is not recorded anywhere.
+
+    >>> from types import SimpleNamespace as NS
+    >>> line = NS(voice_ref="bob", speaker="bob", audio_ref="k1")
+    >>> scene = NS(timeline=[NS(dialogue=[line], entities=[])])
+    >>> mall = {"voices": {"bob": {"provider": "elevenlabs", "voice_id": "TX3",
+    ...                            "model_id": "eleven_v3"}}}
+    >>> [(e.asset, e.license_class, e.source.extra["model"]) for e in speech_credits(mall, scene)]
+    [('speech/bob', 'unknown', 'eleven_v3')]
+    """
+    from an.audio.voices import line_voice_id, voice_document
+
+    lines: dict[str, int] = {}
+    for shot in getattr(scene, "timeline", None) or []:
+        for line in getattr(shot, "dialogue", None) or []:
+            if not getattr(line, "audio_ref", None):
+                continue
+            voice = line_voice_id(line, shot, mall)
+            lines[voice] = lines.get(voice, 0) + 1
+    out: list[CreditEntry] = []
+    for voice, n in sorted(lines.items()):
+        doc = voice_document(mall, voice)
+        provider = str(doc.get("provider") or "")
+        if not provider or provider.lower() in OWN_SPEECH_PROVIDERS:
+            continue
+        said = {
+            SPEECH_EXTRA_MODEL: doc.get("model_id"),
+            "voice": voice,
+            "lines": n,
+        }
+        declared = doc.get("source")
+        if isinstance(declared, Mapping):
+            base = _source_or_unknown(declared, f"{SPEECH_PREFIX}{voice}")
+            source = base.model_copy(
+                update={
+                    "id": base.id or doc.get("voice_id"),
+                    "extra": {**(base.extra or {}), **said},
+                }
+            )
+        else:
+            source = AssetSource(
+                provider=provider,
+                id=doc.get("voice_id") or voice,
+                extra={
+                    **said,
+                    "reason": "synthesized speech: the provider's terms decide what "
+                    "is owed; declare them as the voice's `source`",
+                },
+            )
+        out.append(CreditEntry(asset=f"{SPEECH_PREFIX}{voice}", source=source))
+    return out
+
+
 def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
     """Credits for exactly the assets ``scene`` draws or plays (an#211).
 
@@ -706,6 +903,7 @@ def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
             for e in full.entries
             if any(e.asset == u or e.asset.startswith(u + "/") for u in used)
         ]
+        + speech_credits(mall, scene)
     )
 
 
@@ -768,4 +966,7 @@ def credits_for_project(project_dir: str | Path) -> CreditsReport:
     """Credits for the project at ``project_dir``."""
     from an.project import load
 
-    return collect_credits(load(Path(project_dir)).mall)
+    project = load(Path(project_dir))
+    report = collect_credits(project.mall)
+    report.entries.extend(speech_credits(project.mall, project.scene))
+    return report

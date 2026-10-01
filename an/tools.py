@@ -40,10 +40,10 @@ def init(
 ) -> str:
     """Create a fresh an project at ``project_dir`` — or, with --id, at the default location.
 
-    project_dir: where to create the project (created if missing); with --id, the project's id
+    project_dir: where to create the project (created if missing); with --id, the project's id instead (an init <id> --id; --id is a switch and takes no value)
     name: project display name (defaults to the directory name)
     force: overwrite an existing scene.md
-    id: treat project_dir as a project id and create the project under its genre's projects folder (an init --id alice-and-bob --genre cutout_animation -> ~/.local/share/cutan/projects/alice-and-bob)
+    id: a switch: read the positional as a project id, and create the project under its genre's projects folder (an init alice-and-bob --id --genre cutout_animation -> ~/.local/share/cutan/projects/alice-and-bob)
     genre: with --id, the genre the video is made in (e.g. cutout_animation); the genre names the package whose root holds the project
     package: with --id, that package directly, overriding --genre (default: the genre's, else an)
     root: with --id, that package's root (default: its data folder, or <PKG>_HOME)
