@@ -117,7 +117,9 @@ DFLT_WINDOW_S: float = 0.025  # YIN integration window and the level frame
 DFLT_FMIN_HZ: float = 60.0
 DFLT_FMAX_HZ: float = 500.0
 DFLT_YIN_THRESHOLD: float = 0.1
-DFLT_VOICING_THRESHOLD: float = 0.35  # a frame whose best period dips no lower is unvoiced
+DFLT_VOICING_THRESHOLD: float = (
+    0.35  # a frame whose best period dips no lower is unvoiced
+)
 DFLT_SPEECH_FLOOR_DB: float = 30.0
 DFLT_MIN_PAUSE_S: float = 0.12
 DFLT_PHRASE_PAUSE_S: float = 0.25
@@ -127,8 +129,12 @@ DFLT_PEAK_GAP_S: float = 0.12  # at most ~8 syllable peaks per second
 DFLT_FINAL_SHARE: float = 0.25  # the "last quarter" of a phrase
 _MIN_VOICED_PER_PHRASE: int = 8  # frames; fewer and a phrase has no contour
 _SMOOTH_FRAMES: int = 5  # median filter on the pitch track (isolated-jump guard)
-_OCTAVE_WINDOW_FRAMES: int = 50  # the local pitch an octave error is folded toward (±0.5 s)
-_OCTAVE_FOLD_ST: float = 7.0  # further than this from the local pitch: try an octave fold
+_OCTAVE_WINDOW_FRAMES: int = (
+    50  # the local pitch an octave error is folded toward (±0.5 s)
+)
+_OCTAVE_FOLD_ST: float = (
+    7.0  # further than this from the local pitch: try an octave fold
+)
 _EPS: float = 1e-10
 
 #: The measurable targets, and what each one is.
@@ -152,20 +158,53 @@ METRICS: dict[str, str] = {
 #: How to move each metric, when a delivery misses its target (rendering with
 #: an expressive TTS voice; the words are the generic knobs, not one provider's).
 _FIXES: dict[str, tuple[str, str]] = {
-    "articulation_rate_sps": ("slow the voice (speed) or add commas", "raise the voice's speed or cut commas"),
-    "speech_rate_sps": ("add pauses (ellipses, line breaks, a `(pause)`)", "remove pauses or raise the speed"),
-    "pause_share": ("fewer ellipses and dashes", "more ellipses, dashes or split lines with a `(pause)`"),
-    "pauses_per_min": ("join sentences; fewer commas", "more commas, dashes, short sentences"),
-    "pause_median_s": ("shorter beats (comma rather than ellipsis)", "longer beats (ellipsis, a `(pause)` between lines)"),
+    "articulation_rate_sps": (
+        "slow the voice (speed) or add commas",
+        "raise the voice's speed or cut commas",
+    ),
+    "speech_rate_sps": (
+        "add pauses (ellipses, line breaks, a `(pause)`)",
+        "remove pauses or raise the speed",
+    ),
+    "pause_share": (
+        "fewer ellipses and dashes",
+        "more ellipses, dashes or split lines with a `(pause)`",
+    ),
+    "pauses_per_min": (
+        "join sentences; fewer commas",
+        "more commas, dashes, short sentences",
+    ),
+    "pause_median_s": (
+        "shorter beats (comma rather than ellipsis)",
+        "longer beats (ellipsis, a `(pause)` between lines)",
+    ),
     "pause_p90_s": ("drop the longest beat", "one longer beat before the punchline"),
     "f0_median_hz": ("another voice", "another voice"),
-    "f0_sd_st": ("a steadier voice setting or a flat tag ([deadpan])", "a looser voice setting or a lively tag ([excited])"),
-    "f0_range_st": ("a steadier voice setting or a flat tag ([deadpan])", "a looser voice setting, CAPS on a stressed word, an exclamation"),
-    "final_drop_st": ("end on a question or a trailing ellipsis", "end on a full stop; a [deadpan] or [matter-of-fact] tag"),
-    "loudness_range_db": ("a steadier voice setting", "a shouted word or a [whispers] aside"),
-    "emphasis_per_s": ("fewer CAPS and exclamations", "CAPS on the stressed word, exclamations"),
+    "f0_sd_st": (
+        "a steadier voice setting or a flat tag ([deadpan])",
+        "a looser voice setting or a lively tag ([excited])",
+    ),
+    "f0_range_st": (
+        "a steadier voice setting or a flat tag ([deadpan])",
+        "a looser voice setting, CAPS on a stressed word, an exclamation",
+    ),
+    "final_drop_st": (
+        "end on a question or a trailing ellipsis",
+        "end on a full stop; a [deadpan] or [matter-of-fact] tag",
+    ),
+    "loudness_range_db": (
+        "a steadier voice setting",
+        "a shouted word or a [whispers] aside",
+    ),
+    "emphasis_per_s": (
+        "fewer CAPS and exclamations",
+        "CAPS on the stressed word, exclamations",
+    ),
     "voiced_share": ("less breath and whisper", "less whisper"),
-    "register_st": ("a calmer tag, or none", "a louder or more excited tag ([excited], [shouting])"),
+    "register_st": (
+        "a calmer tag, or none",
+        "a louder or more excited tag ([excited], [shouting])",
+    ),
 }
 
 
@@ -207,7 +246,13 @@ class ProsodyStats:
     def as_dict(self, *, ndigits: int = 3) -> dict[str, Any]:
         """The stats as a plain dict, floats rounded (``nan`` becomes ``None``)."""
         return {
-            k: (None if isinstance(v, float) and math.isnan(v) else round(v, ndigits) if isinstance(v, float) else v)
+            k: (
+                None
+                if isinstance(v, float) and math.isnan(v)
+                else round(v, ndigits)
+                if isinstance(v, float)
+                else v
+            )
             for k, v in asdict(self).items()
         }
 
@@ -298,8 +343,12 @@ def pitch_track(
     for start in range(0, len(all_frames), chunk):
         fr = all_frames[start : start + chunk]
         head = fr[:, :w]
-        acf = np.fft.irfft(np.conj(np.fft.rfft(head, n_fft)) * np.fft.rfft(fr, n_fft), n_fft)[:, : tmax + 1]
-        sq = np.concatenate([np.zeros((len(fr), 1)), np.cumsum(fr * fr, axis=1)], axis=1)
+        acf = np.fft.irfft(
+            np.conj(np.fft.rfft(head, n_fft)) * np.fft.rfft(fr, n_fft), n_fft
+        )[:, : tmax + 1]
+        sq = np.concatenate(
+            [np.zeros((len(fr), 1)), np.cumsum(fr * fr, axis=1)], axis=1
+        )
         e_tau = sq[:, taus + w] - sq[:, taus]
         d = np.maximum(sq[:, w : w + 1] + e_tau - 2 * acf, 0.0)
         cum = np.cumsum(d[:, 1:], axis=1)
@@ -339,7 +388,12 @@ def _median_filter_nan(f0: np.ndarray, k: int) -> np.ndarray:
     return out
 
 
-def _fold_octaves(f0: np.ndarray, *, window: int = _OCTAVE_WINDOW_FRAMES, limit_st: float = _OCTAVE_FOLD_ST) -> np.ndarray:
+def _fold_octaves(
+    f0: np.ndarray,
+    *,
+    window: int = _OCTAVE_WINDOW_FRAMES,
+    limit_st: float = _OCTAVE_FOLD_ST,
+) -> np.ndarray:
     """Fold octave errors (a frame tracked at double or half its pitch) toward
     the local median pitch, the error a period tracker makes on a voice with a
     strong second harmonic or a creak.
@@ -423,14 +477,34 @@ def measure_prosody(
     level = _level_db(x, sr, window_s=window_s, hop_s=hop_s)
     loud = level[level > -100] if level.size else level
     if loud.size == 0 or not np.isfinite(loud).any() or np.max(loud) <= -90:
-        return ProsodyStats(duration, 0.0, 0.0, count_syllables(text) if text else None, 0,
-                            nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
+        return ProsodyStats(
+            duration,
+            0.0,
+            0.0,
+            count_syllables(text) if text else None,
+            0,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+            nan,
+        )
     speech = level >= np.percentile(level, 95) - speech_floor_db
     on = np.flatnonzero(speech)
     first, last = int(on[0]), int(on[-1]) + 1
     span_frames = last - first
     speech_in = speech[first:last]
-    pause_runs = [(a, b) for a, b in _runs(~speech_in) if (b - a) * hop_s >= min_pause_s]
+    pause_runs = [
+        (a, b) for a, b in _runs(~speech_in) if (b - a) * hop_s >= min_pause_s
+    ]
     # Short gaps (stop closures) are speech for every purpose below.
     talking = np.ones(span_frames, dtype=bool)
     for a, b in pause_runs:
@@ -472,10 +546,14 @@ def measure_prosody(
     lv_med = float(np.median(lv_talk))
     kernel = np.ones(3) / 3
     env = np.convolve(lv, kernel, mode="same")
-    peaks = [p for p in _peaks(env, min_gap=max(1, int(peak_gap_s / hop_s))) if talking[p]]
+    peaks = [
+        p for p in _peaks(env, min_gap=max(1, int(peak_gap_s / hop_s))) if talking[p]
+    ]
     emph = [
-        p for p in peaks
-        if env[p] - lv_med >= emphasis_db or (not np.isnan(st[p]) and st[p] >= emphasis_st)
+        p
+        for p in peaks
+        if env[p] - lv_med >= emphasis_db
+        or (not np.isnan(st[p]) and st[p] >= emphasis_st)
     ]
     return ProsodyStats(
         duration_s=duration,
@@ -491,11 +569,17 @@ def measure_prosody(
         pause_p90_s=_nan_stat(pause_lengths, lambda a: np.percentile(a, 90)),
         f0_median_hz=f0_med,
         f0_sd_st=_nan_stat(st_v, np.std),
-        f0_range_st=_nan_stat(st_v, lambda a: np.percentile(a, 95) - np.percentile(a, 5)),
+        f0_range_st=_nan_stat(
+            st_v, lambda a: np.percentile(a, 95) - np.percentile(a, 5)
+        ),
         final_drop_st=_nan_stat(drops, np.median),
-        loudness_range_db=float(np.percentile(lv_talk, 90) - np.percentile(lv_talk, 10)),
+        loudness_range_db=float(
+            np.percentile(lv_talk, 90) - np.percentile(lv_talk, 10)
+        ),
         emphasis_per_s=(len(emph) / speech_s) if speech_s else nan,
-        voiced_share=(float(voiced.sum()) / float(talking.sum())) if talking.any() else nan,
+        voiced_share=(float(voiced.sum()) / float(talking.sum()))
+        if talking.any()
+        else nan,
         register_st=(
             float(12 * math.log2(f0_med / reference_hz))
             if reference_hz and not math.isnan(f0_med)
@@ -527,7 +611,11 @@ def join_speech(
     for clip in clips:
         x = np.asarray(clip, dtype=np.float64).ravel()
         level = _level_db(x, sr, window_s=window_s, hop_s=hop_s)
-        on = np.flatnonzero(level >= np.percentile(level, 95) - speech_floor_db) if level.size else []
+        on = (
+            np.flatnonzero(level >= np.percentile(level, 95) - speech_floor_db)
+            if level.size
+            else []
+        )
         if len(on) == 0:
             continue
         if out and gap.size:
@@ -536,17 +624,34 @@ def join_speech(
     return np.concatenate(out) if out else np.zeros(0)
 
 
-def decode_audio(path: str | Path, *, sr: int = DFLT_SR, ffmpeg: str = "ffmpeg") -> np.ndarray:
+def decode_audio(
+    path: str | Path, *, sr: int = DFLT_SR, ffmpeg: str = "ffmpeg"
+) -> np.ndarray:
     """Any audio file ffmpeg reads, as mono float32 samples at ``sr`` Hz."""
     exe = shutil.which(ffmpeg)
     if exe is None:
         raise ProsodyDecodeError(
             f"{ffmpeg!r} not found: install ffmpeg (macOS: `brew install ffmpeg`) to decode audio"
         )
-    cmd = [exe, "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"]
+    cmd = [
+        exe,
+        "-v",
+        "error",
+        "-i",
+        str(path),
+        "-ac",
+        "1",
+        "-ar",
+        str(sr),
+        "-f",
+        "f32le",
+        "-",
+    ]
     proc = subprocess.run(cmd, capture_output=True, check=False)
     if proc.returncode != 0:
-        raise ProsodyDecodeError(f"ffmpeg could not decode {path}: {proc.stderr.decode(errors='replace')[-300:]}")
+        raise ProsodyDecodeError(
+            f"ffmpeg could not decode {path}: {proc.stderr.decode(errors='replace')[-300:]}"
+        )
     return np.frombuffer(proc.stdout, dtype=np.float32)
 
 
@@ -610,7 +715,10 @@ def measure_lines(
     if len(texts) != len(paths):
         raise ValueError(f"{len(paths)} files but {len(texts)} texts")
     return median_stats(
-        [measure_prosody(decode_audio(p, sr=sr), sr, text=t, **knobs) for p, t in zip(paths, texts)]
+        [
+            measure_prosody(decode_audio(p, sr=sr), sr, text=t, **knobs)
+            for p, t in zip(paths, texts)
+        ]
     )
 
 
@@ -633,11 +741,17 @@ def validate_targets(targets: Mapping[str, Any]) -> None:
             raise ProsodyTargetError(
                 f"unknown prosody target {name!r}; measurable targets are [{', '.join(sorted(METRICS))}]"
             )
-        ok = isinstance(rng, (list, tuple)) and len(rng) == 2 and all(
-            isinstance(v, (int, float)) and not isinstance(v, bool) for v in rng
+        ok = (
+            isinstance(rng, (list, tuple))
+            and len(rng) == 2
+            and all(
+                isinstance(v, (int, float)) and not isinstance(v, bool) for v in rng
+            )
         )
         if not ok or rng[0] > rng[1]:
-            raise ProsodyTargetError(f"prosody target {name!r} must be [low, high], got {rng!r}")
+            raise ProsodyTargetError(
+                f"prosody target {name!r} must be [low, high], got {rng!r}"
+            )
 
 
 def check_prosody(
@@ -654,14 +768,21 @@ def check_prosody(
         value = getattr(stats, name)
         path = f"{path_prefix}/{name}"
         if value is None or (isinstance(value, float) and math.isnan(value)):
-            findings.append(Finding("info", path, f"{name} not measurable on this clip"))
+            findings.append(
+                Finding("info", path, f"{name} not measurable on this clip")
+            )
             continue
         if lo <= value <= hi:
             continue
         lower, raise_ = _FIXES.get(name, ("", ""))
         fix = lower if value > hi else raise_
         findings.append(
-            Finding(miss_severity, path, f"{name} = {value:.3g}, target [{lo}, {hi}]", fix or None)
+            Finding(
+                miss_severity,
+                path,
+                f"{name} = {value:.3g}, target [{lo}, {hi}]",
+                fix or None,
+            )
         )
     return findings
 
@@ -675,7 +796,11 @@ def prosody_lint(
 ) -> tuple[ProsodyStats, VerificationReport]:
     """Measure ``audio`` (a path, several paths, or stats already measured) and
     report each target it misses. Passes unless ``miss_severity`` is ``error``."""
-    stats = audio if isinstance(audio, ProsodyStats) else measure_prosody_file(audio, text=text)
+    stats = (
+        audio
+        if isinstance(audio, ProsodyStats)
+        else measure_prosody_file(audio, text=text)
+    )
     report = VerificationReport()
     for f in check_prosody(stats, targets, miss_severity=miss_severity):
         report.add(f.severity, f.ir_path, f.description, f.suggested_fix)
@@ -690,7 +815,9 @@ def _targets_from(spec_path: str | Path, role: str | None) -> dict[str, Any]:
     found = doc.get("prosody_targets", doc)
     if role is not None:
         if role not in found:
-            raise ProsodyTargetError(f"no prosody targets for role {role!r}; have {sorted(found)}")
+            raise ProsodyTargetError(
+                f"no prosody targets for role {role!r}; have {sorted(found)}"
+            )
         found = found[role]
     return dict(found)
 
@@ -699,33 +826,69 @@ def main(argv: Sequence[str] | None = None) -> int:
     """``python -m an.verify.prosody AUDIO... [--targets SPEC --role ROLE] [--text T] [--reference-hz F] [--json]``."""
     import argparse
 
-    p = argparse.ArgumentParser(prog="python -m an.verify.prosody", description=__doc__.split("\n")[0])
-    p.add_argument("audio", nargs="+", help="audio file(s); several are measured as one performance")
-    p.add_argument("--targets", help="a style spec (its prosody_targets) or a targets YAML")
+    p = argparse.ArgumentParser(
+        prog="python -m an.verify.prosody", description=__doc__.split("\n")[0]
+    )
+    p.add_argument(
+        "audio",
+        nargs="+",
+        help="audio file(s); several are measured as one performance",
+    )
+    p.add_argument(
+        "--targets", help="a style spec (its prosody_targets) or a targets YAML"
+    )
     p.add_argument("--role", help="the role whose targets apply (narrator, eager, ...)")
-    p.add_argument("--text", action="append", help="the words spoken (for the syllable rates); once per file, or once for all with --joined")
-    p.add_argument("--joined", action="store_true", help="measure several files as one joined performance instead of the median of the lines")
-    p.add_argument("--reference-hz", type=float, help="the voice's neutral median pitch (for register_st)")
+    p.add_argument(
+        "--text",
+        action="append",
+        help="the words spoken (for the syllable rates); once per file, or once for all with --joined",
+    )
+    p.add_argument(
+        "--joined",
+        action="store_true",
+        help="measure several files as one joined performance instead of the median of the lines",
+    )
+    p.add_argument(
+        "--reference-hz",
+        type=float,
+        help="the voice's neutral median pitch (for register_st)",
+    )
     p.add_argument("--json", action="store_true")
     args = p.parse_args(argv)
     texts = args.text or []
     if len(args.audio) == 1 or args.joined:
         paths = args.audio[0] if len(args.audio) == 1 else args.audio
-        stats = measure_prosody_file(paths, text=" ".join(texts) or None, reference_hz=args.reference_hz)
+        stats = measure_prosody_file(
+            paths, text=" ".join(texts) or None, reference_hz=args.reference_hz
+        )
     else:
-        stats = measure_lines(args.audio, texts=texts or None, reference_hz=args.reference_hz)
+        stats = measure_lines(
+            args.audio, texts=texts or None, reference_hz=args.reference_hz
+        )
     targets = _targets_from(args.targets, args.role) if args.targets else {}
     findings = check_prosody(stats, targets) if targets else []
     if args.json:
-        print(json.dumps({"stats": stats.as_dict(), "findings": [asdict(f) for f in findings]}, indent=2))
+        print(
+            json.dumps(
+                {"stats": stats.as_dict(), "findings": [asdict(f) for f in findings]},
+                indent=2,
+            )
+        )
         return 0
     d = stats.as_dict()
     for name in METRICS:
         rng = targets.get(name)
-        mark = "" if rng is None or d[name] is None else ("  ok" if rng[0] <= d[name] <= rng[1] else "  MISS")
+        mark = (
+            ""
+            if rng is None or d[name] is None
+            else ("  ok" if rng[0] <= d[name] <= rng[1] else "  MISS")
+        )
         print(f"{name:24} {d[name]!s:>9}  {list(rng) if rng else ''}{mark}")
     for f in findings:
-        print(f"{f.severity}: {f.description}" + (f" -> {f.suggested_fix}" if f.suggested_fix else ""))
+        print(
+            f"{f.severity}: {f.description}"
+            + (f" -> {f.suggested_fix}" if f.suggested_fix else "")
+        )
     return 0
 
 
