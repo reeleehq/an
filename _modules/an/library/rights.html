@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,7 +731,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  (:func:`an.library.api.version_sources` walks all of it).</span>
 
 <span class="sd">A version may only ever be MORE restrictive than what it inherits. Relaxing</span>
-<span class="sd">takes an explicit, recorded relicence — who and why — on the version.</span>
+<span class="sd">takes an explicit, recorded relicence — who and why — on the version. Where</span>
+<span class="sd">nobody ever said anything (a file an earlier version recorded ``unlabelled``,</span>
+<span class="sd">a version with no source), an explicit source with a recorded ``relabel`` —</span>
+<span class="sd">who and why — is the first statement (an#263); it relaxes nothing anyone said.</span>
 
 <span class="sd">Order, most restrictive first: ``private`` &gt; ``unknown`` &gt; ``attribution`` &gt;</span>
 <span class="sd">``free``. ``private`` and ``unknown`` are not publishable.</span>

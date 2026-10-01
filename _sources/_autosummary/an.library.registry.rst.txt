@@ -11,6 +11,7 @@ an.library.registry
       REGISTRY_DIRNAME
       REGISTRY_FILENAME
       STATEMENTS_DIRNAME
+      GENERATED_DIRNAME
    
    .. rubric:: Functions
 
@@ -22,6 +23,8 @@ an.library.registry
       registered_roots
       remember_statements
       remembered_statements
+      remembered_statements_by_root
+      generated_by
    
    .. rubric:: Exceptions
 

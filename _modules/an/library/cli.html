@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -860,6 +860,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">source_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">relicense_by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">relicense_reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">relabel_by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">relabel_reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">expect_head</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">replace_curation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
@@ -884,6 +886,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    source_url: where it was fetched from</span>
 <span class="sd">    relicense_by: who relicenses the asset (with --relicense-reason and --license): the only way to relax inherited rights</span>
 <span class="sd">    relicense_reason: why — recorded on the version and shown in its rights</span>
+<span class="sd">    relabel_by: who labels bytes nobody labelled (with --relabel-reason and --license): answers the asset's earlier unlabelled files and sourceless versions, never a stricter statement</span>
+<span class="sd">    relabel_reason: why — recorded on the version and shown in its rights</span>
 <span class="sd">    expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet</span>
 <span class="sd">    replace_curation: --style/--tags replace the record's lists instead of adding to them</span>
 <span class="sd">    extra: further libraries where --derived-from resolves, by package name, comma-separated</span>
@@ -910,6 +914,11 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">relicense_by</span> <span class="ow">or</span> <span class="n">relicense_reason</span>
             <span class="k">else</span> <span class="kc">None</span>
         <span class="p">),</span>
+        <span class="n">relabel</span><span class="o">=</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">"by"</span><span class="p">:</span> <span class="n">relabel_by</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="n">relabel_reason</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">relabel_by</span> <span class="ow">or</span> <span class="n">relabel_reason</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">),</span>
         <span class="n">replace_curation</span><span class="o">=</span><span class="n">replace_curation</span><span class="p">,</span>
         <span class="n">search</span><span class="o">=</span><span class="n">others</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="p">(</span>
@@ -918,14 +927,21 @@ window.runMermaid = runMermaid;</script>
             <span class="k">else</span> <span class="p">{}</span>
         <span class="p">),</span>
     <span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"unknown"</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown (never publishable): </span><span class="si">{</span><span class="s1">'; '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">reasons</span><span class="p">)</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="s2">"To label bytes nobody labelled, publish again with --license … "</span>
+            <span class="s2">"--provider … --relabel-by &lt;who&gt; --relabel-reason &lt;why&gt;; that relaxes no "</span>
+            <span class="s2">"statement anyone made (that takes --relicense-by/--relicense-reason)."</span>
+        <span class="p">)</span>
     <span class="n">project</span> <span class="o">=</span> <span class="n">_project_of</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
-        <span class="sa">f</span><span class="s2">"to link the project's copy to it (pin it in assets.lock.json): "</span>
-        <span class="sa">f</span><span class="s2">"an library checkout </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span>
-    <span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"to link the project's copy to it (pin it in assets.lock.json): "</span>
+            <span class="sa">f</span><span class="s2">"an library checkout </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 
 

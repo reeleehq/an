@@ -8,6 +8,7 @@ an.library.floor
 
    .. autosummary::
    
+      library_origin
       machine_libraries
       record_statement
       register_library

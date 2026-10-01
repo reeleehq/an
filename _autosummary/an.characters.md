@@ -744,21 +744,22 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`brows`](an.characters.brows.md#module-an.characters.brows)               | Brow acting: where the brows can go, what may not draw there, and the `face.brows` capability.   |
-|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| [`cli`](an.characters.cli.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                                           |
-| [`colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…                        |
-| [`dicebear`](an.characters.dicebear.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                                          |
-| [`factory`](an.characters.factory.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                                          |
-| [`idle`](an.characters.idle.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                                           |
-| [`licenses`](an.characters.licenses.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                                            |
-| [`methods`](an.characters.methods.md#module-an.characters.methods)           | The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).           |
-| [`mouth_set`](an.characters.mouth_set.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                                       |
-| [`play`](an.characters.play.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).                 |
-| [`record`](an.characters.record.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                                     |
-| [`registration`](an.characters.registration.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`.                |
-| [`schema`](an.characters.schema.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                                         |
-| [`silhouette`](an.characters.silhouette.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                                     |
-| [`svg_utils`](an.characters.svg_utils.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.                          |
-| [`validate`](an.characters.validate.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                                  |
-| [`vocabulary`](an.characters.vocabulary.md#module-an.characters.vocabulary)     | The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes.      |
+| [`brows`](an.characters.brows.md#module-an.characters.brows)               | Brow acting: where the brows can go, what may not draw there, and the `face.brows` capability.        |
+|-------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| [`cli`](an.characters.cli.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                                                |
+| [`colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…                             |
+| [`dicebear`](an.characters.dicebear.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                                               |
+| [`drawn`](an.characters.drawn.md#module-an.characters.drawn)               | What the character factory wrote, as it wrote it: the in-memory log behind its record of drawn bytes. |
+| [`factory`](an.characters.factory.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                                               |
+| [`idle`](an.characters.idle.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                                                |
+| [`licenses`](an.characters.licenses.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                                                 |
+| [`methods`](an.characters.methods.md#module-an.characters.methods)           | The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).                |
+| [`mouth_set`](an.characters.mouth_set.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                                            |
+| [`play`](an.characters.play.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).                      |
+| [`record`](an.characters.record.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                                          |
+| [`registration`](an.characters.registration.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`.                     |
+| [`schema`](an.characters.schema.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                                              |
+| [`silhouette`](an.characters.silhouette.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                                          |
+| [`svg_utils`](an.characters.svg_utils.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.                               |
+| [`validate`](an.characters.validate.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                                       |
+| [`vocabulary`](an.characters.vocabulary.md#module-an.characters.vocabulary)     | The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes.           |

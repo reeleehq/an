@@ -76,6 +76,7 @@
 - [an.characters.cli](an.characters.cli.html.md): User-facing character CLI subcommands.
 - [an.characters.colour_roles](an.characters.colour_roles.html.md): Colour roles: which colour literal in which part is skin, clothing, hair…
 - [an.characters.dicebear](an.characters.dicebear.html.md): DiceBear HTTP API client + best-effort post-processing.
+- [an.characters.drawn](an.characters.drawn.html.md): What the character factory wrote, as it wrote it: the in-memory log behind its record of drawn bytes...
 - [an.characters.factory](an.characters.factory.html.md): High-level entry points: build and inspect a character.
 - [an.characters.idle](an.characters.idle.html.md): Idle animation factories: breath, blink, weight-shift.
 - [an.characters.licenses](an.characters.licenses.html.md): DiceBear per-style licences, as data.

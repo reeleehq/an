@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -729,6 +729,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
@@ -751,6 +752,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">digest</span><span class="p">[:</span><span class="mi">8</span><span class="p">],</span> <span class="s2">"big"</span><span class="p">)</span>
 
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters</span><span class="w"> </span><span class="kn">import</span> <span class="n">drawn</span> <span class="k">as</span> <span class="n">_drawn</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.licenses</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DICEBEAR_STYLE_LICENSES</span><span class="p">,</span>
     <span class="n">attribution_for</span><span class="p">,</span>
@@ -1305,7 +1307,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>
         <span class="n">svg</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">raster_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_sized_to_height</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span></div>
+        <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">_sized_to_height</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span></div>
 
 
 
@@ -1376,8 +1378,22 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_records_what_it_drew</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Run ``new_character`` with its writes logged, then record what it drew (an#269)."""</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">_drawn</span><span class="o">.</span><span class="n">drawing</span><span class="p">()</span> <span class="k">as</span> <span class="n">wrote</span><span class="p">:</span>
+            <span class="n">desc_path</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">_record_drawn</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">desc_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">wrote</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">desc_path</span>
+
+    <span class="k">return</span> <span class="n">run</span>
+
+
 <div class="viewcode-block" id="new_character">
 <a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.new_character">[docs]</a>
+<span class="nd">@_records_what_it_drew</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">new_character</span><span class="p">(</span>
     <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1527,7 +1543,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">canonical</span> <span class="o">=</span> <span class="n">wrap_dicebear_for_an</span><span class="p">(</span><span class="n">avatar</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
     <span class="n">canonical_path</span> <span class="o">=</span> <span class="n">out</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.svg"</span>
-    <span class="n">canonical_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">canonical_path</span><span class="p">,</span> <span class="n">canonical</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
 
     <span class="c1"># Step 3: write self-contained per-part SVGs (centered, sized to fill</span>
     <span class="c1"># their own canvas). Done independently of the canonical for clean</span>
@@ -1704,6 +1720,52 @@ window.runMermaid = runMermaid;</script>
         <span class="n">cost_usd</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_record_drawn</span><span class="p">(</span><span class="n">char_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">wrote</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record on this machine that the factory drew the stamped bytes at ``char_dir`` (an#269).</span>
+
+<span class="sd">    Called ONLY by :func:`new_character`, at its end. ``wrote`` is the log of</span>
+<span class="sd">    what this call itself wrote, ``{resolved path: sha256}`` of the bytes as</span>
+<span class="sd">    they were written, computed in memory (:mod:`an.characters.drawn`). A</span>
+<span class="sd">    digest the factory's own stamp pins there — per part, and the</span>
+<span class="sd">    descriptor's on the drawing — is recorded only if it is exactly what this</span>
+<span class="sd">    call wrote at that path: a file swapped in while it ran is not recorded,</span>
+<span class="sd">    whatever the folder holds when it finishes. What</span>
+<span class="sd">    verifies a factory stamp in the asset library</span>
+<span class="sd">    (:func:`an.library.api.factory_drew`): the public stamping functions never</span>
+<span class="sd">    record, so stamping bytes the factory did not draw (a carved head)</span>
+<span class="sd">    verifies nothing (review-269 B2). If the record cannot be written, the</span>
+<span class="sd">    stamps stand unverified — the stricter reading — and a warning says so.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_factory_stamp</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegistryError</span><span class="p">,</span> <span class="n">record_generated</span>
+
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">stamps</span> <span class="o">=</span> <span class="p">[(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_svg"</span><span class="p">),</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">),</span> <span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="p">(</span><span class="n">skin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">slot</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">att</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">digests</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">rel</span><span class="p">,</span> <span class="n">stamp</span> <span class="ow">in</span> <span class="n">stamps</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rel</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">stamp</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">stamp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">wrote</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="n">char_dir</span> <span class="o">/</span> <span class="n">rel</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()))</span> <span class="o">==</span> <span class="n">stamp</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]:</span>
+            <span class="n">digests</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stamp</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">record_generated</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">digests</span><span class="p">),</span> <span class="n">generator</span><span class="o">=</span><span class="n">FACTORY_PROVIDER</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">RegistryError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">; the character is stamped, but its bytes are not recorded as the "</span>
+            <span class="s2">"factory's, so an older unlabelled asset holding the same bytes keeps "</span>
+            <span class="s2">"it `unknown` in the asset library"</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="stamp_factory_descriptor">
@@ -1992,7 +2054,7 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s1">'&lt;ellipse cx="</span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1">" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">}</span><span class="s1">" rx="</span><span class="si">{</span><span class="n">EYE_RX</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">EYE_RY</span><span class="si">}</span><span class="s1">" fill="#ffffff" stroke="#222" stroke-width="2"/&gt;'</span>
             <span class="sa">f</span><span class="s1">'&lt;circle cx="</span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1">" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">}</span><span class="s1">" r="</span><span class="si">{</span><span class="n">PUPIL_R</span><span class="si">}</span><span class="s1">" fill="#1a1a1a"/&gt;'</span>
         <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_open"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_open"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
@@ -2007,21 +2069,21 @@ window.runMermaid = runMermaid;</script>
         <span class="n">lid</span>
         <span class="o">+</span> <span class="sa">f</span><span class="s1">'&lt;path d="M </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">14</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s1"> Q </span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">8</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">14</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s1">" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/&gt;'</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_closed"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_closed"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_sclera</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">EYE_CENTRE</span>
     <span class="n">inner</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'&lt;ellipse cx="</span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1">" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">}</span><span class="s1">" rx="</span><span class="si">{</span><span class="n">EYE_RX</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">EYE_RY</span><span class="si">}</span><span class="s1">" fill="#ffffff" stroke="none"/&gt;'</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"sclera_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"sclera_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_pupil</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">EYE_CENTRE</span>
     <span class="n">inner</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'&lt;circle cx="</span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1">" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">}</span><span class="s1">" r="</span><span class="si">{</span><span class="n">PUPIL_R</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">PUPIL_COLOUR</span><span class="si">}</span><span class="s1">"/&gt;'</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"pupil_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"pupil_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
@@ -2311,7 +2373,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    762×762 one nearly three times it (an#168). Only the root's</span>
 <span class="sd">    ``width``/``height`` change; the drawing and its viewBox are untouched.</span>
 <span class="sd">    """</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_head_part_text</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">_head_part_text</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
@@ -2366,7 +2430,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 </span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" width="</span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="torso"&gt;</span><span class="si">{</span><span class="n">inner</span><span class="si">}</span><span class="s1">&lt;/g&gt;&lt;/svg&gt;'</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">roles</span>
 
 
@@ -2393,7 +2457,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s1">'stroke-width="</span><span class="si">{</span><span class="n">sw</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">color</span><span class="p">:</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="n">hand</span><span class="p">:</span> <span class="s2">"skin"</span><span class="p">}</span>
 
 
@@ -2420,7 +2484,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s1">'&lt;ellipse cx="40" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="</span><span class="si">{</span><span class="n">srx</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">sry</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">SHOE_COLOUR</span><span class="si">}</span><span class="s1">"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">color</span><span class="p">:</span> <span class="s2">"leg"</span><span class="p">}</span>
 
 
@@ -2436,7 +2500,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s1">'stroke="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" stroke-width="</span><span class="si">{</span><span class="n">BROW_STROKE</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" fill="none" stroke-linecap="round"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
@@ -2603,7 +2667,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 </span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" width="</span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="torso_</span><span class="si">{</span><span class="n">view</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">inner</span><span class="si">}</span><span class="s1">&lt;/g&gt;&lt;/svg&gt;'</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">roles</span>
 
 
@@ -2837,7 +2901,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="n">DFLT_VIEW</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">head_rel</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"parts/head_</span><span class="si">{</span><span class="n">view</span><span class="si">}</span><span class="s2">.svg"</span>
-        <span class="p">(</span><span class="n">char_dir</span> <span class="o">/</span> <span class="n">head_rel</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+        <span class="n">_drawn</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+            <span class="n">char_dir</span> <span class="o">/</span> <span class="n">head_rel</span><span class="p">,</span>
             <span class="n">_head_part_text</span><span class="p">(</span>
                 <span class="n">_view_head_svg</span><span class="p">(</span>
                     <span class="n">view</span><span class="p">,</span>

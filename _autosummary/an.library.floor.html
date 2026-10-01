@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.federation" href="an.library.federation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -380,6 +380,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.drawn.html">an.characters.drawn</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
@@ -643,16 +644,19 @@ existed, is registered by its next write or by <a class="reference internal" hre
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.floor.machine_libraries" title="an.library.floor.machine_libraries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">machine_libraries</span></code></a>([libraries, environ, platform])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.floor.library_origin" title="an.library.floor.library_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library_origin</span></code></a>(library)</p></td>
+<td><p>Which library a statement came from: its resolved root, or this in-memory library.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.floor.machine_libraries" title="an.library.floor.machine_libraries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">machine_libraries</span></code></a>([libraries, environ, platform])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">libraries</span></code> (first, as given) plus every other library root on this machine.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.floor.record_statement" title="an.library.floor.record_statement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_statement</span></code></a>(store, digest, asset_key, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.floor.record_statement" title="an.library.floor.record_statement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_statement</span></code></a>(store, digest, asset_key, ...)</p></td>
 <td><p>Record what <code class="docutils literal notranslate"><span class="pre">asset_key</span></code> says about <code class="docutils literal notranslate"><span class="pre">digest</span></code>: its latest holding version wins.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.floor.register_library" title="an.library.floor.register_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_library</span></code></a>(library)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.floor.register_library" title="an.library.floor.register_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_library</span></code></a>(library)</p></td>
 <td><p>Record an on-disk library's root in the machine registry, before its first write.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.floor.remember" title="an.library.floor.remember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remember</span></code></a>(library, statements)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.floor.remember" title="an.library.floor.remember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remember</span></code></a>(library, statements)</p></td>
 <td><p>Remember an on-disk library's statements in the machine memory (none for an in-memory one).</p></td>
 </tr>
 </tbody>
@@ -677,12 +681,35 @@ machine’s libraries once and reads each digest once.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="an.library.floor.BlobFloor.each">
+<span class="sig-name descname"><span class="pre">each</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">digest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/floor.html#BlobFloor.each"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.floor.BlobFloor.each" title="Link to this definition">#</a></dt>
+<dd><p>Every <code class="docutils literal notranslate"><span class="pre">(origin,</span> <span class="pre">asset_key,</span> <span class="pre">statement)</span></code> about <code class="docutils literal notranslate"><span class="pre">digest</span></code>, unmerged.</p>
+<p><code class="docutils literal notranslate"><span class="pre">origin</span></code> is the library that made it (<a class="reference internal" href="#an.library.floor.library_origin" title="an.library.floor.library_origin"><code class="xref py py-func docutils literal notranslate"><span class="pre">library_origin()</span></code></a>), so a
+caller can tell a version it read itself from a same-named library’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="an.library.floor.BlobFloor.statements">
-<span class="sig-name descname"><span class="pre">statements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">digest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/floor.html#BlobFloor.statements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.floor.BlobFloor.statements" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">statements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">digest</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/floor.html#BlobFloor.statements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.floor.BlobFloor.statements" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{asset_key:</span> <span class="pre">statement}</span></code> about <code class="docutils literal notranslate"><span class="pre">digest</span></code> from every library.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>exclude: <code class="docutils literal notranslate"><span class="pre">(origin,</span> <span class="pre">manifest)</span></code> of versions whose statements to leave</dt><dd><p>out — the versions a rights walk reads in full itself
+(<a class="reference internal" href="an.library.api.html#an.library.api.version_sources" title="an.library.api.version_sources"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.api.version_sources()</span></code></a>), each in the library it
+was read from (<a class="reference internal" href="#an.library.floor.library_origin" title="an.library.floor.library_origin"><code class="xref py py-func docutils literal notranslate"><span class="pre">library_origin()</span></code></a>). A same-named library’s
+version with the same manifest is another version (its lineage
+resolves in ITS library), so it is never left out; and the
+exclusion runs before statements under one asset key are merged,
+so it can hide nothing else.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -698,6 +725,20 @@ machine’s libraries once and reads each digest once.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.floor.library_origin">
+<span class="sig-prename descclassname"><span class="pre">an.library.floor.</span></span><span class="sig-name descname"><span class="pre">library_origin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/floor.html#library_origin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.floor.library_origin" title="Link to this definition">#</a></dt>
+<dd><p>Which library a statement came from: its resolved root, or this in-memory library.</p>
+<p>Two libraries can share a name (the default <code class="docutils literal notranslate"><span class="pre">cutan</span></code> and one at a custom
+root), and so an asset key, a version label and even a manifest: only the
+root tells their statements apart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -734,11 +775,14 @@ version’s statement is the asset’s statement.</p>
 <p>An in-memory library (no root) has nothing to register. Raises
 <a class="reference internal" href="an.library.registry.html#an.library.registry.RegistryError" title="an.library.registry.RegistryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryError</span></code></a> when the registry cannot be
 read or written: the write is refused rather than made invisible to the floor.</p>
-<p>A registry that does not exist yet while libraries already sit on disk
-means either the first use since the registry exists, or a registry that
-was lost: every library discoverable now is registered with this one, and a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryWarning</span></code> says that libraries kept at
-custom roots are known again only once written to or reindexed.</p>
+<p>A registry that does not exist yet means either this machine’s first
+library write, or a registry that was deleted — and nothing on disk tells
+the two apart: a deleted registry takes its memory of statements with it.
+So whenever the registry is created from nothing (an#263, R2b-N2), every
+library discoverable now is registered with this one, and a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryWarning</span></code> says that a library kept at a
+custom root binds the rights checks again only once it is written to or
+reindexed. Never delete the registry folder wholesale; prune it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
@@ -807,10 +851,12 @@ custom roots are known again only once written to or reindexed.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.BlobFloor"><code class="docutils literal notranslate"><span class="pre">BlobFloor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.BlobFloor.each"><code class="docutils literal notranslate"><span class="pre">BlobFloor.each()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.BlobFloor.statements"><code class="docutils literal notranslate"><span class="pre">BlobFloor.statements()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.BlobFloor.strictest"><code class="docutils literal notranslate"><span class="pre">BlobFloor.strictest()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.library_origin"><code class="docutils literal notranslate"><span class="pre">library_origin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.machine_libraries"><code class="docutils literal notranslate"><span class="pre">machine_libraries()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.record_statement"><code class="docutils literal notranslate"><span class="pre">record_statement()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.floor.register_library"><code class="docutils literal notranslate"><span class="pre">register_library()</span></code></a></li>

@@ -43,11 +43,12 @@ existed, is registered by its next write or by [`an.library.api.reindex()`](an.l
 
 ### Functions
 
-| [`machine_libraries`](#an.library.floor.machine_libraries)([libraries, environ, platform])   | `libraries` (first, as given) plus every other library root on this machine.                |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| [`record_statement`](#an.library.floor.record_statement)(store, digest, asset_key, ...)     | Record what `asset_key` says about `digest`: its latest holding version wins.               |
-| [`register_library`](#an.library.floor.register_library)(library)                           | Record an on-disk library's root in the machine registry, before its first write.           |
-| [`remember`](#an.library.floor.remember)(library, statements)                       | Remember an on-disk library's statements in the machine memory (none for an in-memory one). |
+| [`library_origin`](#an.library.floor.library_origin)(library)                           | Which library a statement came from: its resolved root, or this in-memory library.          |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`machine_libraries`](#an.library.floor.machine_libraries)([libraries, environ, platform]) | `libraries` (first, as given) plus every other library root on this machine.                |
+| [`record_statement`](#an.library.floor.record_statement)(store, digest, asset_key, ...)   | Record what `asset_key` says about `digest`: its latest holding version wins.               |
+| [`register_library`](#an.library.floor.register_library)(library)                         | Record an on-disk library's root in the machine registry, before its first write.           |
+| [`remember`](#an.library.floor.remember)(library, statements)                     | Remember an on-disk library's statements in the machine memory (none for an in-memory one). |
 
 ### Classes
 
@@ -63,16 +64,46 @@ The strictest statements about a blob, over every library on the machine, memois
 Build one per operation (a publish, a search, a check-out): it opens the
 machine’s libraries once and reads each digest once.
 
-#### statements(digest)
+#### each(digest)
+
+Every `(origin, asset_key, statement)` about `digest`, unmerged.
+
+`origin` is the library that made it ([`library_origin()`](#an.library.floor.library_origin)), so a
+caller can tell a version it read itself from a same-named library’s.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
+
+#### statements(digest, , exclude=())
 
 `{asset_key: statement}` about `digest` from every library.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
+exclude: `(origin, manifest)` of versions whose statements to leave
+: out — the versions a rights walk reads in full itself
+  ([`an.library.api.version_sources()`](an.library.api.html.md#an.library.api.version_sources)), each in the library it
+  was read from ([`library_origin()`](#an.library.floor.library_origin)). A same-named library’s
+  version with the same manifest is another version (its lineage
+  resolves in ITS library), so it is never left out; and the
+  exclusion runs before statements under one asset key are merged,
+  so it can hide nothing else.
+
 #### strictest(digests)
 
 The strictest class any statement makes about any of `digests` (`free` if none).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.floor.library_origin(library)
+
+Which library a statement came from: its resolved root, or this in-memory library.
+
+Two libraries can share a name (the default `cutan` and one at a custom
+root), and so an asset key, a version label and even a manifest: only the
+root tells their statements apart.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -106,11 +137,14 @@ An in-memory library (no root) has nothing to register. Raises
 [`an.library.registry.RegistryError`](an.library.registry.html.md#an.library.registry.RegistryError) when the registry cannot be
 read or written: the write is refused rather than made invisible to the floor.
 
-A registry that does not exist yet while libraries already sit on disk
-means either the first use since the registry exists, or a registry that
-was lost: every library discoverable now is registered with this one, and a
-`an.library.registry.RegistryWarning` says that libraries kept at
-custom roots are known again only once written to or reindexed.
+A registry that does not exist yet means either this machine’s first
+library write, or a registry that was deleted — and nothing on disk tells
+the two apart: a deleted registry takes its memory of statements with it.
+So whenever the registry is created from nothing (an#263, R2b-N2), every
+library discoverable now is registered with this one, and a
+`an.library.registry.RegistryWarning` says that a library kept at a
+custom root binds the rights checks again only once it is written to or
+reindexed. Never delete the registry folder wholesale; prune it.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)

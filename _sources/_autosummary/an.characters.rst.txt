@@ -48,6 +48,7 @@ an.characters
    cli
    colour_roles
    dicebear
+   drawn
    factory
    idle
    licenses

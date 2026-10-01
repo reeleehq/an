@@ -34,17 +34,17 @@ the asset derives from. `promote` and `find(rights=…)` recompute it.
 
 ### Functions
 
-| [`effective_rights`](#an.library.api.effective_rights)(libraries, version, \*[, floor])   | The rights of a version, recomputed from its sources, its lineage and its bytes.      |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| [`find`](#an.library.api.find)(libraries, \*[, kind, style, affords, ...])    | Assets matching every facet given (AND across facets, OR within one facet's values).  |
-| [`promote`](#an.library.api.promote)(libraries, ref, \*[, to, as_id, ...])       | Copy one version into another library — by default the core `an` library.             |
-| [`publish`](#an.library.api.publish)(library, asset_id, doc[, files, ...])       | Publish `doc` and its `files` as the next version of `asset_id` in `library`.         |
-| [`publish_dir`](#an.library.api.publish_dir)(library, folder, asset_id, \*\*kwargs)  | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).   |
-| [`reindex`](#an.library.api.reindex)(library, \*[, search])                      | Rebuild `library`'s floor index from its versions.                                    |
-| [`scan_index`](#an.library.api.scan_index)(library)                                 | Every asset's head version in `library`, read from the stores.                        |
-| [`show`](#an.library.api.show)(libraries, ref)                                | The record, the resolved version, its recomputed rights and the list of versions.     |
-| [`version_sources`](#an.library.api.version_sources)(libraries, version, \*[, ...])      | Every labelled source a version's rights depend on — its own, its lineage, its bytes. |
-| [`vocabulary`](#an.library.api.vocabulary)(libraries, \*[, index])                  | Every facet with its values and counts, and the registered capabilities.              |
+| [`effective_rights`](#an.library.api.effective_rights)(libraries, version, \*[, ...])    | The rights of a version, recomputed from its sources, its lineage and its bytes.      |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`find`](#an.library.api.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).  |
+| [`promote`](#an.library.api.promote)(libraries, ref, \*[, to, as_id, ...])      | Copy one version into another library — by default the core `an` library.             |
+| [`publish`](#an.library.api.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.         |
+| [`publish_dir`](#an.library.api.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).   |
+| [`reindex`](#an.library.api.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                    |
+| [`scan_index`](#an.library.api.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                        |
+| [`show`](#an.library.api.show)(libraries, ref)                               | The record, the resolved version, its recomputed rights and the list of versions.     |
+| [`version_sources`](#an.library.api.version_sources)(libraries, version, \*[, ...])     | Every labelled source a version's rights depend on — its own, its lineage, its bytes. |
+| [`vocabulary`](#an.library.api.vocabulary)(libraries, \*[, index])                 | Every facet with its values and counts, and the registered capabilities.              |
 
 ### Classes
 
@@ -160,9 +160,11 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a publish did: the version it names, and whether it made one.
 
-### an.library.api.effective_rights(libraries, version, \*, floor=<object object>)
+### an.library.api.effective_rights(libraries, version, \*, floor=<object object>, owner=None)
 
 The rights of a version, recomputed from its sources, its lineage and its bytes.
+
+owner: the library holding `version` (see [`version_sources()`](#an.library.api.version_sources))
 
 * **Return type:**
   [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
@@ -171,7 +173,7 @@ The rights of a version, recomputed from its sources, its lineage and its bytes.
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.vase", {"name": "vase"},
 ...             source={"provider": "film", "license": "all-rights-reserved"})
->>> effective_rights(lib, read_version(lib, "prop.vase", "v001")).license_class
+>>> effective_rights(lib, read_version(lib, "prop.vase", "v001"), owner=lib).license_class
 'private'
 ```
 
@@ -226,7 +228,7 @@ from the source version, with the record’s curation carried over.
 * **Return type:**
   [`PublishResult`](#an.library.api.PublishResult)
 
-### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
 
 Publish `doc` and its `files` as the next version of `asset_id` in `library`.
 
@@ -245,9 +247,10 @@ source: provenance declared for the asset as a whole. It contributes BESIDE
   or exactly what the head’s declared, the source of the previous version
   carries forward (`carry_source`) — for the bytes it was declared on
   only: a file changed or added since is recorded as `unlabelled` on the
-  version and is `unknown` until a publish passes `source=` (or a
-  relicence) again; with no source at all the version is `unknown` —
-  recorded and visible, not refused
+  version and is `unknown`. Later versions inherit that gap through
+  `previous` even when they pass `source=`; `relabel` (or a
+  relicence) answers it. With no source at all the version is `unknown`
+  — recorded and visible, not refused
 
 relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 : Rights attach to the bytes and the lineage: a new version inherits the
@@ -257,6 +260,15 @@ relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
   never relabels private art. A relicence makes `source` (required) the
   whole statement, records who and why on the version (and in its
   manifest and reasons), and covers these bytes for later versions
+
+relabel: `{"by": who, "reason": why}` beside an explicit `source=`
+: (required) — a first statement about bytes NOBODY labelled (an#263):
+  the gaps of this asset’s own version chain (files an earlier version
+  recorded `unlabelled`, an earlier version with no source at all) are
+  answered with `source`. It relaxes no statement anyone made: a private
+  (or any) licence, a per-part source, a version this one derives from,
+  and every other asset’s statement about the same bytes still bind.
+  Recorded on the version, in its manifest and in its reasons
 
 derived_from: library references this version derives from (an earlier version,
 : the original of a recolour); each must resolve, and its rights are inherited.
@@ -345,27 +357,44 @@ The record, the resolved version, its recomputed rights and the list of versions
 ('an:prop.lamp@v001', 'A lamp', ['v001'])
 ```
 
-### an.library.api.version_sources(libraries, version, \*, floor=<object object>, \_prefix='', \_seen=None)
+### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None)
 
 Every labelled source a version’s rights depend on — its own, its lineage, its bytes.
 
 - its own ([`an.library.rights.sources_in()`](an.library.rights.html.md#an.library.rights.sources_in): asset-level, descriptor, parts);
 - the version it follows (`previous`) and each `derived_from` version,
-  recursively, labelled `<ref> > <label>`;
-- the **floor** of every file: what any OTHER asset in any library on this
-  machine says about the same bytes ([`an.library.floor`](an.library.floor.html.md#module-an.library.floor)), labelled
-  `<path>: same bytes as <asset>@<version>`. A blob is as restricted as the
-  strictest statement made about it anywhere.
+  recursively, labelled `<ref> > <label>`. A version records the
+  manifest of each parent it resolved at publish (`LINEAGE_FIELD`);
+  a parent that no longer resolves to that manifest is “not on the search
+  path”, and the rights the child recorded stand in for it;
+- the **floor** of every file of every version walked: what any library on
+  this machine says about the same bytes ([`an.library.floor`](an.library.floor.html.md#module-an.library.floor)),
+  labelled `<path>: same bytes as <asset>@<version>`. A blob is as
+  restricted as the strictest statement made about it anywhere.
+
+One exception to reading the floor, so a `relabel` can answer an earlier
+version’s gap: the `unknown` statements of a version this walk read in
+full AND could verify (each lineage link resolved to its pinned manifest,
+or a `previous` link inside the same library root) are not read twice. A
+`private` or `attribution` statement is always read, and so is anything
+said by a version the walk could not verify (review-269 B1).
 
 floor: a [`BlobFloor`](an.library.floor.html.md#an.library.floor.BlobFloor) to read (default: every
 : library on the machine); `None` leaves the floor out — what the
   version itself says (its “asset label”), which is what the floor stores
 
+owner: the library holding `version` (default: unknown — its own
+: statements are then read from the floor too, which repeats a reason and
+  relaxes nothing)
+
 A version carrying an explicit `relicense` (who, why) contributes its
 asset-level source alone: that recorded statement replaces everything it
-would otherwise inherit, and is the only way to relax rights. A parent no
-library on the path holds falls back to the rights recorded at publish, or
-`unknown` — never silence.
+would otherwise inherit, and is the only way to relax rights. A version
+carrying a `relabel` (who, why, beside an explicit source) answers the
+GAPS of its own `previous` chain with that source — a file recorded
+`unlabelled`, a version that recorded no source at all — and nothing else
+(`RELABEL_FIELD`). A parent no library on the path holds falls back to
+the rights recorded at publish, or `unknown` — never silence.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]

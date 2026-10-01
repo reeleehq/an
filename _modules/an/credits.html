@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -742,6 +742,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
@@ -996,6 +997,17 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
                 <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="n">_checked_out</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">left</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">left</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">):</span>
+                    <span class="c1"># The label a library check-out left here was removed: what</span>
+                    <span class="c1"># the copy is now, nobody has said (an#264). Never silence.</span>
+                    <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span>
+                        <span class="n">provider</span><span class="o">=</span><span class="s2">"unknown"</span><span class="p">,</span>
+                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"the source a library check-out left on this "</span>
+                            <span class="s2">"copy was removed since"</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">store_name</span> <span class="o">==</span> <span class="s2">"characters"</span><span class="p">:</span>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">_reconstruct_legacy_source</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
             <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1076,6 +1088,45 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Where a library check-out records itself in a descriptor (ADR 0005); the</span>
 <span class="c1">#: library writes it (`an.library.api.ORIGIN_KEY`), this walk only reads it.</span>
 <span class="n">LIBRARY_ORIGIN_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"library_origin"</span>
+<span class="c1">#: The origin-block entry a check-out of a version with an asset-level source</span>
+<span class="c1">#: writes (an#264): ``{"source": &lt;the descriptor's source as the check-out left</span>
+<span class="c1">#: it&gt;, "files": {path: sha256}}``. That label was declared on those bytes, so</span>
+<span class="c1">#: in the copy it speaks only for them — as the library reads it when the copy</span>
+<span class="c1">#: is published back (a carried source covers only files unchanged since).</span>
+<span class="n">CHECKED_OUT_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"checked_out"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_origin_of</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">)</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LIBRARY_ORIGIN_KEY</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">origin</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">checked_out_seal</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The digest binding a ``checked_out`` block's source to its file digests.</span>
+
+<span class="sd">    &gt;&gt;&gt; len(checked_out_seal({"provider": "me"}, {"a.svg": "00"}))</span>
+<span class="sd">    64</span>
+<span class="sd">    """</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">"source"</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span> <span class="s2">"files"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">files</span><span class="p">)},</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">":"</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">payload</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_checked_out</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``checked_out`` block of a library check-out, if this copy has one.</span>
+
+<span class="sd">    A block whose seal does not match what it says (an edited digest list) is</span>
+<span class="sd">    read as covering NO file: an origin block may make credits stricter, never</span>
+<span class="sd">    cleaner (review-269 S1).</span>
+<span class="sd">    """</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="p">(</span><span class="n">_origin_of</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CHECKED_OUT_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seal"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">checked_out_seal</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span> <span class="n">block</span><span class="p">[</span><span class="s2">"files"</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">block</span><span class="p">,</span> <span class="s2">"files"</span><span class="p">:</span> <span class="p">{}}</span>
+    <span class="k">return</span> <span class="n">block</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_library_origin_credits</span><span class="p">(</span>
@@ -1101,9 +1152,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">):</span>
         <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
-    <span class="n">metadata</span> <span class="o">=</span> <span class="p">(</span><span class="n">raw</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">)</span>
-    <span class="n">origin</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LIBRARY_ORIGIN_KEY</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">_origin_of</span><span class="p">(</span><span class="n">raw</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">origin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sources"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
@@ -1192,9 +1242,18 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">      speaks for nothing: it is UNVERIFIED, unless the descriptor declares a</span>
 <span class="sd">      source a PERSON wrote, which then speaks for it. A stale claim that is</span>
 <span class="sd">      ``private`` is still listed as such — stricter never gives way;</span>
-<span class="sd">    - under a generator's descriptor-level source (the factory's, DiceBear's)</span>
-<span class="sd">      that pins a digest, every file no stamp pins is UNVERIFIED: a generator</span>
-<span class="sd">      made claims only about the bytes it produced.</span>
+<span class="sd">    - under a generator's descriptor-level source (the factory's, DiceBear's),</span>
+<span class="sd">      every file no stamp pins is UNVERIFIED: a generator made claims only about</span>
+<span class="sd">      the bytes it produced. A LEGACY generated source that pins no digest</span>
+<span class="sd">      (DiceBear before an#259) pins nothing, so it speaks for nothing either</span>
+<span class="sd">      (an#264, R2b-N3) — the factory re-pins it on its next touch</span>
+<span class="sd">      (``stamp_generated_head``);</span>
+<span class="sd">    - in a library check-out, the source the check-out left in the descriptor</span>
+<span class="sd">      (the version's asset-level label, ``metadata.library_origin.checked_out``)</span>
+<span class="sd">      was declared on the version's bytes: while the descriptor still holds it,</span>
+<span class="sd">      a file changed or added since the check-out is UNVERIFIED (an#264) — what</span>
+<span class="sd">      the library says when the copy is published back. A source a person</span>
+<span class="sd">      writes in its place speaks for the copy as it is.</span>
 
 <span class="sd">    The asset library reads the same walk (:mod:`an.library.rights`), so the</span>
 <span class="sd">    library and ``an credits`` agree about which bytes are the factory's.</span>
@@ -1248,10 +1307,24 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">out</span><span class="p">[</span><span class="n">asset</span><span class="p">]</span> <span class="o">=</span> <span class="n">CreditEntry</span><span class="p">(</span>
                         <span class="n">asset</span><span class="o">=</span><span class="n">asset</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">asset</span><span class="p">)</span>
                     <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">covered</span><span class="p">:</span>
-        <span class="n">unpinned</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stale</span> <span class="o">-</span> <span class="n">pinned</span><span class="p">)</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="n">known</span><span class="p">()</span> <span class="k">if</span> <span class="n">generated</span> <span class="ow">and</span> <span class="n">_stamp_digest</span><span class="p">(</span><span class="n">own</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">_checked_out</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+    <span class="n">since</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">left</span><span class="p">[</span><span class="s2">"files"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">covered</span> <span class="ow">and</span> <span class="n">left</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">left</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="o">==</span> <span class="n">own</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">covered</span> <span class="ow">or</span> <span class="n">since</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">unpinned</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stale</span> <span class="o">-</span> <span class="n">pinned</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">covered</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">known</span><span class="p">()</span> <span class="k">if</span> <span class="n">generated</span> <span class="ow">or</span> <span class="n">since</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">changed</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">since</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># As the library reads a carried label: every file changed or</span>
+            <span class="c1"># added since, whatever stamp it carries (an.library.api.publish).</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">files</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">since</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">!=</span> <span class="n">digest</span>
+            <span class="p">}</span>
+            <span class="n">unpinned</span> <span class="o">|=</span> <span class="n">changed</span>
+        <span class="k">elif</span> <span class="n">files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">svg</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_svg"</span><span class="p">)</span>
             <span class="n">unpinned</span> <span class="o">|=</span> <span class="p">{</span>
                 <span class="n">path</span>
@@ -1270,7 +1343,11 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">provider</span><span class="o">=</span><span class="s2">"unknown"</span><span class="p">,</span>
                     <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">"reason"</span><span class="p">:</span> <span class="p">(</span>
-                            <span class="s2">"the stamp on this part no longer matches its bytes "</span>
+                            <span class="s2">"changed or added since the library check-out: the "</span>
+                            <span class="s2">"label it carried speaks only for the bytes it was "</span>
+                            <span class="s2">"declared on"</span>
+                            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">changed</span>
+                            <span class="k">else</span> <span class="s2">"the stamp on this part no longer matches its bytes "</span>
                             <span class="s2">"(re-drawn or re-carved)"</span>
                             <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">stale</span>
                             <span class="k">else</span> <span class="s2">"no stamp pins these bytes, and the descriptor's "</span>

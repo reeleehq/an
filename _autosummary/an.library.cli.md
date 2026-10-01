@@ -78,7 +78,7 @@ allow_restricted: copy a private or unknown version anyway (it otherwise never l
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', expect_head='', replace_curation=False, extra='')
+### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='')
 
 Publish an asset folder as the next version of `asset_id`.
 
@@ -100,6 +100,8 @@ author: who made it
 source_url: where it was fetched from
 relicense_by: who relicenses the asset (with –relicense-reason and –license): the only way to relax inherited rights
 relicense_reason: why — recorded on the version and shown in its rights
+relabel_by: who labels bytes nobody labelled (with –relabel-reason and –license): answers the asset’s earlier unlabelled files and sourceless versions, never a stricter statement
+relabel_reason: why — recorded on the version and shown in its rights
 expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
 replace_curation: –style/–tags replace the record’s lists instead of adding to them
 extra: further libraries where –derived-from resolves, by package name, comma-separated

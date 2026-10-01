@@ -47,7 +47,7 @@ What lives where:
 | [`check_pins`](#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
 | [`checkout`](#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
 | [`drift_findings`](#an.library.drift_findings)([project_dir, mall, lock, ...])     | One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.                                   |
-| [`effective_rights`](#an.library.effective_rights)(libraries, version, \*[, floor])  | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
+| [`effective_rights`](#an.library.effective_rights)(libraries, version, \*[, ...])    | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
 | [`find`](#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
 | [`library_root`](#an.library.library_root)([root, package, environ, platform])   | The data root of `package` — its library and its projects live under it.                                                                      |
 | [`open_library`](#an.library.open_library)([package, root])                      | The library of `package`, at `root` (resolved as in [`an.library.root`](an.library.root.html.md#module-an.library.root)). |
@@ -397,9 +397,11 @@ project_dir: the project (not needed when both `mall` and `lock` are given)
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.library.effective_rights(libraries, version, \*, floor=<object object>)
+### an.library.effective_rights(libraries, version, \*, floor=<object object>, owner=None)
 
 The rights of a version, recomputed from its sources, its lineage and its bytes.
+
+owner: the library holding `version` (see `version_sources()`)
 
 * **Return type:**
   [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
@@ -408,7 +410,7 @@ The rights of a version, recomputed from its sources, its lineage and its bytes.
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.vase", {"name": "vase"},
 ...             source={"provider": "film", "license": "all-rights-reserved"})
->>> effective_rights(lib, read_version(lib, "prop.vase", "v001")).license_class
+>>> effective_rights(lib, read_version(lib, "prop.vase", "v001"), owner=lib).license_class
 'private'
 ```
 
@@ -555,7 +557,7 @@ from the source version, with the record’s curation carried over.
 * **Return type:**
   [`PublishResult`](an.library.api.html.md#an.library.api.PublishResult)
 
-### an.library.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+### an.library.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
 
 Publish `doc` and its `files` as the next version of `asset_id` in `library`.
 
@@ -574,9 +576,10 @@ source: provenance declared for the asset as a whole. It contributes BESIDE
   or exactly what the head’s declared, the source of the previous version
   carries forward (`carry_source`) — for the bytes it was declared on
   only: a file changed or added since is recorded as `unlabelled` on the
-  version and is `unknown` until a publish passes `source=` (or a
-  relicence) again; with no source at all the version is `unknown` —
-  recorded and visible, not refused
+  version and is `unknown`. Later versions inherit that gap through
+  `previous` even when they pass `source=`; `relabel` (or a
+  relicence) answers it. With no source at all the version is `unknown`
+  — recorded and visible, not refused
 
 relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 : Rights attach to the bytes and the lineage: a new version inherits the
@@ -586,6 +589,15 @@ relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
   never relabels private art. A relicence makes `source` (required) the
   whole statement, records who and why on the version (and in its
   manifest and reasons), and covers these bytes for later versions
+
+relabel: `{"by": who, "reason": why}` beside an explicit `source=`
+: (required) — a first statement about bytes NOBODY labelled (an#263):
+  the gaps of this asset’s own version chain (files an earlier version
+  recorded `unlabelled`, an earlier version with no source at all) are
+  answered with `source`. It relaxes no statement anyone made: a private
+  (or any) licence, a per-part source, a version this one derives from,
+  and every other asset’s statement about the same bytes still bind.
+  Recorded on the version, in its manifest and in its reasons
 
 derived_from: library references this version derives from (an earlier version,
 : the original of a recolour); each must resolve, and its rights are inherited.

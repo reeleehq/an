@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.captions" href="an.captions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -380,6 +380,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.drawn.html">an.characters.drawn</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
@@ -1517,43 +1518,46 @@ namespace as the default, so the output is a valid standalone SVG.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.characters.dicebear.html#module-an.characters.dicebear" title="an.characters.dicebear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dicebear</span></code></a></p></td>
 <td><p>DiceBear HTTP API client + best-effort post-processing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.factory.html#module-an.characters.factory" title="an.characters.factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">factory</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.drawn.html#module-an.characters.drawn" title="an.characters.drawn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn</span></code></a></p></td>
+<td><p>What the character factory wrote, as it wrote it: the in-memory log behind its record of drawn bytes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.factory.html#module-an.characters.factory" title="an.characters.factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">factory</span></code></a></p></td>
 <td><p>High-level entry points: build and inspect a character.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.idle.html#module-an.characters.idle" title="an.characters.idle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">idle</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.idle.html#module-an.characters.idle" title="an.characters.idle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">idle</span></code></a></p></td>
 <td><p>Idle animation factories: breath, blink, weight-shift.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.licenses.html#module-an.characters.licenses" title="an.characters.licenses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">licenses</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.licenses.html#module-an.characters.licenses" title="an.characters.licenses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">licenses</span></code></a></p></td>
 <td><p>DiceBear per-style licences, as data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.methods.html#module-an.characters.methods" title="an.characters.methods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">methods</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.methods.html#module-an.characters.methods" title="an.characters.methods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">methods</span></code></a></p></td>
 <td><p>The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.mouth_set.html#module-an.characters.mouth_set" title="an.characters.mouth_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouth_set</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.mouth_set.html#module-an.characters.mouth_set" title="an.characters.mouth_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouth_set</span></code></a></p></td>
 <td><p>Generate the 9-shape default mouth set as parametric SVGs.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.play.html#module-an.characters.play" title="an.characters.play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.play.html#module-an.characters.play" title="an.characters.play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play</span></code></a></p></td>
 <td><p>Resolve a <code class="docutils literal notranslate"><span class="pre">play</span></code> against a character descriptor — the renderer-free half (an#7).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.record.html#module-an.characters.record" title="an.characters.record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.record.html#module-an.characters.record" title="an.characters.record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record</span></code></a></p></td>
 <td><p>Record a character's preview HTML to an mp4.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.registration.html#module-an.characters.registration" title="an.characters.registration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registration</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.registration.html#module-an.characters.registration" title="an.characters.registration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registration</span></code></a></p></td>
 <td><p>The character side of the cut-out genre, as declarations: <code class="docutils literal notranslate"><span class="pre">play</span></code> and <code class="docutils literal notranslate"><span class="pre">character</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.schema.html#module-an.characters.schema" title="an.characters.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.schema.html#module-an.characters.schema" title="an.characters.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
 <td><p>Character descriptor schema (Spine-shaped, Pydantic v2).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.silhouette.html#module-an.characters.silhouette" title="an.characters.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">silhouette</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.silhouette.html#module-an.characters.silhouette" title="an.characters.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">silhouette</span></code></a></p></td>
 <td><p>Silhouette rendering and comparison for the silhouette test.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.svg_utils.html#module-an.characters.svg_utils" title="an.characters.svg_utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_utils</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.svg_utils.html#module-an.characters.svg_utils" title="an.characters.svg_utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_utils</span></code></a></p></td>
 <td><p>SVG manipulation: namespace-aware DOM helpers using stdlib <code class="docutils literal notranslate"><span class="pre">xml.etree</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.validate.html#module-an.characters.validate" title="an.characters.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.validate.html#module-an.characters.validate" title="an.characters.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
 <td><p>Whether an art package is one the compiler can actually render.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.vocabulary.html#module-an.characters.vocabulary" title="an.characters.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.vocabulary.html#module-an.characters.vocabulary" title="an.characters.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a></p></td>
 <td><p>The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes.</p></td>
 </tr>
 </tbody>

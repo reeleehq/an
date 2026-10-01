@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=22eb4f14"></script>
+    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.143" />
+  <meta name="docsearch:version" content="0.1.144" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -722,7 +722,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  its recomputed ``rights``, and every source those rights depend on that the</span>
 <span class="sd">  descriptor itself does not hold (the asset-level source, the sources of every</span>
 <span class="sd">  version it derives from). ``an credits`` reads them</span>
-<span class="sd">  (``an.credits._library_origin_credits``);</span>
+<span class="sd">  (``an.credits._library_origin_credits``). For a version with an asset-level</span>
+<span class="sd">  source it also records ``checked_out``: the descriptor's source as the</span>
+<span class="sd">  check-out left it and the files' digests, so in the copy that label speaks</span>
+<span class="sd">  only for the bytes it was declared on — a file edited or added since is</span>
+<span class="sd">  UNVERIFIED in ``an credits``, as it is ``unknown`` when the copy is published</span>
+<span class="sd">  back (an#264);</span>
 <span class="sd">- the asset-level source, written into a descriptor that declares none (or</span>
 <span class="sd">  only the character factory's own stamp, which it then stands in for);</span>
 <span class="sd">- the pin in ``assets.lock.json`` — the project mall's ``library_lock`` store,</span>
@@ -778,7 +783,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">roll_up</span><span class="p">,</span>
     <span class="n">sources_in</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_factory_stamp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHECKED_OUT_KEY</span><span class="p">,</span> <span class="n">checked_out_seal</span><span class="p">,</span> <span class="n">is_factory_stamp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">LibraryLocationWarning</span><span class="p">,</span> <span class="n">git_worktree_of</span>
 
@@ -956,7 +961,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="n">files</span> <span class="o">=</span> <span class="n">verified_files</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
     <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">library</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">lib</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">as_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span> <span class="k">if</span> <span class="n">lib</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">library</span><span class="p">)]</span>
-    <span class="n">contributors</span> <span class="o">=</span> <span class="n">version_sources</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="n">contributors</span> <span class="o">=</span> <span class="n">version_sources</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">)</span>
     <span class="n">rights</span> <span class="o">=</span> <span class="n">_stricter</span><span class="p">(</span>
         <span class="n">Rights</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="n">roll_up</span><span class="p">(</span><span class="n">contributors</span><span class="p">)</span>
     <span class="p">)</span>
@@ -975,7 +980,10 @@ window.runMermaid = runMermaid;</script>
             <span class="n">lock</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry_key</span><span class="p">,</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">entry_key</span> <span class="ow">in</span> <span class="n">lock</span> <span class="k">else</span> <span class="p">{}</span>
         <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">)</span>
         <span class="n">differences</span> <span class="o">=</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">same_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">differences</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+        <span class="c1"># A copy checked out by an older `an` lacks the record of which bytes</span>
+        <span class="c1"># its carried label speaks for (an#264): an unedited one is re-linked.</span>
+        <span class="n">outdated</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span> <span class="ow">and</span> <span class="n">CHECKED_OUT_KEY</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">origin</span>
+        <span class="k">if</span> <span class="n">same_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">differences</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">outdated</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">entry_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lock</span><span class="p">:</span>
                 <span class="n">lock</span><span class="p">[</span><span class="n">entry_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pin</span><span class="p">(</span><span class="n">pinned</span><span class="p">,</span> <span class="n">manifest</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">CheckoutResult</span><span class="p">(</span>
@@ -984,7 +992,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># The entry is byte-for-byte this version but was never linked to it: the</span>
         <span class="c1"># folder a publish just sent to the library. Linking it rewrites the same</span>
         <span class="c1"># bytes, so it needs no overwrite.</span>
-        <span class="n">linking</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">same_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">differences</span>
+        <span class="n">linking</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">differences</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">same_version</span> <span class="ow">or</span> <span class="n">outdated</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">linking</span><span class="p">:</span>
             <span class="n">what</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"a fork of it (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">differences</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
@@ -1059,6 +1067,19 @@ window.runMermaid = runMermaid;</script>
         <span class="n">origin</span> <span class="o">=</span> <span class="n">_origin_block</span><span class="p">(</span><span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">contributors</span><span class="p">,</span> <span class="n">rights</span><span class="p">,</span> <span class="n">visible</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">added</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">origin</span><span class="p">[</span><span class="n">SOURCE_ADDED_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">added</span>
+        <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">):</span>
+            <span class="c1"># The version's asset-level label was declared on these bytes, and</span>
+            <span class="c1"># a publish of the copy carries it for them only: `an credits` in</span>
+            <span class="c1"># the project reads it the same way (an#264).</span>
+            <span class="n">digests</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">path</span><span class="p">:</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span>
+                <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="p">}</span>
+            <span class="n">origin</span><span class="p">[</span><span class="n">CHECKED_OUT_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"source"</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
+                <span class="s2">"files"</span><span class="p">:</span> <span class="n">digests</span><span class="p">,</span>
+                <span class="s2">"seal"</span><span class="p">:</span> <span class="n">checked_out_seal</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span> <span class="n">digests</span><span class="p">),</span>
+            <span class="p">}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">doc</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">origin</span><span class="p">[</span><span class="n">METADATA_ADDED_FLAG</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
