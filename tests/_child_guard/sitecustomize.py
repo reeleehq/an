@@ -28,20 +28,32 @@ TARGET = "an.library.registry"
 def _patch(module, home, log):
     from pathlib import Path
 
-    real_home = module._account_home()
+    try:
+        real_home = module._account_home()
+    except (
+        RuntimeError,
+        OSError,
+    ):  # Windows without USERPROFILE: no real home to guard
+        real_home = None
     defaults = (
         module.WINDOWS_DATA_DEFAULT
         if sys.platform.startswith("win")
         else module.POSIX_DATA_DEFAULT
     )
-    real_data = real_home.joinpath(*defaults)
+    # The CORE PACKAGE's folder, not the whole data folder: on Windows the temp
+    # dir (where the redirect lives) is inside `AppData/Local`.
+    real_data = (
+        None
+        if real_home is None
+        else str(real_home.joinpath(*defaults) / module.CORE_PACKAGE)
+    )
     redirected = Path(home)
     module._account_home = lambda: redirected
     registry_dir = module.machine_registry_dir
 
     def tripwire():
         out = registry_dir()
-        if log and str(out).startswith(str(real_data)):
+        if log and real_data and str(out).startswith(real_data):
             import traceback
 
             with open(log, "a", encoding="utf-8") as f:

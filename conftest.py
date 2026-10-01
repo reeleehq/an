@@ -80,13 +80,14 @@ def _install_real_home_guard() -> None:
     from an.library import registry, stores
 
     data_dirs = _real_data_dirs()
-    real_data = str(data_dirs[0].parent)
+    real_prefixes = tuple(str(d) for d in data_dirs)  # not their parent: on Windows
+    # the temp dir (home of the redirect) sits inside `AppData/Local`.
     _REAL_DATA_SNAPSHOT["dirs"] = data_dirs
     _REAL_DATA_SNAPSHOT["home"] = registry._account_home()
     _REAL_DATA_SNAPSHOT["before"] = _snapshot(data_dirs)
 
     def note(path) -> None:
-        if str(path).startswith(real_data):
+        if str(path).startswith(real_prefixes):
             _REAL_HOME_WRITES.append(
                 f"{path}\n" + "".join(traceback.format_stack(limit=30))
             )

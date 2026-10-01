@@ -88,7 +88,7 @@ def test_a_child_sees_the_redirected_registry(env):
 
 
 def test_the_redirect_is_not_the_real_data_folder():
-    assert not str(_expected()).startswith(str(_real_data_dir().parent))
+    assert not str(_expected()).startswith(str(_real_data_dir()))
 
 
 def test_a_child_follows_the_per_test_home(tmp_path, monkeypatch):
@@ -143,7 +143,7 @@ def test_the_demo_builder_keeps_its_throwaway_characters_out_of_the_real_registr
         home = module._keep_machine_registry_private()
         assert registry._account_home() == home != sentinel
         assert not str(registry.machine_registry_dir()).startswith(
-            str(_real_data_dir().parent)
+            str(_real_data_dir())
         )
     finally:
         sys.modules.pop(spec.name, None)
