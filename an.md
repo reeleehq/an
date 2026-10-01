@@ -1,4 +1,4 @@
-> built 2026-10-01 13:39 UTC from b9b87c0 (main) · an 0.1.132. Details: build_info.json
+> built 2026-10-01 14:05 UTC from ee5dd57 (main) · an 0.1.133. Details: build_info.json
 
 # index.html.md
 
@@ -7050,7 +7050,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'ellipse', 'rect', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -11542,6 +11542,8 @@ problem routes the way every other verifier’s does (an#78).
 | [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS)                     | The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.                                                                                                                                                                                                                                                                         |
 | [`MAX_HEAD_SCALE`](_autosummary/an.characters.factory.html.md#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                                                                                                                                                                                                              |
 | [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
+| [`FACTORY_PROVIDER`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_PROVIDER)         | The provider of every per-part source the factory stamps on what it draws.                                                                                                                                                                                                                                                                                  |
+| [`FACTORY_LICENSE`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_LICENSE)          | no rights to clear.                                                                                                                                                                                                                                                                                                                                         |
 | [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                                                                                                                                                                                                         |
 | [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                                                                                                                                                                                                         |
 | [`FACE_SLOTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                                                                                                                                                                                                               |
@@ -11555,9 +11557,11 @@ problem routes the way every other verifier’s does (an#78).
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_views`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) turns the whole character. |
 | [`declare_mouth_variants`](_autosummary/an.characters.factory.html.md#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
+| [`factory_source`](_autosummary/an.characters.factory.html.md#an.characters.factory.factory_source)(data)                             | The per-part source of a part this factory drew, pinned to its bytes.                                                                                                                                                                                                                                                                                                                           |
 | [`gaze_travel_for`](_autosummary/an.characters.factory.html.md#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
 | [`new_character`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
 | [`scale_part_files`](_autosummary/an.characters.factory.html.md#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
+| [`stamp_factory_parts`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_factory_parts)(char_dir[, paths, skip])     | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
 | [`view_poses`](_autosummary/an.characters.factory.html.md#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
 
 ### Classes
@@ -11620,6 +11624,17 @@ the sclera, the pupil and the lid outline agree (an#99).
 ### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
 
 The face slots of the default rig with the eye stack (an#99).
+
+### an.characters.factory.FACTORY_LICENSE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cc0-1.0'*
+
+no rights to clear.
+
+* **Type:**
+  The licence of the factory’s own drawings
+
+### an.characters.factory.FACTORY_PROVIDER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an character factory'*
+
+The provider of every per-part source the factory stamps on what it draws.
 
 ### an.characters.factory.GAZE_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
 
@@ -11752,6 +11767,18 @@ neutral set is the SSOT for which shapes exist; a variant mirrors it.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.characters.factory.factory_source(data)
+
+The per-part source of a part this factory drew, pinned to its bytes.
+
+* **Return type:**
+  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
+
+```pycon
+>>> factory_source(b"<svg/>").license, len(factory_source(b"<svg/>").sha256)
+('cc0-1.0', 64)
+```
+
 ### an.characters.factory.gaze_travel_for(rx=14, ry=10, pupil_r=5)
 
 The pupil’s travel per axis, in view-box units: the sclera’s clearance
@@ -11838,6 +11865,26 @@ screen. Missing files are skipped.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.factory.stamp_factory_parts(char_dir, paths=None, , skip=())
+
+Give each part the factory drew a `cc0` per-part source pinned to its digest.
+
+Rights in the asset library attach to the BYTES (an#236): a file is as
+restricted as the strictest thing any library says about its SHA-256, and an
+asset-level licence speaks for every file the asset does not itemise. The
+factory’s parts are byte-identical across characters (the default mouths,
+the eyes), so without this stamp a carved character built on a factory body
+would make every other character’s shared parts private. The stamp pins the
+digest, so a part later re-drawn or re-carved no longer matches it and stops
+being itemised as the factory’s — the stamp cannot launder new bytes.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+paths: the relative paths this call drew (default: every attachment whose
+: file exists, minus `skip`). A part carrying some other provider’s
+  source is never re-stamped.
 
 ### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
 
@@ -17141,6 +17188,22 @@ provides an unregistered one.
 * **Type:**
   `"style"` was retired in an#106
 
+#### library *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The asset-library version this entry was checked out from (ADR 0005
+decision 8): `"[<library>:]<asset_id>@<version>"`, e.g.
+`"cutan:character.alice-reiniger@v003"` (grammar:
+[`an.library.ids.parse_ref()`](_autosummary/an.library.ids.html.md#an.library.ids.parse_ref), a pinned version required: `vNNN` or
+`sha256:<prefix>`, never `latest`). `None` — the
+default, and every document written before the library existed — means
+the asset is the project’s own. Today the strategy is check-out, so
+`ref` still names the project-store key the compiler reads and this
+field is the pin beside it; live reference resolves it instead, later.
+
+Additive and omit-when-unset, like `stage`: an unset `library`
+leaves no trace in a dump, so no stored scene changes and no schema
+version moves.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -17731,6 +17794,7 @@ skip that shot rather than crash.
 | [`impacts`](_autosummary/an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.          |
 | [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                     |
 | [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
+| [`library`](_autosummary/an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).               |
 | [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
 | [`motion`](_autosummary/an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.              |
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |
@@ -19770,6 +19834,22 @@ provides an unregistered one.
 * **Type:**
   `"style"` was retired in an#106
 
+#### library *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The asset-library version this entry was checked out from (ADR 0005
+decision 8): `"[<library>:]<asset_id>@<version>"`, e.g.
+`"cutan:character.alice-reiniger@v003"` (grammar:
+[`an.library.ids.parse_ref()`](_autosummary/an.library.ids.html.md#an.library.ids.parse_ref), a pinned version required: `vNNN` or
+`sha256:<prefix>`, never `latest`). `None` — the
+default, and every document written before the library existed — means
+the asset is the project’s own. Today the strategy is check-out, so
+`ref` still names the project-store key the compiler reads and this
+field is the pin beside it; live reference resolves it instead, later.
+
+Additive and omit-when-unset, like `stage`: an unset `library`
+leaves no trace in a dump, so no stored scene changes and no schema
+version moves.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -20534,6 +20614,22 @@ provides an unregistered one.
 
 * **Type:**
   `"style"` was retired in an#106
+
+#### library *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The asset-library version this entry was checked out from (ADR 0005
+decision 8): `"[<library>:]<asset_id>@<version>"`, e.g.
+`"cutan:character.alice-reiniger@v003"` (grammar:
+[`an.library.ids.parse_ref()`](_autosummary/an.library.ids.html.md#an.library.ids.parse_ref), a pinned version required: `vNNN` or
+`sha256:<prefix>`, never `latest`). `None` — the
+default, and every document written before the library existed — means
+the asset is the project’s own. Today the strategy is check-out, so
+`ref` still names the project-store key the compiler reads and this
+field is the pin beside it; live reference resolves it instead, later.
+
+Additive and omit-when-unset, like `stage`: an unset `library`
+leaves no trace in a dump, so no stored scene changes and no schema
+version moves.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -21691,6 +21787,2618 @@ enumerates which shots changed so the orchestrator can render only those.
 
 * **Return type:**
   [`IterateResult`](_autosummary/an.iterate.html.md#an.iterate.IterateResult)
+
+
+# _autosummary/an.library.affordances.html.md
+
+# an.library.affordances
+
+Affordances: what an asset can do, derived from its descriptor and the art present.
+
+This is the seed of ADR 0002’s `affordances(asset) → set[Capability]`, built
+so its registry (P7) adopts it rather than writing a second derivation:
+
+- an **analyser** is registered per asset kind ([`register_analyser()`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_analyser)) with a
+  version. It reads the descriptor document and the art present — a mapping of
+  each file’s relative path to its `ContentRef` (so a later analyser can read
+  bytes through the blob store; today’s tests membership only) —
+  never a hand-typed list beside them (ADR 0002 decision 2) — and returns
+  `{capability: params}`. A capability that is absent is not afforded;
+- a **capability** is a dotted, registered name ([`register_capability()`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_capability))
+  with a description and a **remedy** (what would add it, and the command when
+  one exists), because `find(…, near=True)` must say how to close a near miss;
+- **params** are the capability’s parameters. The one convention every query
+  relies on: `keys` lists the discrete values it affords, so `swap.view:side`
+  asks for `swap.view` with `side` among its keys. `overrides` lists the
+  declared descriptor fields (`rest_view`, …) the
+  derivation used instead of deriving — ADR 0002’s “the derivation reports which
+  overrides it used”.
+
+The library snapshots an analyser’s output on each version with the analyser’s
+version (`analysers: {kind: version}`); a reader whose analyser is newer
+recomputes rather than trusting the snapshot ([`current_affordances()`](_autosummary/an.library.affordances.html.md#an.library.affordances.current_affordances)).
+
+Capability names are persisted identifiers: once a version stores one, it is
+renamed only through this registry, never in place.
+
+```pycon
+>>> afford = {"swap.view": {"keys": ["front", "side"]}, "limbs.legs": {}}
+>>> matches(afford, "swap.view:side"), matches(afford, "swap.view:back"), matches(afford, "limbs.legs")
+(True, False, True)
+```
+
+### Module Attributes
+
+| [`KEY_SEP`](_autosummary/an.library.affordances.html.md#an.library.affordances.KEY_SEP)      | Separates a capability from one of its keys in a query (`swap.view:side`).   |
+|---------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`CAPABILITIES`](_autosummary/an.library.affordances.html.md#an.library.affordances.CAPABILITIES) | Registered capabilities, by name.                                            |
+| [`ANALYSERS`](_autosummary/an.library.affordances.html.md#an.library.affordances.ANALYSERS)    | Registered analysers, by asset kind.                                         |
+
+### Functions
+
+| [`analyse`](_autosummary/an.library.affordances.html.md#an.library.affordances.analyse)(kind, doc, art)                            | `(affordances, analysers)` of one asset: its capabilities and the analyser versions used.   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`capability_of`](_autosummary/an.library.affordances.html.md#an.library.affordances.capability_of)(query)                               | `(capability, key)` of a query term.                                                        |
+| [`current_affordances`](_autosummary/an.library.affordances.html.md#an.library.affordances.current_affordances)(kind, doc, art, \*, ...)       | The stored snapshot when its analyser version is current, else a fresh derivation.          |
+| [`matches`](_autosummary/an.library.affordances.html.md#an.library.affordances.matches)(affordances, query)                        | Whether `affordances` satisfy one query term (`cap` or `cap:key`).                          |
+| [`missing`](_autosummary/an.library.affordances.html.md#an.library.affordances.missing)(affordances, queries)                      | The query terms `affordances` do not satisfy, in the order asked.                           |
+| [`register_analyser`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                        |
+| [`register_capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                     |
+| [`remedy_for`](_autosummary/an.library.affordances.html.md#an.library.affordances.remedy_for)(query)                                  | What would add the capability a query term asks for.                                        |
+
+### Classes
+
+| [`Analyser`](_autosummary/an.library.affordances.html.md#an.library.affordances.Analyser)(kind, version, derive)       | The derivation of one asset kind's affordances, versioned.      |
+|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)(name, description, remedy) | A registered capability name, what it means, and how to add it. |
+
+### an.library.affordances.ANALYSERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Analyser](_autosummary/an.library.affordances.html.md#an.library.affordances.Analyser)]* *= {'character': Analyser(kind='character', version='0.1.0', derive=<function character_affordances>)}*
+
+Registered analysers, by asset kind.
+
+### *class* an.library.affordances.Analyser(kind, version, derive)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The derivation of one asset kind’s affordances, versioned.
+
+### an.library.affordances.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)]* *= {'face.mouth': Capability(name='face.mouth', description='an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)', remedy="give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\` writes the default nine) and face_overlay: true — a face baked into the head art cannot lip-sync"), 'limbs.arms': Capability(name='limbs.arms', description='a pair of arm slots with art that a walk swings and gestures move', remedy='add two arm slots named arm_l/arm_r (or left_arm/right_arm) with their art, pivoted at the shoulder (an-art-package skill)'), 'limbs.legs': Capability(name='limbs.legs', description='a pair of leg slots with art that a legged walk swings', remedy='add two leg slots named leg_l/leg_r (or left_leg/right_leg) with their art, pivoted at the hip; \`an character new\` builds them (an-art-package skill)'), 'swap.view': Capability(name='swap.view', description='the turnaround views the character can show (keys); swappable=true when a \`view\` swap set lets it turn', remedy='add turnaround art and list it in the \`view\` swap set: \`an character add-views <dir>\` for an offline character, else draw the views')}*
+
+Registered capabilities, by name. Genre packages add theirs on import.
+
+### *class* an.library.affordances.Capability(name, description, remedy)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A registered capability name, what it means, and how to add it.
+
+### an.library.affordances.KEY_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ':'*
+
+Separates a capability from one of its keys in a query (`swap.view:side`).
+
+### an.library.affordances.analyse(kind, doc, art)
+
+`(affordances, analysers)` of one asset: its capabilities and the analyser versions used.
+
+A kind with no registered analyser affords nothing *derived* and records no
+analyser — an honest empty answer, not a guess.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.library.affordances.capability_of(query)
+
+`(capability, key)` of a query term.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+```pycon
+>>> capability_of("swap.view:side"), capability_of("limbs.legs")
+(('swap.view', 'side'), ('limbs.legs', None))
+```
+
+### an.library.affordances.current_affordances(kind, doc, art, , stored, stored_analysers)
+
+The stored snapshot when its analyser version is current, else a fresh derivation.
+
+Affordances are derived data, so recomputing them is always safe; trusting a
+snapshot made by an older analyser is what would make a facet lie.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.library.affordances.matches(affordances, query)
+
+Whether `affordances` satisfy one query term (`cap` or `cap:key`).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.library.affordances.missing(affordances, queries)
+
+The query terms `affordances` do not satisfy, in the order asked.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.library.affordances.register_analyser(kind, , version)
+
+Decorator: register `derive` as the analyser of `kind` at `version`.
+
+Bump `version` whenever the derivation’s output can change for the same
+input: versions published under the old one are then recomputed on read.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]], [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]]
+
+### an.library.affordances.register_capability(name, , description, remedy)
+
+Register (or re-register) a capability. Returns it.
+
+* **Return type:**
+  [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)
+
+### an.library.affordances.remedy_for(query)
+
+What would add the capability a query term asks for.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> remedy_for("no.such.capability")
+'no registered capability no.such.capability; see vocabulary() for the known names'
+```
+
+
+# _autosummary/an.library.api.html.md
+
+# an.library.api
+
+The library’s verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.
+
+Plain functions over [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library) objects (pillar 8:
+the functions are the API; the `an library …` CLI and, later, MCP are thin
+projections of them). Writes take the one owning library; reads take a library
+or a search path ([`search_path()`](_autosummary/an.library.federation.html.md#an.library.federation.search_path)). Check-out lives
+in [`an.library.checkout`](_autosummary/an.library.html.md#an.library.checkout).
+
+The documents they write (ADR 0005 decision 4, design §4):
+
+- a **record** per asset — identity and curation, mutable: `id`, `kind`,
+  `title`, `family`, `head`, `status`, `facets` (`style`, `origin`),
+  `tags`;
+- a **version** per publish — immutable: the descriptor `doc` verbatim, its
+  `files` as `dol.content.ContentRef` s, the asset-level `source`,
+  `derived_from`, the derived `affordances` with the `analysers` that made
+  them, the rolled-up `rights`, the `art` facet, and `manifest_sha256` —
+  the **version identity**: the hash of `doc`, the files’ hashes, `source`
+  and `derived_from`. It is not a content key (lineage changes it, and a
+  checked-out copy can be edited after it is pinned); nothing should cache on it
+  as one. Publishing what the head already is makes no new version.
+
+**Rights are recomputed, not trusted.** The stored `rights` block is a cache of
+[`effective_rights()`](_autosummary/an.library.api.html.md#an.library.api.effective_rights), which rolls up — most restrictive wins — the asset-level
+source, the descriptor’s own source, every part’s, and recursively every version
+the asset derives from. `promote` and `find(rights=…)` recompute it.
+
+### Module Attributes
+
+| [`LIBRARY_ERRORS`](_autosummary/an.library.api.html.md#an.library.api.LIBRARY_ERRORS)   | the CLI prints these as a sentence and exits non-zero.   |
+|-------------------------------------------------------------------|----------------------------------------------------------|
+
+### Functions
+
+| [`effective_rights`](_autosummary/an.library.api.html.md#an.library.api.effective_rights)(libraries, version, \*[, floor])   | The rights of a version, recomputed from its sources, its lineage and its bytes.      |
+|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`find`](_autosummary/an.library.api.html.md#an.library.api.find)(libraries, \*[, kind, style, affords, ...])    | Assets matching every facet given (AND across facets, OR within one facet's values).  |
+| [`promote`](_autosummary/an.library.api.html.md#an.library.api.promote)(libraries, ref, \*[, to, as_id, ...])       | Copy one version into another library — by default the core `an` library.             |
+| [`publish`](_autosummary/an.library.api.html.md#an.library.api.publish)(library, asset_id, doc[, files, ...])       | Publish `doc` and its `files` as the next version of `asset_id` in `library`.         |
+| [`publish_dir`](_autosummary/an.library.api.html.md#an.library.api.publish_dir)(library, folder, asset_id, \*\*kwargs)  | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).   |
+| [`reindex`](_autosummary/an.library.api.html.md#an.library.api.reindex)(library, \*[, search])                      | Rebuild `library`'s floor index from its versions.                                    |
+| [`scan_index`](_autosummary/an.library.api.html.md#an.library.api.scan_index)(library)                                 | Every asset's head version in `library`, read from the stores.                        |
+| [`show`](_autosummary/an.library.api.html.md#an.library.api.show)(libraries, ref)                                | The record, the resolved version, its recomputed rights and the list of versions.     |
+| [`version_sources`](_autosummary/an.library.api.html.md#an.library.api.version_sources)(libraries, version, \*[, ...])      | Every labelled source a version's rights depend on — its own, its lineage, its bytes. |
+| [`vocabulary`](_autosummary/an.library.api.html.md#an.library.api.vocabulary)(libraries, \*[, index])                  | Every facet with its values and counts, and the registered capabilities.              |
+
+### Classes
+
+| [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.   |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`Hit`](_autosummary/an.library.api.html.md#an.library.api.Hit)(library, asset_id, version, score[, ...])     | One asset that answers a query — or nearly does (`missing` non-empty).            |
+| [`IndexEntry`](_autosummary/an.library.api.html.md#an.library.api.IndexEntry)(library, asset_id, version, kind, ...) | One asset's head version, as the index sees it.                                   |
+| [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)(ref, manifest_sha256, created, ...) | What a publish did: the version it names, and whether it made one.                |
+
+### Exceptions
+
+| [`CheckoutError`](_autosummary/an.library.api.html.md#an.library.api.CheckoutError)         | A version cannot be materialised into this project as asked.                     |
+|------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`IntegrityError`](_autosummary/an.library.api.html.md#an.library.api.IntegrityError)        | Stored bytes, paths or a stored manifest do not match what was recorded.         |
+| [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.LibraryError)          | A library operation refused, with a sentence saying why and what to do.          |
+| [`LibraryIndexWarning`](_autosummary/an.library.api.html.md#an.library.api.LibraryIndexWarning)   | A record or version could not be read; the index skipped it.                     |
+| [`PlaceholderRigWarning`](_autosummary/an.library.api.html.md#an.library.api.PlaceholderRigWarning) | A character published with no rig: the compiler would draw only its placeholder. |
+
+### *exception* an.library.api.CheckoutError
+
+Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.LibraryError)
+
+A version cannot be materialised into this project as asked.
+
+### *class* an.library.api.FindResult(hits, near, counts)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Hits, near misses (with `near=True`), and per-facet value counts over the hits.
+
+#### to_dict()
+
+A JSON-ready view.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.library.api.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=<factory>, remedies=<factory>, federated=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One asset that answers a query — or nearly does (`missing` non-empty).
+
+#### *property* ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+namespaced when the search spanned several libraries.
+
+* **Type:**
+  The reference to pin
+
+#### to_dict()
+
+A JSON-ready view (CLI `--json`, MCP).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.library.api.IndexEntry(library, asset_id, version, kind, record, rights, affordances, art, document=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One asset’s head version, as the index sees it.
+
+#### affordance_terms()
+
+Every query term this entry satisfies: `cap` and each `cap:key`.
+
+* **Return type:**
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+#### facet_values()
+
+Every facet’s values for this entry (the AND/OR matcher’s input).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### *exception* an.library.api.IntegrityError
+
+Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.LibraryError)
+
+Stored bytes, paths or a stored manifest do not match what was recorded.
+
+### an.library.api.LIBRARY_ERRORS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[type](https://docs.python.org/3/builtins/functions.html#type)[[BaseException](https://docs.python.org/3/builtins/exceptions.html#BaseException)], ...]* *= (<class 'an.library.api.LibraryError'>, <class 'an.library.ids.AssetIdError'>, <class 'an.library.federation.AssetNotFoundError'>, <class 'an.library.stores.VersionExistsError'>, <class 'an.library.rights.RightsRefusal'>, <class 'an.library.kinds.UnknownKindError'>)*
+
+the CLI
+prints these as a sentence and exits non-zero.
+
+* **Type:**
+  Every error a library verb raises for a caller’s mistake (not a bug)
+
+### *exception* an.library.api.LibraryError
+
+Bases: [`Exception`](https://docs.python.org/3/builtins/exceptions.html#Exception)
+
+A library operation refused, with a sentence saying why and what to do.
+
+### *exception* an.library.api.LibraryIndexWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A record or version could not be read; the index skipped it.
+
+### *exception* an.library.api.PlaceholderRigWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A character published with no rig: the compiler would draw only its placeholder.
+
+### *class* an.library.api.PublishResult(ref, manifest_sha256, created, rights, affordances)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a publish did: the version it names, and whether it made one.
+
+### an.library.api.effective_rights(libraries, version, \*, floor=<object object>)
+
+The rights of a version, recomputed from its sources, its lineage and its bytes.
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.vase", {"name": "vase"},
+...             source={"provider": "film", "license": "all-rights-reserved"})
+>>> effective_rights(lib, read_version(lib, "prop.vase", "v001")).license_class
+'private'
+```
+
+### an.library.api.find(libraries, \*, kind=None, style=None, affords=None, rights='any', family=None, origin=None, status=None, tags=None, art=None, near=False, index=<function scan_index>)
+
+Assets matching every facet given (AND across facets, OR within one facet’s values).
+
+* **Return type:**
+  [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)
+
+affords: capabilities the asset must ALL have — `limbs.legs`, or
+: `swap.view:side` for a capability with a given key. Each capability is
+  its own boolean facet, so a list of them is AND, as across facets. An
+  unregistered name raises, naming the close ones
+
+rights: `any` (default — study renders are legitimate), `publishable`
+: (`free` + `attribution`), or licence classes. Rights are recomputed
+  from each version’s sources and lineage, not read from its cache
+
+near: also return assets that pass every other facet but miss some
+: capabilities, each with what is missing and the remedy that would add it
+
+index: the index to read (default: a scan of the stores)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, style=["reiniger", "gilliam"])
+>>> [h.ref for h in find(lib, kind="prop", style="gilliam")]
+['prop.lamp@v001']
+>>> len(find(lib, kind="prop", rights="publishable"))  # no source: unknown
+0
+```
+
+### an.library.api.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False)
+
+Copy one version into another library — by default the core `an` library.
+
+An asset made in a genre’s library and reused across genres is promoted to the
+core (plan §1 decision 7). The copy is a new version in the target, derived
+from the source version, with the record’s curation carried over.
+
+- A `private` or `unknown` version is refused unless
+  `allow_restricted=True`: private-study material never leaves its library
+  by default (ADR 0005 decision 10). The rights checked are recomputed from
+  the version’s sources and lineage, and the stricter of those and the
+  stored ones wins.
+- If the target already has an asset with this id that does not derive from
+  the one promoted (another character that happens to share the id), it is
+  refused: promoting would make it a new version of an unrelated asset.
+  `as_id` promotes under another id.
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
+### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+
+Publish `doc` and its `files` as the next version of `asset_id` in `library`.
+
+library: the owning library (writes never go to a search path)
+asset_id: `<kind>.<slug>`; the kind must be registered
+doc: the descriptor — the existing document `an` already versions
+
+> (`CharacterDescriptor`, …), as a model or its JSON dict, stored verbatim
+
+files: the asset’s files, by the relative paths the descriptor uses
+: (`parts/head.svg`) — stored once each in the content-addressed blobs
+
+source: provenance declared for the asset as a whole. It contributes BESIDE
+: the descriptor’s own `source` (the most restrictive wins), never
+  instead of it. With no `source` and none in the descriptor, the source
+  of the previous version carries forward (`carry_source`); with none at
+  all the version is `unknown` — recorded and visible, not refused
+
+relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
+: Rights attach to the bytes and the lineage: a new version inherits the
+  version it follows (`previous`), every version it derives from, and
+  every version holding the same file bytes, and may only be more
+  restrictive than they are — a cc0 in the descriptor or in `source=`
+  never relabels private art. A relicence makes `source` (required) the
+  whole statement, records who and why on the version (and in its
+  manifest and reasons), and covers these bytes for later versions
+
+derived_from: library references this version derives from (an earlier version,
+: the original of a recolour); each must resolve, and its rights are inherited.
+  A descriptor checked out of a library derives from its origin by default
+
+title, family, style, origin, status, tags: curation, stored on the record;
+: given again with unchanged content they update the record and make no
+  version. `style` and `tags` add to what is there, or replace it with
+  `replace_curation=True`
+
+note: what changed, stored on the version
+expect_head: guard against publishing into an asset you did not mean:
+
+> `None` — the id must be new; `"vNNN"` — the head must be that version
+
+search: further libraries where `derived_from` references resolve (the
+: owning library is always searched first)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> doc = {"name": "lamp", "source": {"provider": "me", "license": "cc0-1.0"}}
+>>> r = publish(lib, "prop.lamp", doc, {"parts/lamp.svg": b"<svg/>"}, style="reiniger")
+>>> str(r.ref), r.created, r.rights.license_class
+('an:prop.lamp@v001', True, 'free')
+>>> publish(lib, "prop.lamp", doc, {"parts/lamp.svg": b"<svg/>"}).created
+False
+```
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
+### an.library.api.publish_dir(library, folder, asset_id, \*\*kwargs)
+
+Publish an asset folder as it sits in a project store (`assets/characters/alice/`).
+
+The descriptor is the kind’s descriptor file (`character.json`); every other
+non-hidden file under the folder is published as one of the asset’s files, so
+a check-out reproduces the folder. Keyword arguments go to [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish).
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
+### an.library.api.reindex(library, , search=None)
+
+Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
+
+The index is derived data: rebuilding it is always safe, and the way to
+repair a library whose index was lost or written by an older `an`.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+### an.library.api.scan_index(library)
+
+Every asset’s head version in `library`, read from the stores.
+
+Affordances snapshotted by an older analyser are recomputed, not trusted. A
+record or version that cannot be read (a damaged file) is skipped with a
+[`LibraryIndexWarning`](_autosummary/an.library.api.html.md#an.library.api.LibraryIndexWarning) naming it, so one bad entry never blinds every
+search.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`IndexEntry`](_autosummary/an.library.api.html.md#an.library.api.IndexEntry)]
+
+### an.library.api.show(libraries, ref)
+
+The record, the resolved version, its recomputed rights and the list of versions.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, title="A lamp")
+>>> s = show(lib, "prop.lamp")
+>>> s["ref"], s["record"]["title"], s["versions"]
+('an:prop.lamp@v001', 'A lamp', ['v001'])
+```
+
+### an.library.api.version_sources(libraries, version, \*, floor=<object object>, \_prefix='', \_seen=None)
+
+Every labelled source a version’s rights depend on — its own, its lineage, its bytes.
+
+- its own ([`an.library.rights.sources_in()`](_autosummary/an.library.rights.html.md#an.library.rights.sources_in): asset-level, descriptor, parts);
+- the version it follows (`previous`) and each `derived_from` version,
+  recursively, labelled `<ref> > <label>`;
+- the **floor** of every file: what any OTHER asset in any library on this
+  machine says about the same bytes ([`an.library.floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)), labelled
+  `<path>: same bytes as <asset>@<version>`. A blob is as restricted as the
+  strictest statement made about it anywhere.
+
+floor: a [`BlobFloor`](_autosummary/an.library.floor.html.md#an.library.floor.BlobFloor) to read (default: every
+: library on the machine); `None` leaves the floor out — what the
+  version itself says (its “asset label”), which is what the floor stores
+
+A version carrying an explicit `relicense` (who, why) contributes its
+asset-level source alone: that recorded statement replaces everything it
+would otherwise inherit, and is the only way to relax rights. A parent no
+library on the path holds falls back to the rights recorded at publish, or
+`unknown` — never silence.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
+
+### an.library.api.vocabulary(libraries, \*, index=<function scan_index>)
+
+Every facet with its values and counts, and the registered capabilities.
+
+What an agent reads to turn words into a typed query (spectrum (b)): “a
+Reiniger character who can walk in profile” → `style=reiniger`,
+`affords=["limbs.legs", "swap.view:side"]`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> v = vocabulary(lib)
+>>> sorted(v)
+['capabilities', 'facets', 'kinds', 'rights', 'statuses']
+>>> "limbs.legs" in v["capabilities"]
+True
+```
+
+
+# _autosummary/an.library.character.html.md
+
+# an.library.character
+
+The character analyser: legs, arms, views and mouth chart, derived from the rig.
+
+The first analyser (ADR 0005 first slice, item 2), shared with ADR 0002’s first
+slice: P7’s capability registry adopts [`character_affordances()`](_autosummary/an.library.character.html.md#an.library.character.character_affordances) as
+`affordances(asset)` for characters instead of deriving a second time.
+
+**What it reads is what the compiler reads**, or the facets would lie (ADR 0005,
+Risks): the limb pairs `walk` resolves (`an.motion.WALK_LEG_NAMES`,
+`an.motion.WALK_ARM_NAMES`), the `view` and `viseme` swap sets
+(`asset_sets`), the declared facts `rest_view` and
+`face_overlay`. And **art must be present**: a slot or swap key counts only
+when an attachment it names has its file among the asset’s files — a descriptor
+promising a side view whose drawing is missing does not afford one.
+
+It is genre code (cut-out characters). It lives here until the genre package
+exists (plan P8), registered under the `character` kind, and imports the
+cut-out modules lazily so `import an.library` stays free of them.
+
+| capability   | afforded when                                                                                       | `keys`                                 |
+|--------------|-----------------------------------------------------------------------------------------------------|----------------------------------------|
+| `limbs.legs` | a leg pair `walk` resolves, both with art                                                           | —                                      |
+| `limbs.arms` | an arm pair `walk` resolves, both with art                                                          | —                                      |
+| `swap.view`  | always: the rest view, plus every `view` key with<br/>art (`swappable`: whether it can turn at all) | the views it can show                  |
+| `face.mouth` | an overlay face (`face_overlay`) whose `viseme`<br/>set has drawings                                | the chart (`rhubarb9`<br/>or `custom`) |
+
+### Module Attributes
+
+| [`CHARACTER_ANALYSER_VERSION`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER_VERSION)   | Bump when the derivation can answer differently for the same input.        |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`MOUTH_CHART_RHUBARB`](_autosummary/an.library.character.html.md#an.library.character.MOUTH_CHART_RHUBARB)          | The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`'s default. |
+
+### Functions
+
+| [`character_affordances`](_autosummary/an.library.character.html.md#an.library.character.character_affordances)(doc, art)   | The capabilities a character descriptor and its art afford.                      |
+|------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`renders_as_placeholder`](_autosummary/an.library.character.html.md#an.library.character.renders_as_placeholder)(doc)       | Whether the compiler would draw this character only as its placeholder stand-in. |
+
+### an.library.character.CHARACTER_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
+
+Bump when the derivation can answer differently for the same input.
+
+### an.library.character.MOUTH_CHART_RHUBARB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rhubarb9'*
+
+The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`’s default.
+
+### an.library.character.character_affordances(doc, art)
+
+The capabilities a character descriptor and its art afford.
+
+doc: the character descriptor document (any schema version; migrated first)
+art: the files present, `{relative path: ContentRef JSON}` (`parts/head.svg`, …)
+
+Gait is deliberately not here: which walk methods apply is the capability
+matcher’s answer (`applicable("locomotion", asset)`, ADR 0002), derived from
+`limbs.legs`, not a second fact about the asset.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+```pycon
+>>> from an.characters.schema import CharacterDescriptor
+>>> doc = CharacterDescriptor(name="blob").model_dump(mode="json")
+>>> sorted(character_affordances(doc, art={}))   # a descriptor with no art
+['swap.view']
+```
+
+### an.library.character.renders_as_placeholder(doc)
+
+Whether the compiler would draw this character only as its placeholder stand-in.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> renders_as_placeholder({"name": "alice"}), renders_as_placeholder({"parts": ["head"]})
+(True, False)
+```
+
+
+# _autosummary/an.library.cli.html.md
+
+# an.library.cli
+
+`an library …` — the asset library from the shell, over the same functions as Python.
+
+Wired into the top-level dispatcher as the `library` namespace
+(`an.tools._dispatch_namespaces`), programmatically, per pillar 8: these are
+plain functions taking strings and booleans and returning the text to print;
+the business logic is [`an.library.api`](_autosummary/an.library.api.html.md#module-an.library.api).
+
+Lists are comma-separated (`--style reiniger,gilliam`). Every command reads
+the library of `--package` (default `an`) at `--root` (default: the
+package’s data folder, or `<PKG>_HOME`); the read commands search that
+library, then the core `an` library, then `--extra` ones. A refusal (an
+unknown asset, a private asset leaving its library, …) prints one sentence and
+exits non-zero.
+
+Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
+`promote`.
+
+### Functions
+
+| [`checkout`](_autosummary/an.library.cli.html.md#an.library.cli.checkout)(project_dir, ref[, key, overwrite, ...])   | Check a library version out into a project, and pin it in assets.lock.json.    |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`find`](_autosummary/an.library.cli.html.md#an.library.cli.find)([kind, style, affords, rights, family, ...])   | Find assets: AND across facets, OR within one facet's comma-separated values.  |
+| [`promote`](_autosummary/an.library.cli.html.md#an.library.cli.promote)(ref[, package, root, core_root, ...])       | Copy a version into the core an library, so other genres can reuse it.         |
+| [`publish`](_autosummary/an.library.cli.html.md#an.library.cli.publish)(folder, asset_id[, package, root, ...])     | Publish an asset folder as the next version of `asset_id`.                     |
+| [`show`](_autosummary/an.library.cli.html.md#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.      |
+| [`vocabulary`](_autosummary/an.library.cli.html.md#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON). |
+
+### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='an', root='', extra='')
+
+Check a library version out into a project, and pin it in assets.lock.json.
+
+project_dir: the an project
+ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned)
+key: the key in the project store (default: the asset’s slug)
+overwrite: replace an existing entry that is not this version
+package: the library to read first (then the core an library)
+root: that library’s root
+extra: further libraries, by package name, comma-separated
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.find(kind='', style='', affords='', rights='any', family='', origin='', status='', tags='', near=False, package='an', root='', extra='', json_out=False)
+
+Find assets: AND across facets, OR within one facet’s comma-separated values.
+
+kind: character, prop, environment, …
+style: styles, comma-separated (any of them)
+affords: capabilities the asset must ALL have, e.g. limbs.legs,swap.view:side
+rights: any, publishable, or licence classes (free, attribution, private, unknown)
+family: families, comma-separated
+origin: origins, comma-separated
+status: draft, approved, deprecated
+tags: tags, comma-separated (any of them)
+near: also list assets that only miss capabilities, with the remedy for each
+package: the library to search first (then the core an library)
+root: that library’s root
+extra: further libraries to search, by package name, comma-separated
+json_out: print JSON instead of a table
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.promote(ref, package='', root='', core_root='', as_id='', allow_restricted=False)
+
+Copy a version into the core an library, so other genres can reuse it.
+
+ref: [<library>:]<asset_id>[@<version>]
+package: the library it is in (a genre’s, e.g. cutan)
+root: that library’s root
+core_root: the core an library’s root (default: its data folder)
+as_id: promote under another id (when the core library has an unrelated asset with this one)
+allow_restricted: copy a private or unknown version anyway (it otherwise never leaves its library)
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', expect_head='', replace_curation=False, extra='')
+
+Publish an asset folder as the next version of `asset_id`.
+
+folder: the asset folder as it sits in a project (e.g. assets/characters/alice)
+asset_id: <kind>.<slug>, e.g. character.alice-reiniger
+package: whose library to publish into (an, or a genre such as cutan)
+root: that library’s root (default: the package’s data folder)
+title: a human title for the record
+family: the identity shared across styles and variants (e.g. alice)
+style: styles the asset suits, comma-separated
+origin: drawn, procedural, dicebear, carved, traced, stock, commissioned, generated
+status: draft, approved or deprecated
+tags: free tags, comma-separated
+note: what changed in this version
+derived_from: library references this derives from, comma-separated
+license: licence code of the asset as a whole (counted BESIDE the descriptor’s own source and everything it inherits; the strictest wins)
+provider: where it came from (required with –license)
+author: who made it
+source_url: where it was fetched from
+relicense_by: who relicenses the asset (with –relicense-reason and –license): the only way to relax inherited rights
+relicense_reason: why — recorded on the version and shown in its rights
+expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
+replace_curation: –style/–tags replace the record’s lists instead of adding to them
+extra: further libraries where –derived-from resolves, by package name, comma-separated
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.show(ref, package='an', root='', extra='', json_out=False)
+
+Show one asset: its record, the resolved version, and its other versions.
+
+ref: [<library>:]<asset_id>[@<version>] (latest by default)
+package: the library to read first (then the core an library)
+root: that library’s root
+extra: further libraries, by package name, comma-separated
+json_out: print the full record and version as JSON
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.vocabulary(package='an', root='', extra='')
+
+Every facet value with its count, and every capability with its remedy (JSON).
+
+package: the library to read first (then the core an library)
+root: that library’s root
+extra: further libraries, by package name, comma-separated
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.library.federation.html.md
+
+# an.library.federation
+
+Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).
+
+Each package has its own library root (`an` → `~/.local/share/an`, a genre
+such as `cutan` → `~/.local/share/cutan`). A process reads them as one
+ordered **search path** — its own library first, then the core `an` library,
+then any others the user lists (ADR 0005 decision 1, Harmony’s scope chain
+reduced to one mechanism). An id resolves in the first library that has it;
+a namespaced id (`cutan:character.alice@v003`) resolves only in the named one.
+Writes always go to one owning [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library), never to the path.
+
+The search path is the seam where a team share, a shipped seed library or a
+remote bucket plugs in later: each is just another [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library) whose mall
+was built over different stores.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     path = search_path("cutan", roots={"cutan": f"{d}/cutan", "an": f"{d}/an"})
+...     [lib.name for lib in path]
+['cutan', 'an']
+```
+
+### Module Attributes
+
+| [`Libraries`](_autosummary/an.library.federation.html.md#an.library.federation.Libraries)   | one library, or a search path of them.   |
+|--------------------------------------------------------------|------------------------------------------|
+
+### Functions
+
+| [`as_libraries`](_autosummary/an.library.federation.html.md#an.library.federation.as_libraries)(libraries)              | Normalise one library or a search path to a list.                                                                                             |
+|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`open_library`](_autosummary/an.library.federation.html.md#an.library.federation.open_library)([package, root])        | The library of `package`, at `root` (resolved as in [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root)). |
+| [`resolve`](_autosummary/an.library.federation.html.md#an.library.federation.resolve)(libraries, ref)              | `(library, pinned_ref, version_doc)` for a reference, along the search path.                                                                  |
+| [`search_path`](_autosummary/an.library.federation.html.md#an.library.federation.search_path)([package, extra, roots]) | The ordered libraries `package` reads: its own, then the core `an`, then `extra`.                                                             |
+
+### Classes
+
+| [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)(name, mall[, root])   | One library: its name (the namespace of its ids), its mall, and its root if on disk.   |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`AssetNotFoundError`](_autosummary/an.library.federation.html.md#an.library.federation.AssetNotFoundError)   | No library on the search path holds the asset or version asked for.   |
+|-----------------------------------------------------------------------|-----------------------------------------------------------------------|
+
+### *exception* an.library.federation.AssetNotFoundError
+
+Bases: [`LookupError`](https://docs.python.org/3/builtins/exceptions.html#LookupError)
+
+No library on the search path holds the asset or version asked for.
+
+### an.library.federation.Libraries
+
+one library, or a search path of them.
+
+* **Type:**
+  What the read functions accept
+
+alias of [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library) | [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
+
+### *class* an.library.federation.Library(name, mall, root=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One library: its name (the namespace of its ids), its mall, and its root if on disk.
+
+#### *property* blob_rights *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`sha256 -> {asset: statement}`, derived ([`an.library.floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)).
+
+#### *property* blobs *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`sha256 -> bytes` (content-addressed).
+
+#### *property* records *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`asset_id -> record` (mutable curation).
+
+#### *property* versions *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`<asset_id>@<vNNN> -> version` (write-once).
+
+### an.library.federation.as_libraries(libraries)
+
+Normalise one library or a search path to a list.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
+
+### an.library.federation.open_library(package='an', root=None, \*\*overrides)
+
+The library of `package`, at `root` (resolved as in [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root)).
+
+* **Return type:**
+  [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)
+
+overrides: stores to inject (`records`, `versions`, `blobs`), as in
+: [`an.library.stores.build_library_mall()`](_autosummary/an.library.stores.html.md#an.library.stores.build_library_mall)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> (lib.name, lib.root)
+('an', None)
+```
+
+### an.library.federation.resolve(libraries, ref)
+
+`(library, pinned_ref, version_doc)` for a reference, along the search path.
+
+A namespaced reference reads only its library; a bare one reads the first
+library holding the asset. `latest` resolves to that library’s head and
+`sha256:<prefix>` to the one version whose manifest hash starts with it.
+The returned reference is pinned (`vNNN`) and namespaced with the library
+it resolved in.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library), [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.library.federation.search_path(package='an', , extra=(), roots=None)
+
+The ordered libraries `package` reads: its own, then the core `an`, then `extra`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
+
+extra: further libraries, by package name (resolved like any root) or as
+: [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library) objects (a team share, a seed library)
+
+roots: an explicit root per package name (tests, a non-default layout);
+: unnamed packages resolve as usual (`<PKG>_HOME`, then the data folder)
+
+A name appears once, at its first position.
+
+
+# _autosummary/an.library.floor.html.md
+
+# an.library.floor
+
+The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.
+
+ADR 0005 decision 10’s “most restrictive”, read as the maintainer decided it
+(an#236): rights attach to the bytes. A file is as restricted as the strictest
+statement ANY library known on this machine makes about its SHA-256 — whichever
+library one reads through — and only an explicit, recorded relicence relaxes it.
+
+**What a statement is.** Each version that holds a blob says one thing about it:
+
+- the version’s own per-part `source` for that exact file, if the source pins
+  the same digest (`AssetSource.sha256`) — a per-part claim about OTHER bytes
+  (a stale factory stamp on a re-carved part) itemises nothing;
+- otherwise the asset’s own label: its asset-level and descriptor sources and
+  its lineage — what the asset says about every file it does not itemise;
+- for a relicensed version, its relicence.
+
+**Where the statements live.** Each library keeps a derived store,
+`blob_rights`: `sha256 -> {"<library>:<asset_id>": statement}`, one entry
+per asset (its latest version holding the blob), maintained by `publish` and
+rebuilt by [`an.library.api.reindex()`](_autosummary/an.library.api.html.md#an.library.api.reindex). Reading a floor is one key lookup per
+library, so the cross-library check costs nothing like a scan.
+
+**Which libraries.** Those on the search path, plus every library it can
+DISCOVER: each package root under the current platform data folder
+(`~/.local/share/an`, `~/.local/share/cutan`, …) and each currently set
+`<PKG>_HOME` root — so the core library, which no genre’s search path makes it
+read, still sees a genre’s private bytes. A library at a custom `--root`, or
+under an environment that has since changed, is not discovered; a root registry
+independent of the environment closes that (an#249). Until then, keep study
+libraries under the default root.
+
+### Functions
+
+| [`machine_libraries`](_autosummary/an.library.floor.html.md#an.library.floor.machine_libraries)([libraries, environ, platform])   | `libraries` (first, as given) plus every other library root on this machine.   |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`record_statement`](_autosummary/an.library.floor.html.md#an.library.floor.record_statement)(store, digest, asset_key, ...)     | Record what `asset_key` says about `digest`: its latest holding version wins.  |
+
+### Classes
+
+| [`BlobFloor`](_autosummary/an.library.floor.html.md#an.library.floor.BlobFloor)([libraries, discover])   | The strictest statements about a blob, over every library on the machine, memoised.   |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+
+### *class* an.library.floor.BlobFloor(libraries=None, , discover=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The strictest statements about a blob, over every library on the machine, memoised.
+
+Build one per operation (a publish, a search, a check-out): it opens the
+machine’s libraries once and reads each digest once.
+
+#### statements(digest)
+
+`{asset_key: statement}` about `digest` from every library.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+#### strictest(digests)
+
+The strictest class any statement makes about any of `digests` (`free` if none).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.floor.machine_libraries(libraries=None, , environ=None, platform=None)
+
+`libraries` (first, as given) plus every other library root on this machine.
+
+Roots already on the path are not opened twice; a folder whose name is not a
+valid library name is skipped.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
+
+### an.library.floor.record_statement(store, digest, asset_key, statement)
+
+Record what `asset_key` says about `digest`: its latest holding version wins.
+
+A later version of an asset may only be as strict or stricter than an
+earlier one (it inherits it), unless it is relicensed — so the latest
+version’s statement is the asset’s statement.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+
+# _autosummary/an.library.html.md
+
+# an.library
+
+The asset library: reusable assets that outlive their videos (ADR 0005).
+
+A **library** holds characters, props, environments, sounds, styles, voices and
+motion clips across videos and styles; a **project** is one video that checks
+assets out of it. Each package has its own library root (`an` →
+`~/.local/share/an`, a genre such as `cutan` → `~/.local/share/cutan`),
+read together as an ordered search path.
+
+```pycon
+>>> import tempfile
+>>> from an.characters.schema import CharacterDescriptor
+>>> with tempfile.TemporaryDirectory() as d:
+...     lib = open_library("an", root=d)
+...     doc = CharacterDescriptor(name="blob")
+...     r = publish(lib, "character.blob", doc, style="reiniger")
+...     [h.ref for h in find(lib, kind="character", affords="swap.view:front")]
+['character.blob@v001']
+```
+
+What lives where:
+
+- [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root) — the root of each package’s data (vendored XDG logic);
+- [`an.library.ids`](_autosummary/an.library.ids.html.md#module-an.library.ids) — asset ids, version labels, library references;
+- [`an.library.stores`](_autosummary/an.library.stores.html.md#module-an.library.stores) — the mall: `records`, write-once `versions`,
+  content-addressed `blobs`, all injected `MutableMapping` s;
+- [`an.library.federation`](_autosummary/an.library.federation.html.md#module-an.library.federation) — [`Library`](_autosummary/an.library.html.md#an.library.Library) and the search path;
+- [`an.library.affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances) — capabilities and per-kind analysers (the seed
+  of ADR 0002’s registry); [`an.library.character`](_autosummary/an.library.character.html.md#module-an.library.character) — the character analyser;
+- [`an.library.rights`](_autosummary/an.library.rights.html.md#module-an.library.rights) — the most-restrictive roll-up over `AssetSource`;
+- [`an.library.api`](_autosummary/an.library.api.html.md#module-an.library.api) — `publish`, `find`, `vocabulary`, `show`,
+  `promote`; [`an.library.checkout`](_autosummary/an.library.html.md#an.library.checkout) — `checkout`, `verify_checkout`,
+  `check_pins`; [`an.library.lock`](_autosummary/an.library.lock.html.md#module-an.library.lock) — the project lockfile;
+- [`an.library.cli`](_autosummary/an.library.cli.html.md#module-an.library.cli) — `an library …`, a projection of the same functions.
+
+### Functions
+
+| [`analyse`](_autosummary/an.library.html.md#an.library.analyse)(kind, doc, art)                            | `(affordances, analysers)` of one asset: its capabilities and the analyser versions used.                                                     |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`build_library_mall`](_autosummary/an.library.html.md#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
+| [`check_pins`](_autosummary/an.library.html.md#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
+| [`checkout`](_autosummary/an.library.html.md#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
+| [`effective_rights`](_autosummary/an.library.html.md#an.library.effective_rights)(libraries, version, \*[, floor])  | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
+| [`find`](_autosummary/an.library.html.md#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
+| [`library_root`](_autosummary/an.library.html.md#an.library.library_root)([root, package, environ, platform])   | The data root of `package` — its library and its projects live under it.                                                                      |
+| [`open_library`](_autosummary/an.library.html.md#an.library.open_library)([package, root])                      | The library of `package`, at `root` (resolved as in [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root)). |
+| [`parse_ref`](_autosummary/an.library.html.md#an.library.parse_ref)(text, \*[, require_version, ...])        | Parse a library reference.                                                                                                                    |
+| [`project_dir`](_autosummary/an.library.html.md#an.library.project_dir)(project_id[, root, package, environ])  | The default directory of the agent-made project `project_id` (design §7.5).                                                                   |
+| [`projects_root`](_autosummary/an.library.html.md#an.library.projects_root)([root, package, environ])            | Where agent-made projects go by default: `<root>/projects/`.                                                                                  |
+| [`promote`](_autosummary/an.library.html.md#an.library.promote)(libraries, ref, \*[, to, as_id, ...])      | Copy one version into another library — by default the core `an` library.                                                                     |
+| [`publish`](_autosummary/an.library.html.md#an.library.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.                                                                 |
+| [`publish_dir`](_autosummary/an.library.html.md#an.library.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).                                                           |
+| [`reindex`](_autosummary/an.library.html.md#an.library.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                                                                            |
+| [`register_analyser`](_autosummary/an.library.html.md#an.library.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                                                                          |
+| [`register_asset_kind`](_autosummary/an.library.html.md#an.library.register_asset_kind)(name, \*[, store, ...])        | Register (or re-register) an asset kind.                                                                                                      |
+| [`register_capability`](_autosummary/an.library.html.md#an.library.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                                                                       |
+| [`resolve`](_autosummary/an.library.html.md#an.library.resolve)(libraries, ref)                            | `(library, pinned_ref, version_doc)` for a reference, along the search path.                                                                  |
+| [`roll_up`](_autosummary/an.library.html.md#an.library.roll_up)(sources, \*[, inherited])                  | Roll labelled sources (and parents' rights) up to one [`Rights`](_autosummary/an.library.html.md#an.library.Rights).                                |
+| [`scan_index`](_autosummary/an.library.html.md#an.library.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                                                                                |
+| [`search_path`](_autosummary/an.library.html.md#an.library.search_path)([package, extra, roots])               | The ordered libraries `package` reads: its own, then the core `an`, then `extra`.                                                             |
+| [`show`](_autosummary/an.library.html.md#an.library.show)(libraries, ref)                               | The record, the resolved version, its recomputed rights and the list of versions.                                                             |
+| [`verify_checkout`](_autosummary/an.library.html.md#an.library.verify_checkout)(libraries, project_dir, \*[, ...]) | `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.                                                         |
+| [`vocabulary`](_autosummary/an.library.html.md#an.library.vocabulary)(libraries, \*[, index])                 | Every facet with its values and counts, and the registered capabilities.                                                                      |
+
+### Classes
+
+| [`Capability`](_autosummary/an.library.html.md#an.library.Capability)(name, description, remedy)             | A registered capability name, what it means, and how to add it.                      |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
+| [`FindResult`](_autosummary/an.library.html.md#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
+| [`Hit`](_autosummary/an.library.html.md#an.library.Hit)(library, asset_id, version, score[, ...])     | One asset that answers a query — or nearly does (`missing` non-empty).               |
+| [`Library`](_autosummary/an.library.html.md#an.library.Library)(name, mall[, root])                       | One library: its name (the namespace of its ids), its mall, and its root if on disk. |
+| [`LibraryRef`](_autosummary/an.library.html.md#an.library.LibraryRef)(asset_id[, version, namespace])        | A parsed `[<namespace>:]<asset_id>[@<version>]`.                                     |
+| [`ProjectLock`](_autosummary/an.library.html.md#an.library.ProjectLock)(project_dir)                          | `<store>/<key> -> pin` over a project's `assets.lock.json`.                          |
+| [`PublishResult`](_autosummary/an.library.html.md#an.library.PublishResult)(ref, manifest_sha256, created, ...) | What a publish did: the version it names, and whether it made one.                   |
+| [`Rights`](_autosummary/an.library.html.md#an.library.Rights)(license_class[, reasons])                  | The rolled-up rights of one version, as stored on it.                                |
+
+### Exceptions
+
+| [`AssetIdError`](_autosummary/an.library.html.md#an.library.AssetIdError)       | An asset id, version label or library reference that does not parse.             |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`AssetNotFoundError`](_autosummary/an.library.html.md#an.library.AssetNotFoundError) | No library on the search path holds the asset or version asked for.              |
+| [`CheckoutError`](_autosummary/an.library.html.md#an.library.CheckoutError)      | A version cannot be materialised into this project as asked.                     |
+| [`IntegrityError`](_autosummary/an.library.html.md#an.library.IntegrityError)     | Stored bytes, paths or a stored manifest do not match what was recorded.         |
+| [`LibraryError`](_autosummary/an.library.html.md#an.library.LibraryError)       | A library operation refused, with a sentence saying why and what to do.          |
+| [`RightsRefusal`](_autosummary/an.library.html.md#an.library.RightsRefusal)      | A private or unknown version would leave the user's library without an override. |
+| [`VersionExistsError`](_autosummary/an.library.html.md#an.library.VersionExistsError) | A write-once key was written twice, or deleted.                                  |
+
+### *exception* an.library.AssetIdError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+An asset id, version label or library reference that does not parse.
+
+### *exception* an.library.AssetNotFoundError
+
+Bases: [`LookupError`](https://docs.python.org/3/builtins/exceptions.html#LookupError)
+
+No library on the search path holds the asset or version asked for.
+
+### *class* an.library.Capability(name, description, remedy)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A registered capability name, what it means, and how to add it.
+
+### *exception* an.library.CheckoutError
+
+Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.LibraryError)
+
+A version cannot be materialised into this project as asked.
+
+### *class* an.library.CheckoutResult(ref, store, key, manifest_sha256, files, changed, rights)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Where a checked-out version landed in the project, and its pin.
+
+#### asset_ref(entity_id=None)
+
+An [`AssetRef`](_autosummary/an.ir.schema.html.md#an.ir.schema.AssetRef) casting this asset, pinned by `library`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### *class* an.library.FindResult(hits, near, counts)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Hits, near misses (with `near=True`), and per-facet value counts over the hits.
+
+#### to_dict()
+
+A JSON-ready view.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.library.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=<factory>, remedies=<factory>, federated=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One asset that answers a query — or nearly does (`missing` non-empty).
+
+#### *property* ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+namespaced when the search spanned several libraries.
+
+* **Type:**
+  The reference to pin
+
+#### to_dict()
+
+A JSON-ready view (CLI `--json`, MCP).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *exception* an.library.IntegrityError
+
+Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.LibraryError)
+
+Stored bytes, paths or a stored manifest do not match what was recorded.
+
+### *class* an.library.Library(name, mall, root=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One library: its name (the namespace of its ids), its mall, and its root if on disk.
+
+#### *property* blob_rights *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`sha256 -> {asset: statement}`, derived ([`an.library.floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)).
+
+#### *property* blobs *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`sha256 -> bytes` (content-addressed).
+
+#### *property* records *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`asset_id -> record` (mutable curation).
+
+#### *property* versions *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+`<asset_id>@<vNNN> -> version` (write-once).
+
+### *exception* an.library.LibraryError
+
+Bases: [`Exception`](https://docs.python.org/3/builtins/exceptions.html#Exception)
+
+A library operation refused, with a sentence saying why and what to do.
+
+### *class* an.library.LibraryRef(asset_id, version=None, namespace=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A parsed `[<namespace>:]<asset_id>[@<version>]`.
+
+`version` is `None` when the reference gave none (read as `latest` by
+readers; refused where a pin is required, e.g. `AssetRef.library`).
+
+#### *property* is_pinned *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether this names one immutable version (a label or a content hash).
+
+#### *property* kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The asset kind, from the id’s prefix.
+
+#### with_namespace(namespace)
+
+The same asset and version, qualified by another library name.
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
+#### with_version(version)
+
+The same asset, another version.
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
+### *class* an.library.ProjectLock(project_dir)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`<store>/<key> -> pin` over a project’s `assets.lock.json`.
+
+Every write rewrites the whole (small) file, sorted, so the lockfile diffs
+cleanly under version control.
+
+### *class* an.library.PublishResult(ref, manifest_sha256, created, rights, affordances)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a publish did: the version it names, and whether it made one.
+
+### *class* an.library.Rights(license_class, reasons=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The rolled-up rights of one version, as stored on it.
+
+#### *classmethod* from_dict(d)
+
+Read a version’s `rights` block back.
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
+#### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a video containing this asset may ship.
+
+#### to_dict()
+
+The `rights` block of a version document.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *exception* an.library.RightsRefusal
+
+Bases: [`PermissionError`](https://docs.python.org/3/builtins/exceptions.html#PermissionError)
+
+A private or unknown version would leave the user’s library without an override.
+
+### *exception* an.library.VersionExistsError
+
+Bases: [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError)
+
+A write-once key was written twice, or deleted. Versions are immutable.
+
+### an.library.analyse(kind, doc, art)
+
+`(affordances, analysers)` of one asset: its capabilities and the analyser versions used.
+
+A kind with no registered analyser affords nothing *derived* and records no
+analyser — an honest empty answer, not a guess.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.library.build_library_mall(root=None, , package='an', \*\*overrides)
+
+The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
+
+root: the package’s data root (default: resolved by
+: [`an.library.root.library_root()`](_autosummary/an.library.root.html.md#an.library.root.library_root) — `root` → `<PKG>_HOME` → the
+  platform data folder); the stores live under `<root>/library/`
+
+package: whose library this is (`an`, or a genre such as `cutan`)
+overrides: a store per name to inject instead of the folder default — a
+
+> `dict` for tests, an S3 or database mapping later. An injected
+> `versions` is still made write-once and an injected `blobs` still
+> content-addressed and undeletable, so injection cannot drop an invariant.
+
+Nothing is created until the first write: opening a library (or mistyping
+one on a search path) leaves the disk as it was.
+
+### an.library.check_pins(scene, lock)
+
+Findings where a scene’s `AssetRef.library` and the project lockfile disagree.
+
+Two records of one pin can drift (a re-check-out updates the lockfile, not
+the scene). Until the lockfile joins the project mall and `an validate`
+runs this (an#240), call it yourself; each disagreement is a `warning`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False)
+
+Materialise a library version into a project, carry its rights, pin it.
+
+* **Return type:**
+  [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)
+
+project_dir: the project to check out into
+ref: `[<library>:]<asset_id>[@<version>]`; `latest` (or no version) is
+
+> resolved now and pinned
+
+key: the key in the project store (default: the asset id’s slug)
+mall: the project mall (default: `build_project_mall(project_dir)`)
+lock: the lockfile mapping (default: `<project_dir>/assets.lock.json`)
+overwrite: replace an existing entry that is not exactly this version — a
+
+> local fork (any edited file or descriptor) or another asset; without it
+> that is refused
+
+Every stored path, blob and the manifest are verified before anything is
+written, and every file is written inside the entry’s folder or not at all.
+Editing the checked-out copy forks it; `publish` of the edited folder
+sends it back as a new version derived from this one.
+
+### an.library.effective_rights(libraries, version, \*, floor=<object object>)
+
+The rights of a version, recomputed from its sources, its lineage and its bytes.
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.vase", {"name": "vase"},
+...             source={"provider": "film", "license": "all-rights-reserved"})
+>>> effective_rights(lib, read_version(lib, "prop.vase", "v001")).license_class
+'private'
+```
+
+### an.library.find(libraries, \*, kind=None, style=None, affords=None, rights='any', family=None, origin=None, status=None, tags=None, art=None, near=False, index=<function scan_index>)
+
+Assets matching every facet given (AND across facets, OR within one facet’s values).
+
+* **Return type:**
+  [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)
+
+affords: capabilities the asset must ALL have — `limbs.legs`, or
+: `swap.view:side` for a capability with a given key. Each capability is
+  its own boolean facet, so a list of them is AND, as across facets. An
+  unregistered name raises, naming the close ones
+
+rights: `any` (default — study renders are legitimate), `publishable`
+: (`free` + `attribution`), or licence classes. Rights are recomputed
+  from each version’s sources and lineage, not read from its cache
+
+near: also return assets that pass every other facet but miss some
+: capabilities, each with what is missing and the remedy that would add it
+
+index: the index to read (default: a scan of the stores)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, style=["reiniger", "gilliam"])
+>>> [h.ref for h in find(lib, kind="prop", style="gilliam")]
+['prop.lamp@v001']
+>>> len(find(lib, kind="prop", rights="publishable"))  # no source: unknown
+0
+```
+
+### an.library.library_root(root=None, , package='an', environ=None, platform=None)
+
+The data root of `package` — its library and its projects live under it.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+root: an explicit root; wins over everything
+package: the package whose root this is (`an` for the core library, a
+
+> genre’s own name for its library)
+
+environ: the environment to read (default `os.environ`; injectable for tests)
+platform: `sys.platform` value to resolve for (default: this one)
+
+```pycon
+>>> library_root("~/x", package="an").name
+'x'
+```
+
+### an.library.open_library(package='an', root=None, \*\*overrides)
+
+The library of `package`, at `root` (resolved as in [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root)).
+
+* **Return type:**
+  [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)
+
+overrides: stores to inject (`records`, `versions`, `blobs`), as in
+: [`an.library.stores.build_library_mall()`](_autosummary/an.library.stores.html.md#an.library.stores.build_library_mall)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> (lib.name, lib.root)
+('an', None)
+```
+
+### an.library.parse_ref(text, , require_version=False, require_pin=False)
+
+Parse a library reference.
+
+`require_version=True` refuses a reference with no `@<version>`;
+`require_pin=True` also refuses `@latest` — the grammar of
+`AssetRef.library`, where a floating reference would make a render depend
+on whatever the library’s head is that day.
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
+```pycon
+>>> parse_ref("character.alice")
+LibraryRef(asset_id='character.alice', version=None, namespace=None)
+>>> parse_ref("character.alice@sha256:0a1b2c3d").version
+'sha256:0a1b2c3d'
+>>> parse_ref("character.alice", require_version=True)
+Traceback (most recent call last):
+AssetIdError: ...
+```
+
+### an.library.project_dir(project_id, root=None, , package='an', environ=None)
+
+The default directory of the agent-made project `project_id` (design §7.5).
+
+`an init <dir>` with an explicit directory keeps working anywhere; this is
+the default for projects an agent makes, so they never land in a session’s
+working folder or a repository.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> project_dir("alice-and-bob", "/lib").as_posix()
+'/lib/projects/alice-and-bob'
+>>> project_dir("../escape", "/lib")
+Traceback (most recent call last):
+ValueError: ...
+```
+
+### an.library.projects_root(root=None, , package='an', environ=None)
+
+Where agent-made projects go by default: `<root>/projects/`.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> projects_root("/lib", package="cutan").as_posix()
+'/lib/projects'
+```
+
+### an.library.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False)
+
+Copy one version into another library — by default the core `an` library.
+
+An asset made in a genre’s library and reused across genres is promoted to the
+core (plan §1 decision 7). The copy is a new version in the target, derived
+from the source version, with the record’s curation carried over.
+
+- A `private` or `unknown` version is refused unless
+  `allow_restricted=True`: private-study material never leaves its library
+  by default (ADR 0005 decision 10). The rights checked are recomputed from
+  the version’s sources and lineage, and the stricter of those and the
+  stored ones wins.
+- If the target already has an asset with this id that does not derive from
+  the one promoted (another character that happens to share the id), it is
+  refused: promoting would make it a new version of an unrelated asset.
+  `as_id` promotes under another id.
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
+### an.library.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+
+Publish `doc` and its `files` as the next version of `asset_id` in `library`.
+
+library: the owning library (writes never go to a search path)
+asset_id: `<kind>.<slug>`; the kind must be registered
+doc: the descriptor — the existing document `an` already versions
+
+> (`CharacterDescriptor`, …), as a model or its JSON dict, stored verbatim
+
+files: the asset’s files, by the relative paths the descriptor uses
+: (`parts/head.svg`) — stored once each in the content-addressed blobs
+
+source: provenance declared for the asset as a whole. It contributes BESIDE
+: the descriptor’s own `source` (the most restrictive wins), never
+  instead of it. With no `source` and none in the descriptor, the source
+  of the previous version carries forward (`carry_source`); with none at
+  all the version is `unknown` — recorded and visible, not refused
+
+relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
+: Rights attach to the bytes and the lineage: a new version inherits the
+  version it follows (`previous`), every version it derives from, and
+  every version holding the same file bytes, and may only be more
+  restrictive than they are — a cc0 in the descriptor or in `source=`
+  never relabels private art. A relicence makes `source` (required) the
+  whole statement, records who and why on the version (and in its
+  manifest and reasons), and covers these bytes for later versions
+
+derived_from: library references this version derives from (an earlier version,
+: the original of a recolour); each must resolve, and its rights are inherited.
+  A descriptor checked out of a library derives from its origin by default
+
+title, family, style, origin, status, tags: curation, stored on the record;
+: given again with unchanged content they update the record and make no
+  version. `style` and `tags` add to what is there, or replace it with
+  `replace_curation=True`
+
+note: what changed, stored on the version
+expect_head: guard against publishing into an asset you did not mean:
+
+> `None` — the id must be new; `"vNNN"` — the head must be that version
+
+search: further libraries where `derived_from` references resolve (the
+: owning library is always searched first)
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> doc = {"name": "lamp", "source": {"provider": "me", "license": "cc0-1.0"}}
+>>> r = publish(lib, "prop.lamp", doc, {"parts/lamp.svg": b"<svg/>"}, style="reiniger")
+>>> str(r.ref), r.created, r.rights.license_class
+('an:prop.lamp@v001', True, 'free')
+>>> publish(lib, "prop.lamp", doc, {"parts/lamp.svg": b"<svg/>"}).created
+False
+```
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
+### an.library.publish_dir(library, folder, asset_id, \*\*kwargs)
+
+Publish an asset folder as it sits in a project store (`assets/characters/alice/`).
+
+The descriptor is the kind’s descriptor file (`character.json`); every other
+non-hidden file under the folder is published as one of the asset’s files, so
+a check-out reproduces the folder. Keyword arguments go to [`publish()`](_autosummary/an.library.html.md#an.library.publish).
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
+### an.library.register_analyser(kind, , version)
+
+Decorator: register `derive` as the analyser of `kind` at `version`.
+
+Bump `version` whenever the derivation’s output can change for the same
+input: versions published under the old one are then recomputed on read.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]], [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]]
+
+### an.library.register_asset_kind(name, , store=None, descriptor=None, credits_store=None)
+
+Register (or re-register) an asset kind. Returns it.
+
+* **Return type:**
+  [`AssetKind`](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)
+
+### an.library.register_capability(name, , description, remedy)
+
+Register (or re-register) a capability. Returns it.
+
+* **Return type:**
+  [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)
+
+### an.library.reindex(library, , search=None)
+
+Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
+
+The index is derived data: rebuilding it is always safe, and the way to
+repair a library whose index was lost or written by an older `an`.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+### an.library.resolve(libraries, ref)
+
+`(library, pinned_ref, version_doc)` for a reference, along the search path.
+
+A namespaced reference reads only its library; a bare one reads the first
+library holding the asset. `latest` resolves to that library’s head and
+`sha256:<prefix>` to the one version whose manifest hash starts with it.
+The returned reference is pinned (`vNNN`) and namespaced with the library
+it resolved in.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library), [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.library.roll_up(sources, , inherited=())
+
+Roll labelled sources (and parents’ rights) up to one [`Rights`](_autosummary/an.library.html.md#an.library.Rights).
+
+A `None` source is `unknown`. The reasons name every contributor of the
+winning class, so a reader sees *why* a version is restricted.
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
+```pycon
+>>> roll_up([("asset", None)]).to_dict()
+{'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
+```
+
+### an.library.scan_index(library)
+
+Every asset’s head version in `library`, read from the stores.
+
+Affordances snapshotted by an older analyser are recomputed, not trusted. A
+record or version that cannot be read (a damaged file) is skipped with a
+`LibraryIndexWarning` naming it, so one bad entry never blinds every
+search.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`IndexEntry`](_autosummary/an.library.api.html.md#an.library.api.IndexEntry)]
+
+### an.library.search_path(package='an', , extra=(), roots=None)
+
+The ordered libraries `package` reads: its own, then the core `an`, then `extra`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
+
+extra: further libraries, by package name (resolved like any root) or as
+: [`Library`](_autosummary/an.library.html.md#an.library.Library) objects (a team share, a seed library)
+
+roots: an explicit root per package name (tests, a non-default layout);
+: unnamed packages resolve as usual (`<PKG>_HOME`, then the data folder)
+
+A name appears once, at its first position.
+
+### an.library.show(libraries, ref)
+
+The record, the resolved version, its recomputed rights and the list of versions.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, title="A lamp")
+>>> s = show(lib, "prop.lamp")
+>>> s["ref"], s["record"]["title"], s["versions"]
+('an:prop.lamp@v001', 'A lamp', ['v001'])
+```
+
+### an.library.verify_checkout(libraries, project_dir, , mall=None, lock=None)
+
+`{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.
+
+What makes a pin usable as more than provenance: an entry with no
+differences is byte-for-byte the version its pin names.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.library.vocabulary(libraries, \*, index=<function scan_index>)
+
+Every facet with its values and counts, and the registered capabilities.
+
+What an agent reads to turn words into a typed query (spectrum (b)): “a
+Reiniger character who can walk in profile” → `style=reiniger`,
+`affords=["limbs.legs", "swap.view:side"]`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> v = vocabulary(lib)
+>>> sorted(v)
+['capabilities', 'facets', 'kinds', 'rights', 'statuses']
+>>> "limbs.legs" in v["capabilities"]
+True
+```
+
+### Modules
+
+| [`affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                    |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| [`api`](_autosummary/an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                               |
+| [`character`](_autosummary/an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                       |
+| [`cli`](_autosummary/an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                  |
+| [`federation`](_autosummary/an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).         |
+| [`floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes. |
+| [`ids`](_autosummary/an.library.ids.html.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                      |
+| [`kinds`](_autosummary/an.library.kinds.html.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                    |
+| [`lock`](_autosummary/an.library.lock.html.md#module-an.library.lock)                 | The project lockfile: which library version each checked-out asset came from.                          |
+| [`rights`](_autosummary/an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).    |
+| [`root`](_autosummary/an.library.root.html.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).    |
+| [`stores`](_autosummary/an.library.stores.html.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                |
+
+
+# _autosummary/an.library.ids.html.md
+
+# an.library.ids
+
+Asset ids, version labels and library references — the library’s persisted names.
+
+Three grammars, each a persisted identifier (ADR 0005 decisions 3 and 4, plan §1
+decision 7), so each is checked here once and never re-parsed by hand elsewhere:
+
+- an **asset id** is `<kind>.<slug>` — flat, readable, filename-safe
+  (`character.alice-reiniger`). The kind prefix keeps two kinds from colliding
+  on one slug and makes `find(kind=…)` cheap;
+- a **version label** is `v001`, `v002`, … — the studio convention, for
+  people. The version’s `manifest_sha256` is its identity for machines;
+- a **library reference** is `[<namespace>:]<asset_id>[@<version>]`, where
+  `<version>` is a label, `latest` (floating; resolved once at check-out and
+  pinned) or `sha256:<prefix>` (exact content). The namespace names the library
+  an id resolves in when several are federated (`cutan:character.alice@v003`).
+
+Because these strings become file names (`records/<asset_id>.json`,
+`versions/<asset_id>/<vNNN>.json`), the grammars are also the path-traversal
+guard: nothing that parses here can contain `/`, `..` or a drive letter.
+
+```pycon
+>>> ref = parse_ref("cutan:character.alice-reiniger@v003")
+>>> (ref.namespace, ref.asset_id, ref.version, ref.kind)
+('cutan', 'character.alice-reiniger', 'v003', 'character')
+>>> str(ref)
+'cutan:character.alice-reiniger@v003'
+>>> version_label(12)
+'v012'
+```
+
+### Module Attributes
+
+| [`LATEST`](_autosummary/an.library.ids.html.md#an.library.ids.LATEST)        | the record's head, resolved once and then pinned.                           |
+|----------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`SHA256_PREFIX`](_autosummary/an.library.ids.html.md#an.library.ids.SHA256_PREFIX) | The prefix of a content-addressed version selector (`sha256:<hex prefix>`). |
+
+### Functions
+
+| [`asset_kind`](_autosummary/an.library.ids.html.md#an.library.ids.asset_kind)(asset_id)                        | The kind an asset id declares by its prefix.                                                                          |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| [`check_asset_id`](_autosummary/an.library.ids.html.md#an.library.ids.check_asset_id)(asset_id)                    | Return `asset_id` if it is `<kind>.<slug>`, else raise [`AssetIdError`](_autosummary/an.library.ids.html.md#an.library.ids.AssetIdError). |
+| [`check_namespace`](_autosummary/an.library.ids.html.md#an.library.ids.check_namespace)(name)                       | Return `name` if it can name a library (a package name), else raise.                                                  |
+| [`check_version_label`](_autosummary/an.library.ids.html.md#an.library.ids.check_version_label)(label)                  | Return `label` if it is `vNNN`, else raise [`AssetIdError`](_autosummary/an.library.ids.html.md#an.library.ids.AssetIdError).             |
+| [`parse_ref`](_autosummary/an.library.ids.html.md#an.library.ids.parse_ref)(text, \*[, require_version, ...]) | Parse a library reference.                                                                                            |
+| [`version_label`](_autosummary/an.library.ids.html.md#an.library.ids.version_label)(number)                       | The label of the `number`-th version (1-based).                                                                       |
+| [`version_number`](_autosummary/an.library.ids.html.md#an.library.ids.version_number)(label)                       | The number of a version label.                                                                                        |
+
+### Classes
+
+| [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)(asset_id[, version, namespace])   | A parsed `[<namespace>:]<asset_id>[@<version>]`.   |
+|-----------------------------------------------------------------------------------------------|----------------------------------------------------|
+
+### Exceptions
+
+| [`AssetIdError`](_autosummary/an.library.ids.html.md#an.library.ids.AssetIdError)   | An asset id, version label or library reference that does not parse.   |
+|-----------------------------------------------------------------|------------------------------------------------------------------------|
+
+### *exception* an.library.ids.AssetIdError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+An asset id, version label or library reference that does not parse.
+
+### an.library.ids.LATEST *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'latest'*
+
+the record’s head, resolved once and then pinned.
+
+* **Type:**
+  The floating version
+
+### *class* an.library.ids.LibraryRef(asset_id, version=None, namespace=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A parsed `[<namespace>:]<asset_id>[@<version>]`.
+
+`version` is `None` when the reference gave none (read as `latest` by
+readers; refused where a pin is required, e.g. `AssetRef.library`).
+
+#### *property* is_pinned *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether this names one immutable version (a label or a content hash).
+
+#### *property* kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The asset kind, from the id’s prefix.
+
+#### with_namespace(namespace)
+
+The same asset and version, qualified by another library name.
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
+#### with_version(version)
+
+The same asset, another version.
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
+### an.library.ids.SHA256_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'sha256:'*
+
+The prefix of a content-addressed version selector (`sha256:<hex prefix>`).
+
+### an.library.ids.asset_kind(asset_id)
+
+The kind an asset id declares by its prefix.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> asset_kind("environment.palace-hall")
+'environment'
+```
+
+### an.library.ids.check_asset_id(asset_id)
+
+Return `asset_id` if it is `<kind>.<slug>`, else raise [`AssetIdError`](_autosummary/an.library.ids.html.md#an.library.ids.AssetIdError).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> check_asset_id("prop.teacup-victorian")
+'prop.teacup-victorian'
+>>> check_asset_id("Alice")
+Traceback (most recent call last):
+AssetIdError: ...
+```
+
+### an.library.ids.check_namespace(name)
+
+Return `name` if it can name a library (a package name), else raise.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.ids.check_version_label(label)
+
+Return `label` if it is `vNNN`, else raise [`AssetIdError`](_autosummary/an.library.ids.html.md#an.library.ids.AssetIdError).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.ids.parse_ref(text, , require_version=False, require_pin=False)
+
+Parse a library reference.
+
+`require_version=True` refuses a reference with no `@<version>`;
+`require_pin=True` also refuses `@latest` — the grammar of
+`AssetRef.library`, where a floating reference would make a render depend
+on whatever the library’s head is that day.
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
+```pycon
+>>> parse_ref("character.alice")
+LibraryRef(asset_id='character.alice', version=None, namespace=None)
+>>> parse_ref("character.alice@sha256:0a1b2c3d").version
+'sha256:0a1b2c3d'
+>>> parse_ref("character.alice", require_version=True)
+Traceback (most recent call last):
+AssetIdError: ...
+```
+
+### an.library.ids.version_label(number)
+
+The label of the `number`-th version (1-based).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> version_label(1), version_label(1000)
+('v001', 'v1000')
+```
+
+### an.library.ids.version_number(label)
+
+The number of a version label.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+```pycon
+>>> version_number("v012")
+12
+```
+
+
+# _autosummary/an.library.kinds.html.md
+
+# an.library.kinds
+
+Asset kinds: the `kind` facet’s vocabulary, and where each kind lives in a project.
+
+An asset id’s prefix is its kind (`character.alice`). A kind says two things the
+library needs for check-out and for publishing from a folder: which project
+store holds it (`characters`) and what its descriptor file is called inside a
+folder (`character.json`). Kinds with no project store yet (`motion`,
+`reference`, `plane`) can be published and found, not checked out.
+
+Genre packages register their kinds on import (ADR 0005 decision 12); the
+built-ins below are the kinds `an`’s project mall already stores, plus the ones
+the design names.
+
+```pycon
+>>> asset_kind_info("character").store
+'characters'
+>>> asset_kind_info("motion").store is None
+True
+```
+
+### Module Attributes
+
+| [`ASSET_KINDS`](_autosummary/an.library.kinds.html.md#an.library.kinds.ASSET_KINDS)   | Registered asset kinds, by name.   |
+|----------------------------------------------------------------|------------------------------------|
+
+### Functions
+
+| [`asset_kind_info`](_autosummary/an.library.kinds.html.md#an.library.kinds.asset_kind_info)(name)                       | The registered kind `name`, or [`UnknownKindError`](_autosummary/an.library.kinds.html.md#an.library.kinds.UnknownKindError) naming the known ones.   |
+|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`register_asset_kind`](_autosummary/an.library.kinds.html.md#an.library.kinds.register_asset_kind)(name, \*[, store, ...]) | Register (or re-register) an asset kind.                                                                                  |
+
+### Classes
+
+| [`AssetKind`](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)(name, store, descriptor[, ...])   | One asset kind: its project store and its descriptor file name in a folder.   |
+|----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`UnknownKindError`](_autosummary/an.library.kinds.html.md#an.library.kinds.UnknownKindError)   | An asset id whose kind prefix nobody registered.   |
+|---------------------------------------------------------------------|----------------------------------------------------|
+
+### an.library.kinds.ASSET_KINDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [AssetKind](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)]* *= {'character': AssetKind(name='character', store='characters', descriptor='character.json', credits_store='characters'), 'environment': AssetKind(name='environment', store='environments', descriptor='meta.json', credits_store='environments'), 'motion': AssetKind(name='motion', store=None, descriptor=None, credits_store=None), 'plane': AssetKind(name='plane', store=None, descriptor=None, credits_store=None), 'prop': AssetKind(name='prop', store='props', descriptor='prop.json', credits_store='props'), 'reference': AssetKind(name='reference', store=None, descriptor=None, credits_store=None), 'sound': AssetKind(name='sound', store='sounds', descriptor='sound.json', credits_store='sounds'), 'style': AssetKind(name='style', store='styles', descriptor=None, credits_store=None), 'voice': AssetKind(name='voice', store='voices', descriptor=None, credits_store=None)}*
+
+Registered asset kinds, by name.
+
+### *class* an.library.kinds.AssetKind(name, store, descriptor, credits_store=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One asset kind: its project store and its descriptor file name in a folder.
+
+`descriptor` is `None` for kinds whose project store keeps one JSON
+document per key with no folder (voices, styles): such an asset has no files.
+
+#### credits_store *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The `an credits` store name its sources are read under (rights roll-up);
+`None` reads the top-level `source` only.
+
+### *exception* an.library.kinds.UnknownKindError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+An asset id whose kind prefix nobody registered.
+
+### an.library.kinds.asset_kind_info(name)
+
+The registered kind `name`, or [`UnknownKindError`](_autosummary/an.library.kinds.html.md#an.library.kinds.UnknownKindError) naming the known ones.
+
+* **Return type:**
+  [`AssetKind`](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)
+
+### an.library.kinds.register_asset_kind(name, , store=None, descriptor=None, credits_store=None)
+
+Register (or re-register) an asset kind. Returns it.
+
+* **Return type:**
+  [`AssetKind`](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)
+
+
+# _autosummary/an.library.lock.html.md
+
+# an.library.lock
+
+The project lockfile: which library version each checked-out asset came from.
+
+`assets.lock.json` at the project root (design §7.2), one entry per checked-out
+asset, keyed `<store>/<key>` (`characters/alice`) — the address the scene’s
+`AssetRef` already uses:
+
+```json
+{"schema_version": "0.1.0",
+ "assets": {"characters/alice": {"library": "cutan:character.alice-reiniger@v002",
+                                 "manifest_sha256": "…", "checked_out": "…"}}}
+```
+
+The pin records **provenance**: where each checked-out copy came from, so a
+project can be rebuilt from the library. It is not a content key — the copy in
+the project can be edited after it is pinned; `an.library.checkout.verify_checkout()`
+says whether it still is its version, and only then may anything (ADR 0004’s
+shot cache) treat the pin as standing for the content.
+
+The lockfile is a `MutableMapping` like every other store (pillar 7);
+`an.library.checkout.checkout()` takes one by injection (`lock=`) and
+defaults to [`ProjectLock`](_autosummary/an.library.lock.html.md#an.library.lock.ProjectLock) over the project folder. Registering it in the
+project mall (`mall["library_lock"]`) is an#240.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     lock = ProjectLock(d)
+...     lock["characters/alice"] = {"library": "character.alice@v001"}
+...     list(ProjectLock(d).items())
+[('characters/alice', {'library': 'character.alice@v001'})]
+```
+
+### Module Attributes
+
+| [`LOCKFILE_NAME`](_autosummary/an.library.lock.html.md#an.library.lock.LOCKFILE_NAME)           | The lockfile's name at the project root.                        |
+|--------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`LOCKFILE_SCHEMA_VERSION`](_autosummary/an.library.lock.html.md#an.library.lock.LOCKFILE_SCHEMA_VERSION) | The lockfile document's schema version (its own document kind). |
+
+### Functions
+
+| [`lock_key`](_autosummary/an.library.lock.html.md#an.library.lock.lock_key)(store, key)   | The lockfile key of one project store entry.   |
+|-------------------------------------------------------------------------|------------------------------------------------|
+
+### Classes
+
+| [`ProjectLock`](_autosummary/an.library.lock.html.md#an.library.lock.ProjectLock)(project_dir)   | `<store>/<key> -> pin` over a project's `assets.lock.json`.   |
+|-----------------------------------------------------------------------------|---------------------------------------------------------------|
+
+### an.library.lock.LOCKFILE_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'assets.lock.json'*
+
+The lockfile’s name at the project root.
+
+### an.library.lock.LOCKFILE_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
+
+The lockfile document’s schema version (its own document kind).
+
+### *class* an.library.lock.ProjectLock(project_dir)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`<store>/<key> -> pin` over a project’s `assets.lock.json`.
+
+Every write rewrites the whole (small) file, sorted, so the lockfile diffs
+cleanly under version control.
+
+### an.library.lock.lock_key(store, key)
+
+The lockfile key of one project store entry.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> lock_key("characters", "alice")
+'characters/alice'
+```
+
+
+# _autosummary/an.library.rights.html.md
+
+# an.library.rights
+
+Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).
+
+The library adds no licence vocabulary. A version’s rights are rolled up from
+`an`’s existing model (an#211): [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) records and
+[`license_class()`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class)’s four classes. The roll-up reads them from
+
+- the source declared for the asset as a whole at publish, AND the descriptor’s
+  own `source` — both, never one instead of the other (an asset with neither
+  is `unknown`: recorded and visible, never rejected);
+- every part and plane that declares its own `source` — gathered by
+  [`an.credits.collect_credits()`](_autosummary/an.credits.html.md#an.credits.collect_credits), the same walk `an credits` runs, so the
+  > library and the credits report can never disagree about what an asset holds;
+- every version it derives from (`derived_from`) and the version it follows
+  (`previous`), recursively, by the same rules: a derivative inherits the
+  obligations of its sources, and a new version cannot relabel the old one;
+- the source any other version records for the same file bytes (by blob
+  digest): a file’s own recorded provenance travels with its bytes, so carved
+  parts published again under a new id keep their obligations
+  ([`an.library.api.version_sources()`](_autosummary/an.library.api.html.md#an.library.api.version_sources) walks all of it).
+
+A version may only ever be MORE restrictive than what it inherits. Relaxing
+takes an explicit, recorded relicence — who and why — on the version.
+
+Order, most restrictive first: `private` > `unknown` > `attribution` >
+`free`. `private` and `unknown` are not publishable.
+
+```pycon
+>>> from an.ir.assets import AssetSource
+>>> r = roll_up([("asset", AssetSource(provider="p", license="cc0-1.0")),
+...              ("parts/head.png", AssetSource(provider="film", license="all-rights-reserved"))])
+>>> (r.license_class, r.publishable)
+('private', False)
+>>> r.reasons
+['parts/head.png: all-rights-reserved (private)']
+```
+
+### Module Attributes
+
+| [`LICENSE_CLASS_ORDER`](_autosummary/an.library.rights.html.md#an.library.rights.LICENSE_CLASS_ORDER)   | Licence classes, most restrictive first.                                     |
+|------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`PUBLISHABLE_CLASSES`](_autosummary/an.library.rights.html.md#an.library.rights.PUBLISHABLE_CLASSES)   | The classes a video may ship with (`attribution` with its credit displayed). |
+
+### Functions
+
+| [`most_restrictive`](_autosummary/an.library.rights.html.md#an.library.rights.most_restrictive)(classes)            | The most restrictive of `classes`; `free` for none.                                                            |
+|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`descriptor_source`](_autosummary/an.library.rights.html.md#an.library.rights.descriptor_source)(doc, \*, store)    | The source the descriptor itself declares (or `an credits` reconstructs), if any.                              |
+| [`roll_up`](_autosummary/an.library.rights.html.md#an.library.rights.roll_up)(sources, \*[, inherited])    | Roll labelled sources (and parents' rights) up to one [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights). |
+| [`sources_in`](_autosummary/an.library.rights.html.md#an.library.rights.sources_in)(doc, \*, store[, source]) | Every labelled source one version holds: the asset's, the descriptor's, each part's.                           |
+
+### Classes
+
+| [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)(license_class[, reasons])   | The rolled-up rights of one version, as stored on it.   |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------|
+
+### Exceptions
+
+| [`RightsRefusal`](_autosummary/an.library.rights.html.md#an.library.rights.RightsRefusal)   | A private or unknown version would leave the user's library without an override.   |
+|------------------------------------------------------------------|------------------------------------------------------------------------------------|
+
+### an.library.rights.LICENSE_CLASS_ORDER *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'private', 'unknown'], ...]* *= ('private', 'unknown', 'attribution', 'free')*
+
+Licence classes, most restrictive first. The roll-up keeps the first that occurs.
+
+### an.library.rights.PUBLISHABLE_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free'})*
+
+The classes a video may ship with (`attribution` with its credit displayed).
+
+### *class* an.library.rights.Rights(license_class, reasons=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The rolled-up rights of one version, as stored on it.
+
+#### *classmethod* from_dict(d)
+
+Read a version’s `rights` block back.
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
+#### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a video containing this asset may ship.
+
+#### to_dict()
+
+The `rights` block of a version document.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *exception* an.library.rights.RightsRefusal
+
+Bases: [`PermissionError`](https://docs.python.org/3/builtins/exceptions.html#PermissionError)
+
+A private or unknown version would leave the user’s library without an override.
+
+### an.library.rights.descriptor_source(doc, , store)
+
+The source the descriptor itself declares (or `an credits` reconstructs), if any.
+
+* **Return type:**
+  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.library.rights.most_restrictive(classes)
+
+The most restrictive of `classes`; `free` for none.
+
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+
+```pycon
+>>> most_restrictive(["free", "attribution"]), most_restrictive([])
+('attribution', 'free')
+```
+
+### an.library.rights.roll_up(sources, , inherited=())
+
+Roll labelled sources (and parents’ rights) up to one [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights).
+
+A `None` source is `unknown`. The reasons name every contributor of the
+winning class, so a reader sees *why* a version is restricted.
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
+```pycon
+>>> roll_up([("asset", None)]).to_dict()
+{'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
+```
+
+### an.library.rights.sources_in(doc, , store, source=None)
+
+Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
+
+store: the project store this kind of document lives in (`characters`,
+: `props`, `environments`, `sounds`) — its sources are read by
+  `an credits`’ own walk; `None` reads the top-level `source` alone
+
+source: a source declared for the asset as a whole (at publish, or carried
+: from an earlier version). It is a contributor BESIDE the descriptor’s
+  own source, never instead of it: the roll-up takes the most
+  restrictive, so a declared `cc0` cannot mask a descriptor that says
+  the art came from a film. The only way to relax a stricter source is
+  an explicit, recorded relicence ([`an.library.api.publish()`](_autosummary/an.library.api.html.md#an.library.api.publish)’s
+  `relicense`), which bypasses this function altogether
+
+With no source anywhere the asset contributes `None`: `unknown`.
+
+```pycon
+>>> private = {"provider": "film", "license": "all-rights-reserved"}
+>>> [label for label, _ in sources_in({"source": private}, store=None,
+...                                   source=AssetSource(provider="me", license="cc0-1.0"))]
+['asset', 'descriptor']
+```
+
+
+# _autosummary/an.library.root.html.md
+
+# an.library.root
+
+Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
+
+The root is resolved in this order, first match wins:
+
+1. an explicit `root=` (tests, power users, a team share);
+2. the environment variable `<PKG>_HOME` (`AN_HOME`, `CUTAN_HOME`) — one
+   switch for a whole shell or CI job;
+3. the platform data folder: `$XDG_DATA_HOME/<pkg>` when `XDG_DATA_HOME` is
+   set to an absolute path, else `~/.local/share/<pkg>` on Linux and macOS;
+   `%LOCALAPPDATA%\<pkg>` on Windows. On macOS this is deliberately
+   `~/.local/share`, not `~/Library/Application Support` — the maintainer’s
+   choice, and the one the fleet’s storage rules use.
+
+This is the data-folder half of `config2py.get_app_folder`, **vendored** (plan
+§1 decision 8): twenty lines are cheaper than a dependency, and the dependency is
+taken only if more than this is ever needed.
+
+Under the root, one sub-folder per kind of data, never files at the top:
+`library/` (records, versions, blobs) and `projects/` (agent-made videos).
+Resolving a root never creates it and never raises at import; the stores create
+their folders on first use.
+
+```pycon
+>>> env = {"AN_HOME": "/srv/an-lib"}
+>>> library_root(package="an", environ=env).as_posix()
+'/srv/an-lib'
+>>> library_root(package="cutan", environ={"XDG_DATA_HOME": "/data"}, platform="linux").as_posix()
+'/data/cutan'
+```
+
+### Module Attributes
+
+| [`CORE_PACKAGE`](_autosummary/an.library.root.html.md#an.library.root.CORE_PACKAGE)     | The core package, whose library every genre's search path reads after its own.   |
+|-------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`LIBRARY_DIRNAME`](_autosummary/an.library.root.html.md#an.library.root.LIBRARY_DIRNAME)  | The sub-folder of a root that holds the library stores.                          |
+| [`PROJECTS_DIRNAME`](_autosummary/an.library.root.html.md#an.library.root.PROJECTS_DIRNAME) | The sub-folder of a root that holds agent-made projects (design §7.5).           |
+
+### Functions
+
+| [`git_worktree_of`](_autosummary/an.library.root.html.md#an.library.root.git_worktree_of)(path)                             | The git work tree containing `path` (or its nearest existing ancestor), if any.   |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`home_env_var`](_autosummary/an.library.root.html.md#an.library.root.home_env_var)(package)                             | The override variable for `package`'s root.                                       |
+| [`library_root`](_autosummary/an.library.root.html.md#an.library.root.library_root)([root, package, environ, platform])  | The data root of `package` — its library and its projects live under it.          |
+| [`project_dir`](_autosummary/an.library.root.html.md#an.library.root.project_dir)(project_id[, root, package, environ]) | The default directory of the agent-made project `project_id` (design §7.5).       |
+| [`projects_root`](_autosummary/an.library.root.html.md#an.library.root.projects_root)([root, package, environ])           | Where agent-made projects go by default: `<root>/projects/`.                      |
+
+### Exceptions
+
+| [`LibraryLocationWarning`](_autosummary/an.library.root.html.md#an.library.root.LibraryLocationWarning)   | Library data, or private material checked out of it, sits inside a git work tree.   |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+
+### an.library.root.CORE_PACKAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
+
+The core package, whose library every genre’s search path reads after its own.
+
+### an.library.root.LIBRARY_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'library'*
+
+The sub-folder of a root that holds the library stores.
+
+### *exception* an.library.root.LibraryLocationWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+Library data, or private material checked out of it, sits inside a git work tree.
+
+ADR 0005 decision 2: a library root is never inside a repository. The default
+guarantees it; an explicit `root`, `<PKG>_HOME` or a project in a repo
+can break it, and the library may hold private-study material.
+
+### an.library.root.PROJECTS_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'projects'*
+
+The sub-folder of a root that holds agent-made projects (design §7.5).
+
+### an.library.root.git_worktree_of(path)
+
+The git work tree containing `path` (or its nearest existing ancestor), if any.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     git_worktree_of(d) is None
+True
+```
+
+### an.library.root.home_env_var(package)
+
+The override variable for `package`’s root.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> home_env_var("an"), home_env_var("my-genre")
+('AN_HOME', 'MY_GENRE_HOME')
+```
+
+### an.library.root.library_root(root=None, , package='an', environ=None, platform=None)
+
+The data root of `package` — its library and its projects live under it.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+root: an explicit root; wins over everything
+package: the package whose root this is (`an` for the core library, a
+
+> genre’s own name for its library)
+
+environ: the environment to read (default `os.environ`; injectable for tests)
+platform: `sys.platform` value to resolve for (default: this one)
+
+```pycon
+>>> library_root("~/x", package="an").name
+'x'
+```
+
+### an.library.root.project_dir(project_id, root=None, , package='an', environ=None)
+
+The default directory of the agent-made project `project_id` (design §7.5).
+
+`an init <dir>` with an explicit directory keeps working anywhere; this is
+the default for projects an agent makes, so they never land in a session’s
+working folder or a repository.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> project_dir("alice-and-bob", "/lib").as_posix()
+'/lib/projects/alice-and-bob'
+>>> project_dir("../escape", "/lib")
+Traceback (most recent call last):
+ValueError: ...
+```
+
+### an.library.root.projects_root(root=None, , package='an', environ=None)
+
+Where agent-made projects go by default: `<root>/projects/`.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> projects_root("/lib", package="cutan").as_posix()
+'/lib/projects'
+```
+
+
+# _autosummary/an.library.stores.html.md
+
+# an.library.stores
+
+The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.
+
+ADR 0005 decision 11 and design §10. Three entities, three stores:
+
+| store    | key                 | on disk (default backend)                 |
+|----------|---------------------|-------------------------------------------|
+| records  | `<asset_id>`        | `library/records/<asset_id>.json`         |
+| versions | `<asset_id>@<vNNN>` | `library/versions/<asset_id>/<vNNN>.json` |
+| blobs    | `<sha256>`          | `library/blobs/<aa>/<sha256>`             |
+- **\`\`dol\`\` stores**, unlike the project mall’s hand-written folder classes: a
+  byte store ([`LocalFiles`](_autosummary/an.library.stores.html.md#an.library.stores.LocalFiles)) seen through `dol.wrap_kvs()` with a JSON
+  codec and a key transform. Each store is replaced by injection
+  (`build_library_mall(blobs=my_s3_store)`), and business logic sees only the
+  mapping interface — the move to S3 is an injection, not a rewrite.
+  [`LocalFiles`](_autosummary/an.library.stores.html.md#an.library.stores.LocalFiles) rather than `dol.Files` because the library needs three
+  > things `dol.Files` does not give: writes that cannot tear (temp file +
+  > `os.replace`), an exclusive create for write-once versions, and containment
+  > (`dol.Files` writes a `../x` key outside its root).
+- **\`\`versions\`\` is write-once** ([`WriteOnce`](_autosummary/an.library.stores.html.md#an.library.stores.WriteOnce)): a version is immutable, so
+  overwriting or deleting one raises [`VersionExistsError`](_autosummary/an.library.stores.html.md#an.library.stores.VersionExistsError) — projects pin
+  versions, and a pin that could change under them is no pin. On the folder
+  backend the create is exclusive, so racing publishers cannot both win.
+- **\`\`blobs\`\` is content-addressed and undeletable** ([`ImmutableBlobs`](_autosummary/an.library.stores.html.md#an.library.stores.ImmutableBlobs),
+  a `dol.content.ContentAddressedStore`): every file of every version once,
+  keyed by its SHA-256; a key can never point at changed bytes, and a blob a
+  version pins cannot be deleted from under it.
+- **Keys are validated twice** before they become paths: by the id grammars
+  ([`an.library.ids`](_autosummary/an.library.ids.html.md#module-an.library.ids)), and by [`LocalFiles`](_autosummary/an.library.stores.html.md#an.library.stores.LocalFiles)’ containment check.
+- **Nothing is created until the first write.**
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     lib = build_library_mall(d)
+...     sorted(lib)
+['blob_rights', 'blobs', 'records', 'versions']
+>>> mem = build_library_mall(records={}, versions={}, blobs={})  # all in memory
+>>> ref = mem["blobs"].add(b"<svg/>")
+>>> mem["blobs"][ref.item_id]
+b'<svg/>'
+```
+
+### Module Attributes
+
+| [`LIBRARY_STORES`](_autosummary/an.library.stores.html.md#an.library.stores.LIBRARY_STORES)   | The three stores every library mall holds.   |
+|-------------------------------------------------------------------|----------------------------------------------|
+
+### Functions
+
+| [`build_library_mall`](_autosummary/an.library.stores.html.md#an.library.stores.build_library_mall)([root, package])   | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).   |
+|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| [`canonical_json`](_autosummary/an.library.stores.html.md#an.library.stores.canonical_json)(obj, \*[, indent])     | JSON with sorted keys and no locale or platform dependence.                         |
+| [`version_key`](_autosummary/an.library.stores.html.md#an.library.stores.version_key)(asset_id, version)        | The `versions` key of one version.                                                  |
+| [`split_version_key`](_autosummary/an.library.stores.html.md#an.library.stores.split_version_key)(key)                | `(asset_id, version)` of a `versions` key, validated.                               |
+
+### Classes
+
+| [`ImmutableBlobs`](_autosummary/an.library.stores.html.md#an.library.stores.ImmutableBlobs)([store, hasher, length, field])   | The content-addressed blob store, with deletion refused.                        |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [`LocalFiles`](_autosummary/an.library.stores.html.md#an.library.stores.LocalFiles)(root)                                 | `relative/posix/path -> bytes` under one folder, with atomic, contained writes. |
+| [`WriteOnce`](_autosummary/an.library.stores.html.md#an.library.stores.WriteOnce)(store)                                 | A mapping whose keys, once written, can be neither overwritten nor deleted.     |
+
+### Exceptions
+
+| [`VersionExistsError`](_autosummary/an.library.stores.html.md#an.library.stores.VersionExistsError)   | A write-once key was written twice, or deleted.   |
+|-----------------------------------------------------------------------|---------------------------------------------------|
+
+### *class* an.library.stores.ImmutableBlobs(store=None, \*, hasher=<built-in function openssl_sha256>, length=None, field='content')
+
+Bases: `ContentAddressedStore`
+
+The content-addressed blob store, with deletion refused.
+
+Versions are write-once and pin their files by hash, so deleting a blob
+would leave a published version pointing at nothing. Reclaiming unreferenced
+blobs is a maintenance job (a garbage collector that counts references), not
+a mapping operation.
+
+```pycon
+>>> blobs = ImmutableBlobs({})
+>>> ref = blobs.add(b"x")
+>>> del blobs[ref.item_id]
+Traceback (most recent call last):
+VersionExistsError: ...
+```
+
+### an.library.stores.LIBRARY_STORES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('records', 'versions', 'blobs')*
+
+The three stores every library mall holds.
+
+### *class* an.library.stores.LocalFiles(root)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`relative/posix/path -> bytes` under one folder, with atomic, contained writes.
+
+The default backend of every library store:
+
+- **contained**: a key that would resolve outside the folder (`..`, an
+  absolute path, a drive) raises `KeyError` and never touches the disk;
+- **atomic**: a write goes to a temp file in the target folder and is moved
+  into place with `os.replace`, so a crash never leaves a torn document;
+- **create-only** ([`create_only()`](_autosummary/an.library.stores.html.md#an.library.stores.LocalFiles.create_only)): a hard link of the fully written temp
+  file, which fails if the target exists — the primitive [`WriteOnce`](_autosummary/an.library.stores.html.md#an.library.stores.WriteOnce)
+  uses so two publishers cannot both create one version;
+- **lazy**: nothing is created until the first write, so opening (or
+  mistyping) a library never creates folders.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     f = LocalFiles(d + "/lib")
+...     f["a/b.json"] = b"{}"
+...     sorted(f), f["a/b.json"]
+(['a/b.json'], b'{}')
+```
+
+#### create_only(key, data)
+
+Write `key` only if it does not exist — atomically, in one step.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### *exception* an.library.stores.VersionExistsError
+
+Bases: [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError)
+
+A write-once key was written twice, or deleted. Versions are immutable.
+
+### *class* an.library.stores.WriteOnce(store)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+A mapping whose keys, once written, can be neither overwritten nor deleted.
+
+Wraps any injected `MutableMapping`. Rewriting a key with the *same* value
+is refused too: immutability is about the key, and a silent no-op would hide
+a caller that believes it is replacing something.
+
+**Atomicity.** When the wrapped store offers `create_only(key, value)` — an
+exclusive create that raises [`VersionExistsError`](_autosummary/an.library.stores.html.md#an.library.stores.VersionExistsError) if the key exists —
+every write goes through it, so two publishers racing for one key cannot both
+win. The default folder backend has one (a hard link of a fully written temp
+file); an S3 backend would map it to a conditional put (`If-None-Match: *`).
+A store without it gets a check-then-set, which is correct for one writer.
+
+```pycon
+>>> versions = WriteOnce({})
+>>> versions["character.a@v001"] = {"x": 1}
+>>> versions["character.a@v001"] = {"x": 2}
+Traceback (most recent call last):
+VersionExistsError: ...
+```
+
+### an.library.stores.build_library_mall(root=None, , package='an', \*\*overrides)
+
+The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
+
+root: the package’s data root (default: resolved by
+: [`an.library.root.library_root()`](_autosummary/an.library.root.html.md#an.library.root.library_root) — `root` → `<PKG>_HOME` → the
+  platform data folder); the stores live under `<root>/library/`
+
+package: whose library this is (`an`, or a genre such as `cutan`)
+overrides: a store per name to inject instead of the folder default — a
+
+> `dict` for tests, an S3 or database mapping later. An injected
+> `versions` is still made write-once and an injected `blobs` still
+> content-addressed and undeletable, so injection cannot drop an invariant.
+
+Nothing is created until the first write: opening a library (or mistyping
+one on a search path) leaves the disk as it was.
+
+### an.library.stores.canonical_json(obj, , indent=None)
+
+JSON with sorted keys and no locale or platform dependence.
+
+With `indent=None` it is the compact form hashed for a manifest; with an
+indent it is the on-disk form (same content, readable).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> canonical_json({"b": 1, "a": [1, 2]})
+'{"a":[1,2],"b":1}'
+```
+
+### an.library.stores.split_version_key(key)
+
+`(asset_id, version)` of a `versions` key, validated.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> split_version_key("character.alice@v002")
+('character.alice', 'v002')
+```
+
+### an.library.stores.version_key(asset_id, version)
+
+The `versions` key of one version.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> version_key("character.alice", "v002")
+'character.alice@v002'
+```
 
 
 # _autosummary/an.live_api.html.md
@@ -28032,20 +30740,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 13:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e"><code>b9b87c0</code></a> on branch <code>main</code>, for **an 0.1.132** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 14:05 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5"><code>ee5dd57</code></a> on branch <code>main</code>, for **an 0.1.133** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.132) is ahead of the latest release on PyPI (0.1.131): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e"><code>b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5"><code>ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.132</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.133</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -28054,9 +30760,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36869650058">36869650058</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36872899403">36872899403</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>6059bcefe140dc528ea5d0f119fcc20054666b6e</code> (in the history of the built commit) |
+| Event commit | <code>84a1d57d809c4ba7660b27855a21a98d92084c22</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -28081,13 +30787,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.131/">0.1.131</a>, older than the documented version (0.1.132).
+Latest release: <a href="https://pypi.org/project/an/0.1.133/">0.1.133</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e
+git checkout ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

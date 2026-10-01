@@ -1,0 +1,35 @@
+an.library.stores
+=================
+
+.. automodule:: an.library.stores
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LIBRARY_STORES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_library_mall
+      canonical_json
+      version_key
+      split_version_key
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ImmutableBlobs
+      LocalFiles
+      WriteOnce
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      VersionExistsError
+   

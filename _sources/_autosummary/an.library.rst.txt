@@ -1,0 +1,80 @@
+an.library
+==========
+
+.. automodule:: an.library
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      analyse
+      build_library_mall
+      check_pins
+      checkout
+      effective_rights
+      find
+      library_root
+      open_library
+      parse_ref
+      project_dir
+      projects_root
+      promote
+      publish
+      publish_dir
+      reindex
+      register_analyser
+      register_asset_kind
+      register_capability
+      resolve
+      roll_up
+      scan_index
+      search_path
+      show
+      verify_checkout
+      vocabulary
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Capability
+      CheckoutResult
+      FindResult
+      Hit
+      Library
+      LibraryRef
+      ProjectLock
+      PublishResult
+      Rights
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AssetIdError
+      AssetNotFoundError
+      CheckoutError
+      IntegrityError
+      LibraryError
+      RightsRefusal
+      VersionExistsError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   affordances
+   api
+   character
+   cli
+   federation
+   floor
+   ids
+   kinds
+   lock
+   rights
+   root
+   stores

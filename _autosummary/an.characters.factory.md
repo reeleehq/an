@@ -30,6 +30,8 @@ problem routes the way every other verifier’s does (an#78).
 | [`HATS`](#an.characters.factory.HATS)                     | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                                                                                                                                                                                                                                         |
 | [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                                                                                                                                                                                                              |
 | [`BUILDS`](#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
+| [`FACTORY_PROVIDER`](#an.characters.factory.FACTORY_PROVIDER)         | The provider of every per-part source the factory stamps on what it draws.                                                                                                                                                                                                                                                                                  |
+| [`FACTORY_LICENSE`](#an.characters.factory.FACTORY_LICENSE)          | no rights to clear.                                                                                                                                                                                                                                                                                                                                         |
 | [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                                                                                                                                                                                                         |
 | [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                                                                                                                                                                                                         |
 | [`FACE_SLOTS`](#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                                                                                                                                                                                                               |
@@ -43,9 +45,11 @@ problem routes the way every other verifier’s does (an#78).
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_views`](#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](an.motion.md#an.motion.turn) turns the whole character. |
 | [`declare_mouth_variants`](#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
+| [`factory_source`](#an.characters.factory.factory_source)(data)                             | The per-part source of a part this factory drew, pinned to its bytes.                                                                                                                                                                                                                                                                                                                           |
 | [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
 | [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
 | [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
+| [`stamp_factory_parts`](#an.characters.factory.stamp_factory_parts)(char_dir[, paths, skip])     | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
 | [`view_poses`](#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
 
 ### Classes
@@ -108,6 +112,17 @@ the sclera, the pupil and the lid outline agree (an#99).
 ### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
 
 The face slots of the default rig with the eye stack (an#99).
+
+### an.characters.factory.FACTORY_LICENSE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cc0-1.0'*
+
+no rights to clear.
+
+* **Type:**
+  The licence of the factory’s own drawings
+
+### an.characters.factory.FACTORY_PROVIDER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an character factory'*
+
+The provider of every per-part source the factory stamps on what it draws.
 
 ### an.characters.factory.GAZE_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
 
@@ -240,6 +255,18 @@ neutral set is the SSOT for which shapes exist; a variant mirrors it.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.characters.factory.factory_source(data)
+
+The per-part source of a part this factory drew, pinned to its bytes.
+
+* **Return type:**
+  [`AssetSource`](an.ir.assets.md#an.ir.assets.AssetSource)
+
+```pycon
+>>> factory_source(b"<svg/>").license, len(factory_source(b"<svg/>").sha256)
+('cc0-1.0', 64)
+```
+
 ### an.characters.factory.gaze_travel_for(rx=14, ry=10, pupil_r=5)
 
 The pupil’s travel per axis, in view-box units: the sclera’s clearance
@@ -326,6 +353,26 @@ screen. Missing files are skipped.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.factory.stamp_factory_parts(char_dir, paths=None, , skip=())
+
+Give each part the factory drew a `cc0` per-part source pinned to its digest.
+
+Rights in the asset library attach to the BYTES (an#236): a file is as
+restricted as the strictest thing any library says about its SHA-256, and an
+asset-level licence speaks for every file the asset does not itemise. The
+factory’s parts are byte-identical across characters (the default mouths,
+the eyes), so without this stamp a carved character built on a factory body
+would make every other character’s shared parts private. The stamp pins the
+digest, so a part later re-drawn or re-carved no longer matches it and stops
+being itemised as the factory’s — the stamp cannot launder new bytes.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+paths: the relative paths this call drew (default: every attachment whose
+: file exists, minus `skip`). A part carrying some other provider’s
+  source is never re-stamped.
 
 ### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
 

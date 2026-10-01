@@ -1,0 +1,34 @@
+an.library.rights
+=================
+
+.. automodule:: an.library.rights
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LICENSE_CLASS_ORDER
+      PUBLISHABLE_CLASSES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      most_restrictive
+      descriptor_source
+      roll_up
+      sources_in
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Rights
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RightsRefusal
+   

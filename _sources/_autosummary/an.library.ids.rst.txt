@@ -1,0 +1,37 @@
+an.library.ids
+==============
+
+.. automodule:: an.library.ids
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LATEST
+      SHA256_PREFIX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      asset_kind
+      check_asset_id
+      check_namespace
+      check_version_label
+      parse_ref
+      version_label
+      version_number
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LibraryRef
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AssetIdError
+   

@@ -66,6 +66,7 @@
    impacts
    ir
    iterate
+   library
    live_api
    motion
    orchestrate

@@ -82,6 +82,22 @@ provides an unregistered one.
 * **Type:**
   `"style"` was retired in an#106
 
+#### library *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The asset-library version this entry was checked out from (ADR 0005
+decision 8): `"[<library>:]<asset_id>@<version>"`, e.g.
+`"cutan:character.alice-reiniger@v003"` (grammar:
+[`an.library.ids.parse_ref()`](an.library.ids.md#an.library.ids.parse_ref), a pinned version required: `vNNN` or
+`sha256:<prefix>`, never `latest`). `None` — the
+default, and every document written before the library existed — means
+the asset is the project’s own. Today the strategy is check-out, so
+`ref` still names the project-store key the compiler reads and this
+field is the pin beside it; live reference resolves it instead, later.
+
+Additive and omit-when-unset, like `stage`: an unset `library`
+leaves no trace in a dump, so no stored scene changes and no schema
+version moves.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].

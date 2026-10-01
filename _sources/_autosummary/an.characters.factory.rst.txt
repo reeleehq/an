@@ -17,6 +17,8 @@ an.characters.factory
       HATS
       MAX_HEAD_SCALE
       BUILDS
+      FACTORY_PROVIDER
+      FACTORY_LICENSE
       EYE_CANVAS
       GAZE_PARTS
       FACE_SLOTS
@@ -31,9 +33,11 @@ an.characters.factory
       add_gaze
       add_views
       declare_mouth_variants
+      factory_source
       gaze_travel_for
       new_character
       scale_part_files
+      stamp_factory_parts
       view_poses
    
    .. rubric:: Classes

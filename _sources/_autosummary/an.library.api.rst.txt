@@ -1,0 +1,46 @@
+an.library.api
+==============
+
+.. automodule:: an.library.api
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LIBRARY_ERRORS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      effective_rights
+      find
+      promote
+      publish
+      publish_dir
+      reindex
+      scan_index
+      show
+      version_sources
+      vocabulary
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FindResult
+      Hit
+      IndexEntry
+      PublishResult
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CheckoutError
+      IntegrityError
+      LibraryError
+      LibraryIndexWarning
+      PlaceholderRigWarning
+   

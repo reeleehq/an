@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="ids.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.library.ids &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../../_static/documentation_options.js?v=c7f57889"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/library/ids';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.133" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.library.ids</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.library.ids</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Asset ids, version labels and library references — the library's persisted names.</span>
+
+<span class="sd">Three grammars, each a persisted identifier (ADR 0005 decisions 3 and 4, plan §1</span>
+<span class="sd">decision 7), so each is checked here once and never re-parsed by hand elsewhere:</span>
+
+<span class="sd">- an **asset id** is ``&lt;kind&gt;.&lt;slug&gt;`` — flat, readable, filename-safe</span>
+<span class="sd">  (``character.alice-reiniger``). The kind prefix keeps two kinds from colliding</span>
+<span class="sd">  on one slug and makes ``find(kind=…)`` cheap;</span>
+<span class="sd">- a **version label** is ``v001``, ``v002``, … — the studio convention, for</span>
+<span class="sd">  people. The version's ``manifest_sha256`` is its identity for machines;</span>
+<span class="sd">- a **library reference** is ``[&lt;namespace&gt;:]&lt;asset_id&gt;[@&lt;version&gt;]``, where</span>
+<span class="sd">  ``&lt;version&gt;`` is a label, ``latest`` (floating; resolved once at check-out and</span>
+<span class="sd">  pinned) or ``sha256:&lt;prefix&gt;`` (exact content). The namespace names the library</span>
+<span class="sd">  an id resolves in when several are federated (``cutan:character.alice@v003``).</span>
+
+<span class="sd">Because these strings become file names (``records/&lt;asset_id&gt;.json``,</span>
+<span class="sd">``versions/&lt;asset_id&gt;/&lt;vNNN&gt;.json``), the grammars are also the path-traversal</span>
+<span class="sd">guard: nothing that parses here can contain ``/``, ``..`` or a drive letter.</span>
+
+<span class="sd">&gt;&gt;&gt; ref = parse_ref("cutan:character.alice-reiniger@v003")</span>
+<span class="sd">&gt;&gt;&gt; (ref.namespace, ref.asset_id, ref.version, ref.kind)</span>
+<span class="sd">('cutan', 'character.alice-reiniger', 'v003', 'character')</span>
+<span class="sd">&gt;&gt;&gt; str(ref)</span>
+<span class="sd">'cutan:character.alice-reiniger@v003'</span>
+<span class="sd">&gt;&gt;&gt; version_label(12)</span>
+<span class="sd">'v012'</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"AssetIdError"</span><span class="p">,</span>
+    <span class="s2">"LATEST"</span><span class="p">,</span>
+    <span class="s2">"LibraryRef"</span><span class="p">,</span>
+    <span class="s2">"SHA256_PREFIX"</span><span class="p">,</span>
+    <span class="s2">"asset_kind"</span><span class="p">,</span>
+    <span class="s2">"check_asset_id"</span><span class="p">,</span>
+    <span class="s2">"check_namespace"</span><span class="p">,</span>
+    <span class="s2">"check_version_label"</span><span class="p">,</span>
+    <span class="s2">"parse_ref"</span><span class="p">,</span>
+    <span class="s2">"version_label"</span><span class="p">,</span>
+    <span class="s2">"version_number"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: The floating version: the record's head, resolved once and then pinned.</span>
+<span class="n">LATEST</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"latest"</span>
+<span class="c1">#: The prefix of a content-addressed version selector (``sha256:&lt;hex prefix&gt;``).</span>
+<span class="n">SHA256_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sha256:"</span>
+<span class="c1">#: Fewest hex digits a ``sha256:`` selector may give: short enough to type,</span>
+<span class="c1">#: long enough that a collision inside one library is not a practical worry.</span>
+<span class="n">MIN_SHA_PREFIX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="c1">#: Zero-padding of a version label's number (``v001``): ordered as strings up to</span>
+<span class="c1">#: ``v999``, and still parseable past it.</span>
+<span class="n">VERSION_DIGITS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="n">_KIND</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"[a-z][a-z0-9_]*"</span>
+<span class="n">_SLUG</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"[a-z0-9]+(?:[-_][a-z0-9]+)*"</span>
+<span class="n">_ASSET_ID</span> <span class="o">=</span> <span class="sa">rf</span><span class="s2">"</span><span class="si">{</span><span class="n">_KIND</span><span class="si">}</span><span class="s2">\.</span><span class="si">{</span><span class="n">_SLUG</span><span class="si">}</span><span class="s2">"</span>
+<span class="n">_NAMESPACE</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"[a-z][a-z0-9_]*"</span>
+<span class="n">_VERSION</span> <span class="o">=</span> <span class="sa">rf</span><span class="s2">"v\d</span><span class="se">{{</span><span class="si">{</span><span class="n">VERSION_DIGITS</span><span class="si">}</span><span class="s2">,</span><span class="se">}}</span><span class="s2">"</span>
+<span class="n">_SELECTOR</span> <span class="o">=</span> <span class="sa">rf</span><span class="s2">"</span><span class="si">{</span><span class="n">_VERSION</span><span class="si">}</span><span class="s2">|</span><span class="si">{</span><span class="n">LATEST</span><span class="si">}</span><span class="s2">|</span><span class="si">{</span><span class="n">SHA256_PREFIX</span><span class="si">}</span><span class="s2">[0-9a-f]</span><span class="se">{{</span><span class="si">{</span><span class="n">MIN_SHA_PREFIX</span><span class="si">}</span><span class="s2">,64</span><span class="se">}}</span><span class="s2">"</span>
+
+<span class="n">_ASSET_ID_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"^</span><span class="si">{</span><span class="n">_ASSET_ID</span><span class="si">}</span><span class="s2">$"</span><span class="p">)</span>
+<span class="n">_NAMESPACE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"^</span><span class="si">{</span><span class="n">_NAMESPACE</span><span class="si">}</span><span class="s2">$"</span><span class="p">)</span>
+<span class="n">_VERSION_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"^</span><span class="si">{</span><span class="n">_VERSION</span><span class="si">}</span><span class="s2">$"</span><span class="p">)</span>
+<span class="n">_REF_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">rf</span><span class="s2">"^(?:(?P&lt;namespace&gt;</span><span class="si">{</span><span class="n">_NAMESPACE</span><span class="si">}</span><span class="s2">):)?(?P&lt;asset_id&gt;</span><span class="si">{</span><span class="n">_ASSET_ID</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="sa">rf</span><span class="s2">"(?:@(?P&lt;version&gt;</span><span class="si">{</span><span class="n">_SELECTOR</span><span class="si">}</span><span class="s2">))?$"</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="AssetIdError">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.AssetIdError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AssetIdError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An asset id, version label or library reference that does not parse."""</span></div>
+
+
+
+<div class="viewcode-block" id="check_asset_id">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.check_asset_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_asset_id</span><span class="p">(</span><span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return ``asset_id`` if it is ``&lt;kind&gt;.&lt;slug&gt;``, else raise :class:`AssetIdError`.</span>
+
+<span class="sd">    &gt;&gt;&gt; check_asset_id("prop.teacup-victorian")</span>
+<span class="sd">    'prop.teacup-victorian'</span>
+<span class="sd">    &gt;&gt;&gt; check_asset_id("Alice")  # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    AssetIdError: ...</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_ASSET_ID_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">asset_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"asset id </span><span class="si">{</span><span class="n">asset_id</span><span class="si">!r}</span><span class="s2"> is not '&lt;kind&gt;.&lt;slug&gt;' (lowercase letters, "</span>
+            <span class="s2">"digits, '-' or '_' in the slug), e.g. 'character.alice-reiniger'"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">asset_id</span></div>
+
+
+
+<div class="viewcode-block" id="check_namespace">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.check_namespace">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_namespace</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return ``name`` if it can name a library (a package name), else raise."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_NAMESPACE_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"library name </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> must be a lowercase package-style name, e.g. 'cutan'"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span></div>
+
+
+
+<div class="viewcode-block" id="check_version_label">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.check_version_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_version_label</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return ``label`` if it is ``vNNN``, else raise :class:`AssetIdError`."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_VERSION_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"version label </span><span class="si">{</span><span class="n">label</span><span class="si">!r}</span><span class="s2"> is not 'v' + digits, e.g. 'v001'"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">label</span></div>
+
+
+
+<div class="viewcode-block" id="asset_kind">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.asset_kind">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">asset_kind</span><span class="p">(</span><span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The kind an asset id declares by its prefix.</span>
+
+<span class="sd">    &gt;&gt;&gt; asset_kind("environment.palace-hall")</span>
+<span class="sd">    'environment'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">check_asset_id</span><span class="p">(</span><span class="n">asset_id</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="version_label">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.version_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">version_label</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The label of the ``number``-th version (1-based).</span>
+
+<span class="sd">    &gt;&gt;&gt; version_label(1), version_label(1000)</span>
+<span class="sd">    ('v001', 'v1000')</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">number</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"version numbers start at 1, got </span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"v</span><span class="si">{</span><span class="n">number</span><span class="si">:</span><span class="s2">0</span><span class="si">{</span><span class="n">VERSION_DIGITS</span><span class="si">}</span><span class="s2">d</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<div class="viewcode-block" id="version_number">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.version_number">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">version_number</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The number of a version label.</span>
+
+<span class="sd">    &gt;&gt;&gt; version_number("v012")</span>
+<span class="sd">    12</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">check_version_label</span><span class="p">(</span><span class="n">label</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span></div>
+
+
+
+<div class="viewcode-block" id="LibraryRef">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.LibraryRef">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LibraryRef</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A parsed ``[&lt;namespace&gt;:]&lt;asset_id&gt;[@&lt;version&gt;]``.</span>
+
+<span class="sd">    ``version`` is ``None`` when the reference gave none (read as ``latest`` by</span>
+<span class="sd">    readers; refused where a pin is required, e.g. ``AssetRef.library``).</span>
+<span class="sd">    """</span>
+
+    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">kind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The asset kind, from the id's prefix."""</span>
+        <span class="k">return</span> <span class="n">asset_kind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_pinned</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether this names one immutable version (a label or a content hash)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">!=</span> <span class="n">LATEST</span>
+
+<div class="viewcode-block" id="LibraryRef.with_version">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.LibraryRef.with_version">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"LibraryRef"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The same asset, another version."""</span>
+        <span class="k">return</span> <span class="n">LibraryRef</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LibraryRef.with_namespace">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.LibraryRef.with_namespace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"LibraryRef"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The same asset and version, qualified by another library name."""</span>
+        <span class="k">return</span> <span class="n">LibraryRef</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asset_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="si">}</span><span class="s2">:"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="n">ver</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"@</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ns</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">asset_id</span><span class="si">}{</span><span class="n">ver</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<div class="viewcode-block" id="parse_ref">
+<a class="viewcode-back" href="../../../_autosummary/an.library.ids.html#an.library.parse_ref">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_ref</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">require_pin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LibraryRef</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Parse a library reference.</span>
+
+<span class="sd">    ``require_version=True`` refuses a reference with no ``@&lt;version&gt;``;</span>
+<span class="sd">    ``require_pin=True`` also refuses ``@latest`` — the grammar of</span>
+<span class="sd">    ``AssetRef.library``, where a floating reference would make a render depend</span>
+<span class="sd">    on whatever the library's head is that day.</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_ref("character.alice")</span>
+<span class="sd">    LibraryRef(asset_id='character.alice', version=None, namespace=None)</span>
+<span class="sd">    &gt;&gt;&gt; parse_ref("character.alice@sha256:0a1b2c3d").version</span>
+<span class="sd">    'sha256:0a1b2c3d'</span>
+<span class="sd">    &gt;&gt;&gt; parse_ref("character.alice", require_version=True)  # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    AssetIdError: ...</span>
+<span class="sd">    """</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_REF_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"library reference </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> is not '[&lt;library&gt;:]&lt;kind&gt;.&lt;slug&gt;[@&lt;version&gt;]' "</span>
+            <span class="sa">f</span><span class="s2">"where &lt;version&gt; is vNNN, </span><span class="si">{</span><span class="n">LATEST</span><span class="si">!r}</span><span class="s2"> or '</span><span class="si">{</span><span class="n">SHA256_PREFIX</span><span class="si">}</span><span class="s2">&lt;hex prefix&gt;'"</span>
+        <span class="p">)</span>
+    <span class="n">ref</span> <span class="o">=</span> <span class="n">LibraryRef</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">"asset_id"</span><span class="p">],</span> <span class="n">m</span><span class="p">[</span><span class="s2">"version"</span><span class="p">],</span> <span class="n">m</span><span class="p">[</span><span class="s2">"namespace"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">require_pin</span> <span class="ow">and</span> <span class="n">ref</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="n">LATEST</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"library reference </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> floats ('@</span><span class="si">{</span><span class="n">LATEST</span><span class="si">}</span><span class="s2">'); a scene pins one "</span>
+            <span class="s2">"version — check the asset out, which resolves latest and writes the pin"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">require_version</span> <span class="ow">or</span> <span class="n">require_pin</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ref</span><span class="o">.</span><span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssetIdError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"library reference </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> names no version; write "</span>
+            <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">ref</span><span class="o">.</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">@v001' (or '@</span><span class="si">{</span><span class="n">LATEST</span><span class="si">}</span><span class="s2">' while authoring, which "</span>
+            <span class="s2">"check-out resolves and pins)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ref</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

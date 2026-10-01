@@ -113,6 +113,19 @@
 - [an.ir.schema](_autosummary/an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](_autosummary/an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.iterate](_autosummary/an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
+- [an.library](_autosummary/an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
+- [an.library.affordances](_autosummary/an.library.affordances.html.md): Affordances: what an asset can do, derived from its descriptor and the art present.
+- [an.library.api](_autosummary/an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;.
+- [an.library.character](_autosummary/an.library.character.html.md): The character analyser: legs, arms, views and mouth chart, derived from the rig.
+- [an.library.cli](_autosummary/an.library.cli.html.md): &#96;an library …&#96; — the asset library from the shell, over the same functions as Python.
+- [an.library.federation](_autosummary/an.library.federation.html.md): Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).
+- [an.library.floor](_autosummary/an.library.floor.html.md): The rights floor of a blob: the strictest statement any library on this machine makes about its byte...
+- [an.library.ids](_autosummary/an.library.ids.html.md): Asset ids, version labels and library references — the library’s persisted names.
+- [an.library.kinds](_autosummary/an.library.kinds.html.md): Asset kinds: the &#96;kind&#96; facet’s vocabulary, and where each kind lives in a project.
+- [an.library.lock](_autosummary/an.library.lock.html.md): The project lockfile: which library version each checked-out asset came from.
+- [an.library.rights](_autosummary/an.library.rights.html.md): Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).
+- [an.library.root](_autosummary/an.library.root.html.md): Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
+- [an.library.stores](_autosummary/an.library.stores.html.md): The library mall: &#96;records&#96;, &#96;versions&#96; and &#96;blobs&#96;, each an injected &#96;MutableMapping&#96;.
 - [an.live_api](_autosummary/an.live_api.html.md): The one switch that says “yes, this run may spend money”.
 - [an.motion](_autosummary/an.motion.html.md): Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 - [an.orchestrate](_autosummary/an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
@@ -155,7 +168,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 13:39 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 14:05 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

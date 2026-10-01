@@ -1,0 +1,34 @@
+an.library.affordances
+======================
+
+.. automodule:: an.library.affordances
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      KEY_SEP
+      CAPABILITIES
+      ANALYSERS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      analyse
+      capability_of
+      current_affordances
+      matches
+      missing
+      register_analyser
+      register_capability
+      remedy_for
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Analyser
+      Capability
+   

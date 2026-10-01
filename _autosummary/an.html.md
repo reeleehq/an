@@ -78,6 +78,22 @@ provides an unregistered one.
 * **Type:**
   `"style"` was retired in an#106
 
+#### library *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The asset-library version this entry was checked out from (ADR 0005
+decision 8): `"[<library>:]<asset_id>@<version>"`, e.g.
+`"cutan:character.alice-reiniger@v003"` (grammar:
+[`an.library.ids.parse_ref()`](an.library.ids.html.md#an.library.ids.parse_ref), a pinned version required: `vNNN` or
+`sha256:<prefix>`, never `latest`). `None` — the
+default, and every document written before the library existed — means
+the asset is the project’s own. Today the strategy is check-out, so
+`ref` still names the project-store key the compiler reads and this
+field is the pin beside it; live reference resolves it instead, later.
+
+Additive and omit-when-unset, like `stage`: an unset `library`
+leaves no trace in a dump, so no stored scene changes and no schema
+version moves.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -668,6 +684,7 @@ skip that shot rather than crash.
 | [`impacts`](an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.          |
 | [`ir`](an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                     |
 | [`iterate`](an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
+| [`library`](an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).               |
 | [`live_api`](an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
 | [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.              |
 | [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |

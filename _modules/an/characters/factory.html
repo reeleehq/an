@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
+    <script src="../../../_static/documentation_options.js?v=c7f57889"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.132" />
+  <meta name="docsearch:version" content="0.1.133" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1363,6 +1363,82 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_scale_face</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">head_scale</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">views</span> <span class="ow">and</span> <span class="n">head_is_ours</span><span class="p">:</span>
         <span class="n">add_views</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="c1"># Last, so every part is stamped with the bytes it finally has. A DiceBear</span>
+    <span class="c1"># head is not this factory's drawing: it keeps the descriptor's source.</span>
+    <span class="n">stamp_factory_parts</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="p">()</span> <span class="k">if</span> <span class="n">head_is_ours</span> <span class="k">else</span> <span class="p">(</span><span class="s2">"parts/head.svg"</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">desc_path</span></div>
+
+
+
+<span class="c1">#: The provider of every per-part source the factory stamps on what it draws.</span>
+<span class="n">FACTORY_PROVIDER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an character factory"</span>
+<span class="c1">#: The licence of the factory's own drawings: no rights to clear.</span>
+<span class="n">FACTORY_LICENSE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cc0-1.0"</span>
+
+
+<div class="viewcode-block" id="factory_source">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.factory_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">factory_source</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The per-part source of a part this factory drew, pinned to its bytes.</span>
+
+<span class="sd">    &gt;&gt;&gt; factory_source(b"&lt;svg/&gt;").license, len(factory_source(b"&lt;svg/&gt;").sha256)</span>
+<span class="sd">    ('cc0-1.0', 64)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span>
+        <span class="n">provider</span><span class="o">=</span><span class="n">FACTORY_PROVIDER</span><span class="p">,</span>
+        <span class="n">license</span><span class="o">=</span><span class="n">FACTORY_LICENSE</span><span class="p">,</span>
+        <span class="n">sha256</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>
+        <span class="n">cost_usd</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="stamp_factory_parts">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.stamp_factory_parts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stamp_factory_parts</span><span class="p">(</span>
+    <span class="n">char_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">paths</span><span class="p">:</span> <span class="s2">"set[str] | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Give each part the factory drew a ``cc0`` per-part source pinned to its digest.</span>
+
+<span class="sd">    Rights in the asset library attach to the BYTES (an#236): a file is as</span>
+<span class="sd">    restricted as the strictest thing any library says about its SHA-256, and an</span>
+<span class="sd">    asset-level licence speaks for every file the asset does not itemise. The</span>
+<span class="sd">    factory's parts are byte-identical across characters (the default mouths,</span>
+<span class="sd">    the eyes), so without this stamp a carved character built on a factory body</span>
+<span class="sd">    would make every other character's shared parts private. The stamp pins the</span>
+<span class="sd">    digest, so a part later re-drawn or re-carved no longer matches it and stops</span>
+<span class="sd">    being itemised as the factory's — the stamp cannot launder new bytes.</span>
+
+<span class="sd">    paths: the relative paths this call drew (default: every attachment whose</span>
+<span class="sd">        file exists, minus ``skip``). A part carrying some other provider's</span>
+<span class="sd">        source is never re-stamped.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
+
+    <span class="n">char_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">char_dir</span><span class="p">)</span>
+    <span class="n">desc_path</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">desc_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">migrate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"CharacterDescriptor"</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">file</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="ow">in</span> <span class="n">skip</span>
+                    <span class="ow">or</span> <span class="p">(</span><span class="n">paths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                    <span class="ow">or</span> <span class="p">(</span>
+                        <span class="n">att</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                        <span class="ow">and</span> <span class="n">att</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span> <span class="o">!=</span> <span class="n">FACTORY_PROVIDER</span>
+                    <span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">att</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">factory_source</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span>
+    <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">desc_path</span></div>
 
 
@@ -1727,7 +1803,14 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
     <span class="n">desc</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"gaze_stack"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"an#99"</span>
     <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">desc_path</span></div>
+    <span class="k">return</span> <span class="n">stamp_factory_parts</span><span class="p">(</span>
+        <span class="n">char_dir</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">"parts/</span><span class="si">{</span><span class="n">stem</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">side</span><span class="p">)</span><span class="si">}</span><span class="s2">.svg"</span>
+            <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">stem</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"eye_</span><span class="si">{}</span><span class="s2">_open"</span><span class="p">,</span> <span class="s2">"eye_</span><span class="si">{}</span><span class="s2">_closed"</span><span class="p">,</span> <span class="s2">"sclera_</span><span class="si">{}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"pupil_</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="p">},</span>
+    <span class="p">)</span></div>
 
 
 
@@ -2331,7 +2414,15 @@ window.runMermaid = runMermaid;</script>
         <span class="n">desc</span><span class="o">.</span><span class="n">colour_roles</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">roles</span><span class="p">)</span>
     <span class="n">meta</span><span class="p">[</span><span class="s2">"views"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">VIEWS</span><span class="p">)</span>
     <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">desc_path</span></div>
+    <span class="k">return</span> <span class="n">stamp_factory_parts</span><span class="p">(</span>
+        <span class="n">char_dir</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">"parts/</span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">view</span><span class="si">}</span><span class="s2">.svg"</span>
+            <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"head"</span><span class="p">,</span> <span class="s2">"torso"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">view</span> <span class="ow">in</span> <span class="n">VIEWS</span>
+            <span class="k">if</span> <span class="n">view</span> <span class="o">!=</span> <span class="n">DFLT_VIEW</span>
+        <span class="p">},</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

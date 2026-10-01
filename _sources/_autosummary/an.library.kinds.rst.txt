@@ -1,0 +1,31 @@
+an.library.kinds
+================
+
+.. automodule:: an.library.kinds
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ASSET_KINDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      asset_kind_info
+      register_asset_kind
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AssetKind
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnknownKindError
+   

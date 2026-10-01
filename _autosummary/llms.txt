@@ -111,6 +111,19 @@
 - [an.ir.schema](an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
+- [an.library](an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
+- [an.library.affordances](an.library.affordances.html.md): Affordances: what an asset can do, derived from its descriptor and the art present.
+- [an.library.api](an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;.
+- [an.library.character](an.library.character.html.md): The character analyser: legs, arms, views and mouth chart, derived from the rig.
+- [an.library.cli](an.library.cli.html.md): &#96;an library …&#96; — the asset library from the shell, over the same functions as Python.
+- [an.library.federation](an.library.federation.html.md): Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).
+- [an.library.floor](an.library.floor.html.md): The rights floor of a blob: the strictest statement any library on this machine makes about its byte...
+- [an.library.ids](an.library.ids.html.md): Asset ids, version labels and library references — the library’s persisted names.
+- [an.library.kinds](an.library.kinds.html.md): Asset kinds: the &#96;kind&#96; facet’s vocabulary, and where each kind lives in a project.
+- [an.library.lock](an.library.lock.html.md): The project lockfile: which library version each checked-out asset came from.
+- [an.library.rights](an.library.rights.html.md): Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).
+- [an.library.root](an.library.root.html.md): Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
+- [an.library.stores](an.library.stores.html.md): The library mall: &#96;records&#96;, &#96;versions&#96; and &#96;blobs&#96;, each an injected &#96;MutableMapping&#96;.
 - [an.live_api](an.live_api.html.md): The one switch that says “yes, this run may spend money”.
 - [an.motion](an.motion.html.md): Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 - [an.orchestrate](an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.

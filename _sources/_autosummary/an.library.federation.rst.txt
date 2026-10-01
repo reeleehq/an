@@ -1,0 +1,33 @@
+an.library.federation
+=====================
+
+.. automodule:: an.library.federation
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Libraries
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      as_libraries
+      open_library
+      resolve
+      search_path
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Library
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AssetNotFoundError
+   

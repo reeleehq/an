@@ -1,0 +1,30 @@
+an.library.root
+===============
+
+.. automodule:: an.library.root
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CORE_PACKAGE
+      LIBRARY_DIRNAME
+      PROJECTS_DIRNAME
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      git_worktree_of
+      home_env_var
+      library_root
+      project_dir
+      projects_root
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      LibraryLocationWarning
+   

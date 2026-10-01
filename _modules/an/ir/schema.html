@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
+    <script src="../../../_static/documentation_options.js?v=c7f57889"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.132" />
+  <meta name="docsearch:version" content="0.1.133" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -988,9 +988,35 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: it. So this field can grow without retiring a single ledger row.</span>
     <span class="n">stage</span><span class="p">:</span> <span class="n">StagePlacement</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="c1">#: The asset-library version this entry was checked out from (ADR 0005</span>
+    <span class="c1">#: decision 8): ``"[&lt;library&gt;:]&lt;asset_id&gt;@&lt;version&gt;"``, e.g.</span>
+    <span class="c1">#: ``"cutan:character.alice-reiniger@v003"`` (grammar:</span>
+    <span class="c1">#: :func:`an.library.ids.parse_ref`, a pinned version required: ``vNNN`` or</span>
+    <span class="c1">#: ``sha256:&lt;prefix&gt;``, never ``latest``). ``None`` — the</span>
+    <span class="c1">#: default, and every document written before the library existed — means</span>
+    <span class="c1">#: the asset is the project's own. Today the strategy is check-out, so</span>
+    <span class="c1">#: ``ref`` still names the project-store key the compiler reads and this</span>
+    <span class="c1">#: field is the pin beside it; live reference resolves it instead, later.</span>
+    <span class="c1">#:</span>
+    <span class="c1">#: Additive and omit-when-unset, like ``stage``: an unset ``library``</span>
+    <span class="c1">#: leaves no trace in a dump, so no stored scene changes and no schema</span>
+    <span class="c1">#: version moves.</span>
+    <span class="n">library</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"library"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_library_ref</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">v</span>
+        <span class="c1"># Imported here, not at module top: the IR must not depend on the</span>
+        <span class="c1"># library package at import time (it imports the IR's neighbours).</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_ref</span>
+
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">parse_ref</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">require_pin</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_stage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Serialize ``stage: null`` out of existence when it is unset.</span>
+<span class="w">        </span><span class="sd">"""Serialize ``stage: null`` and ``library: null`` out of existence when unset.</span>
 
 <span class="sd">        The precedent is `serialize._omit_unset_step_hz`, and the reason is</span>
 <span class="sd">        the same one scaled down: every committed `ir/scene.json` in this repo</span>
@@ -999,11 +1025,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        `AssetRef` would rewrite all of them on the next `an sync`, and</span>
 <span class="sd">        `test_every_speaking_corpus_scene_ir_is_reproducible_from_its_md`</span>
 <span class="sd">        would be red until each was regenerated. A field nobody set should</span>
-<span class="sd">        leave no trace (an#108).</span>
+<span class="sd">        leave no trace (an#108; ``library`` joined it under ADR 0005).</span>
 <span class="sd">        """</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"stage"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">library</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"library"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 

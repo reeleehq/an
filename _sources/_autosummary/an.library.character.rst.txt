@@ -1,0 +1,20 @@
+an.library.character
+====================
+
+.. automodule:: an.library.character
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CHARACTER_ANALYSER_VERSION
+      MOUTH_CHART_RHUBARB
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      character_affordances
+      renders_as_placeholder
+   
