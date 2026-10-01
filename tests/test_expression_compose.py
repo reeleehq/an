@@ -234,6 +234,9 @@ def test_an_unknown_preset_refuses_at_compile_and_at_validate(mall):
 def test_a_baked_face_refuses_an_authored_expression_and_warns_on_sugar(mall):
     desc = json.loads(json.dumps(mall["characters"]["c"]))
     desc["face_overlay"] = False
+    # A baked face speaks with a head pulse since an#248; declaring it makes it
+    # the request, which is how such a character renders under strict_assets.
+    desc["speech"] = "pulse"
     baked_mall = {"characters": {"c": mall["characters"]["c"], "baked": desc}}
     with pytest.raises(CutoutCompileError, match="baked into the head art"):
         compile_shot(_shot(actions=[expression("b", "happy")], ref="baked", entity="b"), mall=baked_mall, fps=24, strict_assets=True)

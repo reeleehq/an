@@ -815,6 +815,9 @@ class _SwapVocabulary:
     #: Node paths whose visual is a stroked path — the only nodes a
     #: `trim_start`/`trim_end` channel may target (an#160).
     path_nodes: frozenset[str] = frozenset()
+    #: entity id → its kind (`AssetRef.kind`): which entities resolve their
+    #: methods on the capability registry (characters, an#248).
+    entity_kinds: dict[str, str] = field(default_factory=dict)
     #: path node → {trim property: the value its document starts at}. A trim
     #: tween with no `from_value` starts HERE, not at the global rest value:
     #: a document with `trim_end: 0` authored as "tween trim_end to 1" is a
@@ -938,6 +941,7 @@ def _swap_vocabulary(
         path_nodes=frozenset(path_nodes),
         path_trims=path_trims,
         space_of=entity_space_resolver(shot.entities),
+        entity_kinds={e.id: e.kind for e in shot.entities},
     )
 
 
@@ -1087,8 +1091,11 @@ def compile_shot(
             "runtime indexes both layers by path, so one would shadow the other"
         )
     entity_swaps: list[_EntitySwap] = []
+    # The speech aspect, resolved once per speaker (an#248): the pulses it adds
+    # here, and the speakers whose lip-sync it switched off for the viseme pass.
+    speech = _speech_plan(shot, vocab, resolutions)
     animations, tracks = _compile_actions(
-        shot.actions,
+        [*shot.actions, *speech.actions],
         shot.duration,
         vocab=vocab,
         resolutions=resolutions,
@@ -1115,6 +1122,7 @@ def compile_shot(
         fps=fps,
         provider=provider,
         view_spans=view_spans,
+        no_lip_sync=speech.no_lip_sync,
     )
     # The face (an#98): blinks, expressions and the silent mouth form — one
     # channel per (node, property), ahead of everything authored. An entity
@@ -2977,6 +2985,7 @@ def _compile_actions(
         fps=fps,
         step_hz=step_hz,
         default_easing=default_easing,
+        resolutions=resolutions,
     )
 
     # `expression` leaves (an#98) are the face solver's input, not clips of
@@ -3802,6 +3811,7 @@ def _expand_preset_plays(
     fps: int = 30,
     step_hz: float | None = None,
     default_easing: Any = None,
+    resolutions: list[AssetResolutionJSON] | None = None,
 ) -> list[FlatAction]:
     """Replace each ``play`` of a motion preset with the flat tweens and sets
     it expands to (an#166), and give every from-less tween its start (an#212);
@@ -3904,7 +3914,12 @@ def _expand_preset_plays(
             parts_of = None
             if preset_takes(action.animation, PARTS_ARG) and vocab is not None:
                 action, rest_of = _with_view_and_posed_parts(
-                    action, flat.start, rest_of, history=history, vocab=vocab
+                    action,
+                    flat.start,
+                    rest_of,
+                    history=history,
+                    vocab=vocab,
+                    resolutions=resolutions,
                 )
 
                 def parts_of(entity: str) -> list[str]:
@@ -3954,6 +3969,91 @@ def _expand_preset_plays(
     return [leaf for i in range(len(flat_list)) for leaf in placed[i]]
 
 
+def _built_parts(vocab: _SwapVocabulary, entity: str) -> list[str]:
+    """The part paths the builder built under ``entity``, relative to it."""
+    prefix = f"{entity}/"
+    return [p[len(prefix) :] for p in vocab.node_transforms if p.startswith(prefix)]
+
+
+def _speech_plan(
+    shot: Shot,
+    vocab: _SwapVocabulary,
+    resolutions: list[AssetResolutionJSON] | None,
+):
+    """The speech aspect's plan for the shot (an#248): the pulses a speaker that
+    does not lip-sync gets, and who those speakers are. A shot whose speakers
+    all lip-sync on their mouth chart gets nothing — its document is unchanged."""
+    from an.characters.methods import speech_plan
+    from an.semantic import VocabularyError
+
+    try:
+        return speech_plan(
+            shot,
+            is_character=lambda e: _on_registry(e, vocab),
+            profile_of=lambda e: _character_profile(e, vocab),
+            descriptor_of=lambda e: vocab.descriptors.get(e),
+            has_part=lambda path: path in vocab.node_transforms,
+            record=lambda sub: _record_substitution(sub, resolutions),
+        )
+    except VocabularyError as e:
+        raise CutoutCompileError(
+            f"shot {shot.id!r}: a character's declared `speech` cannot be honoured: {e}"
+        ) from e
+
+
+def _on_registry(entity: str, vocab: _SwapVocabulary) -> bool:
+    """Whether ``entity`` resolves its methods on the capability registry: a
+    character (the one entity kind with an analyser, an#248)."""
+    from an.characters.methods import CHARACTER_KIND
+
+    return vocab.entity_kinds.get(entity) == CHARACTER_KIND
+
+
+def _character_profile(entity: str, vocab: _SwapVocabulary) -> dict[str, dict]:
+    """What a character on stage affords: the character analyser, fed what compiled."""
+    from an.characters.methods import compile_profile
+
+    return compile_profile(
+        vocab.descriptors.get(entity),
+        built_parts=_built_parts(vocab, entity),
+        art_exists=vocab.art_exists.get(entity),
+    )
+
+
+def _record_substitution(
+    sub, resolutions: list[AssetResolutionJSON] | None
+) -> None:
+    """A method substitution, recorded beside the stand-in assets (ADR 0002 decision 6)."""
+    from an.characters.methods import substitution_record
+
+    if resolutions is not None:
+        resolutions.append(AssetResolutionJSON(**substitution_record(sub)))
+
+
+def _locomotion_args(
+    entity: str,
+    args: Mapping[str, Any],
+    desc: Any,
+    vocab: _SwapVocabulary,
+    resolutions: list[AssetResolutionJSON] | None,
+) -> dict[str, Any]:
+    """The walk's args with its gait the locomotion method the registry resolves
+    (an#248): a method id or a pinned choice in ``gait`` is spelled out first,
+    its args joining the walk's."""
+    from an.characters.methods import normalise_gait_args, resolve_walk_gait
+
+    args = normalise_gait_args(args)
+    gait, resolution = resolve_walk_gait(
+        entity,
+        args=args,
+        descriptor=desc,
+        profile=_character_profile(entity, vocab),
+    )
+    if resolution.substitution is not None:
+        _record_substitution(resolution.substitution, resolutions)
+    return {**args, GAIT_ARG: gait}
+
+
 def _with_view_and_posed_parts(
     action: PlayAction,
     t: float,
@@ -3961,11 +4061,15 @@ def _with_view_and_posed_parts(
     *,
     history: Mapping[tuple[str, str], list[tuple[tuple[int, int], FlatAction]]],
     vocab: _SwapVocabulary,
+    resolutions: list[AssetResolutionJSON] | None = None,
 ) -> tuple[PlayAction, Callable[[str], dict[str, float] | None]]:
     """For a preset that moves an entity's parts (``walk``, an#214): fill its
     ``view`` from the timeline when the author did not (else from the
-    descriptor's ``rest_view``, and its ``gait`` from the descriptor's, an#220),
-    and read a part the
+    descriptor's ``rest_view``, an#220), its ``gait`` from the locomotion
+    method the capability registry resolves (an#248: the author's ``gait``,
+    else the descriptor's, else the default chain; a requested gait the rig
+    cannot honour is a recorded substitution in ``resolutions``), and read a
+    part the
     view POSES at its posed value — a side view splays the legs (an#203), so a
     walk swings them about the splay, not about the front-view rest, and ends
     where the view's pose takes them back.
@@ -3999,14 +4103,11 @@ def _with_view_and_posed_parts(
         if view is not None:
             args[VIEW_ARG] = view
             action = action.model_copy(update={"args": args})
-    gait = getattr(desc, "gait", None)
-    if (
-        gait is not None
-        and GAIT_ARG not in args
-        and preset_takes(action.animation, GAIT_ARG)
-    ):
-        args[GAIT_ARG] = gait  # the character's own gait (an#220); an arg wins
-        action = action.model_copy(update={"args": args})
+    if preset_takes(action.animation, GAIT_ARG) and _on_registry(entity, vocab):
+        resolved = _locomotion_args(entity, args, desc, vocab, resolutions)
+        if resolved != args:
+            args = resolved
+            action = action.model_copy(update={"args": args})
     posed: dict[tuple[str, str], _StepCurve] = {}
     if posed_view is not None and entity in vocab.descriptors:
         posed = _swap_pose_layer(
@@ -4522,9 +4623,14 @@ def _add_viseme_clips(
     fps: int = 30,
     provider: ExpressionProvider | None = None,
     view_spans: Mapping[str, list[_ViewSpan]] | None = None,
+    no_lip_sync: frozenset[str] = frozenset(),
 ) -> None:
     """For each dialogue line with a viseme_track, emit a step swap channel on
     every node of the speaker that can apply the line's mouth set.
+
+    ``no_lip_sync`` are the speakers whose speech aspect did not resolve to
+    the mouth chart (an#248: one decision, the capability registry's); they
+    get no viseme channel.
 
     **The view picks first** (an#220): a line that starts while the speaker
     is in a view it declares a mouth for (``viseme@side``, per
@@ -4600,7 +4706,7 @@ def _add_viseme_clips(
             # No timing assigned (audio pipeline didn't run); skip silently.
             continue
         speaker = line.speaker
-        if speaker in face_baked:
+        if speaker in face_baked or speaker in no_lip_sync:
             continue
         set_name = VISEME_CHANNEL
         desc = vocab.descriptors.get(speaker) if vocab is not None else None

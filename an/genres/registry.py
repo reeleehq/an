@@ -114,6 +114,10 @@ class ActionKind:
     #: Does ``start:`` in ``scene.md`` wrap this kind in ``sequence(delay(start), …)``?
     md_start: bool = True
     description: str = ""
+    #: The kind's vocabulary version (ADR 0003): bump when what an action of
+    #: this kind compiles to changes for the same fields, so the shots that use
+    #: it re-render visibly (:mod:`an.semantic` folds it into the shot digest).
+    version: str = "1"
 
 
 @dataclass(frozen=True)
@@ -129,6 +133,8 @@ class EntityKind:
     space: str | None = None
     store: str | None = None
     description: str = ""
+    #: The kind's vocabulary version (ADR 0003), as :attr:`ActionKind.version`.
+    version: str = "1"
 
 
 #: When a check runs: once before the shots, once per shot, once after them.

@@ -353,6 +353,7 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",
         "cutout.character_refs",
+        "cutout.declared_speech",
         "cutout.view_continuity",
     }
 
@@ -688,6 +689,7 @@ def test_the_report_order_is_pinned():
         "field_kinds",
         "entity_refs",
         "cutout.character_refs",
+        "cutout.declared_speech",  # an#248: after the refs it reads
         "voices",
         "dialogue_lines",
         "dialogue_fits",

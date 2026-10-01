@@ -63,3 +63,9 @@ _register_shot_keyer(
     environment=cutout_environment,
     renderer_type=CutoutRenderer,
 )
+
+# The versions of the vocabulary entries a shot names (ADR 0003 decision 2,
+# an#248): a preset whose meaning changes re-renders the shots that play it.
+from an.semantic.digest import register_vocabulary_key_part as _register_vocabulary_part
+
+_register_vocabulary_part("cutout")

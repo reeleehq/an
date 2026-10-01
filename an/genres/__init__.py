@@ -12,7 +12,12 @@ one file") — listing what it registers:
   nodes live in, plus any new **property spaces** and **field kinds** for the
   timing kernel (:mod:`an.timing`);
 - **semantic checks** (:class:`SemanticCheck`) that ``an validate`` runs;
-- **md sugar** (:class:`DialogueSugar`) on ``scene.md`` dialogue lines.
+- **md sugar** (:class:`DialogueSugar`) on ``scene.md`` dialogue lines;
+- **capabilities** and **analysers** (:mod:`an.capabilities`, ADR 0002): the
+  capability names its methods require and the derivation of what its assets
+  afford;
+- **vocabulary** entries — presets, methods, IR-field notes — and **aspects**
+  with their default chains (:mod:`an.semantic`, ADR 0003).
 
 Because the object is plain data, a genre is **inspectable before it is
 loaded**: :func:`available` reads every installed genre's declaration without
@@ -90,7 +95,13 @@ class Genre:
 
     ``spaces`` are :class:`an.timing.spaces.PropertySpace` objects and
     ``field_kinds`` are ``(name, factory)`` pairs for
-    :func:`an.timing.kinds.register_kind`.
+    :func:`an.timing.kinds.register_kind`. ``capabilities`` are
+    :class:`an.capabilities.Capability` objects, ``analysers``
+    :class:`an.capabilities.Analyser` objects, ``vocabulary``
+    :class:`an.semantic.Entry` objects (methods included) and ``aspects``
+    :class:`an.semantic.Aspect` objects; registering the genre checks the whole
+    (:func:`an.semantic.check_registry`): every aspect's chain ends in a method
+    that requires nothing, and every requirement names a registered capability.
 
     ``library`` names the package whose data root holds the genre's asset
     library and its projects (``~/.local/share/<library>``, ADR 0005, plan §1
@@ -112,6 +123,10 @@ class Genre:
     field_kinds: tuple = ()
     checks: tuple[SemanticCheck, ...] = ()
     dialogue_sugar: tuple[DialogueSugar, ...] = ()
+    capabilities: tuple = ()
+    analysers: tuple = ()
+    vocabulary: tuple = ()
+    aspects: tuple = ()
 
     def provides(self) -> dict[str, tuple[str, ...]]:
         """What this genre registers, by registry, as names — without registering it.
@@ -126,6 +141,10 @@ class Genre:
             "field kinds": tuple(name for name, _ in self.field_kinds),
             "checks": tuple(c.name for c in self.checks),
             "dialogue sugar": tuple(s.name for s in self.dialogue_sugar),
+            "capabilities": tuple(c.name for c in self.capabilities),
+            "analysers": tuple(a.kind for a in self.analysers),
+            "vocabulary": tuple(e.id for e in self.vocabulary),
+            "aspects": tuple(a.name for a in self.aspects),
         }
 
 
@@ -133,13 +152,18 @@ class Genre:
 _INSTALLED: dict[str, Genre] = {}
 
 
-def register_genre(genre: Genre, *, replace: bool = False) -> Genre:
+def register_genre(
+    genre: Genre, *, replace: bool = False, check_capabilities: bool = True
+) -> Genre:
     """Register everything ``genre`` declares, owned by ``genre.name``.
 
     Idempotent for the same object: registering a genre that is already
     installed is a no-op, so :func:`load` can be called from every entry point.
     A different object under an installed name raises unless ``replace``.
     All or nothing: a registration that fails part-way leaves no trace.
+    ``check_capabilities=False`` defers the "every requirement names a
+    registered capability" check to the caller (:func:`load` runs it once all
+    genres are in, so a genre extending another loads in any order).
     """
     if not isinstance(genre, Genre):
         raise GenreError(f"not a Genre: {genre!r}")
@@ -153,20 +177,21 @@ def register_genre(genre: Genre, *, replace: bool = False) -> Genre:
             f"a different genre named {genre.name!r} is already registered; "
             "pass replace=True to replace it"
         )
-    state, timing_state = snapshot(), _timing_snapshot()
+    state, timing_state, sem_state = snapshot(), _timing_snapshot(), _semantic_snapshot()
     try:
         if current is not None:
             _uninstall(genre.name)
-        _install(genre)
+        _install(genre, check_capabilities=check_capabilities)
     except Exception:
         restore(state)
         _timing_restore(timing_state)
+        _semantic_restore(sem_state)
         raise
     _INSTALLED[genre.name] = genre
     return genre
 
 
-def _install(genre: Genre) -> None:
+def _install(genre: Genre, *, check_capabilities: bool = True) -> None:
     from an.timing.kinds import register_kind
     from an.timing.spaces import register_space
 
@@ -183,12 +208,68 @@ def _install(genre: Genre) -> None:
         register_check(check, owner=owner)
     for sugar in genre.dialogue_sugar:
         register_dialogue_sugar(sugar, owner=owner)
+    if genre.capabilities or genre.analysers or genre.vocabulary or genre.aspects:
+        _install_semantics(genre, check_capabilities=check_capabilities)
+
+
+def _install_semantics(genre: Genre, *, check_capabilities: bool = True) -> None:
+    """Capabilities, analysers, vocabulary and aspects (ADRs 0002, 0003), then the check."""
+    from an import capabilities as caps
+    from an import semantic as sem
+
+    owner = genre.name
+    try:
+        for cap in genre.capabilities:
+            caps.register_capability(cap, owner=owner)
+        for analyser in genre.analysers:
+            caps.register_analyser(analyser, owner=owner)
+        for entry in genre.vocabulary:
+            sem.register_entry(entry, owner=owner)
+        for aspect in genre.aspects:
+            sem.register_aspect(aspect, owner=owner)
+    except (caps.CapabilityError, sem.VocabularyError) as e:
+        raise GenreError(f"genre {genre.name!r}: {e}") from e
+    problems = sem.check_registry(owner=owner, capabilities=check_capabilities)
+    if problems:
+        raise GenreError(
+            f"genre {genre.name!r} registers an unsound vocabulary:\n  - "
+            + "\n  - ".join(problems)
+        )
 
 
 def _uninstall(name: str) -> None:
     unregister_owner(name)
     _timing_drop_owner(name)
+    _semantic_drop_owner(name)
     _INSTALLED.pop(name, None)
+
+
+# The capability and vocabulary registries (P7) sit beside the core's tables:
+# a genre's entries there come out with it, exactly like its kinds. Imported
+# lazily: `an.semantic` is below `an.ir` but above this registry module.
+
+
+def _semantic_snapshot() -> tuple:
+    from an import capabilities as caps
+    from an.semantic import registry as sem
+
+    return caps.snapshot(), sem.snapshot()
+
+
+def _semantic_restore(state: tuple) -> None:
+    from an import capabilities as caps
+    from an.semantic import registry as sem
+
+    caps.restore(state[0])
+    sem.restore(state[1])
+
+
+def _semantic_drop_owner(owner: str) -> None:
+    from an import capabilities as caps
+    from an.semantic import registry as sem
+
+    caps.drop_owner(owner)
+    sem.drop_owner(owner)
 
 
 # The timing kernel's registries are P1's; a genre's spaces and field kinds go
@@ -359,8 +440,21 @@ def load(
         if genre.name in seen:
             continue  # the same genre under two entry-point names
         seen.add(genre.name)
-        register_genre(genre)
+        register_genre(genre, check_capabilities=False)
+    _check_capabilities_of(seen)
     return installed()
+
+
+def _check_capabilities_of(names: Iterable[str]) -> None:
+    """Every requirement of these genres names a capability registered by SOME
+    genre — checked once all are in, so load order never matters (review-256 S7)."""
+    from an import semantic as sem
+
+    problems = [p for name in names for p in sem.check_registry(owner=name)]
+    if problems:
+        raise GenreError(
+            "the loaded genres register an unsound vocabulary:\n  - " + "\n  - ".join(problems)
+        )
 
 
 def genres_declaring(test) -> tuple[str, ...]:
@@ -435,7 +529,7 @@ def without_genres() -> Iterator[None]:
     ...     action_kind("play") is None
     True
     """
-    state = (snapshot(), _timing_snapshot(), dict(_INSTALLED))
+    state = (snapshot(), _timing_snapshot(), dict(_INSTALLED), _semantic_snapshot())
     try:
         for name in list(_INSTALLED):
             _uninstall(name)
@@ -447,6 +541,7 @@ def without_genres() -> Iterator[None]:
         _timing_restore(state[1])
         _INSTALLED.clear()
         _INSTALLED.update(state[2])
+        _semantic_restore(state[3])
 
 
 def _all_owners() -> set[str]:

@@ -1,7 +1,7 @@
 """Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 ``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,
-``squash_stretch``, ``waddle``, ``turn`` and ``walk`` each EXPAND to ordinary ``tween``
+``squash_stretch``, ``waddle``, ``turn``, ``walk`` and ``speech_pulse`` each EXPAND to ordinary ``tween``
 actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and
 :func:`~an.ir.compose.parallel`. Called from Python, nothing downstream
 learns a preset exists: the flat timeline, ``an validate``, the verifiers and
@@ -149,6 +149,15 @@ WALK_ARM_NAMES: tuple[tuple[str, str], ...] = (
 #: Views whose legs SWING about the hip (the character seen from the side);
 #: every other view (``front``, ``back``, none) steps them up and down.
 WALK_SWING_VIEWS: frozenset[str] = frozenset({"side", "three_quarter"})
+#: A speech pulse (ADR 0002's requirement-free speech, an#248): the part that
+#: pulses on each syllable — ``head`` lifts like a hinged jaw (the cut-out
+#: "head flap"); ``""`` pulses the whole body.
+DFLT_PULSE_PART: str = "head"
+#: How far the part stretches on a syllable, as a fraction of its rest
+#: ``scale_y``. Masters who mime set 0 (study_the_masters §4, Reiniger).
+DFLT_PULSE_STRENGTH: float = 0.06
+DFLT_PULSE_ATTACK_S: Seconds = 0.06
+DFLT_PULSE_RELEASE_S: Seconds = 0.1
 #: The swap set a turn swaps: the factory's turnaround (an#197).
 DFLT_TURN_SET: str = "view"
 DFLT_TURN_TO: str = "back"
@@ -922,6 +931,59 @@ def face_toward(
     )
 
 
+def speech_pulse(
+    target: PathStr,
+    *,
+    beats: tuple[Seconds, ...] = (0.0,),
+    strength: float = DFLT_PULSE_STRENGTH,
+    part: str = DFLT_PULSE_PART,
+    attack: Seconds = DFLT_PULSE_ATTACK_S,
+    release: Seconds = DFLT_PULSE_RELEASE_S,
+    rest: Rest | None = None,
+) -> Action:
+    """Pulse a part on each syllable: speech carried without a mouth (an#248).
+
+    The requirement-free last link of the speech aspect (ADR 0002 decision 5,
+    method ``speech.pose_only``): a character whose face is baked into its art
+    (``face_overlay: false``) still reads as speaking. On each time in ``beats``
+    (seconds from the start) ``<target>/<part>`` stretches its ``scale_y`` by
+    ``strength`` over ``attack`` and settles over ``release``; ``part=""``
+    pulses the whole body. A beat that would start before the previous pulse
+    settles is skipped, so the pulse never stacks. ``strength=0`` is a mime.
+    ``rest`` is the PART's rest, as for :func:`nod`; it lands with a constant
+    tween rather than a settling ``set``, so played once per syllable (as the
+    speech aspect does) each pulse rides whatever the head is doing.
+
+    >>> [(round(f.start, 2), f.action.to_value) for f in _tweens(speech_pulse("al", beats=(0.0, 0.3)))]
+    [(0.0, 1.06), (0.06, 1.0), (0.3, 1.06), (0.36, 1.0), (0.46, 1.0)]
+    """
+    _positive(attack=attack, release=release)
+    if not beats:
+        raise ValueError("speech_pulse needs at least one beat")
+    path = f"{target}/{part}" if part else target
+    s0 = _rest(rest, "scale_y")
+    peak = s0 * (1.0 + strength)
+    moves: list[Action] = []
+    t = 0.0
+    for beat in sorted(float(b) for b in beats):
+        if beat < t:
+            continue
+        if beat > t:
+            moves.append(delay(beat - t))
+        moves += [
+            tween(path, "scale_y", to=peak, duration=attack, from_=s0, easing=DFLT_OUT_EASING),
+            tween(path, "scale_y", to=s0, duration=release, from_=peak, easing=DFLT_IN_EASING),
+        ]
+        t = beat + attack + release
+    # Lands with a constant tween, not a settling `set` (as a walk's limbs do):
+    # a `set` would hold `s0` and freeze an authored head-scale tween running
+    # under the pulse; a tween ends, and the authored one carries on.
+    moves.append(
+        tween(path, "scale_y", to=s0, duration=WALK_LANDING_S, from_=s0, easing="linear")
+    )
+    return sequence(*moves)
+
+
 #: Every preset by name — the one list the skill, the demo and the ``play``
 #: fallback (:func:`an.characters.play.play_source`, an#166) read.
 PRESETS: dict[str, Callable[..., Action]] = {
@@ -938,8 +1000,16 @@ PRESETS: dict[str, Callable[..., Action]] = {
         waddle,
         turn,
         walk,
+        speech_pulse,
     )
 }
+
+#: Each preset's vocabulary version (ADR 0003 decision 2): bump a preset's
+#: version in the SAME change that makes it expand differently for the same
+#: args, so every shot that plays it re-renders visibly instead of silently
+#: (:mod:`an.semantic` folds it into the shot's vocabulary digest). Versioning
+#: starts here (an#248); ``walk``'s earlier changes (an#214, an#220) predate it.
+PRESET_VERSIONS: dict[str, str] = {name: "1" for name in PRESETS}
 
 
 #: Presets whose ``rest`` is the node's HOME — where an entrance LANDS — rather

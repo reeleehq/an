@@ -11,7 +11,12 @@ wired into the core. :data:`CUTOUT` lists:
 - the **``[emotion]``** dialogue sugar;
 - its **semantic checks**: ``play`` and ``expression`` resolution, the turn
   checks (contradicted ``from_direction``, a mouth hidden while speaking) and
-  view continuity across a cut, placed in the report where they always were.
+  view continuity across a cut, placed in the report where they always were;
+- its **capabilities** and the **character analyser** (ADR 0002:
+  :mod:`an.library.character`), its **vocabulary** (motion and expression
+  presets, IR-field notes: :mod:`an.characters.vocabulary`; the methods:
+  :mod:`an.characters.methods`) and its **aspects**, ``locomotion`` and
+  ``speech``, each with a default chain that ends in a method requiring nothing.
 
 Its ``name`` is the persisted genre slug ``cutout_animation``, the one
 :mod:`an.genre` declares to ``nw`` (ADR 0001 decision 9: persisted
@@ -28,10 +33,13 @@ Importing this module registers nothing: :func:`an.genres.load` (or
 
 from __future__ import annotations
 
+from an.characters.methods import CUTOUT_ASPECTS, CUTOUT_METHODS, check_declared_speech
 from an.characters.registration import CHARACTER, PLAY
+from an.characters.vocabulary import CUTOUT_VOCABULARY
 from an.expression.registration import EMOTION, EXPRESSION
 from an.genres import Genre, SemanticCheck
 from an.ir import validate as _validate
+from an.library.character import CHARACTER_ANALYSER, CHARACTER_CAPABILITIES
 
 #: The genre's persisted slug (also :data:`an.genre.CUTOUT_ANIMATION_SLUG`).
 CUTOUT_GENRE_NAME: str = "cutout_animation"
@@ -76,6 +84,12 @@ CUTOUT = Genre(
             description="no line is spoken while the speaker's view hides its mouth",
         ),
         SemanticCheck(
+            "cutout.declared_speech",
+            check_declared_speech,
+            order=100.6,
+            description="a character's declared `speech` names a speech method at a current version",
+        ),
+        SemanticCheck(
             "cutout.character_refs",
             _validate.check_character_refs,
             order=100.5,
@@ -90,6 +104,10 @@ CUTOUT = Genre(
         ),
     ),
     dialogue_sugar=(EMOTION,),
+    capabilities=CHARACTER_CAPABILITIES,
+    analysers=(CHARACTER_ANALYSER,),
+    vocabulary=(*CUTOUT_VOCABULARY, *CUTOUT_METHODS),
+    aspects=CUTOUT_ASPECTS,
 )
 
 __all__ = ["CUTOUT", "CUTOUT_GENRE_NAME"]

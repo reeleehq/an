@@ -40,6 +40,7 @@ from an.motion import (
     shake,
     slide_in,
     slide_out,
+    speech_pulse,
     squash_stretch,
     turn,
     waddle,
@@ -107,6 +108,8 @@ PROCEDURAL_CALLS = {
     "waddle": lambda: waddle("charlie", travel=80.0),
     # The placeholder builds no legs (an#214): the legless walk, arms named.
     "walk": lambda: walk("charlie", legs=(), arms=("left_arm", "right_arm")),
+    # The speech aspect's requirement-free last link (an#248): the head pulses.
+    "speech_pulse": lambda: speech_pulse("charlie", beats=(0.0, 0.3)),
 }
 #: Presets that swap a SET, which only a descriptor declares (an#197): `turn`
 #: swaps the view. The procedural rig refuses them loudly (below); on `gale`,

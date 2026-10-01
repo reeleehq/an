@@ -648,8 +648,10 @@ def test_the_iterate_prompt_enumerates_the_legal_properties():
     """
     from an import iterate
 
-    src = Path(iterate.__file__).read_text(encoding="utf-8")
-    prompt = src[src.index("actions: list of action dicts") :][:1200]
+    # Generated from the vocabulary registry since an#248: the IR-field part
+    # of the prompt, from the actions field to the vocabulary lists.
+    text = iterate.system_prompt()
+    prompt = text[text.index("actions: list of action dicts") : text.index("Vocabulary —")]
     for prop in ("scale_x", "alpha", "pivot_y"):
         assert prop in prompt, f"the prompt does not name {prop!r} as legal"
     # Since an#87 any other property names a swap SET: the prompt must say

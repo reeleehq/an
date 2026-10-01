@@ -119,99 +119,25 @@ class IterateResult:
 
 
 # -----------------------------------------------------------------------------
-# System prompt — stable, cacheable.
+# System prompt — generated from the vocabulary registry (ADR 0003 decision 6).
 # -----------------------------------------------------------------------------
 
-
-_SYSTEM_PROMPT = """You are an animation director's assistant. The user is iterating
+#: What ``an iterate`` is, before the vocabulary.
+_PROMPT_PREAMBLE = """You are an animation director's assistant. The user is iterating
 on a scene; you receive the scene's current state (a JSON-shaped IR) and a free-text
-instruction, and you reply with a structured patch on that JSON tree.
+instruction, and you reply with a structured patch on that JSON tree."""
 
-The IR shape (relevant fields):
-
-  - meta: {title, author, duration, fps, resolution, default_renderer, notes}
-  - timeline: a list of shots, each with:
-      - id (string, unique)
-      - renderer ("cutout" | "manim" | "motion_graphics" | "whiteboard")
-      - duration (seconds, float)
-      - camera: {move: "hold"|"push_in"|"pull_out"|"zoom_in"|"zoom_out", ...}
-      - entities: list of {kind, id, store, ref, ...}
-        "kind" MUST be one of: character, environment, voice, prop.
-        A "prop" needs a PropDescriptor in the props store; it has no
-        placeholder rig, so an unknown ref raises rather than drawing a person.
-      - actions: list of action dicts (kind ∈ {tween, set, play, expression, sequence, parallel, delay, loop})
-        A tween/set action's "property" is EITHER a transform:
-          x, y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y,
-          pivot_x, pivot_y, alpha
-        OR "tint", a per-node colour MULTIPLY whose value is a "#rrggbb"
-        string (an#62) — the compiler expands it into three numeric channels,
-        so a tween between two colours interpolates per channel. Like "alpha"
-        it cascades to the target's parts.
-        OR the name of a swap set the target character's descriptor declares
-        in asset_sets (e.g. "viseme", "eyelid", "hands"), used with a "set"
-        action whose "value" is one of that set's declared KEYS. Any other
-        property (opacity, visible, color, width, ...) is refused at
-        compile with the declared sets listed. Never invent a set or a key.
-        "alpha" is the fade primitive and cascades to a character's parts.
-        A tween with no "from" starts at the property's rest value: 1.0 for
-        scale_x / scale_y / alpha, "#ffffff" for tint, 0.0 for the rest.
-        A "play" action ({kind: play, target: <entity>, animation: <name>,
-        [duration], [speed], [loop], [args]}) plays one of the target character's
-        descriptor animations ("idle_breath", "blink", or any it declares) or,
-        for a name the descriptor does not declare, a motion preset — pop_in,
-        hop, shake, nod, point (target the arm node), slide_in, slide_out,
-        squash_stretch, waddle — with "args" as its parameters (e.g.
-        {"height": 30}); a name in neither fails validation — never invent one.
-        A tween with no "easing" takes the scene's meta.default_easing when set.
-        An "expression" action ({kind: expression, target: <entity>, preset: <name>,
-        [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial
-        expression on a character: brows, eyelids, and the mouth's set for any
-        dialogue under it. Presets: neutral, happy, sad, angry, surprised, afraid,
-        disgusted, thinking, skeptical, amused — an unknown preset fails validation.
-        Axes (offsets in [-1, 1]; lids in [-1, 0.5]): brow_height_l/r, brow_angle_l/r,
-        lid_open_l/r, gaze_x, gaze_y. "duration" omitted = to the shot end. A
-        character whose descriptor says face_overlay: false cannot take one.
-      - dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}.
-        "direction" (optional) is a list of delivery cues — ["excited"],
-        ["sighs", "annoyed"] — that an expressive TTS voice performs; it is
-        never spoken as text and never shown in captions.
-        Lines play back to back from the shot start. "pause" (seconds) is
-        silence before a line, after the previous one ends — a beat, a look, a
-        hesitation belongs here, NOT in a new shot. "at" (seconds) starts a line
-        at that shot time instead; a line takes one or the other, never both
-        (to switch, delete the one you are replacing in the same patch list).
-        "start" and "duration" are stamped by the audio pipeline from these on
-        every render — never patch them.
-      - narration: list (same shape as dialogue, no speaker pin).
-        NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with
-        narration now RAISES. To add a narrator, emit a dialogue line whose
-        speaker is not an entity in the shot; it gets audio and no lip-sync.
-      - transition (optional): how the shot is ENTERED —
-        {kind: "cut"|"fade"|"dissolve", duration: seconds, color: "#rrggbb"}.
-        Omitted = a hard cut. "fade" dips through color (half out of the
-        previous shot, half into this one; on the first shot, a fade up).
-        "dissolve" overlaps the two shots by duration, so the film gets that
-        much shorter; never on the first shot. A shot must be long enough to
-        hold its own transition and the next shot's.
-      - sounds (optional): SFX cues in SHOT-local time —
-        [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop],
-        [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.
-  - meta.sounds (optional): the same cue shape in FILM time — a music bed is
-    {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks
-    it under every dialogue line.
-  - meta.captions (optional): captions built at render time from the dialogue's
-    word timings — {} for the defaults, or {highlight: "#rrggbb", color,
-    size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add
-    caption text entities by hand: they are derived from the dialogue.
-
-Path syntax for patches: slash-delimited, list indices are integers. Examples:
+#: The patch protocol and the editing rules, after the vocabulary. The
+#: vocabulary itself (fields, kinds, presets, moves, easings, methods) is
+#: generated from :mod:`an.semantic` and never written here: a list in prose
+#: is a second source of truth that drifts (it did — ``walk`` and ``turn``
+#: were missing from the hand-written one this replaced, an#248).
+_PROMPT_POSTAMBLE = """Path syntax for patches: slash-delimited, list indices are integers. Examples:
 
   "meta/title"                              → top-level meta field
   "timeline/0/duration"                     → first shot's duration
   "timeline/1/dialogue/0/text"              → second shot, first dialogue line, text
-  "timeline/1/dialogue/0/emotion"           → set the emotion (a preset name: "happy" | "sad"
-                                              | "angry" | "surprised" | "afraid" | "disgusted"
-                                              | "skeptical" | "amused" | "thinking" | "neutral")
+  "timeline/1/dialogue/0/emotion"           → set the emotion (an expression preset name)
   "timeline/1/dialogue/1/pause"             → seconds of silence before that line
   "timeline/1/dialogue/1/direction"         → delivery cues, e.g. ["whispers"]
 
@@ -231,8 +157,35 @@ Rules:
      extend the parent shot's duration (set timeline/N/duration) so the line fits.
   5. Populate affected_shots with the ids of every shot whose render needs to be
      redone (i.e. any shot you patched).
-  6. Do not invent new fields. Keep emotion values inside the allowed set.
+  6. Do not invent new fields or names. Keep every name inside the vocabulary
+     above (an emotion is an expression preset).
   7. Keep the summary short — one sentence."""
+
+
+def system_prompt() -> str:
+    """The ``an iterate`` system prompt: the protocol around the generated vocabulary.
+
+    Loads the installed genres first (their presets and methods are part of
+    the vocabulary). Stable for a given registry, so it caches as well as the
+    hand-written one did.
+
+    >>> text = system_prompt()
+    >>> "walk" in text and "Rules:" in text
+    True
+    """
+    from an.genres import load
+    from an.semantic.prompt import iterate_prompt
+
+    load()
+    return iterate_prompt(preamble=_PROMPT_PREAMBLE, postamble=_PROMPT_POSTAMBLE)
+
+
+def __getattr__(name: str):
+    # `_SYSTEM_PROMPT` was a hand-written constant until an#248; the name still
+    # reads (tests and callers that inspect the prompt), now generated.
+    if name == "_SYSTEM_PROMPT":
+        return system_prompt()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # -----------------------------------------------------------------------------
@@ -479,7 +432,7 @@ def _call_claude(
             model=model,
             max_tokens=max_tokens,
             thinking={"type": "adaptive"},
-            system=_SYSTEM_PROMPT,
+            system=system_prompt(),
             messages=[{"role": "user", "content": user_content}],
         )
     except anthropic.APIStatusError as e:

@@ -345,8 +345,16 @@ def register_shot_keyer(
     is refused unless ``replace=True`` — a silent replacement would drop the
     first keyer's parts from every key without anyone saying so.
     """
-    new = _KeyerEntry(keyer=keyer, environment=environment, renderer_type=renderer_type)
     old = _KEYERS.get(renderer_name)
+    # Compared WITH the registered parts, which a re-registration keeps: a
+    # keyer whose parts were added since (an#248's `vocabulary`) is still the
+    # same keyer.
+    new = _KeyerEntry(
+        keyer=keyer,
+        environment=environment,
+        renderer_type=renderer_type,
+        parts=dict(old.parts) if old is not None else {},
+    )
     if old is not None and not replace and old.identity() == new.identity() and (
         callable_identity(old.environment) if old.environment else None
     ) == (callable_identity(environment) if environment else None):

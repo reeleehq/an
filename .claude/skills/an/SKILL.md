@@ -21,7 +21,8 @@ CLI surface:
 - `an render <dir> [--tts NAME] [--lipsync NAME] [--parallel auto|N] [--strict-assets] [--step-hz N] [--force-render] [--no-cache] [--cache-frames]` — full pipeline: validate → audio → render per shot → ffmpeg-concat (or, with transitions or sounds, `an.assemble`) → `output/main.mp4`. TTS and lip-sync providers are pluggable: `--tts elevenlabs` (needs `ELEVEN_API_KEY`) for real speech, `--lipsync whisper` (needs `faster-whisper`) for word-aligned visemes, `--lipsync rhubarb` (needs the rhubarb binary) for full phoneme alignment. Whatever the provider, the compiler runs the co-articulation passes over its raw track before emitting the mouth channel (an#97: duplicates merged, sub-frame tongue shapes dropped, every shape 2/24 s ahead of its sound, a beat to close before rest, and a 0.14 s minimum hold that VOTES — the shape with the largest in-window span × dominance wins and shows from the window start — instead of dropping late arrivals). Rhubarb's recognizer follows the language: `an render --language en` (the default) uses `pocketSphinx` with the transcript, any other tag `phonetic` without one; `make_lipsync("rhubarb", language=…)` in Python (an#96). Defaults are offline. Switching providers auto-re-synthesizes the affected lines. `--parallel auto` runs each shot in its own thread (Phase 11c; ~N× wall-time speedup on N-shot scenes; capped at min(shots, cpu, 4)). `--strict-assets` refuses to draw a **stand-in** for an asset the project's stores don't supply — the placeholder rig for a missing character descriptor, the default backdrop for an unknown environment ref. Without it you get a warning and a plausible render of a *different* picture (an#33); use it whenever the output is going to be measured or compared. `--step-hz N` (an#89) renders authored tweens **stepped** — pose updates N times a second on a shot-wide grid (every tween in a shot shares it; a tween's own start and end are pose changes too, so an off-grid start or end changes pose on that frame as well), so at 30 fps `15` is "on twos" and `10` "on threes" (the Spider-Verse look: characters on twos, camera and simulation on ones); it overrides the scene's `meta.step_hz` for this render, a shot's own `step_hz` still wins, and the camera, blinks, `play` clips and swap channels are never stepped. Default: smooth. **`an render` rewrites `scene.md`** when the scene has dialogue: the audio pipeline stamps each line's timing and writes the scene back through the store, which regenerates `scene.md` from the IR — prose and YAML comments are dropped, flow mappings (`{kind: set, ...}`) become block style, and defaults (`author`, `resolution`, `default_renderer`) are written out. Re-read the file after a render before editing it, keep notes elsewhere, or edit through `mall["scenes"]["main"]`. **`an render` is incremental** (ADR 0004): a shot whose inputs are unchanged since an earlier render — its compiled document, the bytes of every asset in the project, its dialogue audio, the runtime, every render setting, and this machine's browser/Playwright/ffmpeg — is reused from the project's shot cache (`artifacts/shot_cache/`) instead of rendered, and the CLI prints which shots were `rendered` and which `reused`. Editing one shot re-renders that shot; editing any asset re-renders every shot (until reads are recorded per shot); a film with transitions or a sound layer re-renders its shots (their frames are not cached by default; `--cache-frames` caches them, at hundreds of MB per 1080p shot). The summary line says why each rendered shot was not reused. `--force-render` renders every shot anyway; `--no-cache` neither reads nor writes the cache. In Python: `render_project(dir, incremental=ShotCache())` and read `cache.report` (`from an.build import ShotCache`). The shot id is never the key, so renaming a shot reuses it.
 - `an iterate <dir> "<instruction>"` — free-text edit. Sends the current scene + instruction to Claude (Opus 4.7 + adaptive thinking), parses a structured patch list, validates against the schema, and persists the new scene to disk; the next `an render` re-renders exactly the shots whose content changed (found by digest, not by the model's `affected_shots` list, which is only reported). Needs `ANTHROPIC_API_KEY`. Pass `--no-apply-changes` for a dry run.
 - `an preview <dir> [--shot ID] [--no-browser]` — live preview in a browser. Spins up an HTTP server, compiles the chosen shot (default: first), polls `scene.md` / `ir/scene.json` for changes, and the browser auto-reloads via a 500 ms `Last-Modified` poll. Lossy: visuals only, no audio. Honours the scene's / shot's `step_hz` (no flag of its own). Blocks until Ctrl-C. Use it for quick iteration on layout / blocking before `an render`.
-- `an character new <name> [--out-dir DIR] [--seed S] [--style adventurer] [--offline] [--mouth-variants happy,sad] [--palette skin=#..,hair=#..,clothing=#..,leg=#..,accessory=#..] [--build regular|squat|tall|stick] [--head-scale 1.3] [--hat none|cap|beanie|bowler|bicorne] [--sash] [--no-views]` — create a character at `DIR/<name>`; **`DIR` defaults to `./assets/characters` relative to the CURRENT directory, not to any project** — run it from the project root or pass `--out-dir <project>/assets/characters` (every `an character` subcommand that names a character takes `--out-dir` the same way). It writes with parts/ (the body, brows, and the sclera/pupil/lid eye stack), the 9-shape mouth set (plus a `viseme@happy` and `viseme@sad` variant set by default — the mouth forms the expression presets prefer; `an character mouths --variants angry` adds more), and `character.json`. By default fetches a DiceBear avatar; `--offline` uses a deterministic geometric fallback (no network). **For production scenes with dialogue, prefer `--offline` or hand-rig a character following the Pose Animator convention (see `examples/promote_demo/`).** **Give every character its own look**: `--palette` (StylePack role names; unset roles keep the seed's colours), `--build` (`squat` = round body on short legs, `stick` = small blocky body on stick limbs, `tall`), `--head-scale` (head and whole face together), `--hat` (offline head only) and `--sash`, in the `accessory` colour. An `--offline` character also gets its **turnaround** — `front`, `three_quarter`, `side`, `back` (see *Turning and facing*); `--no-views` leaves it out. Defaults reproduce the old character exactly (views only ADD parts and descriptor keys). DiceBear avatars have eyes/brows/mouth baked into the head SVG, so the cutout adapter suppresses the overlay mouth + viseme channel for them — audio plays but the mouth doesn't move. Treat DiceBear as a bootstrap path only.
+- `an character capabilities <name> [--out-dir DIR] [--as-json]` — what the character affords (derived from its descriptor and the art present) and, per aspect, the default method, the applicable ones and what the rest are missing, with remedies (an#248). The MCP surface (`python -m an.mcp`, the `an[mcp]` extra) answers the same questions, plus the vocabulary, the schema, validation, a typed patch and a render job.
+- `an character new <name> [--out-dir DIR] [--seed S] [--style adventurer] [--offline] [--mouth-variants happy,sad] [--palette skin=#..,hair=#..,clothing=#..,leg=#..,accessory=#..] [--build regular|squat|tall|stick] [--head-scale 1.3] [--hat none|cap|beanie|bowler|bicorne] [--sash] [--no-views]` — create a character at `DIR/<name>`; **`DIR` defaults to `./assets/characters` relative to the CURRENT directory, not to any project** — run it from the project root or pass `--out-dir <project>/assets/characters` (every `an character` subcommand that names a character takes `--out-dir` the same way). It writes with parts/ (the body, brows, and the sclera/pupil/lid eye stack), the 9-shape mouth set (plus a `viseme@happy` and `viseme@sad` variant set by default — the mouth forms the expression presets prefer; `an character mouths --variants angry` adds more), and `character.json`. By default fetches a DiceBear avatar; `--offline` uses a deterministic geometric fallback (no network). **For production scenes with dialogue, prefer `--offline` or hand-rig a character following the Pose Animator convention (see `examples/promote_demo/`).** **Give every character its own look**: `--palette` (StylePack role names; unset roles keep the seed's colours), `--build` (`squat` = round body on short legs, `stick` = small blocky body on stick limbs, `tall`), `--head-scale` (head and whole face together), `--hat` (offline head only) and `--sash`, in the `accessory` colour. An `--offline` character also gets its **turnaround** — `front`, `three_quarter`, `side`, `back` (see *Turning and facing*); `--no-views` leaves it out. Defaults reproduce the old character exactly (views only ADD parts and descriptor keys). DiceBear avatars have eyes/brows/mouth baked into the head SVG, so the cutout adapter suppresses the overlay mouth + viseme channel for them; since an#248 such a speaker's head PULSES on each syllable instead (the speech aspect's requirement-free default, `speech.pose_only` / the `speech_pulse` preset), so a line still reads as spoken. Falling to the pulse without asking is a recorded substitution (a warning; fatal under `--strict-assets`): declare it in `character.json` as `"speech": "pulse"` (or a mime, `{"method": "pulse", "args": {"strength": 0}}`, which also switches lip-sync off), and a character with a mouth chart can declare the pulse too. An authored `play: speech_pulse` on the speaker takes over from the automatic one; an authored head `scale_y` tween keeps running under the pulses. Treat DiceBear as a bootstrap path only.
 - `an character add-views <name>` — give an older `--offline` character its turnaround (an#197); refused for DiceBear or hand-drawn heads.
 - `an character add-gaze <name>` — give an older character the eye stack (sclera/pupil/lid) so gaze and ambient saccades move its pupils (new characters get it by default); `an character mouths <name> [--variants happy,sad]` — regenerate the 9-shape default mouth set and its `viseme@<form>` variants (declared in the descriptor) (`mouth_a` … `mouth_x`). Variants are ADDED: sets already declared stay declared, so `--variants angry` on a new character gives it `happy`, `sad` and `angry`. It also redraws the neutral set, so run it before hand-editing mouth art, not after. **When `an validate`/`an render` warns `<name> declares no 'viseme@angry' set`**, a dialogue `[angry]` (or an `expression`) wants a mouth form the character lacks: the face still works, the mouth just uses the neutral shapes; `an character mouths <name> --variants angry` fixes it.
 - `an character validate <name>` — check parts, mouth set, pivots, descriptor.
@@ -73,6 +74,92 @@ All parameters are keyword-only with module-constant defaults (`DFLT_*`); `an.mo
 - **Presets write their own easings**, so a scene `default_easing` does not reach them.
 - **Each preset ends with a `set` pinning every property it moved at its end value.** Frames sample `i / fps` and the runtime holds the last pose applied, so a tween ending between frames would leave the property off by part of its last segment (under `step_hz`, by all of it). The `set` holds until the next tween on that property.
 - Presets are ordinary tweens, so `step_hz` steps them — the jerky South Park look is `sequence(...)` plus `step_hz`. A segment shorter than one step (a default `shake` has 57 ms segments) mostly vanishes under `step_hz` 10–15; lengthen `duration` or lower `cycles` for a stepped shot.
+
+<!-- vocabulary:begin (generated by `python -m an.semantic.docs --write`; do not edit) -->
+## Vocabulary (generated)
+
+Every name a scene may use, with its version and the spectrum levels it accepts ((a) typed, (b-name) a registered name, (b-llm) a description resolved before the IR, (c) a checked goal). `an.semantic.vocabulary()` returns the same list as data; easings: `an.timing.easing.easing_entries()`.
+
+### Action kinds
+
+| Name | Version | Levels | What it is |
+|---|---|---|---|
+| `set` | 1 | a | set a property to a value at an instant |
+| `tween` | 1 | a | interpolate a property to a value over a duration |
+| `sequence` | 1 | a | run children one after the other |
+| `parallel` | 1 | a | run children at once |
+| `delay` | 1 | a | an empty span that consumes time |
+| `loop` | 1 | a | repeat a child count times |
+| `play` | 1 | a | play a named animation (an action / animation clip) of the target entity's descriptor, falling back to a motion preset |
+| `expression` | 1 | a | hold a facial expression (an expression-sheet preset) on a character |
+
+### Entity kinds
+
+| Name | Version | Levels | What it is |
+|---|---|---|---|
+| `environment` | 1 | a | the set / background: planes, with parallax, drawn behind |
+| `prop` | 1 | a | a prop or piece of set dressing; also stroked paths and text blocks |
+| `voice` | 1 | a | a voice the audio pipeline speaks with; draws nothing |
+| `character` | 1 | a | a rigged cut-out character: a skeleton of bones with slots, drawn by the stage engine; its nodes are stage nodes |
+
+### Motion presets
+
+| Name | Version | Levels | What it is |
+|---|---|---|---|
+| `pop_in` | 1 | a, b-name | Grow from nothing to full size, overshooting and settling (an entrance). |
+| `hop` | 1 | a, b-name | Jump up by `height` scene pixels and land back where it started. |
+| `shake` | 1 | a, b-name | Tremble side to side `cycles` times and come back to rest (on `x`). |
+| `nod` | 1 | a, b-name | Dip the head `count` times (a rotation of `<target>/<part>`). |
+| `point` | 1 | a, b-name | Swing an arm out to point, hold it, and lower it again. |
+| `slide_in` | 1 | a, b-name | Whip in from `distance` pixels off to one side, overshoot, and settle. |
+| `slide_out` | 1 | a, b-name | Exit `distance` pixels off to one side, accelerating (an exit). |
+| `squash_stretch` | 1 | a, b-name | Squash (wide and short), stretch (narrow and tall), then settle. |
+| `waddle` | 1 | a, b-name | A walk cycle for a rig with no legs to animate: rock and bob per step. |
+| `turn` | 1 | a, b-name | Turn a character to the view `to` — the classic cut-out turn. |
+| `walk` | 1 | a, b-name | Walk: the body travels on `x` and bobs once per step while the legs alternate and the arms swing against them. |
+| `speech_pulse` | 1 | a, b-name | Pulse a part on each syllable: speech carried without a mouth. |
+
+### Expression presets
+
+| Name | Version | Levels | What it is |
+|---|---|---|---|
+| `neutral` | 1 | a, b-name | the rest face: every axis at its neutral value |
+| `happy` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0.1, brow_angle_r +0.1, brow_height_l +0.2, brow_height_r +0.2, lid_open_l -0.2, lid_open_r -0.2; mouth form 'happy' |
+| `sad` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0.6, brow_angle_r +0.6, brow_height_l +0.3, brow_height_r +0.3, lid_open_l -0.3, lid_open_r -0.3; mouth form 'sad' |
+| `angry` | 1 | a, b-name | expression-sheet preset: brow_angle_l -0.8, brow_angle_r -0.8, brow_height_l -0.6, brow_height_r -0.6, lid_open_l +0.1, lid_open_r +0.1; mouth form 'angry' |
+| `surprised` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0, brow_angle_r +0, brow_height_l +1, brow_height_r +1, lid_open_l +0.4, lid_open_r +0.4; mouth form 'surprised' |
+| `afraid` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0.5, brow_angle_r +0.5, brow_height_l +0.7, brow_height_r +0.7, lid_open_l +0.5, lid_open_r +0.5; mouth form 'afraid' |
+| `disgusted` | 1 | a, b-name | expression-sheet preset: brow_angle_l -0.3, brow_angle_r -0.3, brow_height_l -0.3, brow_height_r -0.3, lid_open_l -0.4, lid_open_r -0.4; mouth form 'disgusted' |
+| `thinking` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0.3, brow_angle_r -0.1, brow_height_l +0.5, brow_height_r -0.2, lid_open_l -0.1, lid_open_r -0.1 |
+| `skeptical` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0, brow_angle_r -0.2, brow_height_l +0.6, brow_height_r -0.3, lid_open_l +0, lid_open_r -0.2 |
+| `amused` | 1 | a, b-name | expression-sheet preset: brow_angle_l +0.05, brow_angle_r +0.05, brow_height_l +0.1, brow_height_r +0.1, lid_open_l -0.1, lid_open_r -0.1; mouth form 'happy' |
+
+### Camera moves
+
+| Name | Version | Levels | What it is |
+|---|---|---|---|
+| `hold` | 1 | a, b-name | a locked-off camera: no move |
+| `push_in` | 1 | a, b-name | a slow push in: zoom 1.0 → 1.25 over the shot, eased |
+| `pull_out` | 1 | a, b-name | a slow pull out: zoom 1.0 → 0.8 over the shot, eased |
+| `zoom_in` | 1 | a, b-name | a stronger zoom in: 1.0 → 1.5 over the shot |
+| `zoom_out` | 1 | a, b-name | a stronger zoom out: 1.0 → 0.7 over the shot |
+| `pan_left` | 1 | a, b-name | truck the camera left across the frame (on a flat stage a pan and a truck look the same) |
+| `pan_right` | 1 | a, b-name | truck the camera right across the frame |
+| `tilt_up` | 1 | a, b-name | move the camera up across the frame (spans the frame height) |
+| `tilt_down` | 1 | a, b-name | move the camera down across the frame |
+
+### Methods, by aspect
+
+Default chains: **locomotion** `loco.legged_cycle` → `loco.rock`; **speech** `speech.mouth_chart` → `speech.pose_only`. `an character capabilities <name>` says which apply to a character and what is missing for the rest.
+
+| Aspect | Method | Spelled | Version | Requires | What it is |
+|---|---|---|---|---|---|
+| locomotion | `loco.legged_cycle` | `legs` | 1 | `limbs.legs` | a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs |
+| locomotion | `loco.rock` | `rock` | 1 | nothing | no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable) |
+| locomotion | `loco.hem_sway` | `hem` | 1 | `limbs.legs` | a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs |
+| speech | `speech.mouth_chart` | `mouth_chart` | 1 | `face.mouth` | lip-sync on the character's mouth chart: the line's visemes swap the mouth drawings (the nine Rhubarb shapes, or the character's own set) |
+| speech | `speech.pose_only` | `pulse` | 1 | nothing | no lip-sync: the head (or the body) pulses on each syllable, so a baked face or a mime still reads as speaking |
+<!-- vocabulary:end -->
 
 ## Turning and facing
 
@@ -441,7 +528,7 @@ Python: `from an.library import open_library, search_path, publish_dir, find, ch
 
 Whenever you make a non-trivial design decision the user hasn't blessed (asset choice, default style, durations, voice pick), append a decision entry via `mall["decisions"].append(kind=..., body=...)` and surface it in your next reply.
 
-This is principle 1 of `an`'s design principles (`misc/docs/design_principles.md` in the repo) applied to you: when you turn the director's words ("she walks in nervously") into typed values (a `walk` with a shorter stride), record the words, the values you chose and why, so a re-render never has to re-interpret them. The same principles say every aspect has a default that applies to any character: when the director asks for something a character's rig cannot do (a legged walk on a robe figure, lip sync on a baked face), say what structure is missing and how to add it (`an character add-views`, separate leg parts, a hand-rigged face), and meanwhile use what does apply (the `walk` preset falls back to a rock on a legless figure; a baked face has no speech default yet, so tell the director the mouth will not move) — never let an aspect drop out silently.
+This is principle 1 of `an`'s design principles (`misc/docs/design_principles.md` in the repo) applied to you: when you turn the director's words ("she walks in nervously") into typed values (a `walk` with a shorter stride), record the words, the values you chose and why, so a re-render never has to re-interpret them. The same principles say every aspect has a default that applies to any character: when the director asks for something a character's rig cannot do (a legged walk on a robe figure, lip sync on a baked face), say what structure is missing and how to add it (`an character add-views`, separate leg parts, a hand-rigged face), and meanwhile use what does apply (the `walk` preset falls back to a rock on a legless figure; a baked face pulses its head on the syllables instead of lip-syncing). **Ask before you assume:** `an character capabilities <name>` prints what a character affords and, per aspect (locomotion, speech, …), the method it gets by default, the ones that apply, and for the rest what is missing with the remedy; a requested method the rig cannot honour (`gait: hem` on a legless blob) falls back with a recorded substitution — a warning, fatal under `--strict-assets`. `gait` takes the method's spelling (`legs`, `hem`, `rock`), its id (`loco.rock`), or a pinned choice with args (`{method: loco.legged_cycle, args: {stride: 0.5}, version: "1"}`); a pin the registry no longer matches fails validation instead of changing the walk silently — never let an aspect drop out silently.
 
 ## What to never do
 

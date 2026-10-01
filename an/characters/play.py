@@ -47,7 +47,8 @@ so an author never passes ``rest``.
 >>> play_problems(desc, "moonwalk")  # doctest: +NORMALIZE_WHITESPACE
 ["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle', 'walk'])"]
+  'shake', 'slide_in', 'slide_out', 'speech_pulse', 'squash_stretch', 'turn',
+  'waddle', 'walk'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 """
@@ -264,6 +265,18 @@ def preset_takes(animation: str, name: str) -> bool:
     return name in inspect.signature(_presets()[animation]).parameters
 
 
+def preset_args(animation: str, args: Mapping[str, object] | None) -> dict:
+    """A preset play's args as its function takes them: a walk's ``gait`` given
+    as a locomotion method id or a ``{method, args, version}`` choice is spelled
+    out (an#248, :func:`an.characters.methods.normalise_gait_args`)."""
+    out = dict(args or {})
+    if GAIT_ARG in out and preset_takes(animation, GAIT_ARG):
+        from an.characters.methods import normalise_gait_args
+
+        out = normalise_gait_args(out)
+    return out
+
+
 def _presets() -> dict[str, Callable]:
     # Lazy: `an.motion` imports the IR, and the IR's validator imports this.
     from an.motion import PRESETS
@@ -360,9 +373,14 @@ def preset_problems(
     """
     import inspect
 
+    from an.semantic import VocabularyError
+
     preset = _presets()[animation]
     problems: list[str] = []
-    args = dict(args or {})
+    try:
+        args = preset_args(animation, args)
+    except VocabularyError as e:
+        return [f"motion preset {animation!r}: {e}"]
     params = inspect.signature(preset).parameters
     accepted = sorted(
         n
@@ -434,7 +452,11 @@ def preset_swap_problems(
     from an.ir.compose import flatten
     from an.ir.schema import SetAction
 
-    tree = _presets()[animation]("_", **dict(args or {}))
+    try:
+        args = preset_args(animation, args)
+    except ValueError:
+        return []  # a malformed gait is preset_problems' to report, once
+    tree = _presets()[animation]("_", **args)
     problems: list[str] = []
     for f in flatten(tree):
         leaf = f.action
@@ -573,7 +595,9 @@ def preset_play_span(action) -> float:
 
     if action.duration is not None:
         return float(action.duration)
-    tree = _presets()[action.animation](action.target, **dict(action.args or {}))
+    tree = _presets()[action.animation](
+        action.target, **preset_args(action.animation, action.args)
+    )
     return duration_of(tree) / float(action.speed)
 
 
@@ -670,7 +694,7 @@ def preset_moved_nodes(
     """
     from an.ir.compose import flatten
 
-    kwargs = dict(args or {})
+    kwargs = preset_args(animation, args)
     if parts is not None and preset_takes(animation, PARTS_ARG):
         kwargs[PARTS_ARG] = {p: {} for p in parts}
     tree = _presets()[animation](action_target, **kwargs)
@@ -712,7 +736,7 @@ def expand_preset_play(
     from an.ir.schema import TweenAction
 
     preset = _presets()[action.animation]
-    args = dict(action.args or {})
+    args = preset_args(action.animation, action.args)
 
     def unbuilt(node: str) -> PlayResolutionError:
         return PlayResolutionError(

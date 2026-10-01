@@ -10,6 +10,7 @@ Subcommands (used as ``an character <verb> ...``):
 - ``add-views`` — give an offline character its turnaround (an#197).
 - ``mouths``    — regenerate the 9-shape default mouth set.
 - ``validate``  — completeness check.
+- ``capabilities`` — what it affords, and per aspect which methods apply (an#248).
 - ``silhouette``— rasterize silhouettes; for two characters, also IoU.
 - ``preview``   — open an HTML viewer cycling visemes + idle animation.
 """
@@ -298,6 +299,38 @@ def validate(name: str, out_dir: str = "") -> str:
     return _format_report(report, name=name)
 
 
+def capabilities(name: str, out_dir: str = "", as_json: bool = False) -> str:
+    """What a character affords, and per aspect which methods apply and what the rest lack.
+
+    The affordances are derived from ``character.json`` and the art files
+    present (ADR 0002 decision 2), with the declared overrides it used; per
+    aspect (``locomotion``, ``speech``, …) the method the default chain picks,
+    the methods that apply, and for each other method the missing capabilities
+    with the remedy that would add them.
+
+    name: character id
+    out_dir: parent directory; defaults to ./assets/characters
+    as_json: print the answer as JSON (what the MCP surface returns)
+    """
+    from an.capabilities import art_in_dir
+    from an.genres import load
+    from an.semantic.describe import describe_asset, format_description
+
+    load()
+    target = _resolve_target(out_dir) / name
+    descriptor = target / "character.json"
+    if not descriptor.is_file():
+        raise FileNotFoundError(
+            f"no character.json under {target}; pass out_dir= the folder holding "
+            f"{name!r} (default ./assets/characters)"
+        )
+    doc = json.loads(descriptor.read_text(encoding="utf-8"))
+    described = describe_asset(doc, art_in_dir(target, exclude=(descriptor.name,)))
+    if as_json:
+        return json.dumps(described, indent=2, sort_keys=True)
+    return format_description(described, name=name)
+
+
 def silhouette(
     name: str,
     other: str = "",
@@ -547,6 +580,7 @@ _dispatch_funcs = [
     add_gaze,
     add_views,
     validate,
+    capabilities,
     contract,
     silhouette,
     preview,

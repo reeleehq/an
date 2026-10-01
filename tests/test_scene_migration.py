@@ -585,9 +585,15 @@ def test_the_iterate_prompt_teaches_the_schema_it_patches_against():
     # dialogue fields), so did deleting `character` (6 other occurrences), and
     # an `AssetRef.kind` value of `"set"` would pass on `asset_sets` alone —
     # the exact mutant class this test claims to defend (an#106 review, M2).
+    # Since an#248 the prompt is GENERATED from the vocabulary registry
+    # (ADR 0003 decision 6), so the lines are parsed in its layout: the shot
+    # field's renderer enumeration, and the entity-kind section's entries.
     renderers = set(RendererName.__args__)
     taught_renderers = set(
-        re.findall(r'"([a-z_]+)"', _line(_SYSTEM_PROMPT, "      - renderer ("))
+        re.findall(
+            r'"([a-z_]+)"',
+            _line(_SYSTEM_PROMPT, "  - timeline:").split("renderer (", 1)[1].split(")")[0],
+        )
     )
     assert taught_renderers == renderers, taught_renderers ^ renderers
 
@@ -597,18 +603,19 @@ def test_the_iterate_prompt_teaches_the_schema_it_patches_against():
     from an.genres import entity_kind_names
 
     kinds = set(entity_kind_names())
-    taught_kinds = {
-        k.strip()
-        for k in _line(_SYSTEM_PROMPT, '        "kind" MUST be one of:')
-        .split(":", 1)[1]
-        .rstrip(".")
-        .split(",")
-    }
-    # Every kind, `prop` included since an#108 made it drawable. The line
-    # after it states the one thing a model has to know that the enumeration
+    lines = _SYSTEM_PROMPT.splitlines()
+    start = lines.index(_line(_SYSTEM_PROMPT, "  Entity kinds")) + 1
+    section = []
+    for ln in lines[start:]:
+        if not ln.startswith("    - "):
+            break
+        section.append(ln)
+    taught_kinds = {ln[len("    - ") :].split(":", 1)[0].strip() for ln in section}
+    # Every kind, `prop` included since an#108 made it drawable. The entities
+    # field states the one thing a model has to know that the enumeration
     # cannot say: a prop has no placeholder rig.
     assert taught_kinds == kinds, taught_kinds ^ kinds
-    assert "it has no\n        placeholder rig" in _SYSTEM_PROMPT
+    assert "it has no placeholder rig" in " ".join(_SYSTEM_PROMPT.split())
 
 
 def test_an_sync_and_an_render_report_the_markdown_refusal(tmp_path):

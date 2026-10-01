@@ -256,7 +256,7 @@ def test_compile_and_render_wall_times_are_recorded_per_shot(tmp_path, fake_rend
     rec = store[report.outcomes[0].key]
     assert {"compile_s", "render_s", "key_s"} <= set(rec.timings)
     assert {"compiled", "textures", "easings", "audio", "runtime", "code", "knobs",
-            "environment", "project", "renderer"} == set(rec.inputs)
+            "environment", "project", "renderer", "vocabulary"} == set(rec.inputs)
 
 
 def test_force_render_renders_every_shot_and_no_cache_writes_nothing(tmp_path, fake_render):
@@ -627,10 +627,10 @@ def test_a_keyer_is_never_replaced_silently_and_parts_are_additive(tmp_path, mon
         keys.register_shot_keyer("cutout", entry.keyer)
     shot, ctx = _shot("a", 1.0), _ctx(tmp_path)
     before = _key(shot, ctx)
-    keys.register_shot_key_part("cutout", "vocabulary", lambda shot, ctx: "v" * 64)
+    keys.register_shot_key_part("cutout", "demo_part", lambda shot, ctx: "v" * 64)
     assert _key(shot, ctx) != before
     with pytest.raises(keys.ShotKeyerRegistrationError):
-        keys.register_shot_key_part("cutout", "vocabulary", lambda shot, ctx: "w" * 64)
+        keys.register_shot_key_part("cutout", "demo_part", lambda shot, ctx: "w" * 64)
     # The keyer's identity is in the key: the same parts from another keyer
     # (a different implementation) never answer for the first one's entries.
     with_part = _key(shot, ctx)

@@ -90,6 +90,15 @@ The IR is open (an#241, ADR 0001 decisions 2–4): never add an `isinstance`/`ki
 
 The timing default is the DECLARED `stage.node` space (`an.timing.spaces.DFLT_TIMELINE_SPACE`); `space=VALUE_TYPED` is `runtime.js`'s rule. The compiler refuses a keyframe value that fails its field kind, which is what keeps the two equal.
 
+## How to add a behaviour that needs structure, or a vocabulary name (an#248)
+
+- **Never write another `if rig has X` branch** (ADR 0002 decision 8). A behaviour is a `Method` (an `an.semantic.Entry` of kind `method`) of an `Aspect`; it declares `requires` in the four-form grammar (`cap`, `cap:key`, `cap>=N`, `a|b`), its params as JSON Schema with defaults, an `expand`, and per-term `remedies`. The aspect's chain must end in a method that requires nothing or in `NOOP` — `register_genre` refuses it otherwise.
+- **Capabilities are derived, never typed beside the asset**: a new capability goes into the analyser of its subject (`an.library.character` for characters; `an.capabilities.subjects` for engine and environment), and capability names are persisted identifiers (library facets, substitution records).
+- **Every vocabulary entry carries a version; bump it in the same PR that changes what the name means** (`an.motion.PRESET_VERSIONS`, `an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS`, `an.semantic.seeds.CAMERA_MOVE_VERSIONS`, `ActionKind.version`/`EntityKind.version`, the easing registry's own). The shot's `vocabulary_digest` carries it into the shot key.
+- **A genre contributes through its `Genre` fields** (`capabilities`, `analysers`, `vocabulary`, `aspects`), never by an edit to `an.capabilities` or `an.semantic`; a second genre adds methods to an aspect and a policy chooses them, the chain stays the owning genre's.
+- **Generated surfaces**: after a vocabulary change run `python -m an.semantic.docs --write .claude/skills/an/SKILL.md` (a test holds the skill's section to the registry); the `an iterate` prompt and the MCP tools regenerate themselves.
+- Compile-time resolution is `an.characters.methods` (`compile_profile` feeds the analyser what compiled; `resolve_walk_gait`, `speech_default_actions`); its byte-identity gate is `tests/test_methods_compile.py`.
+
 ## Code conventions
 
 - Public API in `an.__all__` is **curated**. Internals get an underscore prefix.
