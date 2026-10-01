@@ -6,6 +6,8 @@
 
 Numbers below (line counts, module counts) were measured on `main` at 0.1.124. Terms are defined in §1 and used in that sense throughout.
 
+**Addendum (same day).** Finding 1's "mostly cut-out" describes the `an` package, not the core of structured animation. §9 corrects the framing at fleet level, using `manimkit` and `previz` as two further genres (`misc/docs/core_from_three_genres.md`).
+
 ---
 
 ## 0. Findings in one page
@@ -240,3 +242,17 @@ an#224 (locomotion methods) is the first client; it should be built *on* this re
 | 4 | Accept the spectrum rule "below the IR everything is deterministic and versioned: names stay in the IR with versions, LLM descriptions are resolved at authoring time and recorded" and the core vocabulary registry + MCP surface (ADR 0003) | **Accept.** Build the registry first (it de-duplicates the iterate prompt now), the MCP surface second |
 | 5 | Incremental re-rendering (ADR 0004): adopt `lacing`'s `ArtifactStore` and `nw`'s freshness model behind an `an` build-graph seam, with a content-hash shot cache as the first slice | **Accept the seam and the first slice; defer the `nw` backend** until `nw`'s project-layout coupling and heavy dependencies are optional |
 | 6 | The genre package's name (an#225) | the naming worker's report decides; this review only needs it to be a name the cut-out genre can keep |
+
+---
+
+## 9. Addendum, 2026-10-01: the fleet-level view
+
+Finding 1 measured `an` and found it about 45% cut-out code and about 10% clean core. That measurement stands, but the framing it invites, "the core is a small thing buried in a cut-out package, to be dug out of it", is wrong at fleet level, and it would lead to extracting the core from one genre's code. The fleet already builds two more structured-animation genres on other engines, and each implements part of the core, in some places better than `an`. `misc/docs/core_from_three_genres.md` compares them concept by concept. The corrections:
+
+- **The core is a contract assembled from the fleet, not a residue of `an`.** The shared evaluation model (addressed properties, declared field kinds, easing, a flat timeline, a pure `at(t)`) is implemented five times: in `an` (Python, and the JS runtime), `previz` (TypeScript, about 7k lines), `burns` (Python and TypeScript, pinned by golden vectors) and `shaping` (a copy of `an`'s track format). `previz` has the most general version of it: seven declared field kinds against `an`'s two, a committed JSON Schema, golden vectors, and an engine contract with a capture ladder. `an` has what surrounds the kernel: the versioned scene document, shots and film assembly, narration, captions and sound, verifiers, stores.
+- **The best implementation of several core concepts is outside `an`.** Geometric layout checks on what was actually drawn, and the contact sheet an agent reviews, are in `manimkit`; `an`'s layout checks read only the IR. Example retrieval as an aid to semantic resolution is in `manimkit`. Formulas (named, parametrised, described recipes with a schema) and command records projected to MCP are in `previz`. The cross-language golden-vector contract is in `burns` and `previz`. The live, non-seekable capture tier is in `walkthru`. The genre-as-one-object shape is in `shaping`.
+- **Rows of §3.4 that change.** `previz` is not only a sibling `an` would consume as a `Renderer`: it is the TypeScript implementation of the core's timing kernel, and the shared contract files should be seeded from its golden format. `manimkit` does not simply "stay outside": an opaque-source Manim renderer that delegates to it is the first non-cut-out renderer the core should ship, and the place a math-viz genre could later live.
+- **Decision 2 of §8 changes.** The stage runtime ships with `an` (as `an.stage`, the default engine) but sits outside the core, behind an extra and an import firewall: the other genres use other engines, so the runtime is one back-end among several, not shared core.
+- **The proportions, restated.** Of `an`'s ~52k lines the measured split stands. Of the *concepts* the core needs (§2 of the three-genre study lists fifteen), `an` holds the reference implementation of about half (documents and versioning, composition, narration and audio, film assembly, verifier protocol, stores, the storage and capability designs) and shares or trails on the rest (field kinds, easing canon, golden-vector contract, engine tiers, layout probing, recipes, example retrieval, genre declaration).
+
+ADR 0001 is revised accordingly (still *Proposed*).
