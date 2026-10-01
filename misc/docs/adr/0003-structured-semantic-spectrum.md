@@ -1,6 +1,6 @@
 # ADR 0003 — The structured ↔ semantic specification spectrum, and one semantic layer for all genres
 
-**Status:** Proposed, 2026-10-01 · **Decider:** the maintainer · **Related:** `misc/docs/design_principles.md` (principle 1), `misc/docs/framework_review_2026-10.md` §5, `misc/docs/cutout_framework_review_2026-10.md` §4, `report 0 - Text-to-Structured-Animation.md` §5.2–5.3 (edit routing and the MCP design), pillars 1, 9 and 10, ADR 0001, ADR 0002, ADR 0004
+**Status:** Accepted, 2026-10-01 (the maintainer delegated the decision; choices recorded in `misc/docs/plan_core_and_cutan_2026-10.md` §1) · **Decider:** the maintainer · **Related:** `misc/docs/design_principles.md` (principle 1), `misc/docs/framework_review_2026-10.md` §5, `misc/docs/cutout_framework_review_2026-10.md` §4, `report 0 - Text-to-Structured-Animation.md` §5.2–5.3 (edit routing and the MCP design), pillars 1, 9 and 10, ADR 0001, ADR 0002, ADR 0004
 
 ## Context
 

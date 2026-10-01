@@ -1,6 +1,6 @@
 # ADR 0002 — Capability-based applicability, with a universal default for every aspect
 
-**Status:** Proposed, 2026-10-01 · **Decider:** the maintainer · **Related:** an#224 (locomotion methods, the first client), an#214 and an#220 (`walk`, `gait`, `rest_view`), an#197 (views), an#98 (expression binding), ADR 0001, ADR 0003, ADR 0004, `misc/docs/cutout_framework_review_2026-10.md` §5
+**Status:** Accepted, 2026-10-01 (the maintainer delegated the decision; choices recorded in `misc/docs/plan_core_and_cutan_2026-10.md` §1) · **Decider:** the maintainer · **Related:** an#224 (locomotion methods, the first client), an#214 and an#220 (`walk`, `gait`, `rest_view`), an#197 (views), an#98 (expression binding), ADR 0001, ADR 0003, ADR 0004, `misc/docs/cutout_framework_review_2026-10.md` §5
 
 ## Context
 

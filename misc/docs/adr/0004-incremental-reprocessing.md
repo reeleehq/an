@@ -1,6 +1,6 @@
 # ADR 0004 — Incremental re-processing through a content-addressed build graph
 
-**Status:** Proposed, 2026-10-01 · **Decider:** the maintainer · **Related:** pillar 11 (`CLAUDE.md`), `architecture_as_built.md` §6, Wave 5 research §12, `an/genre.py`, the sibling packages `lacing` and `nw`, ADR 0001, ADR 0002, ADR 0003, the asset-library design (`misc/docs/asset_library_design.md`, ADR 0005)
+**Status:** Accepted, 2026-10-01 (the maintainer delegated the decision; choices recorded in `misc/docs/plan_core_and_cutan_2026-10.md` §1) · **Decider:** the maintainer · **Related:** pillar 11 (`CLAUDE.md`), `architecture_as_built.md` §6, Wave 5 research §12, `an/genre.py`, the sibling packages `lacing` and `nw`, ADR 0001, ADR 0002, ADR 0003, the asset-library design (`misc/docs/asset_library_design.md`, ADR 0005)
 
 ## Context
 

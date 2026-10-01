@@ -1,6 +1,6 @@
 # ADR 0005 — A persistent asset library: flat ids, immutable versions, content-addressed files, derived capability facets
 
-**Status:** Proposed, 2026-10-01 · **Decider:** the maintainer · **Related:** the design, [`misc/docs/asset_library_design.md`](../asset_library_design.md); the research, [`misc/docs/research/cutout_asset_management.md`](../research/cutout_asset_management.md); ADR 0001 (core/genre split), ADR 0002 (capabilities), ADR 0004 (incremental re-processing); an#211 (licence classes, `AssetSource`), an#220 (per-part sources), an#224 (locomotion by capability); pillar 7 (`dol`-backed stores)
+**Status:** Accepted, 2026-10-01 (the maintainer delegated the decision; choices recorded in `misc/docs/plan_core_and_cutan_2026-10.md` §1) · **Decider:** the maintainer · **Related:** the design, [`misc/docs/asset_library_design.md`](../asset_library_design.md); the research, [`misc/docs/research/cutout_asset_management.md`](../research/cutout_asset_management.md); ADR 0001 (core/genre split), ADR 0002 (capabilities), ADR 0004 (incremental re-processing); an#211 (licence classes, `AssetSource`), an#220 (per-part sources), an#224 (locomotion by capability); pillar 7 (`dol`-backed stores)
 
 ## Context
 
@@ -54,3 +54,7 @@ Two facts about the code shape the decision. The project stores are hand-written
 - `misc/docs/asset_library_design.md` — the full design, layout, examples, glossary and the open decisions.
 - `misc/docs/research/cutout_asset_management.md` — the production and standards research, with references.
 - `misc/docs/design_principles.md` — principles 2 and 3.
+
+## Addendum (2026-10-01, on acceptance)
+
+**One library root per package, federated by the search path.** `an`'s core library lives at `~/.local/share/an` (genre-neutral assets: voices, sounds, fonts, text styles, generic plates and props) and each genre's at its own root (`~/.local/share/cutan` for cut-out). A genre reads its own library first, then the core library, then any other genre libraries the user lists — decision 1's ordered search path, with the stores federated as one read view. Writes go to the owning library. Ids are namespaced by library when federated (`cutan:character.alice-reiniger@v003`); an asset reused across genres can be promoted to the core library. Root resolution is vendored (no `config2py` dependency unless more than the data-folder logic is needed). See `misc/docs/plan_core_and_cutan_2026-10.md` §1, decision 7.
