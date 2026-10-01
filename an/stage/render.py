@@ -615,6 +615,33 @@ class _StageSession:
     def provenance(self) -> dict[str, Any]:
         return dict(self.facts)
 
+    def state(self, t: float) -> dict[tuple[str, str], Any]:
+        """The pose ``runtime.js`` evaluates at ``t`` (absent = at rest), not applied.
+
+        The time-driven read-back (core study §2.7): what the engine itself
+        computed, which :mod:`an.engines.conformance` holds to the timing
+        kernel's golden vectors.
+        """
+        return self.states([t])[0]
+
+    def states(self, times: Sequence[float]) -> list[dict[tuple[str, str], Any]]:
+        """:meth:`state` at several instants in one round trip."""
+        reply = _evaluate(
+            self.page,
+            "(ts) => window.anStates(ts)",
+            [float(t) for t in times],
+            doing=f"reading back the evaluated state at {len(times)} instant(s)",
+        )
+        if not isinstance(reply, list) or len(reply) != len(times):
+            raise CutoutRenderError(
+                f"anStates returned {type(reply).__name__}, not one pose per "
+                "instant -- is the staged runtime.js older than this engine?"
+            )
+        return [
+            {tuple(key.split("::", 1)): value for key, value in pose.items()}
+            for pose in reply
+        ]
+
 
 @dataclass
 class _ScreenshotStageSession(_StageSession):
@@ -680,6 +707,11 @@ class _CanvasStageSession(_StageSession):
             raise CutoutRenderError(f"canvas capture: {e}") from e
 
 
+#: The page size :meth:`StageEngine.open_document` uses when none is given: the
+#: read-back does not depend on it, and a small canvas loads fast.
+CONFORMANCE_SIZE: tuple[int, int] = (64, 48)
+
+
 def _session_for(capture: str | None) -> type[_StageSession]:
     """The session class a capture path names; ``None`` is the module default."""
     return (
@@ -707,7 +739,7 @@ class StageEngine:
     def open(self, job: FrameJob) -> Iterator[_StageSession]:
         shot, ctx = job.shot, job.ctx
         capture = _check_capture(ctx.capture)
-        from playwright.sync_api import sync_playwright  # local: optional dep
+        from playwright.sync_api import sync_playwright  # noqa: F401  (local: optional dep)
 
         step_hz = effective_step_hz(shot, ctx)
         scene_json = compile_shot(
@@ -724,100 +756,144 @@ class StageEngine:
             default_easing=ctx.default_easing,
         )
         runtime_target, _ = _stage_runtime(job.workspace, scene_json, mall=ctx.mall)
-
-        # Phase 11b: serve runtime via local HTTP because PIXI.Assets.fetch()
-        # can't load file:// URLs in headless Chromium. Same effect as a
-        # static deployment, isolated to this render.
-        with _serve_dir(runtime_target) as base_url, sync_playwright() as p:
-            # `headless=True` explicitly: the default is headless today, but
-            # relying on it means a Playwright default change silently swaps the
-            # binary — full Chromium renders on the real GPU and differs by 1.91%.
-            browser = p.chromium.launch(
-                args=list(DETERMINISTIC_CHROMIUM_ARGS), headless=True
+        with _loaded_page(
+            runtime_target,
+            to_dict(scene_json),
+            size=(ctx.resolution[0], ctx.resolution[1]),
+            supersample=job.supersample,
+            doing=f"loading the scene for shot {shot.id!r}",
+        ) as page:
+            # Probed on EVERY render, judged only when enforcement is on.
+            # Collecting it unconditionally puts the filter inventory into
+            # RenderResult.provenance (the blink phases moved to the compiled
+            # scene's meta when blinks became channels, an#88).
+            determinism = _determinism_report(page)
+            yield _session_for(capture)(
+                page,
+                facts={
+                    # How the frames left the browser. Recorded because the
+                    # two paths must agree on decoded pixels but not on file
+                    # bytes, so a frame-byte diff between two runs is only
+                    # interpretable beside it.
+                    "capture": capture,
+                    # The launch argv verbatim: all four rasteriser
+                    # configurations report a byte-identical WebGL renderer
+                    # string, so the string cannot witness the choice.
+                    "chromium_args": list(DETERMINISTIC_CHROMIUM_ARGS),
+                    "determinism": determinism,
+                    # Per-entity blink phase (a pure function of the entity
+                    # NAME): stamped by the compiler since blinks became
+                    # channels (an#88), carried so a renamed character is a
+                    # visible provenance diff rather than an unexplained
+                    # metric shift.
+                    "blink_phases": dict(scene_json.meta.blink_phases),
+                    # The stepped-timing policy the tweens were compiled
+                    # under (an#89); None = smooth.
+                    "step_hz": scene_json.meta.step_hz,
+                },
             )
-            try:
-                page = browser.new_page(
-                    viewport={"width": ctx.resolution[0], "height": ctx.resolution[1]}
+
+    @contextmanager
+    def open_document(
+        self,
+        document: Mapping[str, Any],
+        *,
+        workspace: Path,
+        size: tuple[int, int] = CONFORMANCE_SIZE,
+        capture: str | None = None,
+    ) -> Iterator[_StageSession]:
+        """A session over an already COMPILED document (a mapping in the wire
+        shape), with no shot and no stores: what the conformance check against
+        the timing vectors loads (:mod:`an.engines.conformance`). A document
+        that is only a timeline (``timeline`` + ``animations``) gets an empty
+        scene, so its read-back is the evaluator's alone."""
+        doc = {
+            "version": "0.1.0",
+            "meta": {"width": size[0], "height": size[1]},
+            "scene": {"name": "root", "children": []},
+            "assets": {"textures": {}},
+            **dict(document),
+        }
+        runtime_target = Path(workspace) / "runtime"
+        if runtime_target.exists():
+            shutil.rmtree(runtime_target)
+        shutil.copytree(runtime_dir(), runtime_target)
+        with _loaded_page(
+            runtime_target, doc, size=size, supersample=NO_SUPERSAMPLE, doing="loading a document"
+        ) as page:
+            yield _session_for(capture)(page)
+
+
+@contextmanager
+def _loaded_page(
+    runtime_target: Path,
+    scene: Mapping[str, Any],
+    *,
+    size: tuple[int, int],
+    supersample: int,
+    doing: str,
+) -> Iterator[Any]:
+    """Serve ``runtime_target``, launch the pinned Chromium, load ``scene``; yield the page."""
+    from playwright.sync_api import sync_playwright  # local: optional dep
+
+    # Phase 11b: serve runtime via local HTTP because PIXI.Assets.fetch()
+    # can't load file:// URLs in headless Chromium. Same effect as a
+    # static deployment, isolated to this render.
+    with _serve_dir(runtime_target) as base_url, sync_playwright() as p:
+        # `headless=True` explicitly: the default is headless today, but
+        # relying on it means a Playwright default change silently swaps the
+        # binary — full Chromium renders on the real GPU and differs by 1.91%.
+        browser = p.chromium.launch(args=list(DETERMINISTIC_CHROMIUM_ARGS), headless=True)
+        try:
+            page = browser.new_page(viewport={"width": size[0], "height": size[1]})
+            page.goto(f"{base_url}/index.html")
+
+            # Injected BEFORE `anLoadScene`, which is where the PixiJS
+            # application is constructed and therefore the only moment the
+            # factor can reach `resolution`. `add_init_script` would be the
+            # other option and is wrong: the page is already loaded by the
+            # time we get here.
+            _evaluate(
+                page,
+                "(k) => { window.anSupersample = k; }",
+                int(supersample),
+                doing=f"injecting the supersample factor ({supersample})",
+            )
+
+            # Wait for runtime + PixiJS to load.
+            page.wait_for_function(
+                "() => window.anLoadScene && window.PIXI",
+                timeout=DEFAULT_RUNTIME_LOAD_TIMEOUT_MS,
+            )
+
+            # anLoadScene is async (Phase 11b: it awaits Assets.load).
+            # Playwright awaits returned Promises automatically — and would
+            # await a promise that never settles forever, which is exactly
+            # what a degenerate part SVG produces, so the deadline is raced
+            # against it inside the page (an#79).
+            _evaluate(
+                page,
+                _LOAD_SCENE_JS,
+                {"scene": dict(scene), "timeoutMs": DEFAULT_ASSET_LOAD_TIMEOUT_MS},
+                doing=doing,
+                hint=(
+                    "A part SVG that is empty, malformed or zero-dimension makes "
+                    "PIXI.Assets.load never settle; one that is absent fails the "
+                    "load outright. Check the textures this shot declares."
+                ),
+            )
+
+            if not _evaluate(
+                page,
+                "() => window.anCanvasReady()",
+                doing="checking the PixiJS app initialised",
+            ):
+                raise CutoutRenderError(
+                    "JS runtime did not initialize PixiJS app after anLoadScene"
                 )
-                page.goto(f"{base_url}/index.html")
-
-                # Injected BEFORE `anLoadScene`, which is where the PixiJS
-                # application is constructed and therefore the only moment the
-                # factor can reach `resolution`. `add_init_script` would be the
-                # other option and is wrong: the page is already loaded by the
-                # time we get here.
-                _evaluate(
-                    page,
-                    "(k) => { window.anSupersample = k; }",
-                    int(job.supersample),
-                    doing=f"injecting the supersample factor ({job.supersample})",
-                )
-
-                # Wait for runtime + PixiJS to load.
-                page.wait_for_function(
-                    "() => window.anLoadScene && window.PIXI",
-                    timeout=DEFAULT_RUNTIME_LOAD_TIMEOUT_MS,
-                )
-
-                scene_dict = to_dict(scene_json)
-                # anLoadScene is async (Phase 11b: it awaits Assets.load).
-                # Playwright awaits returned Promises automatically — and would
-                # await a promise that never settles forever, which is exactly
-                # what a degenerate part SVG produces, so the deadline is raced
-                # against it inside the page (an#79).
-                _evaluate(
-                    page,
-                    _LOAD_SCENE_JS,
-                    {"scene": scene_dict, "timeoutMs": DEFAULT_ASSET_LOAD_TIMEOUT_MS},
-                    doing=f"loading the scene for shot {shot.id!r}",
-                    hint=(
-                        "A part SVG that is empty, malformed or zero-dimension makes "
-                        "PIXI.Assets.load never settle; one that is absent fails the "
-                        "load outright. Check the textures this shot declares."
-                    ),
-                )
-
-                if not _evaluate(
-                    page,
-                    "() => window.anCanvasReady()",
-                    doing="checking the PixiJS app initialised",
-                ):
-                    raise CutoutRenderError(
-                        "JS runtime did not initialize PixiJS app after anLoadScene"
-                    )
-
-                # Probed on EVERY render, judged only when enforcement is on.
-                # Collecting it unconditionally puts the filter inventory into
-                # RenderResult.provenance (the blink phases moved to the compiled
-                # scene's meta when blinks became channels, an#88).
-                determinism = _determinism_report(page)
-
-                yield _session_for(capture)(
-                    page,
-                    facts={
-                        # How the frames left the browser. Recorded because the
-                        # two paths must agree on decoded pixels but not on file
-                        # bytes, so a frame-byte diff between two runs is only
-                        # interpretable beside it.
-                        "capture": capture,
-                        # The launch argv verbatim: all four rasteriser
-                        # configurations report a byte-identical WebGL renderer
-                        # string, so the string cannot witness the choice.
-                        "chromium_args": list(DETERMINISTIC_CHROMIUM_ARGS),
-                        "determinism": determinism,
-                        # Per-entity blink phase (a pure function of the entity
-                        # NAME): stamped by the compiler since blinks became
-                        # channels (an#88), carried so a renamed character is a
-                        # visible provenance diff rather than an unexplained
-                        # metric shift.
-                        "blink_phases": dict(scene_json.meta.blink_phases),
-                        # The stepped-timing policy the tweens were compiled
-                        # under (an#89); None = smooth.
-                        "step_hz": scene_json.meta.step_hz,
-                    },
-                )
-            finally:
-                browser.close()
+            yield page
+        finally:
+            browser.close()
 
 
 @dataclass

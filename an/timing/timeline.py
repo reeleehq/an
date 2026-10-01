@@ -92,10 +92,19 @@ class Track:
 
 @dataclass(slots=True)
 class Timeline:
-    """A duration + ordered list of tracks. The canonical playback structure."""
+    """A duration + ordered list of tracks. The canonical playback structure.
+
+    ``space`` is the property space the timeline's DOCUMENT declares for its
+    targets (an#245): one space, a registered name, or a ``target -> space``
+    resolver. It is what :func:`evaluate_timeline` uses when the caller passes
+    none, so every caller of the default evaluates a target in the space its
+    entity's kind declares. ``None`` (every document that declares nothing) is
+    the kernel default, :data:`an.timing.spaces.DFLT_TIMELINE_SPACE`.
+    """
 
     duration: float
     tracks: list[Track] = field(default_factory=list)
+    space: Any = None
 
 
 def write_group(prop: str) -> str:
@@ -175,6 +184,9 @@ def evaluate_timeline(
     10.0
     """
     kind_of: KindOf | None
+    if space is None:
+        # The document's own declaration first (an#245), then the default.
+        space = getattr(timeline, "space", None)
     if space is None:
         space = _spaces.DFLT_TIMELINE_SPACE  # by name, at call time
     if space is None or (isinstance(space, str) and space == VALUE_TYPED):
@@ -293,6 +305,7 @@ def timeline_from_compiled(doc: Any) -> Timeline:
     clips = {aid: clip_from_json(a, name=aid) for aid, a in animations.items()}
     tl = _get(doc, "timeline")
     return Timeline(
+        space=entity_spaces_resolver(_get(_get(doc, "meta", None), "entity_spaces", None)),
         duration=_get(tl, "duration"),
         tracks=[
             Track(
@@ -312,3 +325,32 @@ def timeline_from_compiled(doc: Any) -> Timeline:
             for t in _get(tl, "tracks", ())
         ],
     )
+
+
+def entity_spaces_resolver(entity_spaces: Any) -> Any:
+    """``target -> space name`` from a compiled document's ``meta.entity_spaces``.
+
+    The document records, per ENTITY, the space its kind declares -- only
+    where that is not the kernel default, so a document that declares nothing
+    is unchanged (an#245). A target's entity is its first path segment;
+    anything not listed (the camera's ``root`` included) is the default.
+    ``None`` when there is nothing to resolve.
+
+    >>> of = entity_spaces_resolver({"cam": "stage.camera"})
+    >>> of("cam/lens").name, of("root").name == _spaces.DFLT_TIMELINE_SPACE
+    ('stage.camera', True)
+    >>> entity_spaces_resolver({}) is None
+    True
+    """
+    if not entity_spaces:
+        return None
+    mapping = dict(entity_spaces)
+    resolved: dict[str, Any] = {}
+
+    def space_of(target: str):
+        name = mapping.get(target.split("/", 1)[0], _spaces.DFLT_TIMELINE_SPACE)
+        if name not in resolved:  # by name, once per document
+            resolved[name] = _spaces.get_space(name)
+        return resolved[name]
+
+    return space_of

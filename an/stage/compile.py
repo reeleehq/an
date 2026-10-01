@@ -1187,6 +1187,7 @@ def compile_shot(
             gaze_seeds=gaze_seeds,
             style_pack=style_pack.name if style_pack is not None else None,
             fonts=fonts,
+            entity_spaces=entity_spaces_of(shot),
         ),
         scene=scene_root,
         overlay=(
@@ -1204,6 +1205,26 @@ def compile_shot(
 # -----------------------------------------------------------------------------
 # Scene tree construction
 # -----------------------------------------------------------------------------
+
+
+def entity_spaces_of(shot: Shot) -> dict[str, str]:
+    """``{entity id: space}`` for each entity whose kind declares a space other
+    than the kernel default -- what the compiled document records so the
+    default evaluator agrees with validate and compile (an#245).
+
+    >>> from an.ir.schema import AssetRef, Shot
+    >>> entity_spaces_of(Shot(id="s", entities=[AssetRef(kind="prop", id="p", store="props", ref="p")]))
+    {}
+    """
+    from an.genres import entity_kind
+    from an.timing import spaces
+
+    out: dict[str, str] = {}
+    for entity in shot.entities:
+        kind = entity_kind(entity.kind)
+        if kind is not None and kind.space and kind.space != spaces.DFLT_TIMELINE_SPACE:
+            out[entity.id] = kind.space
+    return out
 
 
 def _build_scene_root(

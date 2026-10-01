@@ -497,9 +497,9 @@ def entity_space_resolver(entities: Iterable, *, default: str | None = None):
     unregistered or declares no space, gets ``default`` — the timing default
     :data:`an.timing.spaces.DFLT_TIMELINE_SPACE` when ``None``.
 
-    (The default EVALUATOR still uses that one space for every target: a
-    compiled stage document does not carry its entities' kinds, so a
-    per-entity evaluation default arrives with the ``Engine`` seam, P3.)
+    The default EVALUATOR agrees since an#245: the stage's compiled document
+    records each entity whose kind declares another space
+    (``meta.entity_spaces``), and ``timeline_from_compiled`` resolves by it.
 
     >>> from an.ir.schema import AssetRef
     >>> space_of = entity_space_resolver([AssetRef(kind="prop", id="lamp", store="props", ref="l")])

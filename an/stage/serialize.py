@@ -377,6 +377,14 @@ class CutoutSceneMetaJSON(_JSONModel):
     #: font's BYTES, since a family name is not one. Provenance, inert to the
     #: runtime (the glyphs are already SVG). **Serialized only when non-empty.**
     fonts: dict[str, str] = Field(default_factory=dict)
+    #: Per entity, the property space its kind declares, where that is NOT the
+    #: kernel default (``stage.node``) -- so evaluating this document with no
+    #: explicit space evaluates each target in its entity's space, as
+    #: ``an validate`` and the compiler already do (an#245; read by
+    #: :func:`an.timing.timeline.timeline_from_compiled`). **Serialized only when
+    #: non-empty**: no shipped kind declares another space, so no document and
+    #: no contract hash moves until a genre registers one.
+    entity_spaces: dict[str, str] = Field(default_factory=dict)
 
     @model_serializer(mode="wrap")
     def _omit_unset_step_hz(self, handler):
@@ -395,6 +403,9 @@ class CutoutSceneMetaJSON(_JSONModel):
         # an#155, in the same commit as the field (the an#112 rule).
         if isinstance(data, dict) and not data.get("fonts"):
             data.pop("fonts", None)
+        # an#245, in the same commit as the field (the an#112 rule).
+        if isinstance(data, dict) and not data.get("entity_spaces"):
+            data.pop("entity_spaces", None)
         return data
 
 

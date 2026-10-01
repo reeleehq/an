@@ -1359,6 +1359,18 @@
         return out;
     }
 
+    // ------------------------------------------------------------------------
+    // The read-back (an#247): the pose `evaluateTimeline` computes at each t,
+    // WITHOUT applying it -- what the stage engine's `state(t)` reports, and
+    // what `an.engines.conformance` holds to the timing kernel's golden
+    // vectors (`an/data/timing/timing_vectors.json`). Keys are
+    // "target::property", absent = at rest, exactly as `anSetTime` applies.
+    // ------------------------------------------------------------------------
+    NS.anStates = function (times) {
+        if (!scene) return null;
+        return times.map((t) => evaluateTimeline(t));
+    };
+
     NS.anDeterminismReport = function () {
         const stage = app ? app.stage : null;
         const shared = (window.PIXI && PIXI.Ticker) ? PIXI.Ticker.shared : null;
