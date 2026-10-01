@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.drawn" href="an.characters.drawn.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -711,22 +734,25 @@ problem routes the way every other verifier’s does (an#78).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.new_character" title="an.characters.factory.new_character"><code class="xref py py-obj docutils literal notranslate"><span class="pre">new_character</span></code></a>(out_dir, *, name[, seed, ...])</p></td>
 <td><p>Build a complete character on disk.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.scale_part_files" title="an.characters.factory.scale_part_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_part_files</span></code></a>(paths, scale)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.recording_drawn" title="an.characters.factory.recording_drawn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recording_drawn</span></code></a>(char_dir)</p></td>
+<td><p>Log what the body writes, then record the factory-stamped bytes it wrote at <code class="docutils literal notranslate"><span class="pre">char_dir</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.scale_part_files" title="an.characters.factory.scale_part_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_part_files</span></code></a>(paths, scale)</p></td>
 <td><p>Rewrite each part SVG's root size by <code class="docutils literal notranslate"><span class="pre">scale</span></code> (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.stage_extent" title="an.characters.factory.stage_extent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_extent</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.stage_extent" title="an.characters.factory.stage_extent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_extent</span></code></a>(desc)</p></td>
 <td><p>How far a character's art reaches above and below its stage point, in scene pixels at <code class="docutils literal notranslate"><span class="pre">stage.scale:</span> <span class="pre">1</span></code>: <code class="docutils literal notranslate"><span class="pre">{&quot;top&quot;,</span> <span class="pre">&quot;feet&quot;,</span> <span class="pre">&quot;height&quot;}</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.stamp_factory_descriptor" title="an.characters.factory.stamp_factory_descriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_factory_descriptor</span></code></a>(char_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.stamp_factory_descriptor" title="an.characters.factory.stamp_factory_descriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_factory_descriptor</span></code></a>(char_dir)</p></td>
 <td><p>Record the factory as the source of the character it just drew at <code class="docutils literal notranslate"><span class="pre">char_dir</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.stamp_factory_parts" title="an.characters.factory.stamp_factory_parts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_factory_parts</span></code></a>(char_dir, paths, *[, skip])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.stamp_factory_parts" title="an.characters.factory.stamp_factory_parts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_factory_parts</span></code></a>(char_dir, paths, *[, skip])</p></td>
 <td><p>Give each part the factory drew a <code class="docutils literal notranslate"><span class="pre">cc0</span></code> per-part source pinned to its digest.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.stamp_generated_head" title="an.characters.factory.stamp_generated_head"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_generated_head</span></code></a>(char_dir, source)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.stamp_generated_head" title="an.characters.factory.stamp_generated_head"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_generated_head</span></code></a>(char_dir, source)</p></td>
 <td><p>Pin a generator's <code class="docutils literal notranslate"><span class="pre">source</span></code> (DiceBear's) to the bytes it produced at <code class="docutils literal notranslate"><span class="pre">char_dir</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.view_poses" title="an.characters.factory.view_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">view_poses</span></code></a>([body, head_scale, slots])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.view_poses" title="an.characters.factory.view_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">view_poses</span></code></a>([body, head_scale, slots])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{view:</span> <span class="pre">{slot:</span> <span class="pre">SlotPose}}</span></code> for the factory's rig built as <code class="docutils literal notranslate"><span class="pre">body</span></code> — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.</p></td>
 </tr>
 </tbody>
@@ -1173,6 +1199,17 @@ character is complete out of the box.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.characters.factory.recording_drawn">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">recording_drawn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">char_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#recording_drawn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.factory.recording_drawn" title="Link to this definition">#</a></dt>
+<dd><p>Log what the body writes, then record the factory-stamped bytes it wrote at <code class="docutils literal notranslate"><span class="pre">char_dir</span></code>.</p>
+<p>For a drawing path outside this module (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">mouths</span></code>): only
+bytes written through <a class="reference internal" href="an.characters.drawn.html#module-an.characters.drawn" title="an.characters.drawn"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.drawn</span></code></a> inside the block, and
+stamped by the factory, are recorded.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.characters.factory.scale_part_files">
 <span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">scale_part_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#scale_part_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.factory.scale_part_files" title="Link to this definition">#</a></dt>
 <dd><p>Rewrite each part SVG’s root size by <code class="docutils literal notranslate"><span class="pre">scale</span></code> (its drawing untouched):
@@ -1376,6 +1413,7 @@ slots a rig has (a rig without the eye stack has no pupils to pose).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.factory_source"><code class="docutils literal notranslate"><span class="pre">factory_source()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.gaze_travel_for"><code class="docutils literal notranslate"><span class="pre">gaze_travel_for()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.new_character"><code class="docutils literal notranslate"><span class="pre">new_character()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.recording_drawn"><code class="docutils literal notranslate"><span class="pre">recording_drawn()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.scale_part_files"><code class="docutils literal notranslate"><span class="pre">scale_part_files()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.stage_extent"><code class="docutils literal notranslate"><span class="pre">stage_extent()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.stamp_factory_descriptor"><code class="docutils literal notranslate"><span class="pre">stamp_factory_descriptor()</span></code></a></li>

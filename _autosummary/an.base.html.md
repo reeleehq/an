@@ -178,7 +178,7 @@ Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2
 ### an.base.FILM_AUDIO_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 44100*
 
 The film mix’s sample rate and channel count. The SAME values the per-shot
-audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
+audio mux (`an.stage.render._ffmpeg_add_audio`) writes, so a film
 assembled from sources and one concatenated from shot mp4s carry the same
 audio format.
 
@@ -222,7 +222,7 @@ the torso, not children of it.
 
 Which renderer draws a shot. The orchestrator uses this to pick an adapter.
 
-alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘cutout’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘cutout’, ‘stage’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]
 
 ### an.base.SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.3.0'*
 
@@ -234,7 +234,7 @@ changes, also bump COMPATIBLE_VERSION and add a migration in `ir.migrate`.
 described a 3D camera this package never had, and gave `Camera` a `keys`
 list so it can translate (an#109).
 
-### an.base.SUPPORTED_RENDERERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'manim', 'motion_graphics', 'whiteboard')*
+### an.base.SUPPORTED_RENDERERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage', 'manim', 'motion_graphics', 'whiteboard')*
 
 The same vocabulary as [`RendererName`](#an.base.RendererName), as a runtime tuple — DERIVED
 from it, because a hand-typed second copy is a second SSOT that drifts on

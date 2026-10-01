@@ -199,7 +199,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
-`an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
+`an.stage.compile.CAMERA_MOVES`; validate and the compiler are
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 

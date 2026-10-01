@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.conftest" href="an.conftest.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -646,7 +669,10 @@ parts carved out of several clips credits each clip, part by part.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.credits_for_scene" title="an.credits.credits_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">credits_for_scene</span></code></a>(mall, scene)</p></td>
 <td><p>Credits for exactly the assets <code class="docutils literal notranslate"><span class="pre">scene</span></code> draws or plays (an#211).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.credits.warn_if_private_study" title="an.credits.warn_if_private_study"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_if_private_study</span></code></a>(report, *[, output])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.credits.speech_credits" title="an.credits.speech_credits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">speech_credits</span></code></a>(mall, scene)</p></td>
+<td><p>One entry per voice whose lines a render synthesized with a named provider (an#271).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.warn_if_private_study" title="an.credits.warn_if_private_study"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_if_private_study</span></code></a>(report, *[, output])</p></td>
 <td><p>Warn, loudly, when <code class="docutils literal notranslate"><span class="pre">report</span></code> holds private-study material.</p></td>
 </tr>
 </tbody>
@@ -817,6 +843,36 @@ character would bury the one carved head.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.credits.speech_credits">
+<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">speech_credits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#speech_credits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.speech_credits" title="Link to this definition">#</a></dt>
+<dd><p>One entry per voice whose lines a render synthesized with a named provider (an#271).</p>
+<p>Read from what the audio pipeline already keeps — no record of its own:
+the scene’s lines that carry an <code class="docutils literal notranslate"><span class="pre">audio_ref</span></code> (stamped when synthesized),
+each line’s voice as the pipeline resolves it
+(<a class="reference internal" href="an.audio.voices.html#an.audio.voices.line_voice_id" title="an.audio.voices.line_voice_id"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.voices.line_voice_id()</span></code></a>), and that voice’s document in
+<code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;]</span></code> (its <code class="docutils literal notranslate"><span class="pre">provider</span></code>, <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> and <code class="docutils literal notranslate"><span class="pre">model_id</span></code>). A
+voice document may declare its own <code class="docutils literal notranslate"><span class="pre">source</span></code> (the provider’s terms, the
+licence the user holds); otherwise the speech is listed UNVERIFIED — the
+provider’s terms decide what is owed, and nobody recorded them. A voice
+whose document names no provider (the offline default) is not listed:
+which provider spoke it is not recorded anywhere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">CreditEntry</span></code>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">voice_ref</span><span class="o">=</span><span class="s2">"bob"</span><span class="p">,</span> <span class="n">speaker</span><span class="o">=</span><span class="s2">"bob"</span><span class="p">,</span> <span class="n">audio_ref</span><span class="o">=</span><span class="s2">"k1"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">timeline</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">dialogue</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="p">],</span> <span class="n">entities</span><span class="o">=</span><span class="p">[])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mall</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"elevenlabs"</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">:</span> <span class="s2">"TX3"</span><span class="p">,</span>
+<span class="gp">... </span>                           <span class="s2">"model_id"</span><span class="p">:</span> <span class="s2">"eleven_v3"</span><span class="p">}}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">extra</span><span class="p">[</span><span class="s2">"model"</span><span class="p">])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">speech_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)]</span>
+<span class="go">[('speech/bob', 'unknown', 'eleven_v3')]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.credits.warn_if_private_study">
 <span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">warn_if_private_study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#warn_if_private_study"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.warn_if_private_study" title="Link to this definition">#</a></dt>
 <dd><p>Warn, loudly, when <code class="docutils literal notranslate"><span class="pre">report</span></code> holds private-study material.</p>
@@ -892,6 +948,7 @@ the last word about the file; <code class="docutils literal notranslate"><span c
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.credits_for_scene"><code class="docutils literal notranslate"><span class="pre">credits_for_scene()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.is_factory_stamp"><code class="docutils literal notranslate"><span class="pre">is_factory_stamp()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.is_generated_source"><code class="docutils literal notranslate"><span class="pre">is_generated_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.speech_credits"><code class="docutils literal notranslate"><span class="pre">speech_credits()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.warn_if_private_study"><code class="docutils literal notranslate"><span class="pre">warn_if_private_study()</span></code></a></li>
 </ul>
   </nav></div>

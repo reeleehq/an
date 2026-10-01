@@ -1,0 +1,30 @@
+an.stage.raster
+===============
+
+.. automodule:: an.stage.raster
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      RASTER_SUFFIXES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      art_size
+      content_digest
+      has_alpha
+      image_size
+      is_raster
+      strip_version
+      versioned_src
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RasterFormatError
+   

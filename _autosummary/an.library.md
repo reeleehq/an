@@ -431,7 +431,9 @@ rights: `any` (default — study renders are legitimate), `publishable`
   from each version’s sources and lineage, not read from its cache
 
 near: also return assets that pass every other facet but miss some
-: capabilities, each with what is missing and the remedy that would add it
+: capabilities, or are curated for another style than asked, each with
+  what is missing and the remedy that would add it (a style mismatch is
+  listed as `style:<wanted>`, remedied by restyling: an#271)
 
 index: the index to read (default: a scan of the stores)
 
@@ -636,7 +638,9 @@ Publish an asset folder as it sits in a project store (`assets/characters/alice/
 The descriptor is the kind’s descriptor file (`character.json`); every other
 file under the folder is published as one of the asset’s files, so a
 check-out reproduces the folder — except operating-system clutter
-(`.DS_Store`, hidden files, `Thumbs.db`: `an.stores._common.is_os_junk()`). Keyword arguments go to [`publish()`](#an.library.publish).
+(`.DS_Store`, hidden files, `Thumbs.db`: `an.stores._common.is_os_junk()`)
+that the descriptor does not name — a part it names is published whatever
+its file is called (review-288 S2). Keyword arguments go to [`publish()`](#an.library.publish).
 
 * **Return type:**
   [`PublishResult`](an.library.api.md#an.library.api.PublishResult)

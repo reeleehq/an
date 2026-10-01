@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.supersample" href="an.adapters.cutout.supersample.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -610,262 +633,11 @@
                   
   <section id="module-an.adapters.cutout.surface">
 <span id="an-adapters-cutout-surface"></span><h1>an.adapters.cutout.surface<a class="headerlink" href="#module-an.adapters.cutout.surface" title="Link to this heading">#</a></h1>
-<p>Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.</p>
-<p>Every treatment here is a COMPILE-TIME expansion into ordinary document
-content. None is a runtime filter, and none draws anything random at render
-time. <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> keeps its rule against per-frame randomness, and its
-determinism probe still sees zero filters.</p>
-<ul class="simple">
-<li><p><strong>Outline and paper-gap shadow</strong>: <a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.UnderlayJSON" title="an.adapters.cutout.serialize.UnderlayJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnderlayJSON</span></code></a>
-entries on a part’s visual. The runtime draws each one as a copy of the
-part’s own visual, BEHIND it, in the part’s own container. So the copy takes
-every transform the part takes (tweens, <code class="docutils literal notranslate"><span class="pre">play</span></code>, the camera, a stage scale)
-and needs no channel of its own. A swap on the part (a viseme, a blink)
-re-textures its copies in the same call.</p></li>
-<li><p><strong>Glow</strong>: one extra child node, first in the entity so it draws behind every
-part. It is a radial-gradient SVG sprite, drawn with the engine’s native
-<code class="docutils literal notranslate"><span class="pre">add</span></code> blend.</p></li>
-<li><p><strong>Grain</strong>: one seeded noise tile, made here as a palette PNG and tiled on the
-camera-immune overlay under any text, drawn with the native <code class="docutils literal notranslate"><span class="pre">multiply</span></code>
-blend. The PNG bytes are fully determined by the seed. The deflate stream is
-written as STORED blocks by hand, because a compressor’s output is not
-stable across zlib builds (zlib-ng differs), and the texture is part of the
-scene contract.</p></li>
-</ul>
-<p>A scene whose pack sets none of these compiles byte-identically to before.
-Nothing here runs without a treatment, and the new wire fields are omitted
-when unset.</p>
-<p class="rubric">Module Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.UNDERLAY_KINDS" title="an.adapters.cutout.surface.UNDERLAY_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNDERLAY_KINDS</span></code></a></p></td>
-<td><p>The visual kinds a copy can be drawn for.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.GLOW_NODE" title="an.adapters.cutout.surface.GLOW_NODE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GLOW_NODE</span></code></a></p></td>
-<td><p>The glow's node name inside its entity, and the grain's on the overlay.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.GRAIN_LEVELS" title="an.adapters.cutout.surface.GRAIN_LEVELS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GRAIN_LEVELS</span></code></a></p></td>
-<td><p>Grey levels in the grain tile. 16 = a 4-bit palette PNG (half the bytes of an 8-bit one), and finer steps than 8-bit output could show at the small <a href="#id1"><span class="problematic" id="id2">`</span></a>amount`s grain is used at.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.ring_offsets" title="an.adapters.cutout.surface.ring_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ring_offsets</span></code></a>(radius)</p></td>
-<td><p>The outline ring's copy offsets at <code class="docutils literal notranslate"><span class="pre">radius</span></code> pixels.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.apply_surface" title="an.adapters.cutout.surface.apply_surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_surface</span></code></a>(node, surface, *, textures)</p></td>
-<td><p>Expand <code class="docutils literal notranslate"><span class="pre">surface</span></code> into <code class="docutils literal notranslate"><span class="pre">node</span></code> (an entity's subtree), in place.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.drawn_box" title="an.adapters.cutout.surface.drawn_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_box</span></code></a>(node)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> of what <code class="docutils literal notranslate"><span class="pre">node</span></code>'s parts draw, in its own frame.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.glow_svg" title="an.adapters.cutout.surface.glow_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glow_svg</span></code></a>(width, height, *, color, intensity, ...)</p></td>
-<td><p>The glow's texture: an elliptical radial gradient filling its box.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.grain_indices" title="an.adapters.cutout.surface.grain_indices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_indices</span></code></a>(seed, tile)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">tile</span> <span class="pre">×</span> <span class="pre">tile</span></code> grey-level indices in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">GRAIN_LEVELS)</span></code>, row-major.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.grain_greys" title="an.adapters.cutout.surface.grain_greys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_greys</span></code></a>(amount)</p></td>
-<td><p>The palette: level <code class="docutils literal notranslate"><span class="pre">n</span></code> multiplies the frame by <code class="docutils literal notranslate"><span class="pre">grey/255</span></code>, from white (level 0) down to <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">−</span> <span class="pre">amount</span></code> (the last level).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.grain_png" title="an.adapters.cutout.surface.grain_png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_png</span></code></a>(*, seed, amount, tile)</p></td>
-<td><p>The grain tile as a 4-bit palette PNG: opaque and lossless.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.grain_node" title="an.adapters.cutout.surface.grain_node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_node</span></code></a>(grain, *, width, height, textures)</p></td>
-<td><p>The grain layer: one tile texture, tiled over the frame in frame pixels.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.faded_treated_targets" title="an.adapters.cutout.surface.faded_treated_targets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">faded_treated_targets</span></code></a>(scene, animations)</p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel targets that FADE a part carrying underlays.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.GLOW_NODE">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">GLOW_NODE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'_glow'</span></span><a class="headerlink" href="#an.adapters.cutout.surface.GLOW_NODE" title="Link to this definition">#</a></dt>
-<dd><p>The glow’s node name inside its entity, and the grain’s on the overlay.
-Leading underscore: no rig slot or entity id is spelled like this, and a
-collision with an overlay entity still raises in <code class="code docutils literal notranslate"><span class="pre">compile_shot</span></code>.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.GRAIN_LEVELS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">GRAIN_LEVELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.adapters.cutout.surface.GRAIN_LEVELS" title="Link to this definition">#</a></dt>
-<dd><p>Grey levels in the grain tile. 16 = a 4-bit palette PNG (half the bytes
-of an 8-bit one), and finer steps than 8-bit output could show at the small
-<a href="#id3"><span class="problematic" id="id4">`</span></a>amount`s grain is used at.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.UNDERLAY_KINDS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">UNDERLAY_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'ellipse',</span> <span class="pre">'rect',</span> <span class="pre">'svg_sprite'})</span></span><a class="headerlink" href="#an.adapters.cutout.surface.UNDERLAY_KINDS" title="Link to this definition">#</a></dt>
-<dd><p>The visual kinds a copy can be drawn for. <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> refuses any other.
-An eye already draws its own rim, a procedural mouth is a redraw function,
-and a path is already a line.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.apply_surface">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">apply_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">textures</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#apply_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.apply_surface" title="Link to this definition">#</a></dt>
-<dd><p>Expand <code class="docutils literal notranslate"><span class="pre">surface</span></code> into <code class="docutils literal notranslate"><span class="pre">node</span></code> (an entity’s subtree), in place.</p>
-<p>Returns what it could not do, for the compiler to warn with (a glow on an
-entity that draws nothing). A no-op for <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is every entity of
-a scene whose pack sets no treatment. The outline and the shadow go on each part: the entity’s
-direct children, and deeper parts too when the treatment is <code class="docutils literal notranslate"><span class="pre">nested</span></code>.
-The glow is added after the parts are walked, so it never gets an outline
-of its own.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurfaceTreatment</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">part</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">visual</span><span class="o">=</span><span class="n">VisualJSON</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"rect"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ent</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"bob"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">part</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_surface</span><span class="p">(</span><span class="n">ent</span><span class="p">,</span> <span class="n">SurfaceTreatment</span><span class="p">(</span><span class="n">outline</span><span class="o">=</span><span class="p">{</span><span class="s2">"width"</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="n">shadow</span><span class="o">=</span><span class="p">{}),</span> <span class="n">textures</span><span class="o">=</span><span class="p">{})</span>
-<span class="go">[]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">u</span><span class="o">.</span><span class="n">grow</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">offsets</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">part</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">underlays</span><span class="p">]</span>
-<span class="go">[(2.0, [(4.0, 4.0)]), (2.0, [(0.0, 0.0)])]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.drawn_box">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">drawn_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#drawn_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.drawn_box" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> of what <code class="docutils literal notranslate"><span class="pre">node</span></code>’s parts draw, in its own frame.</p>
-<p>The entity’s own visual and every descendant’s: rest translations and each
-visual’s box and anchor. Rest rotations and
-scales are not applied: the compiled rigs have none below the entity
-root. That is an assumption about the rigs this compiler builds, not
-about arbitrary documents.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"h"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">y</span><span class="o">=-</span><span class="mi">50</span><span class="p">),</span>
-<span class="gp">... </span>                <span class="n">visual</span><span class="o">=</span><span class="n">VisualJSON</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"ellipse"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">40</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">drawn_box</span><span class="p">(</span><span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"e"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">head</span><span class="p">]))</span>
-<span class="go">(-20.0, -70.0, 20.0, -30.0)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.faded_treated_targets">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">faded_treated_targets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#faded_treated_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.faded_treated_targets" title="Link to this definition">#</a></dt>
-<dd><p>The <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel targets that FADE a part carrying underlays.</p>
-<p>A treated part’s copies are drawn separately, so a fade shows them
-through the part instead of the background (see <code class="code docutils literal notranslate"><span class="pre">an.styles.Outline</span></code>).
-A hide or a show is not a fade (<code class="xref py py-func docutils literal notranslate"><span class="pre">_fades()</span></code>), and an alpha on the glow
-node only fades the glow, which is fine.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.glow_svg">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">glow_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#glow_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.glow_svg" title="Link to this definition">#</a></dt>
-<dd><p>The glow’s texture: an elliptical radial gradient filling its box.</p>
-<p>It holds <code class="docutils literal notranslate"><span class="pre">intensity</span></code> out to <code class="docutils literal notranslate"><span class="pre">core</span></code> (a fraction of the radius) and
-fades to nothing at the edge.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">glow_svg</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span> <span class="n">intensity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">core</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)[:</span><span class="mi">52</span><span class="p">]</span>
-<span class="go">'&lt;svg xmlns="http://www.w3.org/2000/svg" width="10" h'</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.grain_greys">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">grain_greys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#grain_greys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.grain_greys" title="Link to this definition">#</a></dt>
-<dd><p>The palette: level <code class="docutils literal notranslate"><span class="pre">n</span></code> multiplies the frame by <code class="docutils literal notranslate"><span class="pre">grey/255</span></code>, from
-white (level 0) down to <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">−</span> <span class="pre">amount</span></code> (the last level).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grain_greys</span><span class="p">(</span><span class="mf">0.06</span><span class="p">)[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">grain_greys</span><span class="p">(</span><span class="mf">0.06</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">([255, 254, 253], 240)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.grain_indices">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">grain_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#grain_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.grain_indices" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">tile</span> <span class="pre">×</span> <span class="pre">tile</span></code> grey-level indices in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">GRAIN_LEVELS)</span></code>, row-major.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grain_indices</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="go">[14, 6, 0, 15, 1, 5, 2, 12, 3, 15, 6, 12, 8, 8, 11, 8]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">grain_indices</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">==</span> <span class="n">grain_indices</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">!=</span> <span class="n">grain_indices</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.grain_node">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">grain_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grain</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">textures</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#grain_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.grain_node" title="Link to this definition">#</a></dt>
-<dd><p>The grain layer: one tile texture, tiled over the frame in frame pixels.</p>
-<p>It goes on the OVERLAY, which is centred on the canvas and cannot be
-reached by the camera. Each tile sits at an integer frame position at
-scale 1, so at <code class="docutils literal notranslate"><span class="pre">supersample</span></code> 1 a texel is exactly one pixel. Tiling is
-done with nodes rather than a <code class="docutils literal notranslate"><span class="pre">TilingSprite</span></code>, which the runtime does not
-wire (an#110’s rule: wire it fully or not at all).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.NodeJSON" title="an.adapters.cutout.serialize.NodeJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeJSON</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.grain_png">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">grain_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amount</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#grain_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.grain_png" title="Link to this definition">#</a></dt>
-<dd><p>The grain tile as a 4-bit palette PNG: opaque and lossless.</p>
-<p>It is opaque on purpose. With no alpha channel there is no premultiply
-step on load that could differ between engines.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.surface.ring_offsets">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">ring_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#ring_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.ring_offsets" title="Link to this definition">#</a></dt>
-<dd><p>The outline ring’s copy offsets at <code class="docutils literal notranslate"><span class="pre">radius</span></code> pixels.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ring_offsets</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
-<span class="go">[(2.0, 0.0), (1.414214, 1.414214), (0.0, 2.0)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">ring_offsets</span><span class="p">(</span><span class="mf">3.0</span><span class="p">))</span> <span class="o">==</span> <span class="n">OUTLINE_RING</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<p>Moved to <a class="reference internal" href="an.stage.surface.html#module-an.stage.surface" title="an.stage.surface"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.surface</span></code></a> (an#247); this path is a LIVE alias of it.</p>
+<p>The 2D stage runtime is the first engine, outside the core’s import firewall
+(ADR 0001 decisions 5 and 14). Every name of the new module is reachable here,
+and rebinding one here (a bench lever, <code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code>) rebinds it there, where
+the code runs (<code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>).</p>
 </section>
 
 
@@ -906,29 +678,6 @@ step on load that could differ between engines.</p>
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.GLOW_NODE"><code class="docutils literal notranslate"><span class="pre">GLOW_NODE</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.GRAIN_LEVELS"><code class="docutils literal notranslate"><span class="pre">GRAIN_LEVELS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.UNDERLAY_KINDS"><code class="docutils literal notranslate"><span class="pre">UNDERLAY_KINDS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.apply_surface"><code class="docutils literal notranslate"><span class="pre">apply_surface()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.drawn_box"><code class="docutils literal notranslate"><span class="pre">drawn_box()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.faded_treated_targets"><code class="docutils literal notranslate"><span class="pre">faded_treated_targets()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.glow_svg"><code class="docutils literal notranslate"><span class="pre">glow_svg()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.grain_greys"><code class="docutils literal notranslate"><span class="pre">grain_greys()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.grain_indices"><code class="docutils literal notranslate"><span class="pre">grain_indices()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.grain_node"><code class="docutils literal notranslate"><span class="pre">grain_node()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.grain_png"><code class="docutils literal notranslate"><span class="pre">grain_png()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.surface.ring_offsets"><code class="docutils literal notranslate"><span class="pre">ring_offsets()</span></code></a></li>
-</ul>
-  </nav></div>
 
   <div class="sidebar-secondary-item">
 

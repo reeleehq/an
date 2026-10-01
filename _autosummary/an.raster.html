@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.props" href="an.props.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -604,219 +627,11 @@
                   
   <section id="module-an.raster">
 <span id="an-raster"></span><h1>an.raster<a class="headerlink" href="#module-an.raster" title="Link to this heading">#</a></h1>
-<p>Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).</p>
-<p>Every piece of art the cutout renderer drew was SVG, and the size probe said
-so: <code class="code docutils literal notranslate"><span class="pre">an.characters.svg_utils.raster_size</span></code> parses its input as XML, so a PNG
-plate died in the compiler with <code class="docutils literal notranslate"><span class="pre">ParseError:</span> <span class="pre">not</span> <span class="pre">well-formed</span> <span class="pre">(invalid</span> <span class="pre">token):</span>
-<span class="pre">line</span> <span class="pre">1,</span> <span class="pre">column</span> <span class="pre">0</span></code> — the error a user sees for “I gave it a picture”. Art carved
-out of footage, a scanned drawing, a photographed paper cut-out: those are
-raster, and tracing them to SVG throws away the shading that made them worth
-carving.</p>
-<p>PixiJS loads PNG, JPEG and WebP natively (its <code class="docutils literal notranslate"><span class="pre">loadTextures</span></code> parser, chosen by
-the file’s extension), so the renderer needed nothing new. What the COMPILER
-needed was three answers it previously got only from an SVG:</p>
-<ul class="simple">
-<li><p><strong>how big is it</strong> — <a class="reference internal" href="#an.raster.image_size" title="an.raster.image_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">image_size()</span></code></a>, read from the header (no decode, no
-dependency: the four formats state their pixel size in the first few dozen
-bytes, and a header parse is the same cost as the SVG probe it sits beside);</p></li>
-<li><p><strong>what size does this art draw at, whatever it is</strong> — <a class="reference internal" href="#an.raster.art_size" title="an.raster.art_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">art_size()</span></code></a>, the
-one probe the compiler, the fidelity check and <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> call;</p></li>
-<li><p><strong>what exactly is it</strong> — <a class="reference internal" href="#an.raster.content_digest" title="an.raster.content_digest"><code class="xref py py-func docutils literal notranslate"><span class="pre">content_digest()</span></code></a>, because a raster texture is
-addressed by its bytes: a re-carved part is a different texture (the runtime’s
-loader ignores a re-added alias on hot reload, an#155) and a different
-compiled contract, so the contract hash covers the pixels it will draw.</p></li>
-</ul>
-<p><strong>Known limit: EXIF orientation.</strong> The header size is the stored size. A
-JPEG whose EXIF says “rotate 90°” (a phone photo) is decoded upright by
-Chromium, so its box would be transposed — export such art rotated.</p>
-<p><strong>Why a raster part is never recoloured.</strong> A StylePack recolours SVG art by
-rewriting the literal colours its descriptor tags (<code class="code docutils literal notranslate"><span class="pre">colour_roles</span></code>). A raster
-has no literals — its colours are pixels, and inferring a role from a pixel is
-exactly what caused an#99’s wrong-tone lid — so it renders as drawn, and the
-compiler says so once.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_raster</span><span class="p">(</span><span class="s2">"parts/head.png"</span><span class="p">),</span> <span class="n">is_raster</span><span class="p">(</span><span class="s2">"parts/head.svg"</span><span class="p">)</span>
-<span class="go">(True, False)</span>
-</pre></div>
-</div>
-<p class="rubric">Module Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.raster.RASTER_SUFFIXES" title="an.raster.RASTER_SUFFIXES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RASTER_SUFFIXES</span></code></a></p></td>
-<td><p>The raster formats a plate or a part may be, by file suffix.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.raster.art_size" title="an.raster.art_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">art_size</span></code></a>(source)</p></td>
-<td><p>The size a piece of art rasterises at, whatever format it is.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.raster.content_digest" title="an.raster.content_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">content_digest</span></code></a>(path)</p></td>
-<td><p>The hex sha256 of a file's bytes, cached by (path, mtime, size).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.raster.has_alpha" title="an.raster.has_alpha"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_alpha</span></code></a>(source)</p></td>
-<td><p>Whether the image can be transparent anywhere; <code class="docutils literal notranslate"><span class="pre">None</span></code> if unknown.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.raster.image_size" title="an.raster.image_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">image_size</span></code></a>(source)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> in pixels of a PNG, JPEG or WebP, from its header.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.raster.is_raster" title="an.raster.is_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_raster</span></code></a>(src)</p></td>
-<td><p>Whether <code class="docutils literal notranslate"><span class="pre">src</span></code> names raster art, by its suffix (case-insensitive).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.raster.strip_version" title="an.raster.strip_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_version</span></code></a>(src)</p></td>
-<td><p>The file path a (possibly versioned) texture <code class="docutils literal notranslate"><span class="pre">src</span></code> names.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.raster.versioned_src" title="an.raster.versioned_src"><code class="xref py py-obj docutils literal notranslate"><span class="pre">versioned_src</span></code></a>(src, digest)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">src</span></code> with its content digest as a query string.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Exceptions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.raster.RasterFormatError" title="an.raster.RasterFormatError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RasterFormatError</span></code></a></p></td>
-<td><p>A file named as raster art whose header this module cannot read.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py data">
-<dt class="sig sig-object py" id="an.raster.RASTER_SUFFIXES">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">RASTER_SUFFIXES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.png',</span> <span class="pre">'.jpg',</span> <span class="pre">'.jpeg',</span> <span class="pre">'.webp')</span></span><a class="headerlink" href="#an.raster.RASTER_SUFFIXES" title="Link to this definition">#</a></dt>
-<dd><p>The raster formats a plate or a part may be, by file suffix. PixiJS 7’s
-<code class="docutils literal notranslate"><span class="pre">loadTextures</span></code> picks its parser by extension and accepts exactly these
-(plus AVIF, left out because Chromium’s AVIF decode is the one of the four
-whose output is not specified bit-exactly and the render is a contract).</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="an.raster.RasterFormatError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">RasterFormatError</span></span><a class="reference internal" href="../_modules/an/raster.html#RasterFormatError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.RasterFormatError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
-<p>A file named as raster art whose header this module cannot read.</p>
-<p>A <code class="code docutils literal notranslate"><span class="pre">ValueError</span></code>, so the compiler’s size probe treats it exactly like a
-malformed SVG: the art is declared (and fails loudly at load) rather than
-silently dropped.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.art_size">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">art_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#art_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.art_size" title="Link to this definition">#</a></dt>
-<dd><p>The size a piece of art rasterises at, whatever format it is.</p>
-<p>SVG: its declared <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">height</span></code> (else its viewBox), as the browser
-does — <a class="reference internal" href="an.characters.svg_utils.html#an.characters.svg_utils.raster_size" title="an.characters.svg_utils.raster_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.svg_utils.raster_size()</span></code></a>. Raster: its pixel size.
-The ONE probe the compiler, the fidelity check and <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> share, so
-none of them can size a PNG as if it were XML again.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.content_digest">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">content_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#content_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.content_digest" title="Link to this definition">#</a></dt>
-<dd><p>The hex sha256 of a file’s bytes, cached by (path, mtime, size).</p>
-<p>The ENCODED bytes, not the pixels: re-saving the same image with another
-encoder changes the digest (and so the alias and the contract hash) —
-which is the conservative direction for a contract.</p>
-<p>Cached because a rig registers every attachment of every slot and a scene
-compiles each shot separately; keyed on the stat so an edited file is
-re-read, which is what makes the digest safe to put in a texture alias.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.has_alpha">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">has_alpha</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#has_alpha"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.has_alpha" title="Link to this definition">#</a></dt>
-<dd><p>Whether the image can be transparent anywhere; <code class="docutils literal notranslate"><span class="pre">None</span></code> if unknown.</p>
-<p>A PNG says so in its header (colour type 4 or 6) or with a <code class="docutils literal notranslate"><span class="pre">tRNS</span></code> chunk;
-a JPEG never can; a WebP says so in its <code class="docutils literal notranslate"><span class="pre">VP8X</span></code> flags or by being lossless
-with an alpha bit. A cut-out part without alpha is a rectangle — the whole
-canvas draws, background and all — which is what <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">validate</span></code>
-uses this for.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.image_size">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">image_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#image_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.image_size" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> in pixels of a PNG, JPEG or WebP, from its header.</p>
-<p><code class="docutils literal notranslate"><span class="pre">source</span></code> is a path or the file’s bytes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">struct</span><span class="o">,</span><span class="w"> </span><span class="nn">zlib</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ihdr</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&gt;IIBBBBB"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">png</span> <span class="o">=</span> <span class="p">(</span><span class="sa">b</span><span class="s2">"</span><span class="se">\x89</span><span class="s2">PNG</span><span class="se">\r\n\x1a\n</span><span class="s2">"</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&gt;I"</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">"IHDR"</span> <span class="o">+</span> <span class="n">ihdr</span>
-<span class="gp">... </span>       <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&gt;I"</span><span class="p">,</span> <span class="n">zlib</span><span class="o">.</span><span class="n">crc32</span><span class="p">(</span><span class="sa">b</span><span class="s2">"IHDR"</span> <span class="o">+</span> <span class="n">ihdr</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">image_size</span><span class="p">(</span><span class="n">png</span><span class="p">)</span>
-<span class="go">(3.0, 2.0)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.is_raster">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">is_raster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#is_raster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.is_raster" title="Link to this definition">#</a></dt>
-<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">src</span></code> names raster art, by its suffix (case-insensitive).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_raster</span><span class="p">(</span><span class="s2">"plates/Street.JPG"</span><span class="p">)</span>
-<span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">is_raster</span><span class="p">(</span><span class="s2">"data:image/svg+xml;base64,AAAA"</span><span class="p">)</span>
-<span class="go">False</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.strip_version">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">strip_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#strip_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.strip_version" title="Link to this definition">#</a></dt>
-<dd><p>The file path a (possibly versioned) texture <code class="docutils literal notranslate"><span class="pre">src</span></code> names.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">strip_version</span><span class="p">(</span><span class="s2">"props/lamp/parts/on.png?v=abc123"</span><span class="p">)</span>
-<span class="go">'props/lamp/parts/on.png'</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.raster.versioned_src">
-<span class="sig-prename descclassname"><span class="pre">an.raster.</span></span><span class="sig-name descname"><span class="pre">versioned_src</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">digest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/raster.html#versioned_src"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.raster.versioned_src" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">src</span></code> with its content digest as a query string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">versioned_src</span><span class="p">(</span><span class="s2">"props/lamp/parts/on.png"</span><span class="p">,</span> <span class="s2">"abc123"</span><span class="p">)</span>
-<span class="go">'props/lamp/parts/on.png?v=abc123'</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<p>Moved to <a class="reference internal" href="an.stage.raster.html#module-an.stage.raster" title="an.stage.raster"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.raster</span></code></a> (an#247); this path is a LIVE alias of it.</p>
+<p>The 2D stage runtime is the first engine, outside the core’s import firewall
+(ADR 0001 decisions 5 and 14). Every name of the new module is reachable here,
+and rebinding one here (a bench lever, <code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code>) rebinds it there, where
+the code runs (<code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>).</p>
 </section>
 
 
@@ -857,26 +672,6 @@ uses this for.</p>
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.RASTER_SUFFIXES"><code class="docutils literal notranslate"><span class="pre">RASTER_SUFFIXES</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.RasterFormatError"><code class="docutils literal notranslate"><span class="pre">RasterFormatError</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.art_size"><code class="docutils literal notranslate"><span class="pre">art_size()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.content_digest"><code class="docutils literal notranslate"><span class="pre">content_digest()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.has_alpha"><code class="docutils literal notranslate"><span class="pre">has_alpha()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.image_size"><code class="docutils literal notranslate"><span class="pre">image_size()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.is_raster"><code class="docutils literal notranslate"><span class="pre">is_raster()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.strip_version"><code class="docutils literal notranslate"><span class="pre">strip_version()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.raster.versioned_src"><code class="docutils literal notranslate"><span class="pre">versioned_src()</span></code></a></li>
-</ul>
-  </nav></div>
 
   <div class="sidebar-secondary-item">
 

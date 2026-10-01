@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -724,7 +724,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">**In the shot key.** The content-keyed shot cache (P6, an#242) adds key parts</span>
 <span class="sd">through ``an.build.keys.register_shot_key_part(renderer, name, fn)``; this</span>
 <span class="sd">digest is the cut-out keyer's ``vocabulary`` part</span>
-<span class="sd">(:func:`register_vocabulary_key_part`, called by ``an.adapters.cutout``), so</span>
+<span class="sd">(:func:`register_vocabulary_key_part`, called by ``an.stage.render``), so</span>
 <span class="sd">bumping an entry's version re-renders the shots that use it.</span>
 
 <span class="sd">Over-inclusion is deliberate and safe: a ``play`` of a name that is a motion</span>
@@ -855,9 +855,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Idempotent, and tolerant of order: returns ``False`` (registering nothing)</span>
 <span class="sd">    when ``renderer`` has no shot keyer yet, ``True`` once the part is in —</span>
 <span class="sd">    called again, it leaves the registered part alone. The cut-out adapter</span>
-<span class="sd">    calls it right after registering its keyer.</span>
+<span class="sd">    calls it right after registering its keyer (``an.stage.render``, loaded</span>
+<span class="sd">    lazily by the renderer registry, which ``shot_keyer_for`` consults first).</span>
 
-<span class="sd">    &gt;&gt;&gt; import an.adapters  # registers the cut-out keyer, and this part with it</span>
 <span class="sd">    &gt;&gt;&gt; register_vocabulary_key_part(), register_vocabulary_key_part("no-such-renderer")</span>
 <span class="sd">    (True, False)</span>
 <span class="sd">    """</span>

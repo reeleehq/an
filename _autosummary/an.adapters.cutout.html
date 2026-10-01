@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters" href="an.adapters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -607,12 +630,17 @@
                   
   <section id="module-an.adapters.cutout">
 <span id="an-adapters-cutout"></span><h1>an.adapters.cutout<a class="headerlink" href="#module-an.adapters.cutout" title="Link to this heading">#</a></h1>
-<p>Cutout-style 2D animation backend.</p>
-<p>The render path is <code class="docutils literal notranslate"><span class="pre">compile.py</span></code> → <code class="docutils literal notranslate"><span class="pre">serialize.py</span></code> → <code class="docutils literal notranslate"><span class="pre">render.py</span></code> →
-<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> (the browser evaluates and applies every frame). The Python
-evaluation chain (<code class="docutils literal notranslate"><span class="pre">easing</span></code>/<code class="docutils literal notranslate"><span class="pre">channel</span></code>/<code class="docutils literal notranslate"><span class="pre">clip</span></code>/<code class="docutils literal notranslate"><span class="pre">timeline</span></code>) is kept as the
-executable spec of the runtime’s semantics, pinned by node-backed parity tests;
-application lives in <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> alone (an#86).</p>
+<p>The cut-out backend’s old package: the stage moved to <a class="reference internal" href="an.stage.html#module-an.stage" title="an.stage"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage</span></code></a> (an#247).</p>
+<p>The render path is <code class="docutils literal notranslate"><span class="pre">an.stage.compile</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">an.stage.serialize</span></code> -&gt;
+<code class="docutils literal notranslate"><span class="pre">an.stage.render</span></code> (the stage engine, driven by the core frame stage) -&gt;
+<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>. Every module that moved keeps a LIVE alias here
+(<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render</span></code> is <code class="docutils literal notranslate"><span class="pre">an.stage.render</span></code> for reading and for
+rebinding, <code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>). What stays here is cut-out genre
+code on its way to <code class="docutils literal notranslate"><span class="pre">cutan</span></code> (an#225): <code class="docutils literal notranslate"><span class="pre">coarticulate</span></code>, <code class="docutils literal notranslate"><span class="pre">gaze</span></code>, and the
+timing re-exports (<code class="docutils literal notranslate"><span class="pre">channel</span></code>, <code class="docutils literal notranslate"><span class="pre">clip</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code>).</p>
+<p>The names this package used to export are resolved LAZILY, on first access:
+importing <code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.coarticulate</span></code> from the stage’s compiler must not
+load the stage back through this <code class="docutils literal notranslate"><span class="pre">__init__</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutRenderer</span><span class="p">,</span> <span class="n">compile_shot</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">CutoutRenderer</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
 <span class="go">'cutout'</span>
@@ -631,7 +659,7 @@ application lives in <code class="docutils literal notranslate"><span class="pre
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.CutoutRenderer" title="an.adapters.cutout.CutoutRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a>([engine, name, ...])</p></td>
-<td><p>Headless cutout renderer: the stage engine through the core frame stage.</p></td>
+<td><p>The stage renderer: the stage engine through the core frame stage.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.CutoutSceneJSON" title="an.adapters.cutout.CutoutSceneJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a>(**data)</p></td>
 <td><p>Top-level cutout scene JSON — the JS runtime's input contract.</p></td>
@@ -683,7 +711,7 @@ application lives in <code class="docutils literal notranslate"><span class="pre
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.AnimationClipJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AnimationClipJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#AnimationClipJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AnimationClipJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AnimationClipJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#AnimationClipJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AnimationClipJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>A named, reusable animation clip.</p>
 <dl class="field-list simple">
@@ -698,7 +726,7 @@ application lives in <code class="docutils literal notranslate"><span class="pre
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.AssetJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AssetJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#AssetJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AssetJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AssetJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#AssetJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AssetJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>A single asset (texture / audio file).</p>
 <dl class="field-list simple">
@@ -713,7 +741,7 @@ application lives in <code class="docutils literal notranslate"><span class="pre
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.AssetResolutionJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AssetResolutionJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#AssetResolutionJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AssetResolutionJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AssetResolutionJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#AssetResolutionJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AssetResolutionJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>How one scene entity’s store reference actually resolved at compile time.</p>
 <p>The IR declares every drawable entity as <code class="docutils literal notranslate"><span class="pre">store</span></code> + <code class="docutils literal notranslate"><span class="pre">ref</span></code>. What the
@@ -768,7 +796,7 @@ Environments: “store” | “preset” | “default”.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.AssetsJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AssetsJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#AssetsJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AssetsJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">AssetsJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#AssetsJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.AssetsJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>Map of asset id → AssetJSON, split by kind.</p>
 <dl class="field-list simple">
@@ -783,7 +811,7 @@ Environments: “store” | “preset” | “default”.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.ChannelJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">ChannelJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#ChannelJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.ChannelJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">ChannelJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#ChannelJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.ChannelJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>One animated property of one target.</p>
 <dl class="field-list simple">
@@ -798,21 +826,25 @@ Environments: “store” | “preset” | “default”.</p>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderError</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderError" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderError</span></span><a class="reference internal" href="../_modules/an/stage/render.html#CutoutRenderError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>Raised when a cutout render fails. Carries actionable detail.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.adapters.cutout.render.CutoutRenderError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'stage')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.stage.render.CutoutRenderError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="an.engines.frame_stage.html#an.engines.frame_stage.FrameStageRenderer" title="an.engines.frame_stage.FrameStageRenderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameStageRenderer</span></code></a></p>
-<p>Headless cutout renderer: the stage engine through the core frame stage.</p>
+<p>The stage renderer: the stage engine through the core frame stage.</p>
+<p>It claims both renderer names (ADR 0001 decision 9): <code class="docutils literal notranslate"><span class="pre">stage</span></code>, the
+engine’s own, and <code class="docutils literal notranslate"><span class="pre">cutout</span></code>, the persisted name every existing scene
+carries. Its registry name stays <code class="docutils literal notranslate"><span class="pre">cutout</span></code> – persisted too (the shot
+cache keys on it) – and <code class="xref py py-data docutils literal notranslate"><span class="pre">StageRenderer</span></code> is the same class.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">CutoutRenderer</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">name</span>
 <span class="go">'cutout'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">supported_renderers</span>
-<span class="go">('cutout',)</span>
+<span class="go">('cutout', 'stage')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -820,12 +852,12 @@ Environments: “store” | “preset” | “default”.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer.error">
 <span class="sig-name descname"><span class="pre">error</span></span><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer.error" title="Link to this definition">#</a></dt>
-<dd><p>alias of <a class="reference internal" href="an.adapters.cutout.render.html#an.adapters.cutout.render.CutoutRenderError" title="an.adapters.cutout.render.CutoutRenderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="an.stage.render.html#an.stage.render.CutoutRenderError" title="an.stage.render.CutoutRenderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer.supported_renderers">
-<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cutout',)</span></span><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer.supported_renderers" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cutout',</span> <span class="pre">'stage')</span></span><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer.supported_renderers" title="Link to this definition">#</a></dt>
 <dd><p>The <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code> values this renderer claims (the ONE place it names them).</p>
 </dd></dl>
 
@@ -833,7 +865,7 @@ Environments: “store” | “preset” | “default”.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutSceneJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutSceneJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#CutoutSceneJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutSceneJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#CutoutSceneJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>Top-level cutout scene JSON — the JS runtime’s input contract.</p>
 <p>Versioned so the runtime can refuse incompatible inputs.</p>
@@ -841,7 +873,7 @@ Environments: “store” | “preset” | “default”.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutSceneJSON.asset_resolution">
-<span class="sig-name descname"><span class="pre">asset_resolution</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.AssetResolutionJSON" title="an.adapters.cutout.serialize.AssetResolutionJSON"><span class="pre">AssetResolutionJSON</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON.asset_resolution" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">asset_resolution</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.AssetResolutionJSON" title="an.stage.serialize.AssetResolutionJSON"><span class="pre">AssetResolutionJSON</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON.asset_resolution" title="Link to this definition">#</a></dt>
 <dd><p>One entry per drawable entity, in scene order — see
 <a class="reference internal" href="#an.adapters.cutout.AssetResolutionJSON" title="an.adapters.cutout.AssetResolutionJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetResolutionJSON</span></code></a>. Inert to the runtime; read by the bench
 harness and the golden-corpus bless to assert WHICH render path ran.</p>
@@ -855,7 +887,7 @@ harness and the golden-corpus bless to assert WHICH render path ran.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutSceneJSON.overlay">
-<span class="sig-name descname"><span class="pre">overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.NodeJSON" title="an.adapters.cutout.serialize.NodeJSON"><span class="pre">NodeJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON.overlay" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.NodeJSON" title="an.stage.serialize.NodeJSON"><span class="pre">NodeJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON.overlay" title="Link to this definition">#</a></dt>
 <dd><p>a second top-level container the
 runtime centres on the canvas and never indexes, so no channel — the
 camera’s <code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code>/<code class="code docutils literal notranslate"><span class="pre">root.scale</span></code> included — can reach it. Its
@@ -873,7 +905,7 @@ has no overlay, and then omitted from the serialized document.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.KeyframeJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">KeyframeJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#KeyframeJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.KeyframeJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">KeyframeJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#KeyframeJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.KeyframeJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>Single keyframe in an animation channel.</p>
 <dl class="field-list simple">
@@ -888,7 +920,7 @@ has no overlay, and then omitted from the serialized document.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.NodeJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">NodeJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#NodeJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.NodeJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">NodeJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#NodeJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.NodeJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>One node in the scene tree.</p>
 <dl class="field-list simple">
@@ -903,7 +935,7 @@ has no overlay, and then omitted from the serialized document.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.PlacedClipJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">PlacedClipJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#PlacedClipJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.PlacedClipJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">PlacedClipJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#PlacedClipJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.PlacedClipJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>An animation placed on a track at a specific time.</p>
 <dl class="field-list simple">
@@ -918,7 +950,7 @@ has no overlay, and then omitted from the serialized document.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.TimelineJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">TimelineJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#TimelineJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.TimelineJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">TimelineJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#TimelineJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.TimelineJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>Top-level timeline: total duration + tracks.</p>
 <dl class="field-list simple">
@@ -933,7 +965,7 @@ has no overlay, and then omitted from the serialized document.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.TrackJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">TrackJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#TrackJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.TrackJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">TrackJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#TrackJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.TrackJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>A sequence of placed clips with optional target-prefix metadata.</p>
 <dl class="field-list simple">
@@ -948,7 +980,7 @@ has no overlay, and then omitted from the serialized document.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.VisualJSON">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">VisualJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#VisualJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.VisualJSON" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">VisualJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/serialize.html#VisualJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.VisualJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
 <p>Drawable content attached to a node.</p>
 <p><code class="docutils literal notranslate"><span class="pre">kind=&quot;svg_sprite&quot;</span></code> is the Phase 11b path: the runtime instantiates a
@@ -1004,6 +1036,14 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.VisualJSON.kind">
+<span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.kind" title="Link to this definition">#</a></dt>
+<dd><p>One of <code class="xref py py-data docutils literal notranslate"><span class="pre">BUILTIN_VISUAL_KINDS</span></code>, or a kind a genre’s runtime script
+registers (<code class="docutils literal notranslate"><span class="pre">window.anRegisterVisual</span></code>, an#247). A string on the wire, as
+it always was; the open set is what lets <code class="docutils literal notranslate"><span class="pre">cutan</span></code> ship the mouth and eye.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.VisualJSON.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
@@ -1011,13 +1051,13 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.VisualJSON.path">
-<span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.PathJSON" title="an.adapters.cutout.serialize.PathJSON"><span class="pre">PathJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.path" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.PathJSON" title="an.stage.serialize.PathJSON"><span class="pre">PathJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.path" title="Link to this definition">#</a></dt>
 <dd><p>The stroke for <code class="docutils literal notranslate"><span class="pre">kind=&quot;path&quot;</span></code> (an#160); <code class="docutils literal notranslate"><span class="pre">None</span></code> on every other visual.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.VisualJSON.underlays">
-<span class="sig-name descname"><span class="pre">underlays</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.UnderlayJSON" title="an.adapters.cutout.serialize.UnderlayJSON"><span class="pre">UnderlayJSON</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.underlays" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">underlays</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.UnderlayJSON" title="an.stage.serialize.UnderlayJSON"><span class="pre">UnderlayJSON</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.underlays" title="Link to this definition">#</a></dt>
 <dd><p>Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only <code class="docutils literal notranslate"><span class="pre">rect</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipse</span></code> and <code class="docutils literal notranslate"><span class="pre">svg_sprite</span></code>
 take them; the runtime refuses any other kind.</p>
@@ -1027,7 +1067,7 @@ take them; the runtime refuses any other kind.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.compile_shot">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">compile_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1920</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1080</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#ffffff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expression_provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/compile.html#compile_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.compile_shot" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">compile_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1920</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1080</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#ffffff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expression_provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#compile_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.compile_shot" title="Link to this definition">#</a></dt>
 <dd><p>Compile a single cutout-style <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> to its JS-runtime JSON form.</p>
 <p><code class="docutils literal notranslate"><span class="pre">default_easing</span></code> (an#166) is the scene’s <code class="docutils literal notranslate"><span class="pre">meta.default_easing</span></code>: the
 curve of every authored tween that names none (tween &gt; this &gt; the built-in
@@ -1063,7 +1103,7 @@ measures pixels, where a stand-in is a wrong answer wearing a right one’s
 clothes (an#33).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.CutoutSceneJSON" title="an.adapters.cutout.serialize.CutoutSceneJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.CutoutSceneJSON" title="an.stage.serialize.CutoutSceneJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1072,10 +1112,10 @@ clothes (an#33).</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.cache_key.html#module-an.adapters.cutout.cache_key" title="an.adapters.cutout.cache_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_key</span></code></a></p></td>
-<td><p>What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.cache_key.html#module-an.stage.cache_key" title="an.stage.cache_key"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.cache_key</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.canvas_capture.html#module-an.adapters.cutout.canvas_capture" title="an.adapters.cutout.canvas_capture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canvas_capture</span></code></a></p></td>
-<td><p>The canvas capture path: frames read from the page, not photographed off the screen.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.canvas_capture.html#module-an.stage.canvas_capture" title="an.stage.canvas_capture"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.canvas_capture</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.channel.html#module-an.adapters.cutout.channel" title="an.adapters.cutout.channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channel</span></code></a></p></td>
 <td><p>Channel evaluation — moved to <a class="reference internal" href="an.timing.channel.html#module-an.timing.channel" title="an.timing.channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.channel</span></code></a> (the timing kernel).</p></td>
@@ -1087,43 +1127,43 @@ clothes (an#33).</p>
 <td><p>Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.compile.html#module-an.adapters.cutout.compile" title="an.adapters.cutout.compile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile</span></code></a></p></td>
-<td><p>Compile a top-level <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> (renderer=&quot;cutout&quot;) into a <code class="code docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code>.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.compile.html#module-an.stage.compile" title="an.stage.compile"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.compile</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.easing.html#module-an.adapters.cutout.easing" title="an.adapters.cutout.easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing</span></code></a></p></td>
-<td><p>The stage engine's easing vocabulary — a view of <a class="reference internal" href="an.timing.easing.html#module-an.timing.easing" title="an.timing.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.easing</span></code></a>.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.easing.html#module-an.stage.easing" title="an.stage.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.easing</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.fidelity.html#module-an.adapters.cutout.fidelity" title="an.adapters.cutout.fidelity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fidelity</span></code></a></p></td>
-<td><p>How faithfully a compiled scene reproduces the art it was built from.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.fidelity.html#module-an.stage.fidelity" title="an.stage.fidelity"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.fidelity</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.gaze.html#module-an.adapters.cutout.gaze" title="an.adapters.cutout.gaze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gaze</span></code></a></p></td>
 <td><p>Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.path.html#module-an.adapters.cutout.path" title="an.adapters.cutout.path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></a></p></td>
-<td><p>Stroked-path geometry — the executable spec of <code class="docutils literal notranslate"><span class="pre">runtime.js::pathGeometry</span></code>.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.path_geometry.html#module-an.stage.path_geometry" title="an.stage.path_geometry"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.path_geometry</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.render.html#module-an.adapters.cutout.render" title="an.adapters.cutout.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
-<td><p>The 2D stage engine (<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> in headless Chromium), and the cut-out renderer built on it.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.render.html#module-an.stage.render" title="an.stage.render"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.render</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.runtime_files.html#module-an.adapters.cutout.runtime_files" title="an.adapters.cutout.runtime_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_files</span></code></a></p></td>
-<td><p>Locate the bundled cutout JS runtime files.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.runtime_files.html#module-an.stage.runtime_files" title="an.stage.runtime_files"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.runtime_files</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.serialize.html#module-an.adapters.cutout.serialize" title="an.adapters.cutout.serialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">serialize</span></code></a></p></td>
-<td><p>JSON contract between the Python compiler and the (future) JS runtime.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.serialize.html#module-an.stage.serialize" title="an.stage.serialize"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.serialize</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.shutter.html#module-an.adapters.cutout.shutter" title="an.adapters.cutout.shutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shutter</span></code></a></p></td>
-<td><p>Moved to <a class="reference internal" href="an.media.shutter.html#module-an.media.shutter" title="an.media.shutter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.shutter</span></code></a> (an#247); this path re-exports it.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.media.shutter.html#module-an.media.shutter" title="an.media.shutter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.shutter</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.supersample.html#module-an.adapters.cutout.supersample" title="an.adapters.cutout.supersample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supersample</span></code></a></p></td>
-<td><p>Moved to <a class="reference internal" href="an.media.supersample.html#module-an.media.supersample" title="an.media.supersample"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.supersample</span></code></a> (an#247); this path re-exports it.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.media.supersample.html#module-an.media.supersample" title="an.media.supersample"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.supersample</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.surface.html#module-an.adapters.cutout.surface" title="an.adapters.cutout.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
-<td><p>Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.surface.html#module-an.stage.surface" title="an.stage.surface"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.surface</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.text.html#module-an.adapters.cutout.text" title="an.adapters.cutout.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
-<td><p>A text block, compiled: one node per unit, each an SVG sprite (an#155).</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.text_layout.html#module-an.stage.text_layout" title="an.stage.text_layout"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.text_layout</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.timeline.html#module-an.adapters.cutout.timeline" title="an.adapters.cutout.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
-<td><p>Stage timeline helpers: the compiled scene as a <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>, and screen space.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.stage.timeline.html#module-an.stage.timeline" title="an.stage.timeline"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.timeline</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1236,6 +1276,7 @@ clothes (an#33).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.asset_geometry"><code class="docutils literal notranslate"><span class="pre">VisualJSON.asset_geometry</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.blend"><code class="docutils literal notranslate"><span class="pre">VisualJSON.blend</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.fit"><code class="docutils literal notranslate"><span class="pre">VisualJSON.fit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.kind"><code class="docutils literal notranslate"><span class="pre">VisualJSON.kind</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.model_config"><code class="docutils literal notranslate"><span class="pre">VisualJSON.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.path"><code class="docutils literal notranslate"><span class="pre">VisualJSON.path</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.underlays"><code class="docutils literal notranslate"><span class="pre">VisualJSON.underlays</span></code></a></li>

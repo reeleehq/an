@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an" href="an.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -604,9 +627,12 @@
                   
   <section id="module-an.adapters">
 <span id="an-adapters"></span><h1>an.adapters<a class="headerlink" href="#module-an.adapters" title="Link to this heading">#</a></h1>
-<p>Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).</p>
-<p>The Renderer Protocol and registry live in <code class="code docutils literal notranslate"><span class="pre">_base</span></code>. Concrete backends are
-imported here so they self-register on package import. Backends with missing
+<p>Renderer adapters — facades over backends (the stage, Manim, Remotion, whiteboard).</p>
+<p>The Renderer Protocol and registry live in <code class="code docutils literal notranslate"><span class="pre">_base</span></code>. The core’s own optional
+backends are imported here so they self-register on package import. The stage
+(<code class="docutils literal notranslate"><span class="pre">an.stage</span></code>, the cut-out renderer) sits behind the import firewall, so it is
+named by MODULE and imported the first time the registry is asked anything
+(an#247). Backends with missing
 system deps still register but their <code class="docutils literal notranslate"><span class="pre">render()</span></code> raises a clear error;
 <code class="docutils literal notranslate"><span class="pre">can_render(shot)</span></code> continues to work for routing decisions.</p>
 <p class="rubric">Functions</p>
@@ -621,6 +647,9 @@ system deps still register but their <code class="docutils literal notranslate">
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.list_renderers" title="an.adapters.list_renderers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list_renderers</span></code></a>()</p></td>
 <td><p>Names of all renderers registered in the default registry.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.register_lazy_renderer" title="an.adapters.register_lazy_renderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_lazy_renderer</span></code></a>(name, module)</p></td>
+<td><p>Name the module whose import registers renderer <code class="docutils literal notranslate"><span class="pre">name</span></code> (default registry).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -630,7 +659,7 @@ system deps still register but their <code class="docutils literal notranslate">
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.Renderer" title="an.adapters.Renderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Renderer</span></code></a>(*args, **kwargs)</p></td>
 <td><p>Backend renderer interface.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.RendererRegistry" title="an.adapters.RendererRegistry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererRegistry</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.RendererRegistry" title="an.adapters.RendererRegistry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererRegistry</span></code></a>(*[, entry_point_group])</p></td>
 <td><p>Name-keyed registry of renderers.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.RenderContext" title="an.adapters.RenderContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RenderContext</span></code></a>(mall, work_dir[, fps, ...])</p></td>
@@ -886,21 +915,52 @@ members, so <code class="code docutils literal notranslate"><span class="pre">is
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.RendererRegistry">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">RendererRegistry</span></span><a class="reference internal" href="../_modules/an/adapters/_base.html#RendererRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RendererRegistry" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">RendererRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">entry_point_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#RendererRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RendererRegistry" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Name-keyed registry of renderers.</p>
 <p>A module-level instance is exposed via <code class="docutils literal notranslate"><span class="pre">register_renderer</span></code> /
 <code class="docutils literal notranslate"><span class="pre">get_renderer</span></code> / <code class="docutils literal notranslate"><span class="pre">list_renderers</span></code>; callers needing isolation (tests,
 multi-tenant servers) can construct their own.</p>
+<p><strong>Backends outside the core register LAZILY</strong> (an#247): a renderer that
+lives behind the import firewall – the stage, a genre’s, a third-party
+engine – is named here by the MODULE that registers it
+(<a class="reference internal" href="#an.adapters.RendererRegistry.register_lazy" title="an.adapters.RendererRegistry.register_lazy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register_lazy()</span></code></a>, or the <code class="docutils literal notranslate"><span class="pre">an.renderers</span></code> entry point group), and
+that module is imported the first time the registry is asked anything. So
+importing the core loads no backend, and every lookup still finds it.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="an.adapters.RendererRegistry.find_for">
 <span class="sig-name descname"><span class="pre">find_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#RendererRegistry.find_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RendererRegistry.find_for" title="Link to this definition">#</a></dt>
 <dd><p>Return the first registered renderer that <code class="docutils literal notranslate"><span class="pre">can_render(shot)</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> when none can; a <code class="xref py py-class docutils literal notranslate"><span class="pre">RendererLoadError</span></code> when none can AND
+a backend failed to import, since that backend may have been the one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.adapters.Renderer" title="an.adapters._base.Renderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Renderer</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.adapters.RendererRegistry.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#RendererRegistry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RendererRegistry.get" title="Link to this definition">#</a></dt>
+<dd><p>The renderer registered as <code class="docutils literal notranslate"><span class="pre">name</span></code>, else the one that claims it
+(<code class="docutils literal notranslate"><span class="pre">get(&quot;stage&quot;)</span></code> is the stage renderer, registered as <code class="docutils literal notranslate"><span class="pre">cutout</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.adapters.Renderer" title="an.adapters._base.Renderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Renderer</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.adapters.RendererRegistry.register_lazy">
+<span class="sig-name descname"><span class="pre">register_lazy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#RendererRegistry.register_lazy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RendererRegistry.register_lazy" title="Link to this definition">#</a></dt>
+<dd><p>Declare that importing <code class="docutils literal notranslate"><span class="pre">module</span></code> registers the renderer <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -937,6 +997,17 @@ multi-tenant servers) can construct their own.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.adapters.register_lazy_renderer">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">register_lazy_renderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#register_lazy_renderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.register_lazy_renderer" title="Link to this definition">#</a></dt>
+<dd><p>Name the module whose import registers renderer <code class="docutils literal notranslate"><span class="pre">name</span></code> (default registry).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.register_renderer">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">register_renderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#register_renderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.register_renderer" title="Link to this definition">#</a></dt>
 <dd><p>Register a renderer in the default registry.</p>
@@ -951,7 +1022,7 @@ multi-tenant servers) can construct their own.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.html#module-an.adapters.cutout" title="an.adapters.cutout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cutout</span></code></a></p></td>
-<td><p>Cutout-style 2D animation backend.</p></td>
+<td><p>The cut-out backend's old package: the stage moved to <a class="reference internal" href="an.stage.html#module-an.stage" title="an.stage"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage</span></code></a> (an#247).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.manim_adapter.html#module-an.adapters.manim_adapter" title="an.adapters.manim_adapter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">manim_adapter</span></code></a></p></td>
 <td><p>ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).</p></td>
@@ -1041,11 +1112,14 @@ multi-tenant servers) can construct their own.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RendererRegistry"><code class="docutils literal notranslate"><span class="pre">RendererRegistry</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RendererRegistry.find_for"><code class="docutils literal notranslate"><span class="pre">RendererRegistry.find_for()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RendererRegistry.get"><code class="docutils literal notranslate"><span class="pre">RendererRegistry.get()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RendererRegistry.register_lazy"><code class="docutils literal notranslate"><span class="pre">RendererRegistry.register_lazy()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.WhiteboardRenderer"><code class="docutils literal notranslate"><span class="pre">WhiteboardRenderer</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.get_renderer"><code class="docutils literal notranslate"><span class="pre">get_renderer()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.list_renderers"><code class="docutils literal notranslate"><span class="pre">list_renderers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.register_lazy_renderer"><code class="docutils literal notranslate"><span class="pre">register_lazy_renderer()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.register_renderer"><code class="docutils literal notranslate"><span class="pre">register_renderer()</span></code></a></li>
 </ul>
   </nav></div>

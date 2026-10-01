@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.frame_clock" href="an.frame_clock.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -721,6 +744,12 @@ genre defined in the same process).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ActionKind</span></code></a>(name, model[, duration, flatten, ...])</p></td>
 <td><p>One kind of action: its model, how it occupies time, how <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> spells it.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.CompilePass" title="an.genres.CompilePass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompilePass</span></code></a>(name, run[, order, compiler, ...])</p></td>
+<td><p>One step a genre adds to an engine's COMPILER (shot -&gt; compiled document).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.RuntimeScript" title="an.genres.RuntimeScript"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuntimeScript</span></code></a>(name, source[, engine, ...])</p></td>
+<td><p>JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with <code class="docutils literal notranslate"><span class="pre">window.anRegisterVisual(kind,</span> <span class="pre">make)</span></code> -- how the cut-out mouth and eye leave <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> for <code class="docutils literal notranslate"><span class="pre">cutan</span></code> (P8).</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.genres.DialogueSugar" title="an.genres.DialogueSugar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DialogueSugar</span></code></a>(name, opener, field, parse, format)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.md</span></code> sugar on a dialogue line: one bracket pair, one <code class="docutils literal notranslate"><span class="pre">Dialogue</span></code> field.</p></td>
 </tr>
@@ -797,6 +826,50 @@ it re-render visibly (<a class="reference internal" href="an.semantic.html#modul
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.genres.CompilePass">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">CompilePass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compiler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#CompilePass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.CompilePass" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One step a genre adds to an engine’s COMPILER (shot -&gt; compiled document).</p>
+<p>A compiler (<code class="docutils literal notranslate"><span class="pre">compiler</span></code>: today <code class="docutils literal notranslate"><span class="pre">&quot;stage&quot;</span></code>, <a class="reference internal" href="an.stage.compile.html#module-an.stage.compile" title="an.stage.compile"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.compile</span></code></a>) runs
+its own passes plus every registered one, in <code class="docutils literal notranslate"><span class="pre">order</span></code>. A pass with
+<code class="docutils literal notranslate"><span class="pre">builds</span></code> set is an ENTITY BUILDER instead: the compiler’s scene pass calls
+it for each entity of that kind (the cut-out genre’s <code class="docutils literal notranslate"><span class="pre">rig</span></code> builds a
+<code class="docutils literal notranslate"><span class="pre">character</span></code>); builders with a lower <code class="docutils literal notranslate"><span class="pre">order</span></code> build all their entities
+first (the stage’s backdrop before the cast), equal orders in entity order.</p>
+<p><code class="docutils literal notranslate"><span class="pre">run</span></code> is the callable, or <code class="docutils literal notranslate"><span class="pre">&quot;module:function&quot;</span></code>, resolved on first use –
+so a genre is inspectable (<a class="reference internal" href="#an.genres.available" title="an.genres.available"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.available()</span></code></a>) without importing
+the engine its passes target. What <code class="docutils literal notranslate"><span class="pre">run</span></code> receives is the compiler’s
+business (the stage hands a pass its <code class="docutils literal notranslate"><span class="pre">CompileState</span></code>, a builder the entity
+and the scene being built); the core never calls it.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.genres.CompilePass.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#an.genres.CompilePass.replace" title="Link to this definition">#</a></dt>
+<dd><p>Explicitly take the place of the ENGINE’s own pass of this name (or its
+builder for <code class="docutils literal notranslate"><span class="pre">builds</span></code>). Without it a name or kind the engine already
+has is refused when the compiler runs; with it the replacement is
+recorded in the compiled document (review of an#270, S3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.genres.CompilePass.resolve">
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#CompilePass.resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.CompilePass.resolve" title="Link to this definition">#</a></dt>
+<dd><p>The callable <code class="docutils literal notranslate"><span class="pre">run</span></code> names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CompilePass</span><span class="p">(</span><span class="s2">"p"</span><span class="p">,</span> <span class="s2">"math:sqrt"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()(</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.genres.DialogueSugar">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">DialogueSugar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opener</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#DialogueSugar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.DialogueSugar" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -835,7 +908,7 @@ a voice); <code class="docutils literal notranslate"><span class="pre">store</sp
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.genres.Genre">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">Genre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue_sugar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capabilities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocabulary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres.html#Genre"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.Genre" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">Genre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue_sugar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capabilities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocabulary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_passes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime_scripts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres.html#Genre"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.Genre" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A genre: one plain, declarative object listing what it registers.</p>
 <p><code class="docutils literal notranslate"><span class="pre">name</span></code> is the genre’s persisted slug (<code class="docutils literal notranslate"><span class="pre">cutout_animation</span></code>); it is also
@@ -861,6 +934,13 @@ already <code class="docutils literal notranslate"><span class="pre">cutan</span
 a project made in a genre asks the genre (<a class="reference internal" href="#an.genres.genre_library" title="an.genres.genre_library"><code class="xref py py-func docutils literal notranslate"><span class="pre">genre_library()</span></code></a>).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.genres.Genre.compile_passes">
+<span class="sig-name descname"><span class="pre">compile_passes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.genres.registry.html#an.genres.registry.CompilePass" title="an.genres.registry.CompilePass"><span class="pre">CompilePass</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#an.genres.Genre.compile_passes" title="Link to this definition">#</a></dt>
+<dd><p>Steps the genre adds to an engine’s compiler, and builders for its
+entity kinds (<a class="reference internal" href="#an.genres.CompilePass" title="an.genres.CompilePass"><code class="xref py py-class docutils literal notranslate"><span class="pre">CompilePass</span></code></a>; an#247).</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.genres.Genre.provides">
 <span class="sig-name descname"><span class="pre">provides</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres.html#Genre.provides"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.Genre.provides" title="Link to this definition">#</a></dt>
@@ -874,6 +954,18 @@ a project made in a genre asks the genre (<a class="reference internal" href="#a
 <span class="go">()</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.genres.Genre.runtime_scripts">
+<span class="sig-name descname"><span class="pre">runtime_scripts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.genres.registry.html#an.genres.registry.RuntimeScript" title="an.genres.registry.RuntimeScript"><span class="pre">RuntimeScript</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#an.genres.Genre.runtime_scripts" title="Link to this definition">#</a></dt>
+<dd><p>its visual kinds
+(<a class="reference internal" href="#an.genres.RuntimeScript" title="an.genres.RuntimeScript"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeScript</span></code></a>; an#247).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Code the genre adds to an engine’s runtime</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -903,6 +995,36 @@ cut-out genre moves there, its line here goes.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">RegistryError</span></span><a class="reference internal" href="../_modules/an/genres/registry.html#RegistryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.RegistryError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A registration is malformed or collides with one already made.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.genres.RuntimeScript">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">RuntimeScript</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#RuntimeScript"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.RuntimeScript" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>JavaScript a genre adds to an engine’s RUNTIME (an#247; ADR 0001 decision 4,
+second batch): for the stage, code that registers visual kinds with
+<code class="docutils literal notranslate"><span class="pre">window.anRegisterVisual(kind,</span> <span class="pre">make)</span></code> – how the cut-out mouth and eye
+leave <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> for <code class="docutils literal notranslate"><span class="pre">cutan</span></code> (P8).</p>
+<p><code class="docutils literal notranslate"><span class="pre">source</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;package:relative/path.js&quot;</span></code>, read with
+<a class="reference external" href="https://docs.python.org/3/library/importlib.resources.html#module-importlib.resources" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.resources</span></code></a> when the engine stages its runtime, so it ships
+in the genre’s wheel. The staged code is part of the shot cache’s key.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.genres.RuntimeScript.code">
+<span class="sig-name descname"><span class="pre">code</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#RuntimeScript.code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.RuntimeScript.code" title="Link to this definition">#</a></dt>
+<dd><p>The script’s code (UTF-8).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RuntimeScript</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"an.stage.runtime:extensions.js"</span><span class="p">)</span><span class="o">.</span><span class="n">code</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"//"</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -993,9 +1115,9 @@ both use it. A target’s entity is its first path segment; a target with no
 entity (the stage camera’s <code class="docutils literal notranslate"><span class="pre">root</span></code>), or an entity whose kind is
 unregistered or declares no space, gets <code class="docutils literal notranslate"><span class="pre">default</span></code> — the timing default
 <a class="reference internal" href="an.timing.spaces.html#an.timing.spaces.DFLT_TIMELINE_SPACE" title="an.timing.spaces.DFLT_TIMELINE_SPACE"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.timing.spaces.DFLT_TIMELINE_SPACE</span></code></a> when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-<p>(The default EVALUATOR still uses that one space for every target: a
-compiled stage document does not carry its entities’ kinds, so a
-per-entity evaluation default arrives with the <code class="docutils literal notranslate"><span class="pre">Engine</span></code> seam, P3.)</p>
+<p>The default EVALUATOR agrees since an#245: the stage’s compiled document
+records each entity whose kind declares another space
+(<code class="docutils literal notranslate"><span class="pre">meta.entity_spaces</span></code>), and <code class="docutils literal notranslate"><span class="pre">timeline_from_compiled</span></code> resolves by it.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">space_of</span> <span class="o">=</span> <span class="n">entity_space_resolver</span><span class="p">([</span><span class="n">AssetRef</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"lamp"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"l"</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">space_of</span><span class="p">(</span><span class="s2">"lamp/shade"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">space_of</span><span class="p">(</span><span class="s2">"root"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
@@ -1130,7 +1252,7 @@ genres are in, so a genre extending another loads in any order).</p>
 <td><p>The cut-out animation genre, declared as one object (still inside <code class="docutils literal notranslate"><span class="pre">an</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.genres.registry.html#module-an.genres.registry" title="an.genres.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
-<td><p>The core's open registries: action kinds, entity kinds, semantic checks, md sugar.</p></td>
+<td><p>The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1189,6 +1311,11 @@ genres are in, so a genre extending another loads in any order).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.ActionKind.version"><code class="docutils literal notranslate"><span class="pre">ActionKind.version</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.CompilePass"><code class="docutils literal notranslate"><span class="pre">CompilePass</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.CompilePass.replace"><code class="docutils literal notranslate"><span class="pre">CompilePass.replace</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.CompilePass.resolve"><code class="docutils literal notranslate"><span class="pre">CompilePass.resolve()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.DialogueSugar"><code class="docutils literal notranslate"><span class="pre">DialogueSugar</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.ENTRY_POINT_GROUP"><code class="docutils literal notranslate"><span class="pre">ENTRY_POINT_GROUP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.EntityKind"><code class="docutils literal notranslate"><span class="pre">EntityKind</span></code></a><ul class="nav section-nav flex-column">
@@ -1196,12 +1323,18 @@ genres are in, so a genre extending another loads in any order).</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.Genre"><code class="docutils literal notranslate"><span class="pre">Genre</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.Genre.compile_passes"><code class="docutils literal notranslate"><span class="pre">Genre.compile_passes</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.Genre.provides"><code class="docutils literal notranslate"><span class="pre">Genre.provides()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.Genre.runtime_scripts"><code class="docutils literal notranslate"><span class="pre">Genre.runtime_scripts</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.GenreError"><code class="docutils literal notranslate"><span class="pre">GenreError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.IN_DISTRIBUTION_GENRES"><code class="docutils literal notranslate"><span class="pre">IN_DISTRIBUTION_GENRES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.RegistryError"><code class="docutils literal notranslate"><span class="pre">RegistryError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.RuntimeScript"><code class="docutils literal notranslate"><span class="pre">RuntimeScript</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.RuntimeScript.code"><code class="docutils literal notranslate"><span class="pre">RuntimeScript.code()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.SemanticCheck"><code class="docutils literal notranslate"><span class="pre">SemanticCheck</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.UnregisteredKindError"><code class="docutils literal notranslate"><span class="pre">UnregisteredKindError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.action_kind"><code class="docutils literal notranslate"><span class="pre">action_kind()</span></code></a></li>

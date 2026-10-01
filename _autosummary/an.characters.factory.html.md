@@ -52,6 +52,7 @@ problem routes the way every other verifier’s does (an#78).
 | [`factory_source`](#an.characters.factory.factory_source)(data)                             | The per-part source of a part this factory drew, pinned to its bytes.                                                                                                                                                                                                                                                                                                                           |
 | [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
 | [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
+| [`recording_drawn`](#an.characters.factory.recording_drawn)(char_dir)                        | Log what the body writes, then record the factory-stamped bytes it wrote at `char_dir`.                                                                                                                                                                                                                                                                                                         |
 | [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
 | [`stage_extent`](#an.characters.factory.stage_extent)(desc)                               | How far a character's art reaches above and below its stage point, in scene pixels at `stage.scale: 1`: `{"top", "feet", "height"}`.                                                                                                                                                                                                                                                            |
 | [`stamp_factory_descriptor`](#an.characters.factory.stamp_factory_descriptor)(char_dir)               | Record the factory as the source of the character it just drew at `char_dir`.                                                                                                                                                                                                                                                                                                                   |
@@ -406,6 +407,14 @@ Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#Fi
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.recording_drawn(char_dir)
+
+Log what the body writes, then record the factory-stamped bytes it wrote at `char_dir`.
+
+For a drawing path outside this module (`an character mouths`): only
+bytes written through [`an.characters.drawn`](an.characters.drawn.html.md#module-an.characters.drawn) inside the block, and
+stamped by the factory, are recorded.
 
 ### an.characters.factory.scale_part_files(paths, scale)
 

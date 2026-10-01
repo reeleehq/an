@@ -45,5 +45,6 @@ an.engines
    :recursive:
 
    capture
+   conformance
    frame_stage
    protocol

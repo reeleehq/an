@@ -22,16 +22,23 @@ an.genres.registry
       action_kind_owner
       check_names
       checks
+      compile_pass_names
+      compile_pass_owner
+      compile_passes
       dialogue_sugar
       dialogue_sugars
+      entity_builders
       entity_kind
       entity_kind_names
       owners
       register_action_kind
       register_check
+      register_compile_pass
       register_dialogue_sugar
       register_entity_kind
+      register_runtime_script
       restore
+      runtime_scripts
       snapshot
       unregister_owner
    
@@ -40,8 +47,10 @@ an.genres.registry
    .. autosummary::
    
       ActionKind
+      CompilePass
       DialogueSugar
       EntityKind
+      RuntimeScript
       SemanticCheck
    
    .. rubric:: Exceptions

@@ -8,26 +8,26 @@
 - [an](index.html.md): AI-driven structured animation in Python. The user is the &#42;&#42;director&#42;&#42;; an AI agent (Claude Opus 4.7...
 - [API reference](api.html.md): | &#96;an&#96;   | an — AI-driven structured animation.   |
 - [an](_autosummary/an.html.md): an — AI-driven structured animation.
-- [an.adapters](_autosummary/an.adapters.html.md): Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).
-- [an.adapters.cutout](_autosummary/an.adapters.cutout.html.md): Cutout-style 2D animation backend.
-- [an.adapters.cutout.cache_key](_autosummary/an.adapters.cutout.cache_key.html.md): What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).
-- [an.adapters.cutout.canvas_capture](_autosummary/an.adapters.cutout.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.
+- [an.adapters](_autosummary/an.adapters.html.md): Renderer adapters — facades over backends (the stage, Manim, Remotion, whiteboard).
+- [an.adapters.cutout](_autosummary/an.adapters.cutout.html.md): The cut-out backend’s old package: the stage moved to &#96;an.stage&#96; (an#247).
+- [an.adapters.cutout.cache_key](_autosummary/an.adapters.cutout.cache_key.html.md): Moved to &#96;an.stage.cache_key&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.canvas_capture](_autosummary/an.adapters.cutout.canvas_capture.html.md): Moved to &#96;an.stage.canvas_capture&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.channel](_autosummary/an.adapters.cutout.channel.html.md): Channel evaluation — moved to &#96;an.timing.channel&#96; (the timing kernel).
 - [an.adapters.cutout.clip](_autosummary/an.adapters.cutout.clip.html.md): Clips, loop modes and poses — moved to &#96;an.timing.clip&#96; (the timing kernel).
 - [an.adapters.cutout.coarticulate](_autosummary/an.adapters.cutout.coarticulate.html.md): Co-articulation for a swap mouth: the passes between a provider’s raw viseme
-- [an.adapters.cutout.compile](_autosummary/an.adapters.cutout.compile.html.md): Compile a top-level &#96;Shot&#96; (renderer=”cutout”) into a &#96;CutoutSceneJSON&#96;.
-- [an.adapters.cutout.easing](_autosummary/an.adapters.cutout.easing.html.md): The stage engine’s easing vocabulary — a view of &#96;an.timing.easing&#96;.
-- [an.adapters.cutout.fidelity](_autosummary/an.adapters.cutout.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
+- [an.adapters.cutout.compile](_autosummary/an.adapters.cutout.compile.html.md): Moved to &#96;an.stage.compile&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.easing](_autosummary/an.adapters.cutout.easing.html.md): Moved to &#96;an.stage.easing&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.fidelity](_autosummary/an.adapters.cutout.fidelity.html.md): Moved to &#96;an.stage.fidelity&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.gaze](_autosummary/an.adapters.cutout.gaze.html.md): Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
-- [an.adapters.cutout.path](_autosummary/an.adapters.cutout.path.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
-- [an.adapters.cutout.render](_autosummary/an.adapters.cutout.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.
-- [an.adapters.cutout.runtime_files](_autosummary/an.adapters.cutout.runtime_files.html.md): Locate the bundled cutout JS runtime files.
-- [an.adapters.cutout.serialize](_autosummary/an.adapters.cutout.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
-- [an.adapters.cutout.shutter](_autosummary/an.adapters.cutout.shutter.html.md): Moved to &#96;an.media.shutter&#96; (an#247); this path re-exports it.
-- [an.adapters.cutout.supersample](_autosummary/an.adapters.cutout.supersample.html.md): Moved to &#96;an.media.supersample&#96; (an#247); this path re-exports it.
-- [an.adapters.cutout.surface](_autosummary/an.adapters.cutout.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
-- [an.adapters.cutout.text](_autosummary/an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
-- [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
+- [an.adapters.cutout.path](_autosummary/an.adapters.cutout.path.html.md): Moved to &#96;an.stage.path_geometry&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.render](_autosummary/an.adapters.cutout.render.html.md): Moved to &#96;an.stage.render&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.runtime_files](_autosummary/an.adapters.cutout.runtime_files.html.md): Moved to &#96;an.stage.runtime_files&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.serialize](_autosummary/an.adapters.cutout.serialize.html.md): Moved to &#96;an.stage.serialize&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.shutter](_autosummary/an.adapters.cutout.shutter.html.md): Moved to &#96;an.media.shutter&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.supersample](_autosummary/an.adapters.cutout.supersample.html.md): Moved to &#96;an.media.supersample&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.surface](_autosummary/an.adapters.cutout.surface.html.md): Moved to &#96;an.stage.surface&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.text](_autosummary/an.adapters.cutout.text.html.md): Moved to &#96;an.stage.text_layout&#96; (an#247); this path is a LIVE alias of it.
+- [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Moved to &#96;an.stage.timeline&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.manim_adapter](_autosummary/an.adapters.manim_adapter.html.md): ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).
 - [an.adapters.remotion_adapter](_autosummary/an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
 - [an.adapters.whiteboard](_autosummary/an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
@@ -96,13 +96,14 @@
 - [an.conftest](_autosummary/an.conftest.html.md): Collection rules for the package’s own doctests.
 - [an.credits](_autosummary/an.credits.html.md): What a rendered video owes, and to whom.
 - [an.data](_autosummary/an.data.html.md): Bundled non-Python resources (cutout JS runtime, etc.).
-- [an.data.cutout_runtime](_autosummary/an.data.cutout_runtime.html.md): Cutout JS runtime — see README.md in this directory.
+- [an.data.cutout_runtime](_autosummary/an.data.cutout_runtime.html.md): Moved to &#96;an.stage.runtime&#96; (an#247); this path is a LIVE alias of it.
 - [an.determinism](_autosummary/an.determinism.html.md): The determinism perimeter: what must stay true for a render to be reproducible.
 - [an.engines](_autosummary/an.engines.html.md): Engines: seekable things the core drives frame by frame, and the renderer that drives them.
 - [an.engines.capture](_autosummary/an.engines.capture.html.md): The capture loop: drive a session through every frame, resolve, write – for ANY engine.
+- [an.engines.conformance](_autosummary/an.engines.conformance.html.md): Conformance of a TIME-driven engine against the timing kernel’s golden vectors.
 - [an.engines.frame_stage](_autosummary/an.engines.frame_stage.html.md): &#96;frame_stage_renderer(engine)&#96;: any seekable engine becomes a &#96;Renderer&#96;.
 - [an.engines.protocol](_autosummary/an.engines.protocol.html.md): The &#96;Engine&#96; protocol: a seekable thing that turns a time, or a state, into a frame.
-- [an.environments](_autosummary/an.environments.html.md): Environments: a stage made of planes, at declared depths.
+- [an.environments](_autosummary/an.environments.html.md): Moved to &#96;an.stage.environments&#96; (an#247); this path is a LIVE alias of it.
 - [an.expression](_autosummary/an.expression.html.md): Facial expression for the cutout face (an#98, epic #9 Wave 6).
 - [an.expression.axes](_autosummary/an.expression.axes.html.md): The facial expression axes: what a cutout face can be asked to do (an#98).
 - [an.expression.binding](_autosummary/an.expression.binding.html.md): How the axes reach a character: the binding and the mouth-set resolver (an#98).
@@ -113,7 +114,7 @@
 - [an.frame_clock](_autosummary/an.frame_clock.html.md): The frame clock: WHEN each output frame samples scene time.
 - [an.genres](_autosummary/an.genres.html.md): Genres: what a kind of animation adds to the core, declared as one object.
 - [an.genres.cutout](_autosummary/an.genres.cutout.html.md): The cut-out animation genre, declared as one object (still inside &#96;an&#96;).
-- [an.genres.registry](_autosummary/an.genres.registry.html.md): The core’s open registries: action kinds, entity kinds, semantic checks, md sugar.
+- [an.genres.registry](_autosummary/an.genres.registry.html.md): The core’s open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.
 - [an.impacts](_autosummary/an.impacts.html.md): Synthetic impact clips with exact ground truth, for scoring sub-frame timing.
 - [an.impacts.cli](_autosummary/an.impacts.cli.html.md): &#96;an impacts ...&#96; — the impact harness from the shell.
 - [an.impacts.clip](_autosummary/an.impacts.clip.html.md): One impact clip, end to end: spec -&gt; scene -&gt; ground truth -&gt; (video) -&gt; files.
@@ -156,11 +157,11 @@
 - [an.media.supersample](_autosummary/an.media.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
 - [an.motion](_autosummary/an.motion.html.md): Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 - [an.orchestrate](_autosummary/an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
-- [an.paths](_autosummary/an.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
-- [an.preview](_autosummary/an.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
+- [an.paths](_autosummary/an.paths.html.md): Moved to &#96;an.stage.paths&#96; (an#247); this path is a LIVE alias of it.
+- [an.preview](_autosummary/an.preview.html.md): Moved to &#96;an.stage.preview&#96; (an#247); this path is a LIVE alias of it.
 - [an.project](_autosummary/an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
-- [an.props](_autosummary/an.props.html.md): Props: a rig whose art is not a person.
-- [an.raster](_autosummary/an.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
+- [an.props](_autosummary/an.props.html.md): Moved to &#96;an.stage.props&#96; (an#247); this path is a LIVE alias of it.
+- [an.raster](_autosummary/an.raster.html.md): Moved to &#96;an.stage.raster&#96; (an#247); this path is a LIVE alias of it.
 - [an.render](_autosummary/an.render.html.md): Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.
 - [an.semantic](_autosummary/an.semantic.html.md): The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.
 - [an.semantic.describe](_autosummary/an.semantic.describe.html.md): Describe an asset: what it affords, and per aspect what applies and what is missing.
@@ -173,6 +174,26 @@
 - [an.semantic.seeds](_autosummary/an.semantic.seeds.html.md): The core’s vocabulary: views over the kind and easing registries, camera moves, IR fields.
 - [an.semantic.views](_autosummary/an.semantic.views.html.md): View spaces: what a camera move moves through, defined once for every engine (an#257).
 - [an.sounds](_autosummary/an.sounds.html.md): Sound assets: what the sound layer plays, where it came from, and a synthesizer.
+- [an.stage](_autosummary/an.stage.html.md): The 2D stage: the default engine, shipped with &#96;an&#96; but outside the core (an#247).
+- [an.stage.cache_key](_autosummary/an.stage.cache_key.html.md): What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).
+- [an.stage.canvas_capture](_autosummary/an.stage.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.
+- [an.stage.compile](_autosummary/an.stage.compile.html.md): Compile a top-level &#96;Shot&#96; (renderer=”cutout”) into a &#96;CutoutSceneJSON&#96;.
+- [an.stage.easing](_autosummary/an.stage.easing.html.md): The stage engine’s easing vocabulary — a view of &#96;an.timing.easing&#96;.
+- [an.stage.environments](_autosummary/an.stage.environments.html.md): Environments: a stage made of planes, at declared depths.
+- [an.stage.fidelity](_autosummary/an.stage.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
+- [an.stage.path_geometry](_autosummary/an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
+- [an.stage.paths](_autosummary/an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
+- [an.stage.preview](_autosummary/an.stage.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
+- [an.stage.props](_autosummary/an.stage.props.html.md): Props: a rig whose art is not a person.
+- [an.stage.raster](_autosummary/an.stage.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
+- [an.stage.render](_autosummary/an.stage.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.
+- [an.stage.runtime](_autosummary/an.stage.runtime.html.md): Cutout JS runtime — see README.md in this directory.
+- [an.stage.runtime_files](_autosummary/an.stage.runtime_files.html.md): Locate the bundled cutout JS runtime files.
+- [an.stage.serialize](_autosummary/an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
+- [an.stage.surface](_autosummary/an.stage.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
+- [an.stage.text](_autosummary/an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
+- [an.stage.text_layout](_autosummary/an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
+- [an.stage.timeline](_autosummary/an.stage.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
 - [an.stores](_autosummary/an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
 - [an.stores.artifacts](_autosummary/an.stores.artifacts.html.md): Artifact stores — derived, regeneratable products of the pipeline.
 - [an.stores.characters](_autosummary/an.stores.characters.html.md): Characters store — descriptor + sidecar folder per character.
@@ -186,7 +207,7 @@
 - [an.stores.styles](_autosummary/an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
 - [an.stores.voices](_autosummary/an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](_autosummary/an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
-- [an.text](_autosummary/an.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
+- [an.text](_autosummary/an.text.html.md): Moved to &#96;an.stage.text&#96; (an#247); this path is a LIVE alias of it.
 - [an.timing](_autosummary/an.timing.html.md): The timing kernel: what is on screen at time &#96;t&#96;, as a pure function.
 - [an.timing.address](_autosummary/an.timing.address.html.md): The address grammar: one way to name an animatable value, in every genre.
 - [an.timing.channel](_autosummary/an.timing.channel.html.md): Channel: keyframes for a single (target, property) pair, evaluated at time t.
@@ -208,7 +229,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 19:49 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 20:20 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

@@ -1,0 +1,40 @@
+an.stage.serialize
+==================
+
+.. automodule:: an.stage.serialize
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      BUILTIN_VISUAL_KINDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      from_dict
+      to_dict
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AnimationClipJSON
+      AssetJSON
+      AssetResolutionJSON
+      AssetsJSON
+      ChannelJSON
+      CutoutSceneJSON
+      CutoutSceneMetaJSON
+      KeyframeJSON
+      NodeJSON
+      PathJSON
+      PlacedClipJSON
+      TimelineJSON
+      TrackJSON
+      TransformJSON
+      UnderlayJSON
+      VisualJSON
+   

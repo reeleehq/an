@@ -36,7 +36,7 @@ values: the timeline produces the raw pose.
 | [`PlacedClip`](#an.timing.timeline.PlacedClip)(clip[, start_time, duration, ...])   | A clip placed at an absolute time on a track.                           |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | [`Track`](#an.timing.timeline.Track)([target_root, clips])                     | A sequence of placed clips that share a common purpose / target prefix. |
-| [`Timeline`](#an.timing.timeline.Timeline)(duration[, tracks])                    | A duration + ordered list of tracks.                                    |
+| [`Timeline`](#an.timing.timeline.Timeline)(duration[, tracks, space])             | A duration + ordered list of tracks.                                    |
 
 ### *class* an.timing.timeline.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
 
@@ -48,11 +48,18 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.timing.timeline.Timeline(duration, tracks=<factory>)
+### *class* an.timing.timeline.Timeline(duration, tracks=<factory>, space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A duration + ordered list of tracks. The canonical playback structure.
+
+`space` is the property space the timeline’s DOCUMENT declares for its
+targets (an#245): one space, a registered name, or a `target -> space`
+resolver. It is what [`evaluate_timeline()`](#an.timing.timeline.evaluate_timeline) uses when the caller passes
+none, so every caller of the default evaluates a target in the space its
+entity’s kind declares. `None` (every document that declares nothing) is
+the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
 ### *class* an.timing.timeline.Track(target_root='', clips=<factory>)
 

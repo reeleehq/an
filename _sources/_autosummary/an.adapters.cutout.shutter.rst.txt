@@ -4,17 +4,3 @@ an.adapters.cutout.shutter
 .. automodule:: an.adapters.cutout.shutter
 
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      check_frame_samples
-      mean_png_bytes
-      temporal_mean
-   
-   .. rubric:: Exceptions
-
-   .. autosummary::
-   
-      ShutterError
-   

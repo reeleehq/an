@@ -150,7 +150,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
-`an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
+`an.stage.compile.CAMERA_MOVES`; validate and the compiler are
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
@@ -633,8 +633,8 @@ by `i * lag`. It is authoring sugar, not a new kind — it builds the
 `parallel` of `sequence(delay(i * lag), action)` it means, so the
 scene document, `scene.md` and every renderer see only core kinds.
 Total duration: the latest child’s end. `scene.md` holds it verbatim (a
-`kind: parallel` entry), so it round-trips. (`an.text.reveal_units` —
-`an.text.stagger` before an#241 — is the text-block preset: a LIST of
+`kind: parallel` entry), so it round-trips. (`an.stage.text.reveal_units` —
+`an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
 * **Return type:**

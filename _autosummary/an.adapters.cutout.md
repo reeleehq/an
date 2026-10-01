@@ -1,12 +1,18 @@
 # an.adapters.cutout
 
-Cutout-style 2D animation backend.
+The cut-out backend’s old package: the stage moved to [`an.stage`](an.stage.md#module-an.stage) (an#247).
 
-The render path is `compile.py` → `serialize.py` → `render.py` →
-`runtime.js` (the browser evaluates and applies every frame). The Python
-evaluation chain (`easing`/`channel`/`clip`/`timeline`) is kept as the
-executable spec of the runtime’s semantics, pinned by node-backed parity tests;
-application lives in `runtime.js` alone (an#86).
+The render path is `an.stage.compile` -> `an.stage.serialize` ->
+`an.stage.render` (the stage engine, driven by the core frame stage) ->
+`runtime.js`. Every module that moved keeps a LIVE alias here
+(`an.adapters.cutout.render` is `an.stage.render` for reading and for
+rebinding, `an._shims.alias_module()`). What stays here is cut-out genre
+code on its way to `cutan` (an#225): `coarticulate`, `gaze`, and the
+timing re-exports (`channel`, `clip`, `timeline`).
+
+The names this package used to export are resolved LAZILY, on first access:
+importing `an.adapters.cutout.coarticulate` from the stage’s compiler must not
+load the stage back through this `__init__`.
 
 ```pycon
 >>> from an.adapters.cutout import CutoutRenderer, compile_shot
@@ -21,20 +27,20 @@ application lives in `runtime.js` alone (an#86).
 
 ### Classes
 
-| [`CutoutRenderer`](#an.adapters.cutout.CutoutRenderer)([engine, name, ...])   | Headless cutout renderer: the stage engine through the core frame stage.   |
-|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`CutoutSceneJSON`](#an.adapters.cutout.CutoutSceneJSON)(\*\*data)             | Top-level cutout scene JSON — the JS runtime's input contract.             |
-| [`NodeJSON`](#an.adapters.cutout.NodeJSON)(\*\*data)                    | One node in the scene tree.                                                |
-| [`VisualJSON`](#an.adapters.cutout.VisualJSON)(\*\*data)                  | Drawable content attached to a node.                                       |
-| [`AnimationClipJSON`](#an.adapters.cutout.AnimationClipJSON)(\*\*data)           | A named, reusable animation clip.                                          |
-| [`ChannelJSON`](#an.adapters.cutout.ChannelJSON)(\*\*data)                 | One animated property of one target.                                       |
-| [`KeyframeJSON`](#an.adapters.cutout.KeyframeJSON)(\*\*data)                | Single keyframe in an animation channel.                                   |
-| [`TimelineJSON`](#an.adapters.cutout.TimelineJSON)(\*\*data)                | Top-level timeline: total duration + tracks.                               |
-| [`TrackJSON`](#an.adapters.cutout.TrackJSON)(\*\*data)                   | A sequence of placed clips with optional target-prefix metadata.           |
-| [`PlacedClipJSON`](#an.adapters.cutout.PlacedClipJSON)(\*\*data)              | An animation placed on a track at a specific time.                         |
-| [`AssetsJSON`](#an.adapters.cutout.AssetsJSON)(\*\*data)                  | Map of asset id → AssetJSON, split by kind.                                |
-| [`AssetJSON`](#an.adapters.cutout.AssetJSON)(\*\*data)                   | A single asset (texture / audio file).                                     |
-| [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON)(\*\*data)         | How one scene entity's store reference actually resolved at compile time.  |
+| [`CutoutRenderer`](#an.adapters.cutout.CutoutRenderer)([engine, name, ...])   | The stage renderer: the stage engine through the core frame stage.        |
+|----------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`CutoutSceneJSON`](#an.adapters.cutout.CutoutSceneJSON)(\*\*data)             | Top-level cutout scene JSON — the JS runtime's input contract.            |
+| [`NodeJSON`](#an.adapters.cutout.NodeJSON)(\*\*data)                    | One node in the scene tree.                                               |
+| [`VisualJSON`](#an.adapters.cutout.VisualJSON)(\*\*data)                  | Drawable content attached to a node.                                      |
+| [`AnimationClipJSON`](#an.adapters.cutout.AnimationClipJSON)(\*\*data)           | A named, reusable animation clip.                                         |
+| [`ChannelJSON`](#an.adapters.cutout.ChannelJSON)(\*\*data)                 | One animated property of one target.                                      |
+| [`KeyframeJSON`](#an.adapters.cutout.KeyframeJSON)(\*\*data)                | Single keyframe in an animation channel.                                  |
+| [`TimelineJSON`](#an.adapters.cutout.TimelineJSON)(\*\*data)                | Top-level timeline: total duration + tracks.                              |
+| [`TrackJSON`](#an.adapters.cutout.TrackJSON)(\*\*data)                   | A sequence of placed clips with optional target-prefix metadata.          |
+| [`PlacedClipJSON`](#an.adapters.cutout.PlacedClipJSON)(\*\*data)              | An animation placed on a track at a specific time.                        |
+| [`AssetsJSON`](#an.adapters.cutout.AssetsJSON)(\*\*data)                  | Map of asset id → AssetJSON, split by kind.                               |
+| [`AssetJSON`](#an.adapters.cutout.AssetJSON)(\*\*data)                   | A single asset (texture / audio file).                                    |
+| [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON)(\*\*data)         | How one scene entity's store reference actually resolved at compile time. |
 
 ### Exceptions
 
@@ -132,25 +138,30 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', ), error=<class 'an.adapters.cutout.render.CutoutRenderError'>, capture_options=<factory>)
+### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>)
 
 Bases: [`FrameStageRenderer`](an.engines.frame_stage.md#an.engines.frame_stage.FrameStageRenderer)
 
-Headless cutout renderer: the stage engine through the core frame stage.
+The stage renderer: the stage engine through the core frame stage.
+
+It claims both renderer names (ADR 0001 decision 9): `stage`, the
+engine’s own, and `cutout`, the persisted name every existing scene
+carries. Its registry name stays `cutout` – persisted too (the shot
+cache keys on it) – and `StageRenderer` is the same class.
 
 ```pycon
 >>> r = CutoutRenderer()
 >>> r.name
 'cutout'
 >>> r.supported_renderers
-('cutout',)
+('cutout', 'stage')
 ```
 
 #### error
 
-alias of [`CutoutRenderError`](an.adapters.cutout.render.md#an.adapters.cutout.render.CutoutRenderError)
+alias of [`CutoutRenderError`](an.stage.render.md#an.stage.render.CutoutRenderError)
 
-#### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout',)*
+#### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage')*
 
 The `Shot.renderer` values this renderer claims (the ONE place it names them).
 
@@ -162,7 +173,7 @@ Top-level cutout scene JSON — the JS runtime’s input contract.
 
 Versioned so the runtime can refuse incompatible inputs.
 
-#### asset_resolution *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[AssetResolutionJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
+#### asset_resolution *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[AssetResolutionJSON](an.stage.serialize.md#an.stage.serialize.AssetResolutionJSON)]*
 
 One entry per drawable entity, in scene order — see
 [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON). Inert to the runtime; read by the bench
@@ -172,7 +183,7 @@ harness and the golden-corpus bless to assert WHICH render path ran.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### overlay *: [NodeJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### overlay *: [NodeJSON](an.stage.serialize.md#an.stage.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a second top-level container the
 runtime centres on the canvas and never indexes, so no channel — the
@@ -287,15 +298,21 @@ distorted `arm_l` by 3.929x on the repo’s own art.
 Additive with a `"stretch"` default so no stored scene changes meaning;
 the compiler emits `"contain"` for every sprite it builds.
 
+#### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+One of `BUILTIN_VISUAL_KINDS`, or a kind a genre’s runtime script
+registers (`window.anRegisterVisual`, an#247). A string on the wire, as
+it always was; the open set is what lets `cutan` ship the mouth and eye.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### path *: [PathJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### path *: [PathJSON](an.stage.serialize.md#an.stage.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
 
-#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](an.stage.serialize.md#an.stage.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
@@ -342,26 +359,26 @@ measures pixels, where a stand-in is a wrong answer wearing a right one’s
 clothes (an#33).
 
 * **Return type:**
-  [`CutoutSceneJSON`](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.CutoutSceneJSON)
+  [`CutoutSceneJSON`](an.stage.serialize.md#an.stage.serialize.CutoutSceneJSON)
 
 ### Modules
 
-| [`cache_key`](an.adapters.cutout.cache_key.md#module-an.adapters.cutout.cache_key)           | What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).                                                                 |
-|----------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`canvas_capture`](an.adapters.cutout.canvas_capture.md#module-an.adapters.cutout.canvas_capture) | The canvas capture path: frames read from the page, not photographed off the screen.                                                              |
-| [`channel`](an.adapters.cutout.channel.md#module-an.adapters.cutout.channel)               | Channel evaluation — moved to [`an.timing.channel`](an.timing.channel.md#module-an.timing.channel) (the timing kernel).    |
-| [`clip`](an.adapters.cutout.clip.md#module-an.adapters.cutout.clip)                     | Clips, loop modes and poses — moved to [`an.timing.clip`](an.timing.clip.md#module-an.timing.clip) (the timing kernel). |
-| [`coarticulate`](an.adapters.cutout.coarticulate.md#module-an.adapters.cutout.coarticulate)     | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).   |
-| [`compile`](an.adapters.cutout.compile.md#module-an.adapters.cutout.compile)               | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                          |
-| [`easing`](an.adapters.cutout.easing.md#module-an.adapters.cutout.easing)                 | The stage engine's easing vocabulary — a view of [`an.timing.easing`](an.timing.easing.md#module-an.timing.easing).       |
-| [`fidelity`](an.adapters.cutout.fidelity.md#module-an.adapters.cutout.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                             |
-| [`gaze`](an.adapters.cutout.gaze.md#module-an.adapters.cutout.gaze)                     | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                           |
-| [`path`](an.adapters.cutout.path.md#module-an.adapters.cutout.path)                     | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                        |
-| [`render`](an.adapters.cutout.render.md#module-an.adapters.cutout.render)                 | The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.                                                    |
-| [`runtime_files`](an.adapters.cutout.runtime_files.md#module-an.adapters.cutout.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                       |
-| [`serialize`](an.adapters.cutout.serialize.md#module-an.adapters.cutout.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                            |
-| [`shutter`](an.adapters.cutout.shutter.md#module-an.adapters.cutout.shutter)               | Moved to [`an.media.shutter`](an.media.shutter.md#module-an.media.shutter) (an#247); this path re-exports it.             |
-| [`supersample`](an.adapters.cutout.supersample.md#module-an.adapters.cutout.supersample)       | Moved to [`an.media.supersample`](an.media.supersample.md#module-an.media.supersample) (an#247); this path re-exports it.     |
-| [`surface`](an.adapters.cutout.surface.md#module-an.adapters.cutout.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                              |
-| [`text`](an.adapters.cutout.text.md#module-an.adapters.cutout.text)                     | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                           |
-| [`timeline`](an.adapters.cutout.timeline.md#module-an.adapters.cutout.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                                     |
+| [`cache_key`](an.adapters.cutout.cache_key.md#module-an.adapters.cutout.cache_key)           | Moved to [`an.stage.cache_key`](an.stage.cache_key.md#module-an.stage.cache_key) (an#247); this path is a LIVE alias of it.           |
+|----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`canvas_capture`](an.adapters.cutout.canvas_capture.md#module-an.adapters.cutout.canvas_capture) | Moved to [`an.stage.canvas_capture`](an.stage.canvas_capture.md#module-an.stage.canvas_capture) (an#247); this path is a LIVE alias of it. |
+| [`channel`](an.adapters.cutout.channel.md#module-an.adapters.cutout.channel)               | Channel evaluation — moved to [`an.timing.channel`](an.timing.channel.md#module-an.timing.channel) (the timing kernel).              |
+| [`clip`](an.adapters.cutout.clip.md#module-an.adapters.cutout.clip)                     | Clips, loop modes and poses — moved to [`an.timing.clip`](an.timing.clip.md#module-an.timing.clip) (the timing kernel).           |
+| [`coarticulate`](an.adapters.cutout.coarticulate.md#module-an.adapters.cutout.coarticulate)     | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).             |
+| [`compile`](an.adapters.cutout.compile.md#module-an.adapters.cutout.compile)               | Moved to [`an.stage.compile`](an.stage.compile.md#module-an.stage.compile) (an#247); this path is a LIVE alias of it.               |
+| [`easing`](an.adapters.cutout.easing.md#module-an.adapters.cutout.easing)                 | Moved to [`an.stage.easing`](an.stage.easing.md#module-an.stage.easing) (an#247); this path is a LIVE alias of it.                 |
+| [`fidelity`](an.adapters.cutout.fidelity.md#module-an.adapters.cutout.fidelity)             | Moved to [`an.stage.fidelity`](an.stage.fidelity.md#module-an.stage.fidelity) (an#247); this path is a LIVE alias of it.             |
+| [`gaze`](an.adapters.cutout.gaze.md#module-an.adapters.cutout.gaze)                     | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                                     |
+| [`path`](an.adapters.cutout.path.md#module-an.adapters.cutout.path)                     | Moved to [`an.stage.path_geometry`](an.stage.path_geometry.md#module-an.stage.path_geometry) (an#247); this path is a LIVE alias of it.   |
+| [`render`](an.adapters.cutout.render.md#module-an.adapters.cutout.render)                 | Moved to [`an.stage.render`](an.stage.render.md#module-an.stage.render) (an#247); this path is a LIVE alias of it.                 |
+| [`runtime_files`](an.adapters.cutout.runtime_files.md#module-an.adapters.cutout.runtime_files)   | Moved to [`an.stage.runtime_files`](an.stage.runtime_files.md#module-an.stage.runtime_files) (an#247); this path is a LIVE alias of it.   |
+| [`serialize`](an.adapters.cutout.serialize.md#module-an.adapters.cutout.serialize)           | Moved to [`an.stage.serialize`](an.stage.serialize.md#module-an.stage.serialize) (an#247); this path is a LIVE alias of it.           |
+| [`shutter`](an.adapters.cutout.shutter.md#module-an.adapters.cutout.shutter)               | Moved to [`an.media.shutter`](an.media.shutter.md#module-an.media.shutter) (an#247); this path is a LIVE alias of it.               |
+| [`supersample`](an.adapters.cutout.supersample.md#module-an.adapters.cutout.supersample)       | Moved to [`an.media.supersample`](an.media.supersample.md#module-an.media.supersample) (an#247); this path is a LIVE alias of it.       |
+| [`surface`](an.adapters.cutout.surface.md#module-an.adapters.cutout.surface)               | Moved to [`an.stage.surface`](an.stage.surface.md#module-an.stage.surface) (an#247); this path is a LIVE alias of it.               |
+| [`text`](an.adapters.cutout.text.md#module-an.adapters.cutout.text)                     | Moved to [`an.stage.text_layout`](an.stage.text_layout.md#module-an.stage.text_layout) (an#247); this path is a LIVE alias of it.       |
+| [`timeline`](an.adapters.cutout.timeline.md#module-an.adapters.cutout.timeline)             | Moved to [`an.stage.timeline`](an.stage.timeline.md#module-an.stage.timeline) (an#247); this path is a LIVE alias of it.             |

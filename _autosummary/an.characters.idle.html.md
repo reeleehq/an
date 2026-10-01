@@ -17,7 +17,7 @@ by `model_post_init` and reach the screen ONLY through an authored `play`
 action (an#7: `play("maya", "idle_breath")` renders exactly what
 [`breath_animation()`](#an.characters.idle.breath_animation) returns — resolved by [`an.characters.play`](an.characters.play.html.md#module-an.characters.play)),
 never automatically. The blink you see without one is compiled by
-`an.adapters.cutout.compile._add_face_clips` (an#88, via `_blink_placements`) from a fixed
+`an.stage.compile._add_face_clips` (an#88, via `_blink_placements`) from a fixed
 entity-name-phase schedule (period 4.0 s). `random_blink_schedule` has no
 caller — it is the seeded alternative the compiled blink could adopt.
 

@@ -84,6 +84,7 @@
    render
    semantic
    sounds
+   stage
    stores
    styles
    text

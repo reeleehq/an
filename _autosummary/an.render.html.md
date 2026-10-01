@@ -151,7 +151,7 @@ decoded and Chromium’s own bytes reach disk. See [`render()`](#an.render.rende
 via `None`, since an#192) — an in-page read of the canvas, batched,
 writing frames whose decoded pixels equal the screenshot path’s and
 measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at
-1080p (see `an.adapters.cutout.canvas_capture`) — or `"screenshot"`, a
+1080p (see `an.stage.canvas_capture`) — or `"screenshot"`, a
 Playwright element screenshot per instant.
 
 `step_hz` overrides the scene’s `meta.step_hz` for this render (a shot’s

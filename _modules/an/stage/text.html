@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="text.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.stage.text &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/stage/text';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.147" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.stage.text</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.stage.text</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Words on screen: title cards, labels, and text you can animate word by word.</span>
+
+<span class="sd">Epic #9 Wave 8, first slice; the design question was an#155. A text block is a</span>
+<span class="sd">**prop** whose document ``kind`` is ``TextDescriptor`` — the shape stroked paths</span>
+<span class="sd">took (:mod:`an.stage.paths`) — so a scene names it with an ordinary</span>
+<span class="sd">``AssetRef(kind="prop", ...)``, its ``overrides`` supply the per-shot string,</span>
+<span class="sd">and nothing in the scene IR changed (no field, no migration).</span>
+
+<span class="sd">&gt;&gt;&gt; title = TextDescriptor(name="title", text="Words on screen", layer="overlay")</span>
+<span class="sd">&gt;&gt;&gt; title.kind, title.unit, title.layer</span>
+<span class="sd">('TextDescriptor', 'word', 'overlay')</span>
+
+<span class="sd">**Typesetting is not done here.** The sibling package ``tituli`` owns it —</span>
+<span class="sd">shaping, real glyph metrics, wrapping, alignment, the title-safe area — and</span>
+<span class="sd">emits a ``Layout`` of placed ``Run``s, one per unit. :func:`layout_text` asks it</span>
+<span class="sd">for that layout and for each run's glyph contours (``tituli.run_outline``), and</span>
+<span class="sd">the compiler turns each unit into one node whose visual is an SVG sprite</span>
+<span class="sd">converted at compile time. The runtime never learns what text is, so fonts</span>
+<span class="sd">never reach the frame path and the determinism perimeter is unchanged.</span>
+
+<span class="sd">**Units are addressable, so text animates with ordinary tweens.** A block of</span>
+<span class="sd">``unit="word"`` builds ``&lt;id&gt;/word_0``, ``&lt;id&gt;/word_1``, …; ``"glyph"`` and</span>
+<span class="sd">``"line"`` likewise. ``index`` counts DRAWN units in reading order (spaces are</span>
+<span class="sd">not units). :func:`reveal_units` is a Python-side generator of ordinary actions</span>
+<span class="sd">for a staggered reveal — a preset, not a new IR node (the general combinator is</span>
+<span class="sd">:func:`an.ir.compose.stagger`):</span>
+
+<span class="sd">&gt;&gt;&gt; from an.ir.compose import flatten</span>
+<span class="sd">&gt;&gt;&gt; reveal = reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)</span>
+<span class="sd">&gt;&gt;&gt; [(f.action.target, round(f.start, 3)) for a in reveal for f in flatten(a)</span>
+<span class="sd">...  if f.action.kind == "tween"]</span>
+<span class="sd">[('title/word_0', 0.0), ('title/word_1', 0.1), ('title/word_2', 0.2)]</span>
+
+<span class="sd">**Two layers.** ``layer="world"`` is in the scene and moves with the camera, like</span>
+<span class="sd">any prop. ``layer="overlay"`` is drawn in a second top-level container the</span>
+<span class="sd">camera never touches — a title card stays exactly where it is through a</span>
+<span class="sd">push-in while an in-world label grows with the scene.</span>
+
+<span class="sd">**Fonts fail loudly and never depend on the machine.** ``font=None`` is the</span>
+<span class="sd">face Pillow embeds (Aileron, CC0 — "No Rights Reserved"), requested through</span>
+<span class="sd">``tituli.EMBEDDED`` so the installed fonts are never consulted: the same bytes</span>
+<span class="sd">on every machine with the same Pillow, and no typeface is vendored in this</span>
+<span class="sd">package. ``font`` otherwise names a font FILE (``.ttf``/``.otf``/``.ttc``),</span>
+<span class="sd">absolute or relative to the text document's directory in the props store;</span>
+<span class="sd">a path that is not a file, or a file the typesetter could not use, RAISES</span>
+<span class="sd">(:class:`TextFontError`). A family NAME is refused on purpose: resolving one</span>
+<span class="sd">would make the picture depend on what a machine has installed. A character</span>
+<span class="sd">the face has no glyph for raises too — ``an`` is English-first and refuses</span>
+<span class="sd">loudly rather than drawing a box. The face's identity (sha256 of its bytes) is</span>
+<span class="sd">recorded in the compiled document.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseModel</span><span class="p">,</span>
+    <span class="n">ConfigDict</span><span class="p">,</span>
+    <span class="n">Field</span><span class="p">,</span>
+    <span class="n">field_validator</span><span class="p">,</span>
+    <span class="n">model_serializer</span><span class="p">,</span>
+    <span class="n">model_validator</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span><span class="p">,</span> <span class="n">omit_unset</span><span class="p">,</span> <span class="n">register_kind</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"TEXT_SCHEMA_VERSION"</span><span class="p">,</span>
+    <span class="s2">"TEXT_DOCUMENT_KIND"</span><span class="p">,</span>
+    <span class="s2">"TextDescriptor"</span><span class="p">,</span>
+    <span class="s2">"TextFontError"</span><span class="p">,</span>
+    <span class="s2">"TextLayoutError"</span><span class="p">,</span>
+    <span class="s2">"TextUnit"</span><span class="p">,</span>
+    <span class="s2">"TextLayout"</span><span class="p">,</span>
+    <span class="s2">"FontIdentity"</span><span class="p">,</span>
+    <span class="s2">"resolve_text"</span><span class="p">,</span>
+    <span class="s2">"font_base_dir"</span><span class="p">,</span>
+    <span class="s2">"text_entity_problem"</span><span class="p">,</span>
+    <span class="s2">"RESERVED_TEXT_IDS"</span><span class="p">,</span>
+    <span class="s2">"layout_text"</span><span class="p">,</span>
+    <span class="s2">"unit_names"</span><span class="p">,</span>
+    <span class="s2">"reveal_units"</span><span class="p">,</span>
+    <span class="s2">"DFLT_TEXT_COLOUR"</span><span class="p">,</span>
+    <span class="s2">"DFLT_TEXT_SIZE"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">TEXT_SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">"0.1.0"</span>
+
+<span class="c1">#: Its own versioned document kind, registered from the module that owns the</span>
+<span class="c1">#: schema (the rule `PathDescriptor` and `PropDescriptor` follow).</span>
+<span class="n">TEXT_DOCUMENT_KIND</span><span class="p">:</span> <span class="n">DocumentKind</span> <span class="o">=</span> <span class="n">register_kind</span><span class="p">(</span>
+    <span class="n">DocumentKind</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"TextDescriptor"</span><span class="p">,</span>
+        <span class="n">version_field</span><span class="o">=</span><span class="s2">"schema_version"</span><span class="p">,</span>
+        <span class="n">current_version</span><span class="o">=</span><span class="n">TEXT_SCHEMA_VERSION</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1">#: Type size as a FRACTION OF FRAME HEIGHT (tituli's convention): 0.06 is</span>
+<span class="c1">#: 65 px at 1080p, and the same block reads the same at 720p and at 4K.</span>
+<span class="n">DFLT_TEXT_SIZE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.06</span>
+
+<span class="c1">#: Ink when the document names none — a near-black that reads on the default</span>
+<span class="c1">#: white background.</span>
+<span class="n">DFLT_TEXT_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
+
+<span class="c1">#: Line height as a multiple of the size.</span>
+<span class="n">DFLT_LEADING</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span>
+
+<span class="c1">#: Font file suffixes a `font` path may carry.</span>
+<span class="n">FONT_SUFFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">".ttf"</span><span class="p">,</span> <span class="s2">".otf"</span><span class="p">,</span> <span class="s2">".ttc"</span><span class="p">)</span>
+
+<span class="c1">#: Entity ids a text block may not take: the runtime indexes the scene's</span>
+<span class="c1">#: container as ``root`` (the camera's target), and the overlay container is</span>
+<span class="c1">#: named ``overlay``. An overlay block called ``root`` would overwrite the</span>
+<span class="c1">#: camera's node in the runtime's index and take the push-in with it.</span>
+<span class="n">RESERVED_TEXT_IDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"root"</span><span class="p">,</span> <span class="s2">"overlay"</span><span class="p">})</span>
+
+<span class="c1">#: Line breaks and tabs are normalised before typesetting (a CRLF string pasted</span>
+<span class="c1">#: into `overrides.text` must not raise "no glyph for '\\r'").</span>
+<span class="n">_WHITESPACE_NORMALISATION</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">"</span><span class="se">\r\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"</span><span class="se">\r</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1">#: Pixels of clear margin around each unit's texture box, so anti-aliased ink</span>
+<span class="c1">#: at the box edge is never clipped.</span>
+<span class="n">UNIT_BOX_PAD_PX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">_HEX_COLOUR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">Layer</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"world"</span><span class="p">,</span> <span class="s2">"overlay"</span><span class="p">]</span>
+<span class="n">Unit</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"word"</span><span class="p">,</span> <span class="s2">"glyph"</span><span class="p">,</span> <span class="s2">"line"</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="TextFontError">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextFontError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextFontError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A text block's font cannot be used: not a file, not a font, or not the</span>
+<span class="sd">    face the typesetter actually used. Raised instead of falling back, because</span>
+<span class="sd">    a fallback face is a different picture wearing the right one's clothes."""</span></div>
+
+
+
+<div class="viewcode-block" id="TextLayoutError">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextLayoutError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextLayoutError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The text cannot be set as asked (a glyph the face lacks, nothing to draw)."""</span></div>
+
+
+
+<div class="viewcode-block" id="TextDescriptor">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextDescriptor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextDescriptor</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The on-disk text schema, saved as a prop's ``prop.json``.</span>
+
+<span class="sd">    ``extra="forbid"`` (the `PathDescriptor` precedent): a text block is a</span>
+<span class="sd">    precise instruction, and a misspelt ``colour`` that silently did nothing is</span>
+<span class="sd">    the defect class this package refuses. Set-but-inert combinations raise too:</span>
+
+<span class="sd">    &gt;&gt;&gt; TextDescriptor(name="t", text="hi", anchor="top")</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    pydantic_core._pydantic_core.ValidationError: 1 validation error for TextDescriptor</span>
+<span class="sd">      Value error, `anchor` places a block in the title-safe area of the FRAME, which only an overlay has; a world-layer block is placed with the entity's `stage.at` [type=value_error, input_value=..., input_type=dict]</span>
+<span class="sd">    ...</span>
+<span class="sd">    """</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="s2">"forbid"</span><span class="p">)</span>
+
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"TextDescriptor"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"TextDescriptor"</span>
+    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TEXT_SCHEMA_VERSION</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The words. Explicit newlines break lines; ``max_width`` wraps.</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">layer</span><span class="p">:</span> <span class="n">Layer</span> <span class="o">=</span> <span class="s2">"world"</span>
+    <span class="c1">#: What one addressable node is: a word, a glyph, or a whole line.</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Unit</span> <span class="o">=</span> <span class="s2">"word"</span>
+    <span class="c1">#: Fraction of frame height.</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DFLT_TEXT_SIZE</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#: ``#rrggbb``.</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_TEXT_COLOUR</span>
+    <span class="c1">#: ``None`` = the embedded face; else a font FILE path (see the module doc).</span>
+    <span class="n">font</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">align</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"left"</span><span class="p">,</span> <span class="s2">"center"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"center"</span>
+    <span class="c1">#: Wrap width as a fraction of frame WIDTH; ``None`` = break only at newlines.</span>
+    <span class="n">max_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">leading</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DFLT_LEADING</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#: Extra advance per glyph, in em. Only with ``unit="glyph"``: tituli sets a</span>
+    <span class="c1">#: tracked string one run per glyph, so a word unit would not exist.</span>
+    <span class="n">tracking</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#: Overlay only: one of tituli's nine anchors (``"top"``, ``"bottom-left"``,</span>
+    <span class="c1">#: ``"center"``, …) inside the title-safe area. ``None`` centres the block</span>
+    <span class="c1">#: on the node origin (the frame centre, or ``stage.at``).</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_dump_what_was_authored</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Dump only the fields the author set (plus ``kind``/``schema_version``),</span>
+<span class="sd">        so ``model_validate_json(d.model_dump_json())`` always round-trips — the</span>
+<span class="sd">        set-but-inert checks read ``model_fields_set``, and a full dump would</span>
+<span class="sd">        mark every default as set (:func:`an.ir.migrate.omit_unset`)."""</span>
+        <span class="k">return</span> <span class="n">omit_unset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"color"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hex</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_HEX_COLOUR</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`color` takes a #rrggbb string; got </span><span class="si">{</span><span class="n">color</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">color</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_something_to_draw</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"`text` is only whitespace, so it would draw nothing"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_nothing_set_is_ignored</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"TextDescriptor"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="s2">"overlay"</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"`anchor` places a block in the title-safe area of the FRAME, "</span>
+                    <span class="s2">"which only an overlay has; a world-layer block is placed with "</span>
+                    <span class="s2">"the entity's `stage.at`"</span>
+                <span class="p">)</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANCHORS</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ANCHORS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"unknown anchor </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span><span class="si">!r}</span><span class="s2">; choose from </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ANCHORS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracking</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">!=</span> <span class="s2">"glyph"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`tracking` sets a string one run per GLYPH, so unit=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">!r}</span><span class="s2"> "</span>
+                <span class="s2">"would not exist; use unit='glyph' or drop tracking"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">FONT_SUFFIXES</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`font` must name a font FILE (</span><span class="si">{</span><span class="s1">'/'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">FONT_SUFFIXES</span><span class="p">)</span><span class="si">}</span><span class="s2">); got "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="si">!r}</span><span class="s2">. A family name is refused on purpose: resolving "</span>
+                <span class="s2">"one would make the picture depend on the machine's installed "</span>
+                <span class="s2">"fonts. Leave it unset for the embedded face."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_text">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.resolve_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_text</span><span class="p">(</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">overrides</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextDescriptor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The text block an entity draws: its stored document with ``overrides`` on top.</span>
+
+<span class="sd">    Validated strictly AFTER the merge, so a stored document may be a reusable</span>
+<span class="sd">    style with no ``text`` of its own, and each entity supplies the words:</span>
+
+<span class="sd">    &gt;&gt;&gt; style = {"kind": "TextDescriptor", "name": "label", "size": 0.04}</span>
+<span class="sd">    &gt;&gt;&gt; resolve_text(style, {"text": "Paris"}).text</span>
+<span class="sd">    'Paris'</span>
+<span class="sd">    """</span>
+    <span class="n">stored</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">document</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">TEXT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">stored</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})}</span>
+    <span class="k">return</span> <span class="n">TextDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="font_base_dir">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.font_base_dir">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">font_base_dir</span><span class="p">(</span><span class="n">props_store</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a relative ``font`` path resolves against: the text document's own</span>
+<span class="sd">    directory in an on-disk props store — ``None`` for an in-memory one, where a</span>
+<span class="sd">    relative path then RAISES rather than resolving against the working</span>
+<span class="sd">    directory (which would make the picture depend on where you ran it)."""</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">props_store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">ref</span> <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Layout (through tituli)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="FontIdentity">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.FontIdentity">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FontIdentity</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Which face drew a block — by its bytes, not its name."""</span>
+
+    <span class="n">family</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">style</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sha256</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">embedded</span><span class="p">:</span> <span class="nb">bool</span>
+
+    <span class="c1">#: Pillow's layout engine for this face (``basic`` or ``raqm``). Recorded</span>
+    <span class="c1">#: because it moves glyph ADVANCES: RAQM (HarfBuzz) applies kerning and</span>
+    <span class="c1">#: ligatures and is used for a font file whenever libraqm can be loaded,</span>
+    <span class="c1">#: so the same bytes can set differently on two machines. The embedded</span>
+    <span class="c1">#: face is always ``basic``.</span>
+    <span class="n">layout_engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"basic"</span>
+
+<div class="viewcode-block" id="FontIdentity.label">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.FontIdentity.label">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""``"Aileron Regular (embedded) sha256:6985… layout:basic"`` — what the</span>
+<span class="sd">        compiled document records."""</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="s2">" (embedded)"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedded</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">family</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="si">}{</span><span class="n">where</span><span class="si">}</span><span class="s2"> sha256:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sha256</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"layout:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">layout_engine</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TextUnit">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextUnit">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextUnit</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One addressable unit: its node name, its string, its box and its ink.</span>
+
+<span class="sd">    ``box`` is ``(x0, y0, x1, y1)`` in frame pixels, snapped OUTWARD to whole</span>
+<span class="sd">    pixels and containing both the layout box and the ink, so the sprite's</span>
+<span class="sd">    corners sit on the pixel grid and nothing is clipped. ``d`` is the unit's</span>
+<span class="sd">    glyph contours as SVG path data in frame pixels.</span>
+<span class="sd">    """</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="n">d</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""``(width, height)`` of ``box``."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The box centre in frame pixels — where the unit's node sits."""</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span></div>
+
+
+
+<div class="viewcode-block" id="TextLayout">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextLayout">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextLayout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A placed block: its units, its reference point, and the face that set it.</span>
+
+<span class="sd">    ``origin`` is the block's reference point in frame pixels — the frame</span>
+<span class="sd">    centre, or its title-safe anchor position — which is where the block's own</span>
+<span class="sd">    node sits; each unit's node is placed relative to it.</span>
+<span class="sd">    """</span>
+
+    <span class="n">units</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">font</span><span class="p">:</span> <span class="n">FontIdentity</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_font_request</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="n">EMBEDDED</span>
+
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">font</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">EMBEDDED</span><span class="p">,)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">font</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">base_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TextFontError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: font </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">font</span><span class="si">!r}</span><span class="s2"> is a relative path, and "</span>
+                <span class="s2">"there is no directory to resolve it against (the props store "</span>
+                <span class="s2">"has no filesystem root). Give an absolute path, or keep the "</span>
+                <span class="s2">"font beside the text document in an on-disk props store."</span>
+            <span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">path</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">TextFontError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: font </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">font</span><span class="si">!r}</span><span class="s2"> is not a file (looked at "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">). A missing font is refused rather than replaced: a "</span>
+            <span class="s2">"substitute face is a different picture."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),)</span>
+
+
+<div class="viewcode-block" id="layout_text">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.layout_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">layout_text</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextLayout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Set ``desc`` on a ``width`` x ``height`` frame and take each unit's contours.</span>
+
+<span class="sd">    ``base_dir`` is what a relative ``font`` path resolves against — the text</span>
+<span class="sd">    document's own directory in the props store.</span>
+
+<span class="sd">    &gt;&gt;&gt; lay = layout_text(TextDescriptor(name="t", text="Hello big world"), width=1920, height=1080)</span>
+<span class="sd">    &gt;&gt;&gt; [u.name for u in lay.units]</span>
+<span class="sd">    ['word_0', 'word_1', 'word_2']</span>
+<span class="sd">    &gt;&gt;&gt; lay.origin</span>
+<span class="sd">    (960.0, 540.0)</span>
+<span class="sd">    &gt;&gt;&gt; lay.font.family, lay.font.embedded</span>
+<span class="sd">    ('Aileron', True)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">TextStyle</span><span class="p">,</span>
+        <span class="n">block</span><span class="p">,</span>
+        <span class="n">face_digest</span><span class="p">,</span>
+        <span class="n">run_outline</span><span class="p">,</span>
+        <span class="n">safe_area</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">anchor_box</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli.outlines</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingGlyphError</span>
+
+    <span class="n">request</span> <span class="o">=</span> <span class="n">_font_request</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">base_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">TextStyle</span><span class="p">(</span>
+        <span class="n">family</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+        <span class="n">tracking</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">tracking</span><span class="p">,</span>
+        <span class="n">leading</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">leading</span><span class="p">,</span>
+        <span class="n">align</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">align</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">max_w</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">max_width</span> <span class="o">*</span> <span class="n">width</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">max_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">_WHITESPACE_NORMALISATION</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    <span class="n">lay</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">max_width</span><span class="o">=</span><span class="n">max_w</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+    <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">runs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> lays out to nothing drawable"</span><span class="p">)</span>
+    <span class="n">face</span> <span class="o">=</span> <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">face</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">face</span><span class="o">.</span><span class="n">path</span> <span class="o">!=</span> <span class="n">request</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">TextFontError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: font </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">font</span><span class="si">!r}</span><span class="s2"> is a file, but the typesetter "</span>
+            <span class="sa">f</span><span class="s2">"could not use it and set the text in </span><span class="si">{</span><span class="n">face</span><span class="o">.</span><span class="n">family</span><span class="si">!r}</span><span class="s2"> instead. "</span>
+            <span class="s2">"Refused rather than drawn in the wrong face — is it a font file?"</span>
+        <span class="p">)</span>
+
+    <span class="n">bb</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">bbox</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">anchor_box</span><span class="p">(</span>
+            <span class="n">safe_area</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span> <span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">height</span><span class="p">),</span> <span class="n">desc</span><span class="o">.</span><span class="n">anchor</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">center</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">cx</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">cy</span><span class="p">)))</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">bb</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="n">bb</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">translated</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">outline</span> <span class="o">=</span> <span class="n">run_outline</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">MissingGlyphError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">. `an` sets English-first text and "</span>
+                <span class="s2">"refuses a character the face cannot draw rather than drawing a "</span>
+                <span class="s2">"box; give a `font` file that has it, or change the words."</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+        <span class="k">if</span> <span class="n">outline</span><span class="o">.</span><span class="n">bbox</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">bbox</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
+        <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">TextUnit</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">box</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">-</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
+                    <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">y0</span><span class="p">)</span> <span class="o">-</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
+                    <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
+                    <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">+</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">d</span><span class="o">=</span><span class="n">outline</span><span class="o">.</span><span class="n">d</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">identity</span> <span class="o">=</span> <span class="n">FontIdentity</span><span class="p">(</span>
+        <span class="n">family</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">family</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
+        <span class="n">sha256</span><span class="o">=</span><span class="n">face_digest</span><span class="p">(</span><span class="n">face</span><span class="p">),</span>
+        <span class="n">embedded</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">layout_engine</span><span class="o">=</span><span class="n">_layout_engine_name</span><span class="p">(</span><span class="n">face</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">TextLayout</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">units</span><span class="p">),</span> <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_layout_engine_name</span><span class="p">(</span><span class="n">face</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImageFont</span>
+
+    <span class="n">engine</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">face</span><span class="o">.</span><span class="n">pil</span><span class="p">,</span> <span class="s2">"layout_engine"</span><span class="p">,</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">Layout</span><span class="o">.</span><span class="n">BASIC</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"raqm"</span> <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">Layout</span><span class="o">.</span><span class="n">RAQM</span> <span class="k">else</span> <span class="s2">"basic"</span>
+
+
+<div class="viewcode-block" id="text_entity_problem">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.text_entity_problem">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">text_entity_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What is wrong with WHERE this entity puts its block, or ``None``.</span>
+
+<span class="sd">    The one statement of the placement rules, called by the compiler (which</span>
+<span class="sd">    raises) and by ``an validate`` (which reports) so the two agree:</span>
+
+<span class="sd">    - a reserved id (:data:`RESERVED_TEXT_IDS`) — ``root`` would hijack the</span>
+<span class="sd">      camera's node in the runtime's index;</span>
+<span class="sd">    - ``anchor`` and ``stage.at`` together — two answers to one question.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">RESERVED_TEXT_IDS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"text entity id </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is reserved (</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">RESERVED_TEXT_IDS</span><span class="p">)</span><span class="si">}</span><span class="s2">): "</span>
+            <span class="s2">"the runtime names its own containers so, and `root` is the camera"</span>
+        <span class="p">)</span>
+    <span class="n">stage</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="s2">"stage"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">stage</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> declares both `anchor: </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">anchor</span><span class="si">}</span><span class="s2">` and "</span>
+            <span class="sa">f</span><span class="s2">"`stage.at: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">)</span><span class="si">}</span><span class="s2">`; they are two answers to where the "</span>
+            <span class="s2">"block goes. Keep one."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="unit_names">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.unit_names">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unit_names</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The node names a block builds — what ``&lt;id&gt;/&lt;name&gt;`` targets may address."""</span>
+    <span class="n">lay</span> <span class="o">=</span> <span class="n">layout_text</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="n">base_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">]</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Presets: Python-side generators of ordinary composition</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="reveal_units">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.reveal_units">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reveal_units</span><span class="p">(</span>
+    <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">to</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">from_</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Unit</span> <span class="o">=</span> <span class="s2">"word"</span><span class="p">,</span>
+    <span class="n">easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"ease_out"</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Tween ``property`` from ``from_`` to ``to`` on units ``0..count-1`` of a</span>
+<span class="sd">    text block, each ``step`` seconds after the last — a word-by-word (or</span>
+<span class="sd">    letter-by-letter) reveal. Unit ``i`` starts at ``start + i*step``.</span>
+
+<span class="sd">    A unit whose tween starts later also gets a ``set`` to ``from_`` at 0, which</span>
+<span class="sd">    HOLDS until its tween begins (the compiler's set-hold rule) — without it the</span>
+<span class="sd">    word would show its built value until its turn and then snap to ``from_``.</span>
+<span class="sd">    That is also why ``from_`` is required.</span>
+
+<span class="sd">    Returns a LIST of top-level actions — ``set``, a bare ``tween``, or the</span>
+<span class="sd">    ``sequence(delay(start), tween)`` wrapper the ``scene.md`` parser itself</span>
+<span class="sd">    produces for a ``start:`` key — so ``shot.actions.extend(stagger(...))``</span>
+<span class="sd">    round-trips through ``scene.md`` in its short form, one entry per unit.</span>
+
+<span class="sd">    Named ``stagger`` until an#241 gave the core a general combinator of that</span>
+<span class="sd">    name (:func:`an.ir.compose.stagger`, any actions, one ``parallel``);</span>
+<span class="sd">    ``an.stage.text.stagger`` stays as an alias of this function so old imports</span>
+<span class="sd">    keep working.</span>
+
+<span class="sd">    &gt;&gt;&gt; [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]</span>
+<span class="sd">    ['tween', 'set', 'sequence']</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose</span> <span class="k">as</span> <span class="n">c</span>
+
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"reveal_units needs at least one unit; got count=</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">tween</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">tween</span><span class="p">(</span>
+            <span class="n">target</span><span class="p">,</span> <span class="nb">property</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">to</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="n">from_</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="n">easing</span>
+        <span class="p">)</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">step</span>
+        <span class="k">if</span> <span class="n">at</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">property</span><span class="p">,</span> <span class="n">from_</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">at</span><span class="p">),</span> <span class="n">tween</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tween</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="c1">#: The pre-an#241 name of :func:`reveal_units`, kept so old imports work.</span>
+<span class="n">stagger</span> <span class="o">=</span> <span class="n">reveal_units</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

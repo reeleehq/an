@@ -22,7 +22,7 @@ that cannot land.
 
 | [`PROHIBITED_ELEMENTS`](#an.characters.validate.PROHIBITED_ELEMENTS)       | Elements an art package may not contain.                                                                                                |
 |----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| [`PART_SUFFIXES`](#an.characters.validate.PART_SUFFIXES)             | SVG, or raster with the suffixes `an.raster` reads (an#211).                                                                            |
+| [`PART_SUFFIXES`](#an.characters.validate.PART_SUFFIXES)             | SVG, or raster with the suffixes `an.stage.raster` reads (an#211).                                                                      |
 | [`DRAWABLE_ELEMENTS`](#an.characters.validate.DRAWABLE_ELEMENTS)         | Elements that put ink on the canvas.                                                                                                    |
 | [`BLOCKING`](#an.characters.validate.BLOCKING)                  | Severity for a problem that stops the part rendering correctly.                                                                         |
 | [`ADVISORY`](#an.characters.validate.ADVISORY)                  | Severity for a problem worth fixing that still renders.                                                                                 |
@@ -56,7 +56,7 @@ blank, whatever else it contains.
 ### an.characters.validate.PART_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
 
 SVG, or raster with the
-suffixes `an.raster` reads (an#211). Order is the lookup order for a
+suffixes `an.stage.raster` reads (an#211). Order is the lookup order for a
 required part, so an SVG wins when both exist.
 
 * **Type:**

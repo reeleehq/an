@@ -4,23 +4,3 @@ an.paths
 .. automodule:: an.paths
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      PATH_DOCUMENT_KIND
-      DFLT_STROKE_COLOUR
-      MIN_DASH_PERIOD
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      resolve_path
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      PathDescriptor
-   

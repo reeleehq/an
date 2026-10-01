@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.capabilities.subjects" href="an.capabilities.subjects.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -613,7 +636,7 @@ an#96) for lip-sync; this module turns them into captions, opt-in through
 of what is captioned and on which frames. Both outputs are derived from it:</p>
 <ul>
 <li><p>the picture — <a class="reference internal" href="#an.captions.captioned_shot" title="an.captions.captioned_shot"><code class="xref py py-func docutils literal notranslate"><span class="pre">captioned_shot()</span></code></a> adds each page as an OVERLAY text
-block (<a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.text</span></code></a>; camera-immune, placed at a title-safe anchor) plus
+block (<a class="reference internal" href="an.stage.text.html#module-an.stage.text" title="an.stage.text"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.text</span></code></a>; camera-immune, placed at a title-safe anchor) plus
 ordinary <code class="docutils literal notranslate"><span class="pre">set</span></code> actions that show it for exactly its frames, and
 optionally tint the word being spoken;</p></li>
 <li><p>the sidecar — <a class="reference internal" href="#an.captions.caption_cues" title="an.captions.caption_cues"><code class="xref py py-func docutils literal notranslate"><span class="pre">caption_cues()</span></code></a> places the same pages in FILM time and
@@ -640,7 +663,7 @@ first frame in the film (<a class="reference internal" href="an.assemble.html#an
 function the assembler lays the picture out with) plus its shot-local frame,
 so a dissolve, which overlaps two shots and shortens the film, moves every
 later cue earlier by exactly its overlap.</p>
-<p><strong>Timing is materialised into ordinary actions</strong>, the way <a class="reference internal" href="an.text.html#an.text.reveal_units" title="an.text.reveal_units"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.text.reveal_units()</span></code></a>
+<p><strong>Timing is materialised into ordinary actions</strong>, the way <a class="reference internal" href="an.stage.text.html#an.stage.text.reveal_units" title="an.stage.text.reveal_units"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.text.reveal_units()</span></code></a>
 works: nothing in the compiler or the runtime knows what a caption is. The
 caption blocks are added to the shot at RENDER time, never written back to
 the scene — the word timings are the audio pipeline’s output, and a caption

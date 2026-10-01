@@ -211,7 +211,7 @@ observed.
 
 The hex sha256 of a file’s bytes, read NOW.
 
-Deliberately unmemoised. A (path, mtime, size) memo — `an.raster`’s, which
+Deliberately unmemoised. A (path, mtime, size) memo — `an.stage.raster`’s, which
 is fine for a texture alias inside one compile — let a same-size edit whose
 mtime was restored (`cp -p`, `rsync -t`, `tar x`, a sync client) be
 served stale from cache in a long-running process (an#243 review, S2). A
@@ -268,6 +268,10 @@ early cutoff for free): a genre package’s side file, a vocabulary entry’s
 version (P7). Refuses a duplicate `part_name`; a name that collides with
 one of the keyer’s own parts is refused when the key is computed.
 
+A renderer registered LAZILY (the stage, an#247) brings its keyer when the
+renderer registry first loads, so this loads it first – a genre adding a
+key part at install (`cutan`, P8) needs no prior lookup.
+
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
@@ -289,11 +293,14 @@ first keyer’s parts from every key without anyone saying so.
 
 The renderer names that have a keyer.
 
+A keyer registers beside its renderer, and a backend behind the import
+firewall registers when the renderer registry first loads it (an#247), so
+this loads the registry first.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
->>> import an.adapters  # registers the built-in renderers and their keyers
 >>> "cutout" in registered_shot_keyers()
 True
 ```

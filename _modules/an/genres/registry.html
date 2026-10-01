@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -713,7 +713,7 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for an.genres.registry</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""The core's open registries: action kinds, entity kinds, semantic checks, md sugar.</span>
+<span></span><span class="sd">"""The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.</span>
 
 <span class="sd">ADR 0001 decision 2 ("the IR is open at the type level; genres register, never</span>
 <span class="sd">edit") and decision 4 (the first batch of registries). Each registry is a plain</span>
@@ -974,7 +974,16 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_ENTITY_KINDS</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"entity kind"</span><span class="p">)</span>
 <span class="n">_CHECKS</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"semantic check"</span><span class="p">)</span>
 <span class="n">_DIALOGUE_SUGAR</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"dialogue sugar"</span><span class="p">)</span>
-<span class="n">_TABLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Table</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">_ACTION_KINDS</span><span class="p">,</span> <span class="n">_ENTITY_KINDS</span><span class="p">,</span> <span class="n">_CHECKS</span><span class="p">,</span> <span class="n">_DIALOGUE_SUGAR</span><span class="p">)</span>
+<span class="n">_COMPILE_PASSES</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"compile pass"</span><span class="p">)</span>
+<span class="n">_RUNTIME_SCRIPTS</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"runtime script"</span><span class="p">)</span>
+<span class="n">_TABLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Table</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">_ACTION_KINDS</span><span class="p">,</span>
+    <span class="n">_ENTITY_KINDS</span><span class="p">,</span>
+    <span class="n">_CHECKS</span><span class="p">,</span>
+    <span class="n">_DIALOGUE_SUGAR</span><span class="p">,</span>
+    <span class="n">_COMPILE_PASSES</span><span class="p">,</span>
+    <span class="n">_RUNTIME_SCRIPTS</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="register_action_kind">
@@ -1096,6 +1105,178 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">dialogue_sugars</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DialogueSugar</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_DIALOGUE_SUGAR</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Compile passes (ADR 0001 decision 4; an#247)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="CompilePass">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.CompilePass">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CompilePass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One step a genre adds to an engine's COMPILER (shot -&gt; compiled document).</span>
+
+<span class="sd">    A compiler (``compiler``: today ``"stage"``, :mod:`an.stage.compile`) runs</span>
+<span class="sd">    its own passes plus every registered one, in ``order``. A pass with</span>
+<span class="sd">    ``builds`` set is an ENTITY BUILDER instead: the compiler's scene pass calls</span>
+<span class="sd">    it for each entity of that kind (the cut-out genre's ``rig`` builds a</span>
+<span class="sd">    ``character``); builders with a lower ``order`` build all their entities</span>
+<span class="sd">    first (the stage's backdrop before the cast), equal orders in entity order.</span>
+
+<span class="sd">    ``run`` is the callable, or ``"module:function"``, resolved on first use --</span>
+<span class="sd">    so a genre is inspectable (:func:`an.genres.available`) without importing</span>
+<span class="sd">    the engine its passes target. What ``run`` receives is the compiler's</span>
+<span class="sd">    business (the stage hands a pass its ``CompileState``, a builder the entity</span>
+<span class="sd">    and the scene being built); the core never calls it.</span>
+<span class="sd">    """</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">run</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span>
+    <span class="n">order</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">compiler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage"</span>
+    <span class="n">builds</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="c1">#: Explicitly take the place of the ENGINE's own pass of this name (or its</span>
+    <span class="c1">#: builder for ``builds``). Without it a name or kind the engine already</span>
+    <span class="c1">#: has is refused when the compiler runs; with it the replacement is</span>
+    <span class="c1">#: recorded in the compiled document (review of an#270, S3).</span>
+    <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="CompilePass.resolve">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.CompilePass.resolve">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The callable ``run`` names.</span>
+
+<span class="sd">        &gt;&gt;&gt; CompilePass("p", "math:sqrt").resolve()(4.0)</span>
+<span class="sd">        2.0</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span>
+        <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">module</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">attr</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RegistryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"compile pass </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: run=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="si">!r}</span><span class="s2"> is neither a callable "</span>
+                <span class="s2">"nor 'module:function'"</span>
+            <span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">),</span> <span class="n">attr</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="register_compile_pass">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.register_compile_pass">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_compile_pass</span><span class="p">(</span>
+    <span class="n">compile_pass</span><span class="p">:</span> <span class="n">CompilePass</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CORE_OWNER</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompilePass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register a compile pass (or an entity builder) under its name."""</span>
+    <span class="k">return</span> <span class="n">_COMPILE_PASSES</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+        <span class="n">compile_pass</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">compile_pass</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="n">replace</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="compile_passes">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.compile_passes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_passes</span><span class="p">(</span><span class="n">compiler</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CompilePass</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The registered passes of ``compiler`` (builders excluded), in run order."""</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">p</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_COMPILE_PASSES</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">compiler</span> <span class="o">==</span> <span class="n">compiler</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">builds</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="entity_builders">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.entity_builders">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">entity_builders</span><span class="p">(</span><span class="n">compiler</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompilePass</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{entity kind: builder}`` registered for ``compiler``."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">builds</span><span class="p">:</span> <span class="n">p</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_COMPILE_PASSES</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">compiler</span> <span class="o">==</span> <span class="n">compiler</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">builds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="RuntimeScript">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.RuntimeScript">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RuntimeScript</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4,</span>
+<span class="sd">    second batch): for the stage, code that registers visual kinds with</span>
+<span class="sd">    ``window.anRegisterVisual(kind, make)`` -- how the cut-out mouth and eye</span>
+<span class="sd">    leave ``runtime.js`` for ``cutan`` (P8).</span>
+
+<span class="sd">    ``source`` is ``"package:relative/path.js"``, read with</span>
+<span class="sd">    :mod:`importlib.resources` when the engine stages its runtime, so it ships</span>
+<span class="sd">    in the genre's wheel. The staged code is part of the shot cache's key.</span>
+<span class="sd">    """</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage"</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+
+<div class="viewcode-block" id="RuntimeScript.code">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.RuntimeScript.code">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">code</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The script's code (UTF-8).</span>
+
+<span class="sd">        &gt;&gt;&gt; RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")</span>
+<span class="sd">        True</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+
+        <span class="n">package</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">package</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RegistryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"runtime script </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: source=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="si">!r}</span><span class="s2"> is not "</span>
+                <span class="s2">"'package:relative/path.js'"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">files</span><span class="p">(</span><span class="n">package</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="register_runtime_script">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.register_runtime_script">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_runtime_script</span><span class="p">(</span>
+    <span class="n">script</span><span class="p">:</span> <span class="n">RuntimeScript</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CORE_OWNER</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RuntimeScript</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register runtime code for an engine (a genre's visual kinds)."""</span>
+    <span class="k">return</span> <span class="n">_RUNTIME_SCRIPTS</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">script</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="n">replace</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="runtime_scripts">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.runtime_scripts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">runtime_scripts</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">RuntimeScript</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The scripts registered for ``engine``, by name (a stable order)."""</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_RUNTIME_SCRIPTS</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">engine</span> <span class="o">==</span> <span class="n">engine</span><span class="p">),</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="compile_pass_owner">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.compile_pass_owner">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_pass_owner</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Who registered the compile pass ``name`` (a genre's name), or ``None``."""</span>
+    <span class="k">return</span> <span class="n">_COMPILE_PASSES</span><span class="o">.</span><span class="n">owners</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_pass_names</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">_COMPILE_PASSES</span><span class="o">.</span><span class="n">names</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.dicebear" href="an.characters.dicebear.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -633,7 +656,10 @@ bytes written — computed in memory at write time.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.drawn.write_bytes" title="an.characters.drawn.write_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_bytes</span></code></a>(path, data)</p></td>
 <td><p>Write <code class="docutils literal notranslate"><span class="pre">data</span></code> to <code class="docutils literal notranslate"><span class="pre">path</span></code>, logging its digest if a <a class="reference internal" href="#an.characters.drawn.drawing" title="an.characters.drawn.drawing"><code class="xref py py-func docutils literal notranslate"><span class="pre">drawing()</span></code></a> is open.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.drawn.write_text" title="an.characters.drawn.write_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_text</span></code></a>(path, text, *[, encoding])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.drawn.write_derived_text" title="an.characters.drawn.write_derived_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_derived_text</span></code></a>(path, source, text, *[, ...])</p></td>
+<td><p>Write <code class="docutils literal notranslate"><span class="pre">text</span></code>, derived from <code class="docutils literal notranslate"><span class="pre">source</span></code> — the bytes just read back from <code class="docutils literal notranslate"><span class="pre">path</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.drawn.write_text" title="an.characters.drawn.write_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_text</span></code></a>(path, text, *[, encoding])</p></td>
 <td><p>Write <code class="docutils literal notranslate"><span class="pre">text</span></code> as <code class="docutils literal notranslate"><span class="pre">Path.write_text</span></code> does (newlines as the platform writes them), logged.</p></td>
 </tr>
 </tbody>
@@ -643,6 +669,9 @@ bytes written — computed in memory at write time.</p>
 <dt class="sig sig-object py" id="an.characters.drawn.drawing">
 <span class="sig-prename descclassname"><span class="pre">an.characters.drawn.</span></span><span class="sig-name descname"><span class="pre">drawing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/drawn.html#drawing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.drawn.drawing" title="Link to this definition">#</a></dt>
 <dd><p>Log <code class="docutils literal notranslate"><span class="pre">{resolved</span> <span class="pre">path:</span> <span class="pre">sha256}</span></code> of every file written through this module, in this context.</p>
+<p>Re-entrant: inside an open drawing (<code class="docutils literal notranslate"><span class="pre">add_gaze</span></code> called by
+<code class="docutils literal notranslate"><span class="pre">new_character</span></code>) the same log is shared, so the outer call sees every
+byte the inner one wrote.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
@@ -659,6 +688,31 @@ bytes written — computed in memory at write time.</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.drawn.write_derived_text">
+<span class="sig-prename descclassname"><span class="pre">an.characters.drawn.</span></span><span class="sig-name descname"><span class="pre">write_derived_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/drawn.html#write_derived_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.drawn.write_derived_text" title="Link to this definition">#</a></dt>
+<dd><p>Write <code class="docutils literal notranslate"><span class="pre">text</span></code>, derived from <code class="docutils literal notranslate"><span class="pre">source</span></code> — the bytes just read back from <code class="docutils literal notranslate"><span class="pre">path</span></code>.</p>
+<p>Logged only if <code class="docutils literal notranslate"><span class="pre">source</span></code> is exactly what this drawing itself wrote there:
+a file swapped in between the factory’s write and its re-read (a rescale)
+is rewritten, but not as the factory’s drawing (review-288 round 2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span><span class="o">,</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">,</span> <span class="n">drawing</span><span class="p">()</span> <span class="k">as</span> <span class="n">log</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">p</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"a.svg"</span>
+<span class="gp">... </span>    <span class="n">write_text</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">"&lt;svg/&gt;"</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">p</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="sa">b</span><span class="s2">"&lt;svg&gt;swapped&lt;/svg&gt;"</span><span class="p">)</span>  <span class="c1"># not the factory's write</span>
+<span class="gp">... </span>    <span class="n">write_derived_text</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span> <span class="s2">"&lt;svg&gt;scaled&lt;/svg&gt;"</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span> <span class="ow">in</span> <span class="n">log</span>
+<span class="go">18</span>
+<span class="go">False</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -723,6 +777,7 @@ bytes written — computed in memory at write time.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.drawn.drawing"><code class="docutils literal notranslate"><span class="pre">drawing()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.drawn.write_bytes"><code class="docutils literal notranslate"><span class="pre">write_bytes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.drawn.write_derived_text"><code class="docutils literal notranslate"><span class="pre">write_derived_text()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.drawn.write_text"><code class="docutils literal notranslate"><span class="pre">write_text()</span></code></a></li>
 </ul>
   </nav></div>

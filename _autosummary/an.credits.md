@@ -30,13 +30,14 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
-| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).        |
-|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`is_generated_source`](#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person. |
-| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                   |
-| [`credits_for_project`](#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                                      |
-| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                |
-| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                      |
+| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).              |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`is_generated_source`](#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person.       |
+| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                         |
+| [`credits_for_project`](#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                                            |
+| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                      |
+| [`speech_credits`](#an.credits.speech_credits)(mall, scene)                 | One entry per voice whose lines a render synthesized with a named provider (an#271). |
+| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                            |
 
 ### Classes
 
@@ -162,6 +163,34 @@ Whether a descriptor’s source was written by a generator rather than a person.
 True
 >>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
 False
+```
+
+### an.credits.speech_credits(mall, scene)
+
+One entry per voice whose lines a render synthesized with a named provider (an#271).
+
+Read from what the audio pipeline already keeps — no record of its own:
+the scene’s lines that carry an `audio_ref` (stamped when synthesized),
+each line’s voice as the pipeline resolves it
+([`an.audio.voices.line_voice_id()`](an.audio.voices.md#an.audio.voices.line_voice_id)), and that voice’s document in
+`mall["voices"]` (its `provider`, `voice_id` and `model_id`). A
+voice document may declare its own `source` (the provider’s terms, the
+licence the user holds); otherwise the speech is listed UNVERIFIED — the
+provider’s terms decide what is owed, and nobody recorded them. A voice
+whose document names no provider (the offline default) is not listed:
+which provider spoke it is not recorded anywhere.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`CreditEntry`]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> line = NS(voice_ref="bob", speaker="bob", audio_ref="k1")
+>>> scene = NS(timeline=[NS(dialogue=[line], entities=[])])
+>>> mall = {"voices": {"bob": {"provider": "elevenlabs", "voice_id": "TX3",
+...                            "model_id": "eleven_v3"}}}
+>>> [(e.asset, e.license_class, e.source.extra["model"]) for e in speech_credits(mall, scene)]
+[('speech/bob', 'unknown', 'eleven_v3')]
 ```
 
 ### an.credits.warn_if_private_study(report, , output=None)

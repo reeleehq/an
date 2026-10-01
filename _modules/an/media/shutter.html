@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -746,14 +746,14 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ShutterError">
-<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.adapters.cutout.shutter.ShutterError">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.media.ShutterError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ShutterError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Frame samples a render cannot honour."""</span></div>
 
 
 
 <div class="viewcode-block" id="check_frame_samples">
-<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.adapters.cutout.shutter.check_frame_samples">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.media.check_frame_samples">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_frame_samples</span><span class="p">(</span>
     <span class="n">frame_samples</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -796,7 +796,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="temporal_mean">
-<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.adapters.cutout.shutter.temporal_mean">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.media.temporal_mean">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">temporal_mean</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``k`` equal-shape uint8 frames -&gt; their exact per-pixel mean, uint8.</span>
 
@@ -833,7 +833,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="mean_png_bytes">
-<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.adapters.cutout.shutter.mean_png_bytes">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.media.shutter.html#an.media.mean_png_bytes">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mean_png_bytes</span><span class="p">(</span><span class="n">shots</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Spatially resolve each screenshot by ``factor``, then average them in time.</span>
 

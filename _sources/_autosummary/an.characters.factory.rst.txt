@@ -40,6 +40,7 @@ an.characters.factory
       factory_source
       gaze_travel_for
       new_character
+      recording_drawn
       scale_part_files
       stage_extent
       stamp_factory_descriptor

@@ -4,21 +4,3 @@ an.preview
 .. automodule:: an.preview
 
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      preview_project
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      PreviewStaging
-   
-   .. rubric:: Exceptions
-
-   .. autosummary::
-   
-      PreviewError
-   

@@ -31,7 +31,7 @@ Source: [`.claude/skills/an-dev`](https://github.com/thorwhalen/an/tree/HEAD/.cl
 
 ### `an-dev-bench`
 
-Use when working on `an bench`, the metrics ledger, the golden corpus, or anything that measures rendered output in the `an` repo. Triggers on "add a metric", "the ledger", "an bench", "golden frames", "mutation test the harness", "why is this number moving", "bench corpus", or any change to `an/bench/`, `misc/bench/`, or the encode/decode flags in `an/media/mp4.py` (formerly `an/adapters/cutout/render.py`), or the frame stage in `an/engines/`.
+Use when working on `an bench`, the metrics ledger, the golden corpus, or anything that measures rendered output in the `an` repo. Triggers on "add a metric", "the ledger", "an bench", "golden frames", "mutation test the harness", "why is this number moving", "bench corpus", or any change to `an/bench/`, `misc/bench/`, or the encode/decode flags in `an/media/mp4.py` (formerly `an/stage/render.py`), or the frame stage in `an/engines/`.
 
 Source: [`.claude/skills/an-dev-bench`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-bench).
 
@@ -73,7 +73,7 @@ Source: [`.claude/skills/an-dev-rig-contract`](https://github.com/thorwhalen/an/
 
 ### `an-dev-runtime-assets`
 
-Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under `an/data/`, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a `pip install`, or when a "fix" to a data file appears to have no effect. Triggers on "vendor", "bundle", "asset", "force-include", "packaging", "it works locally but not installed".
+Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under `an/stage/runtime/` (the stage's runtime, `an/data/cutout_runtime/` before an#247) or `an/data/`, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a `pip install`, or when a "fix" to a data file appears to have no effect. Triggers on "vendor", "bundle", "asset", "force-include", "packaging", "it works locally but not installed".
 
 Source: [`.claude/skills/an-dev-runtime-assets`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-runtime-assets).
 

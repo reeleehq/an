@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.stage.compile.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.stage.compile.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.stage.compile &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.stage.compile';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.stage.easing" href="an.stage.easing.html" />
+    <link rel="prev" title="an.stage.canvas_capture" href="an.stage.canvas_capture.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.147" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.capabilities.html">an.capabilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.capabilities.subjects.html">an.capabilities.subjects</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.brows.html">an.characters.brows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.drawn.html">an.characters.drawn</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.methods.html">an.characters.methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.vocabulary.html">an.characters.vocabulary</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.library.html">an.library</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.library.affordances.html">an.library.affordances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.api.html">an.library.api</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.character.html">an.library.character</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.cli.html">an.library.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.federation.html">an.library.federation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.mcp.html">an.mcp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.server.html">an.mcp.server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.semantic.html">an.semantic</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.describe.html">an.semantic.describe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.digest.html">an.semantic.digest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.docs.html">an.semantic.docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.export.html">an.semantic.export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.matcher.html">an.semantic.matcher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.prompt.html">an.semantic.prompt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.registry.html">an.semantic.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.seeds.html">an.semantic.seeds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.views.html">an.semantic.views</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.style.html">an.verify.style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.stage.html" class="nav-link">an.stage</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.stage.compile</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.stage.compile">
+<span id="an-stage-compile"></span><h1>an.stage.compile<a class="headerlink" href="#module-an.stage.compile" title="Link to this heading">#</a></h1>
+<p>Compile a top-level <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> (renderer=”cutout”) into a <code class="code docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code>.</p>
+<p>This is the bridge between the renderer-agnostic <code class="code docutils literal notranslate"><span class="pre">an.ir</span></code> types and the
+cutout-specific JSON contract that the JS runtime will consume in Phase 2B.</p>
+<p>Strategy:</p>
+<ol class="arabic simple">
+<li><p><strong>Resolve entities</strong> from the project mall: each <code class="code docutils literal notranslate"><span class="pre">AssetRef</span></code> in
+<code class="docutils literal notranslate"><span class="pre">shot.entities</span></code> becomes a sub-tree of the cutout scene (a character with
+placeholder rect parts when the character store has no sidecar art yet).</p></li>
+<li><p><strong>Flatten authoring actions</strong> via <code class="code docutils literal notranslate"><span class="pre">an.ir.compose.flatten</span></code> — every
+<code class="code docutils literal notranslate"><span class="pre">tween</span></code>/<code class="code docutils literal notranslate"><span class="pre">set</span></code>/<code class="code docutils literal notranslate"><span class="pre">play</span></code>/composition produces leaf <a href="#id1"><span class="problematic" id="id2">`</span></a>FlatAction`s with
+absolute times.</p></li>
+<li><p><strong>Compile each FlatAction to PlacedClipJSON entries</strong> on the appropriate
+track. Tween → a 2-keyframe AnimationClipJSON + a PlacedClipJSON (or, under
+<code class="docutils literal notranslate"><span class="pre">step_hz</span></code>, a grid of step-eased keyframes — an#89). Set →
+a step channel that HOLDS until the next action on the same
+target/property. Play → a per-instance clip (<code class="docutils literal notranslate"><span class="pre">__play__{n}</span></code>) resolved
+from the target’s descriptor animation (an#7).</p></li>
+</ol>
+<p>The compiler is deterministic and side-effect-free (it doesn’t write to the
+mall). It reads only.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Meta</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s1"</span><span class="p">,</span> <span class="n">renderer</span><span class="o">=</span><span class="s2">"cutout"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">j</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="p">{}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">j</span><span class="o">.</span><span class="n">timeline</span><span class="o">.</span><span class="n">duration</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.DFLT_LEG_COLOUR" title="an.stage.compile.DFLT_LEG_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_LEG_COLOUR</span></code></a></p></td>
+<td><p>The procedural rig's leg colour — a literal the palette table never carried, which is why it is a named constant rather than two copies of a string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.DFLT_PUPIL_COLOUR" title="an.stage.compile.DFLT_PUPIL_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_PUPIL_COLOUR</span></code></a></p></td>
+<td><p>The procedural rig's pupil colour.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.COARTICULATION_ENABLED" title="an.stage.compile.COARTICULATION_ENABLED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COARTICULATION_ENABLED</span></code></a></p></td>
+<td><p>Co-articulation on/off (an#97).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.PROCEDURAL_MOUTH_KEYS" title="an.stage.compile.PROCEDURAL_MOUTH_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROCEDURAL_MOUTH_KEYS</span></code></a></p></td>
+<td><p>The procedural (drawn) mouth's swap vocabulary, DECLARED as data on its visual exactly as the runtime declares it (<code class="code docutils literal notranslate"><span class="pre">g._anDrawSets</span> <span class="pre">=</span> <span class="pre">{viseme:</span> <span class="pre">...}</span></code>) and as an SVG mouth carries its projection.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.EYE_NODE_NAMES" title="an.stage.compile.EYE_NODE_NAMES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EYE_NODE_NAMES</span></code></a></p></td>
+<td><p>the default rig's eye slots ARE its node names, on both the procedural and the descriptor path.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.PUPIL_NODE_NAMES" title="an.stage.compile.PUPIL_NODE_NAMES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PUPIL_NODE_NAMES</span></code></a></p></td>
+<td><p>The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.GAZE_ELLIPSE_MARGIN" title="an.stage.compile.GAZE_ELLIPSE_MARGIN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GAZE_ELLIPSE_MARGIN</span></code></a></p></td>
+<td><p>The summed gaze (x, y), in axis units, is clamped to a circle of this radius — the declared travel maps the unit circle onto the sclera's inner ellipse, and 0.95 keeps the whole pupil disc inside it at every angle (measured on the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES" title="an.stage.compile.RUNTIME_APPLIED_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></code></a></p></td>
+<td><p>Every property name the JS runtime's <code class="docutils literal notranslate"><span class="pre">applyProperty</span></code> STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.DFLT_TARGET_SUGGESTIONS" title="an.stage.compile.DFLT_TARGET_SUGGESTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TARGET_SUGGESTIONS</span></code></a></p></td>
+<td><p>How many &quot;did you mean&quot; paths an unknown-target message offers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.CAMERA_NODE" title="an.stage.compile.CAMERA_NODE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CAMERA_NODE</span></code></a></p></td>
+<td><p>indexed by the runtime, absent from the tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_COMPILE_PASSES" title="an.stage.compile.STAGE_COMPILE_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a></p></td>
+<td><p>The STAGE's own compile passes, in order.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_SCENE_BUILDERS" title="an.stage.compile.STAGE_SCENE_BUILDERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_SCENE_BUILDERS</span></code></a></p></td>
+<td><p>phase 0 the backdrop, phase 1 the cast.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.ENVIRONMENT_ART_PREFIX" title="an.stage.compile.ENVIRONMENT_ART_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ENVIRONMENT_ART_PREFIX</span></code></a></p></td>
+<td><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix an environment plate is addressed under.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.PLANE_FILL_SPAN" title="an.stage.compile.PLANE_FILL_SPAN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></p></td>
+<td><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale — defined beside the schema (<code class="code docutils literal notranslate"><span class="pre">an.stage.environments.PLANE_FILL_SPAN</span></code>) so the IR layer's framing check reads the same number, re-exported here.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.FOREGROUND_SUFFIX" title="an.stage.compile.FOREGROUND_SUFFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FOREGROUND_SUFFIX</span></code></a></p></td>
+<td><p>Suffix for the container holding an environment's FOREGROUND planes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.SCENE_PX_PER_VIEW_BOX" title="an.stage.compile.SCENE_PX_PER_VIEW_BOX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></code></a></p></td>
+<td><p>Scene-graph pixels spanned by a descriptor's full <code class="docutils literal notranslate"><span class="pre">view_box</span></code> height.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CONTAIN_FIT" title="an.stage.compile.CONTAIN_FIT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONTAIN_FIT</span></code></a></p></td>
+<td><p>The fit policy every compiled sprite carries.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.CHARACTER_ART_PREFIX" title="an.stage.compile.CHARACTER_ART_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHARACTER_ART_PREFIX</span></code></a></p></td>
+<td><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix a rig's art is addressed under, which is also the mall store that resolves it (<code class="code docutils literal notranslate"><span class="pre">render.ASSET_SRC_PREFIX_TO_STORE</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.PROP_ART_PREFIX" title="an.stage.compile.PROP_ART_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROP_ART_PREFIX</span></code></a></p></td>
+<td><p>The same, for props.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_NODE_SPACE" title="an.stage.compile.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
+<td><p>The property space every compiled node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.blink_phase" title="an.stage.compile.blink_phase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blink_phase</span></code></a>(entity_id)</p></td>
+<td><p>The entity's blink phase in [0, 1): the runtime's rule, ported exactly.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.camera_keys" title="an.stage.compile.camera_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">camera_keys</span></code></a>(shot, *, width, height)</p></td>
+<td><p><a class="reference internal" href="an.ir.camera.html#an.ir.camera.camera_keys" title="an.ir.camera.camera_keys"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.camera.camera_keys()</span></code></a>, with its refusal typed for this adapter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.compile_passes_for_stage" title="an.stage.compile.compile_passes_for_stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_passes_for_stage</span></code></a>()</p></td>
+<td><p>The stage's passes and every registered one, in run order (stable by name).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.compile_shot" title="an.stage.compile.compile_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_shot</span></code></a>(shot[, mall, fps, width, ...])</p></td>
+<td><p>Compile a single cutout-style <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> to its JS-runtime JSON form.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.entity_spaces_of" title="an.stage.compile.entity_spaces_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entity_spaces_of</span></code></a>(shot)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">id:</span> <span class="pre">space}</span></code> for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.foreground_node_name" title="an.stage.compile.foreground_node_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">foreground_node_name</span></code></a>(entity_id)</p></td>
+<td><p>The node name an environment's foreground planes live under.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.node_path_suggestions" title="an.stage.compile.node_path_suggestions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_path_suggestions</span></code></a>(target, paths, *[, n])</p></td>
+<td><p>The built node paths a mistyped <code class="docutils literal notranslate"><span class="pre">target</span></code> most plausibly meant.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.parse_tint" title="an.stage.compile.parse_tint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_tint</span></code></a>(value, *, where)</p></td>
+<td><p>A <code class="code docutils literal notranslate"><span class="pre">#rrggbb</span></code> string to three multipliers in 0..1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.plane_parents" title="an.stage.compile.plane_parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_parents</span></code></a>(env, entity_id)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{plane</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">its</span> <span class="pre">channels</span> <span class="pre">must</span> <span class="pre">target}</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">kind:</span> <span class="pre">builder}</span></code>: the stage's, and every registered one.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{stage</span> <span class="pre">pass</span> <span class="pre">or</span> <span class="pre">builder:</span> <span class="pre">the</span> <span class="pre">genre</span> <span class="pre">replacing</span> <span class="pre">it}</span></code> -- recorded in the compiled document's <code class="docutils literal notranslate"><span class="pre">meta.extensions</span></code> when non-empty.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
+<td><p>Clip-local times at which a stepped tween updates its pose (an#89).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
+<td><p>The <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> a scene declares, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#112).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
+<td><p>One sentence saying <code class="docutils literal notranslate"><span class="pre">target</span></code> is not a built node, with suggestions.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CompileState" title="an.stage.compile.CompileState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompileState</span></code></a>(shot, mall, fps, width, height)</p></td>
+<td><p>What the stage compiler's passes read and write, for one shot (an#247).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.SceneBuild" title="an.stage.compile.SceneBuild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneBuild</span></code></a>(shot, mall, textures, ...[, ...])</p></td>
+<td><p>The scene being built, as an entity builder sees it (an#247).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CompilePassCollision" title="an.stage.compile.CompilePassCollision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompilePassCollision</span></code></a></p></td>
+<td><p>A genre registered a pass (or a builder) the stage already has, without <code class="docutils literal notranslate"><span class="pre">replace=True</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.CutoutCompileError" title="an.stage.compile.CutoutCompileError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutCompileError</span></code></a></p></td>
+<td><p>A shot cannot be compiled to a cutout scene.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CutoutCompileWarning" title="an.stage.compile.CutoutCompileWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutCompileWarning</span></code></a></p></td>
+<td><p>A shot compiles, but something in it will not reach the screen.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.CAMERA_NODE">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CAMERA_NODE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'root'</span></span><a class="headerlink" href="#an.stage.compile.CAMERA_NODE" title="Link to this definition">#</a></dt>
+<dd><p>indexed by the runtime, absent from the tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The runtime’s camera node</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.CHARACTER_ART_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CHARACTER_ART_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'characters/'</span></span><a class="headerlink" href="#an.stage.compile.CHARACTER_ART_PREFIX" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix a rig’s art is addressed under, which is
+also the mall store that resolves it (<code class="code docutils literal notranslate"><span class="pre">render.ASSET_SRC_PREFIX_TO_STORE</span></code>).
+A parameter rather than a literal because the rig builder is the same code
+for a character and for a prop, and the store is the ONLY thing that differs
+about where their art lives. Two hardcoded copies of <code class="code docutils literal notranslate"><span class="pre">&quot;characters/&quot;</span></code> — the
+<code class="code docutils literal notranslate"><span class="pre">src</span></code> builder and the probe’s own — reached three call sites, and that is
+what made “a prop is a rig too” read as a rewrite instead of an argument
+(an#108).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.COARTICULATION_ENABLED">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">COARTICULATION_ENABLED</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.stage.compile.COARTICULATION_ENABLED" title="Link to this definition">#</a></dt>
+<dd><p>Co-articulation on/off (an#97). ON is the product; OFF reproduces the
+pre-#97 mouth CHOICE — the raw provider track thinned by the old drop-not-hold
+condenser — over the new frame-ceiled clip window (so not byte-for-byte the
+old emission: OFF still closes the mouth after a line) and exists so the <code class="code docutils literal notranslate"><span class="pre">lipsync-coarticulation</span></code> demo and a test can
+render the two side by side. Not a RenderContext knob: nobody should ship
+the old behaviour, and a module flag rebound for one render is the shape
+the bench’s levers already use.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.CONTAIN_FIT">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CONTAIN_FIT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'contain'</span></span><a class="headerlink" href="#an.stage.compile.CONTAIN_FIT" title="Link to this definition">#</a></dt>
+<dd><p>The fit policy every compiled sprite carries. Named rather than inlined so
+the one place that decides “the art keeps its shape” is greppable.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.stage.compile.CompilePassCollision">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CompilePassCollision</span></span><a class="reference internal" href="../_modules/an/stage/compile.html#CompilePassCollision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.CompilePassCollision" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.stage.compile.CutoutCompileError" title="an.stage.compile.CutoutCompileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutCompileError</span></code></a></p>
+<p>A genre registered a pass (or a builder) the stage already has, without <code class="docutils literal notranslate"><span class="pre">replace=True</span></code>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stage.compile.CompileState">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CompileState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expression_provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">textures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fonts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_swaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_lip_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view_spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blink_phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze_seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">products</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#CompileState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.CompileState" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What the stage compiler’s passes read and write, for one shot (an#247).</p>
+<p>The stage’s own passes (<a class="reference internal" href="#an.stage.compile.STAGE_COMPILE_PASSES" title="an.stage.compile.STAGE_COMPILE_PASSES"><code class="xref py py-data docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a>) and every pass a genre
+registers for the <code class="docutils literal notranslate"><span class="pre">&quot;stage&quot;</span></code> compiler (<a class="reference internal" href="an.genres.html#an.genres.CompilePass" title="an.genres.CompilePass"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.genres.CompilePass</span></code></a>) run
+over one of these, in order; <code class="xref py py-func docutils literal notranslate"><span class="pre">_assemble_document()</span></code> turns it into the
+wire document. The fields are the locals <code class="docutils literal notranslate"><span class="pre">compile_shot</span></code> used to thread by
+hand, unchanged, so the document is byte-identical.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.compile.CompileState.extra_actions">
+<span class="sig-name descname"><span class="pre">extra_actions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span><a class="headerlink" href="#an.stage.compile.CompileState.extra_actions" title="Link to this definition">#</a></dt>
+<dd><p>Actions a pass contributes beside the authored ones, compiled with them
+by the <code class="code docutils literal notranslate"><span class="pre">actions</span></code> pass (the cut-out <code class="code docutils literal notranslate"><span class="pre">speech</span></code> pass’s pulses, an#248).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.compile.CompileState.no_lip_sync">
+<span class="sig-name descname"><span class="pre">no_lip_sync</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({})</span></span><a class="headerlink" href="#an.stage.compile.CompileState.no_lip_sync" title="Link to this definition">#</a></dt>
+<dd><p>Cut-out passes’ products, read by later passes (an empty default is what
+a shot with no character produces anyway).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.compile.CompileState.products">
+<span class="sig-name descname"><span class="pre">products</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.compile.CompileState.products" title="Link to this definition">#</a></dt>
+<dd><p>what a genre’s pass produces for a later
+pass (<code class="docutils literal notranslate"><span class="pre">products</span></code>, by key), and what it adds to the document’s meta
+(<code class="docutils literal notranslate"><span class="pre">meta_extensions</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">meta.extensions</span></code>, omitted when empty). A new
+genre needs no new field here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The generic slots (an#247)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.stage.compile.CutoutCompileError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CutoutCompileError</span></span><a class="reference internal" href="../_modules/an/stage/compile.html#CutoutCompileError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.CutoutCompileError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A shot cannot be compiled to a cutout scene. Carries actionable detail.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> rather than a <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code> — unlike the rest of this
+package’s error tree — because every one of these is “this value is not in
+the known set”, which is the existing idiom for argument-level rejection.
+The render-time errors stay <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code>: they are failures of the
+machinery, not of the input.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.stage.compile.CutoutCompileWarning">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CutoutCompileWarning</span></span><a class="reference internal" href="../_modules/an/stage/compile.html#CutoutCompileWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.CutoutCompileWarning" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<p>A shot compiles, but something in it will not reach the screen.</p>
+<p>The line between this and <a class="reference internal" href="#an.stage.compile.CutoutCompileError" title="an.stage.compile.CutoutCompileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutCompileError</span></code></a> is whether the author
+could plausibly have meant it. An unknown <code class="docutils literal notranslate"><span class="pre">camera.move</span></code> is always a
+mistake, so it raises. A speaker with no mouth is usually an off-screen
+narrator and occasionally a typo — refusing it would break the documented
+idiom, and passing in silence is what this whole change is against.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.DFLT_LEG_COLOUR">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">DFLT_LEG_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#2c3e50'</span></span><a class="headerlink" href="#an.stage.compile.DFLT_LEG_COLOUR" title="Link to this definition">#</a></dt>
+<dd><p>The procedural rig’s leg colour — a literal the palette table never
+carried, which is why it is a named constant rather than two copies of a
+string. A <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code>’s <code class="code docutils literal notranslate"><span class="pre">leg</span></code> role replaces it.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.DFLT_PUPIL_COLOUR">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">DFLT_PUPIL_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.stage.compile.DFLT_PUPIL_COLOUR" title="Link to this definition">#</a></dt>
+<dd><p>The procedural rig’s pupil colour. <code class="code docutils literal notranslate"><span class="pre">makeEye</span></code> reads it from the document —
+the eye WHITE beside it is a literal and cannot be reached, which is the
+split <code class="code docutils literal notranslate"><span class="pre">REACHABLE_ROLES</span></code> / <code class="code docutils literal notranslate"><span class="pre">UNREACHABLE_ROLES</span></code> records.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.DFLT_TARGET_SUGGESTIONS">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">DFLT_TARGET_SUGGESTIONS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.stage.compile.DFLT_TARGET_SUGGESTIONS" title="Link to this definition">#</a></dt>
+<dd><p>How many “did you mean” paths an unknown-target message offers.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.ENVIRONMENT_ART_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">ENVIRONMENT_ART_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'environments/'</span></span><a class="headerlink" href="#an.stage.compile.ENVIRONMENT_ART_PREFIX" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix an environment plate is addressed under.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.EYE_NODE_NAMES">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">EYE_NODE_NAMES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'left_eye',</span> <span class="pre">'right_eye'})</span></span><a class="headerlink" href="#an.stage.compile.EYE_NODE_NAMES" title="Link to this definition">#</a></dt>
+<dd><p>the default rig’s eye slots ARE its node
+names, on both the procedural and the descriptor path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The nodes that blink, by name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.FOREGROUND_SUFFIX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">FOREGROUND_SUFFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'__front'</span></span><a class="headerlink" href="#an.stage.compile.FOREGROUND_SUFFIX" title="Link to this definition">#</a></dt>
+<dd><p>Suffix for the container holding an environment’s FOREGROUND planes.</p>
+<p>The split has to produce two sibling containers, and before an#110’s review
+both were named <code class="code docutils literal notranslate"><span class="pre">entity.id</span></code>. The runtime’s <code class="code docutils literal notranslate"><span class="pre">nodeIndex</span></code> is a flat
+<code class="code docutils literal notranslate"><span class="pre">path</span> <span class="pre">-&gt;</span> <span class="pre">container</span></code> dict, so the second silently overwrote the first — an
+authored <code class="code docutils literal notranslate"><span class="pre">set</span> <span class="pre">street:x</span></code> then moved the foreground half and left the
+background where it was, with no warning from either side: the compiler’s
+collision check compares <code class="code docutils literal notranslate"><span class="pre">(entity/plane,</span> <span class="pre">prop)</span></code> and never sees <code class="code docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">x)</span></code>,
+and the runtime’s unknown-target throw does not fire because the name IS
+known, just bound to the wrong one of two. The determinism report’s
+<code class="code docutils literal notranslate"><span class="pre">node_count</span></code> under-counted by one per split environment too.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.GAZE_ELLIPSE_MARGIN">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">GAZE_ELLIPSE_MARGIN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.95</span></span><a class="headerlink" href="#an.stage.compile.GAZE_ELLIPSE_MARGIN" title="Link to this definition">#</a></dt>
+<dd><p>The summed gaze (x, y), in axis units, is clamped to a circle of this radius
+— the declared travel maps the unit circle onto the sclera’s inner ellipse,
+and 0.95 keeps the whole pupil disc inside it at every angle (measured on
+the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.PLANE_FILL_SPAN">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PLANE_FILL_SPAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4000.0</span></span><a class="headerlink" href="#an.stage.compile.PLANE_FILL_SPAN" title="Link to this definition">#</a></dt>
+<dd><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale
+— defined beside the schema (<code class="code docutils literal notranslate"><span class="pre">an.stage.environments.PLANE_FILL_SPAN</span></code>) so the IR
+layer’s framing check reads the same number, re-exported here.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.PROCEDURAL_MOUTH_KEYS">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PROCEDURAL_MOUTH_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">'A',</span> <span class="pre">'B':</span> <span class="pre">'B',</span> <span class="pre">'C':</span> <span class="pre">'C',</span> <span class="pre">'D':</span> <span class="pre">'D',</span> <span class="pre">'E':</span> <span class="pre">'E',</span> <span class="pre">'F':</span> <span class="pre">'F',</span> <span class="pre">'G':</span> <span class="pre">'G',</span> <span class="pre">'H':</span> <span class="pre">'H',</span> <span class="pre">'X':</span> <span class="pre">'X'}</span></span><a class="headerlink" href="#an.stage.compile.PROCEDURAL_MOUTH_KEYS" title="Link to this definition">#</a></dt>
+<dd><p>The procedural (drawn) mouth’s swap vocabulary, DECLARED as data on its
+visual exactly as the runtime declares it (<code class="code docutils literal notranslate"><span class="pre">g._anDrawSets</span> <span class="pre">=</span> <span class="pre">{viseme:</span> <span class="pre">...}</span></code>)
+and as an SVG mouth carries its projection. A drawn mouth has no textures,
+so each key maps to itself — the code the runtime’s shape table draws. The
+compiler never branches on the set’s NAME: the drawn mouth is just a node
+whose visual carries a <code class="code docutils literal notranslate"><span class="pre">viseme</span></code> set (an#87).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.PROP_ART_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PROP_ART_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'props/'</span></span><a class="headerlink" href="#an.stage.compile.PROP_ART_PREFIX" title="Link to this definition">#</a></dt>
+<dd><p>The same, for props. Both are keys of <code class="code docutils literal notranslate"><span class="pre">render.ASSET_SRC_PREFIX_TO_STORE</span></code>,
+which is what decides where the staging step copies the art from.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.PUPIL_NODE_NAMES">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PUPIL_NODE_NAMES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'left_pupil',</span> <span class="pre">'right_pupil'})</span></span><a class="headerlink" href="#an.stage.compile.PUPIL_NODE_NAMES" title="Link to this definition">#</a></dt>
+<dd><p>The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.RUNTIME_APPLIED_PROPERTIES">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES" title="Link to this definition">#</a></dt>
+<dd><p>Every property name the JS runtime’s <code class="docutils literal notranslate"><span class="pre">applyProperty</span></code> STATIC switch
+implements — exactly the numeric transform vocabulary (the rest-value SSOT
+above). This is the Python side of the two-evaluator drift gate:
+<code class="docutils literal notranslate"><span class="pre">tests/test_loud_discards.py</span></code> extracts the runtime’s actual switch cases
+and asserts exact equality with this set, in both directions. It replaced
+<code class="docutils literal notranslate"><span class="pre">pose.py</span></code>’s allow-list when the Python applier was deleted (an#86).
+Any OTHER property is a swap-set name, applied dynamically through the
+node’s <code class="docutils literal notranslate"><span class="pre">asset_sets</span></code> projection (an#87) — <code class="docutils literal notranslate"><span class="pre">viseme</span></code> left the static
+switch when that landed, which is precisely what makes it a conventional
+set name rather than control flow.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.SCENE_PX_PER_VIEW_BOX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">345.0</span></span><a class="headerlink" href="#an.stage.compile.SCENE_PX_PER_VIEW_BOX" title="Link to this definition">#</a></dt>
+<dd><p>Scene-graph pixels spanned by a descriptor’s full <code class="docutils literal notranslate"><span class="pre">view_box</span></code> height.</p>
+<p>The single number that maps descriptor space to scene space. One uniform
+factor <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">SCENE_PX_PER_VIEW_BOX</span> <span class="pre">/</span> <span class="pre">view_box_height</span></code> scales bone positions
+and part extents alike — uniform by construction, so the compiler cannot
+violate the invariant that aspect ratio is intrinsic to the art (an#74).</p>
+<p>345 is a calibration, not a preference. It is what reproduces the framing the
+seven deleted <code class="docutils literal notranslate"><span class="pre">_SVG_*_SIZE</span></code> constants hand-tuned: at k = 345/1024 = 0.3369,
+<code class="docutils literal notranslate"><span class="pre">saturated-rig</span></code>’s own art gives torso 107.8x129.4 against the old 110x130,
+legs 37.7x118.6 against 38x120. The constants were an approximation of
+exactly this product, which is the evidence that the rig should have been
+driving it all along.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.STAGE_COMPILE_PASSES">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">STAGE_COMPILE_PASSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.genres.registry.html#an.genres.registry.CompilePass" title="an.genres.registry.CompilePass"><span class="pre">CompilePass</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(CompilePass(name='scene',</span> <span class="pre">run=&lt;function</span> <span class="pre">_scene_pass&gt;,</span> <span class="pre">order=100,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds=None,</span> <span class="pre">description='the</span> <span class="pre">scene</span> <span class="pre">tree,</span> <span class="pre">overlay,</span> <span class="pre">grain,</span> <span class="pre">vocabulary',</span> <span class="pre">replace=False),</span> <span class="pre">CompilePass(name='actions',</span> <span class="pre">run=&lt;function</span> <span class="pre">_actions_pass&gt;,</span> <span class="pre">order=200,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds=None,</span> <span class="pre">description='authored</span> <span class="pre">actions</span> <span class="pre">-&gt;</span> <span class="pre">clips',</span> <span class="pre">replace=False),</span> <span class="pre">CompilePass(name='camera',</span> <span class="pre">run=&lt;function</span> <span class="pre">_camera_pass&gt;,</span> <span class="pre">order=600,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds=None,</span> <span class="pre">description='the</span> <span class="pre">camera</span> <span class="pre">onto</span> <span class="pre">the</span> <span class="pre">scene</span> <span class="pre">root',</span> <span class="pre">replace=False),</span> <span class="pre">CompilePass(name='parallax',</span> <span class="pre">run=&lt;function</span> <span class="pre">_parallax_pass&gt;,</span> <span class="pre">order=700,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds=None,</span> <span class="pre">description=&quot;planes'</span> <span class="pre">parallax&quot;,</span> <span class="pre">replace=False),</span> <span class="pre">CompilePass(name='checks',</span> <span class="pre">run=&lt;function</span> <span class="pre">_checks_pass&gt;,</span> <span class="pre">order=900,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds=None,</span> <span class="pre">description='targets,</span> <span class="pre">easings,</span> <span class="pre">stand-ins',</span> <span class="pre">replace=False))</span></span><a class="headerlink" href="#an.stage.compile.STAGE_COMPILE_PASSES" title="Link to this definition">#</a></dt>
+<dd><p>The STAGE’s own compile passes, in order. A genre adds passes between them by
+registering <a class="reference internal" href="an.genres.html#an.genres.CompilePass" title="an.genres.CompilePass"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.genres.CompilePass</span></code></a> objects for the <code class="docutils literal notranslate"><span class="pre">&quot;stage&quot;</span></code>
+compiler; the in-repo cut-out genre registers <code class="docutils literal notranslate"><span class="pre">swap_pose</span></code> (300),
+<code class="docutils literal notranslate"><span class="pre">view_spans</span></code> (310), <code class="docutils literal notranslate"><span class="pre">visemes</span></code> (400) and <code class="docutils literal notranslate"><span class="pre">face</span></code> (500), and the <code class="docutils literal notranslate"><span class="pre">rig</span></code>
+entity builder (<code class="xref py py-data docutils literal notranslate"><span class="pre">an.genres.cutout.CUTOUT_COMPILE_PASSES</span></code>). Held HERE, not in the genre tables, so
+no <code class="docutils literal notranslate"><span class="pre">without_genres()</span></code> can take the stage’s own passes away.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.STAGE_NODE_SPACE">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">STAGE_NODE_SPACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage.node'</span></span><a class="headerlink" href="#an.stage.compile.STAGE_NODE_SPACE" title="Link to this definition">#</a></dt>
+<dd><p>The property space every compiled node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.STAGE_SCENE_BUILDERS">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">STAGE_SCENE_BUILDERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="an.genres.registry.html#an.genres.registry.CompilePass" title="an.genres.registry.CompilePass"><span class="pre">CompilePass</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'environment':</span> <span class="pre">CompilePass(name='environment',</span> <span class="pre">run=&lt;function</span> <span class="pre">_build_environment_entity&gt;,</span> <span class="pre">order=0,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds='environment',</span> <span class="pre">description=&quot;an</span> <span class="pre">environment's</span> <span class="pre">planes</span> <span class="pre">(the</span> <span class="pre">backdrop)&quot;,</span> <span class="pre">replace=False),</span> <span class="pre">'prop':</span> <span class="pre">CompilePass(name='prop',</span> <span class="pre">run=&lt;function</span> <span class="pre">_build_prop_entity&gt;,</span> <span class="pre">order=1,</span> <span class="pre">compiler='stage',</span> <span class="pre">builds='prop',</span> <span class="pre">description='a</span> <span class="pre">prop,</span> <span class="pre">a</span> <span class="pre">stroked</span> <span class="pre">path</span> <span class="pre">or</span> <span class="pre">a</span> <span class="pre">text</span> <span class="pre">block',</span> <span class="pre">replace=False)}</span></span><a class="headerlink" href="#an.stage.compile.STAGE_SCENE_BUILDERS" title="Link to this definition">#</a></dt>
+<dd><p>phase 0 the backdrop, phase 1 the cast.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The stage’s own entity builders</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stage.compile.SceneBuild">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">SceneBuild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">textures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fonts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_front</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#SceneBuild"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.SceneBuild" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The scene being built, as an entity builder sees it (an#247).</p>
+<p>A builder (<a class="reference internal" href="an.genres.html#an.genres.CompilePass" title="an.genres.CompilePass"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.genres.CompilePass</span></code></a> with <code class="docutils literal notranslate"><span class="pre">builds</span></code> set) appends its
+entity’s subtree to <code class="docutils literal notranslate"><span class="pre">children</span></code> (or <code class="docutils literal notranslate"><span class="pre">overlay</span></code>, or <code class="docutils literal notranslate"><span class="pre">in_front</span></code>) and
+records its textures and resolutions here, exactly as the scene pass did
+by hand.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.blink_phase">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">blink_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#blink_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.blink_phase" title="Link to this definition">#</a></dt>
+<dd><p>The entity’s blink phase in [0, 1): the runtime’s rule, ported exactly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">blink_phase</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">)</span>
+<span class="go">0.762</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.camera_keys">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">camera_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#camera_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.camera_keys" title="Link to this definition">#</a></dt>
+<dd><p><a class="reference internal" href="an.ir.camera.html#an.ir.camera.camera_keys" title="an.ir.camera.camera_keys"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.camera.camera_keys()</span></code></a>, with its refusal typed for this adapter.</p>
+<p>The resolver itself lives in the IR layer so <code class="code docutils literal notranslate"><span class="pre">an.ir.validate</span></code> can call the
+SAME function — one table, not two reconciled by a test. This wrapper only
+re-raises <code class="code docutils literal notranslate"><span class="pre">CameraError</span></code> as a <code class="code docutils literal notranslate"><span class="pre">CutoutCompileError</span></code>, which is the compiler’s
+own boundary contract: every failure out of <code class="code docutils literal notranslate"><span class="pre">compile_shot</span></code> is one type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">CameraKey</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.compile_passes_for_stage">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">compile_passes_for_stage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#compile_passes_for_stage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.compile_passes_for_stage" title="Link to this definition">#</a></dt>
+<dd><p>The stage’s passes and every registered one, in run order (stable by name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.genres.registry.html#an.genres.registry.CompilePass" title="an.genres.registry.CompilePass"><code class="xref py py-class docutils literal notranslate"><span class="pre">CompilePass</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.compile_shot">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">compile_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1920</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1080</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#ffffff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expression_provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#compile_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.compile_shot" title="Link to this definition">#</a></dt>
+<dd><p>Compile a single cutout-style <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> to its JS-runtime JSON form.</p>
+<p><code class="docutils literal notranslate"><span class="pre">default_easing</span></code> (an#166) is the scene’s <code class="docutils literal notranslate"><span class="pre">meta.default_easing</span></code>: the
+curve of every authored tween that names none (tween &gt; this &gt; the built-in
+<code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;</span></code>, <a class="reference internal" href="an.ir.schema.html#an.ir.schema.TweenAction.resolved_easing" title="an.ir.schema.TweenAction.resolved_easing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resolved_easing()</span></code></a>).
+<code class="docutils literal notranslate"><span class="pre">None</span></code> leaves the document byte-identical to before the knob existed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">expression_provider</span></code> (an#98) is the seam that turns authored
+<code class="docutils literal notranslate"><span class="pre">expression</span></code> leaves and dialogue <code class="docutils literal notranslate"><span class="pre">[emotion]</span></code> sugar into per-axis
+curves for the face solver; <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultExpressionProvider</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">step_hz</span></code> (an#89) resamples every authored <strong>tween</strong> onto a SHOT-wide
+pose grid of that many updates per second (multiples of <code class="docutils literal notranslate"><span class="pre">1/step_hz</span></code> on
+this shot’s clock, shared by every tween in the shot; the grid restarts at
+a cut), each keyframe step-eased, so the character holds each pose for the
+frames between grid points — “on twos” at half the frame rate, “on threes”
+at a third. It is sample-and-hold of the eased curve at the grid instants,
+not a retiming into holds and fast transitions. <code class="docutils literal notranslate"><span class="pre">None</span></code> (default) leaves
+tweens smooth and the compiled document byte-identical to before the knob
+existed; anything else must satisfy <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">step_hz</span> <span class="pre">&lt;=</span> <span class="pre">fps</span></code> — checked HERE
+as well as by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>, because a render never runs validate and a
+non-positive rate used to spin <code class="docutils literal notranslate"><span class="pre">step_times</span></code> forever (an#89 review).
+Exempt by construction, because they are separate
+emission sites rather than string-sniffed: the camera (<code class="code docutils literal notranslate"><span class="pre">_add_camera_clips</span></code>
+— a stepped character under a translating camera slides in screen space,
+which is why the practice keeps cameras on ones), compiled blinks, <code class="code docutils literal notranslate"><span class="pre">play</span></code>
+clips, and swap channels (already stepped by format). The value is
+stamped into <code class="docutils literal notranslate"><span class="pre">meta.step_hz</span></code> — only when set — so a serialized scene
+declares its timing policy without moving the contract hash of one that
+has none.</p>
+<p><code class="docutils literal notranslate"><span class="pre">strict_assets</span></code> turns a stand-in asset — the placeholder rig drawn for a
+character whose descriptor is missing, or the default backdrop drawn for an
+unknown environment ref — from a warning into a <a class="reference internal" href="#an.stage.compile.CutoutCompileError" title="an.stage.compile.CutoutCompileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutCompileError</span></code></a>.
+Off by default so an asset-less project still renders; on for anything that
+measures pixels, where a stand-in is a wrong answer wearing a right one’s
+clothes (an#33).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.CutoutSceneJSON" title="an.stage.serialize.CutoutSceneJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.entity_spaces_of">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">entity_spaces_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#entity_spaces_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.entity_spaces_of" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">id:</span> <span class="pre">space}</span></code> for each entity whose kind declares a space other
+than the kernel default – what the compiled document records so the
+default evaluator agrees with validate and compile (an#245).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">Shot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entity_spaces_of</span><span class="p">(</span><span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">entities</span><span class="o">=</span><span class="p">[</span><span class="n">AssetRef</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"p"</span><span class="p">)]))</span>
+<span class="go">{}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.foreground_node_name">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">foreground_node_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#foreground_node_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.foreground_node_name" title="Link to this definition">#</a></dt>
+<dd><p>The node name an environment’s foreground planes live under.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foreground_node_name</span><span class="p">(</span><span class="s2">"street"</span><span class="p">)</span>
+<span class="go">'street__front'</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.node_path_suggestions">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">node_path_suggestions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#node_path_suggestions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.node_path_suggestions" title="Link to this definition">#</a></dt>
+<dd><p>The built node paths a mistyped <code class="docutils literal notranslate"><span class="pre">target</span></code> most plausibly meant.</p>
+<p>The paths of the SAME entity that end in the same part name — the usual
+mistake is a missing level (<code class="docutils literal notranslate"><span class="pre">ned/left_brow</span></code> for <code class="docutils literal notranslate"><span class="pre">ned/head/left_brow</span></code>)
+— or, when there are none, the closest spellings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">built</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ned"</span><span class="p">,</span> <span class="s2">"ned/head"</span><span class="p">,</span> <span class="s2">"ned/head/left_brow"</span><span class="p">,</span> <span class="s2">"ned/head/mouth"</span><span class="p">,</span> <span class="s2">"ned/arm_l"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_path_suggestions</span><span class="p">(</span><span class="s2">"ned/left_brow"</span><span class="p">,</span> <span class="n">built</span><span class="p">)</span>
+<span class="go">['ned/head/left_brow']</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_path_suggestions</span><span class="p">(</span><span class="s2">"ned/arm_x"</span><span class="p">,</span> <span class="n">built</span><span class="p">)</span>
+<span class="go">['ned/arm_l']</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_path_suggestions</span><span class="p">(</span><span class="s2">"zzz"</span><span class="p">,</span> <span class="n">built</span><span class="p">)</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.parse_tint">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">parse_tint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#parse_tint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.parse_tint" title="Link to this definition">#</a></dt>
+<dd><p>A <code class="code docutils literal notranslate"><span class="pre">#rrggbb</span></code> string to three multipliers in 0..1.</p>
+<p>Per-channel in <strong>sRGB</strong> — on the 8-bit values as written — not linear-light.
+<code class="code docutils literal notranslate"><span class="pre">tint</span></code> is a multiply the GPU applies in the space the author read the hex
+out of, and a fade between two hex values that did not pass through the
+values between them would surprise whoever wrote them (an#62).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.plane_parents">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">plane_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#plane_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.plane_parents" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{plane</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">its</span> <span class="pre">channels</span> <span class="pre">must</span> <span class="pre">target}</span></code>.</p>
+<p>One rule, computed the same way by the builder and by the parallax pass —
+the alternative is two places deciding which container a plane ended up in,
+which is the class of drift this wave keeps closing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnvironmentDescriptor</span><span class="p">,</span> <span class="n">Plane</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"e"</span><span class="p">,</span> <span class="n">planes</span><span class="o">=</span><span class="p">[</span><span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"a"</span><span class="p">),</span> <span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"b"</span><span class="p">)],</span>
+<span class="gp">... </span>                            <span class="n">characters_after</span><span class="o">=</span><span class="s2">"a"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plane_parents</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">"street"</span><span class="p">)</span>
+<span class="go">{'a': 'street', 'b': 'street__front'}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.scene_builders">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">scene_builders</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#scene_builders"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.scene_builders" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">kind:</span> <span class="pre">builder}</span></code>: the stage’s, and every registered one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="an.genres.registry.html#an.genres.registry.CompilePass" title="an.genres.registry.CompilePass"><code class="xref py py-class docutils literal notranslate"><span class="pre">CompilePass</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.stage_replacements">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">stage_replacements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#stage_replacements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.stage_replacements" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{stage</span> <span class="pre">pass</span> <span class="pre">or</span> <span class="pre">builder:</span> <span class="pre">the</span> <span class="pre">genre</span> <span class="pre">replacing</span> <span class="pre">it}</span></code> – recorded in the
+compiled document’s <code class="docutils literal notranslate"><span class="pre">meta.extensions</span></code> when non-empty.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.step_times">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">step_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#step_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.step_times" title="Link to this definition">#</a></dt>
+<dd><p>Clip-local times at which a stepped tween updates its pose (an#89).</p>
+<p>The grid is SHOT-wide — multiples of <code class="docutils literal notranslate"><span class="pre">1/step_hz</span></code> on the shot’s clock,
+shared by every tween in the shot — not the tween’s own: “on twos” means
+every character changes pose on the same frames, so a tween starting at
+0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
+independently, so the grid restarts at each cut.) Local 0 (the tween’s
+start) and <code class="docutils literal notranslate"><span class="pre">duration</span></code> (where the end value lands) are always present, so
+a tween shorter than one step is a single step to its end value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">step_hz</span></code> must be positive: with a non-positive rate the walk below never
+reaches <code class="docutils literal notranslate"><span class="pre">duration</span></code> — an infinite loop, not an error — so it is refused.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">step_times</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[0.0, 0.1, 0.2, 0.3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">step_times</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+<span class="go">[0.0, 0.05, 0.15, 0.25, 0.3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">step_times</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[0.0, 0.02]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.style_pack_for">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">style_pack_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene_meta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">styles_store</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#style_pack_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.style_pack_for" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> a scene declares, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#112).</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> for every document written before an#112 and for every scene that
+declares no pack — which is what makes this feature byte-identity-free: the
+no-pack path is a lookup with a default, not a rewrite.</p>
+<p>A declared pack that is missing, or is not a <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code>, RAISES. An art
+direction the author asked for and did not get is a different picture that
+renders happily, which is the an#33 failure this package refuses everywhere
+else.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.styles.html#an.styles.StylePack" title="an.styles.StylePack"><code class="xref py py-class docutils literal notranslate"><span class="pre">StylePack</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.unknown_target_message">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">unknown_target_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#unknown_target_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.unknown_target_message" title="Link to this definition">#</a></dt>
+<dd><p>One sentence saying <code class="docutils literal notranslate"><span class="pre">target</span></code> is not a built node, with suggestions.</p>
+<p>Shared by the compiler (which raises it) and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> (which
+reports it), so the two say the same thing about the same path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">unknown_target_message</span><span class="p">(</span><span class="s2">"ned/mouth"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"ned"</span><span class="p">,</span> <span class="s2">"ned/head"</span><span class="p">,</span> <span class="s2">"ned/head/mouth"</span><span class="p">]))</span>
+<span class="go">'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.stage.canvas_capture.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.stage.canvas_capture</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.stage.easing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.stage.easing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CAMERA_NODE"><code class="docutils literal notranslate"><span class="pre">CAMERA_NODE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CHARACTER_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">CHARACTER_ART_PREFIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.COARTICULATION_ENABLED"><code class="docutils literal notranslate"><span class="pre">COARTICULATION_ENABLED</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CONTAIN_FIT"><code class="docutils literal notranslate"><span class="pre">CONTAIN_FIT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompilePassCollision"><code class="docutils literal notranslate"><span class="pre">CompilePassCollision</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState"><code class="docutils literal notranslate"><span class="pre">CompileState</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState.extra_actions"><code class="docutils literal notranslate"><span class="pre">CompileState.extra_actions</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState.no_lip_sync"><code class="docutils literal notranslate"><span class="pre">CompileState.no_lip_sync</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState.products"><code class="docutils literal notranslate"><span class="pre">CompileState.products</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CutoutCompileError"><code class="docutils literal notranslate"><span class="pre">CutoutCompileError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CutoutCompileWarning"><code class="docutils literal notranslate"><span class="pre">CutoutCompileWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.DFLT_LEG_COLOUR"><code class="docutils literal notranslate"><span class="pre">DFLT_LEG_COLOUR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.DFLT_PUPIL_COLOUR"><code class="docutils literal notranslate"><span class="pre">DFLT_PUPIL_COLOUR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.DFLT_TARGET_SUGGESTIONS"><code class="docutils literal notranslate"><span class="pre">DFLT_TARGET_SUGGESTIONS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.ENVIRONMENT_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">ENVIRONMENT_ART_PREFIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.EYE_NODE_NAMES"><code class="docutils literal notranslate"><span class="pre">EYE_NODE_NAMES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.FOREGROUND_SUFFIX"><code class="docutils literal notranslate"><span class="pre">FOREGROUND_SUFFIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.GAZE_ELLIPSE_MARGIN"><code class="docutils literal notranslate"><span class="pre">GAZE_ELLIPSE_MARGIN</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PLANE_FILL_SPAN"><code class="docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PROCEDURAL_MOUTH_KEYS"><code class="docutils literal notranslate"><span class="pre">PROCEDURAL_MOUTH_KEYS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PROP_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">PROP_ART_PREFIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PUPIL_NODE_NAMES"><code class="docutils literal notranslate"><span class="pre">PUPIL_NODE_NAMES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.SCENE_PX_PER_VIEW_BOX"><code class="docutils literal notranslate"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_COMPILE_PASSES"><code class="docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_NODE_SPACE"><code class="docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_SCENE_BUILDERS"><code class="docutils literal notranslate"><span class="pre">STAGE_SCENE_BUILDERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.SceneBuild"><code class="docutils literal notranslate"><span class="pre">SceneBuild</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.blink_phase"><code class="docutils literal notranslate"><span class="pre">blink_phase()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.camera_keys"><code class="docutils literal notranslate"><span class="pre">camera_keys()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_passes_for_stage"><code class="docutils literal notranslate"><span class="pre">compile_passes_for_stage()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_shot"><code class="docutils literal notranslate"><span class="pre">compile_shot()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.entity_spaces_of"><code class="docutils literal notranslate"><span class="pre">entity_spaces_of()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.foreground_node_name"><code class="docutils literal notranslate"><span class="pre">foreground_node_name()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.node_path_suggestions"><code class="docutils literal notranslate"><span class="pre">node_path_suggestions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.parse_tint"><code class="docutils literal notranslate"><span class="pre">parse_tint()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.plane_parents"><code class="docutils literal notranslate"><span class="pre">plane_parents()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.scene_builders"><code class="docutils literal notranslate"><span class="pre">scene_builders()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.stage_replacements"><code class="docutils literal notranslate"><span class="pre">stage_replacements()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.step_times"><code class="docutils literal notranslate"><span class="pre">step_times()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.style_pack_for"><code class="docutils literal notranslate"><span class="pre">style_pack_for()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.unknown_target_message"><code class="docutils literal notranslate"><span class="pre">unknown_target_message()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.stage.compile.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

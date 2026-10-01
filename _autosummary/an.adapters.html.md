@@ -1,24 +1,28 @@
 # an.adapters
 
-Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).
+Renderer adapters — facades over backends (the stage, Manim, Remotion, whiteboard).
 
-The Renderer Protocol and registry live in `_base`. Concrete backends are
-imported here so they self-register on package import. Backends with missing
+The Renderer Protocol and registry live in `_base`. The core’s own optional
+backends are imported here so they self-register on package import. The stage
+(`an.stage`, the cut-out renderer) sits behind the import firewall, so it is
+named by MODULE and imported the first time the registry is asked anything
+(an#247). Backends with missing
 system deps still register but their `render()` raises a clear error;
 `can_render(shot)` continues to work for routing decisions.
 
 ### Functions
 
-| [`register_renderer`](#an.adapters.register_renderer)(renderer)   | Register a renderer in the default registry.               |
-|--------------------------------------------------------------------------------|------------------------------------------------------------|
-| [`get_renderer`](#an.adapters.get_renderer)(name)            | Look up a renderer by name in the default registry.        |
-| [`list_renderers`](#an.adapters.list_renderers)()              | Names of all renderers registered in the default registry. |
+| [`register_renderer`](#an.adapters.register_renderer)(renderer)          | Register a renderer in the default registry.                               |
+|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`get_renderer`](#an.adapters.get_renderer)(name)                   | Look up a renderer by name in the default registry.                        |
+| [`list_renderers`](#an.adapters.list_renderers)()                     | Names of all renderers registered in the default registry.                 |
+| [`register_lazy_renderer`](#an.adapters.register_lazy_renderer)(name, module) | Name the module whose import registers renderer `name` (default registry). |
 
 ### Classes
 
 | [`Renderer`](#an.adapters.Renderer)(\*args, \*\*kwargs)                       | Backend renderer interface.                                                  |
 |-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`RendererRegistry`](#an.adapters.RendererRegistry)()                                 | Name-keyed registry of renderers.                                            |
+| [`RendererRegistry`](#an.adapters.RendererRegistry)(\*[, entry_point_group])          | Name-keyed registry of renderers.                                            |
 | [`RenderContext`](#an.adapters.RenderContext)(mall, work_dir[, fps, ...])          | Everything a renderer needs that isn't on the Shot itself.                   |
 | [`RenderResult`](#an.adapters.RenderResult)(mp4_path, duration[, ...])            | Outcome of a single shot render.                                             |
 | [`ManimRenderer`](#an.adapters.ManimRenderer)(\*[, render_check, source_resolver]) | Manim Community Edition, through `manimkit`: an opaque-source shot renderer. |
@@ -214,7 +218,7 @@ renderer and accept another. an#106 renamed this from
 because `Renderer` is `@runtime_checkable` and 3.12 checks data
 members, so `isinstance(old_adapter, Renderer)` is now False.
 
-### *class* an.adapters.RendererRegistry
+### *class* an.adapters.RendererRegistry(, entry_point_group=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -224,12 +228,37 @@ A module-level instance is exposed via `register_renderer` /
 `get_renderer` / `list_renderers`; callers needing isolation (tests,
 multi-tenant servers) can construct their own.
 
+**Backends outside the core register LAZILY** (an#247): a renderer that
+lives behind the import firewall – the stage, a genre’s, a third-party
+engine – is named here by the MODULE that registers it
+([`register_lazy()`](#an.adapters.RendererRegistry.register_lazy), or the `an.renderers` entry point group), and
+that module is imported the first time the registry is asked anything. So
+importing the core loads no backend, and every lookup still finds it.
+
 #### find_for(shot)
 
 Return the first registered renderer that `can_render(shot)`.
 
+`None` when none can; a `RendererLoadError` when none can AND
+a backend failed to import, since that backend may have been the one.
+
 * **Return type:**
   [`Renderer`](#an.adapters.Renderer) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### get(name)
+
+The renderer registered as `name`, else the one that claims it
+(`get("stage")` is the stage renderer, registered as `cutout`).
+
+* **Return type:**
+  [`Renderer`](#an.adapters.Renderer)
+
+#### register_lazy(name, module)
+
+Declare that importing `module` registers the renderer `name`.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.adapters.WhiteboardRenderer
 
@@ -251,6 +280,13 @@ Names of all renderers registered in the default registry.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+### an.adapters.register_lazy_renderer(name, module)
+
+Name the module whose import registers renderer `name` (default registry).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.adapters.register_renderer(renderer)
 
 Register a renderer in the default registry.
@@ -260,8 +296,8 @@ Register a renderer in the default registry.
 
 ### Modules
 
-| [`cutout`](an.adapters.cutout.html.md#module-an.adapters.cutout)                     | Cutout-style 2D animation backend.                                               |
-|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`manim_adapter`](an.adapters.manim_adapter.html.md#module-an.adapters.manim_adapter)       | ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).     |
-| [`remotion_adapter`](an.adapters.remotion_adapter.html.md#module-an.adapters.remotion_adapter) | RemotionRenderer — invoke `npx remotion render` against a generated TSX project. |
-| [`whiteboard`](an.adapters.whiteboard.html.md#module-an.adapters.whiteboard)             | WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.           |
+| [`cutout`](an.adapters.cutout.html.md#module-an.adapters.cutout)                     | The cut-out backend's old package: the stage moved to [`an.stage`](an.stage.html.md#module-an.stage) (an#247).   |
+|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| [`manim_adapter`](an.adapters.manim_adapter.html.md#module-an.adapters.manim_adapter)       | ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).                                                                |
+| [`remotion_adapter`](an.adapters.remotion_adapter.html.md#module-an.adapters.remotion_adapter) | RemotionRenderer — invoke `npx remotion render` against a generated TSX project.                                                            |
+| [`whiteboard`](an.adapters.whiteboard.html.md#module-an.adapters.whiteboard)             | WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.                                                                      |

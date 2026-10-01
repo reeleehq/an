@@ -1,0 +1,30 @@
+an.stage.environments
+=====================
+
+.. automodule:: an.stage.environments
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PLANE_FILL_SPAN
+      Rect
+      ENVIRONMENT_DOCUMENT_KIND
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      frame_rect
+      plane_rect
+      uncovered_part
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EnvironmentDescriptor
+      Plane
+      PlaneArt
+   

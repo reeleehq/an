@@ -5,7 +5,7 @@ Ground truth: what was intended, what was executed, and what each frame shows.
 Every position here comes from one of two sources, and they are checked against
 each other at every instant the renderer captures:
 
-- **the compiled document**, evaluated by `an.adapters.cutout.timeline` — the
+- **the compiled document**, evaluated by `an.stage.timeline` — the
   executable spec of the JS runtime (parity-tested under node) — and projected
   to canvas pixels by `screen_position`. The per-frame keypoints come from
   here, at exactly the instants the renderer captured;

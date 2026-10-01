@@ -1,0 +1,25 @@
+an.stage.props
+==============
+
+.. automodule:: an.stage.props
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PROP_DOCUMENT_KIND
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      default_prop_bones
+      default_prop_slots
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PropDescriptor
+   

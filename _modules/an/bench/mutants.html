@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1381,7 +1381,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># ------------------------------------------ canvas capture (epic #9 track)</span>
     <span class="n">Mutant</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"canvas_capture_flips_rows"</span><span class="p">,</span>
-        <span class="n">file</span><span class="o">=</span><span class="s2">"an/adapters/cutout/canvas_capture.py"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/stage/canvas_capture.py"</span><span class="p">,</span>
         <span class="n">old</span><span class="o">=</span><span class="s1">'rgb = image.convert("RGB")'</span><span class="p">,</span>
         <span class="n">new</span><span class="o">=</span><span class="s1">'rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")'</span><span class="p">,</span>
         <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_canvas_capture.py"</span><span class="p">,</span>
@@ -1402,7 +1402,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># mutation is hardest to catch by reading.</span>
     <span class="n">Mutant</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"capture_page_stops_compositing_the_canvas"</span><span class="p">,</span>
-        <span class="n">file</span><span class="o">=</span><span class="s2">"an/data/cutout_runtime/index.html"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/stage/runtime/index.html"</span><span class="p">,</span>
         <span class="n">old</span><span class="o">=</span><span class="s2">"#stage { display: block; }"</span><span class="p">,</span>
         <span class="n">new</span><span class="o">=</span><span class="s2">"#stage { display: none; }"</span><span class="p">,</span>
         <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_cutout_runtime_files.py"</span><span class="p">,</span>
@@ -1418,7 +1418,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># ---------------------------------------------------------------- an#56</span>
     <span class="n">Mutant</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"supersample_autodensity_true"</span><span class="p">,</span>
-        <span class="n">file</span><span class="o">=</span><span class="s2">"an/data/cutout_runtime/runtime.js"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/stage/runtime/runtime.js"</span><span class="p">,</span>
         <span class="n">old</span><span class="o">=</span><span class="s2">"            autoDensity: false,"</span><span class="p">,</span>
         <span class="n">new</span><span class="o">=</span><span class="s2">"            autoDensity: true,"</span><span class="p">,</span>
         <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_bench_supersample_lever.py"</span><span class="p">,</span>
@@ -1728,7 +1728,7 @@ window.runMermaid = runMermaid;</script>
             <span class="c1">#</span>
             <span class="c1"># **Gated on `.py`, and that gate is the whole reason this registry</span>
             <span class="c1"># can reach the renderer at all.** Unconditionally, `compile()`</span>
-            <span class="c1"># refuses `an/data/cutout_runtime/runtime.js` and `index.html` —</span>
+            <span class="c1"># refuses `an/stage/runtime/runtime.js` and `index.html` —</span>
             <span class="c1"># which are precisely the files where a pixel-affecting mutation</span>
             <span class="c1"># hides, and where a guard is hardest to prove by argument. Before</span>
             <span class="c1"># an#58 the registry silently could not hold one, so those guards</span>

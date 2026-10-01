@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -715,7 +715,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">Every position here comes from one of two sources, and they are checked against</span>
 <span class="sd">each other at every instant the renderer captures:</span>
 
-<span class="sd">- **the compiled document**, evaluated by `an.adapters.cutout.timeline` — the</span>
+<span class="sd">- **the compiled document**, evaluated by `an.stage.timeline` — the</span>
 <span class="sd">  executable spec of the JS runtime (parity-tested under node) — and projected</span>
 <span class="sd">  to canvas pixels by `screen_position`. The per-frame keypoints come from</span>
 <span class="sd">  here, at exactly the instants the renderer captured;</span>
@@ -795,8 +795,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutSceneJSON</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutSceneJSON</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">evaluate_timeline</span><span class="p">,</span>
     <span class="n">screen_position</span><span class="p">,</span>
     <span class="n">timeline_from_scene</span><span class="p">,</span>

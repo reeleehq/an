@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="_static/documentation_options.js?v=de9a55b3"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="an.verify.vision" href="_autosummary/an.verify.vision.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -397,7 +397,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-bench">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-bench</span></code><a class="headerlink" href="#an-dev-bench" title="Link to this heading">#</a></h3>
-<p>Use when working on <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code>, the metrics ledger, the golden corpus, or anything that measures rendered output in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo. Triggers on “add a metric”, “the ledger”, “an bench”, “golden frames”, “mutation test the harness”, “why is this number moving”, “bench corpus”, or any change to <code class="docutils literal notranslate"><span class="pre">an/bench/</span></code>, <code class="docutils literal notranslate"><span class="pre">misc/bench/</span></code>, or the encode/decode flags in <code class="docutils literal notranslate"><span class="pre">an/media/mp4.py</span></code> (formerly <code class="docutils literal notranslate"><span class="pre">an/adapters/cutout/render.py</span></code>), or the frame stage in <code class="docutils literal notranslate"><span class="pre">an/engines/</span></code>.</p>
+<p>Use when working on <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code>, the metrics ledger, the golden corpus, or anything that measures rendered output in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo. Triggers on “add a metric”, “the ledger”, “an bench”, “golden frames”, “mutation test the harness”, “why is this number moving”, “bench corpus”, or any change to <code class="docutils literal notranslate"><span class="pre">an/bench/</span></code>, <code class="docutils literal notranslate"><span class="pre">misc/bench/</span></code>, or the encode/decode flags in <code class="docutils literal notranslate"><span class="pre">an/media/mp4.py</span></code> (formerly <code class="docutils literal notranslate"><span class="pre">an/stage/render.py</span></code>), or the frame stage in <code class="docutils literal notranslate"><span class="pre">an/engines/</span></code>.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-bench"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-bench</span></code></a>.</p>
 </section>
 <section id="an-dev-expression">
@@ -432,7 +432,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-runtime-assets">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-runtime-assets</span></code><a class="headerlink" href="#an-dev-runtime-assets" title="Link to this heading">#</a></h3>
-<p>Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under <code class="docutils literal notranslate"><span class="pre">an/data/</span></code>, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code>, or when a “fix” to a data file appears to have no effect. Triggers on “vendor”, “bundle”, “asset”, “force-include”, “packaging”, “it works locally but not installed”.</p>
+<p>Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under <code class="docutils literal notranslate"><span class="pre">an/stage/runtime/</span></code> (the stage’s runtime, <code class="docutils literal notranslate"><span class="pre">an/data/cutout_runtime/</span></code> before an#247) or <code class="docutils literal notranslate"><span class="pre">an/data/</span></code>, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code>, or when a “fix” to a data file appears to have no effect. Triggers on “vendor”, “bundle”, “asset”, “force-include”, “packaging”, “it works locally but not installed”.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-runtime-assets"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-runtime-assets</span></code></a>.</p>
 </section>
 <section id="an-dev-stage">

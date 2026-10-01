@@ -1,0 +1,23 @@
+an.stage.path\_geometry
+=======================
+
+.. automodule:: an.stage.path_geometry
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      HEAD_STROKE_INSET
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      flatten_curve
+      cumulative_lengths
+      point_at
+      trim_polyline
+      dash_spans
+      path_geometry
+   

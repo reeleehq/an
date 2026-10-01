@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -757,7 +757,14 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentRef</span><span class="p">,</span> <span class="n">content_hash</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRIVATE_STUDY</span><span class="p">,</span> <span class="n">PUBLIC_DOMAIN</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">license_class</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_generated_source</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">factory_recorded</span><span class="p">,</span>
+    <span class="n">is_factory_stamp</span><span class="p">,</span>
+    <span class="n">is_clutter</span><span class="p">,</span>
+    <span class="n">is_generated_source</span><span class="p">,</span>
+    <span class="n">referenced_paths</span><span class="p">,</span>
+    <span class="n">same_source</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span><span class="p">,</span> <span class="n">omit_unset</span><span class="p">,</span> <span class="n">register_kind</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">character</span> <span class="k">as</span> <span class="n">_character</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.affordances</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -810,7 +817,6 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_PACKAGE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionExistsError</span><span class="p">,</span> <span class="n">canonical_json</span><span class="p">,</span> <span class="n">version_key</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CheckoutError"</span><span class="p">,</span>
@@ -1154,7 +1160,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">origin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">METADATA_ADDED_FLAG</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">meta</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">]</span>
         <span class="n">added</span> <span class="o">=</span> <span class="n">origin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SOURCE_ADDED_KEY</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">added</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="o">==</span> <span class="n">added</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">added</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">same_source</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span> <span class="n">added</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">added</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"had_key"</span><span class="p">):</span>
                 <span class="n">doc</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">=</span> <span class="n">added</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"previous"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1202,7 +1208,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    It itemises only if it pins the same digest: a per-part source left on a</span>
 <span class="sd">    file whose bytes have since changed (a factory stamp on a re-carved part)</span>
-<span class="sd">    describes other bytes and speaks for nothing. The descriptor's ``source_svg``</span>
+<span class="sd">    describes other bytes and speaks for nothing. A factory stamp itemises only</span>
+<span class="sd">    if the factory's own record confirms it drew those bytes</span>
+<span class="sd">    (:func:`an.credits.factory_recorded`): a stamp in a descriptor, typed or</span>
+<span class="sd">    written by the public stamping functions, proves nothing (review-288 B1). The descriptor's ``source_svg``</span>
 <span class="sd">    is itemised by a generator's descriptor-level stamp pinning its digest.</span>
 <span class="sd">    """</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -1214,7 +1223,11 @@ window.runMermaid = runMermaid;</script>
             <span class="n">claim</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">own</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="n">claim</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">own</span><span class="p">)</span> <span class="ow">or</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">))</span>
+        <span class="p">):</span>
             <span class="k">return</span> <span class="n">claim</span>
     <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
@@ -1233,6 +1246,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">):</span>
+                        <span class="c1"># A factory stamp the factory's record does not</span>
+                        <span class="c1"># confirm labels nothing (review-288 B1).</span>
+                        <span class="k">continue</span>
                     <span class="k">return</span> <span class="n">source</span>
     <span class="k">return</span> <span class="kc">None</span>
 
@@ -1956,13 +1973,17 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># The carried source was a statement about the bytes it was declared</span>
         <span class="c1"># on. A file changed or added since is bytes nobody has labelled: it</span>
         <span class="c1"># stays `unknown` (in the floor, in the rights, in the credits of a</span>
-        <span class="c1"># check-out) until a publish passes `source=` again.</span>
+        <span class="c1"># check-out) until a publish passes `source=` again — unless the</span>
+        <span class="c1"># descriptor itself labels those very bytes, a per-part source pinned</span>
+        <span class="c1"># to their digest (the factory re-stamping the mouths it redrew:</span>
+        <span class="c1"># an#281), which then speaks for them as it would on any publish.</span>
         <span class="n">before</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
         <span class="n">still</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="n">unlabelled</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
             <span class="n">path</span>
             <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">!=</span> <span class="n">digest</span> <span class="ow">or</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">still</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">!=</span> <span class="n">digest</span> <span class="ow">or</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">still</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">itemising_source</span><span class="p">({</span><span class="s2">"doc"</span><span class="p">:</span> <span class="n">doc</span><span class="p">},</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="p">)</span>
     <span class="n">pending</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"doc_kind"</span><span class="p">:</span> <span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -2132,11 +2153,13 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_read_folder</span><span class="p">(</span><span class="n">folder</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_folder</span><span class="p">(</span>
+    <span class="n">folder</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">named</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)):</span>
         <span class="n">rel</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">rel</span> <span class="o">==</span> <span class="n">skip</span> <span class="ow">or</span> <span class="n">is_os_junk</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">rel</span> <span class="o">==</span> <span class="n">skip</span> <span class="ow">or</span> <span class="n">is_clutter</span><span class="p">(</span><span class="n">rel</span><span class="p">,</span> <span class="n">named</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">out</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">out</span>
@@ -2152,7 +2175,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    The descriptor is the kind's descriptor file (``character.json``); every other</span>
 <span class="sd">    file under the folder is published as one of the asset's files, so a</span>
 <span class="sd">    check-out reproduces the folder — except operating-system clutter</span>
-<span class="sd">    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`). Keyword arguments go to :func:`publish`.</span>
+<span class="sd">    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`)</span>
+<span class="sd">    that the descriptor does not name — a part it names is published whatever</span>
+<span class="sd">    its file is called (review-288 S2). Keyword arguments go to :func:`publish`.</span>
 <span class="sd">    """</span>
     <span class="n">folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">asset_kind_info</span><span class="p">(</span><span class="n">asset_kind</span><span class="p">(</span><span class="n">check_asset_id</span><span class="p">(</span><span class="n">asset_id</span><span class="p">)))</span>
@@ -2167,7 +2192,11 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">descriptor</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">publish</span><span class="p">(</span>
-        <span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">_read_folder</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">descriptor</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="n">library</span><span class="p">,</span>
+        <span class="n">asset_id</span><span class="p">,</span>
+        <span class="n">doc</span><span class="p">,</span>
+        <span class="n">_read_folder</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="n">referenced_paths</span><span class="p">(</span><span class="n">doc</span><span class="p">)),</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -2402,6 +2431,21 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">{</span><span class="n">facet</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span> <span class="k">for</span> <span class="n">facet</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counters</span><span class="o">.</span><span class="n">items</span><span class="p">())}</span>
 
 
+<span class="c1">#: How a style mismatch is named among a near miss's ``missing`` terms.</span>
+<span class="n">STYLE_GAP_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"style:"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_restyle_remedy</span><span class="p">(</span><span class="n">wanted</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">has</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">want</span> <span class="o">=</span> <span class="s2">" or "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">has</span><span class="p">))</span> <span class="ow">or</span> <span class="s2">"no style"</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"restyle it to </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> (it is curated as </span><span class="si">{</span><span class="n">now</span><span class="si">}</span><span class="s2">): apply the </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> style's "</span>
+        <span class="s2">"policy over its art — a tint, a palette, the style's speech and view "</span>
+        <span class="s2">"rules (the an-style skill) — and publish the result as a sibling id in "</span>
+        <span class="s2">"the same --family, with --style "</span> <span class="o">+</span> <span class="n">want</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="find">
 <a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.find">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find</span><span class="p">(</span>
@@ -2429,7 +2473,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        (``free`` + ``attribution``), or licence classes. Rights are recomputed</span>
 <span class="sd">        from each version's sources and lineage, not read from its cache</span>
 <span class="sd">    near: also return assets that pass every other facet but miss some</span>
-<span class="sd">        capabilities, each with what is missing and the remedy that would add it</span>
+<span class="sd">        capabilities, or are curated for another style than asked, each with</span>
+<span class="sd">        what is missing and the remedy that would add it (a style mismatch is</span>
+<span class="sd">        listed as ``style:&lt;wanted&gt;``, remedied by restyling: an#271)</span>
 <span class="sd">    index: the index to read (default: a scan of the stores)</span>
 
 <span class="sd">    &gt;&gt;&gt; lib = open_library("an", records={}, versions={}, blobs={})</span>
@@ -2466,19 +2512,29 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
                 <span class="n">entry</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">rights</span><span class="o">=</span><span class="n">_stricter</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">rights</span><span class="p">,</span> <span class="n">recomputed</span><span class="p">))</span>
             <span class="n">values</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">facet_values</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
-                <span class="n">want</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">want</span><span class="p">))</span>
+            <span class="n">failed</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">f</span>
                 <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">want</span> <span class="ow">in</span> <span class="n">asked</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">want</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">want</span><span class="p">))</span>
+            <span class="p">}</span>
+            <span class="c1"># Only the style differs: with near=True, a restyle away (an#271).</span>
+            <span class="n">restyle</span> <span class="o">=</span> <span class="n">near</span> <span class="ow">and</span> <span class="n">failed</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"style"</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">failed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">restyle</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">license_classes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
                 <span class="n">values</span><span class="p">[</span><span class="s2">"license_class"</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">license_classes</span>
             <span class="p">):</span>
                 <span class="k">continue</span>
             <span class="n">gaps</span> <span class="o">=</span> <span class="n">missing</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">affordances</span><span class="p">,</span> <span class="n">wanted</span><span class="p">)</span>
+            <span class="n">remedies</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span> <span class="n">remedy_for</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">restyle</span><span class="p">:</span>
+                <span class="n">term</span> <span class="o">=</span> <span class="n">STYLE_GAP_PREFIX</span> <span class="o">+</span> <span class="s2">"|"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[])</span>
+                <span class="n">gaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span><span class="p">,</span> <span class="o">*</span><span class="n">gaps</span><span class="p">]</span>
+                <span class="n">remedies</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">_restyle_remedy</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[],</span> <span class="n">values</span><span class="p">[</span><span class="s2">"style"</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">gaps</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">near</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="n">score</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">gaps</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="k">if</span> <span class="n">wanted</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="n">asks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="p">(</span><span class="n">asks</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">gaps</span><span class="p">))</span> <span class="o">/</span> <span class="n">asks</span> <span class="k">if</span> <span class="n">asks</span> <span class="k">else</span> <span class="mf">1.0</span>
             <span class="n">hit</span> <span class="o">=</span> <span class="n">Hit</span><span class="p">(</span>
                 <span class="n">entry</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
                 <span class="n">entry</span><span class="o">.</span><span class="n">asset_id</span><span class="p">,</span>
@@ -2487,7 +2543,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">title</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">),</span>
                 <span class="n">license_class</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span>
                 <span class="n">missing</span><span class="o">=</span><span class="n">gaps</span><span class="p">,</span>
-                <span class="n">remedies</span><span class="o">=</span><span class="p">{</span><span class="n">g</span><span class="p">:</span> <span class="n">remedy_for</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">},</span>
+                <span class="n">remedies</span><span class="o">=</span><span class="n">remedies</span><span class="p">,</span>
                 <span class="n">federated</span><span class="o">=</span><span class="n">federated</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">gaps</span><span class="p">:</span>

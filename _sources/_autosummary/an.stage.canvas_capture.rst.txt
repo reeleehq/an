@@ -1,0 +1,26 @@
+an.stage.canvas\_capture
+========================
+
+.. automodule:: an.stage.canvas_capture
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DATA_URL_PREFIX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      canvas_frame_png
+      decode_data_url
+      opaque_rgb
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CanvasCaptureError
+   

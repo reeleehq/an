@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -769,6 +769,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CORE_OWNER</span><span class="p">,</span>
     <span class="n">ActionKind</span><span class="p">,</span>
+    <span class="n">CompilePass</span><span class="p">,</span>
+    <span class="n">RuntimeScript</span><span class="p">,</span>
     <span class="n">DialogueSugar</span><span class="p">,</span>
     <span class="n">EntityKind</span><span class="p">,</span>
     <span class="n">RegistryError</span><span class="p">,</span>
@@ -780,6 +782,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">entity_kind_names</span><span class="p">,</span>
     <span class="n">register_action_kind</span><span class="p">,</span>
     <span class="n">register_check</span><span class="p">,</span>
+    <span class="n">register_compile_pass</span><span class="p">,</span>
+    <span class="n">register_runtime_script</span><span class="p">,</span>
     <span class="n">register_dialogue_sugar</span><span class="p">,</span>
     <span class="n">register_entity_kind</span><span class="p">,</span>
     <span class="n">restore</span><span class="p">,</span>
@@ -844,6 +848,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">analysers</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">vocabulary</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">aspects</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="c1">#: Steps the genre adds to an engine's compiler, and builders for its</span>
+    <span class="c1">#: entity kinds (:class:`CompilePass`; an#247).</span>
+    <span class="n">compile_passes</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CompilePass</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="c1">#: Code the genre adds to an engine's runtime: its visual kinds</span>
+    <span class="c1">#: (:class:`RuntimeScript`; an#247).</span>
+    <span class="n">runtime_scripts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">RuntimeScript</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
 <div class="viewcode-block" id="Genre.provides">
 <a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.Genre.provides">[docs]</a>
@@ -864,6 +874,8 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"analysers"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">analysers</span><span class="p">),</span>
             <span class="s2">"vocabulary"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="p">),</span>
             <span class="s2">"aspects"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspects</span><span class="p">),</span>
+            <span class="s2">"compile passes"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_passes</span><span class="p">),</span>
+            <span class="s2">"runtime scripts"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_scripts</span><span class="p">),</span>
         <span class="p">}</span></div>
 </div>
 
@@ -936,6 +948,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">register_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">sugar</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">dialogue_sugar</span><span class="p">:</span>
         <span class="n">register_dialogue_sugar</span><span class="p">(</span><span class="n">sugar</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">compile_pass</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">compile_passes</span><span class="p">:</span>
+        <span class="n">register_compile_pass</span><span class="p">(</span><span class="n">compile_pass</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">script</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">runtime_scripts</span><span class="p">:</span>
+        <span class="n">register_runtime_script</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">genre</span><span class="o">.</span><span class="n">capabilities</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">analysers</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">vocabulary</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">aspects</span><span class="p">:</span>
         <span class="n">_install_semantics</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="o">=</span><span class="n">check_capabilities</span><span class="p">)</span>
 
@@ -1247,9 +1263,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    unregistered or declares no space, gets ``default`` — the timing default</span>
 <span class="sd">    :data:`an.timing.spaces.DFLT_TIMELINE_SPACE` when ``None``.</span>
 
-<span class="sd">    (The default EVALUATOR still uses that one space for every target: a</span>
-<span class="sd">    compiled stage document does not carry its entities' kinds, so a</span>
-<span class="sd">    per-entity evaluation default arrives with the ``Engine`` seam, P3.)</span>
+<span class="sd">    The default EVALUATOR agrees since an#245: the stage's compiled document</span>
+<span class="sd">    records each entity whose kind declares another space</span>
+<span class="sd">    (``meta.entity_spaces``), and ``timeline_from_compiled`` resolves by it.</span>
 
 <span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef</span>
 <span class="sd">    &gt;&gt;&gt; space_of = entity_space_resolver([AssetRef(kind="prop", id="lamp", store="props", ref="l")])</span>
@@ -1312,6 +1328,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"ENTRY_POINT_GROUP"</span><span class="p">,</span>
     <span class="s2">"ActionKind"</span><span class="p">,</span>
+    <span class="s2">"CompilePass"</span><span class="p">,</span>
+    <span class="s2">"RuntimeScript"</span><span class="p">,</span>
     <span class="s2">"DialogueSugar"</span><span class="p">,</span>
     <span class="s2">"EntityKind"</span><span class="p">,</span>
     <span class="s2">"Genre"</span><span class="p">,</span>

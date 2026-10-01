@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.cache_key" href="an.adapters.cutout.cache_key.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -610,187 +633,11 @@
                   
   <section id="module-an.adapters.cutout.canvas_capture">
 <span id="an-adapters-cutout-canvas-capture"></span><h1>an.adapters.cutout.canvas_capture<a class="headerlink" href="#module-an.adapters.cutout.canvas_capture" title="Link to this heading">#</a></h1>
-<p>The canvas capture path: frames read from the page, not photographed off the screen.</p>
-<p>The screenshot capture (<code class="code docutils literal notranslate"><span class="pre">render._capture_frames</span></code>, <code class="docutils literal notranslate"><span class="pre">capture=&quot;screenshot&quot;</span></code>, the
-default until an#192) asks Playwright for an ELEMENT screenshot of <code class="docutils literal notranslate"><span class="pre">#stage</span></code> on
-every frame. That is a page
-capture clipped to the element, taken from the compositor, and it is the largest
-single cost in the frame path — ~100 ms/frame at 1080p that is neither the GPU
-readback nor the PNG encode (<code class="code docutils literal notranslate"><span class="pre">an-dev-render-pipeline</span></code> §8). This path instead
-asks the runtime for the canvas’s own pixels (<code class="docutils literal notranslate"><span class="pre">window.anCaptureFrames</span></code> in
-<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>: seek, <code class="docutils literal notranslate"><span class="pre">app.view.toDataURL('image/png')</span></code>), in batches, and does
-the rest here.</p>
-<p>**It is a different route to the same pixels, and the whole contract is that
-nothing downstream can tell.** The frames it writes are RGB PNGs of the declared
-size whose DECODED arrays equal the screenshot path’s, so ffmpeg receives the
-same frames, the golden gate the same arrays, and the bench the same sizes. The
-file bytes differ (a different PNG encoder), which is why the equivalence gate is
-on decoded pixels — the same criterion the golden corpus already uses.</p>
-<p>The classic traps, and where each one is closed:</p>
-<ul class="simple">
-<li><p><strong>Row order.</strong> <code class="docutils literal notranslate"><span class="pre">gl.readPixels</span></code> returns rows bottom-up. <code class="docutils literal notranslate"><span class="pre">toDataURL</span></code> returns
-the image top-down, and this path uses <code class="docutils literal notranslate"><span class="pre">toDataURL</span></code> — so there is no flip,
-and adding one is the mutation the equivalence test must catch.</p></li>
-<li><p><strong>Premultiplied alpha.</strong> Not live today: the runtime leaves PixiJS’s
-<code class="docutils literal notranslate"><span class="pre">backgroundAlpha</span></code> at 1, so the WebGL context is created without alpha and
-every pixel measured came back at 255. It becomes live the day a scene gets a
-translucent background — then the premultiplied drawing buffer, the
-un-premultiplied PNG and the screenshot’s composite over the page’s white all
-disagree. So a frame with any pixel below full alpha is REFUSED
-(<a class="reference internal" href="#an.adapters.cutout.canvas_capture.opaque_rgb" title="an.adapters.cutout.canvas_capture.opaque_rgb"><code class="xref py py-func docutils literal notranslate"><span class="pre">opaque_rgb()</span></code></a>) rather than guessed at: compositing it here would be a
-second implementation of the browser’s blend, equal to it only by luck.</p></li>
-<li><p>**Why not <code class="docutils literal notranslate"><span class="pre">renderer.extract</span></code>.** It re-renders the stage into a render
-texture, which is not multisampled — a different picture from the one the
-<code class="docutils literal notranslate"><span class="pre">antialias:</span> <span class="pre">true</span></code> backbuffer holds.</p></li>
-<li><p>**Why not raw <code class="docutils literal notranslate"><span class="pre">readPixels</span></code> bytes.** Measured at 1920x1080 on an M1 Max:
-moving 8 MB of RGBA per frame across the DevTools protocol costs 830-950
-ms/frame (in-page base64 through <code class="docutils literal notranslate"><span class="pre">btoa</span></code> or <code class="docutils literal notranslate"><span class="pre">FileReader</span></code>), and Playwright’s
-own typed-array serialisation 5.9 s/frame — against ~46 ms/frame for the PNG
-data URL, which is ~45 KB. The PNG <em>is</em> the transfer encoding.</p></li>
-</ul>
-<p>Supersampling and the frame clock go through the same arithmetic as the
-screenshot path — <a class="reference internal" href="an.adapters.cutout.supersample.html#an.adapters.cutout.supersample.block_mean_resolve" title="an.adapters.cutout.supersample.block_mean_resolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.adapters.cutout.supersample.block_mean_resolve()</span></code></a> then
-<a class="reference internal" href="an.adapters.cutout.shutter.html#an.adapters.cutout.shutter.temporal_mean" title="an.adapters.cutout.shutter.temporal_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.adapters.cutout.shutter.temporal_mean()</span></code></a> — so a supersampled or blurred
-canvas frame is the screenshot path’s frame, not a lookalike.</p>
-<p>Nothing in this module touches a browser: it is the pure half, testable offline.
-The loop that drives the page (batching, ordering, back-pressure) is
-<code class="docutils literal notranslate"><span class="pre">render._capture_frames_canvas</span></code>.</p>
-<p class="rubric">Module Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.canvas_capture.DATA_URL_PREFIX" title="an.adapters.cutout.canvas_capture.DATA_URL_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DATA_URL_PREFIX</span></code></a></p></td>
-<td><p>What <code class="docutils literal notranslate"><span class="pre">HTMLCanvasElement.toDataURL('image/png')</span></code> returns.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.canvas_capture.canvas_frame_png" title="an.adapters.cutout.canvas_capture.canvas_frame_png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canvas_frame_png</span></code></a>(samples, *, frame[, ...])</p></td>
-<td><p>One output frame's canvas PNGs -&gt; the RGB PNG the screenshot path writes.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.canvas_capture.decode_data_url" title="an.adapters.cutout.canvas_capture.decode_data_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_data_url</span></code></a>(url, *, frame)</p></td>
-<td><p>A <code class="docutils literal notranslate"><span class="pre">toDataURL('image/png')</span></code> result -&gt; the PNG's bytes, or refuse.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.canvas_capture.opaque_rgb" title="an.adapters.cutout.canvas_capture.opaque_rgb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">opaque_rgb</span></code></a>(png, *, frame)</p></td>
-<td><p>Decode a canvas PNG to an RGB <code class="docutils literal notranslate"><span class="pre">PIL.Image</span></code>, refusing any transparency.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Exceptions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.canvas_capture.CanvasCaptureError" title="an.adapters.cutout.canvas_capture.CanvasCaptureError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CanvasCaptureError</span></code></a></p></td>
-<td><p>A captured frame that cannot be turned into the screenshot path's frame.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py exception">
-<dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.CanvasCaptureError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">CanvasCaptureError</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/canvas_capture.html#CanvasCaptureError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.canvas_capture.CanvasCaptureError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
-<p>A captured frame that cannot be turned into the screenshot path’s frame.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.DATA_URL_PREFIX">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">DATA_URL_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'data:image/png;base64,'</span></span><a class="headerlink" href="#an.adapters.cutout.canvas_capture.DATA_URL_PREFIX" title="Link to this definition">#</a></dt>
-<dd><p>What <code class="docutils literal notranslate"><span class="pre">HTMLCanvasElement.toDataURL('image/png')</span></code> returns. Anything else —
-<code class="docutils literal notranslate"><span class="pre">&quot;data:,&quot;</span></code> for a zero-size canvas, or a JPEG a browser fell back to — is
-refused rather than decoded as whatever it happens to be.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.canvas_frame_png">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">canvas_frame_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compress_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/canvas_capture.html#canvas_frame_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.canvas_capture.canvas_frame_png" title="Link to this definition">#</a></dt>
-<dd><p>One output frame’s canvas PNGs -&gt; the RGB PNG the screenshot path writes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">samples</span></code> are the frame’s instants in capture order (one unless a frame
-clock opened the shutter). Each is decoded and refused unless opaque,
-resolved by <code class="docutils literal notranslate"><span class="pre">factor</span></code> with the product’s block mean, and the results
-averaged with the product’s temporal mean — the arithmetic the screenshot
-path runs, so the two agree about every tie. <code class="docutils literal notranslate"><span class="pre">size</span></code> (width, height), when
-given, is the DECLARED size the resolved frame must have: a canvas that is
-not <code class="docutils literal notranslate"><span class="pre">factor</span></code> times it is refused here, not muxed. <code class="docutils literal notranslate"><span class="pre">compress_level=None</span></code>
-reads <code class="xref py py-data docutils literal notranslate"><span class="pre">DEFAULT_PNG_COMPRESS_LEVEL</span></code> at call time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">png</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">();</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">big</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="mi">255</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">);</span> <span class="n">big</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">canvas_frame_png</span><span class="p">([</span><span class="n">png</span><span class="p">(</span><span class="n">big</span><span class="p">)],</span> <span class="n">frame</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">out</span><span class="p">)))</span><span class="o">.</span><span class="n">shape</span>
-<span class="go">(2, 3, 3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">canvas_frame_png</span><span class="p">([</span><span class="n">png</span><span class="p">(</span><span class="n">big</span><span class="p">)],</span> <span class="n">frame</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="gt">Traceback (most recent call last):</span>
-<span class="w">  </span><span class="c">...</span>
-<span class="gr">an.adapters.cutout.canvas_capture.CanvasCaptureError</span>: <span class="n">frame 9: resolved to 6x4, declared 3x2 (supersample 1)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.decode_data_url">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">decode_data_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/canvas_capture.html#decode_data_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.canvas_capture.decode_data_url" title="Link to this definition">#</a></dt>
-<dd><p>A <code class="docutils literal notranslate"><span class="pre">toDataURL('image/png')</span></code> result -&gt; the PNG’s bytes, or refuse.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">decode_data_url</span><span class="p">(</span><span class="n">DATA_URL_PREFIX</span> <span class="o">+</span> <span class="s2">"iVBORw=="</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span>
-<span class="go">b'\x89PNG'</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">decode_data_url</span><span class="p">(</span><span class="s2">"data:,"</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="gt">Traceback (most recent call last):</span>
-<span class="w">  </span><span class="c">...</span>
-<span class="gr">an.adapters.cutout.canvas_capture.CanvasCaptureError</span>: <span class="n">frame 3: the canvas returned 'data:,' rather than a PNG data URL — a zero-size canvas does this</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.canvas_capture.opaque_rgb">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.canvas_capture.</span></span><span class="sig-name descname"><span class="pre">opaque_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">png</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/canvas_capture.html#opaque_rgb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.canvas_capture.opaque_rgb" title="Link to this definition">#</a></dt>
-<dd><p>Decode a canvas PNG to an RGB <code class="docutils literal notranslate"><span class="pre">PIL.Image</span></code>, refusing any transparency.</p>
-<p>The screenshot path composites the canvas over the page (white, since
-<code class="docutils literal notranslate"><span class="pre">omit_background=False</span></code>); where every pixel has alpha 255 that composite
-is the identity, and the premultiplied drawing buffer and the
-un-premultiplied PNG agree. Anywhere else the two paths would differ, so the
-frame is refused with a count rather than blended here.</p>
-<p>Pillow end to end, deliberately: the alpha check is <code class="docutils literal notranslate"><span class="pre">getextrema</span></code> and the
-drop is <code class="docutils literal notranslate"><span class="pre">convert(&quot;RGB&quot;)</span></code>, both in C. Slicing <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">:3]</span></code> out of a numpy
-view and copying it contiguous measured ~5x slower at 1080p, on a path whose
-whole point is time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">png</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">();</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rgba</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">);</span> <span class="n">rgba</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">255</span><span class="p">;</span> <span class="n">rgba</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">7</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">opaque_rgb</span><span class="p">(</span><span class="n">png</span><span class="p">(</span><span class="n">rgba</span><span class="p">),</span> <span class="n">frame</span><span class="o">=</span><span class="mi">0</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="go">[7, 0, 0]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rgba</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">128</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">opaque_rgb</span><span class="p">(</span><span class="n">png</span><span class="p">(</span><span class="n">rgba</span><span class="p">),</span> <span class="n">frame</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="gt">Traceback (most recent call last):</span>
-<span class="w">  </span><span class="c">...</span>
-<span class="gr">an.adapters.cutout.canvas_capture.CanvasCaptureError</span>: <span class="n">frame 5: 1 of 6 canvas pixels are not opaque (min alpha 128); the screenshot path would composite them over the page's white and this path will not guess at that blend</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<p>Moved to <a class="reference internal" href="an.stage.canvas_capture.html#module-an.stage.canvas_capture" title="an.stage.canvas_capture"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.canvas_capture</span></code></a> (an#247); this path is a LIVE alias of it.</p>
+<p>The 2D stage runtime is the first engine, outside the core’s import firewall
+(ADR 0001 decisions 5 and 14). Every name of the new module is reachable here,
+and rebinding one here (a bench lever, <code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code>) rebinds it there, where
+the code runs (<code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>).</p>
 </section>
 
 
@@ -831,22 +678,6 @@ whole point is time.</p>
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.canvas_capture.CanvasCaptureError"><code class="docutils literal notranslate"><span class="pre">CanvasCaptureError</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.canvas_capture.DATA_URL_PREFIX"><code class="docutils literal notranslate"><span class="pre">DATA_URL_PREFIX</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.canvas_capture.canvas_frame_png"><code class="docutils literal notranslate"><span class="pre">canvas_frame_png()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.canvas_capture.decode_data_url"><code class="docutils literal notranslate"><span class="pre">decode_data_url()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.canvas_capture.opaque_rgb"><code class="docutils literal notranslate"><span class="pre">opaque_rgb()</span></code></a></li>
-</ul>
-  </nav></div>
 
   <div class="sidebar-secondary-item">
 

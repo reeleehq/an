@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -752,7 +752,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">paper grain over the frame (:class:`Grain`). Every one is a COMPILE-TIME</span>
 <span class="sd">expansion into ordinary document content — underlay copies of a part's own</span>
 <span class="sd">visual, a gradient sprite, a seeded noise tile — never a runtime filter, and</span>
-<span class="sd">never anything random at render time. `an.adapters.cutout.surface` does the</span>
+<span class="sd">never anything random at render time. `an.stage.surface` does the</span>
 <span class="sd">expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:</span>
 <span class="sd">they copy a part's texture rather than recolour it. Every width and offset is in</span>
 <span class="sd">the rig's own pixels, so a treatment scales with the character like paper would.</span>
@@ -806,7 +806,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: `skin`, `clothing` and `hair` are `_CHARACTER_PALETTES`' three components;</span>
 <span class="c1">#: `leg` and `pupil` are the compiler's own literals (`DFLT_LEG_COLOUR`,</span>
 <span class="c1">#: `DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets';</span>
-<span class="c1">#: `stroke` is a stroked path's default colour (`an.paths.DFLT_STROKE_COLOUR`,</span>
+<span class="c1">#: `stroke` is a stroked path's default colour (`an.stage.paths.DFLT_STROKE_COLOUR`,</span>
 <span class="c1">#: an#161) — the arrowhead is filled in the same colour, so it is not a second</span>
 <span class="c1">#: role. A path that names its own `color` is art and is left alone.</span>
 <span class="c1">#: `accessory` (a hat, a sash) exists only in role-tagged SVG art — the</span>
@@ -901,7 +901,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    what dilating by a disk gives) and, for an ellipse, the ellipse with both</span>
 <span class="sd">    radii grown (exact on the axes and for circles). On an SVG part it is a</span>
 <span class="sd">    ring of copies of the part's texture offset by ``width`` in</span>
-<span class="sd">    ``an.adapters.cutout.surface.OUTLINE_RING`` directions, drawn in ``color``</span>
+<span class="sd">    ``an.stage.surface.OUTLINE_RING`` directions, drawn in ``color``</span>
 <span class="sd">    as a `tint`: tint MULTIPLIES, so the outline is exactly ``color`` where the</span>
 <span class="sd">    art is white and darker elsewhere — exact everywhere for black, and within a</span>
 <span class="sd">    few levels of it for the default near-black.</span>
@@ -975,7 +975,7 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">Grain</span><span class="p">(</span><span class="n">_Treatment</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One static paper-grain texture over the whole frame.</span>
 
-<span class="sd">    Seeded noise generated at COMPILE time (``an.adapters.cutout.surface``),</span>
+<span class="sd">    Seeded noise generated at COMPILE time (``an.stage.surface``),</span>
 <span class="sd">    tiled on the camera-immune overlay under any text, and MULTIPLIED onto the</span>
 <span class="sd">    frame — so it only ever darkens, by at most ``amount``. The same seed is the</span>
 <span class="sd">    same grain on every frame and every machine; nothing is random at render</span>

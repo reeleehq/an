@@ -76,7 +76,7 @@ round(duration * fps))` ([`an.frame_clock`](an.frame_clock.html.md#module-an.fra
 | [`FieldDecl`](#an.timing.FieldDecl)(pattern, kind[, unit, writes, ...]) | One declaration of a property space: pattern -> kind, write group, unit.                |
 | [`PropertySpace`](#an.timing.PropertySpace)(name[, fields, version, ...])   | An entity kind's properties: declarations, matched exact-first then by glob.            |
 | [`PlacedClip`](#an.timing.PlacedClip)(clip[, start_time, duration, ...]) | A clip placed at an absolute time on a track.                                           |
-| [`Timeline`](#an.timing.Timeline)(duration[, tracks])                  | A duration + ordered list of tracks.                                                    |
+| [`Timeline`](#an.timing.Timeline)(duration[, tracks, space])           | A duration + ordered list of tracks.                                                    |
 | [`Track`](#an.timing.Track)([target_root, clips])                   | A sequence of placed clips that share a common purpose / target prefix.                 |
 
 ### Exceptions
@@ -403,11 +403,18 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A property space is malformed, unknown, or already registered.
 
-### *class* an.timing.Timeline(duration, tracks=<factory>)
+### *class* an.timing.Timeline(duration, tracks=<factory>, space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A duration + ordered list of tracks. The canonical playback structure.
+
+`space` is the property space the timeline’s DOCUMENT declares for its
+targets (an#245): one space, a registered name, or a `target -> space`
+resolver. It is what [`evaluate_timeline()`](#an.timing.evaluate_timeline) uses when the caller passes
+none, so every caller of the default evaluates a target in the space its
+entity’s kind declares. `None` (every document that declares nothing) is
+the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
 ### *class* an.timing.Track(target_root='', clips=<factory>)
 
@@ -450,7 +457,7 @@ Apply an easing spec to a normalised parameter `t` in `[0, 1]`.
 
 `names` restricts the string specs accepted to that collection — what an
 engine that implements only part of the registry passes (the stage runtime
-implements the legacy names; see `an.adapters.cutout.easing`). Sequences
+implements the legacy names; see `an.stage.easing`). Sequences
 always take the legacy Bézier solver.
 
 * **Return type:**

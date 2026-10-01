@@ -15,7 +15,7 @@ never `shot.id`) already has an entry, and reuses that entry’s mp4.
   the entries, shaped as `lacing` artifacts in a `lacing.ArtifactStore`.
 
 The core names no renderer; the cut-out keyer lives with the cut-out backend
-(`an.adapters.cutout.cache_key`) and registers on its import.
+(`an.stage.cache_key`) and registers on its import.
 
 ```pycon
 >>> from an.build import ShotCache, resolve_incremental
@@ -231,11 +231,14 @@ first keyer’s parts from every key without anyone saying so.
 
 The renderer names that have a keyer.
 
+A keyer registers beside its renderer, and a backend behind the import
+firewall registers when the renderer registry first loads it (an#247), so
+this loads the registry first.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
->>> import an.adapters  # registers the built-in renderers and their keyers
 >>> "cutout" in registered_shot_keyers()
 True
 ```

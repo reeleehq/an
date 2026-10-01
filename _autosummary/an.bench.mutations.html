@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.mutants" href="an.bench.mutants.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -635,7 +658,7 @@ knob with <strong>no lever</strong>, on measurement — a per-frame instrument c
 temporal choice (the <code class="code docutils literal notranslate"><span class="pre">an-dev-bench</span></code> skill’s table has the numbers). Each lever
 reaches an existing seam from the outside:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">high_crf</span></code> rebinds <code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render.DETERMINISTIC_X264_ARGS</span></code>.
+<li><p><code class="docutils literal notranslate"><span class="pre">high_crf</span></code> rebinds <code class="docutils literal notranslate"><span class="pre">an.stage.render.DETERMINISTIC_X264_ARGS</span></code>.
 <code class="docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code> reads that name as a module global at call time, so the
 rebinding reaches the delivered encode. It does <strong>not</strong> reach
 <code class="docutils literal notranslate"><span class="pre">an.bench.imageio.lossless_encode_command</span></code>, which bound the tuple at import
@@ -643,7 +666,7 @@ rebinding reaches the delivered encode. It does <strong>not</strong> reach
 every encode-side metric would be measured against a moving target and the
 lever would produce beautiful numbers about nothing.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">disabled_aa</span></code> copies the staged runtime, flips PixiJS’s <code class="docutils literal notranslate"><span class="pre">antialias</span></code> in the
-copy, and rebinds <code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render.runtime_dir</span></code>. The shipped
+copy, and rebinds <code class="docutils literal notranslate"><span class="pre">an.stage.render.runtime_dir</span></code>. The shipped
 <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> is never written to.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">supersample</span></code> reaches the SAME runtime seam — <code class="docutils literal notranslate"><span class="pre">resolution:</span> <span class="pre">k,</span>
 <span class="pre">autoDensity:</span> <span class="pre">false</span></code> in the Pixi application options — and then a second one

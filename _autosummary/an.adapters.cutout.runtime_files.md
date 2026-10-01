@@ -1,45 +1,8 @@
 # an.adapters.cutout.runtime_files
 
-Locate the bundled cutout JS runtime files.
+Moved to [`an.stage.runtime_files`](an.stage.runtime_files.md#module-an.stage.runtime_files) (an#247); this path is a LIVE alias of it.
 
-The runtime ships under `an/data/cutout_runtime/` and is consumed by the
-headless renderer in Phase 2C. This module exposes paths so callers don’t
-hard-code the layout.
-
-```pycon
->>> p = runtime_dir()
->>> p.is_dir()
-True
->>> (p / "index.html").is_file()
-True
-```
-
-### Functions
-
-| [`runtime_dir`](#an.adapters.cutout.runtime_files.runtime_dir)()        | Return the directory containing index.html + runtime.js.   |
-|-----------------------------------------------------------------------|------------------------------------------------------------|
-| [`runtime_index_html`](#an.adapters.cutout.runtime_files.runtime_index_html)() | Path to `index.html`.                                      |
-| [`runtime_js`](#an.adapters.cutout.runtime_files.runtime_js)()         | Path to `runtime.js`.                                      |
-
-### an.adapters.cutout.runtime_files.runtime_dir()
-
-Return the directory containing index.html + runtime.js.
-
-Uses importlib.resources so it works from a wheel install too.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.adapters.cutout.runtime_files.runtime_index_html()
-
-Path to `index.html`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.adapters.cutout.runtime_files.runtime_js()
-
-Path to `runtime.js`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+The 2D stage runtime is the first engine, outside the core’s import firewall
+(ADR 0001 decisions 5 and 14). Every name of the new module is reachable here,
+and rebinding one here (a bench lever, `monkeypatch`) rebinds it there, where
+the code runs (`an._shims.alias_module()`).

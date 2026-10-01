@@ -11,6 +11,7 @@ an.adapters
       register_renderer
       get_renderer
       list_renderers
+      register_lazy_renderer
    
    .. rubric:: Classes
 

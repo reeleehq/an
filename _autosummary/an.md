@@ -146,7 +146,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
-`an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
+`an.stage.compile.CAMERA_MOVES`; validate and the compiler are
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
@@ -580,8 +580,8 @@ by `i * lag`. It is authoring sugar, not a new kind — it builds the
 `parallel` of `sequence(delay(i * lag), action)` it means, so the
 scene document, `scene.md` and every renderer see only core kinds.
 Total duration: the latest child’s end. `scene.md` holds it verbatim (a
-`kind: parallel` entry), so it round-trips. (`an.text.reveal_units` —
-`an.text.stagger` before an#241 — is the text-block preset: a LIST of
+`kind: parallel` entry), so it round-trips. (`an.stage.text.reveal_units` —
+`an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
 * **Return type:**
@@ -670,47 +670,48 @@ skip that shot rather than crash.
 
 ### Modules
 
-| [`adapters`](an.adapters.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).                   |
-|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| [`assemble`](an.assemble.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.                      |
-| [`audio`](an.audio.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                                       |
-| [`base`](an.base.md#module-an.base)                 | Core types, constants, and re-exports for an.                                                      |
-| [`bench`](an.bench.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.                 |
-| [`build`](an.build.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                              |
-| [`capabilities`](an.capabilities.md#module-an.capabilities) | Capabilities: what an asset, an engine or the environment affords, and the one matcher.            |
-| [`captions`](an.captions.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                       |
-| [`characters`](an.characters.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                                      |
-| [`conftest`](an.conftest.md#module-an.conftest)         | Collection rules for the package's own doctests.                                                   |
-| [`credits`](an.credits.md#module-an.credits)           | What a rendered video owes, and to whom.                                                           |
-| [`data`](an.data.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                            |
-| [`determinism`](an.determinism.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                    |
-| [`engines`](an.engines.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.        |
-| [`environments`](an.environments.md#module-an.environments) | Environments: a stage made of planes, at declared depths.                                          |
-| [`expression`](an.expression.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                                     |
-| [`frame_clock`](an.frame_clock.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                        |
-| [`genres`](an.genres.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                         |
-| [`impacts`](an.impacts.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.                      |
-| [`ir`](an.ir.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                 |
-| [`iterate`](an.iterate.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.                     |
-| [`library`](an.library.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                           |
-| [`live_api`](an.live_api.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                          |
-| [`mcp`](an.mcp.md#module-an.mcp)                   | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry. |
-| [`measurements`](an.measurements.md#module-an.measurements) | Measured durations: shots whose renderer, not their author, decides their length.                  |
-| [`media`](an.media.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.              |
-| [`motion`](an.motion.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                          |
-| [`orchestrate`](an.orchestrate.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                  |
-| [`paths`](an.paths.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                            |
-| [`preview`](an.preview.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit.             |
-| [`project`](an.project.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                     |
-| [`props`](an.props.md#module-an.props)               | Props: a rig whose art is not a person.                                                            |
-| [`raster`](an.raster.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                            |
-| [`render`](an.render.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.                    |
-| [`semantic`](an.semantic.md#module-an.semantic)         | The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.           |
-| [`sounds`](an.sounds.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.                   |
-| [`stores`](an.stores.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                                        |
-| [`styles`](an.styles.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had.             |
-| [`text`](an.text.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.                       |
-| [`timing`](an.timing.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                              |
-| [`tools`](an.tools.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                                |
-| [`util`](an.util.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                        |
-| [`verify`](an.verify.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.                          |
+| [`adapters`](an.adapters.md#module-an.adapters)         | Renderer adapters — facades over backends (the stage, Manim, Remotion, whiteboard).                                                                     |
+|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`assemble`](an.assemble.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.                                                                           |
+| [`audio`](an.audio.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                                                                                            |
+| [`base`](an.base.md#module-an.base)                 | Core types, constants, and re-exports for an.                                                                                                           |
+| [`bench`](an.bench.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.                                                                      |
+| [`build`](an.build.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                                                                                   |
+| [`capabilities`](an.capabilities.md#module-an.capabilities) | Capabilities: what an asset, an engine or the environment affords, and the one matcher.                                                                 |
+| [`captions`](an.captions.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                                                                            |
+| [`characters`](an.characters.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                                                                                           |
+| [`conftest`](an.conftest.md#module-an.conftest)         | Collection rules for the package's own doctests.                                                                                                        |
+| [`credits`](an.credits.md#module-an.credits)           | What a rendered video owes, and to whom.                                                                                                                |
+| [`data`](an.data.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                                                                                 |
+| [`determinism`](an.determinism.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                                                                         |
+| [`engines`](an.engines.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.                                                             |
+| [`environments`](an.environments.md#module-an.environments) | Moved to [`an.stage.environments`](an.stage.environments.md#module-an.stage.environments) (an#247); this path is a LIVE alias of it. |
+| [`expression`](an.expression.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                                                                                          |
+| [`frame_clock`](an.frame_clock.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                                                                             |
+| [`genres`](an.genres.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                                                                              |
+| [`impacts`](an.impacts.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.                                                                           |
+| [`ir`](an.ir.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                                                                      |
+| [`iterate`](an.iterate.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.                                                                          |
+| [`library`](an.library.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                                                                                |
+| [`live_api`](an.live_api.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                                                                               |
+| [`mcp`](an.mcp.md#module-an.mcp)                   | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry.                                                      |
+| [`measurements`](an.measurements.md#module-an.measurements) | Measured durations: shots whose renderer, not their author, decides their length.                                                                       |
+| [`media`](an.media.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.                                                                   |
+| [`motion`](an.motion.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                                                                               |
+| [`orchestrate`](an.orchestrate.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                                                                       |
+| [`paths`](an.paths.md#module-an.paths)               | Moved to [`an.stage.paths`](an.stage.paths.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
+| [`preview`](an.preview.md#module-an.preview)           | Moved to [`an.stage.preview`](an.stage.preview.md#module-an.stage.preview) (an#247); this path is a LIVE alias of it.           |
+| [`project`](an.project.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |
+| [`props`](an.props.md#module-an.props)               | Moved to [`an.stage.props`](an.stage.props.md#module-an.stage.props) (an#247); this path is a LIVE alias of it.               |
+| [`raster`](an.raster.md#module-an.raster)             | Moved to [`an.stage.raster`](an.stage.raster.md#module-an.stage.raster) (an#247); this path is a LIVE alias of it.             |
+| [`render`](an.render.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.                                                                         |
+| [`semantic`](an.semantic.md#module-an.semantic)         | The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.                                                                |
+| [`sounds`](an.sounds.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.                                                                        |
+| [`stage`](an.stage.md#module-an.stage)               | The 2D stage: the default engine, shipped with `an` but outside the core (an#247).                                                                      |
+| [`stores`](an.stores.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                                                                                             |
+| [`styles`](an.styles.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had.                                                                  |
+| [`text`](an.text.md#module-an.text)                 | Moved to [`an.stage.text`](an.stage.text.md#module-an.stage.text) (an#247); this path is a LIVE alias of it.                 |
+| [`timing`](an.timing.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                                                                                   |
+| [`tools`](an.tools.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                                                                                     |
+| [`util`](an.util.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                                                                             |
+| [`verify`](an.verify.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.                                                                               |

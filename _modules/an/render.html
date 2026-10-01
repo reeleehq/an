@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -733,7 +733,6 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderContext</span><span class="p">,</span> <span class="n">RenderResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">assemble_film</span><span class="p">,</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">needs_assembly</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">style_pack_for</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DEFAULT_REGISTRY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncrementalEngine</span><span class="p">,</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">resolve_incremental</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -896,7 +895,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    via ``None``, since an#192) — an in-page read of the canvas, batched,</span>
 <span class="sd">    writing frames whose decoded pixels equal the screenshot path's and</span>
 <span class="sd">    measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at</span>
-<span class="sd">    1080p (see `an.adapters.cutout.canvas_capture`) — or ``"screenshot"``, a</span>
+<span class="sd">    1080p (see `an.stage.canvas_capture`) — or ``"screenshot"``, a</span>
 <span class="sd">    Playwright element screenshot per instant.</span>
 
 <span class="sd">    ``step_hz`` overrides the scene's ``meta.step_hz`` for this render (a shot's</span>
@@ -1087,7 +1086,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># Resolved here, once, so a missing pack fails before the first browser</span>
         <span class="c1"># launch rather than per shot — and so every shot in a scene is drawn</span>
         <span class="c1"># under the same art direction by construction.</span>
-        <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack_for</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+        <span class="n">style_pack</span><span class="o">=</span><span class="n">_style_pack</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="p">),</span>
         <span class="n">default_easing</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -1263,6 +1262,16 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_style_pack</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The scene's `StylePack`, resolved by the stage (which owns what a pack</span>
+<span class="sd">    draws); imported here, at call time, so the core never imports the stage."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="s2">"style_pack"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">style_pack_for</span>
+
+    <span class="k">return</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_write_caption_sidecar</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Write ``output/&lt;name&gt;.srt`` from ``pages`` — or REMOVE a stale one.</span>
 
@@ -1314,7 +1323,9 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">shot</span> <span class="o">==</span> <span class="n">index</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span>
-    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="o">!=</span> <span class="s2">"cutout"</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAGE_RENDERER_NAMES</span>  <span class="c1"># the stage has the overlay layer</span>
+
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STAGE_RENDERER_NAMES</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is drawn by the </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> renderer, which "</span>
             <span class="s2">"has no overlay layer: its captions are in the sidecar only"</span><span class="p">,</span>

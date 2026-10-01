@@ -76,7 +76,7 @@ lower bound on that node’s contribution — the safe direction.
 
 The runtime’s fallback pupil colour when a `visual.color` is absent.
 
-### an.bench.palette.RUNTIME_JS_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an/data/cutout_runtime/runtime.js'*
+### an.bench.palette.RUNTIME_JS_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an/stage/runtime/runtime.js'*
 
 Where the runtime’s own hard-coded colours live, for the source cross-check.
 

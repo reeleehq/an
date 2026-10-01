@@ -1,0 +1,44 @@
+an.stage.render
+===============
+
+.. automodule:: an.stage.render
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      STAGE_ENGINE_NAME
+      DEFAULT_ASSET_LOAD_TIMEOUT_MS
+      DETERMINISTIC_CHROMIUM_ARGS
+      DEFAULT_CAPTURE
+      SUPPORTED_CAPTURES
+      ASSET_LOAD_TIMEOUT_MARKER
+      EXTENSIONS_FILE
+      ASSET_SRC_PREFIX_TO_STORE
+      CONFORMANCE_SIZE
+      StageRenderer
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      effective_step_hz
+      runtime_extensions
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CutoutRenderer
+      StageEngine
+      StageRenderer
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CutoutAssetWarning
+      CutoutRenderError
+      StageRenderError
+   

@@ -79,12 +79,14 @@ genre defined in the same process).
 
 ### Classes
 
-| [`ActionKind`](#an.genres.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
-|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`DialogueSugar`](#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
-| [`EntityKind`](#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
-| [`Genre`](#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                |
-| [`SemanticCheck`](#an.genres.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
+| [`ActionKind`](#an.genres.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.                                                                                                                                                                               |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CompilePass`](#an.genres.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
+| [`RuntimeScript`](#an.genres.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
+| [`DialogueSugar`](#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
+| [`EntityKind`](#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
+| [`Genre`](#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                                                                                                                                                                                            |
+| [`SemanticCheck`](#an.genres.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
 
 ### Exceptions
 
@@ -128,6 +130,44 @@ it re-render visibly ([`an.semantic`](an.semantic.html.md#module-an.semantic) fo
 * **Type:**
   The kind’s vocabulary version (ADR 0003)
 
+### *class* an.genres.CompilePass(name, run, order=0.0, compiler='stage', builds=None, description='', replace=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One step a genre adds to an engine’s COMPILER (shot -> compiled document).
+
+A compiler (`compiler`: today `"stage"`, [`an.stage.compile`](an.stage.compile.html.md#module-an.stage.compile)) runs
+its own passes plus every registered one, in `order`. A pass with
+`builds` set is an ENTITY BUILDER instead: the compiler’s scene pass calls
+it for each entity of that kind (the cut-out genre’s `rig` builds a
+`character`); builders with a lower `order` build all their entities
+first (the stage’s backdrop before the cast), equal orders in entity order.
+
+`run` is the callable, or `"module:function"`, resolved on first use –
+so a genre is inspectable ([`an.genres.available()`](#an.genres.available)) without importing
+the engine its passes target. What `run` receives is the compiler’s
+business (the stage hands a pass its `CompileState`, a builder the entity
+and the scene being built); the core never calls it.
+
+#### replace *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+Explicitly take the place of the ENGINE’s own pass of this name (or its
+builder for `builds`). Without it a name or kind the engine already
+has is refused when the compiler runs; with it the replacement is
+recorded in the compiled document (review of an#270, S3).
+
+#### resolve()
+
+The callable `run` names.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> CompilePass("p", "math:sqrt").resolve()(4.0)
+2.0
+```
+
 ### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -157,7 +197,7 @@ a voice); `store` is the project-mall store its `ref` keys into.
 
 The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](#an.genres.ActionKind.version).
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=())
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -187,6 +227,11 @@ differ (the cut-out genre ships inside `an` today, while its library is
 already `cutan`’s). The core never names a genre’s library itself —
 a project made in a genre asks the genre ([`genre_library()`](#an.genres.genre_library)).
 
+#### compile_passes *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= ()*
+
+Steps the genre adds to an engine’s compiler, and builders for its
+entity kinds ([`CompilePass`](#an.genres.CompilePass); an#247).
+
 #### provides()
 
 What this genre registers, by registry, as names — without registering it.
@@ -198,6 +243,14 @@ What this genre registers, by registry, as names — without registering it.
 >>> Genre("g", action_kinds=()).provides()["action kinds"]
 ()
 ```
+
+#### runtime_scripts *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[RuntimeScript](an.genres.registry.html.md#an.genres.registry.RuntimeScript), ...]* *= ()*
+
+its visual kinds
+([`RuntimeScript`](#an.genres.RuntimeScript); an#247).
+
+* **Type:**
+  Code the genre adds to an engine’s runtime
 
 ### *exception* an.genres.GenreError
 
@@ -221,6 +274,31 @@ cut-out genre moves there, its line here goes.
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A registration is malformed or collides with one already made.
+
+### *class* an.genres.RuntimeScript(name, source, engine='stage', description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+JavaScript a genre adds to an engine’s RUNTIME (an#247; ADR 0001 decision 4,
+second batch): for the stage, code that registers visual kinds with
+`window.anRegisterVisual(kind, make)` – how the cut-out mouth and eye
+leave `runtime.js` for `cutan` (P8).
+
+`source` is `"package:relative/path.js"`, read with
+[`importlib.resources`](https://docs.python.org/3/library/importlib.resources.html#module-importlib.resources) when the engine stages its runtime, so it ships
+in the genre’s wheel. The staged code is part of the shot cache’s key.
+
+#### code()
+
+The script’s code (UTF-8).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
+True
+```
 
 ### *class* an.genres.SemanticCheck(name, run, stage='shot', order=0.0, description='')
 
@@ -293,9 +371,9 @@ entity (the stage camera’s `root`), or an entity whose kind is
 unregistered or declares no space, gets `default` — the timing default
 [`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE) when `None`.
 
-(The default EVALUATOR still uses that one space for every target: a
-compiled stage document does not carry its entities’ kinds, so a
-per-entity evaluation default arrives with the `Engine` seam, P3.)
+The default EVALUATOR agrees since an#245: the stage’s compiled document
+records each entity whose kind declares another space
+(`meta.entity_spaces`), and `timeline_from_compiled` resolves by it.
 
 ```pycon
 >>> from an.ir.schema import AssetRef
@@ -397,6 +475,6 @@ True
 
 ### Modules
 
-| [`cutout`](an.genres.cutout.html.md#module-an.genres.cutout)     | The cut-out animation genre, declared as one object (still inside `an`).           |
-|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`registry`](an.genres.registry.html.md#module-an.genres.registry) | The core's open registries: action kinds, entity kinds, semantic checks, md sugar. |
+| [`cutout`](an.genres.cutout.html.md#module-an.genres.cutout)     | The cut-out animation genre, declared as one object (still inside `an`).                           |
+|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| [`registry`](an.genres.registry.html.md#module-an.genres.registry) | The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes. |

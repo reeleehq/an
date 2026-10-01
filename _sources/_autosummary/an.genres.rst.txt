@@ -37,6 +37,8 @@ an.genres
    .. autosummary::
    
       ActionKind
+      CompilePass
+      RuntimeScript
       DialogueSugar
       EntityKind
       Genre

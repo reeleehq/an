@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.text" href="an.adapters.cutout.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -610,397 +633,10 @@
                   
   <section id="module-an.adapters.cutout.timeline">
 <span id="an-adapters-cutout-timeline"></span><h1>an.adapters.cutout.timeline<a class="headerlink" href="#module-an.adapters.cutout.timeline" title="Link to this heading">#</a></h1>
-<p>Stage timeline helpers: the compiled scene as a <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>, and screen space.</p>
-<p>The evaluation itself — tracks of placed clips, write groups, the pure pose —
-moved to <a class="reference internal" href="an.timing.timeline.html#module-an.timing.timeline" title="an.timing.timeline"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.timeline</span></code></a> (the timing kernel). This module re-exports
-it so every existing caller keeps its import path, and keeps what is the STAGE’s
-own: reading a compiled <code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code> (<a class="reference internal" href="#an.adapters.cutout.timeline.timeline_from_scene" title="an.adapters.cutout.timeline.timeline_from_scene"><code class="xref py py-func docutils literal notranslate"><span class="pre">timeline_from_scene()</span></code></a>) and
-composing node transforms into canvas positions (<a class="reference internal" href="#an.adapters.cutout.timeline.screen_position" title="an.adapters.cutout.timeline.screen_position"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_position()</span></code></a>).</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">Clip</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ch</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">Clip</span><span class="p">(</span><span class="s2">"walk"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">ch</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">Timeline</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="p">[</span><span class="n">Track</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">clips</span><span class="o">=</span><span class="p">[</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)])])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>
-<span class="go">5.0</span>
-</pre></div>
-</div>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.merge_poses" title="an.adapters.cutout.timeline.merge_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_poses</span></code></a>(*poses)</p></td>
-<td><p>Merge multiple poses with <strong>override semantics</strong> (later wins per key).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.write_group" title="an.adapters.cutout.timeline.write_group"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_group</span></code></a>(prop)</p></td>
-<td><p>What <code class="docutils literal notranslate"><span class="pre">prop</span></code> writes on a STAGE node (the <code class="docutils literal notranslate"><span class="pre">stage.node</span></code> space's groups).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.evaluate_timeline" title="an.adapters.cutout.timeline.evaluate_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_timeline</span></code></a>(timeline, t, *[, space])</p></td>
-<td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.clip_from_json" title="an.adapters.cutout.timeline.clip_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_from_json</span></code></a>(anim, *[, name])</p></td>
-<td><p>One compiled animation (<code class="docutils literal notranslate"><span class="pre">compiled.schema.json</span></code>'s <code class="docutils literal notranslate"><span class="pre">animation</span></code>) as a <a class="reference internal" href="#an.adapters.cutout.timeline.Clip" title="an.adapters.cutout.timeline.Clip"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code></a>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.timeline_from_scene" title="an.adapters.cutout.timeline.timeline_from_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline_from_scene</span></code></a>(scene)</p></td>
-<td><p>The compiled scene's <code class="code docutils literal notranslate"><span class="pre">timeline</span></code>/<code class="code docutils literal notranslate"><span class="pre">animations</span></code> as an evaluable <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.transform_of" title="an.adapters.cutout.timeline.transform_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_of</span></code></a>(node[, pose])</p></td>
-<td><p>A node's transform, with <code class="docutils literal notranslate"><span class="pre">pose</span></code> overriding what the document declares.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.screen_position" title="an.adapters.cutout.timeline.screen_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_position</span></code></a>(scene, path, *[, pose, point])</p></td>
-<td><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>'s local space lands on the canvas.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Classes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.Channel" title="an.adapters.cutout.timeline.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Channel</span></code></a>(target, property[, keyframes])</p></td>
-<td><p>Sorted keyframes for one property of one target.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.Keyframe" title="an.adapters.cutout.timeline.Keyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Keyframe</span></code></a>(time, value[, easing])</p></td>
-<td><p>One keyframe: time, value, optional per-segment easing.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.Clip" title="an.adapters.cutout.timeline.Clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Clip</span></code></a>(name, duration[, channels, loop_mode])</p></td>
-<td><p>Named animation: a duration + a bundle of channels.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.LoopMode" title="an.adapters.cutout.timeline.LoopMode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoopMode</span></code></a>(*values)</p></td>
-<td><p>How a clip behaves past its natural duration.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.PlacedClip" title="an.adapters.cutout.timeline.PlacedClip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlacedClip</span></code></a>(clip[, start_time, duration, ...])</p></td>
-<td><p>A clip placed at an absolute time on a track.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.Track" title="an.adapters.cutout.timeline.Track"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Track</span></code></a>([target_root, clips])</p></td>
-<td><p>A sequence of placed clips that share a common purpose / target prefix.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.Timeline" title="an.adapters.cutout.timeline.Timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Timeline</span></code></a>(duration[, tracks])</p></td>
-<td><p>A duration + ordered list of tracks.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.Transform2D" title="an.adapters.cutout.timeline.Transform2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform2D</span></code></a>([x, y, rotation, scale_x, ...])</p></td>
-<td><p>One node's local transform, in the runtime's own vocabulary.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Channel">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">Channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keyframes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/channel.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Channel" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Sorted keyframes for one property of one target.</p>
-<p>Construction validates that <code class="docutils literal notranslate"><span class="pre">keyframes</span></code> is non-empty and sorted.</p>
-<dl class="field-list simple">
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Clip">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">Clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">LoopMode.ONCE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#Clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Clip" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Named animation: a duration + a bundle of channels.</p>
-<dl class="field-list simple">
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Keyframe">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">Keyframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/channel.html#Keyframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Keyframe" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>One keyframe: time, value, optional per-segment easing.</p>
-<p>The easing on a keyframe describes the curve <strong>leaving</strong> that keyframe
-toward the next one. The last keyframe’s easing is therefore unused.</p>
-<dl class="field-list simple">
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.LoopMode">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">LoopMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#LoopMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.LoopMode" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
-<p>How a clip behaves past its natural duration.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.PlacedClip">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">PlacedClip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend_in</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#PlacedClip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.PlacedClip" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A clip placed at an absolute time on a track.</p>
-<dl class="field-list simple">
-</dl>
-<dl class="py property">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.PlacedClip.effective_duration">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">effective_duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.adapters.cutout.timeline.PlacedClip.effective_duration" title="Link to this definition">#</a></dt>
-<dd><p>Duration this clip occupies on the timeline (after speed scaling).</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Timeline">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">Timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#Timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Timeline" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A duration + ordered list of tracks. The canonical playback structure.</p>
-<dl class="field-list simple">
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Track">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">Track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clips</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#Track"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Track" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A sequence of placed clips that share a common purpose / target prefix.</p>
-<p><code class="docutils literal notranslate"><span class="pre">target_root</span></code> is informational metadata for downstream tools (the JS
-runtime can use it to scope rendering); evaluation does not filter by it.</p>
-<dl class="field-list simple">
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Transform2D">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">Transform2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pivot_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pivot_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#Transform2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Transform2D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>One node’s local transform, in the runtime’s own vocabulary.</p>
-<p>Field names and defaults mirror <code class="code docutils literal notranslate"><span class="pre">applyTransform</span></code> in <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> exactly —
-<code class="code docutils literal notranslate"><span class="pre">x</span></code>, <code class="code docutils literal notranslate"><span class="pre">y</span></code>, <code class="code docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="code docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="code docutils literal notranslate"><span class="pre">scale_y</span></code>, <code class="code docutils literal notranslate"><span class="pre">pivot_x</span></code>, <code class="code docutils literal notranslate"><span class="pre">pivot_y</span></code> — because
-the point of this class is to agree with the vendored engine rather than to
-re-derive it. <code class="code docutils literal notranslate"><span class="pre">skew</span></code> is deliberately absent: PixiJS composes skew into the
-same matrix, but no emitter in this package produces a skew channel, and a
-field nothing writes is a claim this compositor cannot honour.</p>
-<dl class="field-list simple">
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Transform2D.apply">
-<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#Transform2D.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Transform2D.apply" title="Link to this definition">#</a></dt>
-<dd><p>This node’s local point, in its PARENT’s coordinates.</p>
-<p><code class="docutils literal notranslate"><span class="pre">world</span> <span class="pre">=</span> <span class="pre">position</span> <span class="pre">+</span> <span class="pre">M·(local</span> <span class="pre">−</span> <span class="pre">pivot)</span></code> — the composition PixiJS
-performs, and the reason <code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code> is a 2D camera: moving the pivot
-moves everything the node contains, in the opposite direction.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Transform2D</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-<span class="go">(10.0, 0.0)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Transform2D</span><span class="p">(</span><span class="n">pivot_x</span><span class="o">=</span><span class="mf">25.0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-<span class="go">(-25.0, 0.0)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Transform2D</span><span class="p">(</span><span class="n">scale_x</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-<span class="go">(10.0, 0.0)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.Transform2D.unapply">
-<span class="sig-name descname"><span class="pre">unapply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#Transform2D.unapply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.Transform2D.unapply" title="Link to this definition">#</a></dt>
-<dd><p>The inverse of <a class="reference internal" href="#an.adapters.cutout.timeline.Transform2D.apply" title="an.adapters.cutout.timeline.Transform2D.apply"><code class="xref py py-meth docutils literal notranslate"><span class="pre">apply()</span></code></a> — a parent-space point, in local space.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Transform2D</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">pivot_x</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale_x</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">unapply</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="mf">7.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">)))[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">9</span><span class="p">)</span>
-<span class="go">7.0</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.clip_from_json">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">clip_from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anim</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#clip_from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.clip_from_json" title="Link to this definition">#</a></dt>
-<dd><p>One compiled animation (<code class="docutils literal notranslate"><span class="pre">compiled.schema.json</span></code>’s <code class="docutils literal notranslate"><span class="pre">animation</span></code>) as a <a class="reference internal" href="#an.adapters.cutout.timeline.Clip" title="an.adapters.cutout.timeline.Clip"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code></a>.</p>
-<p>Accepts the JSON mapping or any object with the same attributes (the stage’s
-<code class="docutils literal notranslate"><span class="pre">AnimationClipJSON</span></code>). Two fields are carried rather than defaulted, and
-both have cost a bug: <code class="docutils literal notranslate"><span class="pre">loop_mode</span></code> (without it every loop evaluated as
-<code class="docutils literal notranslate"><span class="pre">once</span></code> — an#7) and a list-valued <code class="docutils literal notranslate"><span class="pre">easing</span></code>, which is a cubic-bezier
-control quadruple and must stay a tuple for <code class="docutils literal notranslate"><span class="pre">Keyframe</span></code>. The stage compiler
-reads a from-less tween’s start through this too (an#212), so it evaluates
-exactly what the runtime will.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.timing.clip.html#an.timing.clip.Clip" title="an.timing.clip.Clip"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.evaluate_timeline">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">evaluate_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#evaluate_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.evaluate_timeline" title="Link to this definition">#</a></dt>
-<dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p>
-<p>The result is a PURE function of <code class="docutils literal notranslate"><span class="pre">t</span></code> (an#185): what a node shows at <code class="docutils literal notranslate"><span class="pre">t</span></code>
-never depends on which instants were evaluated before it. Per
-<code class="docutils literal notranslate"><span class="pre">(target,</span> <span class="pre">property)</span></code>:</p>
-<ul class="simple">
-<li><p><strong>Active</strong> — some clip writing it is playing at <code class="docutils literal notranslate"><span class="pre">t</span></code> (inclusive end:
-a clip at <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code> is active at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">==</span> <span class="pre">e</span></code> too, so the final frame of
-“play this from 0 to 1 s” is visible at 1.0). Later wins: track order,
-then clip order within a track. Written at <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p></li>
-<li><p><strong>Held</strong> — no clip writing it is playing, but one has ended: the value
-the clip reached AT ITS END holds. The latest end wins; a tie goes to
-the later clip, the same “later wins” as above. Written at that end.</p></li>
-<li><p><strong>At rest</strong> — nothing writing it has started yet. The key is ABSENT from
-the pose, and its value is the node’s own (the entity’s rest state;
-<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> restores what it built).</p></li>
-</ul>
-<p>Keys that write the same thing on one node (a write group: the swap sets of
-one visual, <code class="docutils literal notranslate"><span class="pre">rotation</span></code>/<code class="docutils literal notranslate"><span class="pre">rotation_rad</span></code>) keep only the most recently
-WRITTEN — an ended <code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code> span does not outlive the <code class="docutils literal notranslate"><span class="pre">viseme</span></code>
-track that took the mouth back.</p>
-<p><code class="docutils literal notranslate"><span class="pre">space</span></code> says what each property is (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>): one space, a
-registered space’s name, or a <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">-&gt;</span> <span class="pre">space</span></code> resolver. Its field kinds
-interpolate and its write groups resolve. <code class="docutils literal notranslate"><span class="pre">None</span></code> is the default space,
-<a class="reference internal" href="an.timing.spaces.html#an.timing.spaces.DFLT_TIMELINE_SPACE" title="an.timing.spaces.DFLT_TIMELINE_SPACE"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.timing.spaces.DFLT_TIMELINE_SPACE</span></code></a> (the stage node’s declared
-kinds, by name at call time). <code class="docutils literal notranslate"><span class="pre">space=VALUE_TYPED</span></code> is the rule
-<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements — interpolation by value type, the <code class="docutils literal notranslate"><span class="pre">stage.node</span></code>
-write groups — which gives the same pose on every timeline the compiler
-emits (it refuses a value that fails its field kind).</p>
-<p>Forward-order rendering used to show the value at the clip’s last SAMPLED
-frame instead (the runtime kept whatever it last applied). The two agree
-whenever a clip ends on the frame grid — true of every golden-corpus clip
-— and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
-used to stop at 9.80 and now lands on 10, as authored. That landing is
-deliberate (it is the bug the motion presets’ settling <code class="docutils literal notranslate"><span class="pre">set</span></code> patched one
-preset at a time), and it is what makes the pose independent of the grid.
-Also deliberate: a clip shorter than a frame that no frame lands in now
-leaves its end value, and a held descendant tint stays on top of an
-ancestor’s later tint (the more specific target wins, as it always did
-while both played).</p>
-<p><code class="docutils literal notranslate"><span class="pre">runtime.js::evaluateTimeline</span></code> is a port of this function and
-<code class="docutils literal notranslate"><span class="pre">tests/test_pure_pose.py</span></code> holds the two to it.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">Clip</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ch</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">Timeline</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="p">[</span><span class="n">Track</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="p">[</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">Clip</span><span class="p">(</span><span class="s2">"m"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="n">ch</span><span class="p">]),</span> <span class="mf">0.5</span><span class="p">)])])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>  <span class="c1"># not started: at rest, so absent</span>
-<span class="go">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>  <span class="c1"># active</span>
-<span class="go">5.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">1.75</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>  <span class="c1"># ended: its end value holds</span>
-<span class="go">10.0</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.merge_poses">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">merge_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">poses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/clip.html#merge_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.merge_poses" title="Link to this definition">#</a></dt>
-<dd><p>Merge multiple poses with <strong>override semantics</strong> (later wins per key).</p>
-<p>Used by the timeline to combine concurrent clips on the same target.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merge_poses</span><span class="p">({(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">},</span> <span class="p">{(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">):</span> <span class="mf">2.0</span><span class="p">,</span> <span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">):</span> <span class="mf">3.0</span><span class="p">})</span>
-<span class="go">{('a', 'x'): 2.0, ('a', 'y'): 3.0}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.screen_position">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">screen_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#screen_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.screen_position" title="Link to this definition">#</a></dt>
-<dd><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>’s local space lands on the canvas.</p>
-<p>The composition the runtime performs, walked from the node up to <code class="code docutils literal notranslate"><span class="pre">root</span></code>
-and then offset by the canvas centre — which is where <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> places
-the root container.</p>
-<p><code class="docutils literal notranslate"><span class="pre">pose</span></code> is keyed by the FULL path (<code class="code docutils literal notranslate"><span class="pre">&quot;street/hills&quot;</span></code>), matching what
-<code class="code docutils literal notranslate"><span class="pre">evaluate_timeline</span></code> returns, and each node reads only its own entry.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutSceneJSON</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">TimelineJSON</span><span class="p">,</span> <span class="n">TransformJSON</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span> <span class="o">=</span> <span class="n">CutoutSceneJSON</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">scene</span><span class="o">=</span><span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[</span>
-<span class="gp">... </span>        <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"hill"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">40.0</span><span class="p">))]),</span>
-<span class="gp">... </span>    <span class="n">timeline</span><span class="o">=</span><span class="n">TimelineJSON</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
-<span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">240</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">screen_position</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"hill"</span><span class="p">)</span>
-<span class="go">(200.0, 120.0)</span>
-</pre></div>
-</div>
-<p>…and moving the camera’s pivot moves it the other way, which is the whole
-reason <code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code> is the camera:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">screen_position</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"hill"</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="p">{(</span><span class="s2">"root"</span><span class="p">,</span> <span class="s2">"pivot_x"</span><span class="p">):</span> <span class="mf">25.0</span><span class="p">})</span>
-<span class="go">(175.0, 120.0)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.timeline_from_scene">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">timeline_from_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#timeline_from_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.timeline_from_scene" title="Link to this definition">#</a></dt>
-<dd><p>The compiled scene’s <code class="code docutils literal notranslate"><span class="pre">timeline</span></code>/<code class="code docutils literal notranslate"><span class="pre">animations</span></code> as an evaluable <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>.</p>
-<p><code class="code docutils literal notranslate"><span class="pre">compile_shot</span></code> produces a serialisable document (<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.serialize</span></code>)
-for the JS runtime; this rebuilds the <em>evaluable</em> form, so a caller can ask
-what a compiled scene’s pose is at time <code class="code docutils literal notranslate"><span class="pre">t</span></code> without a browser. It is the
-Python side of the parity contract: <code class="code docutils literal notranslate"><span class="pre">evaluate_timeline</span></code> over this object is
-the executable spec <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> is tested against. The reading itself is the
-kernel’s (<a class="reference internal" href="an.timing.timeline.html#an.timing.timeline.timeline_from_compiled" title="an.timing.timeline.timeline_from_compiled"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.timing.timeline.timeline_from_compiled()</span></code></a>), which carries
-<code class="code docutils literal notranslate"><span class="pre">loop_mode</span></code> and keeps a list-valued <code class="code docutils literal notranslate"><span class="pre">easing</span></code> a tuple.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.timing.timeline.html#an.timing.timeline.Timeline" title="an.timing.timeline.Timeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timeline</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">tween</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Shot</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s1"</span><span class="p">,</span> <span class="n">renderer</span><span class="o">=</span><span class="s2">"cutout"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
-<span class="gp">... </span>            <span class="n">actions</span><span class="o">=</span><span class="p">[</span><span class="n">tween</span><span class="p">(</span><span class="s2">"root"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">scene</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">)[(</span><span class="s2">"root"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>
-<span class="go">5.0</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.transform_of">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">transform_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#transform_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.transform_of" title="Link to this definition">#</a></dt>
-<dd><p>A node’s transform, with <code class="docutils literal notranslate"><span class="pre">pose</span></code> overriding what the document declares.</p>
-<p>The runtime applies a pose value by assigning the property on the display
-object, so a channel REPLACES the declared value rather than adding to it —
-which is why the parallax compensation carries the plane’s own offset in
-every keyframe instead of an offset from it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.adapters.cutout.timeline.Transform2D" title="an.adapters.cutout.timeline.Transform2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transform2D</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.timeline.write_group">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">write_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#write_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.write_group" title="Link to this definition">#</a></dt>
-<dd><p>What <code class="docutils literal notranslate"><span class="pre">prop</span></code> writes on a STAGE node (the <code class="docutils literal notranslate"><span class="pre">stage.node</span></code> space’s groups).</p>
-<p>Two keys in one group set the same thing, so only the more recently written
-can be showing: every swap set on a node swaps the one visual it carries
-(<code class="docutils literal notranslate"><span class="pre">viseme</span></code> and <code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code> both set the mouth’s texture, an#88), and
-<code class="docutils literal notranslate"><span class="pre">rotation_rad</span></code> is <code class="docutils literal notranslate"><span class="pre">rotation</span></code>. Every other runtime property
-(<code class="xref py py-data docutils literal notranslate"><span class="pre">an.base.TRANSFORM_PROPERTIES</span></code>, the runtime’s own switch) writes only
-itself.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">write_group</span><span class="p">(</span><span class="s2">"x"</span><span class="p">),</span> <span class="n">write_group</span><span class="p">(</span><span class="s2">"rotation_rad"</span><span class="p">),</span> <span class="n">write_group</span><span class="p">(</span><span class="s2">"viseme@happy"</span><span class="p">)</span>
-<span class="go">('x', 'rotation', '&lt;swap&gt;')</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<p>Moved to <a class="reference internal" href="an.stage.timeline.html#module-an.stage.timeline" title="an.stage.timeline"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.timeline</span></code></a> (an#247); this path is a LIVE alias of it.</p>
+<p>The compiled document’s evaluation entry point and its screen space are the
+stage’s (ADR 0001 decision 5). Every name of the new module is reachable here,
+and rebinding one here rebinds it there (<code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>).</p>
 </section>
 
 
@@ -1041,39 +677,6 @@ itself.</p>
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Channel"><code class="docutils literal notranslate"><span class="pre">Channel</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Clip"><code class="docutils literal notranslate"><span class="pre">Clip</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Keyframe"><code class="docutils literal notranslate"><span class="pre">Keyframe</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.LoopMode"><code class="docutils literal notranslate"><span class="pre">LoopMode</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.PlacedClip"><code class="docutils literal notranslate"><span class="pre">PlacedClip</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.PlacedClip.effective_duration"><code class="docutils literal notranslate"><span class="pre">PlacedClip.effective_duration</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Timeline"><code class="docutils literal notranslate"><span class="pre">Timeline</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Track"><code class="docutils literal notranslate"><span class="pre">Track</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Transform2D"><code class="docutils literal notranslate"><span class="pre">Transform2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Transform2D.apply"><code class="docutils literal notranslate"><span class="pre">Transform2D.apply()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Transform2D.unapply"><code class="docutils literal notranslate"><span class="pre">Transform2D.unapply()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.clip_from_json"><code class="docutils literal notranslate"><span class="pre">clip_from_json()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.evaluate_timeline"><code class="docutils literal notranslate"><span class="pre">evaluate_timeline()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.merge_poses"><code class="docutils literal notranslate"><span class="pre">merge_poses()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.screen_position"><code class="docutils literal notranslate"><span class="pre">screen_position()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.timeline_from_scene"><code class="docutils literal notranslate"><span class="pre">timeline_from_scene()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.transform_of"><code class="docutils literal notranslate"><span class="pre">transform_of()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.write_group"><code class="docutils literal notranslate"><span class="pre">write_group()</span></code></a></li>
-</ul>
-  </nav></div>
 
   <div class="sidebar-secondary-item">
 

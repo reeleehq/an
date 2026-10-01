@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.paths" href="an.paths.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -604,81 +627,11 @@
                   
   <section id="module-an.preview">
 <span id="an-preview"></span><h1>an.preview<a class="headerlink" href="#module-an.preview" title="Link to this heading">#</a></h1>
-<p>Live preview server: render a project’s current scene in a browser, reloading on edit.</p>
-<p>The <a class="reference internal" href="#an.preview.preview_project" title="an.preview.preview_project"><code class="xref py py-func docutils literal notranslate"><span class="pre">preview_project()</span></code></a> function spins up a local HTTP server pointed at
-a freshly-compiled cutout scene JSON, then watches <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> /
-<code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> for changes and recompiles. The browser polls
-<code class="docutils literal notranslate"><span class="pre">scene.json</span></code> every ~500 ms (HEAD request, <code class="docutils literal notranslate"><span class="pre">Last-Modified</span></code> header) and
-re-calls <code class="docutils literal notranslate"><span class="pre">window.anLoadScene</span></code> whenever the file changes.</p>
-<p>Lossy by design: shows the runtime canvas only — no audio mux, no final
-mp4. Use <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> once you’re happy with the look.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.preview</span><span class="w"> </span><span class="kn">import</span> <span class="n">_stage_preview</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">callable</span><span class="p">(</span><span class="n">_stage_preview</span><span class="p">)</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.preview.preview_project" title="an.preview.preview_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview_project</span></code></a>(project_dir, *[, shot_id, ...])</p></td>
-<td><p>Serve a live preview of <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> from a local HTTP server.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Classes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.preview.PreviewStaging" title="an.preview.PreviewStaging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewStaging</span></code></a>(runtime_dir, scene_json_path, ...)</p></td>
-<td><p>Outcome of staging a preview's runtime + initial compiled scene.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Exceptions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.preview.PreviewError" title="an.preview.PreviewError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewError</span></code></a></p></td>
-<td><p>Raised when a preview cannot be staged or served.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py exception">
-<dt class="sig sig-object py" id="an.preview.PreviewError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.preview.</span></span><span class="sig-name descname"><span class="pre">PreviewError</span></span><a class="reference internal" href="../_modules/an/preview.html#PreviewError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.preview.PreviewError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
-<p>Raised when a preview cannot be staged or served.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="an.preview.PreviewStaging">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.preview.</span></span><span class="sig-name descname"><span class="pre">PreviewStaging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">runtime_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_json_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/preview.html#PreviewStaging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.preview.PreviewStaging" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Outcome of staging a preview’s runtime + initial compiled scene.</p>
-<dl class="field-list simple">
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.preview.preview_project">
-<span class="sig-prename descclassname"><span class="pre">an.preview.</span></span><span class="sig-name descname"><span class="pre">preview_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_browser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poll_interval_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/preview.html#preview_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.preview.preview_project" title="Link to this definition">#</a></dt>
-<dd><p>Serve a live preview of <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> from a local HTTP server.</p>
-<p>Compiles the chosen shot (default: first shot in the timeline) to its
-runtime JSON, stages the cutout JS runtime + any SVG character
-textures, and serves the result on a free port. A daemon watcher
-thread polls <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> / <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> mtimes and recompiles
-when either changes; the browser sees the new compiled scene via its
-own ~500 ms HEAD-request poll.</p>
-<p>Blocks the calling thread until interrupted (Ctrl-C). Returns the
-base URL after teardown.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Moved to <a class="reference internal" href="an.stage.preview.html#module-an.stage.preview" title="an.stage.preview"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.preview</span></code></a> (an#247); this path is a LIVE alias of it.</p>
+<p>The 2D stage runtime is the first engine, outside the core’s import firewall
+(ADR 0001 decisions 5 and 14). Every name of the new module is reachable here,
+and rebinding one here (a bench lever, <code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code>) rebinds it there, where
+the code runs (<code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>).</p>
 </section>
 
 
@@ -719,20 +672,6 @@ base URL after teardown.</p>
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.preview.PreviewError"><code class="docutils literal notranslate"><span class="pre">PreviewError</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.preview.PreviewStaging"><code class="docutils literal notranslate"><span class="pre">PreviewStaging</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.preview.preview_project"><code class="docutils literal notranslate"><span class="pre">preview_project()</span></code></a></li>
-</ul>
-  </nav></div>
 
   <div class="sidebar-secondary-item">
 

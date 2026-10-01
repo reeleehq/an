@@ -10,5 +10,6 @@ an.characters.drawn
    
       drawing
       write_bytes
+      write_derived_text
       write_text
    

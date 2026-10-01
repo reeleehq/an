@@ -4,24 +4,3 @@ an.adapters.cutout.fidelity
 .. automodule:: an.adapters.cutout.fidelity
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      DFLT_ASPECT_TOLERANCE
-      SPRITE_KIND
-      CONTAIN_FIT
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      aspect_findings
-      part_fidelity
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      PartFidelity
-   

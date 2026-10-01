@@ -27,7 +27,7 @@ parallaxing stage from a zooming one. Two additions the epic does not require:
 Two measurements, deliberately different instruments:
 
 **(a) JSON** — free, on every PR, from the compiled document through
-[`an.adapters.cutout.timeline.screen_position()`](an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.screen_position). Composed screen space,
+[`an.stage.timeline.screen_position()`](an.stage.timeline.html.md#an.stage.timeline.screen_position). Composed screen space,
 not local channel values: a rigid pan on `root` leaves every plane’s local
 `Δx` at zero.
 

@@ -4,21 +4,3 @@ an.adapters.cutout.text
 .. automodule:: an.adapters.cutout.text
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      TEXT_TEXTURE_OVERSAMPLE
-      TEXT_TEXTURE_PREFIX
-      TEXT_ALIAS_DIGEST_LEN
-      INLINE_SRC_PREFIX
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      build_text_subtree
-      svg_data_uri
-      text_document
-      unit_svg
-   

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -737,7 +737,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench</span><span class="w"> </span><span class="kn">import</span> <span class="n">contract</span><span class="p">,</span> <span class="n">golden</span> <span class="k">as</span> <span class="n">G</span><span class="p">,</span> <span class="n">imageio</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">metrics</span> <span class="k">as</span> <span class="n">M</span><span class="p">,</span> <span class="n">palette</span> <span class="k">as</span> <span class="n">P</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench</span><span class="w"> </span><span class="kn">import</span> <span class="n">png</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">FOREGROUND_SUFFIX</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">FOREGROUND_SUFFIX</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.capture</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">SceneCapture</span><span class="p">,</span>
     <span class="n">capture_fixture</span><span class="p">,</span>
@@ -889,7 +889,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
 
     <span class="n">paths</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">frames_dir</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"frame_*.png"</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">paths</span><span class="p">:</span>
@@ -968,7 +968,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    reference has to be the same sequence, in the same order, that the delivered</span>
 <span class="sd">    mp4 shows.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">frames_dir</span>
@@ -1900,7 +1900,7 @@ window.runMermaid = runMermaid;</script>
             <span class="p">),</span>
             <span class="o">**</span><span class="p">({</span><span class="s2">"blessed"</span><span class="p">:</span> <span class="n">blessed</span><span class="p">}</span> <span class="k">if</span> <span class="n">blessed</span> <span class="k">else</span> <span class="p">{}),</span>
             <span class="s2">"encode_command_source"</span><span class="p">:</span> <span class="p">(</span>
-                <span class="s2">"an.adapters.cutout.render._ffmpeg_mux + DETERMINISTIC_X264_ARGS"</span>
+                <span class="s2">"an.stage.render._ffmpeg_mux + DETERMINISTIC_X264_ARGS"</span>
             <span class="p">),</span>
             <span class="s2">"decode_commands"</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">"source_rgb"</span><span class="p">:</span> <span class="n">imageio</span><span class="o">.</span><span class="n">source_rgb_command</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"&lt;frames&gt;"</span><span class="p">)),</span>

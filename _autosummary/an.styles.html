@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores.voices" href="an.stores.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -640,7 +663,7 @@ paper-gap drop shadow and a glow per drawable entity (<a class="reference intern
 paper grain over the frame (<a class="reference internal" href="#an.styles.Grain" title="an.styles.Grain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Grain</span></code></a>). Every one is a COMPILE-TIME
 expansion into ordinary document content — underlay copies of a part’s own
 visual, a gradient sprite, a seeded noise tile — never a runtime filter, and
-never anything random at render time. <code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.surface</span></code> does the
+never anything random at render time. <code class="code docutils literal notranslate"><span class="pre">an.stage.surface</span></code> does the
 expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:
 they copy a part’s texture rather than recolour it. Every width and offset is in
 the rig’s own pixels, so a treatment scales with the character like paper would.</p>
@@ -719,7 +742,7 @@ entity and lights the background around it, not the entity itself.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">Grain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#Grain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.Grain" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Treatment</span></code></p>
 <p>One static paper-grain texture over the whole frame.</p>
-<p>Seeded noise generated at COMPILE time (<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.surface</span></code>),
+<p>Seeded noise generated at COMPILE time (<code class="docutils literal notranslate"><span class="pre">an.stage.surface</span></code>),
 tiled on the camera-immune overlay under any text, and MULTIPLIED onto the
 frame — so it only ever darkens, by at most <code class="docutils literal notranslate"><span class="pre">amount</span></code>. The same seed is the
 same grain on every frame and every machine; nothing is random at render
@@ -744,7 +767,7 @@ time.</p>
 what dilating by a disk gives) and, for an ellipse, the ellipse with both
 radii grown (exact on the axes and for circles). On an SVG part it is a
 ring of copies of the part’s texture offset by <code class="docutils literal notranslate"><span class="pre">width</span></code> in
-<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.surface.OUTLINE_RING</span></code> directions, drawn in <code class="docutils literal notranslate"><span class="pre">color</span></code>
+<code class="docutils literal notranslate"><span class="pre">an.stage.surface.OUTLINE_RING</span></code> directions, drawn in <code class="docutils literal notranslate"><span class="pre">color</span></code>
 as a <code class="code docutils literal notranslate"><span class="pre">tint</span></code>: tint MULTIPLIES, so the outline is exactly <code class="docutils literal notranslate"><span class="pre">color</span></code> where the
 art is white and darker elsewhere — exact everywhere for black, and within a
 few levels of it for the default near-black.</p>
@@ -800,7 +823,7 @@ stamps them into the document the runtime draws.</p>
 <p><code class="code docutils literal notranslate"><span class="pre">skin</span></code>, <code class="code docutils literal notranslate"><span class="pre">clothing</span></code> and <code class="code docutils literal notranslate"><span class="pre">hair</span></code> are <code class="code docutils literal notranslate"><span class="pre">_CHARACTER_PALETTES</span></code>’ three components;
 <code class="code docutils literal notranslate"><span class="pre">leg</span></code> and <code class="code docutils literal notranslate"><span class="pre">pupil</span></code> are the compiler’s own literals (<code class="code docutils literal notranslate"><span class="pre">DFLT_LEG_COLOUR</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">DFLT_PUPIL_COLOUR</span></code>); <code class="code docutils literal notranslate"><span class="pre">sky</span></code> and <code class="code docutils literal notranslate"><span class="pre">ground</span></code> are the environment presets’;
-<code class="code docutils literal notranslate"><span class="pre">stroke</span></code> is a stroked path’s default colour (<code class="code docutils literal notranslate"><span class="pre">an.paths.DFLT_STROKE_COLOUR</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">stroke</span></code> is a stroked path’s default colour (<code class="code docutils literal notranslate"><span class="pre">an.stage.paths.DFLT_STROKE_COLOUR</span></code>,
 an#161) — the arrowhead is filled in the same colour, so it is not a second
 role. A path that names its own <code class="code docutils literal notranslate"><span class="pre">color</span></code> is art and is left alone.
 <code class="code docutils literal notranslate"><span class="pre">accessory</span></code> (a hat, a sash) exists only in role-tagged SVG art — the

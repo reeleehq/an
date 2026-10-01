@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.shutter" href="an.adapters.cutout.shutter.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -406,6 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
 </ul>
@@ -497,6 +498,28 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -610,106 +633,10 @@
                   
   <section id="module-an.adapters.cutout.supersample">
 <span id="an-adapters-cutout-supersample"></span><h1>an.adapters.cutout.supersample<a class="headerlink" href="#module-an.adapters.cutout.supersample" title="Link to this heading">#</a></h1>
-<p>Moved to <a class="reference internal" href="an.media.supersample.html#module-an.media.supersample" title="an.media.supersample"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.supersample</span></code></a> (an#247); this path re-exports it.</p>
-<p>The spatial resolve is engine-independent, so it lives in the core’s media
-package. Every name below is the same object as in its new home.</p>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.supersample.block_mean_resolve" title="an.adapters.cutout.supersample.block_mean_resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_mean_resolve</span></code></a>(frame, factor)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(H*k,</span> <span class="pre">W*k,</span> <span class="pre">C)</span></code> uint8 -&gt; <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">C)</span></code> uint8, by an exact <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">x</span> <span class="pre">k</span></code> mean.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.supersample.check_factor" title="an.adapters.cutout.supersample.check_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_factor</span></code></a>(factor)</p></td>
-<td><p>Validate a supersample factor, or refuse with the reason.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.supersample.resolve_png_bytes" title="an.adapters.cutout.supersample.resolve_png_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_png_bytes</span></code></a>(data, *, factor)</p></td>
-<td><p>Decode a screenshot, block-mean it down by <code class="docutils literal notranslate"><span class="pre">factor</span></code>, re-encode.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Exceptions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.supersample.SupersampleError" title="an.adapters.cutout.supersample.SupersampleError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SupersampleError</span></code></a></p></td>
-<td><p>A supersample factor or frame that cannot be resolved exactly.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py exception">
-<dt class="sig sig-object py" id="an.adapters.cutout.supersample.SupersampleError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">SupersampleError</span></span><a class="reference internal" href="../_modules/an/media/supersample.html#SupersampleError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.supersample.SupersampleError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
-<p>A supersample factor or frame that cannot be resolved exactly.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.supersample.block_mean_resolve">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">block_mean_resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/media/supersample.html#block_mean_resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.supersample.block_mean_resolve" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">(H*k,</span> <span class="pre">W*k,</span> <span class="pre">C)</span></code> uint8 -&gt; <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">C)</span></code> uint8, by an exact <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">x</span> <span class="pre">k</span></code> mean.</p>
-<p>Two-step, summing rows and then columns in <code class="docutils literal notranslate"><span class="pre">uint16</span></code>, rather than the
-obvious <code class="docutils literal notranslate"><span class="pre">reshape(...).astype(float64).mean(axis=(1,</span> <span class="pre">3))</span></code>. The two agree
-<strong>bit for bit</strong> — asserted exhaustively over every possible 2x2 block, and
-on real frames — and the two-step form is 2.3x faster at 1080p (111.7 ms
-against 262.0 ms), because the cost here is the strided reduce and the
-64-bit temporary, not the arithmetic.</p>
-<p>Rounding is spelled out rather than inherited: <code class="docutils literal notranslate"><span class="pre">np.rint</span></code> is banker’s
-rounding, so a block averaging exactly <code class="docutils literal notranslate"><span class="pre">.5</span></code> goes to the EVEN neighbour.
-Getting that wrong changes one code value on every half-block, which is
-invisible in a picture and moves every golden.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block_mean_resolve</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="go">[1, 2]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block_mean_resolve</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">is</span> <span class="n">f</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.supersample.check_factor">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">check_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/media/supersample.html#check_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.supersample.check_factor" title="Link to this definition">#</a></dt>
-<dd><p>Validate a supersample factor, or refuse with the reason.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_factor</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">check_factor</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">(1, 2)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">check_factor</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="gt">Traceback (most recent call last):</span>
-<span class="w">  </span><span class="c">...</span>
-<span class="gr">an.media.supersample.SupersampleError</span>: <span class="n">supersample must be &gt;= 1, got 0</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.supersample.resolve_png_bytes">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">resolve_png_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/media/supersample.html#resolve_png_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.supersample.resolve_png_bytes" title="Link to this definition">#</a></dt>
-<dd><p>Decode a screenshot, block-mean it down by <code class="docutils literal notranslate"><span class="pre">factor</span></code>, re-encode.</p>
-<p>Returns <code class="docutils literal notranslate"><span class="pre">data</span></code> unchanged at <code class="docutils literal notranslate"><span class="pre">factor</span> <span class="pre">==</span> <span class="pre">1</span></code>, so the un-supersampled path
-keeps Chromium’s own bytes and pays nothing at all — which is what makes
-this knob free when it is off.</p>
-<p><strong>The early return sits above the imports deliberately.</strong> “Off is free”
-should mean free of the <em>dependency</em> too: the default path must not need
-Pillow merely to decide it has nothing to do. (Found in CI, when Pillow came
-only with the <code class="code docutils literal notranslate"><span class="pre">cutout</span></code> extra and the default lane did not install it.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Moved to <a class="reference internal" href="an.media.supersample.html#module-an.media.supersample" title="an.media.supersample"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.supersample</span></code></a> (an#247); this path is a LIVE alias of it.</p>
+<p>The resolve is engine-independent, so it lives in the core’s media package.
+Every name of the new module is reachable here, and rebinding one here rebinds
+it there (<code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>).</p>
 </section>
 
 
@@ -750,21 +677,6 @@ only with the <code class="code docutils literal notranslate"><span class="pre">
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.supersample.SupersampleError"><code class="docutils literal notranslate"><span class="pre">SupersampleError</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.supersample.block_mean_resolve"><code class="docutils literal notranslate"><span class="pre">block_mean_resolve()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.supersample.check_factor"><code class="docutils literal notranslate"><span class="pre">check_factor()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.supersample.resolve_png_bytes"><code class="docutils literal notranslate"><span class="pre">resolve_png_bytes()</span></code></a></li>
-</ul>
-  </nav></div>
 
   <div class="sidebar-secondary-item">
 

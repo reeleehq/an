@@ -42,7 +42,7 @@ paper-gap drop shadow and a glow per drawable entity ([`SurfaceTreatment`](#an.s
 paper grain over the frame ([`Grain`](#an.styles.Grain)). Every one is a COMPILE-TIME
 expansion into ordinary document content — underlay copies of a part’s own
 visual, a gradient sprite, a seeded noise tile — never a runtime filter, and
-never anything random at render time. `an.adapters.cutout.surface` does the
+never anything random at render time. `an.stage.surface` does the
 expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:
 they copy a part’s texture rather than recolour it. Every width and offset is in
 the rig’s own pixels, so a treatment scales with the character like paper would.
@@ -93,7 +93,7 @@ Bases: `_Treatment`
 
 One static paper-grain texture over the whole frame.
 
-Seeded noise generated at COMPILE time (`an.adapters.cutout.surface`),
+Seeded noise generated at COMPILE time (`an.stage.surface`),
 tiled on the camera-immune overlay under any text, and MULTIPLIED onto the
 frame — so it only ever darkens, by at most `amount`. The same seed is the
 same grain on every frame and every machine; nothing is random at render
@@ -114,7 +114,7 @@ On a procedural part (rect, ellipse) it is the part’s own shape grown by
 what dilating by a disk gives) and, for an ellipse, the ellipse with both
 radii grown (exact on the axes and for circles). On an SVG part it is a
 ring of copies of the part’s texture offset by `width` in
-`an.adapters.cutout.surface.OUTLINE_RING` directions, drawn in `color`
+`an.stage.surface.OUTLINE_RING` directions, drawn in `color`
 as a `tint`: tint MULTIPLIES, so the outline is exactly `color` where the
 art is white and darker elsewhere — exact everywhere for black, and within a
 few levels of it for the default near-black.
@@ -164,7 +164,7 @@ stamps them into the document the runtime draws.
 `skin`, `clothing` and `hair` are `_CHARACTER_PALETTES`’ three components;
 `leg` and `pupil` are the compiler’s own literals (`DFLT_LEG_COLOUR`,
 `DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets’;
-`stroke` is a stroked path’s default colour (`an.paths.DFLT_STROKE_COLOUR`,
+`stroke` is a stroked path’s default colour (`an.stage.paths.DFLT_STROKE_COLOUR`,
 an#161) — the arrowhead is filled in the same colour, so it is not a second
 role. A path that names its own `color` is art and is left alone.
 `accessory` (a hat, a sash) exists only in role-tagged SVG art — the

@@ -31,7 +31,7 @@ knob with **no lever**, on measurement — a per-frame instrument cannot judge a
 temporal choice (the `an-dev-bench` skill’s table has the numbers). Each lever
 reaches an existing seam from the outside:
 
-- `high_crf` rebinds `an.adapters.cutout.render.DETERMINISTIC_X264_ARGS`.
+- `high_crf` rebinds `an.stage.render.DETERMINISTIC_X264_ARGS`.
   `_ffmpeg_mux` reads that name as a module global at call time, so the
   rebinding reaches the delivered encode. It does **not** reach
   `an.bench.imageio.lossless_encode_command`, which bound the tuple at import
@@ -39,7 +39,7 @@ reaches an existing seam from the outside:
   every encode-side metric would be measured against a moving target and the
   lever would produce beautiful numbers about nothing.
 - `disabled_aa` copies the staged runtime, flips PixiJS’s `antialias` in the
-  copy, and rebinds `an.adapters.cutout.render.runtime_dir`. The shipped
+  copy, and rebinds `an.stage.render.runtime_dir`. The shipped
   `runtime.js` is never written to.
 - `supersample` reaches the SAME runtime seam — `resolution: k,
   autoDensity: false` in the Pixi application options — and then a second one

@@ -332,5 +332,6 @@ an.engines.protocol.UnseekableEngineError: this engine session cannot be capture
 
 | [`capture`](an.engines.capture.md#module-an.engines.capture)         | The capture loop: drive a session through every frame, resolve, write -- for ANY engine.   |
 |--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| [`conformance`](an.engines.conformance.md#module-an.engines.conformance) | Conformance of a TIME-driven engine against the timing kernel's golden vectors.            |
 | [`frame_stage`](an.engines.frame_stage.md#module-an.engines.frame_stage) | `frame_stage_renderer(engine)`: any seekable engine becomes a `Renderer`.                  |
 | [`protocol`](an.engines.protocol.md#module-an.engines.protocol)       | The `Engine` protocol: a seekable thing that turns a time, or a state, into a frame.       |

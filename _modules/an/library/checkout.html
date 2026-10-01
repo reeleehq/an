@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -729,7 +729,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  UNVERIFIED in ``an credits``, as it is ``unknown`` when the copy is published</span>
 <span class="sd">  back (an#264);</span>
 <span class="sd">- the asset-level source, written into a descriptor that declares none (or</span>
-<span class="sd">  only the character factory's own stamp, which it then stands in for);</span>
+<span class="sd">  only a generator's own source that owes nothing — the character factory's</span>
+<span class="sd">  stamp, a free DiceBear style — which it then stands in for: an#281);</span>
 <span class="sd">- the pin in ``assets.lock.json`` — the project mall's ``library_lock`` store,</span>
 <span class="sd">  the single source of truth for which version a project holds (an#240).</span>
 
@@ -783,8 +784,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">roll_up</span><span class="p">,</span>
     <span class="n">sources_in</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHECKED_OUT_KEY</span><span class="p">,</span> <span class="n">checked_out_seal</span><span class="p">,</span> <span class="n">is_factory_stamp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CHECKED_OUT_KEY</span><span class="p">,</span>
+    <span class="n">checked_out_seal</span><span class="p">,</span>
+    <span class="n">gives_way_to_a_label</span><span class="p">,</span>
+    <span class="n">is_clutter</span><span class="p">,</span>
+    <span class="n">referenced_paths</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">LibraryLocationWarning</span><span class="p">,</span> <span class="n">git_worktree_of</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -871,12 +877,13 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">out</span> <span class="o">+</span> <span class="p">([</span><span class="s2">"files expected, but the store keeps none"</span><span class="p">]</span> <span class="k">if</span> <span class="n">files</span> <span class="k">else</span> <span class="p">[])</span>
     <span class="n">meta</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"META_NAME"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="n">referenced_paths</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="o">|</span> <span class="n">referenced_paths</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="n">on_disk</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">rel</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
         <span class="ow">and</span> <span class="p">(</span><span class="n">rel</span> <span class="o">:=</span> <span class="n">p</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span> <span class="o">!=</span> <span class="n">meta</span>
-        <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_os_junk</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_clutter</span><span class="p">(</span><span class="n">rel</span><span class="p">,</span> <span class="n">named</span><span class="p">)</span>
     <span class="p">}</span>
     <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">))</span>
@@ -968,8 +975,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">manifest</span> <span class="o">=</span> <span class="n">version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">]</span>
     <span class="n">mall</span> <span class="o">=</span> <span class="n">mall</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">]</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">_project_lock</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">_unedited_copy</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">entry_key</span> <span class="o">=</span> <span class="n">lock_key</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
         <span class="n">existing</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -1037,10 +1046,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">added</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="n">descriptor_source</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
-            <span class="ow">or</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span>
+            <span class="ow">or</span> <span class="n">gives_way_to_a_label</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span>
         <span class="p">):</span>
             <span class="c1"># The asset-level source speaks for every file nothing itemises; the</span>
-            <span class="c1"># factory's descriptor stamp speaks only for the bytes its part</span>
+            <span class="c1"># generator's descriptor source speaks only for the bytes its part</span>
             <span class="c1"># stamps pin, so it gives way (and comes back on a re-publish).</span>
             <span class="n">added</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">"source"</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">version</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]),</span>
@@ -1088,6 +1097,36 @@ window.runMermaid = runMermaid;</script>
     <span class="n">lock</span><span class="p">[</span><span class="n">entry_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pin</span><span class="p">(</span><span class="n">pinned</span><span class="p">,</span> <span class="n">manifest</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">CheckoutResult</span><span class="p">(</span><span class="n">pinned</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">manifest</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="n">rights</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unedited_copy</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pinned</span><span class="p">:</span> <span class="n">LibraryRef</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The key of a project entry that already IS ``version``, byte for byte, if any.</span>
+
+<span class="sd">    The natural first round trip publishes a project's ``characters/alice``</span>
+<span class="sd">    as ``character.alice-reiniger``; checking that back out must link the</span>
+<span class="sd">    folder it came from, not copy it beside it under the asset's slug and leave</span>
+<span class="sd">    the original unpinned (an#271). The asset's own slug is preferred when it</span>
+<span class="sd">    holds the version; an entry already pinned to ANOTHER version is never</span>
+<span class="sd">    taken over.</span>
+<span class="sd">    """</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">k</span> <span class="o">!=</span> <span class="n">slug</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a store that cannot be listed: the slug</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">entry_key</span> <span class="o">=</span> <span class="n">lock_key</span><span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="n">candidate</span><span class="p">)</span>
+        <span class="n">held</span> <span class="o">=</span> <span class="p">(</span><span class="n">lock</span><span class="p">[</span><span class="n">entry_key</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library"</span><span class="p">)</span> <span class="k">if</span> <span class="n">entry_key</span> <span class="ow">in</span> <span class="n">lock</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">held</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">candidate</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">candidate</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — an unreadable entry is not this version</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_project_lock</span><span class="p">(</span><span class="n">lock</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">project_dir</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>

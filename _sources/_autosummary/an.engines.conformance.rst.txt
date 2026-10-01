@@ -1,0 +1,21 @@
+an.engines.conformance
+======================
+
+.. automodule:: an.engines.conformance
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      VECTORS_RESOURCE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      as_contract_state
+      conformance_report
+      readback_mismatches
+      vector_cases
+   

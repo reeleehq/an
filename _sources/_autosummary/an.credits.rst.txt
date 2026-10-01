@@ -13,6 +13,7 @@ an.credits
       collect_credits
       credits_for_project
       credits_for_scene
+      speech_credits
       warn_if_private_study
    
    .. rubric:: Classes

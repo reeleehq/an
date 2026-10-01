@@ -4,28 +4,3 @@ an.adapters.cutout.timeline
 .. automodule:: an.adapters.cutout.timeline
 
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      merge_poses
-      write_group
-      evaluate_timeline
-      clip_from_json
-      timeline_from_scene
-      transform_of
-      screen_position
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      Channel
-      Keyframe
-      Clip
-      LoopMode
-      PlacedClip
-      Track
-      Timeline
-      Transform2D
-   

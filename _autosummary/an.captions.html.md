@@ -11,7 +11,7 @@ an#96) for lip-sync; this module turns them into captions, opt-in through
 of what is captioned and on which frames. Both outputs are derived from it:
 
 - the picture — [`captioned_shot()`](#an.captions.captioned_shot) adds each page as an OVERLAY text
-  block ([`an.text`](an.text.html.md#module-an.text); camera-immune, placed at a title-safe anchor) plus
+  block ([`an.stage.text`](an.stage.text.html.md#module-an.stage.text); camera-immune, placed at a title-safe anchor) plus
   ordinary `set` actions that show it for exactly its frames, and
   optionally tint the word being spoken;
 - the sidecar — [`caption_cues()`](#an.captions.caption_cues) places the same pages in FILM time and
@@ -38,7 +38,7 @@ function the assembler lays the picture out with) plus its shot-local frame,
 so a dissolve, which overlaps two shots and shortens the film, moves every
 later cue earlier by exactly its overlap.
 
-**Timing is materialised into ordinary actions**, the way [`an.text.reveal_units()`](an.text.html.md#an.text.reveal_units)
+**Timing is materialised into ordinary actions**, the way [`an.stage.text.reveal_units()`](an.stage.text.html.md#an.stage.text.reveal_units)
 works: nothing in the compiler or the runtime knows what a caption is. The
 caption blocks are added to the shot at RENDER time, never written back to
 the scene — the word timings are the audio pipeline’s output, and a caption

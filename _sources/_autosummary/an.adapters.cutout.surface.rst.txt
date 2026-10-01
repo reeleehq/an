@@ -4,25 +4,3 @@ an.adapters.cutout.surface
 .. automodule:: an.adapters.cutout.surface
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      UNDERLAY_KINDS
-      GLOW_NODE
-      GRAIN_LEVELS
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      ring_offsets
-      apply_surface
-      drawn_box
-      glow_svg
-      grain_indices
-      grain_greys
-      grain_png
-      grain_node
-      faded_treated_targets
-   

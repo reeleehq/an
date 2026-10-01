@@ -1,6 +1,6 @@
 # an.genres.registry
 
-The core’s open registries: action kinds, entity kinds, semantic checks, md sugar.
+The core’s open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.
 
 ADR 0001 decision 2 (“the IR is open at the type level; genres register, never
 edit”) and decision 4 (the first batch of registries). Each registry is a plain
@@ -31,32 +31,41 @@ False
 
 ### Functions
 
-| [`action_kind`](#an.genres.registry.action_kind)(name)                                | The registered kind called `name`, or `None`.                                     |
-|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`action_kind_names`](#an.genres.registry.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.    |
-| `action_kind_owner`(name)                                                                         |                                                                                   |
-| `check_names`(\*[, owner])                                                                        |                                                                                   |
-| [`checks`](#an.genres.registry.checks)(stage)                                    | The registered checks of `stage`, in run order (`order`, then registration).      |
-| [`dialogue_sugar`](#an.genres.registry.dialogue_sugar)(opener)                           | The sugar registered for the bracket `opener`, or `None`.                         |
-| `dialogue_sugars`()                                                                               |                                                                                   |
-| `entity_kind`(name)                                                                               |                                                                                   |
-| `entity_kind_names`(\*[, owner])                                                                  |                                                                                   |
-| [`owners`](#an.genres.registry.owners)()                                         | Every owner with at least one entry, the core first.                              |
-| [`register_action_kind`](#an.genres.registry.register_action_kind)(kind, \*[, owner, replace]) | Register an action kind.                                                          |
-| [`register_check`](#an.genres.registry.register_check)(check, \*[, owner, replace])      | Register a semantic-validation check (run by `an.ir.validate.validate_semantic`). |
-| [`register_dialogue_sugar`](#an.genres.registry.register_dialogue_sugar)(sugar, \*[, owner, ...]) | Register `scene.md` dialogue sugar.                                               |
-| [`register_entity_kind`](#an.genres.registry.register_entity_kind)(kind, \*[, owner, replace]) | Register an entity kind (a value `AssetRef.kind` may take).                       |
-| `restore`(state)                                                                                  |                                                                                   |
-| [`snapshot`](#an.genres.registry.snapshot)()                                       | The state of every table, for `restore()`.                                        |
-| [`unregister_owner`](#an.genres.registry.unregister_owner)(owner)                          | Remove every entry `owner` registered, from every table.                          |
+| [`action_kind`](#an.genres.registry.action_kind)(name)                                 | The registered kind called `name`, or `None`.                                     |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`action_kind_names`](#an.genres.registry.action_kind_names)(\*[, owner])                    | Registered action-kind names in registration order; `owner`'s only when given.    |
+| `action_kind_owner`(name)                                                                          |                                                                                   |
+| `check_names`(\*[, owner])                                                                         |                                                                                   |
+| [`checks`](#an.genres.registry.checks)(stage)                                     | The registered checks of `stage`, in run order (`order`, then registration).      |
+| `compile_pass_names`(\*[, owner])                                                                  |                                                                                   |
+| [`compile_pass_owner`](#an.genres.registry.compile_pass_owner)(name)                          | Who registered the compile pass `name` (a genre's name), or `None`.               |
+| [`compile_passes`](#an.genres.registry.compile_passes)(compiler)                          | The registered passes of `compiler` (builders excluded), in run order.            |
+| [`dialogue_sugar`](#an.genres.registry.dialogue_sugar)(opener)                            | The sugar registered for the bracket `opener`, or `None`.                         |
+| `dialogue_sugars`()                                                                                |                                                                                   |
+| [`entity_builders`](#an.genres.registry.entity_builders)(compiler)                         | `{entity kind: builder}` registered for `compiler`.                               |
+| `entity_kind`(name)                                                                                |                                                                                   |
+| `entity_kind_names`(\*[, owner])                                                                   |                                                                                   |
+| [`owners`](#an.genres.registry.owners)()                                          | Every owner with at least one entry, the core first.                              |
+| [`register_action_kind`](#an.genres.registry.register_action_kind)(kind, \*[, owner, replace])  | Register an action kind.                                                          |
+| [`register_check`](#an.genres.registry.register_check)(check, \*[, owner, replace])       | Register a semantic-validation check (run by `an.ir.validate.validate_semantic`). |
+| [`register_compile_pass`](#an.genres.registry.register_compile_pass)(compile_pass, \*[, ...])    | Register a compile pass (or an entity builder) under its name.                    |
+| [`register_dialogue_sugar`](#an.genres.registry.register_dialogue_sugar)(sugar, \*[, owner, ...])  | Register `scene.md` dialogue sugar.                                               |
+| [`register_entity_kind`](#an.genres.registry.register_entity_kind)(kind, \*[, owner, replace])  | Register an entity kind (a value `AssetRef.kind` may take).                       |
+| [`register_runtime_script`](#an.genres.registry.register_runtime_script)(script, \*[, owner, ...]) | Register runtime code for an engine (a genre's visual kinds).                     |
+| `restore`(state)                                                                                   |                                                                                   |
+| [`runtime_scripts`](#an.genres.registry.runtime_scripts)(engine)                           | The scripts registered for `engine`, by name (a stable order).                    |
+| [`snapshot`](#an.genres.registry.snapshot)()                                        | The state of every table, for `restore()`.                                        |
+| [`unregister_owner`](#an.genres.registry.unregister_owner)(owner)                           | Remove every entry `owner` registered, from every table.                          |
 
 ### Classes
 
-| [`ActionKind`](#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
-|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`DialogueSugar`](#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
-| [`EntityKind`](#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
-| [`SemanticCheck`](#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
+| [`ActionKind`](#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.                                                                                                                                                                               |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CompilePass`](#an.genres.registry.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
+| [`DialogueSugar`](#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
+| [`EntityKind`](#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
+| [`RuntimeScript`](#an.genres.registry.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
+| [`SemanticCheck`](#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
 
 ### Exceptions
 
@@ -113,6 +122,44 @@ once before the shots, once per shot, once after them.
 
 alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘scene’, ‘shot’, ‘finish’]
 
+### *class* an.genres.registry.CompilePass(name, run, order=0.0, compiler='stage', builds=None, description='', replace=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One step a genre adds to an engine’s COMPILER (shot -> compiled document).
+
+A compiler (`compiler`: today `"stage"`, [`an.stage.compile`](an.stage.compile.html.md#module-an.stage.compile)) runs
+its own passes plus every registered one, in `order`. A pass with
+`builds` set is an ENTITY BUILDER instead: the compiler’s scene pass calls
+it for each entity of that kind (the cut-out genre’s `rig` builds a
+`character`); builders with a lower `order` build all their entities
+first (the stage’s backdrop before the cast), equal orders in entity order.
+
+`run` is the callable, or `"module:function"`, resolved on first use –
+so a genre is inspectable ([`an.genres.available()`](an.genres.html.md#an.genres.available)) without importing
+the engine its passes target. What `run` receives is the compiler’s
+business (the stage hands a pass its `CompileState`, a builder the entity
+and the scene being built); the core never calls it.
+
+#### replace *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+Explicitly take the place of the ENGINE’s own pass of this name (or its
+builder for `builds`). Without it a name or kind the engine already
+has is refused when the compiler runs; with it the replacement is
+recorded in the compiled document (review of an#270, S3).
+
+#### resolve()
+
+The callable `run` names.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> CompilePass("p", "math:sqrt").resolve()(4.0)
+2.0
+```
+
 ### an.genres.registry.DIALOGUE_BRACKETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'[': ']'}*
 
 The bracket pairs a GENRE may claim on a `scene.md` dialogue line. The
@@ -162,6 +209,31 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A registration is malformed or collides with one already made.
 
+### *class* an.genres.registry.RuntimeScript(name, source, engine='stage', description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+JavaScript a genre adds to an engine’s RUNTIME (an#247; ADR 0001 decision 4,
+second batch): for the stage, code that registers visual kinds with
+`window.anRegisterVisual(kind, make)` – how the cut-out mouth and eye
+leave `runtime.js` for `cutan` (P8).
+
+`source` is `"package:relative/path.js"`, read with
+[`importlib.resources`](https://docs.python.org/3/library/importlib.resources.html#module-importlib.resources) when the engine stages its runtime, so it ships
+in the genre’s wheel. The staged code is part of the shot cache’s key.
+
+#### code()
+
+The script’s code (UTF-8).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
+True
+```
+
 ### *class* an.genres.registry.SemanticCheck(name, run, stage='shot', order=0.0, description='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -204,12 +276,33 @@ The registered checks of `stage`, in run order (`order`, then registration).
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SemanticCheck`](#an.genres.registry.SemanticCheck), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
+### an.genres.registry.compile_pass_owner(name)
+
+Who registered the compile pass `name` (a genre’s name), or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.genres.registry.compile_passes(compiler)
+
+The registered passes of `compiler` (builders excluded), in run order.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CompilePass`](#an.genres.registry.CompilePass), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
 ### an.genres.registry.dialogue_sugar(opener)
 
 The sugar registered for the bracket `opener`, or `None`.
 
 * **Return type:**
   [`DialogueSugar`](#an.genres.registry.DialogueSugar) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.genres.registry.entity_builders(compiler)
+
+`{entity kind: builder}` registered for `compiler`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`CompilePass`](#an.genres.registry.CompilePass)]
 
 ### an.genres.registry.owners()
 
@@ -242,6 +335,13 @@ Register a semantic-validation check (run by `an.ir.validate.validate_semantic`)
 * **Return type:**
   [`SemanticCheck`](#an.genres.registry.SemanticCheck)
 
+### an.genres.registry.register_compile_pass(compile_pass, , owner='an', replace=False)
+
+Register a compile pass (or an entity builder) under its name.
+
+* **Return type:**
+  [`CompilePass`](#an.genres.registry.CompilePass)
+
 ### an.genres.registry.register_dialogue_sugar(sugar, , owner='an', replace=False)
 
 Register `scene.md` dialogue sugar. One sugar per bracket pair.
@@ -255,6 +355,20 @@ Register an entity kind (a value `AssetRef.kind` may take).
 
 * **Return type:**
   [`EntityKind`](#an.genres.registry.EntityKind)
+
+### an.genres.registry.register_runtime_script(script, , owner='an', replace=False)
+
+Register runtime code for an engine (a genre’s visual kinds).
+
+* **Return type:**
+  [`RuntimeScript`](#an.genres.registry.RuntimeScript)
+
+### an.genres.registry.runtime_scripts(engine)
+
+The scripts registered for `engine`, by name (a stable order).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`RuntimeScript`](#an.genres.registry.RuntimeScript), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.registry.snapshot()
 

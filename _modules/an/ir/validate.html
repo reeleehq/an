@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
+    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.146" />
+  <meta name="docsearch:version" content="0.1.147" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -968,7 +968,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"PathDescriptor"</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_path</span>  <span class="c1"># the compiler's own resolver</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_path</span>  <span class="c1"># the compiler's own resolver</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">resolve_path</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
@@ -1002,7 +1002,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">props</span> <span class="o">=</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.text</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">font_base_dir</span><span class="p">,</span>
         <span class="n">layout_text</span><span class="p">,</span>
         <span class="n">resolve_text</span><span class="p">,</span>
@@ -1098,7 +1098,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">}</span>
     <span class="n">undashed_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_path</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_path</span>
 
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">path_ids</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"prop"</span><span class="p">:</span>
@@ -1770,7 +1770,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Resolved against :func:`_built_node_paths` — the compiler's own stage</span>
 <span class="sd">    builder, the one a preset `play` is checked against (an#166) — so the rig</span>
 <span class="sd">    is never restated here; the message is the compiler's</span>
-<span class="sd">    (:func:`an.adapters.cutout.compile.unknown_target_message`), with "did you</span>
+<span class="sd">    (:func:`an.stage.compile.unknown_target_message`), with "did you</span>
 <span class="sd">    mean" suggestions from the real paths. A target on an entity whose store</span>
 <span class="sd">    was not supplied is skipped: without it a stand-in (the placeholder rig,</span>
 <span class="sd">    the default backdrop) would be built, and its paths are not the asset's.</span>
@@ -1778,9 +1778,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    checked by `_check_text_blocks`, at the scene's resolution). The runtime's</span>
 <span class="sd">    camera node (``root``) is a legitimate target, as the compiler says.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span> <span class="ow">or</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="o">!=</span> <span class="s2">"cutout"</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAGE_RENDERER_NAMES</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span> <span class="ow">or</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STAGE_RENDERER_NAMES</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_NODE</span><span class="p">,</span> <span class="n">unknown_target_message</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_NODE</span><span class="p">,</span> <span class="n">unknown_target_message</span>
 
     <span class="n">store_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_doc</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RIG_STORES</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">store_of</span><span class="p">[</span><span class="s2">"environment"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"environments"</span>  <span class="c1"># its planes are nodes too</span>
@@ -1979,7 +1981,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">env_store</span> <span class="o">=</span> <span class="p">(</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">env_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">EnvironmentDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">EnvironmentDescriptor</span>
 
     <span class="n">factors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
@@ -2033,9 +2035,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    band of background colour, the top of a tree cut off — and renders</span>
 <span class="sd">    happily. The check is the compiler's geometry evaluated at every camera</span>
 <span class="sd">    key (or the resting frame when there is no move): the region the pose</span>
-<span class="sd">    frames (`an.environments.frame_rect`) against the union of every plane's</span>
+<span class="sd">    frames (`an.stage.environments.frame_rect`) against the union of every plane's</span>
 <span class="sd">    drawn rect with its parallax compensation at that pose</span>
-<span class="sd">    (`an.environments.plane_rect`).</span>
+<span class="sd">    (`an.stage.environments.plane_rect`).</span>
 
 <span class="sd">    **Keys suffice for a move without roll.** Between two keys x, y and zoom</span>
 <span class="sd">    share one eased parameter; a plane edge minus a frame edge is then a</span>
@@ -2054,7 +2056,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">envs</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">env_store</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">envs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">width</span> <span class="ow">and</span> <span class="n">height</span><span class="p">):</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
         <span class="n">EnvironmentDescriptor</span><span class="p">,</span>
         <span class="n">frame_rect</span><span class="p">,</span>
@@ -2145,7 +2147,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">art_size</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">/</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
@@ -2226,7 +2228,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    validate."""</span>
     <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">apply_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
@@ -2238,7 +2240,7 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Every tween's own easing must be one the evaluators know (an#233 review,</span>
 <span class="sd">    S1) — what compile refuses and the stage runtime cannot draw, validate says</span>
 <span class="sd">    first, so validate and the player agree."""</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">TweenAction</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>

@@ -1,0 +1,65 @@
+an.stage.compile
+================
+
+.. automodule:: an.stage.compile
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_LEG_COLOUR
+      DFLT_PUPIL_COLOUR
+      COARTICULATION_ENABLED
+      PROCEDURAL_MOUTH_KEYS
+      EYE_NODE_NAMES
+      PUPIL_NODE_NAMES
+      GAZE_ELLIPSE_MARGIN
+      RUNTIME_APPLIED_PROPERTIES
+      DFLT_TARGET_SUGGESTIONS
+      CAMERA_NODE
+      STAGE_COMPILE_PASSES
+      STAGE_SCENE_BUILDERS
+      ENVIRONMENT_ART_PREFIX
+      PLANE_FILL_SPAN
+      FOREGROUND_SUFFIX
+      SCENE_PX_PER_VIEW_BOX
+      CONTAIN_FIT
+      CHARACTER_ART_PREFIX
+      PROP_ART_PREFIX
+      STAGE_NODE_SPACE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      blink_phase
+      camera_keys
+      compile_passes_for_stage
+      compile_shot
+      entity_spaces_of
+      foreground_node_name
+      node_path_suggestions
+      parse_tint
+      plane_parents
+      scene_builders
+      stage_replacements
+      step_times
+      style_pack_for
+      unknown_target_message
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CompileState
+      SceneBuild
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CompilePassCollision
+      CutoutCompileError
+      CutoutCompileWarning
+   

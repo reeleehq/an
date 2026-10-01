@@ -4,35 +4,3 @@ an.adapters.cutout.render
 .. automodule:: an.adapters.cutout.render
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      STAGE_ENGINE_NAME
-      DEFAULT_ASSET_LOAD_TIMEOUT_MS
-      DETERMINISTIC_CHROMIUM_ARGS
-      DEFAULT_CAPTURE
-      SUPPORTED_CAPTURES
-      ASSET_LOAD_TIMEOUT_MARKER
-      ASSET_SRC_PREFIX_TO_STORE
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      effective_step_hz
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      CutoutRenderer
-      StageEngine
-   
-   .. rubric:: Exceptions
-
-   .. autosummary::
-   
-      CutoutAssetWarning
-      CutoutRenderError
-   

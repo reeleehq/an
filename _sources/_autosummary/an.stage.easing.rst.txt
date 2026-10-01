@@ -1,0 +1,19 @@
+an.stage.easing
+===============
+
+.. automodule:: an.stage.easing
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      EASING_FUNCS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      apply_easing
+      cubic_bezier
+   

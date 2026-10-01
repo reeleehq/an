@@ -1,0 +1,37 @@
+an.stage
+========
+
+.. automodule:: an.stage
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      STAGE_RENDERER_NAMES
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cache_key
+   canvas_capture
+   compile
+   easing
+   environments
+   fidelity
+   path_geometry
+   paths
+   preview
+   props
+   raster
+   render
+   runtime
+   runtime_files
+   serialize
+   surface
+   text
+   text_layout
+   timeline

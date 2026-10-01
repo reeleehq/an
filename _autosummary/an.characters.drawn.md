@@ -22,14 +22,19 @@ True
 
 ### Functions
 
-| [`drawing`](#an.characters.drawn.drawing)()                              | Log `{resolved path: sha256}` of every file written through this module, in this context.                           |
-|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| [`write_bytes`](#an.characters.drawn.write_bytes)(path, data)                | Write `data` to `path`, logging its digest if a [`drawing()`](#an.characters.drawn.drawing) is open. |
-| [`write_text`](#an.characters.drawn.write_text)(path, text, \*[, encoding]) | Write `text` as `Path.write_text` does (newlines as the platform writes them), logged.                              |
+| [`drawing`](#an.characters.drawn.drawing)()                                         | Log `{resolved path: sha256}` of every file written through this module, in this context.                           |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| [`write_bytes`](#an.characters.drawn.write_bytes)(path, data)                           | Write `data` to `path`, logging its digest if a [`drawing()`](#an.characters.drawn.drawing) is open. |
+| [`write_derived_text`](#an.characters.drawn.write_derived_text)(path, source, text, \*[, ...]) | Write `text`, derived from `source` — the bytes just read back from `path`.                                         |
+| [`write_text`](#an.characters.drawn.write_text)(path, text, \*[, encoding])            | Write `text` as `Path.write_text` does (newlines as the platform writes them), logged.                              |
 
 ### an.characters.drawn.drawing()
 
 Log `{resolved path: sha256}` of every file written through this module, in this context.
+
+Re-entrant: inside an open drawing (`add_gaze` called by
+`new_character`) the same log is shared, so the outer call sees every
+byte the inner one wrote.
 
 * **Return type:**
   [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
@@ -40,6 +45,29 @@ Write `data` to `path`, logging its digest if a [`drawing()`](#an.characters.dra
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.drawn.write_derived_text(path, source, text, , encoding='utf-8')
+
+Write `text`, derived from `source` — the bytes just read back from `path`.
+
+Logged only if `source` is exactly what this drawing itself wrote there:
+a file swapped in between the factory’s write and its re-read (a rescale)
+is rewritten, but not as the factory’s drawing (review-288 round 2).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> import tempfile, pathlib
+>>> with tempfile.TemporaryDirectory() as d, drawing() as log:
+...     p = pathlib.Path(d) / "a.svg"
+...     write_text(p, "<svg/>")
+...     p.write_bytes(b"<svg>swapped</svg>")  # not the factory's write
+...     write_derived_text(p, p.read_bytes(), "<svg>scaled</svg>")
+...     str(p.resolve()) in log
+18
+False
+```
 
 ### an.characters.drawn.write_text(path, text, , encoding='utf-8')
 
