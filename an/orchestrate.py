@@ -197,7 +197,9 @@ def orchestrate(
 
     # The scene AS RENDERED: clock-owned shots at their measured length, from
     # the derived store the render just filled (an#279).
-    scene, _ = settle_durations(project.scene, render_context_for(project), render=False)
+    scene, _ = settle_durations(
+        project.scene, render_context_for(project), render=False
+    )
     # The DELIVERED length: a dissolve overlaps its shots (an#163), so the
     # film can be shorter than meta.duration's sum of shots.
     rr = RenderResult(mp4_path=report.output_path, duration=film_duration(scene))

@@ -2308,16 +2308,16 @@ def _build_manim_shot(work: Path) -> Path:
     mall["sources"]["bars"] = MANIM_DEMO_SOURCE.encode("utf-8")
     mall["environments"]["card"] = EnvironmentDescriptor(
         name="card",
-        planes=[Plane(name="bg", art=PlaneArt(kind="fill", color="#14142a"), depth=0.0)],
+        planes=[
+            Plane(name="bg", art=PlaneArt(kind="fill", color="#14142a"), depth=0.0)
+        ],
     ).model_dump(mode="json")
     mall["props"]["title"] = TextDescriptor(
         name="title", text="Q3 was the best", layer="overlay", unit="line",
         size=0.12, color="#f2a541",
     ).model_dump(mode="json")  # fmt: skip
-    md = (
-        _meta("A Manim shot in an an film", 5.0)
-        + _scene(
-            """
+    md = _meta("A Manim shot in an an film", 5.0) + _scene(
+        """
             ## Shot chart (manim)
 
             ```yaml shot
@@ -2340,7 +2340,6 @@ def _build_manim_shot(work: Path) -> Path:
             - {kind: prop, id: title, store: props, ref: title}
             ```
             """
-        )
     )
     return _render(_project(work, scene_md=md, characters=()), strict_assets=True)
 

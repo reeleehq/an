@@ -171,7 +171,8 @@ def _check_manim() -> ToolStatus:
     """Manim AND manimkit: a Manim shot renders through manimkit (an#279), so
     either one missing is a render that raises — reported as missing here."""
     status = _check_python_pkg(
-        "manim", "pip install 'an[manim]'  # Manim + manimkit; plus cairo/pango system deps"
+        "manim",
+        "pip install 'an[manim]'  # Manim + manimkit; plus cairo/pango system deps",
     )
     if status.installed and importlib.util.find_spec("manimkit") is None:
         status.installed = False

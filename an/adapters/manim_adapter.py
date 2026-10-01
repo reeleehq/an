@@ -240,7 +240,9 @@ class ManimShotSpec:
                 f"assets/{DEFAULT_SOURCE_STORE}/<key>.py), got {source!r}"
             )
         scene = options.get("scene")
-        if scene is not None and (not isinstance(scene, str) or not scene.isidentifier()):
+        if scene is not None and (
+            not isinstance(scene, str) or not scene.isidentifier()
+        ):
             raise ManimRenderError(
                 f"options.scene must be the name of a Scene class, got {scene!r}"
             )
@@ -257,7 +259,9 @@ class ManimShotSpec:
             )
         timeout = options.get("timeout", DEFAULT_TIMEOUT_S)
         if not isinstance(timeout, (int, float)) or timeout <= 0:
-            raise ManimRenderError(f"options.timeout must be positive seconds, got {timeout!r}")
+            raise ManimRenderError(
+                f"options.timeout must be positive seconds, got {timeout!r}"
+            )
         return cls(
             source=source,
             scene=scene,
@@ -386,7 +390,9 @@ def store_source_resolver(store: str = DEFAULT_SOURCE_STORE) -> SourceResolver:
         entry = f"{spec.source}.py"
         if entry not in closure:  # a mapping whose keys are not file names
             data = sources[spec.source]
-            closure[entry] = data.encode("utf-8") if isinstance(data, str) else bytes(data)
+            closure[entry] = (
+                data.encode("utf-8") if isinstance(data, str) else bytes(data)
+            )
         return SourceFile(spec.source, entry, closure, _display_path(sources, entry))
 
     return resolve
@@ -406,7 +412,9 @@ def source_requirements(code: str) -> tuple[str, ...]:
     except ImportError:  # the static fallback: the classes that typeset with TeX
 
         def uses_latex(text: str) -> bool:
-            return bool(re.search(r"\b(MathTex|Tex|SingleStringMathTex|Matrix)\s*\(", text))
+            return bool(
+                re.search(r"\b(MathTex|Tex|SingleStringMathTex|Matrix)\s*\(", text)
+            )
 
     return ("env.manim", "env.latex") if uses_latex(code) else ("env.manim",)
 
@@ -476,7 +484,11 @@ def _scene_lines(code: str, scene: str | None) -> tuple[int | None, list[int] | 
     if cls is None:
         return None, None
     construct = next(
-        (f for f in cls.body if isinstance(f, ast.FunctionDef) and f.name == "construct"),
+        (
+            f
+            for f in cls.body
+            if isinstance(f, ast.FunctionDef) and f.name == "construct"
+        ),
         None,
     )
     if construct is None:
@@ -511,7 +523,9 @@ def _beat_index(timeline: list[Mapping[str, Any]], t: float) -> int | None:
     return None
 
 
-def report_findings(report: Any, source: SourceFile, *, scene: str | None = None) -> list["Finding"]:
+def report_findings(
+    report: Any, source: SourceFile, *, scene: str | None = None
+) -> list["Finding"]:
     """manimkit's report as shot-relative :class:`Finding` s, located by ``file:line``.
 
     Layout warnings land on the line of the ``play``/``wait`` they were checked
@@ -529,7 +543,9 @@ def report_findings(report: Any, source: SourceFile, *, scene: str | None = None
     [('warning', 'options/source', 'assets/sources/c.py:3')]
     """
     construct_line, beats = _scene_lines(source.text, scene)
-    fallback = f"{source.display}:{construct_line}" if construct_line else source.display
+    fallback = (
+        f"{source.display}:{construct_line}" if construct_line else source.display
+    )
     out: list[Finding] = []
     timeline = list(getattr(report, "timeline", None) or [])
     for w in getattr(report, "layout_warnings", None) or []:
@@ -582,7 +598,9 @@ def report_findings(report: Any, source: SourceFile, *, scene: str | None = None
             for x in (
                 getattr(report, "error", None) or "the render failed",
                 f"hint: {report.hint}" if getattr(report, "hint", None) else "",
-                f"latex log: {report.latex_log}" if getattr(report, "latex_log", None) else "",
+                f"latex log: {report.latex_log}"
+                if getattr(report, "latex_log", None)
+                else "",
             )
             if x
         )
@@ -592,7 +610,9 @@ def report_findings(report: Any, source: SourceFile, *, scene: str | None = None
                 "error",
                 SOURCE_PATH,
                 f"Manim render failed ({getattr(report, 'error_kind', None) or 'error'}): {detail}",
-                "install LaTeX (env.latex), or use Text instead of MathTex/Tex" if latex else None,
+                "install LaTeX (env.latex), or use Text instead of MathTex/Tex"
+                if latex
+                else None,
                 location=f"{source.display}:{lines[-1]}" if lines else fallback,
             )
         )
@@ -653,14 +673,18 @@ def manimkit_version() -> str | None:
 # -----------------------------------------------------------------------------
 
 
-def picture_inputs(spec: ManimShotSpec, source: SourceFile, ctx: RenderContext) -> dict[str, Any]:
+def picture_inputs(
+    spec: ManimShotSpec, source: SourceFile, ctx: RenderContext
+) -> dict[str, Any]:
     """What decides Manim's OWN output and length — and nothing else.
 
     Not the film's fps or size (they only pick the default preset), not the
     background pad, not the encode, not this module's code: those change how
     the picture is conformed, so they are in the shot key only (review H2).
     """
-    quality = spec.quality or choose_quality(fps=ctx.fps, resolution=tuple(ctx.resolution))
+    quality = spec.quality or choose_quality(
+        fps=ctx.fps, resolution=tuple(ctx.resolution)
+    )
     needs_latex = "env.latex" in source_requirements(source.text)
     return {
         "sources": source.digest,
@@ -684,9 +708,16 @@ def render_code_digest() -> str:
     import an.media.frames as frames_mod
     import an.media.mp4 as mp4_mod
 
-    files = {"adapter": __file__, "mp4": mp4_mod.__file__, "frames": frames_mod.__file__}
+    files = {
+        "adapter": __file__,
+        "mp4": mp4_mod.__file__,
+        "frames": frames_mod.__file__,
+    }
     return canonical_digest(
-        {k: (file_digest(p) if p and Path(p).is_file() else ABSENT) for k, p in files.items()}
+        {
+            k: (file_digest(p) if p and Path(p).is_file() else ABSENT)
+            for k, p in files.items()
+        }
     )
 
 
@@ -830,7 +861,9 @@ class ManimRenderer:
     def can_render(self, shot: Shot) -> bool:
         return shot.renderer in self.supported_renderers
 
-    def resolve(self, shot: Shot, ctx: RenderContext) -> tuple[ManimShotSpec, SourceFile]:
+    def resolve(
+        self, shot: Shot, ctx: RenderContext
+    ) -> tuple[ManimShotSpec, SourceFile]:
         spec = ManimShotSpec.from_shot(shot)
         return spec, self.source_resolver(spec, ctx.mall)
 
@@ -865,7 +898,9 @@ class ManimRenderer:
                     "or 60), or choose the preset with options.quality",
                 )
             )
-        return DurationMeasurement(duration=raw.duration, findings=findings, key=raw.key)
+        return DurationMeasurement(
+            duration=raw.duration, findings=findings, key=raw.key
+        )
 
     # -- the render --------------------------------------------------------
 
@@ -891,7 +926,9 @@ class ManimRenderer:
             background=spec.background, n_frames=n,
         )  # fmt: skip
         out_mp4 = work / f"{shot.id}.mp4"
-        n_audio = mux_shot(frames_dir, shot, ctx, work, out_mp4, n_frames=n, pix_fmt=ctx.pix_fmt)
+        n_audio = mux_shot(
+            frames_dir, shot, ctx, work, out_mp4, n_frames=n, pix_fmt=ctx.pix_fmt
+        )
         return RenderResult(
             mp4_path=out_mp4,
             duration=n / float(ctx.fps),
@@ -950,7 +987,9 @@ class ManimRenderer:
             return None
         raw = self._render_raw(spec, source, inputs, key, ctx)
         if measurements is not None and pictures is not None:
-            pictures[key] = raw.video  # the picture first: a record never points at nothing
+            pictures[key] = (
+                raw.video
+            )  # the picture first: a record never points at nothing
             measurements[key] = json.dumps(raw.record(), sort_keys=True).encode("utf-8")
         else:
             self._memo[key] = raw
@@ -969,7 +1008,10 @@ class ManimRenderer:
         if root.exists():
             shutil.rmtree(root)
         src_dir = root / "src"
-        for rel, data in source.closure.items():  # the whole folder: relative reads work
+        for (
+            rel,
+            data,
+        ) in source.closure.items():  # the whole folder: relative reads work
             path = src_dir / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
@@ -1011,7 +1053,9 @@ class ManimRenderer:
                 if sheet not in store:
                     store[sheet] = data
                 for f in findings:
-                    if f.suggested_fix and f.suggested_fix.endswith("look at the contact sheet"):
+                    if f.suggested_fix and f.suggested_fix.endswith(
+                        "look at the contact sheet"
+                    ):
                         f.suggested_fix += f" ({_display_path(store, sheet + '.png')})"
         return RawPicture(
             key=key,
@@ -1094,7 +1138,9 @@ def manim_shot_inputs(shot: Shot, ctx: RenderContext) -> ShotKeyInputs:
     return ShotKeyInputs(
         parts={
             "source": inputs["sources"],
-            "manim": canonical_digest({k: v for k, v in inputs.items() if k != "sources"}),
+            "manim": canonical_digest(
+                {k: v for k, v in inputs.items() if k != "sources"}
+            ),
             "knobs": canonical_digest(knobs),
             "audio": canonical_digest(_muxed_audio(shot, ctx)),
             "code": render_code_digest(),
@@ -1108,7 +1154,9 @@ def _first_line(cmd: list[str]) -> str | None:
     if exe is None:
         return None
     try:
-        out = subprocess.run([exe, *cmd[1:]], capture_output=True, text=True, check=False)
+        out = subprocess.run(
+            [exe, *cmd[1:]], capture_output=True, text=True, check=False
+        )
     except OSError as e:
         return f"error: {e}"
     text = (out.stdout or out.stderr).strip()
@@ -1121,7 +1169,9 @@ def _fonts_digest() -> str | None:
     exe = shutil.which("fc-list")
     if exe is None:
         return None
-    out = subprocess.run([exe, ":", "family", "style"], capture_output=True, text=True, check=False)
+    out = subprocess.run(
+        [exe, ":", "family", "style"], capture_output=True, text=True, check=False
+    )
     return bytes_digest("\n".join(sorted(out.stdout.splitlines())).encode("utf-8"))
 
 
@@ -1135,14 +1185,24 @@ def manim_environment() -> dict[str, Any]:
     """
     ffmpeg = shutil.which("ffmpeg")
     banner = (
-        subprocess.run([ffmpeg, "-version"], capture_output=True, text=True, check=False).stdout.strip()
+        subprocess.run(
+            [ffmpeg, "-version"], capture_output=True, text=True, check=False
+        ).stdout.strip()
         if ffmpeg
         else None
     )
     return {
         "packages": {
             name: _version(name)
-            for name in ("manim", "manimkit", "manimpango", "pycairo", "av", "numpy", "pillow")
+            for name in (
+                "manim",
+                "manimkit",
+                "manimpango",
+                "pycairo",
+                "av",
+                "numpy",
+                "pillow",
+            )
         },
         "ffmpeg": banner,
         "latex": _first_line(["latex", "--version"]),

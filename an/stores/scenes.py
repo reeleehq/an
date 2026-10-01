@@ -95,7 +95,9 @@ class ScenesStore(MutableMapping):
         for shot in scene.timeline:
             if shot.id in durations:
                 shot.duration = float(durations[shot.id])
-        markdown = _read_text(self.md_path) if self.md_path.exists() else ir_to_markdown(scene)
+        markdown = (
+            _read_text(self.md_path) if self.md_path.exists() else ir_to_markdown(scene)
+        )
         for shot_id, seconds in durations.items():
             markdown = patch_shot_duration_md(markdown, shot_id, float(seconds))
         _write_json(self.json_path, json.loads(scene.model_dump_json()))
@@ -149,9 +151,17 @@ def patch_shot_duration_md(markdown: str, shot_id: str, seconds: float) -> str:
     <BLANKLINE>
     """
     lines = markdown.split("\n")
-    value = f"duration: {seconds:g}" if float(f"{seconds:g}") == seconds else f"duration: {seconds!r}"
+    value = (
+        f"duration: {seconds:g}"
+        if float(f"{seconds:g}") == seconds
+        else f"duration: {seconds!r}"
+    )
     heading = next(
-        (i for i, ln in enumerate(lines) if (m := _SHOT_HEADING.match(ln)) and m["id"] == shot_id),
+        (
+            i
+            for i, ln in enumerate(lines)
+            if (m := _SHOT_HEADING.match(ln)) and m["id"] == shot_id
+        ),
         None,
     )
     if heading is None:
@@ -160,7 +170,9 @@ def patch_shot_duration_md(markdown: str, shot_id: str, seconds: float) -> str:
         (i for i in range(heading + 1, len(lines)) if _SHOT_HEADING.match(lines[i])),
         len(lines),
     )
-    fence = next((i for i in range(heading + 1, end) if _FENCE_OPEN_SHOT.match(lines[i])), None)
+    fence = next(
+        (i for i in range(heading + 1, end) if _FENCE_OPEN_SHOT.match(lines[i])), None
+    )
     if fence is None:
         lines[heading + 1 : heading + 1] = ["", "```yaml shot", value, "```"]
         return "\n".join(lines)
