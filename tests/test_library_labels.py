@@ -95,7 +95,7 @@ def test_a_recorded_label_answers_the_unlabelled_bytes(tmp_path):
     # the label is part of the version identity
     assert not publish_dir(lib, char, "character.amy", source=CC0, relabel=LABEL).created
     other = publish_dir(lib, char, "character.amy", source=CC0, relabel={**LABEL, "reason": "x"})
-    assert other.created
+    assert other.created and other.manifest_sha256 != v3.manifest_sha256
     # the label stays: a later carried publish of the same bytes is free...
     carried = publish_dir(lib, char, "character.amy")
     assert (carried.created, carried.rights.license_class) == (True, "free")
@@ -186,16 +186,25 @@ def test_a_label_does_not_answer_another_assets_gap(tmp_path):
     assert child.rights.license_class == "unknown"
 
 
-def test_a_same_named_librarys_private_statement_is_not_hidden_by_the_walk(tmp_path):
+@pytest.mark.parametrize(
+    "statement, expected",
+    [
+        (PRIVATE, "private"),
+        # looser than the walk's own `unknown`: a merge first would keep the
+        # `unknown`, leave it out as the walk's, and lose this one
+        ({"provider": "a-studio", "license": "cc-by-4.0", "attribution": "a studio"}, "attribution"),
+    ],
+)
+def test_a_same_named_librarys_statement_is_not_hidden_by_the_walk(tmp_path, statement, expected):
     """The walk leaves out only statements of versions it reads in full,
     BEFORE two libraries' statements under one asset key are merged."""
     study = open_library("cutan", root=tmp_path / "study-lib")
-    publish(study, "prop.x", {"name": "x"}, {"parts/head.svg": CARVED}, source=PRIVATE)
+    publish(study, "prop.x", {"name": "x"}, {"parts/head.svg": CARVED}, source=statement)
     default = open_library("cutan")
     publish(default, "prop.x", {"name": "x"}, {"parts/head.svg": CARVED})
     labelled = publish(default, "prop.x", {"name": "x"}, {"parts/head.svg": CARVED},
                        source=CC0, relabel=LABEL)
-    assert labelled.rights.license_class == "private"
+    assert labelled.rights.license_class == expected
 
 
 @pytest.mark.parametrize(
