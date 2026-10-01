@@ -230,6 +230,6 @@ def write_default_mouths(
     for batch in batches:
         for name, svg in batch.items():
             path = out / f"{name}.svg"
-            _drawn.write_text(path, svg)
+            _drawn.write_text(path, svg, encoding="utf-8")
             written.append(path)
     return written

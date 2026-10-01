@@ -566,7 +566,7 @@ def scale_part_files(paths, scale: float) -> None:
             continue
         svg = path.read_text(encoding="utf-8")
         _, h = raster_size(path)
-        _drawn.write_text(path, _sized_to_height(svg, h * scale))
+        _drawn.write_text(path, _sized_to_height(svg, h * scale), encoding="utf-8")
 
 
 def stage_extent(desc: CharacterDescriptor) -> dict[str, float]:
@@ -796,7 +796,7 @@ def new_character(
 
     canonical = wrap_dicebear_for_an(avatar, name=name)
     canonical_path = out / f"{name}.svg"
-    _drawn.write_text(canonical_path, canonical)
+    _drawn.write_text(canonical_path, canonical, encoding="utf-8")
 
     # Step 3: write self-contained per-part SVGs (centered, sized to fill
     # their own canvas). Done independently of the canonical for clean
@@ -1288,7 +1288,7 @@ def _synthesize_eye_open(path: Path, *, side: str, outline_only: bool = False) -
             f'<ellipse cx="{cx}" cy="{cy}" rx="{EYE_RX}" ry="{EYE_RY}" fill="#ffffff" stroke="#222" stroke-width="2"/>'
             f'<circle cx="{cx}" cy="{cy}" r="{PUPIL_R}" fill="#1a1a1a"/>'
         )
-    _drawn.write_text(path, _eye_svg(inner, gid=f"eye_{side}_open"))
+    _drawn.write_text(path, _eye_svg(inner, gid=f"eye_{side}_open"), encoding="utf-8")
     return path
 
 
@@ -1303,21 +1303,21 @@ def _synthesize_eye_closed(path: Path, *, side: str, fill: str | None = None) ->
         lid
         + f'<path d="M {cx - 14} {cy + 2} Q {cx} {cy + 8} {cx + 14} {cy + 2}" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>'
     )
-    _drawn.write_text(path, _eye_svg(inner, gid=f"eye_{side}_closed"))
+    _drawn.write_text(path, _eye_svg(inner, gid=f"eye_{side}_closed"), encoding="utf-8")
     return path
 
 
 def _synthesize_sclera(path: Path, *, side: str) -> Path:
     cx, cy = EYE_CENTRE
     inner = f'<ellipse cx="{cx}" cy="{cy}" rx="{EYE_RX}" ry="{EYE_RY}" fill="#ffffff" stroke="none"/>'
-    _drawn.write_text(path, _eye_svg(inner, gid=f"sclera_{side}"))
+    _drawn.write_text(path, _eye_svg(inner, gid=f"sclera_{side}"), encoding="utf-8")
     return path
 
 
 def _synthesize_pupil(path: Path, *, side: str) -> Path:
     cx, cy = EYE_CENTRE
     inner = f'<circle cx="{cx}" cy="{cy}" r="{PUPIL_R}" fill="{PUPIL_COLOUR}"/>'
-    _drawn.write_text(path, _eye_svg(inner, gid=f"pupil_{side}"))
+    _drawn.write_text(path, _eye_svg(inner, gid=f"pupil_{side}"), encoding="utf-8")
     return path
 
 
@@ -1601,7 +1601,7 @@ def _write_head_part(
     762×762 one nearly three times it (an#168). Only the root's
     ``width``/``height`` change; the drawing and its viewBox are untouched.
     """
-    _drawn.write_text(path, _head_part_text(avatar_svg, height=height))
+    _drawn.write_text(path, _head_part_text(avatar_svg, height=height), encoding="utf-8")
     return path
 
 
@@ -1656,7 +1656,7 @@ def _write_torso_part(
         f'<svg xmlns="{SVG_NS}" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
         f'<g id="torso">{inner}</g></svg>'
     )
-    _drawn.write_text(path, svg)
+    _drawn.write_text(path, svg, encoding="utf-8")
     return roles
 
 
@@ -1683,7 +1683,7 @@ def _write_arm_part(
         f'stroke-width="{sw:g}"/>'
         "</g></svg>"
     )
-    _drawn.write_text(path, svg)
+    _drawn.write_text(path, svg, encoding="utf-8")
     return {color: "clothing", hand: "skin"}
 
 
@@ -1710,7 +1710,7 @@ def _write_leg_part(
         f'<ellipse cx="40" cy="{cy:g}" rx="{srx:g}" ry="{sry:g}" fill="{SHOE_COLOUR}"/>'
         "</g></svg>"
     )
-    _drawn.write_text(path, svg)
+    _drawn.write_text(path, svg, encoding="utf-8")
     return {color: "leg"}
 
 
@@ -1726,7 +1726,7 @@ def _synthesize_brow(path: Path, *, side: str, color: str = DFLT_BROW_COLOUR) ->
         f'stroke="{color}" stroke-width="{BROW_STROKE:g}" fill="none" stroke-linecap="round"/>'
         "</g></svg>"
     )
-    _drawn.write_text(path, svg)
+    _drawn.write_text(path, svg, encoding="utf-8")
     return path
 
 
@@ -1893,7 +1893,7 @@ def _write_view_torso_part(
         f'<svg xmlns="{SVG_NS}" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
         f'<g id="torso_{view}">{inner}</g></svg>'
     )
-    _drawn.write_text(path, svg)
+    _drawn.write_text(path, svg, encoding="utf-8")
     return roles
 
 
@@ -2134,8 +2134,7 @@ def add_views(char_dir: str | Path) -> Path:
                     hair_length=hair_length,
                 ),
                 height=height,
-            ),
-        )
+            ), encoding="utf-8")
         roles[head_rel] = dict(looks.head_roles)
         torso_rel = f"parts/torso_{view}.svg"
         roles[torso_rel] = _write_view_torso_part(
