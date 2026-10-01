@@ -31,7 +31,9 @@ LIVE_KEYS = {
     "tween_duration_s", "shots", "characters", "motion_presets",
     "transitions", "sound", "voice", "glow_template",
 }
-TOP_KEYS = {"style", "title", "cost_class", "cost_note", "live", "targets", "guidance"}
+TOP_KEYS = {
+    "style", "title", "cost_class", "cost_note", "live", "targets", "prosody_targets", "guidance"
+}
 COST_CLASSES = {"low", "low_to_medium", "medium", "high", "very_high"}
 GENERATORS = {"offline", "promote"}
 
@@ -242,8 +244,44 @@ def test_voice_effects_are_valid_voice_effects(spec):
     voice = spec["live"].get("voice")
     if voice is None:
         return
-    assert set(voice) == {"effects"}
-    assert normalize_effects(voice["effects"])  # non-empty: a spec that says nothing omits the key
+    assert set(voice) <= {"effects", "roles"} and voice
+    if "effects" in voice:
+        assert normalize_effects(voice["effects"])  # non-empty: a spec that says nothing omits the key
+
+
+def test_voice_roles_are_valid_expressive_voice_documents(spec):
+    """`live.voice.roles` maps a role to a partial voice document (an#209): only
+    the keys `ElevenLabsTTS` reads, valid values, and a model that performs the
+    cues the style's lines carry — and a role the prosody targets can check."""
+    from an.audio.elevenlabs_tts import ElevenLabsTTS, takes_audio_tags
+
+    roles = spec["live"].get("voice", {}).get("roles")
+    if roles is None:
+        return
+    tts = ElevenLabsTTS(api_key="unused")
+    for role, doc in roles.items():
+        assert set(doc) <= {"provider", "model_id", "voice_settings", "seed"}, role
+        assert "voice_id" not in doc  # the cast supplies it, by name
+        opts = tts.synthesis_options(doc, direction=["deadpan"])  # raises on a bad setting
+        assert takes_audio_tags(opts["model_id"]), role
+        assert role in spec.get("prosody_targets", {}), f"role {role!r} has no prosody targets"
+
+
+def test_prosody_targets_are_measurable(spec):
+    """`prosody_targets` maps a role or device to `an.verify.prosody` targets."""
+    from an.verify.prosody import validate_targets
+
+    for name, targets in spec.get("prosody_targets", {}).items():
+        assert targets, name
+        validate_targets(targets)
+
+
+def test_voice_acting_devices_name_prosody_targets(spec):
+    devices = spec.get("guidance", {}).get("voice_acting", {}).get("devices", {})
+    known = set(spec.get("prosody_targets", {}))
+    for name, device in devices.items():
+        refs = device["targets"] if isinstance(device["targets"], list) else [device["targets"]]
+        assert set(refs) <= known, (name, refs)
 
 
 def test_south_park_raises_its_voices():
