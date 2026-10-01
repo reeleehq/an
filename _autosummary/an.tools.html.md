@@ -231,9 +231,10 @@ force_render: render every shot even when the shot cache holds it (and
 no_cache: neither read nor write the shot cache — every shot is rendered
 : cold, as before the cache existed
 
-cache_frames: also cache each shot’s frames, so a film with transitions or
-: a sound layer reuses its shots too. Off by default: a 1080p shot’s
-  frames are hundreds of MB, and nothing collects old entries yet
+cache_frames: no longer needed, and no effect on `an render` (an#260): a
+: film with transitions or a sound layer now reuses its shots by default,
+  caching only the frames at each transition. Kept so scripts that pass
+  it still run
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

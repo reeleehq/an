@@ -11,6 +11,7 @@ an.audio.pipeline
       TakeScorerFactory
       OVERRUN_TOLERANCE_S
       REROLL_ONLY_HINT
+      LEGACY_DURATION_TOLERANCE_S
    
    .. rubric:: Functions
 
@@ -24,6 +25,7 @@ an.audio.pipeline
       produce_audio_for_scene
       retake_lines
       retime_dialogue
+      stamp_from_stores
       synthesis_options
       takes_cost_message
       viseme_key
@@ -32,6 +34,7 @@ an.audio.pipeline
 
    .. autosummary::
    
+      AudioNotCachedError
       AudioPipelineError
       DialogueOverrunWarning
       TakeDigestWarning

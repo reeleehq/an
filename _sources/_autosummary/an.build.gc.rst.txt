@@ -1,0 +1,39 @@
+an.build.gc
+===========
+
+.. automodule:: an.build.gc
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CLOCK_SLACK_S
+      DEFAULT_PROFILE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      cache_info
+      collect_garbage
+      inventory
+      parse_age
+      parse_size
+      reachable_entries
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CacheEntry
+      CacheInfo
+      GcReport
+      Reachability
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CacheGcError
+   

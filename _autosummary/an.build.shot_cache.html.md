@@ -17,14 +17,24 @@ of its key and the timings that produced it. Entries live in a
 blob store, both injected `dol` mappings. In a project the store is
 `mall["shot_cache"]` (`artifacts/shot_cache/{catalog,blobs}/`).
 
-A film ASSEMBLED from frames (transitions, a sound layer) needs each shot’s
-PNGs too; those are cached only with `ShotCache(cache_frames=True)`, so by
-default such a film re-renders its shots.
+An ASSEMBLED film (transitions, a sound layer) is a stream-copy concat of
+segments (`an.assemble`, an#260): a shot no transition touches needs only its
+mp4, and a shot one touches also needs its *parts* — its body, encoded once,
+and the PNGs inside its transition window — a second entry,
+`<key>.parts.<code>.h<head>.t<tail>`, of a few MB. So such a film reuses its
+shots by default. (The older whole-frames entry, `<key>.frames`, is read only
+by a caller that asks for it with `needs_frames=True`; the render loop no
+longer does.)
+
+Each cached render also records a *root* (`root.<digest>`): which entries a
+render of output `<name>` under one set of render knobs on one machine used.
+Roots are what `an.build.gc` keeps alive, beside what the current scene reaches.
 
 **Invalidation is by digest, never by deletion** (decision 6): a changed input
 is a different key, and the old entry simply stops being asked for. The
 pre-cache `artifacts/shots/<shot.id>.mp4` archive is not read. Collecting
-unreachable blobs is a separate, explicit command (not in this slice).
+unreachable entries is a separate, explicit command: `an cache gc`
+([`an.build.gc`](an.build.gc.html.md#module-an.build.gc)).
 
 ```pycon
 >>> from an.build.shot_cache import BuildReport, ShotOutcome
@@ -36,21 +46,28 @@ unreachable blobs is a separate, explicit command (not in this slice).
 
 ### Module Attributes
 
-| [`SHOT_CACHE_STORE`](#an.build.shot_cache.SHOT_CACHE_STORE)   | The mall key of the shot cache.   |
-|---------------------------------------------------------------------|-----------------------------------|
+| [`SHOT_CACHE_STORE`](#an.build.shot_cache.SHOT_CACHE_STORE)   | The mall key of the shot cache.                                                                                          |
+|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| [`PARTS_INFIX`](#an.build.shot_cache.PARTS_INFIX)        | what an assembled film takes from a shot its transitions touch — its body, encoded once, and the PNGs inside its window. |
+| [`ROOT_PREFIX`](#an.build.shot_cache.ROOT_PREFIX)        | what one render used (see [`ShotCache.record_root()`](#an.build.shot_cache.ShotCache.record_root)).                     |
 
 ### Functions
 
-| [`default_environment_digest`](#an.build.shot_cache.default_environment_digest)(renderer_name)   | The digest of `renderer_name`'s registered environment probe, once per process.   |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`in_memory_shot_cache_store`](#an.build.shot_cache.in_memory_shot_cache_store)()                | A shot cache held in dicts — for tests, and for a mall with no disk.              |
-| [`resolve_incremental`](#an.build.shot_cache.resolve_incremental)(incremental)            | `incremental=` → an engine, or `None` for "render every shot cold".               |
-| [`shot_artifact_type`](#an.build.shot_cache.shot_artifact_type)()                        | The record type (`lacing.Artifact` subclass), built on first use.                 |
-| [`shot_cache_store`](#an.build.shot_cache.shot_cache_store)(root)                      | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).    |
+| [`default_environment_digest`](#an.build.shot_cache.default_environment_digest)(renderer_name)   | The digest of `renderer_name`'s registered environment probe, once per process.                                                                  |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`human_bytes`](#an.build.shot_cache.human_bytes)(n)                              | `n` bytes for a person: 1024-based, one decimal.                                                                                                 |
+| [`in_memory_shot_cache_store`](#an.build.shot_cache.in_memory_shot_cache_store)()                | A shot cache held in dicts — for tests, and for a mall with no disk.                                                                             |
+| [`machine_id`](#an.build.shot_cache.machine_id)()                                | A short digest naming this machine (its host name and hardware address), so each machine's renders of a synced project keep a root of their own. |
+| [`project_id`](#an.build.shot_cache.project_id)(project_root)                    | A short digest naming a project by its resolved directory, so two projects sharing one cache store keep a root each (`""` for none).             |
+| [`parts_entry_id`](#an.build.shot_cache.parts_entry_id)(key, window)                 | The catalog id of the parts entry of shot `key` for `window`.                                                                                    |
+| [`resolve_incremental`](#an.build.shot_cache.resolve_incremental)(incremental)            | `incremental=` → an engine, or `None` for "render every shot cold".                                                                              |
+| [`shot_artifact_type`](#an.build.shot_cache.shot_artifact_type)()                        | The record type (`lacing.Artifact` subclass), built on first use.                                                                                |
+| [`shot_cache_store`](#an.build.shot_cache.shot_cache_store)(root)                      | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                   |
+| [`store_usage`](#an.build.shot_cache.store_usage)(store)                          | `(bytes, entries)` of a shot cache store: every blob byte on disk (or, off disk, every distinct blob its records name) and its catalog entries.  |
 
 ### Classes
 
-| [`BuildReport`](#an.build.shot_cache.BuildReport)([outcomes])                         | Every shot's outcome, in timeline order.                                      |
+| [`BuildReport`](#an.build.shot_cache.BuildReport)([outcomes, store_bytes, ...])       | Every shot's outcome, in timeline order.                                      |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`IncrementalEngine`](#an.build.shot_cache.IncrementalEngine)(\*args, \*\*kwargs)           | The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).          |
 | [`ShotCache`](#an.build.shot_cache.ShotCache)([store, environment, ...])            | The built-in engine: look a shot's key up in an ArtifactStore; record misses. |
@@ -62,11 +79,27 @@ unreachable blobs is a separate, explicit command (not in this slice).
 | [`ShotCacheWarning`](#an.build.shot_cache.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
 |---------------------------------------------------------------------|----------------------------------------------------------------------------------|
 
-### *class* an.build.shot_cache.BuildReport(outcomes=<factory>)
+### *class* an.build.shot_cache.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Every shot’s outcome, in timeline order.
+
+#### store_bytes *: [int](https://docs.python.org/3/builtins/functions.html#int) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The shot cache’s size after the render, when the engine measured it.
+
+#### store_line()
+
+How big the shot cache is after the render, or `""` if unmeasured.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
+'3.0 MB in 4 entries'
+```
 
 #### summary()
 
@@ -101,6 +134,27 @@ BEFORE any shot renders (in the calling thread); `record` once per shot
 that was rendered (possibly from a worker thread); `finish` returns the
 report.
 
+Two hooks are OPTIONAL (the render loop calls them when an engine has
+them): `record_parts(plan, parts)` once per rendered shot whose film
+window is not whole (an#260), and `record_root(output_name, profile=...,
+output=...)` once the film is delivered (what the garbage collector keeps).
+
+### an.build.shot_cache.PARTS_INFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.parts.'*
+
+what an assembled
+film takes from a shot its transitions touch — its body, encoded once, and
+the PNGs inside its window. See [`parts_entry_id()`](#an.build.shot_cache.parts_entry_id).
+
+* **Type:**
+  The catalog id infix of a shot’s PARTS entry (an#260)
+
+### an.build.shot_cache.ROOT_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root.'*
+
+what one render used (see [`ShotCache.record_root()`](#an.build.shot_cache.ShotCache.record_root)).
+
+* **Type:**
+  The catalog id prefix of a ROOT
+
 ### an.build.shot_cache.SHOT_CACHE_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'shot_cache'*
 
 The mall key of the shot cache.
@@ -119,12 +173,55 @@ state its machine rather than probe this one. `dependencies` is the
 project-wide dependency strategy (see `Dependencies`); `None` keys
 a shot on its own parts alone (its document and the bytes of the textures
 it stages) — and then drops the lockfile too, so use it knowingly.
-`cache_frames` also stores each shot’s PNG sequence, which an ASSEMBLED
-film (transitions, a sound layer) needs to reuse a shot; off by default,
-because a 1080p shot’s frames are hundreds of MB and nothing collects
-unreachable entries yet — so an assembled film re-renders its shots.
+`cache_frames` also stores each shot’s whole PNG sequence when a caller
+plans with `needs_frames=True`. The render loop no longer does (an#260):
+an assembled film takes a shot’s mp4 and, at a transition, its *parts*
+(`window=`), which are cached by default at a few MB. Kept for callers of
+the engine that need every frame; `an cache gc` collects old frames.
 
 After a render, `report` holds what happened to each shot.
+
+#### entry_ids(shot, renderer, ctx, , window=None)
+
+The catalog ids a [`plan()`](#an.build.shot_cache.ShotCache.plan) of this shot would read — computed by
+the same code, looking nothing up and rendering nothing. What
+`an.build.gc` keeps for the current scene. Call `begin()` first.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+#### plan(shot, renderer, ctx, , needs_frames=False, window=None, force=False)
+
+`window` is what an assembled film needs from this shot
+(`an.assemble.ShotWindow`; `None` for a plain concat): a shot whose
+window is not whole is reused only when its parts entry is there too.
+
+* **Return type:**
+  [`ShotPlan`](#an.build.shot_cache.ShotPlan)
+
+#### record_parts(plan, parts)
+
+Store a freshly rendered shot’s `an.assemble.ShotParts` under
+`plan.parts_id`: its body mp4 and its window’s PNGs, one stored zip.
+A failed write never fails the render (the next render renders it).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### record_root(output_name, , profile, output)
+
+Record what this render used, as a ROOT for `an.build.gc`; return its id.
+
+A root is keyed by the project ([`project_id()`](#an.build.shot_cache.project_id)), the output name,
+the render `profile` (the knobs as passed — `None` meaning “the
+scene’s own”) and this machine ([`machine_id()`](#an.build.shot_cache.machine_id)), so the next render
+of the same output with the same knobs on the same machine replaces it
+— a browser upgrade included — while a render on another machine of a
+synced project, or of another project sharing the store, keeps its own. Its record is a `lacing.Artifact` of the delivered film,
+derived from the shot keys. Also measures the store, for the summary.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *exception* an.build.shot_cache.ShotCacheWarning
 
@@ -142,11 +239,24 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False)
+### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The engine’s answer for one shot: its key, and what to reuse if anything.
+
+#### parts *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+The reused parts (`an.assemble.ShotParts`), materialised for this plan.
+
+#### parts_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The catalog id of this shot’s parts entry, when its window is not whole.
+
+#### window *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+What an assembled film needs from this shot (`an.assemble.ShotWindow`);
+`None` for a film that is a plain concat of shot mp4s.
 
 ### an.build.shot_cache.default_environment_digest(renderer_name)
 
@@ -162,12 +272,71 @@ renderer with no probe has the empty environment.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### an.build.shot_cache.human_bytes(n)
+
+`n` bytes for a person: 1024-based, one decimal.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> human_bytes(0), human_bytes(1536), human_bytes(5 * 1024**3)
+('0 B', '1.5 KB', '5.0 GB')
+```
+
 ### an.build.shot_cache.in_memory_shot_cache_store()
 
 A shot cache held in dicts — for tests, and for a mall with no disk.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.shot_cache.machine_id()
+
+A short digest naming this machine (its host name and hardware
+address), so each machine’s renders of a synced project keep a root of
+their own. A digest, never the names themselves.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> len(machine_id())
+16
+```
+
+### an.build.shot_cache.parts_entry_id(key, window)
+
+The catalog id of the parts entry of shot `key` for `window`.
+
+The id names the window (the same shot cut for another neighbour is a
+different entry) and the digest of the code that cuts and encodes the parts
+(`parts_code_digest()`): a parts entry is produced by `an.assemble`, not
+by the renderer, so the renderer’s own `code` key part does not cover it.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> from an.assemble import ShotWindow
+>>> parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")
+True
+```
+
+### an.build.shot_cache.project_id(project_root)
+
+A short digest naming a project by its resolved directory, so two
+projects sharing one cache store keep a root each (`""` for none).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> project_id(None)
+''
+>>> len(project_id("."))
+16
+```
 
 ### an.build.shot_cache.resolve_incremental(incremental)
 
@@ -196,3 +365,14 @@ A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.shot_cache.store_usage(store)
+
+`(bytes, entries)` of a shot cache store: every blob byte on disk (or,
+off disk, every distinct blob its records name) and its catalog entries.
+
+On a filesystem store this is a directory listing, not a read of every
+record, so the render summary can afford it on every render.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]

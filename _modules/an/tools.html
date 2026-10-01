@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../../_static/documentation_options.js?v=92f87268"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -736,6 +736,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.impacts.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dispatch_funcs</span> <span class="k">as</span> <span class="n">_impacts_dispatch_funcs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dispatch_funcs</span> <span class="k">as</span> <span class="n">_voices_dispatch_funcs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dispatch_funcs</span> <span class="k">as</span> <span class="n">_library_dispatch_funcs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.build.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dispatch_funcs</span> <span class="k">as</span> <span class="n">_cache_dispatch_funcs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_PACKAGE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">project_dir</span> <span class="k">as</span> <span class="n">_project_dir</span>
 
@@ -902,9 +903,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        refresh its entry)</span>
 <span class="sd">    no_cache: neither read nor write the shot cache — every shot is rendered</span>
 <span class="sd">        cold, as before the cache existed</span>
-<span class="sd">    cache_frames: also cache each shot's frames, so a film with transitions or</span>
-<span class="sd">        a sound layer reuses its shots too. Off by default: a 1080p shot's</span>
-<span class="sd">        frames are hundreds of MB, and nothing collects old entries yet</span>
+<span class="sd">    cache_frames: no longer needed, and no effect on `an render` (an#260): a</span>
+<span class="sd">        film with transitions or a sound layer now reuses its shots by default,</span>
+<span class="sd">        caching only the frames at each transition. Kept so scripts that pass</span>
+<span class="sd">        it still run</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.build</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotCache</span>
 
@@ -936,7 +938,18 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">no_cache</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"rendered: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">"</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">"rendered: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">shots: </span><span class="si">{</span><span class="n">cache</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span></div>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"rendered: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"shots: </span><span class="si">{</span><span class="n">cache</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">cache_frames</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">"note: --cache-frames is deprecated (an#260): it has no effect and "</span>
+            <span class="s2">"will be removed in the next release"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">cache</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">store_line</span><span class="p">():</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot cache: </span><span class="si">{</span><span class="n">cache</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">store_line</span><span class="p">()</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"(`an cache gc </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">` removes what the scene no longer uses)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 
 
@@ -1379,6 +1392,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"voices"</span><span class="p">:</span> <span class="n">_voices_dispatch_funcs</span><span class="p">,</span>
     <span class="c1"># The asset library (ADR 0005): `an library find --affords limbs.legs`.</span>
     <span class="s2">"library"</span><span class="p">:</span> <span class="n">_library_dispatch_funcs</span><span class="p">,</span>
+    <span class="c1"># The shot cache (an#274): `an cache info`, `an cache gc --dry-run`.</span>
+    <span class="s2">"cache"</span><span class="p">:</span> <span class="n">_cache_dispatch_funcs</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 

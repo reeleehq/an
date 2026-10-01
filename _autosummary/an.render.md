@@ -11,16 +11,19 @@ adapters and the same flow handles them.
 
 ### Module Attributes
 
-| [`RENDER_RUNS_DIR`](#an.render.RENDER_RUNS_DIR)   | one directory per CACHED render run.                    |
-|--------------------------------------------------------------------|---------------------------------------------------------|
-| [`RUN_LIVE_MARKER`](#an.render.RUN_LIVE_MARKER)   | the pid of the process rendering it (written at start). |
-| [`RUN_DONE_MARKER`](#an.render.RUN_DONE_MARKER)   | written when the run delivered its film.                |
+| [`RENDER_RUNS_DIR`](#an.render.RENDER_RUNS_DIR)        | one directory per CACHED render run.                                                                                                                                                                                       |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`RUN_LIVE_MARKER`](#an.render.RUN_LIVE_MARKER)        | the pid of the process rendering it (written at start).                                                                                                                                                                    |
+| [`RUN_DONE_MARKER`](#an.render.RUN_DONE_MARKER)        | written when the run delivered its film.                                                                                                                                                                                   |
+| [`UNKNOWN_LIVENESS_MAX_S`](#an.render.UNKNOWN_LIVENESS_MAX_S) | Where a run's process cannot be asked whether it lives (Windows), a run unfinished after this long is taken for one that crashed: otherwise it would shield every cache entry written since, from `an cache gc`, for ever. |
 
 ### Functions
 
-| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])   | Lower-level: render a loaded `Project` to mp4.                         |
-|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])         | Render every shot in `project_dir`'s scene and concatenate to one mp4. |
+| [`cache_entries`](#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.   |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`live_runs`](#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                          |
+| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                        |
+| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                |
 
 ### Exceptions
 
@@ -53,6 +56,38 @@ the pid of the process rendering it (written at start).
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised on render-pipeline failures with actionable detail.
+
+### an.render.UNKNOWN_LIVENESS_MAX_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 86400.0*
+
+Where a run’s process cannot be asked whether it lives (Windows), a run
+unfinished after this long is taken for one that crashed: otherwise it would
+shield every cache entry written since, from `an cache gc`, for ever.
+
+### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts='offline', lipsync='offline', language='en')
+
+The shot-cache entry ids a render of `project`’s CURRENT scene under
+these knobs would read — computed by the render’s own setup and the
+engine’s own key code, rendering and synthesising nothing.
+
+What `an.build.gc` keeps (an#274). The dialogue is stamped the way the
+render’s audio pipeline stamps it, from the content-keyed audio and viseme
+stores only (`an.audio.pipeline.stamp_from_stores`): a `scene.md` edit
+drops every stamp on re-sync, and the next render re-stamps the same audio
+from the stores, so those are the keys it will use. A line the stores
+cannot answer (new text, another provider) raises
+`an.audio.pipeline.AudioNotCachedError`: its shot’s next key is unknowable
+without a synthesis, and a collector must not guess.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.render.live_runs(project_root)
+
+Every cached render of this project still in progress, with the time it
+started (its live marker’s mtime): what `an cache gc` must not race.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False)
 

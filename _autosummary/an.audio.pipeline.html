@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../_static/documentation_options.js?v=92f87268"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.offline_tts" href="an.audio.offline_tts.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -367,6 +367,8 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
@@ -657,6 +659,9 @@ the entire pipeline runs without API keys or external binaries.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.REROLL_ONLY_HINT" title="an.audio.pipeline.REROLL_ONLY_HINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REROLL_ONLY_HINT</span></code></a></p></td>
 <td><p>only a new roll (new keys) replaces it.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S" title="an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LEGACY_DURATION_TOLERANCE_S</span></code></a></p></td>
+<td><p>How far a legacy sidecar's duration may sit from its audio's and still be the same take: a frame at 60 fps.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -687,13 +692,16 @@ the entire pipeline runs without API keys or external binaries.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.retime_dialogue" title="an.audio.pipeline.retime_dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retime_dialogue</span></code></a>(scene, *[, timed_shots_only])</p></td>
 <td><p>Stamp every synthesized line's <code class="docutils literal notranslate"><span class="pre">start</span></code> from its <code class="docutils literal notranslate"><span class="pre">pause</span></code> / <code class="docutils literal notranslate"><span class="pre">at</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.synthesis_options" title="an.audio.pipeline.synthesis_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synthesis_options</span></code></a>(tts, line, mall, voice_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.stamp_from_stores" title="an.audio.pipeline.stamp_from_stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stamp_from_stores</span></code></a>(scene, mall, *, tts, lipsync)</p></td>
+<td><p>Stamp <code class="docutils literal notranslate"><span class="pre">scene</span></code>'s dialogue exactly as <a class="reference internal" href="#an.audio.pipeline.produce_audio_for_scene" title="an.audio.pipeline.produce_audio_for_scene"><code class="xref py py-func docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a> would with these providers — from the content-keyed <code class="docutils literal notranslate"><span class="pre">audio</span></code> and <code class="docutils literal notranslate"><span class="pre">visemes</span></code> stores only.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.synthesis_options" title="an.audio.pipeline.synthesis_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synthesis_options</span></code></a>(tts, line, mall, voice_id)</p></td>
 <td><p>The provider-specific <code class="docutils literal notranslate"><span class="pre">synthesize</span></code> kwargs for <code class="docutils literal notranslate"><span class="pre">line</span></code> in <code class="docutils literal notranslate"><span class="pre">voice_id</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.takes_cost_message" title="an.audio.pipeline.takes_cost_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_cost_message</span></code></a>(lines, tts, audio_store)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.takes_cost_message" title="an.audio.pipeline.takes_cost_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_cost_message</span></code></a>(lines, tts, audio_store)</p></td>
 <td><p>What synthesizing <code class="docutils literal notranslate"><span class="pre">lines</span></code> will bill, when any of them takes best-of-N; else <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.viseme_key" title="an.audio.pipeline.viseme_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viseme_key</span></code></a>(audio_key_, lipsync_name, transcript)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.viseme_key" title="an.audio.pipeline.viseme_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viseme_key</span></code></a>(audio_key_, lipsync_name, transcript)</p></td>
 <td><p>Content key of a line's viseme track (a function of the audio HEARD).</p></td>
 </tr>
 </tbody>
@@ -702,18 +710,29 @@ the entire pipeline runs without API keys or external binaries.</p>
 <p class="rubric">Exceptions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.AudioPipelineError" title="an.audio.pipeline.AudioPipelineError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AudioPipelineError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.AudioNotCachedError" title="an.audio.pipeline.AudioNotCachedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AudioNotCachedError</span></code></a></p></td>
+<td><p>A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.AudioPipelineError" title="an.audio.pipeline.AudioPipelineError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AudioPipelineError</span></code></a></p></td>
 <td><p>The scene declares audio the pipeline cannot produce.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.DialogueOverrunWarning" title="an.audio.pipeline.DialogueOverrunWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DialogueOverrunWarning</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.DialogueOverrunWarning" title="an.audio.pipeline.DialogueOverrunWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DialogueOverrunWarning</span></code></a></p></td>
 <td><p>A synthesized line runs past its shot's end, so its tail is cut.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.TakeDigestWarning" title="an.audio.pipeline.TakeDigestWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakeDigestWarning</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.TakeDigestWarning" title="an.audio.pipeline.TakeDigestWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakeDigestWarning</span></code></a></p></td>
 <td><p>The audio restored for a line's recorded take is not the audio the record names.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.pipeline.AudioNotCachedError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">AudioNotCachedError</span></span><a class="reference internal" href="../_modules/an/audio/pipeline.html#AudioNotCachedError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.AudioNotCachedError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.audio.pipeline.AudioPipelineError" title="an.audio.pipeline.AudioPipelineError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioPipelineError</span></code></a></p>
+<p>A line’s audio (or its visemes) is not in the content-keyed stores, so
+stamping it would need a synthesis this caller does not allow.</p>
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.audio.pipeline.AudioPipelineError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">AudioPipelineError</span></span><a class="reference internal" href="../_modules/an/audio/pipeline.html#AudioPipelineError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.AudioPipelineError" title="Link to this definition">#</a></dt>
@@ -726,6 +745,13 @@ the entire pipeline runs without API keys or external binaries.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">DialogueOverrunWarning</span></span><a class="reference internal" href="../_modules/an/audio/pipeline.html#DialogueOverrunWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.DialogueOverrunWarning" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
 <p>A synthesized line runs past its shot’s end, so its tail is cut.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S">
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">LEGACY_DURATION_TOLERANCE_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.016666666666666666</span></span><a class="headerlink" href="#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S" title="Link to this definition">#</a></dt>
+<dd><p>How far a legacy sidecar’s duration may sit from its audio’s and still be
+the same take: a frame at 60 fps.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -950,6 +976,24 @@ without the pipeline there is no authority to say that stamp is stale.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.pipeline.stamp_from_stores">
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">stamp_from_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#stamp_from_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.stamp_from_stores" title="Link to this definition">#</a></dt>
+<dd><p>Stamp <code class="docutils literal notranslate"><span class="pre">scene</span></code>’s dialogue exactly as <a class="reference internal" href="#an.audio.pipeline.produce_audio_for_scene" title="an.audio.pipeline.produce_audio_for_scene"><code class="xref py py-func docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a>
+would with these providers — from the content-keyed <code class="docutils literal notranslate"><span class="pre">audio</span></code> and
+<code class="docutils literal notranslate"><span class="pre">visemes</span></code> stores only. Synthesises, aligns and writes nothing; a line the
+stores cannot answer raises <a class="reference internal" href="#an.audio.pipeline.AudioNotCachedError" title="an.audio.pipeline.AudioNotCachedError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioNotCachedError</span></code></a>.</p>
+<p>What a reader of the render’s cache keys needs (an#274): a <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>
+edit drops every stamp on re-sync, and the next render re-stamps the same
+audio from the stores, so the keys a render WILL use are these, not the
+unstamped IR’s. Mutates <code class="docutils literal notranslate"><span class="pre">scene</span></code> in place and returns it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.pipeline.synthesis_options">
 <span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">synthesis_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#synthesis_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.synthesis_options" title="Link to this definition">#</a></dt>
 <dd><p>The provider-specific <code class="docutils literal notranslate"><span class="pre">synthesize</span></code> kwargs for <code class="docutils literal notranslate"><span class="pre">line</span></code> in <code class="docutils literal notranslate"><span class="pre">voice_id</span></code>.</p>
@@ -1039,8 +1083,10 @@ characters, and the message says so.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.AudioNotCachedError"><code class="docutils literal notranslate"><span class="pre">AudioNotCachedError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.AudioPipelineError"><code class="docutils literal notranslate"><span class="pre">AudioPipelineError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.DialogueOverrunWarning"><code class="docutils literal notranslate"><span class="pre">DialogueOverrunWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">LEGACY_DURATION_TOLERANCE_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.OVERRUN_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">OVERRUN_TOLERANCE_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.REROLL_ONLY_HINT"><code class="docutils literal notranslate"><span class="pre">REROLL_ONLY_HINT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.TakeDigestWarning"><code class="docutils literal notranslate"><span class="pre">TakeDigestWarning</span></code></a></li>
@@ -1053,6 +1099,7 @@ characters, and the message says so.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.produce_audio_for_scene"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.retake_lines"><code class="docutils literal notranslate"><span class="pre">retake_lines()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.retime_dialogue"><code class="docutils literal notranslate"><span class="pre">retime_dialogue()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.stamp_from_stores"><code class="docutils literal notranslate"><span class="pre">stamp_from_stores()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.synthesis_options"><code class="docutils literal notranslate"><span class="pre">synthesis_options()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.takes_cost_message"><code class="docutils literal notranslate"><span class="pre">takes_cost_message()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.viseme_key"><code class="docutils literal notranslate"><span class="pre">viseme_key()</span></code></a></li>

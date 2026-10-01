@@ -8,7 +8,9 @@ an.build
 
    .. autosummary::
    
+      cache_info
       canonical_digest
+      collect_garbage
       compose_shot_key
       default_environment_digest
       in_memory_shot_cache_store
@@ -35,6 +37,7 @@ an.build
 
    .. autosummary::
    
+      CacheGcError
       ShotCacheWarning
    
 .. rubric:: Modules
@@ -43,5 +46,7 @@ an.build
    :toctree:
    :recursive:
 
+   cli
+   gc
    keys
    shot_cache

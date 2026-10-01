@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../_static/documentation_options.js?v=92f87268"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.whiteboard" href="an.adapters.whiteboard.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -367,6 +367,8 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
@@ -636,12 +638,20 @@ shots meet and what is heard over them. It runs only when a scene asks for it
 <p><strong>Where each part happens, and why there.</strong></p>
 <ul class="simple">
 <li><p><em>Picture</em>: transitions are composed in the FRAME STAGE, on the per-shot PNGs,
-in exact integer arithmetic, and the film is muxed ONCE by the same
-<code class="docutils literal notranslate"><span class="pre">an.media.mp4.mux_frames</span></code> every shot uses. Composing in ffmpeg (<code class="docutils literal notranslate"><span class="pre">xfade</span></code>) would decode
-already-encoded shots and re-encode them — a second generation of x264 loss
-on every frame of the film, not just the transition — and would retire the
-render pipeline’s “ffmpeg never touches a frame” clause. A frame no
-transition touches is copied byte for byte: Chromium’s own PNG.</p></li>
+in exact integer arithmetic, and encoded by the same
+<code class="docutils literal notranslate"><span class="pre">an.media.mp4.mux_frames</span></code> every shot uses. Composing in ffmpeg (<code class="docutils literal notranslate"><span class="pre">xfade</span></code>)
+would decode already-encoded shots and re-encode them — a second generation
+of x264 loss on every frame of the film, not just the transition — and would
+retire the render pipeline’s “ffmpeg never touches a frame” clause.</p></li>
+<li><p><em>The picture is a stream-copy concat of SEGMENTS</em> (an#260), each encoded
+once from PNGs: a shot no transition touches is its own mp4’s video stream,
+copied; a shot a transition touches contributes the encoded span between its
+windows (its <em>body</em>) plus the PNGs inside them; each run of composed frames
+is encoded on its own. So a reused shot needs its mp4 (and, at a transition,
+its body and window PNGs, a few dozen frames) — never every frame it has
+(<a class="reference internal" href="#an.assemble.shot_windows" title="an.assemble.shot_windows"><code class="xref py py-func docutils literal notranslate"><span class="pre">shot_windows()</span></code></a>, <a class="reference internal" href="#an.assemble.ShotParts" title="an.assemble.ShotParts"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotParts</span></code></a>). The film’s frame <code class="docutils literal notranslate"><span class="pre">i</span></code> is at
+<code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">fps</span></code> and decodes to exactly what its segment decodes to (measured,
+an#260; <a class="reference internal" href="#an.assemble.MIN_SEGMENT_FRAMES" title="an.assemble.MIN_SEGMENT_FRAMES"><code class="xref py py-data docutils literal notranslate"><span class="pre">MIN_SEGMENT_FRAMES</span></code></a> is why no segment is shorter than three).</p></li>
 <li><p><em>Sound</em>: the film’s audio is rebuilt from SOURCES — every dialogue line’s
 cached WAV and every cue’s asset, placed in film time — in one ffmpeg mix,
 then muxed onto the picture with <code class="docutils literal notranslate"><span class="pre">-c:v</span> <span class="pre">copy</span></code>. Mixing onto the shots’
@@ -662,11 +672,20 @@ whatever the transitions do.</p>
 <span class="go">((0, 15), 35)</span>
 </pre></div>
 </div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.MIN_SEGMENT_FRAMES" title="an.assemble.MIN_SEGMENT_FRAMES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MIN_SEGMENT_FRAMES</span></code></a></p></td>
+<td><p>The fewest frames a segment of a MULTI-segment picture may have.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.assemble_film" title="an.assemble.assemble_film"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble_film</span></code></a>(scene, shot_results, output, ...)</p></td>
-<td><p>Assemble rendered shots into <code class="docutils literal notranslate"><span class="pre">output</span></code>: the picture from the shots' frames (transitions composed in), muxed once, then the mix.</p></td>
+<td><p>Assemble rendered shots into <code class="docutils literal notranslate"><span class="pre">output</span></code>: the picture as a concat of segments (transitions composed in), then the mix.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.duck_gain" title="an.assemble.duck_gain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duck_gain</span></code></a>(t, spans, *, duck_db, attack, release)</p></td>
 <td><p>The linear gain a ducked cue plays at, at film time <code class="docutils literal notranslate"><span class="pre">t</span></code> — the spec the ffmpeg expressions (<code class="xref py py-func docutils literal notranslate"><span class="pre">_duck_expressions()</span></code>) are written from.</p></td>
@@ -680,7 +699,16 @@ whatever the transitions do.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.needs_assembly" title="an.assemble.needs_assembly"><code class="xref py py-obj docutils literal notranslate"><span class="pre">needs_assembly</span></code></a>(scene, *[, fps])</p></td>
 <td><p>True when the scene asks for anything beyond hard cuts and shot audio.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.transition_problems" title="an.assemble.transition_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transition_problems</span></code></a>(shots, fps)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.picture_segments" title="an.assemble.picture_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">picture_segments</span></code></a>(timeline, windows)</p></td>
+<td><p>The film's picture as segments, in film order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.shot_parts" title="an.assemble.shot_parts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_parts</span></code></a>(frames, window, *, fps, work_dir)</p></td>
+<td><p>A rendered shot's <a class="reference internal" href="#an.assemble.ShotParts" title="an.assemble.ShotParts"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotParts</span></code></a> for <code class="docutils literal notranslate"><span class="pre">window</span></code>, from its frames.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.shot_windows" title="an.assemble.shot_windows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_windows</span></code></a>(timeline, *[, min_segment_frames])</p></td>
+<td><p>Each shot's <a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotWindow</span></code></a>: the frames its transitions touch, widened until every segment of the picture has <code class="docutils literal notranslate"><span class="pre">min_segment_frames</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.transition_problems" title="an.assemble.transition_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transition_problems</span></code></a>(shots, fps)</p></td>
 <td><p>Every reason these shots' transitions cannot be assembled, as <code class="docutils literal notranslate"><span class="pre">(shot</span> <span class="pre">index,</span> <span class="pre">message)</span></code>.</p></td>
 </tr>
 </tbody>
@@ -691,6 +719,15 @@ whatever the transitions do.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.FilmTimeline" title="an.assemble.FilmTimeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilmTimeline</span></code></a>(fps, frames, starts, ...)</p></td>
 <td><p>Where each shot's frames land in the film, and what blends them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.Segment" title="an.assemble.Segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Segment</span></code></a>(kind, shot, start, stop)</p></td>
+<td><p>One independently encoded run of the film's picture, film frames <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">stop)</span></code>: a whole shot's own stream (<code class="docutils literal notranslate"><span class="pre">&quot;shot&quot;</span></code>), a shot's encoded body (<code class="docutils literal notranslate"><span class="pre">&quot;body&quot;</span></code>), or a run of PNGs composed here (<code class="docutils literal notranslate"><span class="pre">&quot;frames&quot;</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.ShotParts" title="an.assemble.ShotParts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotParts</span></code></a>(window, frames[, body])</p></td>
+<td><p>What a film takes from a shot its transitions touch: the PNGs inside its <a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotWindow</span></code></a> (<code class="docutils literal notranslate"><span class="pre">frames</span></code>: shot-local index -&gt; path) and its body, encoded once (<code class="docutils literal notranslate"><span class="pre">body</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when the window covers the shot).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotWindow</span></code></a>(frames[, head, tail])</p></td>
+<td><p>Which of one shot's <code class="docutils literal notranslate"><span class="pre">frames</span></code> its film needs as PNGs: the first <code class="docutils literal notranslate"><span class="pre">head</span></code> and the last <code class="docutils literal notranslate"><span class="pre">tail</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -746,14 +783,93 @@ NEXT shot’s fade colour).</p>
 
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.assemble.MIN_SEGMENT_FRAMES">
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">MIN_SEGMENT_FRAMES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.assemble.MIN_SEGMENT_FRAMES" title="Link to this definition">#</a></dt>
+<dd><p>The fewest frames a segment of a MULTI-segment picture may have. Measured on
+ffmpeg 9.0.1 / libx264 with the pinned argv (an#260): a stream of three or
+more frames carries a two-frame B-pyramid decode delay (its first DTS is two
+frames before its first PTS) whatever its content, and a stream of one or
+two frames carries none. The concat demuxer offsets every file alike, so a
+delay-free segment between two delayed ones leaves the DTS going backwards;
+the muxer patches that with one-tick packets, and a constant-rate decode of
+the film then shows a frame twice. <a class="reference internal" href="#an.assemble.shot_windows" title="an.assemble.shot_windows"><code class="xref py py-func docutils literal notranslate"><span class="pre">shot_windows()</span></code></a> widens every short
+run instead, so each segment of a multi-segment picture has the delay.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.assemble.Segment">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">Segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#Segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.Segment" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One independently encoded run of the film’s picture, film frames
+<code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">stop)</span></code>: a whole shot’s own stream (<code class="docutils literal notranslate"><span class="pre">&quot;shot&quot;</span></code>), a shot’s
+encoded body (<code class="docutils literal notranslate"><span class="pre">&quot;body&quot;</span></code>), or a run of PNGs composed here (<code class="docutils literal notranslate"><span class="pre">&quot;frames&quot;</span></code>).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.assemble.ShotParts">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">ShotParts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#ShotParts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.ShotParts" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What a film takes from a shot its transitions touch: the PNGs inside
+its <a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotWindow</span></code></a> (<code class="docutils literal notranslate"><span class="pre">frames</span></code>: shot-local index -&gt; path) and its
+body, encoded once (<code class="docutils literal notranslate"><span class="pre">body</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when the window covers the shot).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.assemble.ShotWindow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">ShotWindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#ShotWindow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.ShotWindow" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Which of one shot’s <code class="docutils literal notranslate"><span class="pre">frames</span></code> its film needs as PNGs: the first
+<code class="docutils literal notranslate"><span class="pre">head</span></code> and the last <code class="docutils literal notranslate"><span class="pre">tail</span></code>.</p>
+<p>Between them is the shot’s <em>body</em>, which the film takes as one encoded
+span. A shot with an empty window (<code class="xref py py-attr docutils literal notranslate"><span class="pre">whole</span></code>) is taken as its own
+mp4’s video stream, so it needs no frame at all.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">ShotWindow</span><span class="p">(</span><span class="n">frames</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tail</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span><span class="o">.</span><span class="n">whole</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">png_indices</span>
+<span class="go">(False, (0, 6), (6, 7, 8, 9))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.assemble.ShotWindow.body">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">body</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.assemble.ShotWindow.body" title="Link to this definition">#</a></dt>
+<dd><p>the shot-local frames taken as one encoded span.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">(first,</span> <span class="pre">stop)</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.assemble.ShotWindow.png_indices">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">png_indices</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.assemble.ShotWindow.png_indices" title="Link to this definition">#</a></dt>
+<dd><p>The shot-local frames the film needs as PNGs.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.assemble.assemble_film">
-<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">assemble_film</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#assemble_film"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.assemble_film" title="Link to this definition">#</a></dt>
-<dd><p>Assemble rendered shots into <code class="docutils literal notranslate"><span class="pre">output</span></code>: the picture from the shots’
-frames (transitions composed in), muxed once, then the mix.</p>
-<p><code class="docutils literal notranslate"><span class="pre">shot_results</span></code> are the renderers’ <code class="code docutils literal notranslate"><span class="pre">RenderResult`s,</span> <span class="pre">in</span> <span class="pre">timeline</span> <span class="pre">order;</span>
-<span class="pre">each</span> <span class="pre">must</span> <span class="pre">carry</span> <span class="pre">its</span> <span class="pre">frames</span> <span class="pre">(``frame_manifest`</span></code>), so a renderer that only
-produces an mp4 cannot take part in an assembled film.</p>
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">assemble_film</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#assemble_film"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.assemble_film" title="Link to this definition">#</a></dt>
+<dd><p>Assemble rendered shots into <code class="docutils literal notranslate"><span class="pre">output</span></code>: the picture as a concat of
+segments (transitions composed in), then the mix.</p>
+<p><code class="docutils literal notranslate"><span class="pre">shot_results</span></code> are the renderers’ <code class="code docutils literal notranslate"><span class="pre">RenderResult`s,</span> <span class="pre">in</span> <span class="pre">timeline</span> <span class="pre">order.</span> <span class="pre">A</span>
+<span class="pre">shot</span> <span class="pre">no</span> <span class="pre">transition</span> <span class="pre">touches</span> <span class="pre">contributes</span> <span class="pre">its</span> <span class="pre">mp4</span> <span class="pre">alone.</span> <span class="pre">A</span> <span class="pre">shot</span> <span class="pre">one</span> <span class="pre">touches</span>
+<span class="pre">needs</span> <span class="pre">its</span> <span class="pre">:class:`ShotParts</span></code> for its <a class="reference internal" href="#an.assemble.shot_windows" title="an.assemble.shot_windows"><code class="xref py py-func docutils literal notranslate"><span class="pre">shot_windows()</span></code></a> window: pass them
+in <code class="docutils literal notranslate"><span class="pre">parts</span></code> (a reused shot’s come from the shot cache), or the shot’s
+<code class="docutils literal notranslate"><span class="pre">frame_manifest</span></code> must hold its frames, from which they are built.</p>
+<p><strong>Why not one mux of every frame</strong>, as before an#260: the picture depended
+on every frame of every shot, so a film with a dissolve or a music bed
+could reuse no shot without caching all of its PNGs — hundreds of MB per
+1080p shot. The segment concat puts frame <code class="docutils literal notranslate"><span class="pre">i</span></code> at <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">fps</span></code> exactly as
+the one mux did (measured, an#260), and each frame decodes to exactly what
+its own segment decodes to.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
@@ -836,6 +952,64 @@ scene its byte-identical concat.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.assemble.picture_segments">
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">picture_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#picture_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.picture_segments" title="Link to this definition">#</a></dt>
+<dd><p>The film’s picture as segments, in film order.</p>
+<p>A film frame is part of a shot’s body when exactly one shot shows it and
+that frame is outside the shot’s window; every other frame (a blend, a
+fade, or a frame a window was widened over) is composed from PNGs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.assemble.Segment" title="an.assemble.Segment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Segment</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">Transition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">([</span><span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">transition</span><span class="o">=</span><span class="n">Transition</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"dissolve"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.4</span><span class="p">))],</span> <span class="n">fps</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">s</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">picture_segments</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="n">shot_windows</span><span class="p">(</span><span class="n">tl</span><span class="p">))]</span>
+<span class="go">[('body', 0, 0, 6), ('frames', None, 6, 10), ('body', 1, 10, 16)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.assemble.shot_parts">
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">shot_parts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#shot_parts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.shot_parts" title="Link to this definition">#</a></dt>
+<dd><p>A rendered shot’s <a class="reference internal" href="#an.assemble.ShotParts" title="an.assemble.ShotParts"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotParts</span></code></a> for <code class="docutils literal notranslate"><span class="pre">window</span></code>, from its frames.</p>
+<p>The body is encoded by <code class="docutils literal notranslate"><span class="pre">an.media.mp4.mux_frames</span></code> — the shot mux’s own
+encoder and argv — from the body’s PNGs, renumbered from zero in
+<code class="docutils literal notranslate"><span class="pre">work_dir</span></code>. The window’s PNGs are referenced where they are.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.assemble.ShotParts" title="an.assemble.ShotParts"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotParts</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.assemble.shot_windows">
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">shot_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_segment_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#shot_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.shot_windows" title="Link to this definition">#</a></dt>
+<dd><p>Each shot’s <a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotWindow</span></code></a>: the frames its transitions touch,
+widened until every segment of the picture has <code class="docutils literal notranslate"><span class="pre">min_segment_frames</span></code>.</p>
+<p>A pure function of the timeline, so the render loop, the shot cache and
+the garbage collector all agree on what a shot’s film needs from it. A
+picture of one segment has no minimum (there is nothing to concatenate).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotWindow</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">Transition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">Transition</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"dissolve"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>   <span class="c1"># one frame at 10 fps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">([</span><span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">transition</span><span class="o">=</span><span class="n">d</span><span class="p">)],</span> <span class="n">fps</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">w</span><span class="o">.</span><span class="n">head</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">tail</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">shot_windows</span><span class="p">(</span><span class="n">tl</span><span class="p">)]</span>   <span class="c1"># the 1-frame run, widened to 3</span>
+<span class="go">[(0, 1), (3, 0)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.assemble.transition_problems">
 <span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">transition_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#transition_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.transition_problems" title="Link to this definition">#</a></dt>
 <dd><p>Every reason these shots’ transitions cannot be assembled, as
@@ -908,11 +1082,22 @@ scene its byte-identical concat.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.FilmTimeline.start_seconds"><code class="docutils literal notranslate"><span class="pre">FilmTimeline.start_seconds()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.MIN_SEGMENT_FRAMES"><code class="docutils literal notranslate"><span class="pre">MIN_SEGMENT_FRAMES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.Segment"><code class="docutils literal notranslate"><span class="pre">Segment</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.ShotParts"><code class="docutils literal notranslate"><span class="pre">ShotParts</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.ShotWindow"><code class="docutils literal notranslate"><span class="pre">ShotWindow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.ShotWindow.body"><code class="docutils literal notranslate"><span class="pre">ShotWindow.body</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.ShotWindow.png_indices"><code class="docutils literal notranslate"><span class="pre">ShotWindow.png_indices</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.assemble_film"><code class="docutils literal notranslate"><span class="pre">assemble_film()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.duck_gain"><code class="docutils literal notranslate"><span class="pre">duck_gain()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.film_duration"><code class="docutils literal notranslate"><span class="pre">film_duration()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.film_timeline"><code class="docutils literal notranslate"><span class="pre">film_timeline()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.needs_assembly"><code class="docutils literal notranslate"><span class="pre">needs_assembly()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.picture_segments"><code class="docutils literal notranslate"><span class="pre">picture_segments()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.shot_parts"><code class="docutils literal notranslate"><span class="pre">shot_parts()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.shot_windows"><code class="docutils literal notranslate"><span class="pre">shot_windows()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.transition_problems"><code class="docutils literal notranslate"><span class="pre">transition_problems()</span></code></a></li>
 </ul>
   </nav></div>

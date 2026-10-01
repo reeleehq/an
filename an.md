@@ -1,4 +1,4 @@
-> built 2026-10-01 20:28 UTC from 34a2638 (main) · an 0.1.148. Details: build_info.json
+> built 2026-10-01 21:08 UTC from 4433e9f (main) · an 0.1.149. Details: build_info.json
 
 # index.html.md
 
@@ -2016,12 +2016,20 @@ shots meet and what is heard over them. It runs only when a scene asks for it
 **Where each part happens, and why there.**
 
 - *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,
-  in exact integer arithmetic, and the film is muxed ONCE by the same
-  `an.media.mp4.mux_frames` every shot uses. Composing in ffmpeg (`xfade`) would decode
-  already-encoded shots and re-encode them — a second generation of x264 loss
-  on every frame of the film, not just the transition — and would retire the
-  render pipeline’s “ffmpeg never touches a frame” clause. A frame no
-  transition touches is copied byte for byte: Chromium’s own PNG.
+  in exact integer arithmetic, and encoded by the same
+  `an.media.mp4.mux_frames` every shot uses. Composing in ffmpeg (`xfade`)
+  would decode already-encoded shots and re-encode them — a second generation
+  of x264 loss on every frame of the film, not just the transition — and would
+  retire the render pipeline’s “ffmpeg never touches a frame” clause.
+- *The picture is a stream-copy concat of SEGMENTS* (an#260), each encoded
+  once from PNGs: a shot no transition touches is its own mp4’s video stream,
+  copied; a shot a transition touches contributes the encoded span between its
+  windows (its *body*) plus the PNGs inside them; each run of composed frames
+  is encoded on its own. So a reused shot needs its mp4 (and, at a transition,
+  its body and window PNGs, a few dozen frames) — never every frame it has
+  ([`shot_windows()`](_autosummary/an.assemble.html.md#an.assemble.shot_windows), [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts)). The film’s frame `i` is at
+  `i / fps` and decodes to exactly what its segment decodes to (measured,
+  an#260; [`MIN_SEGMENT_FRAMES`](_autosummary/an.assemble.html.md#an.assemble.MIN_SEGMENT_FRAMES) is why no segment is shorter than three).
 - *Sound*: the film’s audio is rebuilt from SOURCES — every dialogue line’s
   cached WAV and every cue’s asset, placed in film time — in one ffmpeg mix,
   then muxed onto the picture with `-c:v copy`. Mixing onto the shots’
@@ -2044,20 +2052,31 @@ whatever the transitions do.
 ((0, 15), 35)
 ```
 
+### Module Attributes
+
+| [`MIN_SEGMENT_FRAMES`](_autosummary/an.assemble.html.md#an.assemble.MIN_SEGMENT_FRAMES)   | The fewest frames a segment of a MULTI-segment picture may have.   |
+|-----------------------------------------------------------------------|--------------------------------------------------------------------|
+
 ### Functions
 
-| [`assemble_film`](_autosummary/an.assemble.html.md#an.assemble.assemble_film)(scene, shot_results, output, ...)   | Assemble rendered shots into `output`: the picture from the shots' frames (transitions composed in), muxed once, then the mix.      |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| [`duck_gain`](_autosummary/an.assemble.html.md#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release) | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from. |
-| [`film_duration`](_autosummary/an.assemble.html.md#an.assemble.film_duration)(scene, \*[, fps])                   | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                               |
-| [`film_timeline`](_autosummary/an.assemble.html.md#an.assemble.film_timeline)(shots, \*, fps)                     | Lay `shots` end to end, overlapping each dissolve.                                                                                  |
-| [`needs_assembly`](_autosummary/an.assemble.html.md#an.assemble.needs_assembly)(scene, \*[, fps])                  | True when the scene asks for anything beyond hard cuts and shot audio.                                                              |
-| [`transition_problems`](_autosummary/an.assemble.html.md#an.assemble.transition_problems)(shots, fps)                   | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                              |
+| [`assemble_film`](_autosummary/an.assemble.html.md#an.assemble.assemble_film)(scene, shot_results, output, ...)   | Assemble rendered shots into `output`: the picture as a concat of segments (transitions composed in), then the mix.                                                             |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`duck_gain`](_autosummary/an.assemble.html.md#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release) | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from.                                             |
+| [`film_duration`](_autosummary/an.assemble.html.md#an.assemble.film_duration)(scene, \*[, fps])                   | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                                                                           |
+| [`film_timeline`](_autosummary/an.assemble.html.md#an.assemble.film_timeline)(shots, \*, fps)                     | Lay `shots` end to end, overlapping each dissolve.                                                                                                                              |
+| [`needs_assembly`](_autosummary/an.assemble.html.md#an.assemble.needs_assembly)(scene, \*[, fps])                  | True when the scene asks for anything beyond hard cuts and shot audio.                                                                                                          |
+| [`picture_segments`](_autosummary/an.assemble.html.md#an.assemble.picture_segments)(timeline, windows)               | The film's picture as segments, in film order.                                                                                                                                  |
+| [`shot_parts`](_autosummary/an.assemble.html.md#an.assemble.shot_parts)(frames, window, \*, fps, work_dir)     | A rendered shot's [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts) for `window`, from its frames.                                                                     |
+| [`shot_windows`](_autosummary/an.assemble.html.md#an.assemble.shot_windows)(timeline, \*[, min_segment_frames])  | Each shot's [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow): the frames its transitions touch, widened until every segment of the picture has `min_segment_frames`. |
+| [`transition_problems`](_autosummary/an.assemble.html.md#an.assemble.transition_problems)(shots, fps)                   | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
 
 ### Classes
 
-| [`FilmTimeline`](_autosummary/an.assemble.html.md#an.assemble.FilmTimeline)(fps, frames, starts, ...)   | Where each shot's frames land in the film, and what blends them.   |
-|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`FilmTimeline`](_autosummary/an.assemble.html.md#an.assemble.FilmTimeline)(fps, frames, starts, ...)   | Where each shot's frames land in the film, and what blends them.                                                                                                                                                                                       |
+|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Segment`](_autosummary/an.assemble.html.md#an.assemble.Segment)(kind, shot, start, stop)         | One independently encoded run of the film's picture, film frames `[start, stop)`: a whole shot's own stream (`"shot"`), a shot's encoded body (`"body"`), or a run of PNGs composed here (`"frames"`).                                                 |
+| [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts)(window, frames[, body])        | What a film takes from a shot its transitions touch: the PNGs inside its [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow) (`frames`: shot-local index -> path) and its body, encoded once (`body`; `None` when the window covers the shot). |
+| [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow)(frames[, head, tail])         | Which of one shot's `frames` its film needs as PNGs: the first `head` and the last `tail`.                                                                                                                                                             |
 
 ### Exceptions
 
@@ -2095,14 +2114,79 @@ Film time of shot `i`’s first frame.
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
-### an.assemble.assemble_film(scene, shot_results, output, , fps, mall, work_dir, pix_fmt=None)
+### an.assemble.MIN_SEGMENT_FRAMES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
-Assemble rendered shots into `output`: the picture from the shots’
-frames (transitions composed in), muxed once, then the mix.
+The fewest frames a segment of a MULTI-segment picture may have. Measured on
+ffmpeg 9.0.1 / libx264 with the pinned argv (an#260): a stream of three or
+more frames carries a two-frame B-pyramid decode delay (its first DTS is two
+frames before its first PTS) whatever its content, and a stream of one or
+two frames carries none. The concat demuxer offsets every file alike, so a
+delay-free segment between two delayed ones leaves the DTS going backwards;
+the muxer patches that with one-tick packets, and a constant-rate decode of
+the film then shows a frame twice. [`shot_windows()`](_autosummary/an.assemble.html.md#an.assemble.shot_windows) widens every short
+run instead, so each segment of a multi-segment picture has the delay.
 
-`shot_results` are the renderers’ `RenderResult`s, in timeline order;
-each must carry its frames (``frame_manifest``), so a renderer that only
-produces an mp4 cannot take part in an assembled film.
+### *class* an.assemble.Segment(kind, shot, start, stop)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One independently encoded run of the film’s picture, film frames
+`[start, stop)`: a whole shot’s own stream (`"shot"`), a shot’s
+encoded body (`"body"`), or a run of PNGs composed here (`"frames"`).
+
+### *class* an.assemble.ShotParts(window, frames, body=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a film takes from a shot its transitions touch: the PNGs inside
+its [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow) (`frames`: shot-local index -> path) and its
+body, encoded once (`body`; `None` when the window covers the shot).
+
+### *class* an.assemble.ShotWindow(frames, head=0, tail=0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Which of one shot’s `frames` its film needs as PNGs: the first
+`head` and the last `tail`.
+
+Between them is the shot’s *body*, which the film takes as one encoded
+span. A shot with an empty window (`whole`) is taken as its own
+mp4’s video stream, so it needs no frame at all.
+
+```pycon
+>>> w = ShotWindow(frames=10, head=0, tail=4)
+>>> w.whole, w.body, w.png_indices
+(False, (0, 6), (6, 7, 8, 9))
+```
+
+#### *property* body *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
+
+the shot-local frames taken as one encoded span.
+
+* **Type:**
+  `(first, stop)`
+
+#### *property* png_indices *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]*
+
+The shot-local frames the film needs as PNGs.
+
+### an.assemble.assemble_film(scene, shot_results, output, , fps, mall, work_dir, pix_fmt=None, parts=None)
+
+Assemble rendered shots into `output`: the picture as a concat of
+segments (transitions composed in), then the mix.
+
+`shot_results` are the renderers’ `RenderResult`s, in timeline order. A
+shot no transition touches contributes its mp4 alone. A shot one touches
+needs its :class:`ShotParts` for its [`shot_windows()`](_autosummary/an.assemble.html.md#an.assemble.shot_windows) window: pass them
+in `parts` (a reused shot’s come from the shot cache), or the shot’s
+`frame_manifest` must hold its frames, from which they are built.
+
+**Why not one mux of every frame**, as before an#260: the picture depended
+on every frame of every shot, so a film with a dissolve or a music bed
+could reuse no shot without caching all of its PNGs — hundreds of MB per
+1080p shot. The segment concat puts frame `i` at `i / fps` exactly as
+the one mux did (measured, an#260), and each frame decodes to exactly what
+its own segment decodes to.
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -2168,6 +2252,57 @@ False
 >>> needs_assembly(SceneIR(timeline=[
 ...     Shot(id="a"), Shot(id="b", transition=Transition(kind="fade", duration=0.0))]))
 False
+```
+
+### an.assemble.picture_segments(timeline, windows)
+
+The film’s picture as segments, in film order.
+
+A film frame is part of a shot’s body when exactly one shot shows it and
+that frame is outside the shot’s window; every other frame (a blend, a
+fade, or a frame a window was widened over) is composed from PNGs.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Segment`](_autosummary/an.assemble.html.md#an.assemble.Segment)]
+
+```pycon
+>>> from an.ir.schema import Shot, Transition
+>>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
+...     transition=Transition(kind="dissolve", duration=0.4))], fps=10)
+>>> [(s.kind, s.shot, s.start, s.stop) for s in picture_segments(tl, shot_windows(tl))]
+[('body', 0, 0, 6), ('frames', None, 6, 10), ('body', 1, 10, 16)]
+```
+
+### an.assemble.shot_parts(frames, window, , fps, work_dir, pix_fmt=None)
+
+A rendered shot’s [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts) for `window`, from its frames.
+
+The body is encoded by `an.media.mp4.mux_frames` — the shot mux’s own
+encoder and argv — from the body’s PNGs, renumbered from zero in
+`work_dir`. The window’s PNGs are referenced where they are.
+
+* **Return type:**
+  [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts)
+
+### an.assemble.shot_windows(timeline, , min_segment_frames=3)
+
+Each shot’s [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow): the frames its transitions touch,
+widened until every segment of the picture has `min_segment_frames`.
+
+A pure function of the timeline, so the render loop, the shot cache and
+the garbage collector all agree on what a shot’s film needs from it. A
+picture of one segment has no minimum (there is nothing to concatenate).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> from an.ir.schema import Shot, Transition
+>>> d = Transition(kind="dissolve", duration=0.1)   # one frame at 10 fps
+>>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
+...     transition=d)], fps=10)
+>>> [(w.head, w.tail) for w in shot_windows(tl)]   # the 1-frame run, widened to 3
+[(0, 1), (3, 0)]
 ```
 
 ### an.assemble.transition_problems(shots, fps)
@@ -3456,10 +3591,11 @@ the entire pipeline runs without API keys or external binaries.
 
 ### Module Attributes
 
-| [`TakeScorerFactory`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeScorerFactory)   | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`OVERRUN_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.OVERRUN_TOLERANCE_S) | a frame at 60 fps (the same as `an validate`'s).                                  |
-| [`REROLL_ONLY_HINT`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.REROLL_ONLY_HINT)    | only a new roll (new keys) replaces it.                                           |
+| [`TakeScorerFactory`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeScorerFactory)           | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.                             |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`OVERRUN_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.OVERRUN_TOLERANCE_S)         | a frame at 60 fps (the same as `an validate`'s).                                                            |
+| [`REROLL_ONLY_HINT`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.REROLL_ONLY_HINT)            | only a new roll (new keys) replaces it.                                                                     |
+| [`LEGACY_DURATION_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S) | How far a legacy sidecar's duration may sit from its audio's and still be the same take: a frame at 60 fps. |
 
 ### Functions
 
@@ -3472,16 +3608,25 @@ the entire pipeline runs without API keys or external binaries.
 | [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                 |
 | [`retake_lines`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                              |
 | [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                     |
+| [`stamp_from_stores`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores)(scene, mall, \*, tts, lipsync)  | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) would with these providers — from the content-keyed `audio` and `visemes` stores only.                               |
 | [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                 |
 | [`takes_cost_message`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` will bill, when any of them takes best-of-N; else `""`.                                                                                                                                                   |
 | [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                               |
 
 ### Exceptions
 
-| [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                            |
-|-------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`DialogueOverrunWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                 |
-| [`TakeDigestWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names. |
+| [`AudioNotCachedError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioNotCachedError)    | A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.   |
+|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                                                                                   |
+| [`DialogueOverrunWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                                                                        |
+| [`TakeDigestWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                        |
+
+### *exception* an.audio.pipeline.AudioNotCachedError
+
+Bases: [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)
+
+A line’s audio (or its visemes) is not in the content-keyed stores, so
+stamping it would need a synthesis this caller does not allow.
 
 ### *exception* an.audio.pipeline.AudioPipelineError
 
@@ -3494,6 +3639,11 @@ The scene declares audio the pipeline cannot produce. Carries detail.
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A synthesized line runs past its shot’s end, so its tail is cut.
+
+### an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
+
+How far a legacy sidecar’s duration may sit from its audio’s and still be
+the same take: a frame at 60 fps.
 
 ### an.audio.pipeline.OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
@@ -3688,6 +3838,21 @@ without the pipeline there is no authority to say that stamp is stale.
 >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
 [0.0, 2.0]
 ```
+
+### an.audio.pipeline.stamp_from_stores(scene, mall, , tts, lipsync)
+
+Stamp `scene`’s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)
+would with these providers — from the content-keyed `audio` and
+`visemes` stores only. Synthesises, aligns and writes nothing; a line the
+stores cannot answer raises [`AudioNotCachedError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioNotCachedError).
+
+What a reader of the render’s cache keys needs (an#274): a `scene.md`
+edit drops every stamp on re-sync, and the next render re-stamps the same
+audio from the stores, so the keys a render WILL use are these, not the
+unstamped IR’s. Mutates `scene` in place and returns it.
+
+* **Return type:**
+  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ### an.audio.pipeline.synthesis_options(tts, line, mall, voice_id)
 
@@ -5498,7 +5663,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'mouth', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'eye', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -9245,6 +9410,263 @@ anti-aliased edge pixel from its neighbour.
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 
+# _autosummary/an.build.cli.html.md
+
+# an.build.cli
+
+`an cache …` — the shot cache from the shell (an#274).
+
+Wired into the top-level dispatcher as the `cache` namespace
+(`an.tools._dispatch_namespaces`), programmatically, per pillar 8: plain
+functions taking strings and booleans and returning the text to print; the
+business logic is [`an.build.gc`](_autosummary/an.build.gc.html.md#module-an.build.gc).
+
+Subcommands: `info` (size, entries, how much the current scene reaches) and
+`gc` (delete what nothing reaches; `--dry-run` first).
+
+### Functions
+
+| [`gc`](_autosummary/an.build.cli.html.md#an.build.cli.gc)(project_dir[, dry_run, max_size, ...])   | Delete the shot-cache entries nothing reaches: not the current scene (under the default render settings or any a recorded render used), and not the latest render of each output on each machine.   |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`info`](_autosummary/an.build.cli.html.md#an.build.cli.info)(project_dir[, no_reachability])        | Show the project's shot cache: its size, its entries by kind, and how much of it the current scene still reaches.                                                                                   |
+
+### an.build.cli.gc(project_dir, dry_run=False, max_size='', max_age='', force=False)
+
+Delete the shot-cache entries nothing reaches: not the current scene (under the default render settings or any a recorded render used), and not the latest render of each output on each machine.
+
+Never deletes a reachable entry, nor anything written since a render of this project still in progress began. A render running meanwhile can at worst re-render a shot, never use a wrong one.
+
+project_dir: path to an an project
+dry_run: report what would be deleted, delete nothing
+max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB); reachable entries are never removed, so the cache can stay above it
+max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept
+force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.cli.info(project_dir, no_reachability=False)
+
+Show the project’s shot cache: its size, its entries by kind, and how much of it the current scene still reaches.
+
+project_dir: path to an an project
+no_reachability: skip computing what the current scene reaches (which compiles every shot and probes this machine’s browser, like a render’s first second)
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.build.gc.html.md
+
+# an.build.gc
+
+Garbage collection of the shot cache: `an cache gc` and `an cache info` (an#274).
+
+ADR 0004 decision 6: invalidation is by digest, never by deletion, so every
+edit leaves the old entries behind — an end user’s `artifacts/shot_cache`
+reached 4.9 GB after nine renders of a 16 s film. Collecting them is a
+separate, explicit command, and this module is it.
+
+**What is kept (reachable).** An entry is reachable when either
+
+- a render of the project’s CURRENT scene would read it — under the default
+  render knobs, or under any knob set a recorded render ever used — computed
+  by the render loop’s own setup and the engine’s own key code, with the
+  dialogue stamped from the audio stores as the render stamps it
+  ([`an.render.cache_entries()`](_autosummary/an.render.html.md#an.render.cache_entries)); or
+- the latest render of an output, under one knob set, on one machine, used it
+  — its *root* ([`an.build.ShotCache.record_root()`](_autosummary/an.build.html.md#an.build.ShotCache.record_root)). This keeps what a
+  render on ANOTHER machine of a synced project used, which this machine
+  cannot recompute (its environment digest differs).
+
+A cache no render of the project has recorded a root in (one written before
+an#274) is refused unless `force`: the current scene’s keys alone are then
+the only evidence, and a render’s knobs or providers that differ from the
+defaults would leave its entries looking unreachable.
+
+Everything else is unreachable: the entries of shots as they were before an
+edit, parts cut for an old neighbour, whole-frame entries (`<key>.frames`)
+that no render reads since an#260, and unreadable records.
+
+**What is never deleted.** A reachable entry, whatever the caps say (a cap
+trims unreachable history only; `--max-age` lets an old root stop naming its
+entries, never stops its knob set being recomputed). A root. An entry
+written after the collection began, or after the start of any render of the
+project still in progress (`.an/render_work/runs/<run>/.live`), minus
+[`CLOCK_SLACK_S`](_autosummary/an.build.gc.html.md#an.build.gc.CLOCK_SLACK_S): a render’s entries are protected from the moment its
+run starts until its root records them. A blob still named by a kept record.
+
+**What a concurrent render can see**, at worst: an entry it looked up being
+collected between reading its record and its blob — a miss, so that shot
+renders again. Never a wrong picture: every blob is checked against its id
+(its sha256) when read, and a reused shot’s bytes are copied into the render’s
+own run directory at lookup, before anything can remove them.
+
+**Deletion is permanent.** `dol.Files` would move each file to the OS trash,
+which frees nothing (and on macOS asks Finder once per file), so on a
+filesystem store the catalog record and the blob are unlinked directly, in the
+layout `lacing.ArtifactStore.from_directory` documents.
+
+```pycon
+>>> parse_size("2G"), parse_size("500MB"), parse_age("36h"), parse_age("7d")
+(2147483648, 524288000, 129600.0, 604800.0)
+```
+
+### Module Attributes
+
+| [`CLOCK_SLACK_S`](_autosummary/an.build.gc.html.md#an.build.gc.CLOCK_SLACK_S)   | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.           |
+|------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_PROFILE`](_autosummary/an.build.gc.html.md#an.build.gc.DEFAULT_PROFILE) | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them. |
+
+### Functions
+
+| [`cache_info`](_autosummary/an.build.gc.html.md#an.build.gc.cache_info)(project_dir, \*[, reachability, ...])   | What `project_dir`'s shot cache holds; never fails on reachability (it says why it is unknown instead).   |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`collect_garbage`](_autosummary/an.build.gc.html.md#an.build.gc.collect_garbage)(project_dir, \*[, dry_run, ...])   | Delete the shot-cache entries of `project_dir` that nothing reaches.                                      |
+| [`inventory`](_autosummary/an.build.gc.html.md#an.build.gc.inventory)(store)                                   | Every catalog record of `store`, read once.                                                               |
+| [`parse_age`](_autosummary/an.build.gc.html.md#an.build.gc.parse_age)(text)                                    | `"7d"`, `"36h"`, `"90m"`, `"2w"`, `"30s"` → seconds.                                                      |
+| [`parse_size`](_autosummary/an.build.gc.html.md#an.build.gc.parse_size)(text)                                   | `"2G"`, `"500MB"`, `"1.5GB"`, `"1048576"` → bytes (1024-based).                                           |
+| [`reachable_entries`](_autosummary/an.build.gc.html.md#an.build.gc.reachable_entries)(project, store, \*[, ...])       | What the project's current scene and its recorded roots reach.                                            |
+
+### Classes
+
+| [`CacheEntry`](_autosummary/an.build.gc.html.md#an.build.gc.CacheEntry)(id, role[, asset_id, bytes_size, ...])   | One catalog record: its id, what it holds, its blob, and when it was written.            |
+|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| [`CacheInfo`](_autosummary/an.build.gc.html.md#an.build.gc.CacheInfo)(path[, total_bytes, by_role, ...])        | The shot cache's size, what it holds, and how much of it is reachable.                   |
+| [`GcReport`](_autosummary/an.build.gc.html.md#an.build.gc.GcReport)(dry_run[, deleted, deleted_blobs, ...])    | What a collection deleted (or, with `dry_run`, would delete), and why the rest was kept. |
+| [`Reachability`](_autosummary/an.build.gc.html.md#an.build.gc.Reachability)([from_scene, from_roots, ...])         | What the current scene and the recorded roots keep, and why.                             |
+
+### Exceptions
+
+| [`CacheGcError`](_autosummary/an.build.gc.html.md#an.build.gc.CacheGcError)   | The collection cannot be done safely; nothing was deleted.   |
+|-----------------------------------------------------------------|--------------------------------------------------------------|
+
+### an.build.gc.CLOCK_SLACK_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
+
+a file
+system’s timestamp granularity, and the gap between a record’s provenance
+time and the moment it lands.
+
+* **Type:**
+  Seconds before a protection horizon still treated as “after” it
+
+### *class* an.build.gc.CacheEntry(id, role, asset_id=None, bytes_size=0, written_at=None, record=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One catalog record: its id, what it holds, its blob, and when it was written.
+
+### *exception* an.build.gc.CacheGcError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+The collection cannot be done safely; nothing was deleted.
+
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The shot cache’s size, what it holds, and how much of it is reachable.
+
+### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'}*
+
+The render knobs of a plain `an render` (and of `render_project`’s
+defaults), as `ShotCache.record_root()` records them. Always among the
+profiles the current scene is keyed under, so a cache written before roots
+existed keeps what a plain render of the current scene reads.
+
+### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a collection deleted (or, with `dry_run`, would delete), and why
+the rest was kept.
+
+### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What the current scene and the recorded roots keep, and why.
+
+### an.build.gc.cache_info(project_dir, , reachability=True, engine=None, now=None)
+
+What `project_dir`’s shot cache holds; never fails on reachability
+(it says why it is unknown instead).
+
+* **Return type:**
+  [`CacheInfo`](_autosummary/an.build.gc.html.md#an.build.gc.CacheInfo)
+
+### an.build.gc.collect_garbage(project_dir, , dry_run=False, max_size=None, max_age=None, engine=None, now=None, force=False)
+
+Delete the shot-cache entries of `project_dir` that nothing reaches.
+
+With no cap, every unreachable entry goes. With caps, unreachable history
+is kept within them, newest first, and both bind: `max_age` (seconds)
+keeps only unreachable entries written more recently than that (and lets a
+recorded render older than that stop protecting its entries); `max_size`
+(bytes) keeps only those that fit in a cache of that size. Neither ever
+removes a reachable entry, so the cache can stay above `max_size`.
+`dry_run` reports and deletes nothing. `force` collects a cache no
+render of this project has recorded a root in (see [`reachable_entries()`](_autosummary/an.build.gc.html.md#an.build.gc.reachable_entries)).
+
+See the module docstring for the reachability and concurrency argument.
+
+* **Return type:**
+  [`GcReport`](_autosummary/an.build.gc.html.md#an.build.gc.GcReport)
+
+### an.build.gc.inventory(store)
+
+Every catalog record of `store`, read once. An unreadable record is
+listed with role `"unreadable"` and, on disk, its file’s mtime.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CacheEntry`](_autosummary/an.build.gc.html.md#an.build.gc.CacheEntry)]
+
+### an.build.gc.parse_age(text)
+
+`"7d"`, `"36h"`, `"90m"`, `"2w"`, `"30s"` → seconds.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> parse_age("90m")
+5400.0
+```
+
+### an.build.gc.parse_size(text)
+
+`"2G"`, `"500MB"`, `"1.5GB"`, `"1048576"` → bytes (1024-based).
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+```pycon
+>>> parse_size("1.5k")
+1536
+```
+
+### an.build.gc.reachable_entries(project, store, , entries=None, engine=None, root_max_age=None, now=None, force=False)
+
+What the project’s current scene and its recorded roots reach.
+
+The current scene is keyed under the default knobs and under the knobs of
+EVERY recorded root (of any project, any age: a knob set is a few values,
+and dropping one would orphan that render’s entries of the unchanged scene).
+A root younger than `root_max_age` seconds (all, when `None`) also
+keeps the entries it names; roots themselves are always kept.
+
+`engine` computes the keys (its environment seam included); `None` is
+a default [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache) over `store`, which probes this
+machine like a render does. Raises [`CacheGcError`](_autosummary/an.build.gc.html.md#an.build.gc.CacheGcError) when the current
+scene’s keys cannot be computed (guessing is never safe), and when no render
+of THIS project has recorded a root yet — a cache written before roots
+existed (an#274) — unless `force`.
+
+* **Return type:**
+  [`Reachability`](_autosummary/an.build.gc.html.md#an.build.gc.Reachability)
+
+
 # _autosummary/an.build.html.md
 
 # an.build
@@ -9262,6 +9684,9 @@ never `shot.id`) already has an entry, and reuses that entry’s mp4.
 - [`an.build.shot_cache`](_autosummary/an.build.shot_cache.html.md#module-an.build.shot_cache) — the `incremental=` seam
   ([`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine)), its built-in engine [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache), and
   the entries, shaped as `lacing` artifacts in a `lacing.ArtifactStore`.
+- [`an.build.gc`](_autosummary/an.build.gc.html.md#module-an.build.gc) — garbage collection: what the current scene and the
+  recorded renders reach, and deleting the rest (`an cache gc`,
+  `an cache info`; [`an.build.cli`](_autosummary/an.build.cli.html.md#module-an.build.cli)).
 
 The core names no renderer; the cut-out keyer lives with the cut-out backend
 (`an.stage.cache_key`) and registers on its import.
@@ -9274,22 +9699,24 @@ True
 
 ### Functions
 
-| [`canonical_digest`](_autosummary/an.build.html.md#an.build.canonical_digest)(obj)                          | The hex sha256 of `canonical_json()` of `obj`.                                  |
-|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`compose_shot_key`](_autosummary/an.build.html.md#an.build.compose_shot_key)(parts)                        | The shot key: one digest over the named parts and the key's own version.        |
-| [`default_environment_digest`](_autosummary/an.build.html.md#an.build.default_environment_digest)(renderer_name)      | The digest of `renderer_name`'s registered environment probe, once per process. |
-| [`in_memory_shot_cache_store`](_autosummary/an.build.html.md#an.build.in_memory_shot_cache_store)()                   | A shot cache held in dicts — for tests, and for a mall with no disk.            |
-| [`project_assets_digest`](_autosummary/an.build.html.md#an.build.project_assets_digest)(mall, \*[, stores, ...]) | One digest over every asset store of the project (ADR 0004 decision 3).         |
-| [`register_shot_keyer`](_autosummary/an.build.html.md#an.build.register_shot_keyer)(renderer_name, keyer, \*)  | Declare how shots of `renderer_name` are keyed, and how its machine is probed.  |
-| [`registered_shot_keyers`](_autosummary/an.build.html.md#an.build.registered_shot_keyers)()                       | The renderer names that have a keyer.                                           |
-| [`resolve_incremental`](_autosummary/an.build.html.md#an.build.resolve_incremental)(incremental)               | `incremental=` → an engine, or `None` for "render every shot cold".             |
-| [`shot_artifact_type`](_autosummary/an.build.html.md#an.build.shot_artifact_type)()                           | The record type (`lacing.Artifact` subclass), built on first use.               |
-| [`shot_cache_store`](_autosummary/an.build.html.md#an.build.shot_cache_store)(root)                         | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).  |
-| [`shot_keyer_for`](_autosummary/an.build.html.md#an.build.shot_keyer_for)(renderer)                       | The keyer that describes `renderer` (an instance, or a name), or `None`.        |
+| [`cache_info`](_autosummary/an.build.html.md#an.build.cache_info)(project_dir, \*[, reachability, ...])   | What `project_dir`'s shot cache holds; never fails on reachability (it says why it is unknown instead).   |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`canonical_digest`](_autosummary/an.build.html.md#an.build.canonical_digest)(obj)                              | The hex sha256 of `canonical_json()` of `obj`.                                                            |
+| [`collect_garbage`](_autosummary/an.build.html.md#an.build.collect_garbage)(project_dir, \*[, dry_run, ...])   | Delete the shot-cache entries of `project_dir` that nothing reaches.                                      |
+| [`compose_shot_key`](_autosummary/an.build.html.md#an.build.compose_shot_key)(parts)                            | The shot key: one digest over the named parts and the key's own version.                                  |
+| [`default_environment_digest`](_autosummary/an.build.html.md#an.build.default_environment_digest)(renderer_name)          | The digest of `renderer_name`'s registered environment probe, once per process.                           |
+| [`in_memory_shot_cache_store`](_autosummary/an.build.html.md#an.build.in_memory_shot_cache_store)()                       | A shot cache held in dicts — for tests, and for a mall with no disk.                                      |
+| [`project_assets_digest`](_autosummary/an.build.html.md#an.build.project_assets_digest)(mall, \*[, stores, ...])     | One digest over every asset store of the project (ADR 0004 decision 3).                                   |
+| [`register_shot_keyer`](_autosummary/an.build.html.md#an.build.register_shot_keyer)(renderer_name, keyer, \*)      | Declare how shots of `renderer_name` are keyed, and how its machine is probed.                            |
+| [`registered_shot_keyers`](_autosummary/an.build.html.md#an.build.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                                     |
+| [`resolve_incremental`](_autosummary/an.build.html.md#an.build.resolve_incremental)(incremental)                   | `incremental=` → an engine, or `None` for "render every shot cold".                                       |
+| [`shot_artifact_type`](_autosummary/an.build.html.md#an.build.shot_artifact_type)()                               | The record type (`lacing.Artifact` subclass), built on first use.                                         |
+| [`shot_cache_store`](_autosummary/an.build.html.md#an.build.shot_cache_store)(root)                             | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                            |
+| [`shot_keyer_for`](_autosummary/an.build.html.md#an.build.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                                  |
 
 ### Classes
 
-| [`BuildReport`](_autosummary/an.build.html.md#an.build.BuildReport)([outcomes])                         | Every shot's outcome, in timeline order.                                      |
+| [`BuildReport`](_autosummary/an.build.html.md#an.build.BuildReport)([outcomes, store_bytes, ...])       | Every shot's outcome, in timeline order.                                      |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine)(\*args, \*\*kwargs)           | The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).          |
 | [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache)([store, environment, ...])            | The built-in engine: look a shot's key up in an ArtifactStore; record misses. |
@@ -9299,14 +9726,31 @@ True
 
 ### Exceptions
 
-| [`ShotCacheWarning`](_autosummary/an.build.html.md#an.build.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
-|---------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`CacheGcError`](_autosummary/an.build.html.md#an.build.CacheGcError)     | The collection cannot be done safely; nothing was deleted.                     |
+|-------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`ShotCacheWarning`](_autosummary/an.build.html.md#an.build.ShotCacheWarning) | The shot cache could not do something it should have; the render still stands. |
 
-### *class* an.build.BuildReport(outcomes=<factory>)
+### *class* an.build.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Every shot’s outcome, in timeline order.
+
+#### store_bytes *: [int](https://docs.python.org/3/builtins/functions.html#int) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The shot cache’s size after the render, when the engine measured it.
+
+#### store_line()
+
+How big the shot cache is after the render, or `""` if unmeasured.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
+'3.0 MB in 4 entries'
+```
 
 #### summary()
 
@@ -9329,6 +9773,12 @@ A Markdown table of the per-shot wall times.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### *exception* an.build.CacheGcError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+The collection cannot be done safely; nothing was deleted.
+
 ### *class* an.build.IncrementalEngine(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
@@ -9340,6 +9790,11 @@ root files every shot depends on); `plan` once per shot,
 BEFORE any shot renders (in the calling thread); `record` once per shot
 that was rendered (possibly from a worker thread); `finish` returns the
 report.
+
+Two hooks are OPTIONAL (the render loop calls them when an engine has
+them): `record_parts(plan, parts)` once per rendered shot whose film
+window is not whole (an#260), and `record_root(output_name, profile=...,
+output=...)` once the film is delivered (what the garbage collector keeps).
 
 ### *class* an.build.ShotCache(store=None, \*, environment=<function default_environment_digest>, dependencies=<function project_assets_digest>, cache_frames=False)
 
@@ -9355,12 +9810,55 @@ state its machine rather than probe this one. `dependencies` is the
 project-wide dependency strategy (see `Dependencies`); `None` keys
 a shot on its own parts alone (its document and the bytes of the textures
 it stages) — and then drops the lockfile too, so use it knowingly.
-`cache_frames` also stores each shot’s PNG sequence, which an ASSEMBLED
-film (transitions, a sound layer) needs to reuse a shot; off by default,
-because a 1080p shot’s frames are hundreds of MB and nothing collects
-unreachable entries yet — so an assembled film re-renders its shots.
+`cache_frames` also stores each shot’s whole PNG sequence when a caller
+plans with `needs_frames=True`. The render loop no longer does (an#260):
+an assembled film takes a shot’s mp4 and, at a transition, its *parts*
+(`window=`), which are cached by default at a few MB. Kept for callers of
+the engine that need every frame; `an cache gc` collects old frames.
 
 After a render, `report` holds what happened to each shot.
+
+#### entry_ids(shot, renderer, ctx, , window=None)
+
+The catalog ids a [`plan()`](_autosummary/an.build.html.md#an.build.ShotCache.plan) of this shot would read — computed by
+the same code, looking nothing up and rendering nothing. What
+`an.build.gc` keeps for the current scene. Call `begin()` first.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+#### plan(shot, renderer, ctx, , needs_frames=False, window=None, force=False)
+
+`window` is what an assembled film needs from this shot
+(`an.assemble.ShotWindow`; `None` for a plain concat): a shot whose
+window is not whole is reused only when its parts entry is there too.
+
+* **Return type:**
+  [`ShotPlan`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotPlan)
+
+#### record_parts(plan, parts)
+
+Store a freshly rendered shot’s `an.assemble.ShotParts` under
+`plan.parts_id`: its body mp4 and its window’s PNGs, one stored zip.
+A failed write never fails the render (the next render renders it).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### record_root(output_name, , profile, output)
+
+Record what this render used, as a ROOT for `an.build.gc`; return its id.
+
+A root is keyed by the project (`project_id()`), the output name,
+the render `profile` (the knobs as passed — `None` meaning “the
+scene’s own”) and this machine (`machine_id()`), so the next render
+of the same output with the same knobs on the same machine replaces it
+— a browser upgrade included — while a render on another machine of a
+synced project, or of another project sharing the store, keeps its own. Its record is a `lacing.Artifact` of the delivered film,
+derived from the shot keys. Also measures the store, for the summary.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *exception* an.build.ShotCacheWarning
 
@@ -9394,11 +9892,32 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False)
+### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The engine’s answer for one shot: its key, and what to reuse if anything.
+
+#### parts *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+The reused parts (`an.assemble.ShotParts`), materialised for this plan.
+
+#### parts_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The catalog id of this shot’s parts entry, when its window is not whole.
+
+#### window *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+What an assembled film needs from this shot (`an.assemble.ShotWindow`);
+`None` for a film that is a plain concat of shot mp4s.
+
+### an.build.cache_info(project_dir, , reachability=True, engine=None, now=None)
+
+What `project_dir`’s shot cache holds; never fails on reachability
+(it says why it is unknown instead).
+
+* **Return type:**
+  [`CacheInfo`](_autosummary/an.build.gc.html.md#an.build.gc.CacheInfo)
 
 ### an.build.canonical_digest(obj)
 
@@ -9406,6 +9925,24 @@ The hex sha256 of `canonical_json()` of `obj`.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.build.collect_garbage(project_dir, , dry_run=False, max_size=None, max_age=None, engine=None, now=None, force=False)
+
+Delete the shot-cache entries of `project_dir` that nothing reaches.
+
+With no cap, every unreachable entry goes. With caps, unreachable history
+is kept within them, newest first, and both bind: `max_age` (seconds)
+keeps only unreachable entries written more recently than that (and lets a
+recorded render older than that stop protecting its entries); `max_size`
+(bytes) keeps only those that fit in a cache of that size. Neither ever
+removes a reachable entry, so the cache can stay above `max_size`.
+`dry_run` reports and deletes nothing. `force` collects a cache no
+render of this project has recorded a root in (see `reachable_entries()`).
+
+See the module docstring for the reachability and concurrency argument.
+
+* **Return type:**
+  [`GcReport`](_autosummary/an.build.gc.html.md#an.build.gc.GcReport)
 
 ### an.build.compose_shot_key(parts)
 
@@ -9532,8 +10069,10 @@ renderer whose class is not the one the keyer was registered for.
 
 ### Modules
 
-| [`keys`](_autosummary/an.build.keys.html.md#module-an.build.keys)             | Cache keys for build stages: canonical digests, the project fallback, keyers.         |
+| [`cli`](_autosummary/an.build.cli.html.md#module-an.build.cli)               | `an cache …` — the shot cache from the shell (an#274).                                |
 |----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`gc`](_autosummary/an.build.gc.html.md#module-an.build.gc)                 | Garbage collection of the shot cache: `an cache gc` and `an cache info` (an#274).     |
+| [`keys`](_autosummary/an.build.keys.html.md#module-an.build.keys)             | Cache keys for build stages: canonical digests, the project fallback, keyers.         |
 | [`shot_cache`](_autosummary/an.build.shot_cache.html.md#module-an.build.shot_cache) | The content-keyed shot cache: ADR 0004's first slice, behind the `incremental=` seam. |
 
 
@@ -9900,14 +10439,24 @@ of its key and the timings that produced it. Entries live in a
 blob store, both injected `dol` mappings. In a project the store is
 `mall["shot_cache"]` (`artifacts/shot_cache/{catalog,blobs}/`).
 
-A film ASSEMBLED from frames (transitions, a sound layer) needs each shot’s
-PNGs too; those are cached only with `ShotCache(cache_frames=True)`, so by
-default such a film re-renders its shots.
+An ASSEMBLED film (transitions, a sound layer) is a stream-copy concat of
+segments (`an.assemble`, an#260): a shot no transition touches needs only its
+mp4, and a shot one touches also needs its *parts* — its body, encoded once,
+and the PNGs inside its transition window — a second entry,
+`<key>.parts.<code>.h<head>.t<tail>`, of a few MB. So such a film reuses its
+shots by default. (The older whole-frames entry, `<key>.frames`, is read only
+by a caller that asks for it with `needs_frames=True`; the render loop no
+longer does.)
+
+Each cached render also records a *root* (`root.<digest>`): which entries a
+render of output `<name>` under one set of render knobs on one machine used.
+Roots are what `an.build.gc` keeps alive, beside what the current scene reaches.
 
 **Invalidation is by digest, never by deletion** (decision 6): a changed input
 is a different key, and the old entry simply stops being asked for. The
 pre-cache `artifacts/shots/<shot.id>.mp4` archive is not read. Collecting
-unreachable blobs is a separate, explicit command (not in this slice).
+unreachable entries is a separate, explicit command: `an cache gc`
+([`an.build.gc`](_autosummary/an.build.gc.html.md#module-an.build.gc)).
 
 ```pycon
 >>> from an.build.shot_cache import BuildReport, ShotOutcome
@@ -9919,21 +10468,28 @@ unreachable blobs is a separate, explicit command (not in this slice).
 
 ### Module Attributes
 
-| [`SHOT_CACHE_STORE`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.SHOT_CACHE_STORE)   | The mall key of the shot cache.   |
-|---------------------------------------------------------------------|-----------------------------------|
+| [`SHOT_CACHE_STORE`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.SHOT_CACHE_STORE)   | The mall key of the shot cache.                                                                                          |
+|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| [`PARTS_INFIX`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.PARTS_INFIX)        | what an assembled film takes from a shot its transitions touch — its body, encoded once, and the PNGs inside its window. |
+| [`ROOT_PREFIX`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ROOT_PREFIX)        | what one render used (see [`ShotCache.record_root()`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache.record_root)).                     |
 
 ### Functions
 
-| [`default_environment_digest`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.default_environment_digest)(renderer_name)   | The digest of `renderer_name`'s registered environment probe, once per process.   |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`in_memory_shot_cache_store`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.in_memory_shot_cache_store)()                | A shot cache held in dicts — for tests, and for a mall with no disk.              |
-| [`resolve_incremental`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.resolve_incremental)(incremental)            | `incremental=` → an engine, or `None` for "render every shot cold".               |
-| [`shot_artifact_type`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.shot_artifact_type)()                        | The record type (`lacing.Artifact` subclass), built on first use.                 |
-| [`shot_cache_store`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.shot_cache_store)(root)                      | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).    |
+| [`default_environment_digest`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.default_environment_digest)(renderer_name)   | The digest of `renderer_name`'s registered environment probe, once per process.                                                                  |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`human_bytes`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.human_bytes)(n)                              | `n` bytes for a person: 1024-based, one decimal.                                                                                                 |
+| [`in_memory_shot_cache_store`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.in_memory_shot_cache_store)()                | A shot cache held in dicts — for tests, and for a mall with no disk.                                                                             |
+| [`machine_id`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.machine_id)()                                | A short digest naming this machine (its host name and hardware address), so each machine's renders of a synced project keep a root of their own. |
+| [`project_id`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.project_id)(project_root)                    | A short digest naming a project by its resolved directory, so two projects sharing one cache store keep a root each (`""` for none).             |
+| [`parts_entry_id`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.parts_entry_id)(key, window)                 | The catalog id of the parts entry of shot `key` for `window`.                                                                                    |
+| [`resolve_incremental`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.resolve_incremental)(incremental)            | `incremental=` → an engine, or `None` for "render every shot cold".                                                                              |
+| [`shot_artifact_type`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.shot_artifact_type)()                        | The record type (`lacing.Artifact` subclass), built on first use.                                                                                |
+| [`shot_cache_store`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.shot_cache_store)(root)                      | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                   |
+| [`store_usage`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.store_usage)(store)                          | `(bytes, entries)` of a shot cache store: every blob byte on disk (or, off disk, every distinct blob its records name) and its catalog entries.  |
 
 ### Classes
 
-| [`BuildReport`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.BuildReport)([outcomes])                         | Every shot's outcome, in timeline order.                                      |
+| [`BuildReport`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.BuildReport)([outcomes, store_bytes, ...])       | Every shot's outcome, in timeline order.                                      |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine)(\*args, \*\*kwargs)           | The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).          |
 | [`ShotCache`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache)([store, environment, ...])            | The built-in engine: look a shot's key up in an ArtifactStore; record misses. |
@@ -9945,11 +10501,27 @@ unreachable blobs is a separate, explicit command (not in this slice).
 | [`ShotCacheWarning`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
 |---------------------------------------------------------------------|----------------------------------------------------------------------------------|
 
-### *class* an.build.shot_cache.BuildReport(outcomes=<factory>)
+### *class* an.build.shot_cache.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Every shot’s outcome, in timeline order.
+
+#### store_bytes *: [int](https://docs.python.org/3/builtins/functions.html#int) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The shot cache’s size after the render, when the engine measured it.
+
+#### store_line()
+
+How big the shot cache is after the render, or `""` if unmeasured.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
+'3.0 MB in 4 entries'
+```
 
 #### summary()
 
@@ -9984,6 +10556,27 @@ BEFORE any shot renders (in the calling thread); `record` once per shot
 that was rendered (possibly from a worker thread); `finish` returns the
 report.
 
+Two hooks are OPTIONAL (the render loop calls them when an engine has
+them): `record_parts(plan, parts)` once per rendered shot whose film
+window is not whole (an#260), and `record_root(output_name, profile=...,
+output=...)` once the film is delivered (what the garbage collector keeps).
+
+### an.build.shot_cache.PARTS_INFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.parts.'*
+
+what an assembled
+film takes from a shot its transitions touch — its body, encoded once, and
+the PNGs inside its window. See [`parts_entry_id()`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.parts_entry_id).
+
+* **Type:**
+  The catalog id infix of a shot’s PARTS entry (an#260)
+
+### an.build.shot_cache.ROOT_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root.'*
+
+what one render used (see [`ShotCache.record_root()`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache.record_root)).
+
+* **Type:**
+  The catalog id prefix of a ROOT
+
 ### an.build.shot_cache.SHOT_CACHE_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'shot_cache'*
 
 The mall key of the shot cache.
@@ -10002,12 +10595,55 @@ state its machine rather than probe this one. `dependencies` is the
 project-wide dependency strategy (see `Dependencies`); `None` keys
 a shot on its own parts alone (its document and the bytes of the textures
 it stages) — and then drops the lockfile too, so use it knowingly.
-`cache_frames` also stores each shot’s PNG sequence, which an ASSEMBLED
-film (transitions, a sound layer) needs to reuse a shot; off by default,
-because a 1080p shot’s frames are hundreds of MB and nothing collects
-unreachable entries yet — so an assembled film re-renders its shots.
+`cache_frames` also stores each shot’s whole PNG sequence when a caller
+plans with `needs_frames=True`. The render loop no longer does (an#260):
+an assembled film takes a shot’s mp4 and, at a transition, its *parts*
+(`window=`), which are cached by default at a few MB. Kept for callers of
+the engine that need every frame; `an cache gc` collects old frames.
 
 After a render, `report` holds what happened to each shot.
+
+#### entry_ids(shot, renderer, ctx, , window=None)
+
+The catalog ids a [`plan()`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache.plan) of this shot would read — computed by
+the same code, looking nothing up and rendering nothing. What
+`an.build.gc` keeps for the current scene. Call `begin()` first.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+#### plan(shot, renderer, ctx, , needs_frames=False, window=None, force=False)
+
+`window` is what an assembled film needs from this shot
+(`an.assemble.ShotWindow`; `None` for a plain concat): a shot whose
+window is not whole is reused only when its parts entry is there too.
+
+* **Return type:**
+  [`ShotPlan`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotPlan)
+
+#### record_parts(plan, parts)
+
+Store a freshly rendered shot’s `an.assemble.ShotParts` under
+`plan.parts_id`: its body mp4 and its window’s PNGs, one stored zip.
+A failed write never fails the render (the next render renders it).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### record_root(output_name, , profile, output)
+
+Record what this render used, as a ROOT for `an.build.gc`; return its id.
+
+A root is keyed by the project ([`project_id()`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.project_id)), the output name,
+the render `profile` (the knobs as passed — `None` meaning “the
+scene’s own”) and this machine ([`machine_id()`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.machine_id)), so the next render
+of the same output with the same knobs on the same machine replaces it
+— a browser upgrade included — while a render on another machine of a
+synced project, or of another project sharing the store, keeps its own. Its record is a `lacing.Artifact` of the delivered film,
+derived from the shot keys. Also measures the store, for the summary.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *exception* an.build.shot_cache.ShotCacheWarning
 
@@ -10025,11 +10661,24 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False)
+### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The engine’s answer for one shot: its key, and what to reuse if anything.
+
+#### parts *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+The reused parts (`an.assemble.ShotParts`), materialised for this plan.
+
+#### parts_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The catalog id of this shot’s parts entry, when its window is not whole.
+
+#### window *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+What an assembled film needs from this shot (`an.assemble.ShotWindow`);
+`None` for a film that is a plain concat of shot mp4s.
 
 ### an.build.shot_cache.default_environment_digest(renderer_name)
 
@@ -10045,12 +10694,71 @@ renderer with no probe has the empty environment.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### an.build.shot_cache.human_bytes(n)
+
+`n` bytes for a person: 1024-based, one decimal.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> human_bytes(0), human_bytes(1536), human_bytes(5 * 1024**3)
+('0 B', '1.5 KB', '5.0 GB')
+```
+
 ### an.build.shot_cache.in_memory_shot_cache_store()
 
 A shot cache held in dicts — for tests, and for a mall with no disk.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.shot_cache.machine_id()
+
+A short digest naming this machine (its host name and hardware
+address), so each machine’s renders of a synced project keep a root of
+their own. A digest, never the names themselves.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> len(machine_id())
+16
+```
+
+### an.build.shot_cache.parts_entry_id(key, window)
+
+The catalog id of the parts entry of shot `key` for `window`.
+
+The id names the window (the same shot cut for another neighbour is a
+different entry) and the digest of the code that cuts and encodes the parts
+(`parts_code_digest()`): a parts entry is produced by `an.assemble`, not
+by the renderer, so the renderer’s own `code` key part does not cover it.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> from an.assemble import ShotWindow
+>>> parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")
+True
+```
+
+### an.build.shot_cache.project_id(project_root)
+
+A short digest naming a project by its resolved directory, so two
+projects sharing one cache store keep a root each (`""` for none).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> project_id(None)
+''
+>>> len(project_id("."))
+16
+```
 
 ### an.build.shot_cache.resolve_incremental(incremental)
 
@@ -10079,6 +10787,17 @@ A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.build.shot_cache.store_usage(store)
+
+`(bytes, entries)` of a shot cache store: every blob byte on disk (or,
+off disk, every distinct blob its records name) and its catalog entries.
+
+On a filesystem store this is a directory listing, not a read of every
+record, so the render summary can afford it on every render.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 
 # _autosummary/an.capabilities.html.md
@@ -28544,16 +29263,19 @@ adapters and the same flow handles them.
 
 ### Module Attributes
 
-| [`RENDER_RUNS_DIR`](_autosummary/an.render.html.md#an.render.RENDER_RUNS_DIR)   | one directory per CACHED render run.                    |
-|--------------------------------------------------------------------|---------------------------------------------------------|
-| [`RUN_LIVE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_LIVE_MARKER)   | the pid of the process rendering it (written at start). |
-| [`RUN_DONE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_DONE_MARKER)   | written when the run delivered its film.                |
+| [`RENDER_RUNS_DIR`](_autosummary/an.render.html.md#an.render.RENDER_RUNS_DIR)        | one directory per CACHED render run.                                                                                                                                                                                       |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`RUN_LIVE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_LIVE_MARKER)        | the pid of the process rendering it (written at start).                                                                                                                                                                    |
+| [`RUN_DONE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_DONE_MARKER)        | written when the run delivered its film.                                                                                                                                                                                   |
+| [`UNKNOWN_LIVENESS_MAX_S`](_autosummary/an.render.html.md#an.render.UNKNOWN_LIVENESS_MAX_S) | Where a run's process cannot be asked whether it lives (Windows), a run unfinished after this long is taken for one that crashed: otherwise it would shield every cache entry written since, from `an cache gc`, for ever. |
 
 ### Functions
 
-| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...])   | Lower-level: render a loaded `Project` to mp4.                         |
-|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])         | Render every shot in `project_dir`'s scene and concatenate to one mp4. |
+| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.   |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                          |
+| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                        |
+| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                |
 
 ### Exceptions
 
@@ -28586,6 +29308,38 @@ the pid of the process rendering it (written at start).
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised on render-pipeline failures with actionable detail.
+
+### an.render.UNKNOWN_LIVENESS_MAX_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 86400.0*
+
+Where a run’s process cannot be asked whether it lives (Windows), a run
+unfinished after this long is taken for one that crashed: otherwise it would
+shield every cache entry written since, from `an cache gc`, for ever.
+
+### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts='offline', lipsync='offline', language='en')
+
+The shot-cache entry ids a render of `project`’s CURRENT scene under
+these knobs would read — computed by the render’s own setup and the
+engine’s own key code, rendering and synthesising nothing.
+
+What `an.build.gc` keeps (an#274). The dialogue is stamped the way the
+render’s audio pipeline stamps it, from the content-keyed audio and viseme
+stores only (`an.audio.pipeline.stamp_from_stores`): a `scene.md` edit
+drops every stamp on re-sync, and the next render re-stamps the same audio
+from the stores, so those are the keys it will use. A line the stores
+cannot answer (new text, another provider) raises
+`an.audio.pipeline.AudioNotCachedError`: its shot’s next key is unknowable
+without a synthesis, and a collector must not guess.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.render.live_runs(project_root)
+
+Every cached render of this project still in progress, with the time it
+started (its live marker’s mtime): what `an cache gc` must not race.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False)
 
@@ -38121,9 +38875,10 @@ force_render: render every shot even when the shot cache holds it (and
 no_cache: neither read nor write the shot cache — every shot is rendered
 : cold, as before the cache existed
 
-cache_frames: also cache each shot’s frames, so a film with transitions or
-: a sound layer reuses its shots too. Off by default: a 1080p shot’s
-  frames are hundreds of MB, and nothing collects old entries yet
+cache_frames: no longer needed, and no effect on `an render` (an#260): a
+: film with transitions or a sound layer now reuses its shots by default,
+  caching only the frames at each transition. Kept so scripts that pass
+  it still run
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -39287,7 +40042,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 20:28 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/34a26383a1529334acd903adf50b872e8de4450e"><code>34a2638</code></a> on branch <code>main</code>, for **an 0.1.148** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 21:08 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/4433e9fe9af3702a12b0eddb89d7d50bbdce4526"><code>4433e9f</code></a> on branch <code>main</code>, for **an 0.1.149** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -39296,9 +40051,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/34a26383a1529334acd903adf50b872e8de4450e"><code>34a26383a1529334acd903adf50b872e8de4450e</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/4433e9fe9af3702a12b0eddb89d7d50bbdce4526"><code>4433e9fe9af3702a12b0eddb89d7d50bbdce4526</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.148</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.149</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -39307,9 +40062,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36920529467">36920529467</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36925472140">36925472140</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>22d3e46e45b7d380e6bbdb2cdcdd6eb64a01f24e</code> (in the history of the built commit) |
+| Event commit | <code>b16558c459b3c9facef130be43f7bdab6c3aba58</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -39334,13 +40089,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.148/">0.1.148</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.149/">0.1.149</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 34a26383a1529334acd903adf50b872e8de4450e
+git checkout 4433e9fe9af3702a12b0eddb89d7d50bbdce4526
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

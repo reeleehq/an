@@ -21,10 +21,11 @@ the entire pipeline runs without API keys or external binaries.
 
 ### Module Attributes
 
-| [`TakeScorerFactory`](#an.audio.pipeline.TakeScorerFactory)   | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`OVERRUN_TOLERANCE_S`](#an.audio.pipeline.OVERRUN_TOLERANCE_S) | a frame at 60 fps (the same as `an validate`'s).                                  |
-| [`REROLL_ONLY_HINT`](#an.audio.pipeline.REROLL_ONLY_HINT)    | only a new roll (new keys) replaces it.                                           |
+| [`TakeScorerFactory`](#an.audio.pipeline.TakeScorerFactory)           | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.                             |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`OVERRUN_TOLERANCE_S`](#an.audio.pipeline.OVERRUN_TOLERANCE_S)         | a frame at 60 fps (the same as `an validate`'s).                                                            |
+| [`REROLL_ONLY_HINT`](#an.audio.pipeline.REROLL_ONLY_HINT)            | only a new roll (new keys) replaces it.                                                                     |
+| [`LEGACY_DURATION_TOLERANCE_S`](#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S) | How far a legacy sidecar's duration may sit from its audio's and still be the same take: a frame at 60 fps. |
 
 ### Functions
 
@@ -37,16 +38,25 @@ the entire pipeline runs without API keys or external binaries.
 | [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                 |
 | [`retake_lines`](#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                              |
 | [`retime_dialogue`](#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                     |
+| [`stamp_from_stores`](#an.audio.pipeline.stamp_from_stores)(scene, mall, \*, tts, lipsync)  | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](#an.audio.pipeline.produce_audio_for_scene) would with these providers — from the content-keyed `audio` and `visemes` stores only.                               |
 | [`synthesis_options`](#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                 |
 | [`takes_cost_message`](#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` will bill, when any of them takes best-of-N; else `""`.                                                                                                                                                   |
 | [`viseme_key`](#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                               |
 
 ### Exceptions
 
-| [`AudioPipelineError`](#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                            |
-|-------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`DialogueOverrunWarning`](#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                 |
-| [`TakeDigestWarning`](#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names. |
+| [`AudioNotCachedError`](#an.audio.pipeline.AudioNotCachedError)    | A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.   |
+|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`AudioPipelineError`](#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                                                                                   |
+| [`DialogueOverrunWarning`](#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                                                                        |
+| [`TakeDigestWarning`](#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                        |
+
+### *exception* an.audio.pipeline.AudioNotCachedError
+
+Bases: [`AudioPipelineError`](#an.audio.pipeline.AudioPipelineError)
+
+A line’s audio (or its visemes) is not in the content-keyed stores, so
+stamping it would need a synthesis this caller does not allow.
 
 ### *exception* an.audio.pipeline.AudioPipelineError
 
@@ -59,6 +69,11 @@ The scene declares audio the pipeline cannot produce. Carries detail.
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A synthesized line runs past its shot’s end, so its tail is cut.
+
+### an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
+
+How far a legacy sidecar’s duration may sit from its audio’s and still be
+the same take: a frame at 60 fps.
 
 ### an.audio.pipeline.OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
@@ -253,6 +268,21 @@ without the pipeline there is no authority to say that stamp is stale.
 >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
 [0.0, 2.0]
 ```
+
+### an.audio.pipeline.stamp_from_stores(scene, mall, , tts, lipsync)
+
+Stamp `scene`’s dialogue exactly as [`produce_audio_for_scene()`](#an.audio.pipeline.produce_audio_for_scene)
+would with these providers — from the content-keyed `audio` and
+`visemes` stores only. Synthesises, aligns and writes nothing; a line the
+stores cannot answer raises [`AudioNotCachedError`](#an.audio.pipeline.AudioNotCachedError).
+
+What a reader of the render’s cache keys needs (an#274): a `scene.md`
+edit drops every stamp on re-sync, and the next render re-stamps the same
+audio from the stores, so the keys a render WILL use are these, not the
+unstamped IR’s. Mutates `scene` in place and returns it.
+
+* **Return type:**
+  [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ### an.audio.pipeline.synthesis_options(tts, line, mall, voice_id)
 

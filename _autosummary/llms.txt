@@ -67,6 +67,8 @@
 - [an.bench.run](an.bench.run.html.md): &#96;run_bench&#96;: render the corpus, compute the panel, write one ledger row.
 - [an.bench.stage](an.bench.stage.html.md): Measuring a pan: does the stage move as planes, or as one rigid image?
 - [an.build](an.build.html.md): Incremental re-processing: content-addressed build stages (ADR 0004).
+- [an.build.cli](an.build.cli.html.md): &#96;an cache …&#96; — the shot cache from the shell (an#274).
+- [an.build.gc](an.build.gc.html.md): Garbage collection of the shot cache: &#96;an cache gc&#96; and &#96;an cache info&#96; (an#274).
 - [an.build.keys](an.build.keys.html.md): Cache keys for build stages: canonical digests, the project fallback, keyers.
 - [an.build.shot_cache](an.build.shot_cache.html.md): The content-keyed shot cache: ADR 0004’s first slice, behind the &#96;incremental=&#96; seam.
 - [an.capabilities](an.capabilities.html.md): Capabilities: what an asset, an engine or the environment affords, and the one matcher.

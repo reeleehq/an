@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../../_static/documentation_options.js?v=92f87268"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -721,12 +721,20 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">**Where each part happens, and why there.**</span>
 
 <span class="sd">- *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,</span>
-<span class="sd">  in exact integer arithmetic, and the film is muxed ONCE by the same</span>
-<span class="sd">  ``an.media.mp4.mux_frames`` every shot uses. Composing in ffmpeg (``xfade``) would decode</span>
-<span class="sd">  already-encoded shots and re-encode them — a second generation of x264 loss</span>
-<span class="sd">  on every frame of the film, not just the transition — and would retire the</span>
-<span class="sd">  render pipeline's "ffmpeg never touches a frame" clause. A frame no</span>
-<span class="sd">  transition touches is copied byte for byte: Chromium's own PNG.</span>
+<span class="sd">  in exact integer arithmetic, and encoded by the same</span>
+<span class="sd">  ``an.media.mp4.mux_frames`` every shot uses. Composing in ffmpeg (``xfade``)</span>
+<span class="sd">  would decode already-encoded shots and re-encode them — a second generation</span>
+<span class="sd">  of x264 loss on every frame of the film, not just the transition — and would</span>
+<span class="sd">  retire the render pipeline's "ffmpeg never touches a frame" clause.</span>
+<span class="sd">- *The picture is a stream-copy concat of SEGMENTS* (an#260), each encoded</span>
+<span class="sd">  once from PNGs: a shot no transition touches is its own mp4's video stream,</span>
+<span class="sd">  copied; a shot a transition touches contributes the encoded span between its</span>
+<span class="sd">  windows (its *body*) plus the PNGs inside them; each run of composed frames</span>
+<span class="sd">  is encoded on its own. So a reused shot needs its mp4 (and, at a transition,</span>
+<span class="sd">  its body and window PNGs, a few dozen frames) — never every frame it has</span>
+<span class="sd">  (:func:`shot_windows`, :class:`ShotParts`). The film's frame ``i`` is at</span>
+<span class="sd">  ``i / fps`` and decodes to exactly what its segment decodes to (measured,</span>
+<span class="sd">  an#260; :data:`MIN_SEGMENT_FRAMES` is why no segment is shorter than three).</span>
 <span class="sd">- *Sound*: the film's audio is rebuilt from SOURCES — every dialogue line's</span>
 <span class="sd">  cached WAV and every cue's asset, placed in film time — in one ffmpeg mix,</span>
 <span class="sd">  then muxed onto the picture with ``-c:v copy``. Mixing onto the shots'</span>
@@ -750,12 +758,13 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">FILM_AUDIO_BITRATE</span><span class="p">,</span>
@@ -767,13 +776,20 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">SoundCue</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"MIN_SEGMENT_FRAMES"</span><span class="p">,</span>
     <span class="s2">"AssemblyError"</span><span class="p">,</span>
     <span class="s2">"FilmTimeline"</span><span class="p">,</span>
+    <span class="s2">"Segment"</span><span class="p">,</span>
+    <span class="s2">"ShotParts"</span><span class="p">,</span>
+    <span class="s2">"ShotWindow"</span><span class="p">,</span>
     <span class="s2">"assemble_film"</span><span class="p">,</span>
     <span class="s2">"duck_gain"</span><span class="p">,</span>
     <span class="s2">"film_duration"</span><span class="p">,</span>
     <span class="s2">"film_timeline"</span><span class="p">,</span>
     <span class="s2">"needs_assembly"</span><span class="p">,</span>
+    <span class="s2">"picture_segments"</span><span class="p">,</span>
+    <span class="s2">"shot_parts"</span><span class="p">,</span>
+    <span class="s2">"shot_windows"</span><span class="p">,</span>
     <span class="s2">"transition_problems"</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -785,6 +801,17 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Dialogue spans per ducking expression. ffmpeg 9.0.1 refuses one nested</span>
 <span class="c1">#: expression at about 95 spans (a sum of terms fails at 100 too); well under.</span>
 <span class="n">DUCK_SPANS_PER_EXPRESSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span>
+
+<span class="c1">#: The fewest frames a segment of a MULTI-segment picture may have. Measured on</span>
+<span class="c1">#: ffmpeg 9.0.1 / libx264 with the pinned argv (an#260): a stream of three or</span>
+<span class="c1">#: more frames carries a two-frame B-pyramid decode delay (its first DTS is two</span>
+<span class="c1">#: frames before its first PTS) whatever its content, and a stream of one or</span>
+<span class="c1">#: two frames carries none. The concat demuxer offsets every file alike, so a</span>
+<span class="c1">#: delay-free segment between two delayed ones leaves the DTS going backwards;</span>
+<span class="c1">#: the muxer patches that with one-tick packets, and a constant-rate decode of</span>
+<span class="c1">#: the film then shows a frame twice. :func:`shot_windows` widens every short</span>
+<span class="c1">#: run instead, so each segment of a multi-segment picture has the delay.</span>
+<span class="n">MIN_SEGMENT_FRAMES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
 
 
 <div class="viewcode-block" id="AssemblyError">
@@ -1055,71 +1082,435 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">None</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">compose_frames</span><span class="p">(</span>
-    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span>
-    <span class="n">shot_frames</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">]],</span>
-    <span class="n">out_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Write the film's frames to ``out_dir`` as ``pattern % index``.</span>
+<div class="viewcode-block" id="ShotWindow">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.ShotWindow">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShotWindow</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Which of one shot's ``frames`` its film needs as PNGs: the first</span>
+<span class="sd">    ``head`` and the last ``tail``.</span>
 
-<span class="sd">    ``shot_frames[i]`` are shot ``i``'s PNGs in order (at least</span>
-<span class="sd">    ``timeline.frames[i]`` of them). A frame no transition touches is COPIED —</span>
-<span class="sd">    its bytes are the renderer's own; only blended frames are decoded.</span>
+<span class="sd">    Between them is the shot's *body*, which the film takes as one encoded</span>
+<span class="sd">    span. A shot with an empty window (:attr:`whole`) is taken as its own</span>
+<span class="sd">    mp4's video stream, so it needs no frame at all.</span>
+
+<span class="sd">    &gt;&gt;&gt; w = ShotWindow(frames=10, head=0, tail=4)</span>
+<span class="sd">    &gt;&gt;&gt; w.whole, w.body, w.png_indices</span>
+<span class="sd">    (False, (0, 6), (6, 7, 8, 9))</span>
 <span class="sd">    """</span>
+
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">head</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">tail</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">whole</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""``(first, stop)``: the shot-local frames taken as one encoded span."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">png_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The shot-local frames the film needs as PNGs."""</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">))</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Segment">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.Segment">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Segment</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One independently encoded run of the film's picture, film frames</span>
+<span class="sd">    ``[start, stop)``: a whole shot's own stream (``"shot"``), a shot's</span>
+<span class="sd">    encoded body (``"body"``), or a run of PNGs composed here (``"frames"``)."""</span>
+
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"shot"</span><span class="p">,</span> <span class="s2">"body"</span><span class="p">,</span> <span class="s2">"frames"</span><span class="p">]</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span></div>
+
+
+
+<div class="viewcode-block" id="picture_segments">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.picture_segments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">picture_segments</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span> <span class="n">windows</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ShotWindow</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The film's picture as segments, in film order.</span>
+
+<span class="sd">    A film frame is part of a shot's body when exactly one shot shows it and</span>
+<span class="sd">    that frame is outside the shot's window; every other frame (a blend, a</span>
+<span class="sd">    fade, or a frame a window was widened over) is composed from PNGs.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Shot, Transition</span>
+<span class="sd">    &gt;&gt;&gt; tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,</span>
+<span class="sd">    ...     transition=Transition(kind="dissolve", duration=0.4))], fps=10)</span>
+<span class="sd">    &gt;&gt;&gt; [(s.kind, s.shot, s.start, s.stop) for s in picture_segments(tl, shot_windows(tl))]</span>
+<span class="sd">    [('body', 0, 0, 6), ('frames', None, 6, 10), ('body', 1, 10, 16)]</span>
+<span class="sd">    """</span>
+    <span class="n">segments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">sources</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_frame_sources</span><span class="p">(</span><span class="n">timeline</span><span class="p">)):</span>
+        <span class="n">kind</span><span class="p">,</span> <span class="n">shot</span> <span class="o">=</span> <span class="s2">"frames"</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">first</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">body</span>
+            <span class="k">if</span> <span class="n">first</span> <span class="o">&lt;=</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">stop</span><span class="p">:</span>
+                <span class="n">kind</span><span class="p">,</span> <span class="n">shot</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"shot"</span> <span class="k">if</span> <span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">whole</span> <span class="k">else</span> <span class="s2">"body"</span><span class="p">),</span> <span class="n">i</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">segments</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">segments</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">last</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="n">last</span><span class="o">.</span><span class="n">shot</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">shot</span><span class="p">):</span>
+            <span class="n">segments</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">Segment</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">last</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Segment</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">segments</span></div>
+
+
+
+<div class="viewcode-block" id="shot_windows">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.shot_windows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shot_windows</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_segment_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MIN_SEGMENT_FRAMES</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ShotWindow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Each shot's :class:`ShotWindow`: the frames its transitions touch,</span>
+<span class="sd">    widened until every segment of the picture has ``min_segment_frames``.</span>
+
+<span class="sd">    A pure function of the timeline, so the render loop, the shot cache and</span>
+<span class="sd">    the garbage collector all agree on what a shot's film needs from it. A</span>
+<span class="sd">    picture of one segment has no minimum (there is nothing to concatenate).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Shot, Transition</span>
+<span class="sd">    &gt;&gt;&gt; d = Transition(kind="dissolve", duration=0.1)   # one frame at 10 fps</span>
+<span class="sd">    &gt;&gt;&gt; tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,</span>
+<span class="sd">    ...     transition=d)], fps=10)</span>
+<span class="sd">    &gt;&gt;&gt; [(w.head, w.tail) for w in shot_windows(tl)]   # the 1-frame run, widened to 3</span>
+<span class="sd">    [(0, 1), (3, 0)]</span>
+<span class="sd">    """</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="p">[</span><span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">timeline</span><span class="o">.</span><span class="n">fade_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>
+    <span class="n">tail</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">timeline</span><span class="o">.</span><span class="n">fade_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">windows</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ShotWindow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ShotWindow</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">head</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">tail</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+
+    <span class="c1"># Each pass turns at least one more frame into a PNG, so this ends; at</span>
+    <span class="c1"># worst every frame is one, which is a picture of one segment.</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">windows</span><span class="p">()</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="n">picture_segments</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">current</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">current</span>
+        <span class="n">short</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_segment_frames</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">current</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">seg</span> <span class="o">=</span> <span class="n">short</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"frames"</span><span class="p">:</span>
+            <span class="c1"># A body (or a whole shot) too short to stand alone: all PNGs.</span>
+            <span class="n">head</span><span class="p">[</span><span class="n">seg</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">seg</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span> <span class="o">-</span> <span class="n">tail</span><span class="p">[</span><span class="n">seg</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span>
+            <span class="k">continue</span>
+        <span class="n">need</span> <span class="o">=</span> <span class="n">min_segment_frames</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span>
+        <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">side</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">((</span><span class="n">segments</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"head"</span><span class="p">),</span>
+                            <span class="p">(</span><span class="n">segments</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"tail"</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">]</span>
+        <span class="c1"># Widen into an already-split shot before splitting a whole one.</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">neighbours</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"shot"</span><span class="p">):</span>
+            <span class="n">take</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">need</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">"head"</span><span class="p">:</span>
+                <span class="n">head</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span> <span class="o">+=</span> <span class="n">take</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tail</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span> <span class="o">+=</span> <span class="n">take</span>
+            <span class="n">need</span> <span class="o">-=</span> <span class="n">take</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">need</span><span class="p">:</span>
+                <span class="k">break</span></div>
+
+
+
+<div class="viewcode-block" id="ShotParts">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.ShotParts">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShotParts</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a film takes from a shot its transitions touch: the PNGs inside</span>
+<span class="sd">    its :class:`ShotWindow` (``frames``: shot-local index -&gt; path) and its</span>
+<span class="sd">    body, encoded once (``body``; ``None`` when the window covers the shot)."""</span>
+
+    <span class="n">window</span><span class="p">:</span> <span class="n">ShotWindow</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
+    <span class="n">body</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_link</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``dst`` with ``src``'s bytes: a hard link where the filesystem allows."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fresh_dir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+
+<div class="viewcode-block" id="shot_parts">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.shot_parts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shot_parts</span><span class="p">(</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span>
+    <span class="n">window</span><span class="p">:</span> <span class="n">ShotWindow</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ShotParts</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A rendered shot's :class:`ShotParts` for ``window``, from its frames.</span>
+
+<span class="sd">    The body is encoded by ``an.media.mp4.mux_frames`` — the shot mux's own</span>
+<span class="sd">    encoder and argv — from the body's PNGs, renumbered from zero in</span>
+<span class="sd">    ``work_dir``. The window's PNGs are referenced where they are.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.mp4</span><span class="w"> </span><span class="kn">import</span> <span class="n">mux_frames</span>
+
+    <span class="n">frames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">window</span><span class="o">.</span><span class="n">frames</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"a shot rendered </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames but the timeline needs "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">window</span><span class="o">.</span><span class="n">frames</span><span class="si">}</span><span class="s2">; a transition needs the frames at its window, so "</span>
+            <span class="s2">"this renderer cannot take part in one"</span>
+        <span class="p">)</span>
+    <span class="n">first</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">body</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">stop</span> <span class="o">&gt;</span> <span class="n">first</span><span class="p">:</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">_fresh_dir</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"body_frames"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">first</span><span class="p">:</span><span class="n">stop</span><span class="p">]):</span>
+            <span class="n">_link</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">src</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"body.mp4"</span>
+        <span class="n">mux_frames</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ShotParts</span><span class="p">(</span>
+        <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
+        <span class="n">frames</span><span class="o">=</span><span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">frames</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">window</span><span class="o">.</span><span class="n">png_indices</span><span class="p">},</span>
+        <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compose_frame</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="n">frame_of</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write one film frame from its ``(shot, local frame)`` ``sources``;</span>
+<span class="sd">    ``frame_of(i, j)`` is that frame's PNG. A frame nothing blends or fades is</span>
+<span class="sd">    COPIED — its bytes are the renderer's own; only blended frames are decoded."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">paths</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> rendered </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames but the timeline needs "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">; a transition needs every shot's frames, "</span>
-                <span class="s2">"so this renderer cannot take part in one"</span>
-            <span class="p">)</span>
-    <span class="n">out_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">stale</span> <span class="ow">in</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.png"</span><span class="p">):</span>
-        <span class="n">stale</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">image</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">faded</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">num</span><span class="p">,</span> <span class="n">den</span><span class="p">,</span> <span class="n">colour</span> <span class="o">=</span> <span class="n">_colour_weight</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">num</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">arr</span>
-        <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">arr</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">frame_of</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">out</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">frame_of</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
         <span class="n">fill</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
         <span class="n">fill</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">_hex_rgb</span><span class="p">(</span><span class="n">colour</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">fill</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">blend</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">fill</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">den</span><span class="p">)</span>
+        <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">blend</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">fill</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">den</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="c1"># A dissolve: the previous shot's tail under this shot's head.</span>
+    <span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">ja</span><span class="p">),</span> <span class="p">(</span><span class="n">ib</span><span class="p">,</span> <span class="n">jb</span><span class="p">)</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">frame_of</span><span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">ja</span><span class="p">)),</span> <span class="n">load</span><span class="p">(</span><span class="n">frame_of</span><span class="p">(</span><span class="n">ib</span><span class="p">,</span> <span class="n">jb</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="c1"># Meet in the previous shot's mode, so the film's frames do not</span>
+        <span class="c1"># change pixel format mid-sequence.</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">"RGBA"</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="s2">"RGB"</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+    <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">blend</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">jb</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
 
-    <span class="n">written</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">sources</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_frame_sources</span><span class="p">(</span><span class="n">timeline</span><span class="p">)):</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">arr</span> <span class="o">=</span> <span class="n">faded</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">out</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># a dissolve: the previous shot's tail under this shot's head</span>
-            <span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">ja</span><span class="p">),</span> <span class="p">(</span><span class="n">ib</span><span class="p">,</span> <span class="n">jb</span><span class="p">)</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span>
-            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">ia</span><span class="p">][</span><span class="n">ja</span><span class="p">]),</span> <span class="n">load</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">ib</span><span class="p">][</span><span class="n">jb</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-                <span class="c1"># Meet in the previous shot's mode, so the film's frames do not</span>
-                <span class="c1"># change pixel format mid-sequence.</span>
-                <span class="n">mode</span> <span class="o">=</span> <span class="s2">"RGBA"</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="s2">"RGB"</span>
-                <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
-            <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">blend</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">jb</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
-        <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">written</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_video_only</span><span class="p">(</span><span class="n">mp4</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``mp4``'s video stream, stream-copied into a file of its own: the shot</span>
+<span class="sd">    mux lays audio under the picture with ``-c:v copy``, so these are the bits</span>
+<span class="sd">    ``mux_frames`` wrote, and a file with no audio has its picture's length."""</span>
+    <span class="n">_run</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"-loglevel"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-i"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">mp4</span><span class="p">),</span> <span class="s2">"-map"</span><span class="p">,</span> <span class="s2">"0:v"</span><span class="p">,</span>
+         <span class="s2">"-c"</span><span class="p">,</span> <span class="s2">"copy"</span><span class="p">,</span> <span class="o">*</span><span class="n">MP4_FASTSTART_ARGS</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span>
+        <span class="n">doing</span><span class="o">=</span><span class="sa">f</span><span class="s2">"taking the video stream of </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">mp4</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_concat_video</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span> <span class="n">durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">out</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Stream-copy concat of video-only segments: no frame is re-encoded.</span>
+
+<span class="sd">    Each segment's ``duration`` is STATED (its frames / fps), not read from its</span>
+<span class="sd">    container: the mov muxer writes the edit list in the movie timescale</span>
+<span class="sd">    (1000), and truncates it when the last packet in decode order is the</span>
+<span class="sd">    P-frame at the highest PTS (x264 on moving content). The concat demuxer</span>
+<span class="sd">    advances by that duration, so at 24 or 30 fps every later frame landed up</span>
+<span class="sd">    to 1 ms early per join, cumulatively, and the film's average rate stopped</span>
+<span class="sd">    being ``fps/1`` (an#280 review, F1; measured).</span>
+<span class="sd">    """</span>
+    <span class="n">listing</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">".concat.txt"</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">durations</span><span class="p">):</span>
+        <span class="n">quoted</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"'"</span><span class="p">,</span> <span class="s2">"'</span><span class="se">\\</span><span class="s2">''"</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file '</span><span class="si">{</span><span class="n">quoted</span><span class="si">}</span><span class="s2">'</span><span class="se">\n</span><span class="s2">duration </span><span class="si">{</span><span class="n">d</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">listing</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">_run</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"-loglevel"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-f"</span><span class="p">,</span> <span class="s2">"concat"</span><span class="p">,</span> <span class="s2">"-safe"</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">,</span>
+         <span class="s2">"-i"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">listing</span><span class="p">),</span> <span class="s2">"-c"</span><span class="p">,</span> <span class="s2">"copy"</span><span class="p">,</span> <span class="o">*</span><span class="n">MP4_FASTSTART_ARGS</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span>
+        <span class="n">doing</span><span class="o">=</span><span class="s2">"concatenating the film's picture"</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+
+
+<span class="c1">#: The stream properties every segment of one picture must share, or the</span>
+<span class="c1">#: stream-copy concat yields a film that plays wrong with no error.</span>
+<span class="n">SEGMENT_STREAM_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"codec_name"</span><span class="p">,</span>
+    <span class="s2">"profile"</span><span class="p">,</span>
+    <span class="s2">"width"</span><span class="p">,</span>
+    <span class="s2">"height"</span><span class="p">,</span>
+    <span class="s2">"pix_fmt"</span><span class="p">,</span>
+    <span class="s2">"r_frame_rate"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="c1">#: Relative difference under which a segment's frame rate is the film's.</span>
+<span class="n">RATE_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_probe_stream</span><span class="p">(</span><span class="n">mp4</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The first video stream's :data:`SEGMENT_STREAM_FIELDS` and frame count."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">"ffprobe"</span><span class="p">,</span> <span class="s2">"-v"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-select_streams"</span><span class="p">,</span> <span class="s2">"v:0"</span><span class="p">,</span> <span class="s2">"-show_entries"</span><span class="p">,</span>
+             <span class="s2">"stream="</span> <span class="o">+</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="o">*</span><span class="n">SEGMENT_STREAM_FIELDS</span><span class="p">,</span> <span class="s2">"nb_frames"</span><span class="p">)),</span>
+             <span class="s2">"-of"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">mp4</span><span class="p">)],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ffprobe failed to launch: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">streams</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">or</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"streams"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">streams</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">mp4</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> has no video stream ffprobe can read"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">streams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_segments</span><span class="p">(</span>
+    <span class="n">segments</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Segment</span><span class="p">],</span> <span class="n">paths</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span> <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a picture whose segments a stream copy cannot join: a shot's own</span>
+<span class="sd">    stream (a renderer that writes only an mp4 — Manim's 480p15, say) must</span>
+<span class="sd">    match the others and hold exactly the frames the timeline gives it.</span>
+
+<span class="sd">    Before an#260 such a film was refused for having no frames; a stream copy</span>
+<span class="sd">    would otherwise deliver it at the wrong size, rate and length, silently</span>
+<span class="sd">    (an#280 review, F2).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+
+    <span class="n">reference</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">seg</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">_probe_stream</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"r_frame_rate"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"0/1"</span><span class="p">))</span>
+        <span class="c1"># 29.97 may read back as 30000/1001: equal to well under a frame per hour.</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">rate</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">fps</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">RATE_TOLERANCE</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">fps</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_segment_name</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span><span class="si">}</span><span class="s2"> plays at </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'r_frame_rate'</span><span class="p">)</span><span class="si">}</span><span class="s2"> fps but "</span>
+                <span class="sa">f</span><span class="s2">"the film is </span><span class="si">{</span><span class="n">timeline</span><span class="o">.</span><span class="n">fps</span><span class="si">}</span><span class="s2"> fps; a stream cannot be re-timed by a copy"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"shot"</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"nb_frames"</span><span class="p">)</span> <span class="ow">or</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_segment_name</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span><span class="si">}</span><span class="s2"> holds </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'nb_frames'</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames but the "</span>
+                <span class="sa">f</span><span class="s2">"timeline gives it </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SEGMENT_STREAM_FIELDS</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reference</span> <span class="o">=</span> <span class="n">fields</span>
+        <span class="k">elif</span> <span class="n">fields</span> <span class="o">!=</span> <span class="n">reference</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">fields</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">fields</span> <span class="k">if</span> <span class="n">fields</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">reference</span><span class="p">[</span><span class="n">k</span><span class="p">]}</span>
+            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_segment_name</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be joined to the rest of the film: "</span>
+                <span class="sa">f</span><span class="s2">"its stream differs in </span><span class="si">{</span><span class="n">diff</span><span class="si">}</span><span class="s2">. A shot whose renderer writes only "</span>
+                <span class="s2">"an mp4 can take part in an assembled film only when its stream is "</span>
+                <span class="s2">"encoded like every other shot's (same size, pixel format, profile "</span>
+                <span class="s2">"and rate)"</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_segment_name</span><span class="p">(</span><span class="n">seg</span><span class="p">:</span> <span class="n">Segment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"frames"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"film frames </span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">stop</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">shot</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_assemble_picture</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span>
+    <span class="n">windows</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ShotWindow</span><span class="p">],</span>
+    <span class="n">mp4s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ShotParts</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">work</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Encode or copy each :func:`picture_segments` segment, then concat."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.mp4</span><span class="w"> </span><span class="kn">import</span> <span class="n">mux_frames</span>
+
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+    <span class="n">sources</span> <span class="o">=</span> <span class="n">_frame_sources</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="n">composed</span> <span class="o">=</span> <span class="n">_fresh_dir</span><span class="p">(</span><span class="n">work</span> <span class="o">/</span> <span class="s2">"frames"</span><span class="p">)</span>  <span class="c1"># by FILM frame index</span>
+    <span class="n">seg_dir</span> <span class="o">=</span> <span class="n">_fresh_dir</span><span class="p">(</span><span class="n">work</span> <span class="o">/</span> <span class="s2">"segments"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">frame_of</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+    <span class="n">paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="n">picture_segments</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">windows</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">seg_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.mp4"</span>
+        <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"shot"</span><span class="p">:</span>
+            <span class="n">_video_only</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">mp4s</span><span class="p">[</span><span class="n">seg</span><span class="o">.</span><span class="n">shot</span><span class="p">]),</span> <span class="n">out</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">seg</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"body"</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="n">seg</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span><span class="o">.</span><span class="n">body</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="n">_fresh_dir</span><span class="p">(</span><span class="n">seg_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_frames"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">seg</span><span class="o">.</span><span class="n">stop</span><span class="p">):</span>
+                <span class="n">film_png</span> <span class="o">=</span> <span class="n">composed</span> <span class="o">/</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">_compose_frame</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">sources</span><span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="n">frame_of</span><span class="p">,</span> <span class="n">film_png</span><span class="p">)</span>
+                <span class="n">_link</span><span class="p">(</span><span class="n">film_png</span><span class="p">,</span> <span class="n">run</span> <span class="o">/</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span> <span class="o">-</span> <span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="p">)))</span>
+            <span class="n">mux_frames</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">)</span>
+        <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+    <span class="n">_check_segments</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">timeline</span><span class="p">)</span>
+    <span class="n">picture</span> <span class="o">=</span> <span class="n">work</span> <span class="o">/</span> <span class="s2">"picture.mp4"</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">picture</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_concat_video</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span> <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">],</span> <span class="n">picture</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">picture</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1421,36 +1812,73 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ShotParts</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Assemble rendered shots into ``output``: the picture from the shots'</span>
-<span class="sd">    frames (transitions composed in), muxed once, then the mix.</span>
+<span class="w">    </span><span class="sd">"""Assemble rendered shots into ``output``: the picture as a concat of</span>
+<span class="sd">    segments (transitions composed in), then the mix.</span>
 
-<span class="sd">    ``shot_results`` are the renderers' `RenderResult`s, in timeline order;</span>
-<span class="sd">    each must carry its frames (``frame_manifest``), so a renderer that only</span>
-<span class="sd">    produces an mp4 cannot take part in an assembled film.</span>
+<span class="sd">    ``shot_results`` are the renderers' `RenderResult`s, in timeline order. A</span>
+<span class="sd">    shot no transition touches contributes its mp4 alone. A shot one touches</span>
+<span class="sd">    needs its :class:`ShotParts` for its :func:`shot_windows` window: pass them</span>
+<span class="sd">    in ``parts`` (a reused shot's come from the shot cache), or the shot's</span>
+<span class="sd">    ``frame_manifest`` must hold its frames, from which they are built.</span>
+
+<span class="sd">    **Why not one mux of every frame**, as before an#260: the picture depended</span>
+<span class="sd">    on every frame of every shot, so a film with a dissolve or a music bed</span>
+<span class="sd">    could reuse no shot without caching all of its PNGs — hundreds of MB per</span>
+<span class="sd">    1080p shot. The segment concat puts frame ``i`` at ``i / fps`` exactly as</span>
+<span class="sd">    the one mux did (measured, an#260), and each frame decodes to exactly what</span>
+<span class="sd">    its own segment decodes to.</span>
 <span class="sd">    """</span>
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">windows</span> <span class="o">=</span> <span class="n">shot_windows</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
     <span class="n">work</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"film"</span>
     <span class="n">work</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">picture</span> <span class="o">=</span> <span class="n">work</span> <span class="o">/</span> <span class="s2">"picture.mp4"</span>
-    <span class="c1"># ALWAYS from frames, even with no transition: the concat of shot mp4s</span>
-    <span class="c1"># starts its picture after the AAC priming delay (23 ms) and advances by</span>
-    <span class="c1"># each shot's CONTAINER length, not its frame count, so a mix placed on the</span>
-    <span class="c1"># frame grid would lead the picture by 23 ms and drift at every shot whose</span>
-    <span class="c1"># duration is not a whole number of frames (both measured, an#163 review).</span>
-    <span class="c1"># One mux of the frame sequence puts frame i at exactly i / fps.</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.mp4</span><span class="w"> </span><span class="kn">import</span> <span class="n">mux_frames</span>
-
-    <span class="n">frames</span> <span class="o">=</span> <span class="n">compose_frames</span><span class="p">(</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">given</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_results</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span><span class="si">}</span><span class="s2"> shots on the timeline, but </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">shot_results</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"rendered shots and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">given</span><span class="p">)</span><span class="si">}</span><span class="s2"> parts were given"</span>
+        <span class="p">)</span>
+    <span class="n">built</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotParts</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">have</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="n">given</span><span class="p">)):</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">"frame_manifest"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
+        <span class="k">if</span> <span class="n">manifest</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">window</span><span class="o">.</span><span class="n">frames</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> rendered </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames but the timeline "</span>
+                <span class="sa">f</span><span class="s2">"needs </span><span class="si">{</span><span class="n">window</span><span class="o">.</span><span class="n">frames</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">window</span><span class="o">.</span><span class="n">whole</span><span class="p">:</span>
+            <span class="n">built</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">have</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">have</span><span class="o">.</span><span class="n">window</span> <span class="o">!=</span> <span class="n">window</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">'s parts are for </span><span class="si">{</span><span class="n">have</span><span class="o">.</span><span class="n">window</span><span class="si">}</span><span class="s2">, but the film needs </span><span class="si">{</span><span class="n">window</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="n">built</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">have</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">manifest</span><span class="p">:</span>
+            <span class="n">built</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">shot_parts</span><span class="p">(</span>
+                    <span class="n">manifest</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">work_dir</span><span class="o">=</span><span class="n">work</span> <span class="o">/</span> <span class="s2">"parts"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> meets a transition, so the film needs its frames at "</span>
+                <span class="sa">f</span><span class="s2">"the transition, but its renderer produced no frames and no "</span>
+                <span class="s2">"parts were given; a renderer that only writes an mp4 can take "</span>
+                <span class="s2">"part in a film only where no transition touches it"</span>
+            <span class="p">)</span>
+    <span class="n">picture</span> <span class="o">=</span> <span class="n">_assemble_picture</span><span class="p">(</span>
         <span class="n">timeline</span><span class="p">,</span>
-        <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frame_manifest</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">shot_results</span><span class="p">],</span>
-        <span class="n">work</span> <span class="o">/</span> <span class="s2">"frames"</span><span class="p">,</span>
-        <span class="n">pattern</span><span class="o">=</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span><span class="p">,</span>
+        <span class="n">windows</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">mp4_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">shot_results</span><span class="p">],</span>
+        <span class="n">built</span><span class="p">,</span>
+        <span class="n">work</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">!=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">total_frames</span><span class="p">:</span>  <span class="c1"># pragma: no cover — invariant</span>
-        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span><span class="s2">"composed frame count disagrees with the timeline"</span><span class="p">)</span>
-    <span class="n">mux_frames</span><span class="p">(</span><span class="n">work</span> <span class="o">/</span> <span class="s2">"frames"</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">picture</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">)</span>
     <span class="n">plan</span> <span class="o">=</span> <span class="n">mix_plan</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">work</span> <span class="o">/</span> <span class="s2">"audio"</span><span class="p">)</span>
     <span class="n">_run</span><span class="p">(</span><span class="n">mix_command</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="n">picture</span><span class="p">,</span> <span class="n">output</span><span class="p">),</span> <span class="n">doing</span><span class="o">=</span><span class="s2">"mixing the film's sound"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">output</span></div>

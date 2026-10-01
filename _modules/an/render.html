@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../../_static/documentation_options.js?v=92f87268"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -728,11 +728,19 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderContext</span><span class="p">,</span> <span class="n">RenderResult</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">assemble_film</span><span class="p">,</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">needs_assembly</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ShotParts</span><span class="p">,</span>
+    <span class="n">assemble_film</span><span class="p">,</span>
+    <span class="n">film_timeline</span><span class="p">,</span>
+    <span class="n">needs_assembly</span><span class="p">,</span>
+    <span class="n">shot_parts</span><span class="p">,</span>
+    <span class="n">shot_windows</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DEFAULT_REGISTRY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncrementalEngine</span><span class="p">,</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">resolve_incremental</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1063,83 +1071,25 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_start_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
     <span class="n">work_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="n">effective_fps</span> <span class="o">=</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span> <span class="ow">or</span> <span class="n">DEFAULT_FPS</span>
-    <span class="n">effective_res</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">resolution</span>
-        <span class="k">if</span> <span class="n">resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="k">else</span> <span class="p">(</span>
-            <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="n">DEFAULT_RESOLUTION</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-            <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="n">DEFAULT_RESOLUTION</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span>
-        <span class="n">mall</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
-        <span class="n">work_dir</span><span class="o">=</span><span class="n">work_dir</span><span class="p">,</span>
-        <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span>
-        <span class="n">resolution</span><span class="o">=</span><span class="n">effective_res</span><span class="p">,</span>
+    <span class="n">prep</span> <span class="o">=</span> <span class="n">_prepare_shots</span><span class="p">(</span>
+        <span class="n">project</span><span class="p">,</span>
+        <span class="n">work_dir</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
         <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
         <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
         <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
         <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
-        <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span> <span class="k">if</span> <span class="n">step_hz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span>
-        <span class="c1"># Resolved here, once, so a missing pack fails before the first browser</span>
-        <span class="c1"># launch rather than per shot — and so every shot in a scene is drawn</span>
-        <span class="c1"># under the same art direction by construction.</span>
-        <span class="n">style_pack</span><span class="o">=</span><span class="n">_style_pack</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="p">),</span>
-        <span class="n">default_easing</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+        <span class="n">measure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">force_measure</span><span class="o">=</span><span class="n">force_render</span> <span class="ow">or</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
-
-    <span class="c1"># A renderer that owns its clock (Manim) says how long its shots run. The</span>
-    <span class="c1"># measurement is derived data: applied to an in-memory COPY of the scene</span>
-    <span class="c1"># before anything reads `shot.duration` (the film timeline, captions, the</span>
-    <span class="c1"># sound layer, every cache key) and never written into the author's scene</span>
-    <span class="c1"># (an#279). A render with no cache engine is cold, so it measures afresh.</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.measurements</span><span class="w"> </span><span class="kn">import</span> <span class="n">settle_durations</span><span class="p">,</span> <span class="n">warn_findings</span>
-
-    <span class="n">scene</span><span class="p">,</span> <span class="n">shot_findings</span> <span class="o">=</span> <span class="n">settle_durations</span><span class="p">(</span>
-        <span class="n">scene</span><span class="p">,</span>
-        <span class="n">ctx</span><span class="p">,</span>
-        <span class="n">render</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">force</span><span class="o">=</span><span class="n">force_render</span> <span class="ow">or</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">warn_findings</span><span class="p">(</span><span class="n">shot_findings</span><span class="p">)</span>
-
-    <span class="n">shots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">):</span>
-        <span class="c1"># Before any browser launches: a transition the shots are too short</span>
-        <span class="c1"># for is microseconds to find and minutes of rendering to discover.</span>
-        <span class="n">film_timeline</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">)</span>
+    <span class="c1"># The SETTLED scene from here on: a clock-owning renderer's measured shot</span>
+    <span class="c1"># lengths (an#279) reach the timeline, captions, the mix and every key.</span>
+    <span class="n">scene</span><span class="p">,</span> <span class="n">shot_findings</span> <span class="o">=</span> <span class="n">prep</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">prep</span><span class="o">.</span><span class="n">findings</span>
+    <span class="n">effective_fps</span><span class="p">,</span> <span class="n">shots</span><span class="p">,</span> <span class="n">shot_renderers</span> <span class="o">=</span> <span class="n">prep</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">prep</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span> <span class="n">prep</span><span class="o">.</span><span class="n">shot_renderers</span>
+    <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">windows</span> <span class="o">=</span> <span class="n">prep</span><span class="o">.</span><span class="n">captions</span><span class="p">,</span> <span class="n">prep</span><span class="o">.</span><span class="n">pages</span><span class="p">,</span> <span class="n">prep</span><span class="o">.</span><span class="n">windows</span>
     <span class="n">pool_size</span> <span class="o">=</span> <span class="n">_resolve_parallel</span><span class="p">(</span><span class="n">parallel</span><span class="p">,</span> <span class="n">n_shots</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shots</span><span class="p">))</span>
-
-    <span class="c1"># Captions (an#175): ONE page list, from which the burned-in picture and</span>
-    <span class="c1"># the sidecar are both derived, so they cannot disagree. Built before any</span>
-    <span class="c1"># browser launches, so a strict-captions refusal costs nothing.</span>
-    <span class="n">captions</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">captions</span>
-    <span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">caption_pages</span>
-
-        <span class="n">pages</span> <span class="o">=</span> <span class="n">caption_pages</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span> <span class="n">captions</span><span class="o">=</span><span class="n">captions</span><span class="p">)</span>
-
-    <span class="c1"># Resolve renderers up front so a missing one fails fast (before we spawn</span>
-    <span class="c1"># workers).</span>
-    <span class="n">shot_renderers</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shots</span><span class="p">):</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">find_for</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">RenderError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"no renderer registered for shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> "</span>
-                <span class="sa">f</span><span class="s2">"(renderer=</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2">); registered: "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">names</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
-            <span class="p">)</span>
-        <span class="n">shot_ctx</span> <span class="o">=</span> <span class="n">ctx</span>
-        <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">captions</span><span class="o">.</span><span class="n">burn</span><span class="p">:</span>
-            <span class="n">shot</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="o">=</span> <span class="n">_burn_captions</span><span class="p">(</span>
-                <span class="n">shot</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
-            <span class="p">)</span>
-        <span class="n">shot_renderers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shot</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">))</span>
 
     <span class="c1"># The shot cache (ADR 0004): every key is computed HERE, in this thread and</span>
     <span class="c1"># before any browser launches — a key compiles its shot, so a shot that</span>
@@ -1147,12 +1097,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">plans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotPlan</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_renderers</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">project_root</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
-        <span class="n">needs_frames</span> <span class="o">=</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">)</span>
+        <span class="c1"># An assembled film needs each shot's mp4 and, where a transition</span>
+        <span class="c1"># touches it, its window's parts (an#260) — never all of its frames.</span>
         <span class="n">plans</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">engine</span><span class="o">.</span><span class="n">plan</span><span class="p">(</span>
-                <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">needs_frames</span><span class="o">=</span><span class="n">needs_frames</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force_render</span>
+                <span class="n">shot</span><span class="p">,</span>
+                <span class="n">renderer</span><span class="p">,</span>
+                <span class="n">shot_ctx</span><span class="p">,</span>
+                <span class="n">window</span><span class="o">=</span><span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">windows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">force</span><span class="o">=</span><span class="n">force_render</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot_renderers</span><span class="p">)</span>
         <span class="p">]</span>
 
     <span class="n">shot_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">RenderResult</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_renderers</span><span class="p">)</span>
@@ -1187,6 +1142,13 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">shot_results</span><span class="p">[</span><span class="n">futures</span><span class="p">[</span><span class="n">fut</span><span class="p">]]</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
     <span class="c1"># Scene-timeline order is kept by index, for the concat.</span>
 
+    <span class="n">parts</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">windows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">_film_parts</span><span class="p">(</span>
+            <span class="n">windows</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="n">plans</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span>
+            <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
@@ -1211,6 +1173,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">mall</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
             <span class="n">work_dir</span><span class="o">=</span><span class="n">work_dir</span><span class="p">,</span>
             <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+            <span class="n">parts</span><span class="o">=</span><span class="n">parts</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">_ffmpeg_concat</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">mp4_path</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">shot_results</span><span class="p">],</span> <span class="n">output_path</span><span class="p">)</span>
@@ -1223,6 +1186,21 @@ window.runMermaid = runMermaid;</script>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
     <span class="p">)</span>
     <span class="n">_write_render_report</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">shot_findings</span><span class="p">)</span>
+    <span class="n">record_root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"record_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">record_root</span><span class="p">):</span>
+        <span class="c1"># What this render used, for `an cache gc` (an#274): the knobs AS</span>
+        <span class="c1"># PASSED, so a later collection recomputes the current scene's keys</span>
+        <span class="c1"># under them (None stays "the scene's own").</span>
+        <span class="n">record_root</span><span class="p">(</span>
+            <span class="n">output_name</span><span class="p">,</span>
+            <span class="n">profile</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
+                <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span> <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
+                <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">_provider_name</span><span class="p">(</span><span class="n">tts</span><span class="p">),</span>
+                <span class="n">lipsync</span><span class="o">=</span><span class="n">_provider_name</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">output</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_finish_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
     <span class="c1"># Last, so it is the last word about the file (an#211): a render that used</span>
@@ -1270,6 +1248,258 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">style_pack_for</span>
 
     <span class="k">return</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_PreparedShots</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Everything the render loop knows before the first shot renders."""</span>
+
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">shots</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">shot_renderers</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">captions</span><span class="p">:</span> <span class="nb">object</span>
+    <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">windows</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">findings</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_prepare_shots</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span>
+    <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">,</span>
+    <span class="n">supersample</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">,</span>
+    <span class="n">capture</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">,</span>
+    <span class="n">measure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">force_measure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_PreparedShots</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The render context and each shot's renderer, as :func:`render` uses them.</span>
+
+<span class="sd">    One function, so :func:`cache_entries` (what the garbage collector keeps)</span>
+<span class="sd">    sees the shots exactly as a render would — settled shot lengths, burned</span>
+<span class="sd">    captions, style pack, resolved knobs, film windows and all.</span>
+
+<span class="sd">    A renderer that owns its clock (Manim) says how long its shots run</span>
+<span class="sd">    (an#279): the measurement is applied to an in-memory COPY of the scene</span>
+<span class="sd">    before anything reads ``shot.duration`` — the film timeline, captions, the</span>
+<span class="sd">    sound layer, every cache key — and never written into the author's scene.</span>
+<span class="sd">    ``measure=True`` (a render) measures what is not stored, ``force_measure``</span>
+<span class="sd">    everything afresh; ``measure=False`` (the collector) reads stored</span>
+<span class="sd">    measurements only, so a collection never runs a renderer.</span>
+<span class="sd">    """</span>
+    <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
+    <span class="n">effective_fps</span> <span class="o">=</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span> <span class="ow">or</span> <span class="n">DEFAULT_FPS</span>
+    <span class="n">effective_res</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">resolution</span>
+        <span class="k">if</span> <span class="n">resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="p">(</span>
+            <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="n">DEFAULT_RESOLUTION</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="n">DEFAULT_RESOLUTION</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span>
+        <span class="n">mall</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
+        <span class="n">work_dir</span><span class="o">=</span><span class="n">work_dir</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="n">effective_res</span><span class="p">,</span>
+        <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
+        <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+        <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+        <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span> <span class="k">if</span> <span class="n">step_hz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span>
+        <span class="c1"># Resolved here, once, so a missing pack fails before the first browser</span>
+        <span class="c1"># launch rather than per shot — and so every shot in a scene is drawn</span>
+        <span class="c1"># under the same art direction by construction.</span>
+        <span class="n">style_pack</span><span class="o">=</span><span class="n">_style_pack</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="p">),</span>
+        <span class="n">default_easing</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.measurements</span><span class="w"> </span><span class="kn">import</span> <span class="n">settle_durations</span><span class="p">,</span> <span class="n">warn_findings</span>
+
+    <span class="n">scene</span><span class="p">,</span> <span class="n">findings</span> <span class="o">=</span> <span class="n">settle_durations</span><span class="p">(</span>
+        <span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">render</span><span class="o">=</span><span class="n">measure</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force_measure</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">measure</span><span class="p">:</span>
+        <span class="n">warn_findings</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
+
+    <span class="n">shots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="n">windows</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">):</span>
+        <span class="c1"># Before any browser launches: a transition the shots are too short</span>
+        <span class="c1"># for is microseconds to find and minutes of rendering to discover.</span>
+        <span class="c1"># What the film needs from each shot (an#260) is known now too.</span>
+        <span class="n">windows</span> <span class="o">=</span> <span class="n">shot_windows</span><span class="p">(</span><span class="n">film_timeline</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">))</span>
+    <span class="c1"># Captions (an#175): ONE page list, from which the burned-in picture and</span>
+    <span class="c1"># the sidecar are both derived, so they cannot disagree. Built before any</span>
+    <span class="c1"># browser launches, so a strict-captions refusal costs nothing.</span>
+    <span class="n">captions</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">captions</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">caption_pages</span>
+
+        <span class="n">pages</span> <span class="o">=</span> <span class="n">caption_pages</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span> <span class="n">captions</span><span class="o">=</span><span class="n">captions</span><span class="p">)</span>
+
+    <span class="c1"># Resolve renderers up front so a missing one fails fast (before we spawn</span>
+    <span class="c1"># workers).</span>
+    <span class="n">shot_renderers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shots</span><span class="p">):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">find_for</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RenderError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"no renderer registered for shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"(renderer=</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2">); registered: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">names</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">shot_ctx</span> <span class="o">=</span> <span class="n">ctx</span>
+        <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">captions</span><span class="o">.</span><span class="n">burn</span><span class="p">:</span>
+            <span class="n">shot</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="o">=</span> <span class="n">_burn_captions</span><span class="p">(</span>
+                <span class="n">shot</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
+            <span class="p">)</span>
+        <span class="n">shot_renderers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shot</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">_PreparedShots</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span>
+        <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">,</span>
+        <span class="n">shot_renderers</span><span class="o">=</span><span class="n">shot_renderers</span><span class="p">,</span>
+        <span class="n">captions</span><span class="o">=</span><span class="n">captions</span><span class="p">,</span>
+        <span class="n">pages</span><span class="o">=</span><span class="n">pages</span><span class="p">,</span>
+        <span class="n">windows</span><span class="o">=</span><span class="n">windows</span><span class="p">,</span>
+        <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
+        <span class="n">findings</span><span class="o">=</span><span class="n">findings</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_provider_name</span><span class="p">(</span><span class="n">provider</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A provider as a root records it: its factory name, or ``None`` for an</span>
+<span class="sd">    instance (which a collector cannot rebuild; that render's root still</span>
+<span class="sd">    protects what it used)."""</span>
+    <span class="k">return</span> <span class="n">provider</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_film_parts</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="n">plans</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Each shot's `ShotParts` for an assembled film: a reused shot's from the</span>
+<span class="sd">    cache, a rendered shot's built from its frames once and recorded."""</span>
+    <span class="n">record_parts</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"record_parts"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotParts</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">plan</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="n">plans</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">window</span><span class="o">.</span><span class="n">whole</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">plan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">plan</span><span class="o">.</span><span class="n">parts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">built</span> <span class="o">=</span> <span class="n">shot_parts</span><span class="p">(</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">frame_manifest</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+                <span class="n">work_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"film"</span> <span class="o">/</span> <span class="s2">"parts"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">record_parts</span><span class="p">)</span> <span class="ow">and</span> <span class="n">plan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">record_parts</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="n">built</span><span class="p">)</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">built</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parts</span>
+
+
+<div class="viewcode-block" id="cache_entries">
+<a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.cache_entries">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cache_entries</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">IncrementalEngine</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">supersample</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_SUPERSAMPLE</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="n">lipsync</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The shot-cache entry ids a render of ``project``'s CURRENT scene under</span>
+<span class="sd">    these knobs would read — computed by the render's own setup and the</span>
+<span class="sd">    engine's own key code, rendering and synthesising nothing.</span>
+
+<span class="sd">    What `an.build.gc` keeps (an#274). The dialogue is stamped the way the</span>
+<span class="sd">    render's audio pipeline stamps it, from the content-keyed audio and viseme</span>
+<span class="sd">    stores only (`an.audio.pipeline.stamp_from_stores`): a ``scene.md`` edit</span>
+<span class="sd">    drops every stamp on re-sync, and the next render re-stamps the same audio</span>
+<span class="sd">    from the stores, so those are the keys it will use. A line the stores</span>
+<span class="sd">    cannot answer (new text, another provider) raises</span>
+<span class="sd">    `an.audio.pipeline.AudioNotCachedError`: its shot's next key is unknowable</span>
+<span class="sd">    without a synthesis, and a collector must not guess.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">retime_dialogue</span><span class="p">,</span> <span class="n">stamp_from_stores</span>
+
+    <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
+    <span class="k">if</span> <span class="n">_has_any_audio_content</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_lipsync</span><span class="p">,</span> <span class="n">make_tts</span>
+
+        <span class="n">stamp_from_stores</span><span class="p">(</span>
+            <span class="n">scene</span><span class="p">,</span>
+            <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
+            <span class="n">tts</span><span class="o">=</span><span class="n">make_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span><span class="p">,</span>
+            <span class="n">lipsync</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">make_lipsync</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                <span class="k">else</span> <span class="n">lipsync</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">timed_shots_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">prep</span> <span class="o">=</span> <span class="n">_prepare_shots</span><span class="p">(</span>
+        <span class="n">project</span><span class="p">,</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="s2">".an"</span> <span class="o">/</span> <span class="s2">"render_work"</span><span class="p">,</span>  <span class="c1"># nothing is written</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+        <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
+        <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+        <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+        <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">project_root</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">prep</span><span class="o">.</span><span class="n">shot_renderers</span><span class="p">):</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">prep</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">prep</span><span class="o">.</span><span class="n">windows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">entry_ids</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ids</span></div>
+
+
+
+<span class="c1">#: Where a run's process cannot be asked whether it lives (Windows), a run</span>
+<span class="c1">#: unfinished after this long is taken for one that crashed: otherwise it would</span>
+<span class="c1">#: shield every cache entry written since, from `an cache gc`, for ever.</span>
+<span class="n">UNKNOWN_LIVENESS_MAX_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">*</span> <span class="mf">3600.0</span>
+
+
+<div class="viewcode-block" id="live_runs">
+<a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.live_runs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">live_runs</span><span class="p">(</span><span class="n">project_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Every cached render of this project still in progress, with the time it</span>
+<span class="sd">    started (its live marker's mtime): what `an cache gc` must not race."""</span>
+    <span class="n">runs</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span> <span class="o">/</span> <span class="s2">".an"</span> <span class="o">/</span> <span class="s2">"render_work"</span> <span class="o">/</span> <span class="n">RENDER_RUNS_DIR</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">runs</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span> <span class="k">if</span> <span class="n">runs</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="k">else</span> <span class="p">():</span>
+        <span class="n">marker</span> <span class="o">=</span> <span class="n">d</span> <span class="o">/</span> <span class="n">RUN_LIVE_MARKER</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="n">marker</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span> <span class="ow">or</span> <span class="n">_run_finished</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">started</span> <span class="o">=</span> <span class="n">marker</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span>
+            <span class="n">pid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">marker</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>  <span class="c1"># finished and removed while we looked</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">_pid_alive</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span> <span class="o">&gt;</span> <span class="n">UNKNOWN_LIVENESS_MAX_S</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="n">started</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_write_caption_sidecar</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>

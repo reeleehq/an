@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../_static/documentation_options.js?v=92f87268"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.raster" href="an.raster.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -367,6 +367,8 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
@@ -645,12 +647,21 @@ adapters and the same flow handles them.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.render.RUN_DONE_MARKER" title="an.render.RUN_DONE_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUN_DONE_MARKER</span></code></a></p></td>
 <td><p>written when the run delivered its film.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.UNKNOWN_LIVENESS_MAX_S" title="an.render.UNKNOWN_LIVENESS_MAX_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNKNOWN_LIVENESS_MAX_S</span></code></a></p></td>
+<td><p>Where a run's process cannot be asked whether it lives (Windows), a run unfinished after this long is taken for one that crashed: otherwise it would shield every cache entry written since, from <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code>, for ever.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.cache_entries" title="an.render.cache_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_entries</span></code></a>(project, engine, *[, fps, ...])</p></td>
+<td><p>The shot-cache entry ids a render of <code class="docutils literal notranslate"><span class="pre">project</span></code>'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.live_runs" title="an.render.live_runs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_runs</span></code></a>(project_root)</p></td>
+<td><p>Every cached render of this project still in progress, with the time it started (its live marker's mtime): what <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> must not race.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(project, *[, output_name, fps, ...])</p></td>
 <td><p>Lower-level: render a loaded <code class="docutils literal notranslate"><span class="pre">Project</span></code> to mp4.</p></td>
 </tr>
@@ -707,6 +718,47 @@ adapters and the same flow handles them.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RenderError</span></span><a class="reference internal" href="../_modules/an/render.html#RenderError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.RenderError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>Raised on render-pipeline failures with actionable detail.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.render.UNKNOWN_LIVENESS_MAX_S">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">UNKNOWN_LIVENESS_MAX_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">86400.0</span></span><a class="headerlink" href="#an.render.UNKNOWN_LIVENESS_MAX_S" title="Link to this definition">#</a></dt>
+<dd><p>Where a run’s process cannot be asked whether it lives (Windows), a run
+unfinished after this long is taken for one that crashed: otherwise it would
+shield every cache entry written since, from <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code>, for ever.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.render.cache_entries">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">cache_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#cache_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.cache_entries" title="Link to this definition">#</a></dt>
+<dd><p>The shot-cache entry ids a render of <code class="docutils literal notranslate"><span class="pre">project</span></code>’s CURRENT scene under
+these knobs would read — computed by the render’s own setup and the
+engine’s own key code, rendering and synthesising nothing.</p>
+<p>What <code class="code docutils literal notranslate"><span class="pre">an.build.gc</span></code> keeps (an#274). The dialogue is stamped the way the
+render’s audio pipeline stamps it, from the content-keyed audio and viseme
+stores only (<code class="code docutils literal notranslate"><span class="pre">an.audio.pipeline.stamp_from_stores</span></code>): a <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> edit
+drops every stamp on re-sync, and the next render re-stamps the same audio
+from the stores, so those are the keys it will use. A line the stores
+cannot answer (new text, another provider) raises
+<code class="code docutils literal notranslate"><span class="pre">an.audio.pipeline.AudioNotCachedError</span></code>: its shot’s next key is unknowable
+without a synthesis, and a collector must not guess.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.render.live_runs">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">live_runs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#live_runs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.live_runs" title="Link to this definition">#</a></dt>
+<dd><p>Every cached render of this project still in progress, with the time it
+started (its live marker’s mtime): what <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> must not race.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -885,6 +937,9 @@ refused under <code class="docutils literal notranslate"><span class="pre">stric
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RUN_DONE_MARKER"><code class="docutils literal notranslate"><span class="pre">RUN_DONE_MARKER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RUN_LIVE_MARKER"><code class="docutils literal notranslate"><span class="pre">RUN_LIVE_MARKER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RenderError"><code class="docutils literal notranslate"><span class="pre">RenderError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.UNKNOWN_LIVENESS_MAX_S"><code class="docutils literal notranslate"><span class="pre">UNKNOWN_LIVENESS_MAX_S</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.cache_entries"><code class="docutils literal notranslate"><span class="pre">cache_entries()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.live_runs"><code class="docutils literal notranslate"><span class="pre">live_runs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render"><code class="docutils literal notranslate"><span class="pre">render()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render_project"><code class="docutils literal notranslate"><span class="pre">render_project()</span></code></a></li>
 </ul>

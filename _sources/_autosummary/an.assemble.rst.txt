@@ -4,6 +4,12 @@ an.assemble
 .. automodule:: an.assemble
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      MIN_SEGMENT_FRAMES
+   
    .. rubric:: Functions
 
    .. autosummary::
@@ -13,6 +19,9 @@ an.assemble
       film_duration
       film_timeline
       needs_assembly
+      picture_segments
+      shot_parts
+      shot_windows
       transition_problems
    
    .. rubric:: Classes
@@ -20,6 +29,9 @@ an.assemble
    .. autosummary::
    
       FilmTimeline
+      Segment
+      ShotParts
+      ShotWindow
    
    .. rubric:: Exceptions
 

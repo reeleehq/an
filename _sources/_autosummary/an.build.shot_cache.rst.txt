@@ -9,16 +9,23 @@ an.build.shot\_cache
    .. autosummary::
    
       SHOT_CACHE_STORE
+      PARTS_INFIX
+      ROOT_PREFIX
    
    .. rubric:: Functions
 
    .. autosummary::
    
       default_environment_digest
+      human_bytes
       in_memory_shot_cache_store
+      machine_id
+      project_id
+      parts_entry_id
       resolve_incremental
       shot_artifact_type
       shot_cache_store
+      store_usage
    
    .. rubric:: Classes
 

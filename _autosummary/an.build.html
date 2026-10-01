@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3680f671"></script>
+    <script src="../_static/documentation_options.js?v=92f87268"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.build.keys" href="an.build.keys.html" />
+    <link rel="next" title="an.build.cli" href="an.build.cli.html" />
     <link rel="prev" title="an.bench.stage" href="an.bench.stage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.148" />
+  <meta name="docsearch:version" content="0.1.149" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -367,6 +367,8 @@
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">an.build</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
@@ -639,6 +641,9 @@ render reads (<a class="reference internal" href="#an.build.register_shot_keyer"
 <li><p><a class="reference internal" href="an.build.shot_cache.html#module-an.build.shot_cache" title="an.build.shot_cache"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.build.shot_cache</span></code></a> — the <code class="docutils literal notranslate"><span class="pre">incremental=</span></code> seam
 (<a class="reference internal" href="#an.build.IncrementalEngine" title="an.build.IncrementalEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a>), its built-in engine <a class="reference internal" href="#an.build.ShotCache" title="an.build.ShotCache"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotCache</span></code></a>, and
 the entries, shaped as <code class="docutils literal notranslate"><span class="pre">lacing</span></code> artifacts in a <code class="docutils literal notranslate"><span class="pre">lacing.ArtifactStore</span></code>.</p></li>
+<li><p><a class="reference internal" href="an.build.gc.html#module-an.build.gc" title="an.build.gc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.build.gc</span></code></a> — garbage collection: what the current scene and the
+recorded renders reach, and deleting the rest (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code>,
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">info</span></code>; <a class="reference internal" href="an.build.cli.html#module-an.build.cli" title="an.build.cli"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.build.cli</span></code></a>).</p></li>
 </ul>
 <p>The core names no renderer; the cut-out keyer lives with the cut-out backend
 (<code class="code docutils literal notranslate"><span class="pre">an.stage.cache_key</span></code>) and registers on its import.</p>
@@ -650,8 +655,14 @@ the entries, shaped as <code class="docutils literal notranslate"><span class="p
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.canonical_digest" title="an.build.canonical_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canonical_digest</span></code></a>(obj)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.cache_info" title="an.build.cache_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_info</span></code></a>(project_dir, *[, reachability, ...])</p></td>
+<td><p>What <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>'s shot cache holds; never fails on reachability (it says why it is unknown instead).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.canonical_digest" title="an.build.canonical_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canonical_digest</span></code></a>(obj)</p></td>
 <td><p>The hex sha256 of <code class="xref py py-func docutils literal notranslate"><span class="pre">canonical_json()</span></code> of <code class="docutils literal notranslate"><span class="pre">obj</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.collect_garbage" title="an.build.collect_garbage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collect_garbage</span></code></a>(project_dir, *[, dry_run, ...])</p></td>
+<td><p>Delete the shot-cache entries of <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> that nothing reaches.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.build.compose_shot_key" title="an.build.compose_shot_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compose_shot_key</span></code></a>(parts)</p></td>
 <td><p>The shot key: one digest over the named parts and the key's own version.</p></td>
@@ -689,7 +700,7 @@ the entries, shaped as <code class="docutils literal notranslate"><span class="p
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.BuildReport" title="an.build.BuildReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BuildReport</span></code></a>([outcomes])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.BuildReport" title="an.build.BuildReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BuildReport</span></code></a>([outcomes, store_bytes, ...])</p></td>
 <td><p>Every shot's outcome, in timeline order.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.build.IncrementalEngine" title="an.build.IncrementalEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a>(*args, **kwargs)</p></td>
@@ -713,7 +724,10 @@ the entries, shaped as <code class="docutils literal notranslate"><span class="p
 <p class="rubric">Exceptions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.ShotCacheWarning" title="an.build.ShotCacheWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotCacheWarning</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.CacheGcError" title="an.build.CacheGcError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CacheGcError</span></code></a></p></td>
+<td><p>The collection cannot be done safely; nothing was deleted.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.ShotCacheWarning" title="an.build.ShotCacheWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotCacheWarning</span></code></a></p></td>
 <td><p>The shot cache could not do something it should have; the render still stands.</p></td>
 </tr>
 </tbody>
@@ -721,11 +735,32 @@ the entries, shaped as <code class="docutils literal notranslate"><span class="p
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.BuildReport">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">BuildReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.BuildReport" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">BuildReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.BuildReport" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Every shot’s outcome, in timeline order.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.BuildReport.store_bytes">
+<span class="sig-name descname"><span class="pre">store_bytes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.build.BuildReport.store_bytes" title="Link to this definition">#</a></dt>
+<dd><p>The shot cache’s size after the render, when the engine measured it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.build.BuildReport.store_line">
+<span class="sig-name descname"><span class="pre">store_line</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport.store_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.BuildReport.store_line" title="Link to this definition">#</a></dt>
+<dd><p>How big the shot cache is after the render, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> if unmeasured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BuildReport</span><span class="p">(</span><span class="n">store_bytes</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">store_entries</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">store_line</span><span class="p">()</span>
+<span class="go">'3.0 MB in 4 entries'</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.build.BuildReport.summary">
 <span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.BuildReport.summary" title="Link to this definition">#</a></dt>
@@ -756,6 +791,13 @@ a broken cache (an#243 review, R2-1).</p>
 
 </dd></dl>
 
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.build.CacheGcError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">CacheGcError</span></span><a class="reference internal" href="../_modules/an/build/gc.html#CacheGcError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.CacheGcError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>The collection cannot be done safely; nothing was deleted.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.IncrementalEngine">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">IncrementalEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#IncrementalEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.IncrementalEngine" title="Link to this definition">#</a></dt>
@@ -766,6 +808,10 @@ root files every shot depends on); <code class="docutils literal notranslate"><s
 BEFORE any shot renders (in the calling thread); <code class="docutils literal notranslate"><span class="pre">record</span></code> once per shot
 that was rendered (possibly from a worker thread); <code class="docutils literal notranslate"><span class="pre">finish</span></code> returns the
 report.</p>
+<p>Two hooks are OPTIONAL (the render loop calls them when an engine has
+them): <code class="docutils literal notranslate"><span class="pre">record_parts(plan,</span> <span class="pre">parts)</span></code> once per rendered shot whose film
+window is not whole (an#260), and <code class="docutils literal notranslate"><span class="pre">record_root(output_name,</span> <span class="pre">profile=...,</span>
+<span class="pre">output=...)</span></code> once the film is delivered (what the garbage collector keeps).</p>
 </dd></dl>
 
 <dl class="py class">
@@ -781,13 +827,71 @@ state its machine rather than probe this one. <code class="docutils literal notr
 project-wide dependency strategy (see <code class="xref py py-data docutils literal notranslate"><span class="pre">Dependencies</span></code>); <code class="docutils literal notranslate"><span class="pre">None</span></code> keys
 a shot on its own parts alone (its document and the bytes of the textures
 it stages) — and then drops the lockfile too, so use it knowingly.
-<code class="docutils literal notranslate"><span class="pre">cache_frames</span></code> also stores each shot’s PNG sequence, which an ASSEMBLED
-film (transitions, a sound layer) needs to reuse a shot; off by default,
-because a 1080p shot’s frames are hundreds of MB and nothing collects
-unreachable entries yet — so an assembled film re-renders its shots.</p>
+<code class="docutils literal notranslate"><span class="pre">cache_frames</span></code> also stores each shot’s whole PNG sequence when a caller
+plans with <code class="docutils literal notranslate"><span class="pre">needs_frames=True</span></code>. The render loop no longer does (an#260):
+an assembled film takes a shot’s mp4 and, at a transition, its <em>parts</em>
+(<code class="docutils literal notranslate"><span class="pre">window=</span></code>), which are cached by default at a few MB. Kept for callers of
+the engine that need every frame; <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> collects old frames.</p>
 <p>After a render, <code class="xref py py-attr docutils literal notranslate"><span class="pre">report</span></code> holds what happened to each shot.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.build.ShotCache.entry_ids">
+<span class="sig-name descname"><span class="pre">entry_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotCache.entry_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.ShotCache.entry_ids" title="Link to this definition">#</a></dt>
+<dd><p>The catalog ids a <a class="reference internal" href="#an.build.ShotCache.plan" title="an.build.ShotCache.plan"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plan()</span></code></a> of this shot would read — computed by
+the same code, looking nothing up and rendering nothing. What
+<code class="code docutils literal notranslate"><span class="pre">an.build.gc</span></code> keeps for the current scene. Call <code class="xref py py-meth docutils literal notranslate"><span class="pre">begin()</span></code> first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.build.ShotCache.plan">
+<span class="sig-name descname"><span class="pre">plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">needs_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotCache.plan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.ShotCache.plan" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">window</span></code> is what an assembled film needs from this shot
+(<code class="code docutils literal notranslate"><span class="pre">an.assemble.ShotWindow</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for a plain concat): a shot whose
+window is not whole is reused only when its parts entry is there too.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.build.shot_cache.html#an.build.shot_cache.ShotPlan" title="an.build.shot_cache.ShotPlan"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotPlan</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.build.ShotCache.record_parts">
+<span class="sig-name descname"><span class="pre">record_parts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotCache.record_parts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.ShotCache.record_parts" title="Link to this definition">#</a></dt>
+<dd><p>Store a freshly rendered shot’s <code class="code docutils literal notranslate"><span class="pre">an.assemble.ShotParts</span></code> under
+<code class="docutils literal notranslate"><span class="pre">plan.parts_id</span></code>: its body mp4 and its window’s PNGs, one stored zip.
+A failed write never fails the render (the next render renders it).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.build.ShotCache.record_root">
+<span class="sig-name descname"><span class="pre">record_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotCache.record_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.ShotCache.record_root" title="Link to this definition">#</a></dt>
+<dd><p>Record what this render used, as a ROOT for <code class="code docutils literal notranslate"><span class="pre">an.build.gc</span></code>; return its id.</p>
+<p>A root is keyed by the project (<code class="xref py py-func docutils literal notranslate"><span class="pre">project_id()</span></code>), the output name,
+the render <code class="docutils literal notranslate"><span class="pre">profile</span></code> (the knobs as passed — <code class="docutils literal notranslate"><span class="pre">None</span></code> meaning “the
+scene’s own”) and this machine (<code class="xref py py-func docutils literal notranslate"><span class="pre">machine_id()</span></code>), so the next render
+of the same output with the same knobs on the same machine replaces it
+— a browser upgrade included — while a render on another machine of a
+synced project, or of another project sharing the store, keeps its own. Its record is a <code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code> of the delivered film,
+derived from the shot keys. Also measures the store, for the summary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py exception">
@@ -831,10 +935,41 @@ compile; <code class="docutils literal notranslate"><span class="pre">render_s</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.ShotPlan">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">ShotPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_render_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">needs_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.ShotPlan" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">ShotPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_render_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">needs_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.ShotPlan" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The engine’s answer for one shot: its key, and what to reuse if anything.</p>
 <dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.ShotPlan.parts">
+<span class="sig-name descname"><span class="pre">parts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.build.ShotPlan.parts" title="Link to this definition">#</a></dt>
+<dd><p>The reused parts (<code class="code docutils literal notranslate"><span class="pre">an.assemble.ShotParts</span></code>), materialised for this plan.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.ShotPlan.parts_id">
+<span class="sig-name descname"><span class="pre">parts_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.build.ShotPlan.parts_id" title="Link to this definition">#</a></dt>
+<dd><p>The catalog id of this shot’s parts entry, when its window is not whole.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.ShotPlan.window">
+<span class="sig-name descname"><span class="pre">window</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.build.ShotPlan.window" title="Link to this definition">#</a></dt>
+<dd><p>What an assembled film needs from this shot (<code class="code docutils literal notranslate"><span class="pre">an.assemble.ShotWindow</span></code>);
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for a film that is a plain concat of shot mp4s.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.build.cache_info">
+<span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">cache_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reachability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#cache_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.cache_info" title="Link to this definition">#</a></dt>
+<dd><p>What <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>’s shot cache holds; never fails on reachability
+(it says why it is unknown instead).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.build.gc.html#an.build.gc.CacheInfo" title="an.build.gc.CacheInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheInfo</span></code></a></span></p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -845,6 +980,26 @@ compile; <code class="docutils literal notranslate"><span class="pre">render_s</
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.build.collect_garbage">
+<span class="sig-prename descclassname"><span class="pre">an.build.</span></span><span class="sig-name descname"><span class="pre">collect_garbage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#collect_garbage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.collect_garbage" title="Link to this definition">#</a></dt>
+<dd><p>Delete the shot-cache entries of <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> that nothing reaches.</p>
+<p>With no cap, every unreachable entry goes. With caps, unreachable history
+is kept within them, newest first, and both bind: <code class="docutils literal notranslate"><span class="pre">max_age</span></code> (seconds)
+keeps only unreachable entries written more recently than that (and lets a
+recorded render older than that stop protecting its entries); <code class="docutils literal notranslate"><span class="pre">max_size</span></code>
+(bytes) keeps only those that fit in a cache of that size. Neither ever
+removes a reachable entry, so the cache can stay above <code class="docutils literal notranslate"><span class="pre">max_size</span></code>.
+<code class="docutils literal notranslate"><span class="pre">dry_run</span></code> reports and deletes nothing. <code class="docutils literal notranslate"><span class="pre">force</span></code> collects a cache no
+render of this project has recorded a root in (see <code class="xref py py-func docutils literal notranslate"><span class="pre">reachable_entries()</span></code>).</p>
+<p>See the module docstring for the reachability and concurrency argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.build.gc.html#an.build.gc.GcReport" title="an.build.gc.GcReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">GcReport</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1002,6 +1157,12 @@ renderer whose class is not the one the keyer was registered for.</p>
 <p class="rubric">Modules</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.build.cli.html#module-an.build.cli" title="an.build.cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cli</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">…</span></code> — the shot cache from the shell (an#274).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.build.gc.html#module-an.build.gc" title="an.build.gc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gc</span></code></a></p></td>
+<td><p>Garbage collection of the shot cache: <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">info</span></code> (an#274).</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.build.keys.html#module-an.build.keys" title="an.build.keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code></a></p></td>
 <td><p>Cache keys for build stages: canonical digests, the project fallback, keyers.</p></td>
 </tr>
@@ -1033,11 +1194,11 @@ renderer whose class is not the one the keyer was registered for.</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.build.keys.html"
+       href="an.build.cli.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.build.keys</p>
+        <p class="prev-next-title">an.build.cli</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1061,20 +1222,36 @@ renderer whose class is not the one the keyer was registered for.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.BuildReport"><code class="docutils literal notranslate"><span class="pre">BuildReport</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.BuildReport.store_bytes"><code class="docutils literal notranslate"><span class="pre">BuildReport.store_bytes</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.BuildReport.store_line"><code class="docutils literal notranslate"><span class="pre">BuildReport.store_line()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.BuildReport.summary"><code class="docutils literal notranslate"><span class="pre">BuildReport.summary()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.BuildReport.timing_table"><code class="docutils literal notranslate"><span class="pre">BuildReport.timing_table()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.CacheGcError"><code class="docutils literal notranslate"><span class="pre">CacheGcError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.IncrementalEngine"><code class="docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCache"><code class="docutils literal notranslate"><span class="pre">ShotCache</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCache"><code class="docutils literal notranslate"><span class="pre">ShotCache</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCache.entry_ids"><code class="docutils literal notranslate"><span class="pre">ShotCache.entry_ids()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCache.plan"><code class="docutils literal notranslate"><span class="pre">ShotCache.plan()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCache.record_parts"><code class="docutils literal notranslate"><span class="pre">ShotCache.record_parts()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCache.record_root"><code class="docutils literal notranslate"><span class="pre">ShotCache.record_root()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotCacheWarning"><code class="docutils literal notranslate"><span class="pre">ShotCacheWarning</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotKeyInputs"><code class="docutils literal notranslate"><span class="pre">ShotKeyInputs</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotKeyInputs.details"><code class="docutils literal notranslate"><span class="pre">ShotKeyInputs.details</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotOutcome"><code class="docutils literal notranslate"><span class="pre">ShotOutcome</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotPlan"><code class="docutils literal notranslate"><span class="pre">ShotPlan</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotPlan"><code class="docutils literal notranslate"><span class="pre">ShotPlan</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotPlan.parts"><code class="docutils literal notranslate"><span class="pre">ShotPlan.parts</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotPlan.parts_id"><code class="docutils literal notranslate"><span class="pre">ShotPlan.parts_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.ShotPlan.window"><code class="docutils literal notranslate"><span class="pre">ShotPlan.window</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.cache_info"><code class="docutils literal notranslate"><span class="pre">cache_info()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.canonical_digest"><code class="docutils literal notranslate"><span class="pre">canonical_digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.collect_garbage"><code class="docutils literal notranslate"><span class="pre">collect_garbage()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.compose_shot_key"><code class="docutils literal notranslate"><span class="pre">compose_shot_key()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.default_environment_digest"><code class="docutils literal notranslate"><span class="pre">default_environment_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.in_memory_shot_cache_store"><code class="docutils literal notranslate"><span class="pre">in_memory_shot_cache_store()</span></code></a></li>

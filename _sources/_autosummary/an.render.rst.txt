@@ -11,11 +11,14 @@ an.render
       RENDER_RUNS_DIR
       RUN_LIVE_MARKER
       RUN_DONE_MARKER
+      UNKNOWN_LIVENESS_MAX_S
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      cache_entries
+      live_runs
       render
       render_project
    
