@@ -3150,7 +3150,28 @@ def write_gallery(entries: list[dict], *, out_dir: Path, asset_base: str = "") -
     return path
 
 
+def _keep_machine_registry_private() -> Path:
+    """Point the machine registry into a temp folder for this run (an#302).
+
+    Every demo draws throwaway characters into a temp project, and
+    ``new_character`` records the bytes it drew in the MACHINE registry
+    (``~/.local/share/an/registry/generated``) — a record of characters that
+    no longer exist, written once per run, forever. The registry's location
+    reads no environment variable by design, so this is the same patch the
+    test suite's root ``conftest.py`` applies: replace the account home the
+    registry resolves from. Returns the temp home.
+    """
+    import tempfile
+
+    from an.library import registry
+
+    home = Path(tempfile.mkdtemp(prefix="an-demos-account-home-"))
+    registry._account_home = lambda: home
+    return home
+
+
 def main(argv: list[str]) -> int:
+    _keep_machine_registry_private()
     wanted = set(argv) or {d.slug for d in DEMOS}
     unknown = wanted - {d.slug for d in DEMOS}
     if unknown:

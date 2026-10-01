@@ -17,6 +17,8 @@ At the repository root so it reaches both ``tests/`` and the doctests under
 
 from __future__ import annotations
 
+from pathlib import Path
+
 
 def pytest_configure(config):  # noqa: D103 — a pytest hook
     from an.genres import load
@@ -123,6 +125,14 @@ def pytest_sessionfinish(session, exitstatus):  # noqa: D103 — a pytest hook
         if reporter is not None:
             reporter.write_line(text)
 
+    child_log = _CHILD_STATE.get("path")
+    if child_log is not None and child_log.exists() and child_log.stat().st_size:
+        say(
+            "REAL-HOME GUARD: a CHILD python process reached the real data folder "
+            "despite the redirect (an#302):\n"
+            + child_log.read_text(encoding="utf-8")[:4000]
+        )
+        session.exitstatus = 1
     if _REAL_HOME_WRITES:
         say(
             f"REAL-HOME GUARD: {len(_REAL_HOME_WRITES)} write(s) or registry access(es) "
@@ -166,12 +176,61 @@ def _redirect_account_home_for_the_session() -> None:
     its own fresh one.
     """
     import tempfile
-    from pathlib import Path
-
     from an.library import registry
 
     home = Path(tempfile.mkdtemp(prefix="an-session-account-home-"))
     registry._account_home = lambda: home
+    _redirect_children_too(home)
+
+
+#: Environment variable naming the redirected account home for child pythons.
+CHILD_HOME_ENV: str = "AN_TEST_ACCOUNT_HOME"
+#: Environment variable naming the file a child appends to if it reaches the real data folder.
+CHILD_LOG_ENV: str = "AN_TEST_REAL_HOME_LOG"
+#: The folder whose ``sitecustomize`` applies the redirect inside a child (an#302).
+CHILD_GUARD_DIR = Path(__file__).parent / "tests" / "_child_guard"
+
+
+def _redirect_children_too(home) -> None:
+    """Make every child python process the tests spawn honour the same redirect.
+
+    The monkeypatch above lives in THIS interpreter; a child (a CLI test, a
+    ``[sys.executable, "-c", ...]`` probe) is a new one and, left alone, would
+    write the developer's real registry (an#302). The library reads no
+    environment variable for that location, so the redirect rides on
+    ``tests/_child_guard/sitecustomize.py`` instead, put on each child's
+    ``PYTHONPATH`` by wrapping ``subprocess.Popen`` — whatever ``env=`` the
+    test built, including one that replaces ``PYTHONPATH`` wholesale.
+    A child that reaches the real folder regardless logs itself to
+    ``CHILD_LOG_ENV``, and :func:`pytest_sessionfinish` fails the run on it.
+    """
+    import os
+    import subprocess
+
+    log = home / "child-real-home-writes.log"
+    os.environ[CHILD_HOME_ENV] = str(home)
+    os.environ[CHILD_LOG_ENV] = str(log)
+    _CHILD_STATE["path"] = log
+    _CHILD_STATE["home"] = home
+    init = subprocess.Popen.__init__
+
+    def popen_init(self, *args, **kwargs):
+        env = dict(os.environ if kwargs.get("env") is None else kwargs["env"])
+        # The CURRENT home: the per-test fixture swaps it, like the in-process one.
+        env[CHILD_HOME_ENV] = str(_CHILD_STATE["home"])
+        env.setdefault(CHILD_LOG_ENV, str(log))
+        existing = env.get("PYTHONPATH")
+        env["PYTHONPATH"] = os.pathsep.join(
+            [str(CHILD_GUARD_DIR)] + ([existing] if existing else [])
+        )
+        kwargs["env"] = env
+        return init(self, *args, **kwargs)
+
+    subprocess.Popen.__init__ = popen_init
+
+
+#: Where the child-process tripwire writes (set by :func:`_redirect_children_too`).
+_CHILD_STATE: dict = {}
 
 
 import pytest
@@ -195,3 +254,5 @@ def _isolated_library_registry(tmp_path_factory, monkeypatch):
 
     home = tmp_path_factory.mktemp("account-home")
     monkeypatch.setattr(registry, "_account_home", lambda: home)
+    # Children get the same fresh registry (an#302), restored afterwards.
+    monkeypatch.setitem(_CHILD_STATE, "home", home)
