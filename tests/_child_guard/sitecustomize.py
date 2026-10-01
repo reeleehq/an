@@ -29,7 +29,12 @@ def _patch(module, home, log):
     from pathlib import Path
 
     real_home = module._account_home()
-    real_data = real_home.joinpath(*module.POSIX_DATA_DEFAULT)
+    defaults = (
+        module.WINDOWS_DATA_DEFAULT
+        if sys.platform.startswith("win")
+        else module.POSIX_DATA_DEFAULT
+    )
+    real_data = real_home.joinpath(*defaults)
     redirected = Path(home)
     module._account_home = lambda: redirected
     registry_dir = module.machine_registry_dir

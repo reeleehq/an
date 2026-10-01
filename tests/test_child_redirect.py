@@ -30,6 +30,12 @@ _PROBE = (
 )
 
 
+def _minimal_env() -> dict:
+    """Just the tree under test; Windows cannot start Python without ``SYSTEMROOT``."""
+    keep = {k: v for k, v in os.environ.items() if k.upper() == "SYSTEMROOT"}
+    return {**keep, "PYTHONPATH": str(ROOT)}
+
+
 def _probe(**kwargs) -> tuple[Path, bool]:
     out = subprocess.run(
         [sys.executable, "-c", _PROBE],
@@ -50,6 +56,12 @@ def _real_data_dir() -> Path:
     return conftest._REAL_DATA_SNAPSHOT["dirs"][0]
 
 
+def _real_home() -> Path:
+    import conftest
+
+    return conftest._REAL_DATA_SNAPSHOT["home"]
+
+
 def _expected() -> Path:
     return registry.machine_registry_dir()
 
@@ -58,10 +70,9 @@ def _expected() -> Path:
     "env",
     [
         pytest.param(None, id="inherited"),
-        pytest.param({"PYTHONPATH": str(ROOT)}, id="pythonpath-replaced"),
+        pytest.param(_minimal_env(), id="pythonpath-replaced"),
         pytest.param(
-            {"PYTHONPATH": str(ROOT), "PATH": os.environ.get("PATH", "")},
-            id="minimal",
+            {**_minimal_env(), "PATH": os.environ.get("PATH", "")}, id="minimal"
         ),
     ],
 )
@@ -97,7 +108,7 @@ def test_a_child_that_bypasses_the_redirect_is_logged(tmp_path):
         "import pathlib\n"
         "registry._account_home = lambda: pathlib.Path(%r)\n"
         "registry.machine_registry_dir()\n"
-    ) % str(_real_data_dir().parent.parent.parent)
+    ) % str(_real_home())
     # The child's own override replaces the redirect AFTER the guard patched
     # `_account_home`, so `machine_registry_dir` (the guard's wrapper) now
     # resolves into the real folder: exactly the escape the log exists for.

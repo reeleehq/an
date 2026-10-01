@@ -36,9 +36,14 @@ _REAL_DATA_SNAPSHOT: dict = {}
 
 def _real_data_dirs():
     from an.library import registry
-    from an.library.root import POSIX_DATA_DEFAULT
+    import sys
 
-    data = registry._account_home().joinpath(*POSIX_DATA_DEFAULT)
+    from an.library.root import POSIX_DATA_DEFAULT, WINDOWS_DATA_DEFAULT
+
+    defaults = (
+        WINDOWS_DATA_DEFAULT if sys.platform.startswith("win") else POSIX_DATA_DEFAULT
+    )
+    data = registry._account_home().joinpath(*defaults)
     return [data / "an", data / "cutan"]
 
 
@@ -77,6 +82,7 @@ def _install_real_home_guard() -> None:
     data_dirs = _real_data_dirs()
     real_data = str(data_dirs[0].parent)
     _REAL_DATA_SNAPSHOT["dirs"] = data_dirs
+    _REAL_DATA_SNAPSHOT["home"] = registry._account_home()
     _REAL_DATA_SNAPSHOT["before"] = _snapshot(data_dirs)
 
     def note(path) -> None:
