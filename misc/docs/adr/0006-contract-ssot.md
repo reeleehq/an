@@ -38,7 +38,7 @@ Two facts bound the answer. First, every entry in the contract is today generate
 
 ## First slice
 
-The work is [an#261](https://github.com/thorwhalen/an/issues/261).
+The work is [an#261](https://github.com/thorwhalen/an/issues/261). **Status, 2026-10-01:** items 1 and 2 are built (the vocabulary export, the drift test, the `contract/` package and its workflow); the first publish waits on the maintainer's `NPM_TOKEN` secret and the package name (a `manual-task` issue); item 3 follows the first publish; item 4 is half done (the shape is in `architecture_as_built.md` §13; the name and first version are recorded when published).
 
 1. Export from the registries to `an/data/timing/` (already the home of the five timing files) plus the vocabulary export once P7 (an#248) lands; the drift test (decision 4).
 2. A package definition and a CI job that builds the data-only package and publishes it on a release that changes a contract file, with the contract's own version. The npm token is requested from the maintainer through a `manual-task` when the workflow is ready.
