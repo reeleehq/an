@@ -257,3 +257,7 @@ A two-PR split whose first half ships a lie is worse than one honest PR.
 - `an-art-package` is **deliberately not written until the compiler reads the
   contract** — a contract the compiler ignores is worse than none, because it gets a
   human illustrator paid for work that cannot land. It ships with PR-2, not before.
+
+## What a rig affords is derived, and methods match on it (an#248)
+
+The rig contract's names are what the character analyser (`an.library.character.character_affordances`, registered by the cut-out genre) reads to derive a character's capabilities: a `leg_l`/`leg_r` (or `left_leg`/`right_leg`) pair with art → `limbs.legs`; the arm pair → `limbs.arms`; the `view` set's keys with art → `swap.view`; an overlay face with viseme art → `face.mouth`. Methods (`loco.legged_cycle`, `speech.mouth_chart`, …) declare those as requirements, and the compiler resolves them on the profile — so a rig that renames a contract slot does not just lose a pose, it changes which method a walk or a line gets (recorded when one was requested). `an character capabilities <name>` shows the result.

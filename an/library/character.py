@@ -13,8 +13,11 @@ when an attachment it names has its file among the asset's files — a descripto
 promising a side view whose drawing is missing does not afford one.
 
 It is genre code (cut-out characters). It lives here until the genre package
-exists (plan P8), registered under the ``character`` kind, and imports the
-cut-out modules lazily so ``import an.library`` stays free of them.
+exists (plan P8) and imports the cut-out modules lazily so ``import an.library``
+stays free of them. **Importing it registers nothing** (P7): the cut-out genre
+declares :data:`CHARACTER_CAPABILITIES` and :data:`CHARACTER_ANALYSER` in its
+``capabilities`` and ``analysers`` fields (:data:`an.genres.cutout.CUTOUT`), so
+they register with the genre, owned by it, and come out with it.
 
 =====================  ====================================================  ==========================
 capability             afforded when                                         ``keys``
@@ -33,10 +36,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from an.library.affordances import register_analyser, register_capability
+from an.capabilities import Analyser, Capability
 
 __all__ = [
+    "CHARACTER_ANALYSER",
     "CHARACTER_ANALYSER_VERSION",
+    "CHARACTER_CAPABILITIES",
     "MOUTH_CHART_RHUBARB",
     "character_affordances",
     "renders_as_placeholder",
@@ -49,7 +54,7 @@ MOUTH_CHART_RHUBARB: str = "rhubarb9"
 #: The chart name of any other viseme set.
 MOUTH_CHART_CUSTOM: str = "custom"
 
-LIMBS_LEGS = register_capability(
+LIMBS_LEGS = Capability(
     "limbs.legs",
     description="a pair of leg slots with art that a legged walk swings",
     remedy=(
@@ -57,7 +62,7 @@ LIMBS_LEGS = register_capability(
         "pivoted at the hip; `an character new` builds them (an-art-package skill)"
     ),
 )
-LIMBS_ARMS = register_capability(
+LIMBS_ARMS = Capability(
     "limbs.arms",
     description="a pair of arm slots with art that a walk swings and gestures move",
     remedy=(
@@ -65,7 +70,7 @@ LIMBS_ARMS = register_capability(
         "pivoted at the shoulder (an-art-package skill)"
     ),
 )
-SWAP_VIEW = register_capability(
+SWAP_VIEW = Capability(
     "swap.view",
     description=(
         "the turnaround views the character can show (keys); swappable=true when a "
@@ -75,8 +80,9 @@ SWAP_VIEW = register_capability(
         "add turnaround art and list it in the `view` swap set: "
         "`an character add-views <dir>` for an offline character, else draw the views"
     ),
+    command="an character add-views",
 )
-FACE_MOUTH = register_capability(
+FACE_MOUTH = Capability(
     "face.mouth",
     description="an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)",
     remedy=(
@@ -84,6 +90,7 @@ FACE_MOUTH = register_capability(
         "drawings (`an character mouths <dir>` writes the default nine) and "
         "face_overlay: true — a face baked into the head art cannot lip-sync"
     ),
+    command="an character mouths",
 )
 
 
@@ -164,7 +171,6 @@ def _parts_rig_affordances(
     return out
 
 
-@register_analyser("character", version=CHARACTER_ANALYSER_VERSION)
 def character_affordances(
     doc: Mapping[str, Any], art: Mapping[str, Any]
 ) -> dict[str, dict[str, Any]]:
@@ -250,3 +256,16 @@ def character_affordances(
         }
 
     return out
+
+
+#: The capabilities the character analyser derives (declared by the cut-out genre).
+CHARACTER_CAPABILITIES: tuple[Capability, ...] = (
+    LIMBS_LEGS,
+    LIMBS_ARMS,
+    SWAP_VIEW,
+    FACE_MOUTH,
+)
+#: The character analyser (declared by the cut-out genre, registered with it).
+CHARACTER_ANALYSER: Analyser = Analyser(
+    "character", CHARACTER_ANALYSER_VERSION, character_affordances
+)

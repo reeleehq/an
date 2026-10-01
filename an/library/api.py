@@ -47,7 +47,7 @@ from dol.content import ContentRef, content_hash
 from an.ir.assets import PRIVATE_STUDY, PUBLIC_DOMAIN, AssetSource, license_class
 from an.credits import is_generated_source
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
-from an.library import character as _character  # noqa: F401 — registers the analyser
+from an.library import character as _character
 from an.library.affordances import (
     CAPABILITIES,
     KEY_SEP,
@@ -1011,6 +1011,7 @@ def publish(
         relicense=relicense,
         unlabelled=unlabelled,
     )
+    _load_genres()  # the analysers are the genres' (P7): never an empty facet by accident
     affordances, analysers = analyse(kind.name, doc, file_refs)
     if kind.name == "character" and _character.renders_as_placeholder(doc):
         warnings.warn(
@@ -1236,6 +1237,7 @@ def scan_index(library: Library) -> Iterator[IndexEntry]:
     :class:`LibraryIndexWarning` naming it, so one bad entry never blinds every
     search.
     """
+    _load_genres()
     for asset_id in library.records:
         try:
             record = _read_record(library, asset_id)
@@ -1351,8 +1353,23 @@ def _rights_filter(rights: str | Iterable[str] | None) -> set[str] | None:
     return out
 
 
+def _load_genres() -> None:
+    """Register the installed genres, whose analysers and capabilities the library reads.
+
+    Explicit discovery (ADR 0001 decision 3) at the library's entry points, as
+    ``an.load(project)`` and the CLI do: the character analyser is the cut-out
+    genre's (P7), so a library used from a plain script must load it, or every
+    facet would come back empty. Idempotent and cheap after the first call.
+    """
+    from an.genres import load
+
+    load()
+
+
 def _check_capability_terms(terms: Iterable[str]) -> None:
     """Refuse a capability name nobody registered: a typo must not read as "no asset"."""
+    if terms:
+        _load_genres()
     for term in terms:
         name, _ = capability_of(term)
         if name not in CAPABILITIES:
@@ -1500,6 +1517,7 @@ def vocabulary(libraries: Libraries, *, index: Index = scan_index) -> dict[str, 
                 "count": caps_count.get(name, 0),
             }
             for name, cap in sorted(CAPABILITIES.items())
+            if cap.subject == "asset"  # an asset's facets; engine/env are not searchable
         },
         "kinds": sorted(ASSET_KINDS),
         "statuses": list(STATUSES),

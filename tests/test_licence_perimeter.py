@@ -75,6 +75,19 @@ VISION_EXTRA_CLOSURE: tuple[str, ...] = (
 )
 
 
+#: Distributions the `mcp` extra adds that `an` and its other extras do not
+#: already ship (measured with fastmcp 3.4, an#248): py2mcp is MIT, fastmcp
+#: Apache-2.0, and the rest permissive.
+MCP_EXTRA_CLOSURE: tuple[str, ...] = (
+    "py2mcp",
+    "fastmcp",
+    "fastmcp-slim",
+    "platformdirs",
+    "pydantic-settings",
+    "python-dotenv",
+)
+
+
 def _declared_licence(name: str) -> str:
     """The DECLARATION, in order of precision — never the licence document.
 
@@ -106,11 +119,15 @@ def _installed(name: str) -> bool:
     return True
 
 
-@pytest.mark.parametrize("name", VISION_EXTRA_CLOSURE)
-def test_the_vision_extra_stays_inside_the_licence_perimeter(name):
-    """`anthropic` is MIT; so is everything it adds that `an` did not already ship."""
+@pytest.mark.parametrize(
+    "name,extra",
+    [(n, "vision") for n in VISION_EXTRA_CLOSURE] + [(n, "mcp") for n in MCP_EXTRA_CLOSURE],
+)
+def test_the_optional_extras_stay_inside_the_licence_perimeter(name, extra):
+    """`anthropic` (vision) and `py2mcp` (mcp) are MIT; so is everything they add
+    that `an` did not already ship, or Apache/BSD."""
     if not _installed(name):
-        pytest.skip(f"{name} is not installed (the `vision` extra is optional)")
+        pytest.skip(f"{name} is not installed (the `{extra}` extra is optional)")
     declared = _declared_licence(name)
     assert declared, f"{name} declares no licence at all in its installed metadata"
 

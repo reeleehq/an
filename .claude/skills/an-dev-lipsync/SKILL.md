@@ -128,3 +128,7 @@ condenser it may rise, see §2 — and the legibility score from the cassetted j
 8-frame strip inside the line, "could you read this mouth is saying `<text>`", 1–5; frozen
 by `python tests/_lipsync_strips.py`) must not fall. Recording spends once, under `AN_LIVE_API_TESTS=1`; replay is the default and a
 miss is a `CassetteMiss`. The judge stays out of the ledger.
+
+## A speaker with no mouth chart (an#248)
+
+Speech is an aspect on the capability registry: `speech.mouth_chart` (requires `face.mouth`, which the character analyser derives from an overlay face with viseme art) then `speech.pose_only`, which requires nothing. A baked face (`face_overlay: false`) — or any character speaking with no viseme-capable mouth — gets a `speech_pulse` play at the line's start: its head (`part`, else the body) stretches `scale_y` by `strength` on each syllable onset, read from the viseme track (a closed shape `A`/`X` opening), else the word timings, else the line start (`an.characters.methods.syllable_beats`). The viseme pass (`_add_viseme_clips`) is unchanged and still skips those speakers; the pulse is added by `compile._speech_default_actions` before the action pass, so a shot whose speakers all lip-sync compiles byte-identically.

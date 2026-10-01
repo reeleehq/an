@@ -147,6 +147,12 @@ manim = [
     "manim",
 ]
 remotion = []
+# The curated MCP surface (ADR 0003 decision 6): `python -m an.mcp`. py2mcp
+# (MIT, a sibling package) brings fastmcp; imported only when a server is
+# built, never by `import an` (tests/test_mcp_surface.py holds both).
+mcp = [
+    "py2mcp",
+]
 tts = [
     "elevenlabs",
 ]
