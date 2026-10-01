@@ -1773,13 +1773,16 @@ def _core_action_kinds(ctx: ValidationContext) -> None:
         for k, top in enumerate(shot.actions):
             where = f"timeline/{i}/actions/{k}"
             for action in iter_actions(top):
-                if type(action) is not ExtensionAction:
-                    continue
-                if action_kind(action.kind) is None:
+                # EVERY node, whatever its type: a typed genre action built in
+                # Python (`an.play(...)`) while its genre is not loaded is as
+                # unregistered as a bare `ExtensionAction` (review-244 S3).
+                if action_kind(str(getattr(action, "kind", ""))) is None:
                     ctx.memo[_KIND_PROBLEM_REPORTED] = True
                     ctx.report.add(
                         "error", where, str(unregistered_action_kind(action.kind))
                     )
+                    continue
+                if type(action) is not ExtensionAction:
                     continue
                 try:
                     action.resolved()
@@ -1800,35 +1803,93 @@ def _core_entity_kinds(ctx: ValidationContext) -> None:
     from an.genres import providers_of
     from an.genres.registry import entity_kind_names
 
-    for i, shot in enumerate(ctx.scene.timeline):
-        for j, entity in enumerate(shot.entities):
-            if entity_kind(entity.kind) is not None:
-                continue
-            ctx.memo[_KIND_PROBLEM_REPORTED] = True
-            error = UnregisteredKindError(
-                "entity kind",
-                entity.kind,
-                known=entity_kind_names(),
-                providers=providers_of(entity.kind, registry="entity kinds"),
-            )
-            ctx.report.add("error", f"timeline/{i}/entities/{j}", str(error))
+    located = [("assets", j, e) for j, e in enumerate(ctx.scene.assets)] + [
+        (f"timeline/{i}/entities", j, e)
+        for i, shot in enumerate(ctx.scene.timeline)
+        for j, e in enumerate(shot.entities)
+    ]
+    for where, j, entity in located:
+        if entity_kind(entity.kind) is not None:
+            continue
+        ctx.memo[_KIND_PROBLEM_REPORTED] = True
+        error = UnregisteredKindError(
+            "entity kind",
+            entity.kind,
+            known=entity_kind_names(),
+            providers=providers_of(entity.kind, registry="entity kinds"),
+        )
+        ctx.report.add("error", f"{where}/{j}", str(error))
+
+
+def _known_renderers() -> set[str]:
+    from an.adapters._base import list_renderers
+
+    return set(SUPPORTED_RENDERERS) | set(list_renderers())
+
+
+def _renderer_problem(name: str) -> str | None:
+    known = _known_renderers()
+    if name in known:
+        return None
+    return (
+        f"renderer {name!r} is not registered; known: {sorted(known)}. A "
+        "renderer registers with `an.adapters.register_renderer`."
+    )
 
 
 def _core_renderer(ctx: ValidationContext) -> None:
     """The shot's ``renderer`` names a renderer this build has: a built-in one
     (:data:`an.base.SUPPORTED_RENDERERS`) or one registered with
     ``an.adapters.register_renderer``."""
-    from an.adapters._base import list_renderers
+    problem = _renderer_problem(ctx.shot.renderer)
+    if problem:
+        ctx.report.add("error", f"{ctx.path}/renderer", problem)
 
-    known = set(SUPPORTED_RENDERERS) | set(list_renderers())
-    if ctx.shot.renderer not in known:
-        ctx.report.add(
-            "error",
-            f"{ctx.path}/renderer",
-            f"renderer {ctx.shot.renderer!r} is not registered; known: "
-            f"{sorted(known)}. A renderer registers with "
-            "`an.adapters.register_renderer`.",
+
+def registered_kind_problems(scene: SceneIR) -> ValidationReport:
+    """The findings of the three registry checks alone — every action kind,
+    entity kind and renderer the scene names must be registered — without the
+    rest of ``validate_semantic`` (no stores, no rig builds; cheap)."""
+    ctx = ValidationContext(scene=scene, report=ValidationReport(), stores={})
+    _core_action_kinds(ctx)
+    _core_entity_kinds(ctx)
+    for i, shot in enumerate(scene.timeline):
+        problem = _renderer_problem(shot.renderer)
+        if problem:
+            ctx.report.add("error", f"timeline/{i}/renderer", problem)
+    problem = _renderer_problem(scene.meta.default_renderer)
+    if problem:
+        ctx.report.add("error", "meta/default_renderer", problem)
+    return ctx.report
+
+
+class UnregisteredInSceneError(UnregisteredKindError):
+    """A scene names kinds or renderers nothing registered: refused at load.
+
+    Raised by :func:`require_registered_kinds` — what ``an.load(project)``
+    (and so ``an render``) runs, so a typo'd ``kind:`` or ``renderer:`` can no
+    longer render silently wrong now that the schema holds them as ``str``
+    (review-244 S2). ``findings`` keeps each one with its IR path.
+    """
+
+    def __init__(self, findings: list, *, where: str = "") -> None:
+        self.findings = findings
+        ValueError.__init__(
+            self,
+            (f"{where}: " if where else "")
+            + "the scene names what no loaded genre or renderer registered:\n"
+            + "\n".join(f"  {f.ir_path}: {f.description}" for f in findings),
         )
+
+
+def require_registered_kinds(scene: SceneIR, *, where: str = "") -> SceneIR:
+    """``scene``, or :class:`UnregisteredInSceneError` naming every action
+    kind, entity kind and renderer it uses that is not registered."""
+    report = registered_kind_problems(scene)
+    errors = [f for f in report.findings if f.severity == "error"]
+    if errors:
+        raise UnregisteredInSceneError(errors, where=where)
+    return scene
 
 
 def _core_shot_basics(ctx: ValidationContext) -> None:
@@ -1901,12 +1962,15 @@ def _core_action_targets(ctx: ValidationContext) -> None:
 def _core_field_kinds(ctx: ValidationContext) -> None:
     """Generic target validation against the property space (ADR 0001 decision
     11): every value a ``set``/``tween`` writes must fit the field kind its
-    target entity's kind declares for that property — a string on a stage
-    node's ``x`` is refused here, as the compiler refuses it. Entities with no
-    registered kind, or a kind with no space, are left to their own checks."""
-    from an.timing.spaces import SpaceError, get_space
+    target's space declares — resolved by :func:`an.genres.entity_space_resolver`,
+    the same policy the compiler's keyframe check uses, so validate and compile
+    agree (review-244 S7). A string on a stage node's ``x`` is refused here, as
+    the compiler refuses it. Entities with no registered kind are reported by
+    ``entity_kinds``; an entity kind with no space (a voice) has no fields."""
+    from an.genres import entity_space_resolver
 
     shot = ctx.shot
+    space_of = entity_space_resolver(shot.entities)
     kinds = {e.id: e.kind for e in shot.entities}
     for k, top in enumerate(shot.actions):
         for flat in flatten(top):
@@ -1916,13 +1980,12 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
             prop = leaf.property
             if prop in _AUTHORING_SUGAR_PROPERTIES:
                 continue  # expanded by the compiler before any channel exists
-            registered = entity_kind(kinds.get(leaf.target.split("/", 1)[0], ""))
-            if registered is None or registered.space is None:
+            owner = kinds.get(leaf.target.split("/", 1)[0])
+            registered = entity_kind(owner) if owner is not None else None
+            if owner is not None and (registered is None or registered.space is None):
                 continue
-            try:
-                field_kind = get_space(registered.space).kind_of(prop)
-            except SpaceError:
-                continue
+            space = space_of(leaf.target)
+            field_kind = space.kind_of(prop)
             for value in (
                 getattr(leaf, "value", None),
                 getattr(leaf, "from_value", None),
@@ -1932,12 +1995,13 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
                     continue
                 problem = field_kind.check(value)
                 if problem:
+                    who = f"a {owner}" if owner is not None else "the stage"
                     ctx.report.add(
                         "error",
                         f"{ctx.path}/actions/{k}",
-                        f"{leaf.target}:{prop} is a {field_kind.name} field of a "
-                        f"{registered.name} ({registered.space}): {problem} — "
-                        "compiling this shot raises.",
+                        f"{leaf.target}:{prop} is a {field_kind.name} field of "
+                        f"{who} ({space.name}): {problem} — compiling this "
+                        "shot raises.",
                     )
 
 
@@ -1952,18 +2016,8 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         store = rig_stores.get(store_name)
         if store is None:
             continue  # store not supplied → this check did not run
-        if entity.kind == "character":
-            # A WARNING: the compiler falls back to the built-in placeholder
-            # rig and the scene still renders. Deliberately not escalated —
-            # an asset-less project rendering placeholders is a supported
-            # way to work.
-            if entity.ref not in store:
-                report.add(
-                    "warning",
-                    f"{path}/entities/{j}",
-                    f"character ref {entity.ref!r} not in characters store",
-                )
-            continue
+        if entity.kind in _PLACEHOLDER_RIG_KINDS:
+            continue  # its genre reports a missing ref (`check_character_refs`)
         # A stroked path (an#160) is a prop whose document is a
         # `PathDescriptor`; it is checked by the same resolver the
         # compiler builds it with, overrides merged, so the verdicts agree.
@@ -1994,6 +2048,32 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
                 "error",
                 f"{path}/entities/{j}",
                 f"{entity.kind} ref {entity.ref!r} {why}",
+            )
+
+
+#: Entity kinds whose missing ref is NOT an error, because the compiler draws
+#: a placeholder rig instead: the cut-out genre's `character`, reported by its
+#: own check (:func:`check_character_refs`). P8 moves this with the genre.
+_PLACEHOLDER_RIG_KINDS: frozenset[str] = frozenset({"character"})
+
+
+def check_character_refs(ctx: ValidationContext) -> None:
+    """The cut-out genre's missing-character warning. A WARNING: the compiler
+    falls back to the built-in placeholder rig and the scene still renders.
+    Deliberately not escalated — an asset-less project rendering placeholders
+    is a supported way to work."""
+    store = ctx.stores.get("characters")
+    if store is None:
+        return  # store not supplied → this check did not run
+    text_ids = _text_ids(ctx)
+    for j, entity in enumerate(ctx.shot.entities):
+        if entity.kind != "character" or entity.id in text_ids:
+            continue
+        if entity.ref not in store:
+            ctx.report.add(
+                "warning",
+                f"{ctx.path}/entities/{j}",
+                f"character ref {entity.ref!r} not in characters store",
             )
 
 

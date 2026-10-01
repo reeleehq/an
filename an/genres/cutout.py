@@ -73,6 +73,12 @@ CUTOUT = Genre(
             description="no line is spoken while the speaker's view hides its mouth",
         ),
         SemanticCheck(
+            "cutout.character_refs",
+            _validate.check_character_refs,
+            order=100.5,
+            description="a character ref missing from the store draws the placeholder rig",
+        ),
+        SemanticCheck(
             "cutout.view_continuity",
             _validate.check_view_continuity,
             stage="finish",

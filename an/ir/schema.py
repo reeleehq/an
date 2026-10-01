@@ -376,6 +376,19 @@ class ExtensionAction(_ActionBase):
 
     kind: str
 
+    def __init__(self, /, **data: Any) -> None:
+        if type(self) is ExtensionAction:
+            registered = action_kind(data.get("kind"))  # type: ignore[arg-type]
+            if registered is not None and registered.model is not ExtensionAction:
+                # The validator below would hand back ANOTHER model, which
+                # `__init__` cannot return (review-244 N1): say what works.
+                raise TypeError(
+                    f"kind {data.get('kind')!r} is registered with its own model, "
+                    f"{registered.model.__name__}: construct that, or call "
+                    "ExtensionAction.model_validate(...) to get it from a dict"
+                )
+        super().__init__(**data)
+
     @model_validator(mode="wrap")
     @classmethod
     def _as_registered_kind(cls, data: Any, handler: Any) -> Any:

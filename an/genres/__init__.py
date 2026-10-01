@@ -233,12 +233,55 @@ def installed_genre(name: str) -> Genre | None:
 # -----------------------------------------------------------------------------
 
 
+#: Genres the ``an`` distribution itself ships, as entry-point values. They are
+#: found by :func:`load` WITHOUT relying on installed metadata: an editable
+#: install made before the ``an.genres`` group existed never refreshes its
+#: ``dist-info``, and a missing entry point must never silently drop a genre
+#: that ships in the same distribution as the core (review-244 S1). Still
+#: explicit discovery (only :func:`load` reads it, never an import). External
+#: genres (``cutan`` after P8) come through the entry point alone; when the
+#: cut-out genre moves there, its line here goes.
+IN_DISTRIBUTION_GENRES: tuple[tuple[str, str], ...] = (
+    ("cutout_animation", "an.genres.cutout:CUTOUT"),
+)
+
+
 def genre_entry_points(*, group: str = ENTRY_POINT_GROUP) -> tuple[EntryPoint, ...]:
     """The installed ``an.genres`` entry points (nothing is imported)."""
     return tuple(_entry_points(group=group))
 
 
+def discovered_entry_points(
+    *, entry_points: Iterable[EntryPoint] | None = None, builtin: bool = True
+) -> tuple[EntryPoint, ...]:
+    """The in-distribution genres (``builtin``) merged with ``entry_points``
+    (default: the installed ones), de-duplicated by name — the in-distribution
+    declaration first, so a stale or missing installed entry cannot shadow it.
+
+    >>> [ep.name for ep in discovered_entry_points(entry_points=())]
+    ['cutout_animation']
+    """
+    eps = genre_entry_points() if entry_points is None else tuple(entry_points)
+    builtins = (
+        tuple(EntryPoint(n, v, ENTRY_POINT_GROUP) for n, v in IN_DISTRIBUTION_GENRES)
+        if builtin
+        else ()
+    )
+    out: dict[str, EntryPoint] = {}
+    for ep in (*builtins, *eps):
+        out.setdefault(ep.name, ep)
+    return tuple(out.values())
+
+
+#: Resolved declarations, by entry point: reading a genre imports its module
+#: once per process (review-244 N6).
+_RESOLVED: dict[tuple[str, str], Genre] = {}
+
+
 def _resolve(ep: EntryPoint) -> Genre:
+    key = (ep.name, ep.value)
+    if key in _RESOLVED:
+        return _RESOLVED[key]
     try:
         genre = ep.load()
     except Exception as e:  # noqa: BLE001 — re-raised, named
@@ -251,37 +294,49 @@ def _resolve(ep: EntryPoint) -> Genre:
             f"the `{ENTRY_POINT_GROUP}` entry point {ep.name!r} = {ep.value!r} "
             f"names a {type(genre).__name__}, not an an.genres.Genre"
         )
+    _RESOLVED[key] = genre
     return genre
 
 
-def available(*, entry_points: Iterable[EntryPoint] | None = None) -> dict[str, Genre]:
-    """Every installed genre's declaration, by name — read, never registered.
+def available(
+    *, entry_points: Iterable[EntryPoint] | None = None, builtin: bool = True
+) -> dict[str, Genre]:
+    """Every discoverable genre's declaration, by name — read, never registered.
 
+    The in-distribution genres plus the entry points (:func:`discovered_entry_points`).
     A genre whose entry point does not import is left out (its error is what
     :func:`load` raises).
     """
-    eps = genre_entry_points() if entry_points is None else tuple(entry_points)
     out: dict[str, Genre] = {}
-    for ep in eps:
+    for ep in discovered_entry_points(entry_points=entry_points, builtin=builtin):
         try:
             genre = _resolve(ep)
         except GenreError:
             continue
-        out[genre.name] = genre
+        out.setdefault(genre.name, genre)
     return out
 
 
-def load(*, entry_points: Iterable[EntryPoint] | None = None) -> tuple[str, ...]:
-    """Register every installed genre (the ``an.genres`` entry points). Idempotent.
+def load(
+    *, entry_points: Iterable[EntryPoint] | None = None, builtin: bool = True
+) -> tuple[str, ...]:
+    """Register every discoverable genre. Idempotent.
 
-    Returns the names of the genres registered after the call. Never called at
-    import time: the CLI, ``an.load(project)`` and the MCP entry call it, so a
-    document naming a genre's kind validates to that kind's model.
-    ``entry_points`` replaces the installed ones (tests, a host that curates).
+    Discoverable: the genres the ``an`` distribution ships
+    (:data:`IN_DISTRIBUTION_GENRES`, unless ``builtin=False``) and the
+    ``an.genres`` entry points (``entry_points`` replaces the installed ones —
+    tests, a host that curates). Returns the names of the genres registered
+    after the call. Never called at import time: the CLI, ``an.load(project)``
+    and the MCP entry call it, so a document naming a genre's kind validates to
+    that kind's model.
     """
-    eps = genre_entry_points() if entry_points is None else tuple(entry_points)
-    for ep in eps:
-        register_genre(_resolve(ep))
+    seen: set[str] = set()
+    for ep in discovered_entry_points(entry_points=entry_points, builtin=builtin):
+        genre = _resolve(ep)
+        if genre.name in seen:
+            continue  # the same genre under two entry-point names
+        seen.add(genre.name)
+        register_genre(genre)
     return installed()
 
 
@@ -303,6 +358,45 @@ def providers_of(kind: str, *, registry: str = "action kinds") -> tuple[str, ...
     """The installed genres (loaded or not) that declare ``kind`` in ``registry``
     (a key of :meth:`Genre.provides`). Used by the unregistered-kind errors."""
     return genres_declaring(lambda g: kind in g.provides().get(registry, ()))
+
+
+# -----------------------------------------------------------------------------
+# Which property space a target lives in
+# -----------------------------------------------------------------------------
+
+
+def entity_space_resolver(entities: Iterable, *, default: str | None = None):
+    """``target -> PropertySpace``: the space its ENTITY's kind declares.
+
+    The ONE policy for "what are this target's properties" (review-244 S7):
+    ``an validate``'s generic target check and the compiler's keyframe check
+    both use it. A target's entity is its first path segment; a target with no
+    entity (the stage camera's ``root``), or an entity whose kind is
+    unregistered or declares no space, gets ``default`` — the timing default
+    :data:`an.timing.spaces.DFLT_TIMELINE_SPACE` when ``None``.
+
+    (The default EVALUATOR still uses that one space for every target: a
+    compiled stage document does not carry its entities' kinds, so a
+    per-entity evaluation default arrives with the ``Engine`` seam, P3.)
+
+    >>> from an.ir.schema import AssetRef
+    >>> space_of = entity_space_resolver([AssetRef(kind="prop", id="lamp", store="props", ref="l")])
+    >>> space_of("lamp/shade").name, space_of("root").name
+    ('stage.node', 'stage.node')
+    """
+    from an.timing import spaces
+
+    fallback = spaces.get_space(default or spaces.DFLT_TIMELINE_SPACE or "stage.node")
+    by_entity = {}
+    for entity in entities:
+        kind = entity_kind(entity.kind)
+        if kind is not None and kind.space is not None:
+            by_entity[entity.id] = spaces.get_space(kind.space)
+
+    def space_of(target: str):
+        return by_entity.get(target.split("/", 1)[0], fallback)
+
+    return space_of
 
 
 # -----------------------------------------------------------------------------
@@ -353,6 +447,9 @@ __all__ = [
     "available",
     "entity_kind",
     "entity_kind_names",
+    "entity_space_resolver",
+    "IN_DISTRIBUTION_GENRES",
+    "discovered_entry_points",
     "genre_entry_points",
     "genres_declaring",
     "installed",

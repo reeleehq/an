@@ -824,7 +824,7 @@ def _build_text(work: Path) -> Path:
     holds perfectly still while the push-in magnifies everything else. The
     label is on the WORLD layer at a stage position beside the character, so
     it grows and drifts with the scene. The reveal is ordinary actions, one
-    per word — `an.text.stagger` generates exactly these.
+    per word — `an.text.reveal_units` generates exactly these.
     """
     import json
 
@@ -2849,7 +2849,7 @@ DEMOS: tuple[Demo, ...] = (
             "glyphs become an SVG sprite at compile time, so the runtime never "
             "rasterises a font. The default face is Pillow's embedded Aileron "
             "(CC0), so nothing depends on the machine's fonts; `font:` takes a "
-            "font FILE and a missing one raises. `an.text.stagger(...)` generates "
+            "font FILE and a missing one raises. `an.text.reveal_units(...)` generates "
             "the per-word `set` + delayed `tween` pairs written out here."
         ),
         build=_build_text,

@@ -58,8 +58,12 @@ class ScenesStore(MutableMapping):
         # — the store would happily persist `version: "0.0.42"`, and the very
         # next read raised. Symmetric boundaries or none.
         scene = value if isinstance(value, SceneIR) else scene_from_json_doc(value)
+        # The markdown FIRST: it can refuse (an action or dialogue sugar no
+        # loaded genre can spell), and a refusal must leave the pair as it was,
+        # not a new JSON beside a stale md (review-244 N5).
+        markdown = ir_to_markdown(scene)
         _write_json(self.json_path, json.loads(scene.model_dump_json()))
-        _write_text(self.md_path, ir_to_markdown(scene))
+        _write_text(self.md_path, markdown)
         # Equalize mtimes so the JSON wins ties on subsequent sync()s. Pipeline
         # stages (audio, lip-sync) inject rich state into the JSON that the
         # Markdown can't represent — without this, sync() would round-trip

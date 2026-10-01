@@ -210,6 +210,11 @@ def register_space(
     ``owner`` names who registered it; only :data:`CORE_OWNER`'s spaces reach
     `an`'s contract files, so an installed genre never edits the core contract.
     """
+    if space.name == VALUE_TYPED:
+        raise SpaceError(
+            f"{VALUE_TYPED!r} is reserved: `space={VALUE_TYPED!r}` asks "
+            "evaluate_timeline for the value-typed rule"
+        )
     if not replace and space.name in _REGISTRY:
         raise SpaceError(f"property space {space.name!r} is already registered")
     _REGISTRY[space.name] = space
@@ -245,6 +250,13 @@ DFLT_VALUE_TYPED_SPACE: str = "stage.node"
 #: which hold both). Every caller — compile's from-less start, ``impacts``'
 #: truth projections, the bench — inherits it. ``None`` here would restore the
 #: value-typed rule as the default.
+#:
+#: ONE space for every target, by design for now: a compiled stage document's
+#: nodes are all stage nodes and it does not carry its entities' kinds. The
+#: per-entity policy (:func:`an.genres.entity_space_resolver`) is what
+#: ``an validate`` and the compiler's keyframe check use; making it the
+#: evaluator's default too belongs to the ``Engine`` seam (P3, an#245), where
+#: an engine knows its document's entities (review-244 S7).
 DFLT_TIMELINE_SPACE: str | None = "stage.node"
 
 #: Pass as ``space=`` to ask for the value-typed rule ``runtime.js`` implements

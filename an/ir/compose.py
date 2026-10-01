@@ -219,7 +219,10 @@ def stagger(lag: Seconds, *actions: Action) -> ParallelAction:
     by ``i * lag``. It is authoring sugar, not a new kind — it builds the
     ``parallel`` of ``sequence(delay(i * lag), action)`` it means, so the
     scene document, ``scene.md`` and every renderer see only core kinds.
-    Total duration: the latest child's end.
+    Total duration: the latest child's end. ``scene.md`` holds it verbatim (a
+    ``kind: parallel`` entry), so it round-trips. (``an.text.reveal_units`` —
+    ``an.text.stagger`` before an#241 — is the text-block preset: a LIST of
+    per-unit actions with holds, not a combinator.)
 
     >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
     ...                              tween("b", "x", to=1.0, duration=1.0),
@@ -235,7 +238,7 @@ def stagger(lag: Seconds, *actions: Action) -> ParallelAction:
     ...
     ValueError: stagger lag must be >= 0, got -1.0
     """
-    if lag < 0:
+    if not lag >= 0:  # `not >=` also refuses NaN
         raise ValueError(f"stagger lag must be >= 0, got {lag}")
     return parallel(
         *(

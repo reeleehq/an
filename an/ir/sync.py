@@ -528,23 +528,36 @@ def _extract_actions_block(text: str) -> list:
             )
         kind = item.get("kind")
         registered = action_kind(kind) if isinstance(kind, str) else None
-        if registered is None or registered.read_md is None:
+        if registered is None:
             raise SceneMarkdownError(_unknown_md_kind_message(i, kind))
         start = item.pop("start", None) if registered.md_start else None
-        action = registered.read_md(item, index=i)
+        if registered.read_md is not None:
+            action = registered.read_md(item, index=i)
+        else:
+            # A kind with no short form (a composite, a genre leaf without md
+            # hooks) is written verbatim; it reads back through the schema.
+            action = _validate_action(item, index=i)
         if start is not None and float(start) > 0:
             action = _compose.sequence(_compose.delay(float(start)), action)
         out.append(action)
     return out
 
 
+def _validate_action(item: dict[str, Any], *, index: int) -> Any:
+    """A verbatim ``yaml actions`` entry, validated by the schema's union."""
+    from pydantic import TypeAdapter
+
+    from an.ir.schema import Action
+
+    try:
+        return TypeAdapter(Action).validate_python(item)
+    except ValidationError as e:
+        raise SceneMarkdownError(f"actions[{index}] is not a valid action: {e}") from e
+
+
 def _md_kinds() -> list[str]:
     """The action kinds ``scene.md`` can spell, in registration order."""
-    return [
-        name
-        for name in action_kind_names()
-        if (k := action_kind(name)) is not None and k.read_md is not None
-    ]
+    return list(action_kind_names())
 
 
 def _unknown_md_kind_message(index: int, kind: Any) -> str:
@@ -783,19 +796,32 @@ def ir_to_markdown(scene: SceneIR) -> str:
 def _actions_to_yaml_list(actions: list) -> list[dict]:
     """Convert authoring Action objects back to the markdown-friendly dicts.
 
-    Only handles the leaf actions whose registered kind has a ``write_md``
-    hook (the core's set and tween, a genre's leaves such as ``play``), plus
-    the ``sequence(delay(start), <leaf>)`` wrapper that the parser produces
-    for actions with a ``start`` time. Composition trees that don't fit those
-    shapes are skipped (logged via the JSON fallback — no data loss, just no
-    markdown round-trip). An action whose kind no loaded genre registered is
-    REFUSED, not skipped: dropping it from scene.md would drop it from the
-    JSON on the next md edit.
+    A leaf whose registered kind has a ``write_md`` hook (the core's set and
+    tween, a genre's leaves such as ``play``) is written in its short form,
+    and so is the ``sequence(delay(start), <leaf>)`` wrapper the parser
+    produces for a ``start:`` key. Anything else — a ``parallel`` (``stagger``
+    builds one), a ``loop``, a nested ``sequence``, a genre leaf with no md
+    form — is written VERBATIM, as the action's own JSON form, which the reader
+    validates back through the schema. Nothing is ever dropped: scene.md is
+    what the JSON is regenerated from on the next md edit (review-244 S4/S5).
+
+    An action whose kind no loaded genre registered — a bare
+    ``ExtensionAction``, or a typed genre action built in Python while its
+    genre is not registered — is REFUSED, naming the genre that provides it.
     """
-    from an.ir.schema import DelayAction, ExtensionAction, SequenceAction
+    from an.ir.compose import iter_actions
+    from an.ir.schema import (
+        DelayAction,
+        ExtensionAction,
+        SequenceAction,
+        unregistered_action_kind,
+    )
 
     out: list[dict] = []
     for action in actions:
+        for node in iter_actions(action):
+            if action_kind(getattr(node, "kind", None) or "") is None:
+                raise unregistered_action_kind(str(getattr(node, "kind", None)))
         # Unwrap sequence(delay(start), leaf) → leaf with start.
         start = None
         leaf = action
@@ -807,17 +833,35 @@ def _actions_to_yaml_list(actions: list) -> list[dict]:
             start = action.children[0].duration
             leaf = action.children[1]
         if type(leaf) is ExtensionAction:
-            leaf = leaf.resolved()  # raises, naming the genre, if unregistered
-        registered = action_kind(getattr(leaf, "kind", None) or "")
-        if registered is None or registered.write_md is None:
-            continue  # composition trees that don't round-trip cleanly to md
-        entry = registered.write_md(leaf)
+            leaf = leaf.resolved()
+        registered = action_kind(leaf.kind)
+        entry = None
+        if registered.write_md is not None and (start is None or registered.md_start):
+            entry = registered.write_md(leaf)
         if entry is None:
+            out.append(_verbatim_action(action))
             continue
-        if start is not None and registered.md_start:
+        if start is not None:
             entry["start"] = start
         out.append(entry)
     return out
+
+
+def _verbatim_action(action: Any) -> dict:
+    """``action``'s own JSON form, minus the ``name: null`` noise on every node."""
+
+    def strip(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                k: strip(v) for k, v in value.items() if not (k == "name" and v is None)
+            }
+        if isinstance(value, list):
+            return [strip(v) for v in value]
+        return value
+
+    if type(action) is not dict:
+        action = action.model_dump(mode="json")
+    return strip(action)
 
 
 # -----------------------------------------------------------------------------

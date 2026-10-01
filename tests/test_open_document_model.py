@@ -207,8 +207,10 @@ def test_validate_reports_an_unregistered_renderer():
 def test_the_compiler_refuses_an_unregistered_kind_by_name():
     from an.adapters.cutout.compile import compile_shot
 
+    doc = json.loads(json.dumps(PLAY_DOC))
+    doc["timeline"][0]["entities"] = []  # so the ACTION is what is refused
     with without_genres():
-        shot = SceneIR.model_validate(PLAY_DOC).timeline[0]
+        shot = SceneIR.model_validate(doc).timeline[0]
         with pytest.raises(UnregisteredKindError, match="'play' is not registered"):
             compile_shot(shot)
 
@@ -224,7 +226,10 @@ def test_scene_md_refuses_genre_kinds_and_sugar_until_loaded(declared_entry_poin
     with without_genres():
         with pytest.raises(SceneMarkdownError, match="cutout_animation") as err:
             markdown_to_ir(md)
-        assert "must be one of set/tween; got 'play'" in str(err.value)
+        assert (
+            "must be one of set/tween/sequence/parallel/delay/loop; got 'play'"
+            in str(err.value)
+        )
         with pytest.raises(SceneMarkdownError, match=r"\[happy\].*cutout_animation"):
             markdown_to_ir(dialogue_md)
         # Writing a scene whose emotion has no sugar to spell it REFUSES rather
@@ -347,6 +352,7 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
         "cutout.expression",
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",
+        "cutout.character_refs",
         "cutout.view_continuity",
     }
 
@@ -492,3 +498,254 @@ def test_every_committed_scene_json_round_trips_with_or_without_the_genre(unload
             scene = scene_from_json_doc(doc, source=path)
             dumped = json.loads(scene.model_dump_json())
         assert dumped == expected, path
+
+
+# ------------------------------------------------- review-244 (S1-S8, nits)
+
+
+def test_the_in_distribution_genre_is_found_without_any_entry_point():
+    """S1: an editable install made before the entry point existed has no
+    `an.genres` metadata; the genre `an` ships must still load."""
+    with without_genres():
+        assert genres.load(entry_points=()) == ("cutout_animation",)
+    with without_genres():
+        assert genres.load(entry_points=(), builtin=False) == ()
+    with without_genres():  # the declared entry point and the built-in: one genre
+        genres.load(entry_points=(_declared_entry_point(),))
+        assert genres.installed() == ("cutout_animation",)
+    assert "cutout_animation (an)" in genres.providers_of("play")
+
+
+def _fresh_example(tmp_path, name="park_bench_cartoon"):
+    import shutil
+    import time
+
+    root = tmp_path / name
+    shutil.copytree(REPO / "examples" / name, root)
+    later = time.time() + 5  # the md is the newer file: `sync` must PARSE it
+    os.utime(root / "scene.md", (later, later))
+    return root
+
+
+def _run(args, *, cwd):
+    """A FRESH interpreter: no conftest, nothing pre-registered."""
+    env = {**os.environ, "PYTHONPATH": str(REPO)}
+    env.pop("PYTEST_CURRENT_TEST", None)
+    return subprocess.run(
+        [sys.executable, *args], capture_output=True, text=True, env=env, cwd=cwd
+    )
+
+
+def test_the_cli_loads_the_genres_itself(tmp_path):
+    """S6: `an validate` on an example that uses the cut-out genre (characters,
+    `[emotion]`), in a process nothing pre-registered. Fails if `main` stops
+    calling `an.genres.load()`."""
+    root = _fresh_example(tmp_path)
+    out = _run(["-m", "an", "validate", str(root)], cwd=tmp_path)
+    assert out.returncode == 0, out.stderr
+    assert out.stdout.startswith("validation: passed"), out.stdout
+
+
+def test_project_load_loads_the_genres_itself(tmp_path):
+    """S6: `an.load(project)` alone, in a fresh process. Fails if
+    `Project.load` stops calling `an.genres.load()`."""
+    root = _fresh_example(tmp_path)
+    code = (
+        "import an, sys\n"
+        "p = an.load(sys.argv[1])\n"
+        "print(an.genres.installed(), p.scene.timeline[0].dialogue[0].emotion)\n"
+    )
+    out = _run(["-c", code, str(root)], cwd=tmp_path)
+    assert out.returncode == 0, out.stderr
+    assert out.stdout.strip() == "('cutout_animation',) thinking", out.stdout
+
+
+def test_both_entry_points_call_load(monkeypatch, tmp_path):
+    """S6, in process: the call itself, whatever the session registered."""
+    import an.__main__ as cli
+    from an.project import init, load
+
+    calls = []
+    real = genres.load
+    monkeypatch.setattr(genres, "load", lambda **kw: calls.append("load") or real(**kw))
+    load(init(tmp_path / "p"))
+    assert calls == ["load"]
+    monkeypatch.setattr(cli, "build_app", lambda: lambda: None)
+    cli.main()
+    assert calls == ["load", "load"]
+
+
+def test_a_typod_entity_kind_is_refused_at_load_and_compile(tmp_path):
+    """S2: `kind: enviroment` used to load and render with no backdrop."""
+    from an.adapters.cutout.compile import CutoutCompileError, compile_shot
+    from an.ir.validate import UnregisteredInSceneError
+    from an.orchestrate import validate_project
+    from an.project import init, load
+    from an.stores import build_project_mall
+
+    root = init(tmp_path / "p")
+    shot = Shot(
+        id="s1",
+        duration=1.0,
+        entities=[
+            AssetRef(kind="enviroment", id="park", store="environments", ref="park")
+        ],
+    )
+    build_project_mall(root)["scenes"]["main"] = SceneIR(timeline=[shot])
+    with pytest.raises(UnregisteredInSceneError, match="entity kind 'enviroment'"):
+        load(root)
+    report = validate_project(root)  # reported as a finding, not raised
+    assert any("entity kind 'enviroment'" in f.description for f in report.findings)
+    with pytest.raises(
+        CutoutCompileError, match="entity kind 'enviroment' is not registered"
+    ):
+        compile_shot(shot)
+
+
+def test_an_unknown_renderer_is_refused_at_load(tmp_path):
+    from an.ir.validate import UnregisteredInSceneError
+    from an.project import init, load
+    from an.stores import build_project_mall
+
+    root = init(tmp_path / "p")
+    build_project_mall(root)["scenes"]["main"] = SceneIR(
+        timeline=[Shot(id="s1", renderer="cutuot")]
+    )
+    with pytest.raises(UnregisteredInSceneError, match="renderer 'cutuot'"):
+        load(root)
+
+
+def test_a_typed_genre_action_without_its_genre_is_reported_not_raised():
+    """S3: `an.play(...)` built in Python while the genre is not loaded."""
+    from an.ir.validate import validate_semantic
+
+    shot = Shot(
+        id="s",
+        entities=[AssetRef(kind="prop", id="lamp", store="props", ref="lamp")],
+        actions=[play("lamp", "flicker")],
+    )
+    with without_genres():
+        report = validate_semantic(SceneIR(timeline=[shot]))
+    assert any(
+        f.ir_path == "timeline/0/actions/0"
+        and "'play' is not registered" in f.description
+        for f in report.findings
+    ), report.findings
+
+
+def test_scene_md_never_drops_an_action():
+    """S4/S5: a typed genre action without its genre is REFUSED by the writer;
+    a composite (a `stagger`, a `loop`) is kept verbatim and reads back."""
+    from an.ir.compose import loop, parallel
+    from an.ir.sync import ir_to_markdown, markdown_to_ir
+
+    with without_genres():
+        with pytest.raises(UnregisteredKindError, match="'play'"):
+            ir_to_markdown(SceneIR(timeline=[Shot(id="s", actions=[play("a", "hop")])]))
+    composites = [
+        stagger(0.25, tween("a", "x", to=1.0, duration=1.0), play("b", "hop")),
+        loop(
+            sequence(tween("a", "y", to=2.0, duration=0.5, easing=None), delay(0.5)), 3
+        ),
+        sequence(delay(1.0), sequence(tween("a", "x", to=0.0, duration=1.0))),
+        parallel(),
+    ]
+    scene = SceneIR(timeline=[Shot(id="s", duration=5.0, actions=composites)])
+    back = markdown_to_ir(ir_to_markdown(scene))
+    assert back.timeline[0].actions == scene.timeline[0].actions
+    assert [f.start for f in flatten(back.timeline[0].actions[0])] == [0.0, 0.25]
+
+
+def test_text_reveal_units_is_the_old_text_stagger():
+    import an.text as text
+
+    assert text.stagger is text.reveal_units
+    assert "stagger" not in text.__all__
+
+
+def test_stagger_refuses_nan():
+    with pytest.raises(ValueError):
+        stagger(float("nan"), delay(1.0))
+
+
+def test_the_report_order_is_pinned():
+    """N3: a genre check lands where it was when all checks were one function."""
+    from an.genres.registry import checks
+
+    assert [c.name for c in checks("shot")] == [
+        "renderer",
+        "shot_basics",
+        "renderable",
+        "framing",
+        "cutout.play",
+        "cutout.expression",
+        "swap_references",
+        "cutout.turns",
+        "cutout.hidden_mouth_while_speaking",
+        "trim_targets",
+        "text_blocks",
+        "action_targets",
+        "field_kinds",
+        "entity_refs",
+        "cutout.character_refs",
+        "voices",
+        "dialogue_lines",
+        "dialogue_fits",
+    ]
+    assert [c.name for c in checks("finish")] == ["cutout.view_continuity", "assembly"]
+
+
+def test_validate_and_compile_share_one_space_policy():
+    """S7: a genre entity kind whose space declares `x` discrete is held to
+    THAT space by validate's check and by the compiler's keyframe check."""
+    from an.adapters.cutout.compile import _check_keyframe_value
+    from an.genres import entity_space_resolver
+    from an.timing.kinds import DiscreteKind
+    from an.timing.spaces import FieldDecl, PropertySpace
+
+    flag_space = PropertySpace("demo.flag", (FieldDecl("x", DiscreteKind()),))
+    demo = Genre(
+        "space_demo",
+        spaces=(flag_space,),
+        entity_kinds=(EntityKind("flag", space="demo.flag", store="props"),),
+    )
+    with without_genres():
+        register_genre(demo)
+        space_of = entity_space_resolver(
+            [AssetRef(kind="flag", id="f", store="props", ref="f")]
+        )
+        assert space_of("f/pole").name == "demo.flag"
+        assert space_of("root").name == "stage.node"
+        assert (
+            _check_keyframe_value("left", target="f", prop="x", space_of=space_of)
+            == "left"
+        )
+        from an.ir.validate import validate_semantic
+
+        shot = Shot(
+            id="s",
+            entities=[AssetRef(kind="flag", id="f", store="props", ref="f")],
+            actions=[tween("f", "x", to="left", duration=1.0)],
+        )
+        report = validate_semantic(SceneIR(timeline=[shot]))
+        assert not [f for f in report.findings if "field of" in f.description]
+
+
+def test_extension_action_refuses_direct_construction_of_a_registered_kind():
+    with pytest.raises(TypeError, match="PlayAction"):
+        ExtensionAction(kind="play", target="a", animation="hop")
+    assert (
+        type(
+            ExtensionAction.model_validate(
+                {"kind": "play", "target": "a", "animation": "hop"}
+            )
+        )
+        is PlayAction
+    )
+
+
+def test_value_typed_is_a_reserved_space_name():
+    from an.timing.spaces import PropertySpace, SpaceError, register_space
+
+    with pytest.raises(SpaceError, match="reserved"):
+        register_space(PropertySpace("value-typed"))

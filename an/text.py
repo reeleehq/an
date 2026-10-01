@@ -21,11 +21,12 @@ never reach the frame path and the determinism perimeter is unchanged.
 **Units are addressable, so text animates with ordinary tweens.** A block of
 ``unit="word"`` builds ``<id>/word_0``, ``<id>/word_1``, …; ``"glyph"`` and
 ``"line"`` likewise. ``index`` counts DRAWN units in reading order (spaces are
-not units). :func:`stagger` is a Python-side generator of ordinary actions for
-a staggered reveal — a preset, not a new IR node:
+not units). :func:`reveal_units` is a Python-side generator of ordinary actions
+for a staggered reveal — a preset, not a new IR node (the general combinator is
+:func:`an.ir.compose.stagger`):
 
 >>> from an.ir.compose import flatten
->>> reveal = stagger("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)
+>>> reveal = reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)
 >>> [(f.action.target, round(f.start, 3)) for a in reveal for f in flatten(a)
 ...  if f.action.kind == "tween"]
 [('title/word_0', 0.0), ('title/word_1', 0.1), ('title/word_2', 0.2)]
@@ -84,7 +85,7 @@ __all__ = [
     "RESERVED_TEXT_IDS",
     "layout_text",
     "unit_names",
-    "stagger",
+    "reveal_units",
     "DFLT_TEXT_COLOUR",
     "DFLT_TEXT_SIZE",
 ]
@@ -517,7 +518,7 @@ def unit_names(
 # -----------------------------------------------------------------------------
 
 
-def stagger(
+def reveal_units(
     entity_id: str,
     count: int,
     property: str,
@@ -542,16 +543,20 @@ def stagger(
     Returns a LIST of top-level actions — ``set``, a bare ``tween``, or the
     ``sequence(delay(start), tween)`` wrapper the ``scene.md`` parser itself
     produces for a ``start:`` key — so ``shot.actions.extend(stagger(...))``
-    round-trips through ``scene.md``. (A ``parallel`` would not: the markdown
-    writer only knows leaf shapes and that one wrapper.)
+    round-trips through ``scene.md`` in its short form, one entry per unit.
 
-    >>> [a.kind for a in stagger("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
+    Named ``stagger`` until an#241 gave the core a general combinator of that
+    name (:func:`an.ir.compose.stagger`, any actions, one ``parallel``);
+    ``an.text.stagger`` stays as an alias of this function so old imports
+    keep working.
+
+    >>> [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
     ['tween', 'set', 'sequence']
     """
     from an.ir import compose as c
 
     if count < 1:
-        raise ValueError(f"stagger needs at least one unit; got count={count}")
+        raise ValueError(f"reveal_units needs at least one unit; got count={count}")
     out = []
     for i in range(count):
         target = f"{entity_id}/{unit}_{i}"
@@ -565,3 +570,7 @@ def stagger(
         else:
             out.append(tween)
     return out
+
+
+#: The pre-an#241 name of :func:`reveal_units`, kept so old imports work.
+stagger = reveal_units

@@ -12,7 +12,7 @@ description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) �
 - Each drawn unit → node `<id>/<unit>_<i>` (i counts DRAWN units; spaces are not units), visual `svg_sprite` `fit: contain`, texture alias `text.<id>.<unit>_<i>`, `src` = `data:image/svg+xml;base64,…`. The block node is the entity; units sit at their box centres so a scale/rotation pivots mid-unit.
 - `layer: overlay` → `CutoutSceneJSON.overlay` (a sibling of `scene`); `layer: world` → the scene like any prop.
 - Fonts: `font: None` = Pillow's embedded Aileron via `tituli.EMBEDDED`; `font:` = a FILE path (absolute, or relative to the text document's directory in an on-disk props store). The face's sha256 goes to `meta.fonts[<id>]`.
-- Reveals are ordinary actions: `an.text.stagger(...)` returns a list of `set` holds + `sequence(delay, tween)` leaves.
+- Reveals are ordinary actions: `an.text.reveal_units(...)` returns a list of `set` holds + `sequence(delay, tween)` leaves.
 
 ## Silent failures this prevents — keep each one refused
 
