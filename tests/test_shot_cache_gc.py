@@ -40,6 +40,7 @@ from an.build.shot_cache import FRAMES_SUFFIX, PARTS_INFIX, ROOT_PREFIX
 from an.ir.schema import Meta, Resolution, SceneIR, Shot, SoundCue, Transition
 from an.project import load
 from tests.test_shot_cache import (  # noqa: F401 — the fixture, by name
+    _ENV,
     _FPS,
     _env,
     _project,
@@ -1003,3 +1004,27 @@ def test_a_shot_stream_of_the_right_rate_but_wrong_shape_is_refused(
     root = _film(tmp_path, [_shot("a", 1.0), _shot("m", 2.0)], sounds=True)
     with pytest.raises(AssemblyError, match=match):
         _render_film(root, solid)
+
+
+def test_a_fresh_process_finds_the_renderers_through_the_lazy_registry(tmp_path, fake_render):
+    """GC keys shots through the renderer registry's real lookup, so a process
+    that imported no adapter (the CLI) still loads them and keeps the scene."""
+    import sys
+
+    root, old = _two_generations(tmp_path, fake_render)
+    code = (
+        "import time, json\n"
+        "from an.build import ShotCache\n"
+        "from an.build.gc import collect_garbage\n"
+        f"r = collect_garbage({str(root)!r}, dry_run=True, now=time.time() + 60,\n"
+        f"    engine=ShotCache(environment=lambda name: {_ENV!r}))\n"
+        "print(json.dumps([[e.id for e in r.deleted], r.kept_reachable]))\n"
+    )
+    import an
+
+    env = {**os.environ, "PYTHONPATH": str(Path(an.__file__).parent.parent)}
+    out = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, env=env, check=True
+    ).stdout
+    deleted, kept = json.loads(out.strip().splitlines()[-1])
+    assert deleted == [old] and kept >= 2  # the current mp4 and the root
