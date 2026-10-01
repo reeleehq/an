@@ -343,3 +343,34 @@ def test_a_part_in_a_dot_named_file_is_credited_and_published(tmp_path, project)
     # OS clutter nobody names is still left out
     (char / ".DS_Store").write_bytes(b"junk")
     assert not publish_dir(lib, char, "character.eve").created
+
+
+def test_add_views_records_what_it_draws(tmp_path):
+    from an.characters.factory import FACTORY_PROVIDER, add_views
+    from an.library import api as library_api
+    from an.library import registry
+
+    char = new_character(tmp_path, name="vic", use_dicebear=False, views=False).parent
+    add_views(char)
+    side = library_api.content_hash((char / "parts" / "head_side.svg").read_bytes())
+    assert FACTORY_PROVIDER in registry.generated_by(side)
+
+
+def test_a_forged_descriptor_stamp_on_a_carved_drawing_says_nothing_for_it(tmp_path):
+    """The descriptor's factory stamp itemises its drawing only when the record
+    confirms it: otherwise its statement about the drawing is the asset's own
+    (`unknown`) label, and another asset labelling the bytes cc0 meets it."""
+    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+    from an.library import api as library_api
+
+    lib = open_library("cutan", records={}, versions={}, blobs={})
+    char = new_character(tmp_path, name="dru", use_dicebear=False).parent
+    drawing = b"<svg>a carved drawing</svg>"
+    (char / "dru.svg").write_bytes(drawing)
+    doc = json.loads((char / "character.json").read_text(encoding="utf-8"))
+    doc["source"] = {"provider": FACTORY_PROVIDER, "license": FACTORY_LICENSE,
+                     "sha256": library_api.content_hash(drawing)}
+    (char / "character.json").write_text(json.dumps(doc), encoding="utf-8")
+    assert publish_dir(lib, char, "character.dru").rights.license_class == "unknown"
+    other = publish(lib, "prop.sheet", {"name": "sheet"}, {"sheet.svg": drawing}, source=CC0)
+    assert other.rights.license_class == "unknown", other.rights.reasons
