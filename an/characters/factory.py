@@ -17,6 +17,7 @@ problem routes the way every other verifier's does (an#78).
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import math
 import re
@@ -39,6 +40,7 @@ def _stable_hash(seed: str) -> int:
     return int.from_bytes(digest[:8], "big")
 
 
+from an.characters import drawn as _drawn
 from an.characters.licenses import (
     DICEBEAR_STYLE_LICENSES,
     attribution_for,
@@ -588,7 +590,7 @@ def scale_part_files(paths, scale: float) -> None:
             continue
         svg = path.read_text(encoding="utf-8")
         _, h = raster_size(path)
-        path.write_text(_sized_to_height(svg, h * scale), encoding="utf-8")
+        _drawn.write_text(path, _sized_to_height(svg, h * scale), encoding="utf-8")
 
 
 def stage_extent(desc: CharacterDescriptor) -> dict[str, float]:
@@ -655,6 +657,20 @@ def _check_style_is_usable(style: str, *, acknowledge_attribution: bool) -> None
     )
 
 
+def _records_what_it_drew(func):
+    """Run ``new_character`` with its writes logged, then record what it drew (an#269)."""
+
+    @functools.wraps(func)
+    def run(*args, **kwargs):
+        with _drawn.drawing() as wrote:
+            desc_path = func(*args, **kwargs)
+            _record_drawn(Path(desc_path).parent, wrote)
+        return desc_path
+
+    return run
+
+
+@_records_what_it_drew
 def new_character(
     out_dir: str | Path,
     *,
@@ -804,7 +820,7 @@ def new_character(
 
     canonical = wrap_dicebear_for_an(avatar, name=name)
     canonical_path = out / f"{name}.svg"
-    canonical_path.write_text(canonical, encoding="utf-8")
+    _drawn.write_text(canonical_path, canonical, encoding="utf-8")
 
     # Step 3: write self-contained per-part SVGs (centered, sized to fill
     # their own canvas). Done independently of the canonical for clean
@@ -974,6 +990,52 @@ def factory_descriptor_source(source_svg: bytes) -> AssetSource:
         sha256=hashlib.sha256(source_svg).hexdigest(),
         cost_usd=0.0,
     )
+
+
+def _record_drawn(char_dir: Path, wrote: Mapping[str, str]) -> None:
+    """Record on this machine that the factory drew the stamped bytes at ``char_dir`` (an#269).
+
+    Called ONLY by :func:`new_character`, at its end. ``wrote`` is the log of
+    what this call itself wrote, ``{resolved path: sha256}`` of the bytes as
+    they were written, computed in memory (:mod:`an.characters.drawn`). A
+    digest the factory's own stamp pins there — per part, and the
+    descriptor's on the drawing — is recorded only if it is exactly what this
+    call wrote at that path: a file swapped in while it ran is not recorded,
+    whatever the folder holds when it finishes. What
+    verifies a factory stamp in the asset library
+    (:func:`an.library.api.factory_drew`): the public stamping functions never
+    record, so stamping bytes the factory did not draw (a carved head)
+    verifies nothing (review-269 B2). If the record cannot be written, the
+    stamps stand unverified — the stricter reading — and a warning says so.
+    """
+    import warnings
+
+    from an.credits import is_factory_stamp
+    from an.library.registry import RegistryError, record_generated
+
+    raw = json.loads((char_dir / "character.json").read_text(encoding="utf-8"))
+    stamps = [(raw.get("source_svg"), raw.get("source"))] + [
+        (att.get("path"), att.get("source"))
+        for skin in (raw.get("skins") or {}).values()
+        for slot in (skin.get("slots") or {}).values()
+        for att in slot.values()
+        if isinstance(att, dict)
+    ]
+    digests = set()
+    for rel, stamp in stamps:
+        if not rel or not is_factory_stamp(stamp) or not stamp.get("sha256"):
+            continue
+        if wrote.get(str((char_dir / rel).resolve())) == stamp["sha256"]:
+            digests.add(stamp["sha256"])
+    try:
+        record_generated(sorted(digests), generator=FACTORY_PROVIDER)
+    except RegistryError as e:
+        warnings.warn(
+            f"{e}; the character is stamped, but its bytes are not recorded as the "
+            "factory's, so an older unlabelled asset holding the same bytes keeps "
+            "it `unknown` in the asset library",
+            stacklevel=3,
+        )
 
 
 def stamp_factory_descriptor(char_dir: str | Path) -> Path:
@@ -1250,7 +1312,7 @@ def _synthesize_eye_open(path: Path, *, side: str, outline_only: bool = False) -
             f'<ellipse cx="{cx}" cy="{cy}" rx="{EYE_RX}" ry="{EYE_RY}" fill="#ffffff" stroke="#222" stroke-width="2"/>'
             f'<circle cx="{cx}" cy="{cy}" r="{PUPIL_R}" fill="#1a1a1a"/>'
         )
-    path.write_text(_eye_svg(inner, gid=f"eye_{side}_open"), encoding="utf-8")
+    _drawn.write_text(path, _eye_svg(inner, gid=f"eye_{side}_open"), encoding="utf-8")
     return path
 
 
@@ -1265,21 +1327,21 @@ def _synthesize_eye_closed(path: Path, *, side: str, fill: str | None = None) ->
         lid
         + f'<path d="M {cx - 14} {cy + 2} Q {cx} {cy + 8} {cx + 14} {cy + 2}" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>'
     )
-    path.write_text(_eye_svg(inner, gid=f"eye_{side}_closed"), encoding="utf-8")
+    _drawn.write_text(path, _eye_svg(inner, gid=f"eye_{side}_closed"), encoding="utf-8")
     return path
 
 
 def _synthesize_sclera(path: Path, *, side: str) -> Path:
     cx, cy = EYE_CENTRE
     inner = f'<ellipse cx="{cx}" cy="{cy}" rx="{EYE_RX}" ry="{EYE_RY}" fill="#ffffff" stroke="none"/>'
-    path.write_text(_eye_svg(inner, gid=f"sclera_{side}"), encoding="utf-8")
+    _drawn.write_text(path, _eye_svg(inner, gid=f"sclera_{side}"), encoding="utf-8")
     return path
 
 
 def _synthesize_pupil(path: Path, *, side: str) -> Path:
     cx, cy = EYE_CENTRE
     inner = f'<circle cx="{cx}" cy="{cy}" r="{PUPIL_R}" fill="{PUPIL_COLOUR}"/>'
-    path.write_text(_eye_svg(inner, gid=f"pupil_{side}"), encoding="utf-8")
+    _drawn.write_text(path, _eye_svg(inner, gid=f"pupil_{side}"), encoding="utf-8")
     return path
 
 
@@ -1563,7 +1625,7 @@ def _write_head_part(
     762×762 one nearly three times it (an#168). Only the root's
     ``width``/``height`` change; the drawing and its viewBox are untouched.
     """
-    path.write_text(_head_part_text(avatar_svg, height=height), encoding="utf-8")
+    _drawn.write_text(path, _head_part_text(avatar_svg, height=height), encoding="utf-8")
     return path
 
 
@@ -1618,7 +1680,7 @@ def _write_torso_part(
         f'<svg xmlns="{SVG_NS}" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
         f'<g id="torso">{inner}</g></svg>'
     )
-    path.write_text(svg, encoding="utf-8")
+    _drawn.write_text(path, svg, encoding="utf-8")
     return roles
 
 
@@ -1645,7 +1707,7 @@ def _write_arm_part(
         f'stroke-width="{sw:g}"/>'
         "</g></svg>"
     )
-    path.write_text(svg, encoding="utf-8")
+    _drawn.write_text(path, svg, encoding="utf-8")
     return {color: "clothing", hand: "skin"}
 
 
@@ -1672,7 +1734,7 @@ def _write_leg_part(
         f'<ellipse cx="40" cy="{cy:g}" rx="{srx:g}" ry="{sry:g}" fill="{SHOE_COLOUR}"/>'
         "</g></svg>"
     )
-    path.write_text(svg, encoding="utf-8")
+    _drawn.write_text(path, svg, encoding="utf-8")
     return {color: "leg"}
 
 
@@ -1688,7 +1750,7 @@ def _synthesize_brow(path: Path, *, side: str, color: str = DFLT_BROW_COLOUR) ->
         f'stroke="{color}" stroke-width="{BROW_STROKE:g}" fill="none" stroke-linecap="round"/>'
         "</g></svg>"
     )
-    path.write_text(svg, encoding="utf-8")
+    _drawn.write_text(path, svg, encoding="utf-8")
     return path
 
 
@@ -1855,7 +1917,7 @@ def _write_view_torso_part(
         f'<svg xmlns="{SVG_NS}" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
         f'<g id="torso_{view}">{inner}</g></svg>'
     )
-    path.write_text(svg, encoding="utf-8")
+    _drawn.write_text(path, svg, encoding="utf-8")
     return roles
 
 
@@ -2084,7 +2146,8 @@ def add_views(char_dir: str | Path) -> Path:
         if view == DFLT_VIEW:
             continue
         head_rel = f"parts/head_{view}.svg"
-        (char_dir / head_rel).write_text(
+        _drawn.write_text(
+            char_dir / head_rel,
             _head_part_text(
                 _view_head_svg(
                     view,
@@ -2097,9 +2160,7 @@ def add_views(char_dir: str | Path) -> Path:
                     hair_length=hair_length,
                 ),
                 height=height,
-            ),
-            encoding="utf-8",
-        )
+            ), encoding="utf-8")
         roles[head_rel] = dict(looks.head_roles)
         torso_rel = f"parts/torso_{view}.svg"
         roles[torso_rel] = _write_view_torso_part(

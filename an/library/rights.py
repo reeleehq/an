@@ -19,7 +19,10 @@ The library adds no licence vocabulary. A version's rights are rolled up from
   (:func:`an.library.api.version_sources` walks all of it).
 
 A version may only ever be MORE restrictive than what it inherits. Relaxing
-takes an explicit, recorded relicence — who and why — on the version.
+takes an explicit, recorded relicence — who and why — on the version. Where
+nobody ever said anything (a file an earlier version recorded ``unlabelled``,
+a version with no source), an explicit source with a recorded ``relabel`` —
+who and why — is the first statement (an#263); it relaxes nothing anyone said.
 
 Order, most restrictive first: ``private`` > ``unknown`` > ``attribution`` >
 ``free``. ``private`` and ``unknown`` are not publishable.

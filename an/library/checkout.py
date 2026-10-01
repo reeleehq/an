@@ -10,7 +10,12 @@ render-time private-study warning look:
   its recomputed ``rights``, and every source those rights depend on that the
   descriptor itself does not hold (the asset-level source, the sources of every
   version it derives from). ``an credits`` reads them
-  (``an.credits._library_origin_credits``);
+  (``an.credits._library_origin_credits``). For a version with an asset-level
+  source it also records ``checked_out``: the descriptor's source as the
+  check-out left it and the files' digests, so in the copy that label speaks
+  only for the bytes it was declared on — a file edited or added since is
+  UNVERIFIED in ``an credits``, as it is ``unknown`` when the copy is published
+  back (an#264);
 - the asset-level source, written into a descriptor that declares none (or
   only the character factory's own stamp, which it then stands in for);
 - the pin in ``assets.lock.json`` — the project mall's ``library_lock`` store,
@@ -66,7 +71,7 @@ from an.library.rights import (
     roll_up,
     sources_in,
 )
-from an.credits import is_factory_stamp
+from an.credits import CHECKED_OUT_KEY, checked_out_seal, is_factory_stamp
 from an.stores._common import is_os_junk
 from an.library.root import LibraryLocationWarning, git_worktree_of
 
@@ -236,7 +241,7 @@ def checkout(
         )
     files = verified_files(library, version)
     readers = [library, *(lib for lib in as_libraries(libraries) if lib is not library)]
-    contributors = version_sources(readers, version)
+    contributors = version_sources(readers, version, owner=library)
     rights = _stricter(
         Rights.from_dict(version.get("rights") or {}), roll_up(contributors)
     )
@@ -255,7 +260,10 @@ def checkout(
             lock.get(entry_key, {}) if entry_key in lock else {}
         ).get("library") == str(pinned)
         differences = drift(store, key, version)
-        if same_version and not differences and not overwrite:
+        # A copy checked out by an older `an` lacks the record of which bytes
+        # its carried label speaks for (an#264): an unedited one is re-linked.
+        outdated = bool(version.get("source")) and CHECKED_OUT_KEY not in origin
+        if same_version and not differences and not overwrite and not outdated:
             if entry_key not in lock:
                 lock[entry_key] = _pin(pinned, manifest)
             return CheckoutResult(
@@ -264,7 +272,7 @@ def checkout(
         # The entry is byte-for-byte this version but was never linked to it: the
         # folder a publish just sent to the library. Linking it rewrites the same
         # bytes, so it needs no overwrite.
-        linking = not same_version and not differences
+        linking = not differences and (not same_version or outdated)
         if not overwrite and not linking:
             what = (
                 f"a fork of it ({', '.join(differences)})"
@@ -339,6 +347,19 @@ def checkout(
         origin = _origin_block(pinned, version, contributors, rights, visible)
         if added is not None:
             origin[SOURCE_ADDED_KEY] = added
+        if version.get("source"):
+            # The version's asset-level label was declared on these bytes, and
+            # a publish of the copy carries it for them only: `an credits` in
+            # the project reads it the same way (an#264).
+            digests = {
+                path: ContentRef.from_json(raw).item_id
+                for path, raw in sorted((version.get("files") or {}).items())
+            }
+            origin[CHECKED_OUT_KEY] = {
+                "source": copy.deepcopy(doc.get("source")),
+                "files": digests,
+                "seal": checked_out_seal(doc.get("source"), digests),
+            }
         if not isinstance(doc.get("metadata"), dict):
             doc["metadata"] = {}
             origin[METADATA_ADDED_FLAG] = True

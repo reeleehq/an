@@ -45,7 +45,7 @@ from __future__ import annotations
 import os
 import sys
 import warnings
-from collections.abc import Iterable, Mapping, MutableMapping
+from collections.abc import Collection, Iterable, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any
 
@@ -57,13 +57,14 @@ from an.library.registry import (
     register_root,
     registered_roots,
     remember_statements,
-    remembered_statements,
+    remembered_statements_by_root,
 )
 from an.library.root import HOME_ENV_SUFFIX, LIBRARY_DIRNAME, _platform_data_dir
 from an.library.rights import LICENSE_CLASS_ORDER
 
 __all__ = [
     "BlobFloor",
+    "library_origin",
     "machine_libraries",
     "record_statement",
     "register_library",
@@ -107,11 +108,14 @@ def register_library(library: Library) -> None:
     :class:`an.library.registry.RegistryError` when the registry cannot be
     read or written: the write is refused rather than made invisible to the floor.
 
-    A registry that does not exist yet while libraries already sit on disk
-    means either the first use since the registry exists, or a registry that
-    was lost: every library discoverable now is registered with this one, and a
-    :class:`an.library.registry.RegistryWarning` says that libraries kept at
-    custom roots are known again only once written to or reindexed.
+    A registry that does not exist yet means either this machine's first
+    library write, or a registry that was deleted — and nothing on disk tells
+    the two apart: a deleted registry takes its memory of statements with it.
+    So whenever the registry is created from nothing (an#263, R2b-N2), every
+    library discoverable now is registered with this one, and a
+    :class:`an.library.registry.RegistryWarning` says that a library kept at a
+    custom root binds the rights checks again only once it is written to or
+    reindexed. Never delete the registry folder wholesale; prune it.
     """
     if library.root is None:
         return
@@ -123,17 +127,34 @@ def register_library(library: Library) -> None:
         ]
         for package, root in discovered:
             register_root(package, root)
-        if discovered:
-            warnings.warn(
-                f"the registry of library roots ({machine_registry_path()}) did not "
-                f"exist, though {len(discovered)} library root(s) do: registered "
-                "every library discoverable now. A library kept at a custom root is "
-                "known to the rights checks again once it is written to or reindexed "
-                "(an.library.api.reindex).",
-                RegistryWarning,
-                stacklevel=3,
-            )
+        found = (
+            f"registered the {len(discovered)} other library root(s) discoverable now"
+            if discovered
+            else "no other library is discoverable now"
+        )
+        warnings.warn(
+            f"the registry of library roots ({machine_registry_path()}) did not "
+            f"exist, so it was created from nothing ({found}). On a machine's first "
+            "library write that is expected. If it was deleted, every statement it "
+            "remembered is gone: a library kept at a custom root binds the rights "
+            "checks again only once it is written to or reindexed "
+            "(an.library.api.reindex). Prune the registry; never delete it.",
+            RegistryWarning,
+            stacklevel=3,
+        )
     register_root(library.name, library.root)
+
+
+def library_origin(library: Library) -> str:
+    """Which library a statement came from: its resolved root, or this in-memory library.
+
+    Two libraries can share a name (the default ``cutan`` and one at a custom
+    root), and so an asset key, a version label and even a manifest: only the
+    root tells their statements apart.
+    """
+    if library.root is not None:
+        return str(Path(library.root).expanduser().resolve())
+    return f"<in-memory library {id(library)}>"
 
 
 def remember(library: Library, statements) -> None:
@@ -222,32 +243,56 @@ class BlobFloor:
             else (as_libraries(libraries) if libraries else [])
         )
         self.remembered = discover
-        self._memo: dict[str, dict[str, dict[str, Any]]] = {}
+        self._memo: dict[str, list[tuple[str | None, str, dict[str, Any]]]] = {}
 
-    def statements(self, digest: str) -> dict[str, dict[str, Any]]:
-        """``{asset_key: statement}`` about ``digest`` from every library."""
+    def _all(self, digest: str) -> list[tuple[str | None, str, dict[str, Any]]]:
+        """Every ``(origin, asset_key, statement)`` about ``digest``, unmerged, read once."""
         if digest not in self._memo:
-            merged: dict[str, dict[str, Any]] = {}
+            found: list[tuple[str | None, str, dict[str, Any]]] = []
             for library in self.libraries:
                 store = library.blob_rights
                 try:
                     entries = store[digest] if digest in store else {}
                 except Exception:  # noqa: BLE001 — a damaged index entry is rebuilt by reindex
                     entries = {}
-                for key, statement in entries.items():
-                    held = merged.get(key)
-                    if held is None or _outranks(statement, held):
-                        merged[key] = dict(statement)
+                origin = library_origin(library)
+                found += [(origin, key, dict(s)) for key, s in entries.items()]
             # What any library on this machine ever said, even one since moved,
             # renamed or deleted: a missing root relaxes nothing.
-            for key, statement in (
-                remembered_statements(digest) if self.remembered else []
-            ):
-                held = merged.get(key)
-                if held is None or _outranks(statement, held):
-                    merged[key] = dict(statement)
-            self._memo[digest] = merged
+            found += remembered_statements_by_root(digest) if self.remembered else []
+            self._memo[digest] = found
         return self._memo[digest]
+
+    def each(self, digest: str) -> list[tuple[str | None, str, dict[str, Any]]]:
+        """Every ``(origin, asset_key, statement)`` about ``digest``, unmerged.
+
+        ``origin`` is the library that made it (:func:`library_origin`), so a
+        caller can tell a version it read itself from a same-named library's.
+        """
+        return [(o, k, dict(s)) for o, k, s in self._all(digest)]
+
+    def statements(
+        self, digest: str, *, exclude: Collection[tuple[str, str]] = ()
+    ) -> dict[str, dict[str, Any]]:
+        """``{asset_key: statement}`` about ``digest`` from every library.
+
+        exclude: ``(origin, manifest)`` of versions whose statements to leave
+            out — the versions a rights walk reads in full itself
+            (:func:`an.library.api.version_sources`), each in the library it
+            was read from (:func:`library_origin`). A same-named library's
+            version with the same manifest is another version (its lineage
+            resolves in ITS library), so it is never left out; and the
+            exclusion runs before statements under one asset key are merged,
+            so it can hide nothing else.
+        """
+        merged: dict[str, dict[str, Any]] = {}
+        for origin, key, statement in self._all(digest):
+            if exclude and (origin, statement.get("manifest")) in exclude:
+                continue
+            held = merged.get(key)
+            if held is None or _outranks(statement, held):
+                merged[key] = dict(statement)
+        return merged
 
     def strictest(self, digests: Iterable[str]) -> str:
         """The strictest class any statement makes about any of ``digests`` (``free`` if none)."""

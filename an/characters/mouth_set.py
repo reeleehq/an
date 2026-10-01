@@ -23,6 +23,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
+from an.characters import drawn as _drawn
 from an.characters.schema import MOUTH_SHAPES
 
 
@@ -229,6 +230,6 @@ def write_default_mouths(
     for batch in batches:
         for name, svg in batch.items():
             path = out / f"{name}.svg"
-            path.write_text(svg, encoding="utf-8")
+            _drawn.write_text(path, svg, encoding="utf-8")
             written.append(path)
     return written
