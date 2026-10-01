@@ -894,3 +894,11 @@ def test_the_real_environment_probe_names_its_builds():
     assert env["browser"].get("chromium_build"), env["browser"]
     assert env["x264"] and env["x264"].startswith("core ")
     assert "libavcodec" in env["ffmpeg"]["version"]
+
+
+def test_the_lockfile_name_is_the_asset_librarys_own():
+    """One fact, two places until an#240 registers the lockfile in the mall."""
+    from an.build import PROJECT_ROOT_FILES
+    from an.library.lock import LOCKFILE_NAME
+
+    assert LOCKFILE_NAME in PROJECT_ROOT_FILES
