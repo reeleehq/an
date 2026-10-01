@@ -472,8 +472,10 @@ def shot_windows(
         need = min_segment_frames - len(seg)
         neighbours = [
             (s, side)
-            for s, side in ((segments[n + 1] if n + 1 < len(segments) else None, "head"),
-                            (segments[n - 1] if n else None, "tail"))
+            for s, side in (
+                (segments[n + 1] if n + 1 < len(segments) else None, "head"),
+                (segments[n - 1] if n else None, "tail"),
+            )
             if s is not None
         ]
         # Widen into an already-split shot before splitting a whole one.
@@ -605,7 +607,9 @@ def _video_only(mp4: Path, out: Path) -> None:
     )  # fmt: skip
 
 
-def _concat_video(inputs: Sequence[Path], durations: Sequence[float], out: Path) -> None:
+def _concat_video(
+    inputs: Sequence[Path], durations: Sequence[float], out: Path
+) -> None:
     """Stream-copy concat of video-only segments: no frame is re-encoded.
 
     Each segment's ``duration`` is STATED (its frames / fps), not read from its
@@ -696,7 +700,11 @@ def _check_segments(
         if reference is None:
             reference = fields
         elif fields != reference:
-            diff = {k: (reference[k], fields[k]) for k in fields if fields[k] != reference[k]}
+            diff = {
+                k: (reference[k], fields[k])
+                for k in fields
+                if fields[k] != reference[k]
+            }
             raise AssemblyError(
                 f"{_segment_name(seg)} cannot be joined to the rest of the film: "
                 f"its stream differs in {diff}. A shot whose renderer writes only "
