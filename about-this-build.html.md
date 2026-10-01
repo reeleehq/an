@@ -2,18 +2,20 @@
 
 # About this build
 
-This documentation was built on **2026-10-01 14:05 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5"><code>ee5dd57</code></a> on branch <code>main</code>, for **an 0.1.133** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 14:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/89ebf2e2594c50c58e7b866faec201103d799996"><code>89ebf2e</code></a> on branch <code>main</code>, for **an 0.1.134** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.134) is ahead of the latest release on PyPI (0.1.133): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5"><code>ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/89ebf2e2594c50c58e7b866faec201103d799996"><code>89ebf2e2594c50c58e7b866faec201103d799996</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.133</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.134</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22,9 +24,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36872899403">36872899403</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36876893857">36876893857</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>84a1d57d809c4ba7660b27855a21a98d92084c22</code> (in the history of the built commit) |
+| Event commit | <code>9803f00e71328efcf2c9eca2477f47c1cb5dbc85</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +51,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.133/">0.1.133</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.133/">0.1.133</a>, older than the documented version (0.1.134).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout ee5dd57ecafb0d90d6d9f7733c3927bffab96ea5
+git checkout 89ebf2e2594c50c58e7b866faec201103d799996
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
