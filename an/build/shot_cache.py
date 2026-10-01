@@ -15,14 +15,24 @@ of its key and the timings that produced it. Entries live in a
 blob store, both injected ``dol`` mappings. In a project the store is
 ``mall["shot_cache"]`` (``artifacts/shot_cache/{catalog,blobs}/``).
 
-A film ASSEMBLED from frames (transitions, a sound layer) needs each shot's
-PNGs too; those are cached only with ``ShotCache(cache_frames=True)``, so by
-default such a film re-renders its shots.
+An ASSEMBLED film (transitions, a sound layer) is a stream-copy concat of
+segments (`an.assemble`, an#260): a shot no transition touches needs only its
+mp4, and a shot one touches also needs its *parts* — its body, encoded once,
+and the PNGs inside its transition window — a second entry,
+``<key>.parts.<code>.h<head>.t<tail>``, of a few MB. So such a film reuses its
+shots by default. (The older whole-frames entry, ``<key>.frames``, is read only
+by a caller that asks for it with ``needs_frames=True``; the render loop no
+longer does.)
+
+Each cached render also records a *root* (``root.<digest>``): which entries a
+render of output ``<name>`` under one set of render knobs on one machine used.
+Roots are what `an.build.gc` keeps alive, beside what the current scene reaches.
 
 **Invalidation is by digest, never by deletion** (decision 6): a changed input
 is a different key, and the old entry simply stops being asked for. The
 pre-cache ``artifacts/shots/<shot.id>.mp4`` archive is not read. Collecting
-unreachable blobs is a separate, explicit command (not in this slice).
+unreachable entries is a separate, explicit command: ``an cache gc``
+(:mod:`an.build.gc`).
 
 >>> from an.build.shot_cache import BuildReport, ShotOutcome
 >>> r = BuildReport([ShotOutcome("a", "cutout", "reused", key="k" * 64),
@@ -68,8 +78,17 @@ SHOT_CACHE_STORE: str = "shot_cache"
 #: sound layer — `an.assemble`), which cannot be built from an mp4.
 FRAMES_SUFFIX: str = ".frames"
 
+#: The catalog id infix of a shot's PARTS entry (an#260): what an assembled
+#: film takes from a shot its transitions touch — its body, encoded once, and
+#: the PNGs inside its window. See :func:`parts_entry_id`.
+PARTS_INFIX: str = ".parts."
+
+#: The catalog id prefix of a ROOT: what one render used (see :meth:`ShotCache.record_root`).
+ROOT_PREFIX: str = "root."
+
 #: Why a shot was not reused, as the render summary says it.
 MISS: str = "new or changed"
+PARTS_NOT_CACHED: str = "parts at a transition not cached yet"
 FRAMES_NOT_CACHED: str = (
     "frames not cached: film has transitions/sound; pass --cache-frames"
 )
@@ -84,6 +103,20 @@ PROVENANCE_AGENT: str = "processor:an"
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 ShotStatus = Literal["rendered", "reused", "uncached"]
+
+
+def human_bytes(n: int) -> str:
+    """``n`` bytes for a person: 1024-based, one decimal.
+
+    >>> human_bytes(0), human_bytes(1536), human_bytes(5 * 1024**3)
+    ('0 B', '1.5 KB', '5.0 GB')
+    """
+    size, units = float(n), ("B", "KB", "MB", "GB", "TB")
+    for unit in units:
+        if size < 1024 or unit == units[-1]:
+            break
+        size /= 1024
+    return f"{int(size)} B" if unit == "B" else f"{size:.1f} {unit}"
 
 
 # -----------------------------------------------------------------------------
@@ -113,7 +146,7 @@ def _make_record_type():
         model_config = {"frozen": True, "extra": "ignore"}
 
         shot_key: str = Field(..., description="The key this entry answers.")
-        role: Literal["mp4", "frames"] = "mp4"
+        role: Literal["mp4", "frames", "parts", "root"] = "mp4"
         shot_id: str = Field("", description="The author's id. Informational: never a key.")
         renderer: str = ""
         inputs: dict[str, str] = Field(default_factory=dict)
@@ -178,6 +211,9 @@ class BuildReport:
     """Every shot's outcome, in timeline order."""
 
     outcomes: list[ShotOutcome] = field(default_factory=list)
+    #: The shot cache's size after the render, when the engine measured it.
+    store_bytes: int | None = None
+    store_entries: int | None = None
 
     @property
     def rendered(self) -> list[str]:
@@ -211,6 +247,16 @@ class BuildReport:
             )
         return line
 
+    def store_line(self) -> str:
+        """How big the shot cache is after the render, or ``""`` if unmeasured.
+
+        >>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
+        '3.0 MB in 4 entries'
+        """
+        if self.store_bytes is None:
+            return ""
+        return f"{human_bytes(self.store_bytes)} in {self.store_entries} entries"
+
     def timing_table(self) -> str:
         """A Markdown table of the per-shot wall times."""
 
@@ -243,6 +289,85 @@ class ShotPlan:
     compile_s: float | None = None
     cached_render_s: float | None = None
     needs_frames: bool = False
+    #: What an assembled film needs from this shot (`an.assemble.ShotWindow`);
+    #: ``None`` for a film that is a plain concat of shot mp4s.
+    window: Any = None
+    #: The catalog id of this shot's parts entry, when its window is not whole.
+    parts_id: str | None = None
+    #: The reused parts (`an.assemble.ShotParts`), materialised for this plan.
+    parts: Any = None
+
+
+def machine_id() -> str:
+    """A short digest naming this machine (its host name and hardware
+    address), so each machine's renders of a synced project keep a root of
+    their own. A digest, never the names themselves.
+
+    >>> len(machine_id())
+    16
+    """
+    import platform
+    import uuid
+
+    return canonical_digest(["an.machine", platform.node(), uuid.getnode()])[:16]
+
+
+def project_id(project_root: Path | str | None) -> str:
+    """A short digest naming a project by its resolved directory, so two
+    projects sharing one cache store keep a root each (``""`` for none).
+
+    >>> project_id(None)
+    ''
+    >>> len(project_id("."))
+    16
+    """
+    if project_root is None:
+        return ""
+    return canonical_digest(["an.project", str(Path(project_root).resolve())])[:16]
+
+
+def parts_entry_id(key: str, window: Any) -> str:
+    """The catalog id of the parts entry of shot ``key`` for ``window``.
+
+    The id names the window (the same shot cut for another neighbour is a
+    different entry) and the digest of the code that cuts and encodes the parts
+    (:func:`parts_code_digest`): a parts entry is produced by `an.assemble`, not
+    by the renderer, so the renderer's own ``code`` key part does not cover it.
+
+    >>> from an.assemble import ShotWindow
+    >>> parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")
+    True
+    """
+    return (
+        f"{key}{PARTS_INFIX}{parts_code_digest()[:16]}.h{window.head}.t{window.tail}"
+    )
+
+
+_PARTS_CODE: list[str] = []
+
+#: The modules whose source decides a parts entry's bytes: the cut and the
+#: composition (`an.assemble`), the encoder and its pinned argv (`an.media.mp4`),
+#: and the frame naming (`an.media.frames`).
+PARTS_CODE_MODULES: tuple[str, ...] = ("an.assemble", "an.media.mp4", "an.media.frames")
+
+
+def parts_code_digest() -> str:
+    """sha256 over the source bytes of :data:`PARTS_CODE_MODULES`, once per process."""
+    if not _PARTS_CODE:
+        import importlib
+        import inspect
+
+        from an.build.keys import file_digest
+
+        _PARTS_CODE.append(
+            canonical_digest(
+                [
+                    file_digest(inspect.getsourcefile(importlib.import_module(m)))
+                    for m in PARTS_CODE_MODULES
+                ]
+            )
+        )
+    return _PARTS_CODE[0]
 
 
 # -----------------------------------------------------------------------------
@@ -259,6 +384,11 @@ class IncrementalEngine(Protocol):
     BEFORE any shot renders (in the calling thread); ``record`` once per shot
     that was rendered (possibly from a worker thread); ``finish`` returns the
     report.
+
+    Two hooks are OPTIONAL (the render loop calls them when an engine has
+    them): ``record_parts(plan, parts)`` once per rendered shot whose film
+    window is not whole (an#260), and ``record_root(output_name, profile=...,
+    output=...)`` once the film is delivered (what the garbage collector keeps).
     """
 
     def begin(
@@ -272,6 +402,7 @@ class IncrementalEngine(Protocol):
         ctx: "RenderContext",
         *,
         needs_frames: bool = False,
+        window: Any = None,
         force: bool = False,
     ) -> ShotPlan: ...
 
@@ -319,10 +450,11 @@ class ShotCache:
     project-wide dependency strategy (see :data:`Dependencies`); ``None`` keys
     a shot on its own parts alone (its document and the bytes of the textures
     it stages) — and then drops the lockfile too, so use it knowingly.
-    ``cache_frames`` also stores each shot's PNG sequence, which an ASSEMBLED
-    film (transitions, a sound layer) needs to reuse a shot; off by default,
-    because a 1080p shot's frames are hundreds of MB and nothing collects
-    unreachable entries yet — so an assembled film re-renders its shots.
+    ``cache_frames`` also stores each shot's whole PNG sequence when a caller
+    plans with ``needs_frames=True``. The render loop no longer does (an#260):
+    an assembled film takes a shot's mp4 and, at a transition, its *parts*
+    (``window=``), which are cached by default at a few MB. Kept for callers of
+    the engine that need every frame; ``an cache gc`` collects old frames.
 
     After a render, :attr:`report` holds what happened to each shot.
     """
@@ -335,6 +467,15 @@ class ShotCache:
         dependencies: Dependencies = project_assets_digest,
         cache_frames: bool = False,
     ) -> None:
+        if cache_frames:
+            warnings.warn(
+                "ShotCache(cache_frames=True) / `an render --cache-frames` is "
+                "deprecated: an assembled film no longer needs whole frames "
+                "(an#260), so the render loop never stores them. It will be "
+                "removed in the next release.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.store = store
         self.environment = environment
         self.dependencies = dependencies
@@ -344,6 +485,9 @@ class ShotCache:
         self._project: str | None = None
         self._outcomes: dict[int, ShotOutcome] = {}
         self._order: list[int] = []
+        self._environments: dict[str, str] = {}
+        self._used: dict[int, list[str]] = {}
+        self._project_root: Path | None = None
 
     # -- the protocol ------------------------------------------------------
 
@@ -351,6 +495,7 @@ class ShotCache:
         self, mall: Mapping[str, Any], *, project_root: Path | None = None
     ) -> None:
         self._store = self.store if self.store is not None else mall.get(SHOT_CACHE_STORE)
+        self._project_root = project_root
         self._project = (
             self.dependencies(mall, project_root=project_root)
             if self.dependencies is not None
@@ -358,6 +503,8 @@ class ShotCache:
         )
         self._outcomes = {}
         self._order = []
+        self._environments = {}
+        self._used = {}
         self.report = BuildReport()
 
     def plan(
@@ -367,42 +514,23 @@ class ShotCache:
         ctx: "RenderContext",
         *,
         needs_frames: bool = False,
+        window: Any = None,
         force: bool = False,
     ) -> ShotPlan:
+        """``window`` is what an assembled film needs from this shot
+        (`an.assemble.ShotWindow`; ``None`` for a plain concat): a shot whose
+        window is not whole is reused only when its parts entry is there too."""
         name = getattr(renderer, "name", "") or ""
-        entry = shot_keyer_for(renderer)
-        reason = ""
-        if entry is None:
-            reason = (
-                f"no shot keyer registered for renderer {name!r}"
-                if shot_keyer_for(name) is None
-                else f"renderer {name!r} is a {type(renderer).__qualname__}, not the "
-                "class its shot keyer describes"
-            )
-        elif self._store is None:
-            reason = "no shot cache store in the mall"
-        elif needs_frames and not self.cache_frames:
-            reason = FRAMES_NOT_CACHED
-        if reason:
-            plan = ShotPlan(shot.id, name, key=None, reason=reason)
+        if needs_frames and not self.cache_frames:
+            plan = ShotPlan(shot.id, name, key=None, reason=FRAMES_NOT_CACHED)
             self._note(plan, "uncached")
             return plan
-
-        t0 = time.perf_counter()
-        inputs: ShotKeyInputs = entry.keyer(shot, ctx)
-        parts = {"renderer": canonical_digest([name, entry.identity()]), **inputs.parts}
-        for part_name, part in entry.parts.items():
-            if part_name in parts:
-                raise ValueError(
-                    f"key part {part_name!r} registered for {name!r} collides with "
-                    "a part its keyer already returns"
-                )
-            parts[part_name] = part(shot, ctx)
-        parts["environment"] = self.environment(name)
-        if self._project is not None:
-            parts["project"] = self._project
-        key = compose_shot_key(parts)
-        key_s = time.perf_counter() - t0
+        keyed = self._key(shot, renderer, ctx)
+        if isinstance(keyed, str):
+            plan = ShotPlan(shot.id, name, key=None, reason=keyed)
+            self._note(plan, "uncached")
+            return plan
+        key, parts, inputs, key_s = keyed
 
         plan = ShotPlan(
             shot.id,
@@ -412,12 +540,19 @@ class ShotCache:
             key_s=key_s,
             compile_s=inputs.compile_s,
             needs_frames=needs_frames,
+            window=window,
+            parts_id=(
+                parts_entry_id(key, window)
+                if window is not None and not window.whole
+                else None
+            ),
         )
         # The report lists shots in timeline order, not in the order a thread
         # pool finishes them; the index also names this plan's own
         # materialisation directory, so two shots with ONE key never share one.
         index = len(self._order)
         self._order.append(id(plan))
+        self._used[id(plan)] = [key] + ([plan.parts_id] if plan.parts_id else [])
         if force:
             plan.reason = "forced"
             return plan
@@ -432,6 +567,20 @@ class ShotCache:
             warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
         self._note(plan, "reused")
         return plan
+
+    def entry_ids(
+        self, shot: Any, renderer: Any, ctx: "RenderContext", *, window: Any = None
+    ) -> list[str]:
+        """The catalog ids a :meth:`plan` of this shot would read — computed by
+        the same code, looking nothing up and rendering nothing. What
+        `an.build.gc` keeps for the current scene. Call :meth:`begin` first."""
+        keyed = self._key(shot, renderer, ctx)
+        if isinstance(keyed, str):
+            return []
+        key = keyed[0]
+        if window is not None and not window.whole:
+            return [key, parts_entry_id(key, window)]
+        return [key]
 
     def record(self, plan: ShotPlan, result: "RenderResult", *, render_s: float) -> None:
         if plan.key is None or self._store is None:
@@ -459,7 +608,102 @@ class ShotCache:
         )
         return self.report
 
+    def record_parts(self, plan: ShotPlan, parts: Any) -> None:
+        """Store a freshly rendered shot's `an.assemble.ShotParts` under
+        ``plan.parts_id``: its body mp4 and its window's PNGs, one stored zip.
+        A failed write never fails the render (the next render renders it)."""
+        if plan.parts_id is None or self._store is None:
+            return
+        try:
+            self._save_parts(plan, parts)
+        except Exception as e:  # noqa: BLE001 — a failed cache write never fails a render
+            warnings.warn(
+                f"shot {plan.shot_id!r} rendered, but its parts entry could not be "
+                f"written ({type(e).__name__}: {e}); the next render renders it again",
+                ShotCacheWarning,
+                stacklevel=2,
+            )
+
+    def record_root(
+        self,
+        output_name: str,
+        *,
+        profile: Mapping[str, Any],
+        output: Path,
+    ) -> str | None:
+        """Record what this render used, as a ROOT for `an.build.gc`; return its id.
+
+        A root is keyed by the project (:func:`project_id`), the output name,
+        the render ``profile`` (the knobs as passed — ``None`` meaning "the
+        scene's own") and this machine (:func:`machine_id`), so the next render
+        of the same output with the same knobs on the same machine replaces it
+        — a browser upgrade included — while a render on another machine of a
+        synced project, or of another project sharing the store, keeps its own. Its record is a ``lacing.Artifact`` of the delivered film,
+        derived from the shot keys. Also measures the store, for the summary.
+        """
+        if self._store is None:
+            return None
+        used = [i for p in self._order for i in self._used.get(p, ())]
+        profile = _jsonable_dict(profile)
+        project = project_id(self._project_root)
+        root_id = ROOT_PREFIX + canonical_digest(
+            [project, output_name, profile, machine_id()]
+        )
+        try:
+            self._save_root(root_id, output_name, profile, Path(output), used, project)
+        except Exception as e:  # noqa: BLE001 — never fail a delivered film
+            warnings.warn(
+                f"the film was rendered, but its cache root could not be written "
+                f"({type(e).__name__}: {e}); `an cache gc` keeps only what the "
+                "current scene reaches until the next render records one",
+                ShotCacheWarning,
+                stacklevel=2,
+            )
+            root_id = None
+        try:
+            self.report.store_bytes, self.report.store_entries = store_usage(self._store)
+        except Exception:  # noqa: BLE001 — a size is informational
+            pass
+        return root_id
+
     # -- internals ---------------------------------------------------------
+
+    def _key(self, shot: Any, renderer: Any, ctx: "RenderContext"):
+        """``(key, parts, inputs, key_s)``, or the reason the shot has no key.
+
+        The ONE computation of a shot's key: :meth:`plan` and :meth:`entry_ids`
+        (so the garbage collector) both call it, so they cannot disagree.
+        """
+        name = getattr(renderer, "name", "") or ""
+        entry = shot_keyer_for(renderer)
+        if entry is None:
+            return (
+                f"no shot keyer registered for renderer {name!r}"
+                if shot_keyer_for(name) is None
+                else f"renderer {name!r} is a {type(renderer).__qualname__}, not the "
+                "class its shot keyer describes"
+            )
+        if self._store is None:
+            return "no shot cache store in the mall"
+        t0 = time.perf_counter()
+        inputs: ShotKeyInputs = entry.keyer(shot, ctx)
+        parts = {"renderer": canonical_digest([name, entry.identity()]), **inputs.parts}
+        for part_name, part in entry.parts.items():
+            if part_name in parts:
+                raise ValueError(
+                    f"key part {part_name!r} registered for {name!r} collides with "
+                    "a part its keyer already returns"
+                )
+            parts[part_name] = part(shot, ctx)
+        parts["environment"] = self._environment_of(name)
+        if self._project is not None:
+            parts["project"] = self._project
+        return compose_shot_key(parts), parts, inputs, time.perf_counter() - t0
+
+    def _environment_of(self, name: str) -> str:
+        digest = self.environment(name)
+        self._environments[name] = digest
+        return digest
 
     def _note(self, plan: ShotPlan, status: ShotStatus, *, render_s: float | None = None) -> None:
         i = id(plan)
@@ -494,9 +738,12 @@ class ShotCache:
         milliseconds against a render — and a damaged or substituted blob is a
         miss rather than a film (an#243 review, N1).
         """
-        if not self._store.has_blob(asset_id):
+        try:
+            if not self._store.has_blob(asset_id):
+                return None
+            data = self._store.get_blob(asset_id)
+        except (OSError, KeyError):  # collected between the two calls (an cache gc)
             return None
-        data = self._store.get_blob(asset_id)
         if data is None or bytes_digest(data) != asset_id:
             return None
         return data
@@ -522,6 +769,17 @@ class ShotCache:
             )
             if frames_bytes is None:
                 return None, "frames needed for assembly, not cached"
+        parts_bytes = None
+        if plan.parts_id is not None:
+            try:
+                parts_rec = store.get(plan.parts_id)
+            except Exception as e:  # noqa: BLE001 — unreadable is a miss, said
+                return None, f"unreadable parts entry ({type(e).__name__})"
+            parts_bytes = (
+                self._verified_blob(parts_rec.asset_id) if parts_rec is not None else None
+            )
+            if parts_bytes is None:
+                return None, PARTS_NOT_CACHED
         from an.adapters._base import RenderResult
 
         # One directory per PLAN (index + id), inside this render's own work
@@ -543,6 +801,10 @@ class ShotCache:
                 with zipfile.ZipFile(tmp) as zf:
                     zf.extractall(frames_dir)
             manifest = sorted(frames_dir.glob("*.png"))
+        if parts_bytes is not None:
+            plan.parts = _unpack_parts(parts_bytes, plan.window, out_dir / "parts")
+            if plan.parts is None:
+                return None, "parts entry that does not hold its window's frames"
         plan.cached_render_s = record.timings.get("render_s")
         provenance = dict(record.render_provenance)
         # The shot this result is FOR, not the one first rendered under the key
@@ -563,20 +825,87 @@ class ShotCache:
             "",
         )
 
-    def _save(self, plan: ShotPlan, result: "RenderResult", timings: dict[str, float]) -> None:
+    def _provenance(self, generated_by: str, derived_from: Any) -> Any:
         from lacing import Provenance, RationalTime
 
+        return Provenance(
+            was_generated_by=generated_by,
+            was_attributed_to=PROVENANCE_AGENT,
+            was_derived_from=sorted({d for d in derived_from if _HEX64.match(d)}),
+            generated_at_time=RationalTime.now(),
+            activity="derive",
+        )
+
+    def _save_parts(self, plan: ShotPlan, parts: Any) -> None:
+        store = self._store
+        fd, name = tempfile.mkstemp(suffix=".zip")
+        os.close(fd)
+        zpath = Path(name)
+        try:
+            _pack_parts(parts, zpath)
+            asset_id = store.put_blob_stream(_chunks(zpath))
+            store[plan.parts_id] = shot_artifact_type()(
+                asset_id=asset_id,
+                kind="binary",
+                mime="application/zip",
+                bytes_size=zpath.stat().st_size,
+                provenance=self._provenance(
+                    "processor:an.assemble/shot_parts", [plan.key]
+                ),
+                role="parts",
+                shot_key=plan.key,
+                shot_id=plan.shot_id,
+                renderer=plan.renderer,
+                inputs={"shot": plan.key, "parts_code": parts_code_digest()},
+                render_provenance={
+                    "window": {
+                        "frames": parts.window.frames,
+                        "head": parts.window.head,
+                        "tail": parts.window.tail,
+                    }
+                },
+            )
+        finally:
+            zpath.unlink(missing_ok=True)
+
+    def _save_root(
+        self,
+        root_id: str,
+        output_name: str,
+        profile: dict,
+        output: Path,
+        used: list[str],
+        project: str,
+    ) -> None:
+        from an.build.keys import file_digest
+
+        self._store[root_id] = shot_artifact_type()(
+            asset_id=file_digest(output),
+            kind="video",
+            mime="video/mp4",
+            bytes_size=output.stat().st_size,
+            provenance=self._provenance("processor:an.render", used),
+            role="root",
+            shot_key=root_id,
+            shot_id=output_name,
+            inputs={"profile": canonical_digest(profile)},
+            render_provenance={
+                "output": output_name,
+                "profile": profile,
+                "environment": dict(sorted(self._environments.items())),
+                "machine": machine_id(),
+                "project": project,
+                "entries": used,
+            },
+        )
+
+    def _save(self, plan: ShotPlan, result: "RenderResult", timings: dict[str, float]) -> None:
         store = self._store
         record_type = shot_artifact_type()
-        derived = sorted({d for d in plan.inputs.values() if _HEX64.match(d)})
 
         def provenance() -> Any:
-            return Provenance(
-                was_generated_by=f"processor:an.render/{plan.renderer}",
-                was_attributed_to=PROVENANCE_AGENT,
-                was_derived_from=derived,
-                generated_at_time=RationalTime.now(),
-                activity="derive",
+            return self._provenance(
+                f"processor:an.render/{plan.renderer}", plan.inputs.values()
             )
 
         common = dict(
@@ -627,6 +956,79 @@ class ShotCacheWarning(UserWarning):
     """The shot cache could not do something it should have; the render still stands."""
 
 
+#: Inside a parts zip: the body's member name, and the folder of window PNGs
+#: (named by the shot-LOCAL frame index, `an.media.frames`' pattern).
+PARTS_BODY_MEMBER: str = "body.mp4"
+PARTS_FRAMES_DIR: str = "frames"
+
+
+def _pack_parts(parts: Any, zpath: Path) -> None:
+    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
+
+    with zipfile.ZipFile(zpath, "w", compression=zipfile.ZIP_STORED) as zf:
+        if parts.body is not None:
+            zf.write(parts.body, arcname=PARTS_BODY_MEMBER)
+        for j, path in sorted(parts.frames.items()):
+            zf.write(path, arcname=f"{PARTS_FRAMES_DIR}/{DEFAULT_FRAME_PNG_PATTERN % j}")
+
+
+def _unpack_parts(data: bytes, window: Any, out_dir: Path) -> Any:
+    """The `an.assemble.ShotParts` a parts zip holds, or ``None`` when it does
+    not hold exactly what ``window`` needs (a body iff the window leaves one,
+    and a PNG for every window frame)."""
+    from an.assemble import ShotParts
+    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
+
+    expected = {
+        f"{PARTS_FRAMES_DIR}/{DEFAULT_FRAME_PNG_PATTERN % j}": j
+        for j in window.png_indices
+    }
+    first, stop = window.body
+    with tempfile.TemporaryFile() as tmp:
+        tmp.write(data)
+        tmp.seek(0)
+        with zipfile.ZipFile(tmp) as zf:
+            names = set(zf.namelist())
+            wants_body = stop > first
+            if names != set(expected) | ({PARTS_BODY_MEMBER} if wants_body else set()):
+                return None
+            out_dir.mkdir(parents=True, exist_ok=True)
+            zf.extractall(out_dir)
+    return ShotParts(
+        window=window,
+        frames={j: out_dir / name for name, j in expected.items()},
+        body=(out_dir / PARTS_BODY_MEMBER) if wants_body else None,
+    )
+
+
+def store_usage(store: Any) -> tuple[int, int]:
+    """``(bytes, entries)`` of a shot cache store: every blob byte on disk (or,
+    off disk, every distinct blob its records name) and its catalog entries.
+
+    On a filesystem store this is a directory listing, not a read of every
+    record, so the render summary can afford it on every render.
+    """
+    rootdir = getattr(getattr(store, "blobs", None), "rootdir", None)
+    if rootdir is not None:
+        total = 0
+        with os.scandir(rootdir) as it:
+            for e in it:
+                if e.is_file(follow_symlinks=False):
+                    total += e.stat(follow_symlinks=False).st_size
+        return total, len(store)
+    sizes: dict[str, int] = {}
+    n = 0
+    for key in list(store):
+        n += 1
+        try:
+            rec = store[key]
+        except Exception:  # noqa: BLE001 — an unreadable record has no size we know
+            continue
+        if getattr(rec, "role", "") != "root" and store.has_blob(rec.asset_id):
+            sizes[rec.asset_id] = rec.bytes_size or 0
+    return sum(sizes.values()), n
+
+
 def _chunks(path: Path) -> Iterator[bytes]:
     with open(path, "rb") as f:
         while chunk := f.read(STREAM_CHUNK_BYTES):
@@ -665,6 +1067,8 @@ def resolve_incremental(incremental: Any) -> IncrementalEngine | None:
 
 
 __all__ = [
+    "PARTS_INFIX",
+    "ROOT_PREFIX",
     "SHOT_CACHE_STORE",
     "BuildReport",
     "IncrementalEngine",
@@ -673,8 +1077,13 @@ __all__ = [
     "ShotOutcome",
     "ShotPlan",
     "default_environment_digest",
+    "human_bytes",
     "in_memory_shot_cache_store",
+    "machine_id",
+    "project_id",
+    "parts_entry_id",
     "resolve_incremental",
     "shot_artifact_type",
     "shot_cache_store",
+    "store_usage",
 ]

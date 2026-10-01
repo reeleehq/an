@@ -365,6 +365,88 @@ def retime_dialogue(scene: SceneIR, *, timed_shots_only: bool = False) -> SceneI
     return scene
 
 
+class AudioNotCachedError(AudioPipelineError):
+    """A line's audio (or its visemes) is not in the content-keyed stores, so
+    stamping it would need a synthesis this caller does not allow."""
+
+
+class _CacheOnlyProvider:
+    """A provider whose keys and declarations are the real one's, and whose
+    ``synthesize``/``align`` refuse: what :func:`stamp_from_stores` hands the
+    pipeline so it reads the stores exactly as a render would, and calls nothing."""
+
+    def __init__(self, provider: Any) -> None:
+        self._provider = provider
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._provider, name)
+
+    def synthesize(self, text: str, *args: Any, **kwargs: Any) -> Any:
+        raise AudioNotCachedError(
+            f"the audio of {text!r} ({self._provider.name}) is not in the audio store"
+        )
+
+    def align(self, audio: Any, transcript: str) -> Any:
+        raise AudioNotCachedError(
+            f"the visemes of {transcript!r} ({self._provider.name}) are not in the "
+            "visemes store"
+        )
+
+
+class _ReadOnlyStore(MutableMapping):
+    """A store view that reads through and refuses every write."""
+
+    def __init__(self, store: Any) -> None:
+        self._store = store
+
+    def __getitem__(self, key: str) -> Any:
+        return self._store[key]
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._store
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def __len__(self) -> int:
+        return len(self._store)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        raise AudioNotCachedError(f"{key!r} would have to be written to a store")
+
+    def __delitem__(self, key: str) -> None:
+        raise AudioNotCachedError(f"{key!r} would have to be deleted from a store")
+
+
+def stamp_from_stores(
+    scene: SceneIR,
+    mall: Mapping[str, MutableMapping],
+    *,
+    tts: TTSProvider,
+    lipsync: LipSyncProvider,
+) -> SceneIR:
+    """Stamp ``scene``'s dialogue exactly as :func:`produce_audio_for_scene`
+    would with these providers — from the content-keyed ``audio`` and
+    ``visemes`` stores only. Synthesises, aligns and writes nothing; a line the
+    stores cannot answer raises :class:`AudioNotCachedError`.
+
+    What a reader of the render's cache keys needs (an#274): a ``scene.md``
+    edit drops every stamp on re-sync, and the next render re-stamps the same
+    audio from the stores, so the keys a render WILL use are these, not the
+    unstamped IR's. Mutates ``scene`` in place and returns it.
+    """
+    view = {
+        k: (_ReadOnlyStore(v) if k in ("audio", "visemes") else v)
+        for k, v in dict(mall).items()
+    }
+    return produce_audio_for_scene(
+        scene,
+        view,
+        tts=_CacheOnlyProvider(tts),
+        lipsync=_CacheOnlyProvider(lipsync),
+    )
+
+
 # -----------------------------------------------------------------------------
 # Cache keys — the SSOT for what an audio / viseme artifact is a function of
 # -----------------------------------------------------------------------------

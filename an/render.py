@@ -16,11 +16,19 @@ import shutil
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
 from an.adapters._base import RenderContext, RenderResult
-from an.assemble import assemble_film, film_timeline, needs_assembly
+from an.assemble import (
+    ShotParts,
+    assemble_film,
+    film_timeline,
+    needs_assembly,
+    shot_parts,
+    shot_windows,
+)
 from an.adapters._base import _DEFAULT_REGISTRY
 from an.build.shot_cache import IncrementalEngine, ShotPlan, resolve_incremental
 from an.base import (
@@ -343,83 +351,25 @@ def render(
         _start_run(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
 
-    effective_fps = fps if fps is not None else scene.meta.fps or DEFAULT_FPS
-    effective_res = (
-        resolution
-        if resolution is not None
-        else (
-            scene.meta.resolution.width or DEFAULT_RESOLUTION[0],
-            scene.meta.resolution.height or DEFAULT_RESOLUTION[1],
-        )
-    )
-
-    ctx = RenderContext(
-        mall=project.mall,
-        work_dir=work_dir,
-        fps=effective_fps,
-        resolution=effective_res,
+    prep = _prepare_shots(
+        project,
+        work_dir,
+        fps=fps,
+        resolution=resolution,
         strict_assets=strict_assets,
         supersample=supersample,
         pix_fmt=pix_fmt,
         capture=capture,
-        step_hz=step_hz if step_hz is not None else scene.meta.step_hz,
-        # Resolved here, once, so a missing pack fails before the first browser
-        # launch rather than per shot — and so every shot in a scene is drawn
-        # under the same art direction by construction.
-        style_pack=_style_pack(scene, project),
-        default_easing=scene.meta.default_easing,
+        step_hz=step_hz,
+        measure=True,
+        force_measure=force_render or engine is None,
     )
-
-    # A renderer that owns its clock (Manim) says how long its shots run. The
-    # measurement is derived data: applied to an in-memory COPY of the scene
-    # before anything reads `shot.duration` (the film timeline, captions, the
-    # sound layer, every cache key) and never written into the author's scene
-    # (an#279). A render with no cache engine is cold, so it measures afresh.
-    from an.measurements import settle_durations, warn_findings
-
-    scene, shot_findings = settle_durations(
-        scene,
-        ctx,
-        render=True,
-        force=force_render or engine is None,
-        strict=strict_assets,
-    )
-    warn_findings(shot_findings)
-
-    shots = list(scene.timeline)
-    if needs_assembly(scene, fps=effective_fps):
-        # Before any browser launches: a transition the shots are too short
-        # for is microseconds to find and minutes of rendering to discover.
-        film_timeline(shots, fps=effective_fps)
+    # The SETTLED scene from here on: a clock-owning renderer's measured shot
+    # lengths (an#279) reach the timeline, captions, the mix and every key.
+    scene, shot_findings = prep.scene, prep.findings
+    effective_fps, shots, shot_renderers = prep.fps, prep.shots, prep.shot_renderers
+    captions, pages, windows = prep.captions, prep.pages, prep.windows
     pool_size = _resolve_parallel(parallel, n_shots=len(shots))
-
-    # Captions (an#175): ONE page list, from which the burned-in picture and
-    # the sidecar are both derived, so they cannot disagree. Built before any
-    # browser launches, so a strict-captions refusal costs nothing.
-    captions = scene.meta.captions
-    pages = []
-    if captions is not None:
-        from an.captions import caption_pages
-
-        pages = caption_pages(scene, fps=effective_fps, captions=captions)
-
-    # Resolve renderers up front so a missing one fails fast (before we spawn
-    # workers).
-    shot_renderers = []
-    for i, shot in enumerate(shots):
-        r = _DEFAULT_REGISTRY.find_for(shot)
-        if r is None:
-            raise RenderError(
-                f"no renderer registered for shot {shot.id!r} "
-                f"(renderer={shot.renderer!r}); registered: "
-                f"{list(_DEFAULT_REGISTRY.names())}"
-            )
-        shot_ctx = ctx
-        if captions is not None and captions.burn:
-            shot, shot_ctx = _burn_captions(
-                shot, i, pages, captions, ctx, project, fps=effective_fps
-            )
-        shot_renderers.append((shot, r, shot_ctx))
 
     # The shot cache (ADR 0004): every key is computed HERE, in this thread and
     # before any browser launches — a key compiles its shot, so a shot that
@@ -427,12 +377,17 @@ def render(
     plans: list[ShotPlan | None] = [None] * len(shot_renderers)
     if engine is not None:
         engine.begin(project.mall, project_root=project.root)
-        needs_frames = needs_assembly(scene, fps=effective_fps)
+        # An assembled film needs each shot's mp4 and, where a transition
+        # touches it, its window's parts (an#260) — never all of its frames.
         plans = [
             engine.plan(
-                shot, renderer, shot_ctx, needs_frames=needs_frames, force=force_render
+                shot,
+                renderer,
+                shot_ctx,
+                window=windows[i] if windows is not None else None,
+                force=force_render,
             )
-            for shot, renderer, shot_ctx in shot_renderers
+            for i, (shot, renderer, shot_ctx) in enumerate(shot_renderers)
         ]
 
     shot_results: list[RenderResult | None] = [None] * len(shot_renderers)
@@ -467,6 +422,13 @@ def render(
                 shot_results[futures[fut]] = fut.result()
     # Scene-timeline order is kept by index, for the concat.
 
+    parts = None
+    if windows is not None:
+        parts = _film_parts(
+            windows, shot_results, plans, engine, work_dir, fps=effective_fps,
+            pix_fmt=pix_fmt,
+        )  # fmt: skip
+
     if engine is not None:
         report = engine.finish()
         logger.info("%s", report.summary())
@@ -491,6 +453,7 @@ def render(
             mall=project.mall,
             work_dir=work_dir,
             pix_fmt=pix_fmt,
+            parts=parts,
         )
     else:
         _ffmpeg_concat([r.mp4_path for r in shot_results], output_path)
@@ -503,6 +466,21 @@ def render(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
     )
     _write_render_report(project.mall, output_name, shot_findings)
+    record_root = getattr(engine, "record_root", None)
+    if callable(record_root):
+        # What this render used, for `an cache gc` (an#274): the knobs AS
+        # PASSED, so a later collection recomputes the current scene's keys
+        # under them (None stays "the scene's own").
+        record_root(
+            output_name,
+            profile=dict(
+                fps=fps, resolution=resolution, strict_assets=strict_assets,
+                supersample=supersample, pix_fmt=pix_fmt, capture=capture,
+                step_hz=step_hz, tts=_provider_name(tts),
+                lipsync=_provider_name(lipsync), language=language,
+            ),
+            output=output_path,
+        )  # fmt: skip
     if engine is not None:
         _finish_run(work_dir)
     # Last, so it is the last word about the file (an#211): a render that used
@@ -549,6 +527,252 @@ def _style_pack(scene, project: Project):
     from an.stage.compile import style_pack_for
 
     return style_pack_for(scene.meta, project.mall.get("styles") or {})
+
+
+@dataclass
+class _PreparedShots:
+    """Everything the render loop knows before the first shot renders."""
+
+    ctx: RenderContext
+    fps: float
+    shots: list
+    shot_renderers: list
+    captions: object
+    pages: list
+    windows: tuple | None
+    scene: object = None
+    findings: list = field(default_factory=list)
+
+
+def _prepare_shots(
+    project: Project,
+    work_dir: Path,
+    *,
+    fps,
+    resolution,
+    strict_assets,
+    supersample,
+    pix_fmt,
+    capture,
+    step_hz,
+    measure: bool = False,
+    force_measure: bool = False,
+) -> _PreparedShots:
+    """The render context and each shot's renderer, as :func:`render` uses them.
+
+    One function, so :func:`cache_entries` (what the garbage collector keeps)
+    sees the shots exactly as a render would — settled shot lengths, burned
+    captions, style pack, resolved knobs, film windows and all.
+
+    A renderer that owns its clock (Manim) says how long its shots run
+    (an#279): the measurement is applied to an in-memory COPY of the scene
+    before anything reads ``shot.duration`` — the film timeline, captions, the
+    sound layer, every cache key — and never written into the author's scene.
+    ``measure=True`` (a render) measures what is not stored, ``force_measure``
+    everything afresh; ``measure=False`` (the collector) reads stored
+    measurements only, so a collection never runs a renderer.
+    """
+    scene = project.scene
+    effective_fps = fps if fps is not None else scene.meta.fps or DEFAULT_FPS
+    effective_res = (
+        resolution
+        if resolution is not None
+        else (
+            scene.meta.resolution.width or DEFAULT_RESOLUTION[0],
+            scene.meta.resolution.height or DEFAULT_RESOLUTION[1],
+        )
+    )
+
+    ctx = RenderContext(
+        mall=project.mall,
+        work_dir=work_dir,
+        fps=effective_fps,
+        resolution=effective_res,
+        strict_assets=strict_assets,
+        supersample=supersample,
+        pix_fmt=pix_fmt,
+        capture=capture,
+        step_hz=step_hz if step_hz is not None else scene.meta.step_hz,
+        # Resolved here, once, so a missing pack fails before the first browser
+        # launch rather than per shot — and so every shot in a scene is drawn
+        # under the same art direction by construction.
+        style_pack=_style_pack(scene, project),
+        default_easing=scene.meta.default_easing,
+    )
+
+    from an.measurements import settle_durations, warn_findings
+
+    scene, findings = settle_durations(
+        scene, ctx, render=measure, force=force_measure, strict=strict_assets
+    )
+    if measure:
+        warn_findings(findings)
+
+    shots = list(scene.timeline)
+    windows = None
+    if needs_assembly(scene, fps=effective_fps):
+        # Before any browser launches: a transition the shots are too short
+        # for is microseconds to find and minutes of rendering to discover.
+        # What the film needs from each shot (an#260) is known now too.
+        windows = shot_windows(film_timeline(shots, fps=effective_fps))
+    # Captions (an#175): ONE page list, from which the burned-in picture and
+    # the sidecar are both derived, so they cannot disagree. Built before any
+    # browser launches, so a strict-captions refusal costs nothing.
+    captions = scene.meta.captions
+    pages = []
+    if captions is not None:
+        from an.captions import caption_pages
+
+        pages = caption_pages(scene, fps=effective_fps, captions=captions)
+
+    # Resolve renderers up front so a missing one fails fast (before we spawn
+    # workers).
+    shot_renderers = []
+    for i, shot in enumerate(shots):
+        r = _DEFAULT_REGISTRY.find_for(shot)
+        if r is None:
+            raise RenderError(
+                f"no renderer registered for shot {shot.id!r} "
+                f"(renderer={shot.renderer!r}); registered: "
+                f"{list(_DEFAULT_REGISTRY.names())}"
+            )
+        shot_ctx = ctx
+        if captions is not None and captions.burn:
+            shot, shot_ctx = _burn_captions(
+                shot, i, pages, captions, ctx, project, fps=effective_fps
+            )
+        shot_renderers.append((shot, r, shot_ctx))
+
+    return _PreparedShots(
+        ctx=ctx,
+        fps=effective_fps,
+        shots=shots,
+        shot_renderers=shot_renderers,
+        captions=captions,
+        pages=pages,
+        windows=windows,
+        scene=scene,
+        findings=findings,
+    )
+
+
+def _provider_name(provider) -> str | None:
+    """A provider as a root records it: its factory name, or ``None`` for an
+    instance (which a collector cannot rebuild; that render's root still
+    protects what it used)."""
+    return provider if isinstance(provider, str) else None
+
+
+def _film_parts(windows, shot_results, plans, engine, work_dir, *, fps, pix_fmt):
+    """Each shot's `ShotParts` for an assembled film: a reused shot's from the
+    cache, a rendered shot's built from its frames once and recorded."""
+    record_parts = getattr(engine, "record_parts", None)
+    parts: list[ShotParts | None] = []
+    for i, (window, result, plan) in enumerate(zip(windows, shot_results, plans)):
+        if window.whole:
+            parts.append(None)
+        elif plan is not None and plan.parts is not None:
+            parts.append(plan.parts)
+        else:
+            built = shot_parts(
+                result.frame_manifest, window, fps=fps, pix_fmt=pix_fmt,
+                work_dir=Path(work_dir) / "film" / "parts" / f"{i:03d}",
+            )  # fmt: skip
+            if callable(record_parts) and plan is not None:
+                record_parts(plan, built)
+            parts.append(built)
+    return parts
+
+
+def cache_entries(
+    project: Project,
+    engine: IncrementalEngine,
+    *,
+    fps: int | None = None,
+    resolution: tuple[int, int] | None = None,
+    strict_assets: bool = False,
+    supersample: int = DEFAULT_SUPERSAMPLE,
+    pix_fmt: str | None = None,
+    capture: str | None = None,
+    step_hz: float | None = None,
+    tts: str | object = "offline",
+    lipsync: str | object = "offline",
+    language: str = "en",
+) -> list[str]:
+    """The shot-cache entry ids a render of ``project``'s CURRENT scene under
+    these knobs would read — computed by the render's own setup and the
+    engine's own key code, rendering and synthesising nothing.
+
+    What `an.build.gc` keeps (an#274). The dialogue is stamped the way the
+    render's audio pipeline stamps it, from the content-keyed audio and viseme
+    stores only (`an.audio.pipeline.stamp_from_stores`): a ``scene.md`` edit
+    drops every stamp on re-sync, and the next render re-stamps the same audio
+    from the stores, so those are the keys it will use. A line the stores
+    cannot answer (new text, another provider) raises
+    `an.audio.pipeline.AudioNotCachedError`: its shot's next key is unknowable
+    without a synthesis, and a collector must not guess.
+    """
+    from an.audio.pipeline import retime_dialogue, stamp_from_stores
+
+    scene = project.scene
+    if _has_any_audio_content(scene):
+        from an.audio.providers import make_lipsync, make_tts
+
+        stamp_from_stores(
+            scene,
+            project.mall,
+            tts=make_tts(tts) if isinstance(tts, str) else tts,
+            lipsync=(
+                make_lipsync(lipsync, language=language)
+                if isinstance(lipsync, str)
+                else lipsync
+            ),
+        )
+    else:
+        retime_dialogue(scene, timed_shots_only=True)
+    prep = _prepare_shots(
+        project,
+        project.root / ".an" / "render_work",  # nothing is written
+        fps=fps,
+        resolution=resolution,
+        strict_assets=strict_assets,
+        supersample=supersample,
+        pix_fmt=pix_fmt,
+        capture=capture,
+        step_hz=step_hz,
+    )
+    engine.begin(project.mall, project_root=project.root)
+    ids: list[str] = []
+    for i, (shot, renderer, shot_ctx) in enumerate(prep.shot_renderers):
+        window = prep.windows[i] if prep.windows is not None else None
+        ids.extend(engine.entry_ids(shot, renderer, shot_ctx, window=window))
+    return ids
+
+
+#: Where a run's process cannot be asked whether it lives (Windows), a run
+#: unfinished after this long is taken for one that crashed: otherwise it would
+#: shield every cache entry written since, from `an cache gc`, for ever.
+UNKNOWN_LIVENESS_MAX_S: float = 24 * 3600.0
+
+
+def live_runs(project_root: Path) -> list[tuple[Path, float]]:
+    """Every cached render of this project still in progress, with the time it
+    started (its live marker's mtime): what `an cache gc` must not race."""
+    runs = Path(project_root) / ".an" / "render_work" / RENDER_RUNS_DIR
+    out: list[tuple[Path, float]] = []
+    for d in sorted(runs.iterdir()) if runs.is_dir() else ():
+        marker = d / RUN_LIVE_MARKER
+        if not (d.is_dir() and marker.exists()) or _run_finished(d):
+            continue
+        try:
+            started = marker.stat().st_mtime
+            pid = int(marker.read_text(encoding="utf-8").strip())
+        except (OSError, ValueError):  # finished and removed while we looked
+            continue
+        if _pid_alive(pid) is None and time.time() - started > UNKNOWN_LIVENESS_MAX_S:
+            continue
+        out.append((d, started))
+    return out
 
 
 def _write_caption_sidecar(mall, output_name, scene, captions, pages, *, fps):
