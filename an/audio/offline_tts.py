@@ -42,7 +42,8 @@ def estimate_speech_duration(
     """Seconds the offline voice takes to say ``text`` — a leading pad plus a
     per-character rate over the non-space characters, clamped.
 
-    It is exactly what an offline render gives a line, so ``an validate`` uses
+    It is exactly what an offline render gives a line (before a voice's
+    ``tempo``, which ``an validate`` divides it by), so ``an validate`` uses
     it to warn about a shot too short for its dialogue BEFORE anything is
     synthesized. A real voice is usually a little slower, so for one this is an
     under-estimate: a line it says overruns will overrun.
@@ -62,6 +63,9 @@ class OfflineTTS:
     """
 
     name: str = "offline"
+    #: The same request gives the same audio, so best-of-N takes never apply
+    #: (:func:`an.audio.takes.voice_takes`) and nothing is billed.
+    repeatable: bool = True
 
     def __init__(
         self,

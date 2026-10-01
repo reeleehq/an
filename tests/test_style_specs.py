@@ -268,18 +268,29 @@ def test_voice_roles_are_valid_expressive_voice_documents(spec):
     """`live.voice.roles` maps a role to a partial voice document (an#209): only
     the keys `ElevenLabsTTS` reads, valid values, and a model that performs the
     cues the style's lines carry — and a role the prosody targets can check."""
+    from an.audio.effects import normalize_effects
     from an.audio.elevenlabs_tts import ElevenLabsTTS, takes_audio_tags
+    from an.audio.takes import make_take_scorer, style_voice_role, takes_spec
 
     roles = spec["live"].get("voice", {}).get("roles")
     if roles is None:
         return
     tts = ElevenLabsTTS(api_key="unused")
     for role, doc in roles.items():
-        assert set(doc) <= {"provider", "model_id", "voice_settings", "seed"}, role
+        assert set(doc) <= {"provider", "model_id", "voice_settings", "seed", "effects", "takes"}, role
         assert "voice_id" not in doc  # the cast supplies it, by name
         opts = tts.synthesis_options(doc, direction=["deadpan"])  # raises on a bad setting
         assert takes_audio_tags(opts["model_id"]), role
         assert role in spec.get("prosody_targets", {}), f"role {role!r} has no prosody targets"
+        if "effects" in doc:
+            assert normalize_effects(doc["effects"]), role  # raises on a bad effect; never a no-op
+        # `takes` names its targets; resolved, every cue the role re-rolls builds its scorer
+        resolved = style_voice_role(spec, role).get("takes")
+        if resolved is not None:
+            for cue in [None, *resolved.get("cues", {})]:
+                found = takes_spec(resolved, direction=[cue] if cue else None)
+                if found is not None:
+                    make_take_scorer(found)
 
 
 def test_prosody_targets_are_measurable(spec):

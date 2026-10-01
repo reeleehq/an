@@ -77,6 +77,13 @@ class VisemeArtifactStore(_BlobStore):
     EXT = "json"
 
 
+class TakesArtifactStore(_BlobStore):
+    """Best-of-N take records (.json bytes), keyed by the line's audio key: which
+    take was kept, its sha256, every take's score and the scorer (an#265)."""
+
+    EXT = "json"
+
+
 class ShotArtifactStore(_BlobStore):
     """Per-shot rendered mp4s."""
 

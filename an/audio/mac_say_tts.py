@@ -42,6 +42,9 @@ class MacSayTTS:
     """
 
     name: str = "mac_say"
+    #: The same request gives the same audio, so best-of-N takes never apply
+    #: (:func:`an.audio.takes.voice_takes`) and nothing is billed.
+    repeatable: bool = True
 
     def __init__(
         self,

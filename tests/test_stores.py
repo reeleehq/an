@@ -115,6 +115,7 @@ def test_mall_keys_match_spec():
             "shots",
             "sounds",
             "styles",
+            "takes",
             "visemes",
             "voices",
         ]

@@ -1133,11 +1133,24 @@ def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
 def _check_voice_effects(
     report: "ValidationReport", path: str, k: int, voice_ref: str, voices, *, line
 ) -> None:
-    """An unknown or out-of-range ``effects`` entry on a line's voice is an
-    error — rendering would raise the same ``VoiceEffectError``."""
+    """An unknown or out-of-range ``effects`` entry, or a malformed ``takes``
+    declaration (an#265), on a line's voice is an error — rendering would raise
+    the same ``VoiceEffectError`` / ``VoiceTakesError`` before any request."""
+    from an.audio.takes import TAKES_KEY, VoiceTakesError, takes_spec
+    from an.audio.voices import voice_document
+
     try:
         voice_effects({"voices": voices}, voice_ref)
     except VoiceEffectError as exc:
+        report.add(
+            "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
+        )
+    try:
+        takes_spec(
+            voice_document({"voices": voices}, voice_ref).get(TAKES_KEY),
+            direction=line.direction,
+        )
+    except VoiceTakesError as exc:
         report.add(
             "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
         )
@@ -2132,7 +2145,33 @@ def _core_dialogue_lines(ctx: ValidationContext) -> None:
 
 
 def _core_dialogue_fits(ctx: ValidationContext) -> None:
-    _check_dialogue_fits(ctx.shot, ctx.path, ctx.report)
+    _check_dialogue_fits(
+        ctx.shot, ctx.path, ctx.report, tempo_of=_voice_tempo(ctx.shot, ctx)
+    )
+
+
+def _voice_tempo(shot: Any, ctx: ValidationContext):
+    """``line -> tempo`` of the voice each line of ``shot`` is spoken with (an#265).
+
+    A voice's ``effects.tempo`` re-times every render, offline included, so the
+    pre-synthesis estimate is divided by it. ``1.0`` when no voices are known or
+    the voice's effects are malformed (that is its own error)."""
+    voices = ctx.voices
+    if not voices:
+        return lambda line: 1.0
+
+    def tempo_of(line: Any) -> float:
+        ref = line.voice_ref or speaker_voice_ref(
+            line.speaker, shot, {"characters": ctx.characters}
+        )
+        if ref is None:
+            ref = "default"
+        try:
+            return float(voice_effects({"voices": voices}, ref).get("tempo", 1.0))
+        except VoiceEffectError:
+            return 1.0
+
+    return tempo_of
 
 
 def _core_assembly(ctx: ValidationContext) -> None:
@@ -2294,14 +2333,16 @@ def _register_core_checks() -> None:
 DIALOGUE_OVERRUN_TOLERANCE_S: float = 1 / 60
 
 
-def _dialogue_layout(shot: Any):
+def _dialogue_layout(shot: Any, *, tempo_of=None):
     """``(k, line, start, end, estimated)`` for each dialogue line of ``shot``.
 
     Where each line WILL play: the audio pipeline's own rule
     (:meth:`an.ir.schema.Dialogue.planned_start`) over the real duration when
     the line was synthesized, else the offline voice's estimate
-    (:func:`an.audio.offline_tts.estimate_speech_duration`). Never the stamped
-    ``start``, which a pause edited since the last synthesis has made stale.
+    (:func:`an.audio.offline_tts.estimate_speech_duration`) divided by the
+    line's voice ``tempo`` (``tempo_of(line)``; an#265 — the effect applies
+    under every provider). Never the stamped ``start``, which a pause edited
+    since the last synthesis has made stale.
     """
     from an.audio.offline_tts import estimate_speech_duration
 
@@ -2309,14 +2350,18 @@ def _dialogue_layout(shot: Any):
     for k, line in enumerate(shot.dialogue):
         estimated = line.duration is None
         length = (
-            estimate_speech_duration(line.text) if estimated else float(line.duration)
+            estimate_speech_duration(line.text) / (tempo_of(line) if tempo_of else 1.0)
+            if estimated
+            else float(line.duration)
         )
         start = line.planned_start(cursor)
         cursor = start + length
         yield k, line, start, cursor, estimated
 
 
-def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> None:
+def _check_dialogue_fits(
+    shot: Any, path: str, report: "ValidationReport", *, tempo_of=None
+) -> None:
     """Warn when a shot's dialogue runs past the shot's end.
 
     The audio is cut at the shot end (each shot's mix is trimmed to its
@@ -2327,8 +2372,9 @@ def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> No
     What is known depends on when this runs. After the audio pipeline, a line
     carries its real ``duration`` and the check is exact. Before it, the
     duration is the offline voice's estimate
-    (:func:`an.audio.offline_tts.estimate_speech_duration` — exactly what an
-    offline render will give, and an under-estimate for a real voice). Either
+    (:func:`an.audio.offline_tts.estimate_speech_duration` over the voice's
+    ``tempo`` — exactly what an offline render will give, and an
+    under-estimate for a real voice). Either
     way the lines are laid out by the pipeline's own rule,
     :meth:`an.ir.schema.Dialogue.planned_start` — back to back from the shot
     start, shifted by each line's ``pause`` or pinned by its ``at`` (an#187) —
@@ -2340,7 +2386,7 @@ def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> No
     ``pause`` cannot). Two speakers talking over each other is legal.
     """
     speaking_until: dict[str, tuple[int, float]] = {}
-    for k, line, start, end, estimated in _dialogue_layout(shot):
+    for k, line, start, end, estimated in _dialogue_layout(shot, tempo_of=tempo_of):
         previous = speaking_until.get(line.speaker)
         if previous is not None and start < previous[1] - DIALOGUE_OVERRUN_TOLERANCE_S:
             report.add(
@@ -2355,8 +2401,11 @@ def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> No
         speaking_until[line.speaker] = (k, end)
         if end <= shot.duration + DIALOGUE_OVERRUN_TOLERANCE_S:
             continue
+        tempo = tempo_of(line) if (tempo_of and estimated) else 1.0
         how = (
-            "at the offline voice's rate (a real voice is usually slower)"
+            "at the offline voice's rate"
+            + (f" and its voice's tempo {tempo:g}" if tempo != 1.0 else "")
+            + " (a real voice is usually slower)"
             if estimated
             else "as synthesized"
         )
