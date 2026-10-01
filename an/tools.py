@@ -24,6 +24,7 @@ from an.characters.cli import (
 from an.impacts.cli import _dispatch_funcs as _impacts_dispatch_funcs
 from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
 from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
+from an.build.cli import _dispatch_funcs as _cache_dispatch_funcs
 from an.library.root import CORE_PACKAGE
 from an.library.root import project_dir as _project_dir
 
@@ -176,9 +177,10 @@ def render(
         refresh its entry)
     no_cache: neither read nor write the shot cache — every shot is rendered
         cold, as before the cache existed
-    cache_frames: also cache each shot's frames, so a film with transitions or
-        a sound layer reuses its shots too. Off by default: a 1080p shot's
-        frames are hundreds of MB, and nothing collects old entries yet
+    cache_frames: no longer needed, and no effect on `an render` (an#260): a
+        film with transitions or a sound layer now reuses its shots by default,
+        caching only the frames at each transition. Kept so scripts that pass
+        it still run
     """
     from an.build import ShotCache
 
@@ -210,7 +212,18 @@ def render(
     )
     if no_cache:
         return f"rendered: {output_path}"
-    return f"rendered: {output_path}\nshots: {cache.report.summary()}"
+    lines = [f"rendered: {output_path}", f"shots: {cache.report.summary()}"]
+    if cache_frames:
+        lines.append(
+            "note: --cache-frames is deprecated (an#260): it has no effect and "
+            "will be removed in the next release"
+        )
+    if cache.report.store_line():
+        lines.append(
+            f"shot cache: {cache.report.store_line()} "
+            f"(`an cache gc {project_dir}` removes what the scene no longer uses)"
+        )
+    return "\n".join(lines)
 
 
 def iterate(
@@ -634,4 +647,6 @@ _dispatch_namespaces: dict[str, list] = {
     "voices": _voices_dispatch_funcs,
     # The asset library (ADR 0005): `an library find --affords limbs.legs`.
     "library": _library_dispatch_funcs,
+    # The shot cache (an#274): `an cache info`, `an cache gc --dry-run`.
+    "cache": _cache_dispatch_funcs,
 }

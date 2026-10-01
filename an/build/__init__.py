@@ -12,6 +12,10 @@ never ``shot.id``) already has an entry, and reuses that entry's mp4.
   (:class:`IncrementalEngine`), its built-in engine :class:`ShotCache`, and
   the entries, shaped as ``lacing`` artifacts in a ``lacing.ArtifactStore``.
 
+- :mod:`an.build.gc` — garbage collection: what the current scene and the
+  recorded renders reach, and deleting the rest (``an cache gc``,
+  ``an cache info``; :mod:`an.build.cli`).
+
 The core names no renderer; the cut-out keyer lives with the cut-out backend
 (`an.stage.cache_key`) and registers on its import.
 
@@ -32,6 +36,7 @@ from an.build.keys import (
     registered_shot_keyers,
     shot_keyer_for,
 )
+from an.build.gc import CacheGcError, cache_info, collect_garbage
 from an.build.shot_cache import (
     SHOT_CACHE_STORE,
     BuildReport,
@@ -53,13 +58,16 @@ __all__ = [
     "SHOT_CACHE_STORE",
     "SHOT_KEY_IMPL_VERSION",
     "BuildReport",
+    "CacheGcError",
     "IncrementalEngine",
     "ShotCache",
     "ShotCacheWarning",
     "ShotKeyInputs",
     "ShotOutcome",
     "ShotPlan",
+    "cache_info",
     "canonical_digest",
+    "collect_garbage",
     "compose_shot_key",
     "default_environment_digest",
     "in_memory_shot_cache_store",

@@ -9,12 +9,20 @@ shots meet and what is heard over them. It runs only when a scene asks for it
 **Where each part happens, and why there.**
 
 - *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,
-  in exact integer arithmetic, and the film is muxed ONCE by the same
-  ``an.media.mp4.mux_frames`` every shot uses. Composing in ffmpeg (``xfade``) would decode
-  already-encoded shots and re-encode them — a second generation of x264 loss
-  on every frame of the film, not just the transition — and would retire the
-  render pipeline's "ffmpeg never touches a frame" clause. A frame no
-  transition touches is copied byte for byte: Chromium's own PNG.
+  in exact integer arithmetic, and encoded by the same
+  ``an.media.mp4.mux_frames`` every shot uses. Composing in ffmpeg (``xfade``)
+  would decode already-encoded shots and re-encode them — a second generation
+  of x264 loss on every frame of the film, not just the transition — and would
+  retire the render pipeline's "ffmpeg never touches a frame" clause.
+- *The picture is a stream-copy concat of SEGMENTS* (an#260), each encoded
+  once from PNGs: a shot no transition touches is its own mp4's video stream,
+  copied; a shot a transition touches contributes the encoded span between its
+  windows (its *body*) plus the PNGs inside them; each run of composed frames
+  is encoded on its own. So a reused shot needs its mp4 (and, at a transition,
+  its body and window PNGs, a few dozen frames) — never every frame it has
+  (:func:`shot_windows`, :class:`ShotParts`). The film's frame ``i`` is at
+  ``i / fps`` and decodes to exactly what its segment decodes to (measured,
+  an#260; :data:`MIN_SEGMENT_FRAMES` is why no segment is shorter than three).
 - *Sound*: the film's audio is rebuilt from SOURCES — every dialogue line's
   cached WAV and every cue's asset, placed in film time — in one ffmpeg mix,
   then muxed onto the picture with ``-c:v copy``. Mixing onto the shots'
@@ -38,12 +46,13 @@ whatever the transitions do.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from an.base import (
     FILM_AUDIO_BITRATE,
@@ -55,13 +64,20 @@ from an.frame_clock import frame_count
 from an.ir.schema import SceneIR, Shot, SoundCue
 
 __all__ = [
+    "MIN_SEGMENT_FRAMES",
     "AssemblyError",
     "FilmTimeline",
+    "Segment",
+    "ShotParts",
+    "ShotWindow",
     "assemble_film",
     "duck_gain",
     "film_duration",
     "film_timeline",
     "needs_assembly",
+    "picture_segments",
+    "shot_parts",
+    "shot_windows",
     "transition_problems",
 ]
 
@@ -73,6 +89,17 @@ DUCK_FRAME_SAMPLES: int = 441
 #: Dialogue spans per ducking expression. ffmpeg 9.0.1 refuses one nested
 #: expression at about 95 spans (a sum of terms fails at 100 too); well under.
 DUCK_SPANS_PER_EXPRESSION: int = 40
+
+#: The fewest frames a segment of a MULTI-segment picture may have. Measured on
+#: ffmpeg 9.0.1 / libx264 with the pinned argv (an#260): a stream of three or
+#: more frames carries a two-frame B-pyramid decode delay (its first DTS is two
+#: frames before its first PTS) whatever its content, and a stream of one or
+#: two frames carries none. The concat demuxer offsets every file alike, so a
+#: delay-free segment between two delayed ones leaves the DTS going backwards;
+#: the muxer patches that with one-tick packets, and a constant-rate decode of
+#: the film then shows a frame twice. :func:`shot_windows` widens every short
+#: run instead, so each segment of a multi-segment picture has the delay.
+MIN_SEGMENT_FRAMES: int = 3
 
 
 class AssemblyError(RuntimeError):
@@ -319,71 +346,417 @@ def _colour_weight(
     return 0, 1, None
 
 
-def compose_frames(
-    timeline: FilmTimeline,
-    shot_frames: Sequence[Sequence[Path]],
-    out_dir: Path,
-    *,
-    pattern: str,
-) -> list[Path]:
-    """Write the film's frames to ``out_dir`` as ``pattern % index``.
+@dataclass(frozen=True)
+class ShotWindow:
+    """Which of one shot's ``frames`` its film needs as PNGs: the first
+    ``head`` and the last ``tail``.
 
-    ``shot_frames[i]`` are shot ``i``'s PNGs in order (at least
-    ``timeline.frames[i]`` of them). A frame no transition touches is COPIED —
-    its bytes are the renderer's own; only blended frames are decoded.
+    Between them is the shot's *body*, which the film takes as one encoded
+    span. A shot with an empty window (:attr:`whole`) is taken as its own
+    mp4's video stream, so it needs no frame at all.
+
+    >>> w = ShotWindow(frames=10, head=0, tail=4)
+    >>> w.whole, w.body, w.png_indices
+    (False, (0, 6), (6, 7, 8, 9))
     """
+
+    frames: int
+    head: int = 0
+    tail: int = 0
+
+    @property
+    def whole(self) -> bool:
+        return not (self.head or self.tail)
+
+    @property
+    def body(self) -> tuple[int, int]:
+        """``(first, stop)``: the shot-local frames taken as one encoded span."""
+        return self.head, self.frames - self.tail
+
+    @property
+    def png_indices(self) -> tuple[int, ...]:
+        """The shot-local frames the film needs as PNGs."""
+        return tuple(range(self.head)) + tuple(
+            range(self.frames - self.tail, self.frames)
+        )
+
+
+@dataclass(frozen=True)
+class Segment:
+    """One independently encoded run of the film's picture, film frames
+    ``[start, stop)``: a whole shot's own stream (``"shot"``), a shot's
+    encoded body (``"body"``), or a run of PNGs composed here (``"frames"``)."""
+
+    kind: Literal["shot", "body", "frames"]
+    shot: int | None
+    start: int
+    stop: int
+
+    def __len__(self) -> int:
+        return self.stop - self.start
+
+
+def picture_segments(
+    timeline: FilmTimeline, windows: Sequence[ShotWindow]
+) -> list[Segment]:
+    """The film's picture as segments, in film order.
+
+    A film frame is part of a shot's body when exactly one shot shows it and
+    that frame is outside the shot's window; every other frame (a blend, a
+    fade, or a frame a window was widened over) is composed from PNGs.
+
+    >>> from an.ir.schema import Shot, Transition
+    >>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
+    ...     transition=Transition(kind="dissolve", duration=0.4))], fps=10)
+    >>> [(s.kind, s.shot, s.start, s.stop) for s in picture_segments(tl, shot_windows(tl))]
+    [('body', 0, 0, 6), ('frames', None, 6, 10), ('body', 1, 10, 16)]
+    """
+    segments: list[Segment] = []
+    for f, sources in enumerate(_frame_sources(timeline)):
+        kind, shot = "frames", None
+        if len(sources) == 1:
+            i, j = sources[0]
+            first, stop = windows[i].body
+            if first <= j < stop:
+                kind, shot = ("shot" if windows[i].whole else "body"), i
+        last = segments[-1] if segments else None
+        if last is not None and (last.kind, last.shot) == (kind, shot):
+            segments[-1] = Segment(kind, shot, last.start, f + 1)
+        else:
+            segments.append(Segment(kind, shot, f, f + 1))
+    return segments
+
+
+def shot_windows(
+    timeline: FilmTimeline, *, min_segment_frames: int = MIN_SEGMENT_FRAMES
+) -> tuple[ShotWindow, ...]:
+    """Each shot's :class:`ShotWindow`: the frames its transitions touch,
+    widened until every segment of the picture has ``min_segment_frames``.
+
+    A pure function of the timeline, so the render loop, the shot cache and
+    the garbage collector all agree on what a shot's film needs from it. A
+    picture of one segment has no minimum (there is nothing to concatenate).
+
+    >>> from an.ir.schema import Shot, Transition
+    >>> d = Transition(kind="dissolve", duration=0.1)   # one frame at 10 fps
+    >>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
+    ...     transition=d)], fps=10)
+    >>> [(w.head, w.tail) for w in shot_windows(tl)]   # the 1-frame run, widened to 3
+    [(0, 1), (3, 0)]
+    """
+    k = len(timeline.frames)
+    head = [timeline.dissolve_in[i] + timeline.fade_in[i] for i in range(k)]
+    tail = [
+        timeline.fade_out[i] + (timeline.dissolve_in[i + 1] if i + 1 < k else 0)
+        for i in range(k)
+    ]
+
+    def windows() -> tuple[ShotWindow, ...]:
+        return tuple(ShotWindow(timeline.frames[i], head[i], tail[i]) for i in range(k))
+
+    # Each pass turns at least one more frame into a PNG, so this ends; at
+    # worst every frame is one, which is a picture of one segment.
+    while True:
+        current = windows()
+        segments = picture_segments(timeline, current)
+        if len(segments) <= 1:
+            return current
+        short = [(n, s) for n, s in enumerate(segments) if len(s) < min_segment_frames]
+        if not short:
+            return current
+        n, seg = short[0]
+        if seg.kind != "frames":
+            # A body (or a whole shot) too short to stand alone: all PNGs.
+            head[seg.shot] = timeline.frames[seg.shot] - tail[seg.shot]
+            continue
+        need = min_segment_frames - len(seg)
+        neighbours = [
+            (s, side)
+            for s, side in ((segments[n + 1] if n + 1 < len(segments) else None, "head"),
+                            (segments[n - 1] if n else None, "tail"))
+            if s is not None
+        ]
+        # Widen into an already-split shot before splitting a whole one.
+        for s, side in sorted(neighbours, key=lambda p: p[0].kind == "shot"):
+            take = min(need, len(s))
+            if side == "head":
+                head[s.shot] += take
+            else:
+                tail[s.shot] += take
+            need -= take
+            if not need:
+                break
+
+
+@dataclass(frozen=True)
+class ShotParts:
+    """What a film takes from a shot its transitions touch: the PNGs inside
+    its :class:`ShotWindow` (``frames``: shot-local index -> path) and its
+    body, encoded once (``body``; ``None`` when the window covers the shot)."""
+
+    window: ShotWindow
+    frames: Mapping[int, Path]
+    body: Path | None = None
+
+
+def _link(src: Path, dst: Path) -> None:
+    """``dst`` with ``src``'s bytes: a hard link where the filesystem allows."""
+    try:
+        os.link(src, dst)
+    except OSError:
+        shutil.copyfile(src, dst)
+
+
+def _fresh_dir(path: Path) -> Path:
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True)
+    return path
+
+
+def shot_parts(
+    frames: Sequence[Path],
+    window: ShotWindow,
+    *,
+    fps: float,
+    work_dir: Path,
+    pix_fmt: str | None = None,
+) -> ShotParts:
+    """A rendered shot's :class:`ShotParts` for ``window``, from its frames.
+
+    The body is encoded by ``an.media.mp4.mux_frames`` — the shot mux's own
+    encoder and argv — from the body's PNGs, renumbered from zero in
+    ``work_dir``. The window's PNGs are referenced where they are.
+    """
+    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
+    from an.media.mp4 import mux_frames
+
+    frames = sorted(Path(p) for p in frames)
+    if len(frames) < window.frames:
+        raise AssemblyError(
+            f"a shot rendered {len(frames)} frames but the timeline needs "
+            f"{window.frames}; a transition needs the frames at its window, so "
+            "this renderer cannot take part in one"
+        )
+    first, stop = window.body
+    body = None
+    if stop > first:
+        src = _fresh_dir(Path(work_dir) / "body_frames")
+        for n, path in enumerate(frames[first:stop]):
+            _link(path, src / (DEFAULT_FRAME_PNG_PATTERN % n))
+        body = Path(work_dir) / "body.mp4"
+        mux_frames(src, fps, body, pix_fmt)
+    return ShotParts(
+        window=window,
+        frames={j: frames[j] for j in window.png_indices},
+        body=body,
+    )
+
+
+def _compose_frame(
+    timeline: FilmTimeline,
+    sources: Sequence[tuple[int, int]],
+    frame_of: Any,
+    out: Path,
+) -> None:
+    """Write one film frame from its ``(shot, local frame)`` ``sources``;
+    ``frame_of(i, j)`` is that frame's PNG. A frame nothing blends or fades is
+    COPIED — its bytes are the renderer's own; only blended frames are decoded."""
     import numpy as np
     from PIL import Image
-
-    for i, paths in enumerate(shot_frames):
-        if len(paths) < timeline.frames[i]:
-            raise AssemblyError(
-                f"shot {i} rendered {len(paths)} frames but the timeline needs "
-                f"{timeline.frames[i]}; a transition needs every shot's frames, "
-                "so this renderer cannot take part in one"
-            )
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for stale in out_dir.glob("*.png"):
-        stale.unlink()
 
     def load(path: Path) -> Any:
         with Image.open(path) as image:
             return np.asarray(image)
 
-    def faded(i: int, j: int, arr: Any | None) -> Any | None:
+    if len(sources) == 1:
+        i, j = sources[0]
         num, den, colour = _colour_weight(timeline, i, j)
         if not num:
-            return arr
-        if arr is None:
-            arr = load(shot_frames[i][j])
+            shutil.copyfile(frame_of(i, j), out)
+            return
+        arr = load(frame_of(i, j))
         fill = np.empty_like(arr)
         fill[..., :3] = _hex_rgb(colour)
         if arr.shape[-1] == 4:
             fill[..., 3] = arr[..., 3]
-        return blend(arr, fill, num, den)
+        Image.fromarray(blend(arr, fill, num, den)).save(out, format="PNG")
+        return
+    # A dissolve: the previous shot's tail under this shot's head.
+    (ia, ja), (ib, jb) = sorted(sources)
+    k = timeline.dissolve_in[ib]
+    a, b = load(frame_of(ia, ja)), load(frame_of(ib, jb))
+    if a.shape != b.shape:
+        # Meet in the previous shot's mode, so the film's frames do not
+        # change pixel format mid-sequence.
+        mode = "RGBA" if a.shape[-1] == 4 else "RGB"
+        b = np.asarray(Image.fromarray(b).convert(mode))
+    Image.fromarray(blend(a, b, jb + 1, k + 1)).save(out, format="PNG")
 
-    written: list[Path] = []
-    for f, sources in enumerate(_frame_sources(timeline)):
-        out = out_dir / (pattern % f)
-        if len(sources) == 1:
-            i, j = sources[0]
-            arr = faded(i, j, None)
-            if arr is None:
-                shutil.copyfile(shot_frames[i][j], out)
-            else:
-                Image.fromarray(arr).save(out, format="PNG")
-        else:  # a dissolve: the previous shot's tail under this shot's head
-            (ia, ja), (ib, jb) = sorted(sources)
-            k = timeline.dissolve_in[ib]
-            a, b = load(shot_frames[ia][ja]), load(shot_frames[ib][jb])
-            if a.shape != b.shape:
-                # Meet in the previous shot's mode, so the film's frames do not
-                # change pixel format mid-sequence.
-                mode = "RGBA" if a.shape[-1] == 4 else "RGB"
-                b = np.asarray(Image.fromarray(b).convert(mode))
-            Image.fromarray(blend(a, b, jb + 1, k + 1)).save(out, format="PNG")
-        written.append(out)
-    return written
+
+def _video_only(mp4: Path, out: Path) -> None:
+    """``mp4``'s video stream, stream-copied into a file of its own: the shot
+    mux lays audio under the picture with ``-c:v copy``, so these are the bits
+    ``mux_frames`` wrote, and a file with no audio has its picture's length."""
+    _run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(mp4), "-map", "0:v",
+         "-c", "copy", *MP4_FASTSTART_ARGS, str(out)],
+        doing=f"taking the video stream of {Path(mp4).name}",
+    )  # fmt: skip
+
+
+def _concat_video(inputs: Sequence[Path], durations: Sequence[float], out: Path) -> None:
+    """Stream-copy concat of video-only segments: no frame is re-encoded.
+
+    Each segment's ``duration`` is STATED (its frames / fps), not read from its
+    container: the mov muxer writes the edit list in the movie timescale
+    (1000), and truncates it when the last packet in decode order is the
+    P-frame at the highest PTS (x264 on moving content). The concat demuxer
+    advances by that duration, so at 24 or 30 fps every later frame landed up
+    to 1 ms early per join, cumulatively, and the film's average rate stopped
+    being ``fps/1`` (an#280 review, F1; measured).
+    """
+    listing = out.with_suffix(".concat.txt")
+    lines = []
+    for p, d in zip(inputs, durations):
+        quoted = str(Path(p).resolve()).replace("'", "'\\''")
+        lines.append(f"file '{quoted}'\nduration {d:.9f}\n")
+    listing.write_text("".join(lines), encoding="utf-8")
+    _run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
+         "-i", str(listing), "-c", "copy", *MP4_FASTSTART_ARGS, str(out)],
+        doing="concatenating the film's picture",
+    )  # fmt: skip
+
+
+#: The stream properties every segment of one picture must share, or the
+#: stream-copy concat yields a film that plays wrong with no error.
+SEGMENT_STREAM_FIELDS: tuple[str, ...] = (
+    "codec_name",
+    "profile",
+    "width",
+    "height",
+    "pix_fmt",
+    "r_frame_rate",
+)
+
+
+#: Relative difference under which a segment's frame rate is the film's.
+RATE_TOLERANCE: float = 1e-4
+
+
+def _probe_stream(mp4: Path) -> dict[str, Any]:
+    """The first video stream's :data:`SEGMENT_STREAM_FIELDS` and frame count."""
+    import json
+
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+             "stream=" + ",".join((*SEGMENT_STREAM_FIELDS, "nb_frames")),
+             "-of", "json", str(mp4)],
+            capture_output=True, text=True, check=False,
+        )  # fmt: skip
+    except OSError as e:
+        raise AssemblyError(f"ffprobe failed to launch: {e}") from e
+    streams = json.loads(result.stdout or "{}").get("streams") or []
+    if result.returncode != 0 or not streams:
+        raise AssemblyError(f"{Path(mp4).name} has no video stream ffprobe can read")
+    return streams[0]
+
+
+def _check_segments(
+    segments: Sequence[Segment], paths: Sequence[Path], timeline: FilmTimeline
+) -> None:
+    """Refuse a picture whose segments a stream copy cannot join: a shot's own
+    stream (a renderer that writes only an mp4 — Manim's 480p15, say) must
+    match the others and hold exactly the frames the timeline gives it.
+
+    Before an#260 such a film was refused for having no frames; a stream copy
+    would otherwise deliver it at the wrong size, rate and length, silently
+    (an#280 review, F2).
+    """
+    from fractions import Fraction
+
+    reference: dict[str, Any] | None = None
+    for seg, path in zip(segments, paths):
+        info = _probe_stream(path)
+        rate = float(Fraction(info.get("r_frame_rate") or "0/1"))
+        # 29.97 may read back as 30000/1001: equal to well under a frame per hour.
+        if abs(rate - float(timeline.fps)) > RATE_TOLERANCE * float(timeline.fps):
+            raise AssemblyError(
+                f"{_segment_name(seg)} plays at {info.get('r_frame_rate')} fps but "
+                f"the film is {timeline.fps} fps; a stream cannot be re-timed by a copy"
+            )
+        if seg.kind == "shot" and int(info.get("nb_frames") or -1) != len(seg):
+            raise AssemblyError(
+                f"{_segment_name(seg)} holds {info.get('nb_frames')} frames but the "
+                f"timeline gives it {len(seg)}"
+            )
+        fields = {k: info.get(k) for k in SEGMENT_STREAM_FIELDS}
+        if reference is None:
+            reference = fields
+        elif fields != reference:
+            diff = {k: (reference[k], fields[k]) for k in fields if fields[k] != reference[k]}
+            raise AssemblyError(
+                f"{_segment_name(seg)} cannot be joined to the rest of the film: "
+                f"its stream differs in {diff}. A shot whose renderer writes only "
+                "an mp4 can take part in an assembled film only when its stream is "
+                "encoded like every other shot's (same size, pixel format, profile "
+                "and rate)"
+            )
+
+
+def _segment_name(seg: Segment) -> str:
+    if seg.kind == "frames":
+        return f"film frames {seg.start}-{seg.stop - 1}"
+    return f"shot {seg.shot}"
+
+
+def _assemble_picture(
+    timeline: FilmTimeline,
+    windows: Sequence[ShotWindow],
+    mp4s: Sequence[Path],
+    parts: Sequence[ShotParts | None],
+    work: Path,
+    *,
+    fps: float,
+    pix_fmt: str | None,
+) -> Path:
+    """Encode or copy each :func:`picture_segments` segment, then concat."""
+    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
+    from an.media.mp4 import mux_frames
+
+    pattern = DEFAULT_FRAME_PNG_PATTERN
+    sources = _frame_sources(timeline)
+    composed = _fresh_dir(work / "frames")  # by FILM frame index
+    seg_dir = _fresh_dir(work / "segments")
+
+    def frame_of(i: int, j: int) -> Path:
+        return parts[i].frames[j]
+
+    paths: list[Path] = []
+    segments = picture_segments(timeline, windows)
+    for n, seg in enumerate(segments):
+        out = seg_dir / f"{n:03d}.mp4"
+        if seg.kind == "shot":
+            _video_only(Path(mp4s[seg.shot]), out)
+        elif seg.kind == "body":
+            out = parts[seg.shot].body
+        else:
+            run = _fresh_dir(seg_dir / f"{n:03d}_frames")
+            for f in range(seg.start, seg.stop):
+                film_png = composed / (pattern % f)
+                _compose_frame(timeline, sources[f], frame_of, film_png)
+                _link(film_png, run / (pattern % (f - seg.start)))
+            mux_frames(run, fps, out, pix_fmt)
+        paths.append(Path(out))
+    _check_segments(segments, paths, timeline)
+    picture = work / "picture.mp4"
+    if len(paths) == 1:
+        shutil.copyfile(paths[0], picture)
+    else:
+        _concat_video(paths, [len(seg) / fps for seg in segments], picture)
+    return picture
 
 
 # -----------------------------------------------------------------------------
@@ -680,36 +1053,73 @@ def assemble_film(
     mall: Mapping[str, Any],
     work_dir: Path,
     pix_fmt: str | None = None,
+    parts: Sequence[ShotParts | None] | None = None,
 ) -> Path:
-    """Assemble rendered shots into ``output``: the picture from the shots'
-    frames (transitions composed in), muxed once, then the mix.
+    """Assemble rendered shots into ``output``: the picture as a concat of
+    segments (transitions composed in), then the mix.
 
-    ``shot_results`` are the renderers' `RenderResult`s, in timeline order;
-    each must carry its frames (``frame_manifest``), so a renderer that only
-    produces an mp4 cannot take part in an assembled film.
+    ``shot_results`` are the renderers' `RenderResult`s, in timeline order. A
+    shot no transition touches contributes its mp4 alone. A shot one touches
+    needs its :class:`ShotParts` for its :func:`shot_windows` window: pass them
+    in ``parts`` (a reused shot's come from the shot cache), or the shot's
+    ``frame_manifest`` must hold its frames, from which they are built.
+
+    **Why not one mux of every frame**, as before an#260: the picture depended
+    on every frame of every shot, so a film with a dissolve or a music bed
+    could reuse no shot without caching all of its PNGs — hundreds of MB per
+    1080p shot. The segment concat puts frame ``i`` at ``i / fps`` exactly as
+    the one mux did (measured, an#260), and each frame decodes to exactly what
+    its own segment decodes to.
     """
     timeline = film_timeline(scene.timeline, fps=fps)
+    windows = shot_windows(timeline)
     work = Path(work_dir) / "film"
     work.mkdir(parents=True, exist_ok=True)
-    picture = work / "picture.mp4"
-    # ALWAYS from frames, even with no transition: the concat of shot mp4s
-    # starts its picture after the AAC priming delay (23 ms) and advances by
-    # each shot's CONTAINER length, not its frame count, so a mix placed on the
-    # frame grid would lead the picture by 23 ms and drift at every shot whose
-    # duration is not a whole number of frames (both measured, an#163 review).
-    # One mux of the frame sequence puts frame i at exactly i / fps.
-    from an.media.frames import DEFAULT_FRAME_PNG_PATTERN
-    from an.media.mp4 import mux_frames
-
-    frames = compose_frames(
+    given = list(parts) if parts is not None else [None] * len(windows)
+    if len(given) != len(windows) or len(shot_results) != len(windows):
+        raise AssemblyError(
+            f"{len(windows)} shots on the timeline, but {len(shot_results)} "
+            f"rendered shots and {len(given)} parts were given"
+        )
+    built: list[ShotParts | None] = []
+    for i, (window, result, have) in enumerate(zip(windows, shot_results, given)):
+        manifest = list(getattr(result, "frame_manifest", None) or ())
+        if manifest and len(manifest) < window.frames:
+            raise AssemblyError(
+                f"shot {i} rendered {len(manifest)} frames but the timeline "
+                f"needs {window.frames}"
+            )
+        if window.whole:
+            built.append(None)
+        elif have is not None:
+            if have.window != window:
+                raise AssemblyError(
+                    f"shot {i}'s parts are for {have.window}, but the film needs {window}"
+                )
+            built.append(have)
+        elif manifest:
+            built.append(
+                shot_parts(
+                    manifest, window, fps=fps, work_dir=work / "parts" / f"{i:03d}",
+                    pix_fmt=pix_fmt,
+                )
+            )  # fmt: skip
+        else:
+            raise AssemblyError(
+                f"shot {i} meets a transition, so the film needs its frames at "
+                f"the transition, but its renderer produced no frames and no "
+                "parts were given; a renderer that only writes an mp4 can take "
+                "part in a film only where no transition touches it"
+            )
+    picture = _assemble_picture(
         timeline,
-        [sorted(r.frame_manifest) for r in shot_results],
-        work / "frames",
-        pattern=DEFAULT_FRAME_PNG_PATTERN,
+        windows,
+        [Path(r.mp4_path) for r in shot_results],
+        built,
+        work,
+        fps=fps,
+        pix_fmt=pix_fmt,
     )
-    if len(frames) != timeline.total_frames:  # pragma: no cover — invariant
-        raise AssemblyError("composed frame count disagrees with the timeline")
-    mux_frames(work / "frames", fps, picture, pix_fmt)
     plan = mix_plan(scene, timeline, mall, work / "audio")
     _run(mix_command(plan, picture, output), doing="mixing the film's sound")
     return output

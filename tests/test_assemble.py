@@ -384,17 +384,19 @@ def test_a_dissolve_blends_exactly_and_shortens_the_film(tmp_path, monkeypatch):
     # blue carries 2/5 — (255*3 + 0*2)/5 = 153, (0*3 + 255*2)/5 = 102.
     from PIL import Image
 
+    # Only the overlap is composed (an#260): film frames 6-9, named by their
+    # FILM index; the untouched frames reach the film inside each shot's body.
     film_frames = sorted((tmp_path / "demo/.an/render_work/film/frames").glob("*.png"))
-    assert len(film_frames) == 16
-    with Image.open(film_frames[7]) as im:
+    assert [f.name for f in film_frames] == [f"frame_{i:06d}.png" for i in range(6, 10)]
+    with Image.open(film_frames[1]) as im:  # film frame 7
         assert im.convert("RGB").getpixel((5, 5)) == (153, 0, 102)
-    with Image.open(film_frames[5]) as im:  # untouched: red's own bytes, copied
-        assert im.convert("RGB").getpixel((5, 5)) == (255, 0, 0)
 
     video = _decode_rgb(out)
     assert len(video) == 16
     mid = video[7].reshape(-1, 3).mean(axis=0)
     assert np.allclose(mid, (153, 0, 102), atol=8), mid
+    untouched = video[5].reshape(-1, 3).mean(axis=0)  # red's body
+    assert np.allclose(untouched, (255, 0, 0), atol=8), untouched
     assert _stream_duration(out, "v") == pytest.approx(1.6, abs=0.01)
     assert _stream_duration(out, "a") == pytest.approx(1.6, abs=0.03)
 
@@ -408,12 +410,13 @@ def test_a_fade_reaches_the_colour_on_exactly_one_frame(tmp_path, monkeypatch):
     from PIL import Image
 
     frames = sorted((tmp_path / "demo/.an/render_work/film/frames").glob("*.png"))
-    px = []
+    px = {}
     for f in frames:
         with Image.open(f) as im:
-            px.append(im.convert("RGB").getpixel((5, 5)))
-    # red's tail: 1/3, 2/3 of the way to black; blue's head: black, then half.
-    assert px[7:12] == [(255, 0, 0), (170, 0, 0), (85, 0, 0), (0, 0, 0), (0, 0, 128)]
+            px[int(f.stem.split("_")[1])] = im.convert("RGB").getpixel((5, 5))
+    # Only the fade's frames are composed (an#260), named by film index:
+    # red's tail 1/3, 2/3 of the way to black; blue's head black, then half.
+    assert px == {8: (170, 0, 0), 9: (85, 0, 0), 10: (0, 0, 0), 11: (0, 0, 128)}
     assert len(_decode_rgb(out)) == 20  # a fade holds the film's length
 
 
