@@ -65,21 +65,21 @@ Bases: `BaseModel`
 
 The `sound.json` of one entry in the `sounds` store.
 
-#### duration *: float*
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Seconds, from the WAV header.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### sha256 *: str*
+#### sha256 *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Digest of `audio.wav` as it entered the project; checked on every read.
 
 ### *exception* an.sounds.SoundError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A sound the store cannot hold, or holds wrongly.
 
@@ -102,7 +102,7 @@ A mismatch raises: the licence is attached to the digest, so different
 bytes under the same key are an asset nobody recorded.
 
 * **Return type:**
-  `tuple`[[`SoundAsset`](#an.sounds.SoundAsset), `bytes`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SoundAsset`](#an.sounds.SoundAsset), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 ### an.sounds.synth_bed(duration, , chord=(220.0, 277.18, 329.63), pulse_hz=2.0, sample_rate=44100, amplitude=0.3)
 
@@ -112,7 +112,7 @@ The pulse is a whole number of cycles over `duration` when
 `duration * pulse_hz` is whole, so a looped bed does not bump at the seam.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> len(synth_bed(1.0)) > 44 and synth_bed(1.0) == synth_bed(1.0)
@@ -124,7 +124,7 @@ True
 A percussive hit: a seeded noise burst over a low thump, decaying fast.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_hit(seed=1) == synth_hit(seed=1), synth_hit(seed=1) == synth_hit(seed=2)
@@ -136,7 +136,7 @@ A percussive hit: a seeded noise burst over a low thump, decaying fast.
 A sine at `freq` Hz, with short linear ramps so it does not click.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_tone(440.0, 0.1) == synth_tone(440.0, 0.1)
@@ -148,7 +148,7 @@ True
 `(sample_rate, channels, frames)` from a WAV’s header.
 
 * **Return type:**
-  `tuple`[`int`, `int`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))

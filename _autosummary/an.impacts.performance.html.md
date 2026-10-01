@@ -56,7 +56,7 @@ accelerando from 60 to 120 BPM over four beats, so the gaps shrink:
 | [`PerformanceError`](#an.impacts.performance.PerformanceError)   | A performance description that cannot be played.   |
 |---------------------------------------------------------------------|----------------------------------------------------|
 
-### an.impacts.performance.DEFAULT_LEAD_IN *: float* *= 0.5*
+### an.impacts.performance.DEFAULT_LEAD_IN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Seconds before the first grid beat. Long enough for the first stroke’s
 preparation and for any humanisation to pull the first impact early.
@@ -67,22 +67,22 @@ preparation and for any humanisation to pull the first impact early.
 timing models richer than [`gaussian_humanizer()`](#an.impacts.performance.gaussian_humanizer) (a learned groove, a
 drummer’s measured microtiming).
 
-alias of `Callable`[[`Sequence`[`float`], `object`], `Sequence`[`float`]]
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### *class* an.impacts.performance.ImpactEvent(index, beat, t_grid, t_impact, amplitude)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One impact: where the grid put it and when it was executed.
 
-#### *property* offset *: float*
+#### *property* offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 the humanisation actually applied (post-clamp).
 
 * **Type:**
   `t_impact - t_grid`
 
-### an.impacts.performance.MAX_OFFSET_FRACTION *: float* *= 0.4*
+### an.impacts.performance.MAX_OFFSET_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
 
 A humanisation offset is clamped to this fraction of the gap to each
 neighbouring grid event, so executed impacts can never swap order or
@@ -90,13 +90,13 @@ collide — whatever the jitter’s standard deviation.
 
 ### *exception* an.impacts.performance.PerformanceError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A performance description that cannot be played.
 
 ### *class* an.impacts.performance.TempoMap(points)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points.
 
@@ -119,7 +119,7 @@ four bars”); the time of a beat is the exact integral of `60 / bpm`.
 Seconds from beat 0 to `beat` (`beat >= 0`).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.impacts.performance.gaussian_humanizer(sd=0.0, , rho=0.0, bias=0.0)
 
@@ -132,7 +132,7 @@ the timing wanders, not how far. `rho = 0` is independent jitter;
 `bias` is a constant lead (negative) or lag (positive).
 
 * **Return type:**
-  `Callable`[[`Sequence`[`float`], `object`], `Sequence`[`float`]]
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> import numpy as np
@@ -157,7 +157,7 @@ into offsets (default: none); each offset is then clamped to
 value is what the event records — the ground truth is what was executed.
 
 * **Return type:**
-  `tuple`[[`ImpactEvent`](#an.impacts.performance.ImpactEvent), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ImpactEvent`](#an.impacts.performance.ImpactEvent), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> [e.beat for e in perform(120, beats=2, subdivision=2, pattern=(1, 0))]

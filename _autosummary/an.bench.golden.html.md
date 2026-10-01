@@ -68,7 +68,7 @@ otherwise carry a perfect score that no code could ever have failed.
 | [`GoldenError`](#an.bench.golden.GoldenError)   | A bless was refused, or a committed golden is unusable.   |
 |----------------------------------------------------------------|-----------------------------------------------------------|
 
-### an.bench.golden.BLESS_MANIFEST_TEMPLATE *: str* *= 'bless-chromium{chromium_build}.json'*
+### an.bench.golden.BLESS_MANIFEST_TEMPLATE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'bless-chromium{chromium_build}.json'*
 
 Per-scene, per-build bless record, committed beside the frames. Per build
 rather than per scene: a Playwright bump adds a new set of frames under new
@@ -76,15 +76,15 @@ names, and the old set stays valid for anyone still on the old build.
 
 ### *class* an.bench.golden.FrameRef(key, time, index, shot_id, local_index)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One pinned golden frame, resolved against the render that just happened.
 
-#### local_index *: int*
+#### local_index *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 Index WITHIN that shot’s frame directory.
 
-### an.bench.golden.GATE_UNDECLARED *: str* *= 'golden_frames_undeclared'*
+### an.bench.golden.GATE_UNDECLARED *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'golden_frames_undeclared'*
 
 Gate names. Literals rather than an enum because they are written into the
 ledger and read back by `an bench --compare` from rows written by older
@@ -92,17 +92,17 @@ registries, so their spelling is a wire format.
 
 ### *exception* an.bench.golden.GoldenError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A bless was refused, or a committed golden is unusable.
 
-### an.bench.golden.REQUIRED_GOLDEN_FRAMES *: int* *= 2*
+### an.bench.golden.REQUIRED_GOLDEN_FRAMES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 How many golden frames a scene must declare. Two, because one frame tests a
 single instant and cannot notice a scene that renders its first frame
 correctly and then stops.
 
-### an.bench.golden.RETIRED_GATES *: dict[str, str]* *= {'golden_absent': 'golden_absent_for_chromium_build'}*
+### an.bench.golden.RETIRED_GATES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'golden_absent': 'golden_absent_for_chromium_build'}*
 
 Gate names that appear in rows written BEFORE this module existed, and what
 they meant. `an bench --compare` (an#40) reads old rows as fact, so the one
@@ -131,7 +131,7 @@ that cannot fail:
   frames would be written under a name no future run could look up.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.golden.chromium_build_of(environment)
 
@@ -142,7 +142,7 @@ not ask the browser” arrives here as a missing field rather than as an
 exception, and must not be confused with “nobody has blessed this scene”.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.golden.compare_scene(capture, , times, chromium_build, root=None)
 
@@ -156,7 +156,7 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 “the worst small window”.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.golden.frame_index_for(time, , fps, n_frames)
 
@@ -166,7 +166,7 @@ The frame a pinned time names, snapped to the nearest one.
 binary floating point, so the obvious spelling silently picks frame 5.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> frame_index_for(0.25, fps=24, n_frames=12)
@@ -185,7 +185,7 @@ which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> frame_key(7)
@@ -197,28 +197,28 @@ the right cause.
 Where the renderer left the PNG for one resolved frame.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.golden.iter_committed(scene, chromium_build, , root=None)
 
 Every committed golden PNG for one scene and build, in sorted order.
 
 * **Return type:**
-  `Iterator`[`Path`]
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.bench.golden.load_manifest(scene, chromium_build, , root=None)
 
 The committed bless record, or `None` when this scene has never been blessed.
 
 * **Return type:**
-  `dict` | `None`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.golden.manifest_path(scene, chromium_build, , root=None)
 
 Where one scene’s bless record for one Chromium build lives.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.golden.pixels_sha256(rgb)
 
@@ -234,7 +234,7 @@ its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> import numpy as np
@@ -252,4 +252,4 @@ mp4 shows — so a pinned time can land in the second shot, which is exactly
 what `multi_shot`’s second golden does.
 
 * **Return type:**
-  `list`[[`FrameRef`](#an.bench.golden.FrameRef)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FrameRef`](#an.bench.golden.FrameRef)]

@@ -41,13 +41,13 @@ Loop modes:
 
 ### *class* an.adapters.cutout.clip.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Named animation: a duration + a bundle of channels.
 
 ### *class* an.adapters.cutout.clip.LoopMode(\*values)
 
-Bases: `str`, `Enum`
+Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
 
 How a clip behaves past its natural duration.
 
@@ -58,14 +58,14 @@ animation evaluation. Application happens in `runtime.js` (`applyPose`);
 the Python side only ever *produces* poses (an#86 deleted the Python
 applier, which structurally could not apply swap or alpha values).
 
-alias of `dict`[`tuple`[`str`, `str`], `Any`]
+alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.adapters.cutout.clip.evaluate(clip, t)
 
 Evaluate `clip` at time `t`, returning a `Pose`.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.adapters.cutout.clip.merge_poses(\*poses)
 
@@ -74,7 +74,7 @@ Merge multiple poses with **override semantics** (later wins per key).
 Used by the timeline to combine concurrent clips on the same target.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})

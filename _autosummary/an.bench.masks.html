@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.ledger" href="an.bench.ledger.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -575,7 +575,7 @@ a threshold that quietly changes.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.masks.EDGE_MASK_THRESHOLD">
-<span class="sig-prename descclassname"><span class="pre">an.bench.masks.</span></span><span class="sig-name descname"><span class="pre">EDGE_MASK_THRESHOLD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">40</span></span><a class="headerlink" href="#an.bench.masks.EDGE_MASK_THRESHOLD" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.masks.</span></span><span class="sig-name descname"><span class="pre">EDGE_MASK_THRESHOLD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">40</span></span><a class="headerlink" href="#an.bench.masks.EDGE_MASK_THRESHOLD" title="Link to this definition">#</a></dt>
 <dd><p>Two-pixel-apart luma gradient above this counts as an edge. Recorded in the
 ledger with the operator string, because the research is explicit that the
 prototype’s absolute numbers are ordinal evidence only and no threshold may
@@ -584,13 +584,13 @@ be written from them.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.masks.FLAT_DILATE_K">
-<span class="sig-prename descclassname"><span class="pre">an.bench.masks.</span></span><span class="sig-name descname"><span class="pre">FLAT_DILATE_K</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.bench.masks.FLAT_DILATE_K" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.masks.</span></span><span class="sig-name descname"><span class="pre">FLAT_DILATE_K</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.bench.masks.FLAT_DILATE_K" title="Link to this definition">#</a></dt>
 <dd><p>Structuring element for the flat-field erosion.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.masks.RENDER_EDGE_OPERATOR">
-<span class="sig-prename descclassname"><span class="pre">an.bench.masks.</span></span><span class="sig-name descname"><span class="pre">RENDER_EDGE_OPERATOR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'max(|Y[:,2:]-Y[:,:-2]|,</span> <span class="pre">|Y[2:,:]-Y[:-2,:]|)</span> <span class="pre">&gt;</span> <span class="pre">40,</span> <span class="pre">on</span> <span class="pre">FULL-RANGE</span> <span class="pre">BT.709</span> <span class="pre">luma</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">SOURCE</span> <span class="pre">RGB</span> <span class="pre">(an.bench.metrics.luma_u8)'</span></span><a class="headerlink" href="#an.bench.masks.RENDER_EDGE_OPERATOR" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.masks.</span></span><span class="sig-name descname"><span class="pre">RENDER_EDGE_OPERATOR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'max(|Y[:,2:]-Y[:,:-2]|,</span> <span class="pre">|Y[2:,:]-Y[:-2,:]|)</span> <span class="pre">&gt;</span> <span class="pre">40,</span> <span class="pre">on</span> <span class="pre">FULL-RANGE</span> <span class="pre">BT.709</span> <span class="pre">luma</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">SOURCE</span> <span class="pre">RGB</span> <span class="pre">(an.bench.metrics.luma_u8)'</span></span><a class="headerlink" href="#an.bench.masks.RENDER_EDGE_OPERATOR" title="Link to this definition">#</a></dt>
 <dd><p>The SAME operator on the render side, and deliberately a second string
 rather than a reuse of <code class="code docutils literal notranslate"><span class="pre">EDGE_OPERATOR</span></code>. <code class="code docutils literal notranslate"><span class="pre">an.bench.imageio</span></code>’s
 <code class="code docutils literal notranslate"><span class="pre">SOURCE_SCALE_FILTER</span></code> pins <code class="code docutils literal notranslate"><span class="pre">out_range=tv</span></code>, so ffmpeg’s Y lives in [16,235]
@@ -613,7 +613,7 @@ so nine shifts beat pulling in scipy, and the package’s dependency
 perimeter is four names wide on purpose.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -633,7 +633,7 @@ two-apart difference is undefined there; excluding it is what keeps the
 operator string honest.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -652,7 +652,7 @@ operator string honest.</p>
 and blocking live here, and without this mask they are invisible.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -669,7 +669,7 @@ and blocking live here, and without this mask they are invisible.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(N-1,</span> <span class="pre">H,</span> <span class="pre">W)</span></code>: pixels the animator held perfectly still between frames.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -689,7 +689,7 @@ a different measurement from <code class="code docutils literal notranslate"><sp
 name for it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>

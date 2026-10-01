@@ -59,7 +59,7 @@ would lerp what JS’s `typeof` snaps.
 
 ### *class* an.adapters.cutout.channel.Channel(target, property, keyframes=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Sorted keyframes for one property of one target.
 
@@ -67,7 +67,7 @@ Construction validates that `keyframes` is non-empty and sorted.
 
 ### *class* an.adapters.cutout.channel.Keyframe(time, value, easing=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One keyframe: time, value, optional per-segment easing.
 
@@ -79,4 +79,4 @@ toward the next one. The last keyframe’s easing is therefore unused.
 Evaluate `channel` at time `t`.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

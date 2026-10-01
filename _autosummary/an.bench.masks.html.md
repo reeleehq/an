@@ -35,18 +35,18 @@ a threshold that quietly changes.
 | [`held_mask`](#an.bench.masks.held_mask)(rgb)                   | `(N-1, H, W)`: pixels the animator held perfectly still between frames. |
 | [`ring_mask`](#an.bench.masks.ring_mask)(edge)                  | The band immediately *around* an edge, excluding the edge itself.       |
 
-### an.bench.masks.EDGE_MASK_THRESHOLD *: int* *= 40*
+### an.bench.masks.EDGE_MASK_THRESHOLD *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 40*
 
 Two-pixel-apart luma gradient above this counts as an edge. Recorded in the
 ledger with the operator string, because the research is explicit that the
 prototype’s absolute numbers are ordinal evidence only and no threshold may
 be written from them.
 
-### an.bench.masks.FLAT_DILATE_K *: int* *= 3*
+### an.bench.masks.FLAT_DILATE_K *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 Structuring element for the flat-field erosion.
 
-### an.bench.masks.RENDER_EDGE_OPERATOR *: str* *= 'max(|Y[:,2:]-Y[:,:-2]|, |Y[2:,:]-Y[:-2,:]|) > 40, on FULL-RANGE BT.709 luma from the SOURCE RGB (an.bench.metrics.luma_u8)'*
+### an.bench.masks.RENDER_EDGE_OPERATOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'max(|Y[:,2:]-Y[:,:-2]|, |Y[2:,:]-Y[:-2,:]|) > 40, on FULL-RANGE BT.709 luma from the SOURCE RGB (an.bench.metrics.luma_u8)'*
 
 The SAME operator on the render side, and deliberately a second string
 rather than a reuse of `EDGE_OPERATOR`. `an.bench.imageio`’s
@@ -69,7 +69,7 @@ so nine shifts beat pulling in scipy, and the package’s dependency
 perimeter is four names wide on purpose.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -87,7 +87,7 @@ two-apart difference is undefined there; excluding it is what keeps the
 operator string honest.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -104,7 +104,7 @@ The interior of large flat colour fields, from the source frames.
 and blocking live here, and without this mask they are invisible.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -118,7 +118,7 @@ True
 `(N-1, H, W)`: pixels the animator held perfectly still between frames.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -136,7 +136,7 @@ a different measurement from `coded_luma_edge_error` rather than a second
 name for it.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np

@@ -70,7 +70,7 @@ Or from the shell: `an impacts clip OUT_DIR` / `an impacts clip-set OUT_DIR`.
 
 ### *class* an.impacts.CapturedFrame(index, t_nominal, t_open, t_close, samples, t_reported)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One output frame: when its exposure opened and closed, and what it saw.
 
@@ -83,7 +83,7 @@ clock’s `timestamps` setting.
 
 ### *class* an.impacts.FrameClock(fps=30.0, exposure=0.0, samples=None, jitter_sd=0.0, phase=0.0, timestamps='nominal', report_noise_sd=0.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A camera’s timing, as data. Every field defaults to the ideal camera.
 
@@ -121,9 +121,9 @@ sample a scene outside its own timeline; the clipped values are what
 One [`CapturedFrame`](#an.impacts.CapturedFrame) per output frame of a `duration` render.
 
 * **Return type:**
-  `tuple`[[`CapturedFrame`](an.frame_clock.md#an.frame_clock.CapturedFrame), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CapturedFrame`](an.frame_clock.md#an.frame_clock.CapturedFrame), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-#### *property* max_jitter *: float*
+#### *property* max_jitter *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The clamp on a frame’s capture offset, in seconds.
 
@@ -137,9 +137,9 @@ The clamp on a frame’s capture offset, in seconds.
 Per frame, the scene instants to render and average — the render seam.
 
 * **Return type:**
-  `tuple`[`tuple`[`float`, `...`], `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-#### *property* samples_per_frame *: int*
+#### *property* samples_per_frame *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 1 for an instantaneous shutter.
 
@@ -153,7 +153,7 @@ Per frame, the scene instants to render and average — the render seam.
 
 ### *class* an.impacts.ImpactClipSpec(object='stick', kind='surface', tempo=100.0, beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.
 
@@ -179,7 +179,7 @@ taken), `timestamp_noise_sd` (noise on the reported timestamp only),
 camera’s — so clips that differ only in camera settings share the exact same
 performance.
 
-#### *property* clip_id *: str*
+#### *property* clip_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 A readable, deterministic directory name.
 
@@ -200,11 +200,11 @@ dropping one would regenerate a different clip under the same spec.
 
 ### *class* an.impacts.ImpactEvent(index, beat, t_grid, t_impact, amplitude)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One impact: where the grid put it and when it was executed.
 
-#### *property* offset *: float*
+#### *property* offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 the humanisation actually applied (post-clamp).
 
@@ -213,7 +213,7 @@ the humanisation actually applied (post-clamp).
 
 ### *class* an.impacts.ImpactObject(name, art, at, channels, keypoints, impact_keypoint, keypoint_nodes=<factory>, surface_art=None, surface_at=None, params=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One striking object, its surface, and how the stroke moves it.
 
@@ -222,11 +222,11 @@ ball, two for a forearm-plus-stick limb (each affine in the SAME `h`, so
 the motion stays exact). `keypoints` are local points by name; each lives
 on the node `keypoint_nodes[name]` names, the entity itself by default.
 
-#### impact_keypoint *: str*
+#### impact_keypoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The keypoint that does the striking (a stick’s tip, a ball’s bottom).
 
-#### keypoints *: Mapping[str, tuple[float, float]]*
+#### keypoints *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Local points by name. What a tracker would report.
 
@@ -235,21 +235,21 @@ Local points by name. What a tracker would report.
 `{(node path, property): value}` at stroke height `h`.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-#### surface_at *: tuple[float, float] | None*
+#### surface_at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where the surface’s top edge is centred, in scene coordinates.
 
 ### *class* an.impacts.ImpactPlan(spec, events, obj, stroke, frames, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A clip before it touches disk: events, motion, camera, and the Scene IR.
 
 ### *class* an.impacts.Stroke(kind, duration, segments, kinematics)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The whole curve, plus the kinematics of every impact on it.
 
@@ -258,24 +258,24 @@ The whole curve, plus the kinematics of every impact on it.
 Stroke height at scene time `t` (clamped to the clip).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### velocity(t)
 
 `dh/dt` at `t`; at a segment boundary, the LATER segment’s value.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *class* an.impacts.StrokeSegment(t0, t1, h0, h1, easing)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 `h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.
 
 ### *class* an.impacts.TempoMap(points)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points.
 
@@ -298,11 +298,11 @@ four bars”); the time of a beat is the exact integral of `60 / bpm`.
 Seconds from beat 0 to `beat` (`beat >= 0`).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *exception* an.impacts.TruthMismatch
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The ground truth and the thing it describes disagree.
 
@@ -339,7 +339,7 @@ the timing wanders, not how far. `rho = 0` is independent jitter;
 `bias` is a constant lead (negative) or lag (positive).
 
 * **Return type:**
-  `Callable`[[`Sequence`[`float`], `object`], `Sequence`[`float`]]
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> import numpy as np
@@ -372,7 +372,7 @@ KeyError: "no impact object 'hammer'; known: ['ball', 'stick']"
 The cartesian product of the given axes over `base`.
 
 * **Return type:**
-  `list`[[`ImpactClipSpec`](an.impacts.clip.md#an.impacts.clip.ImpactClipSpec)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ImpactClipSpec`](an.impacts.clip.md#an.impacts.clip.ImpactClipSpec)]
 
 ```pycon
 >>> len(impact_set_specs())
@@ -394,7 +394,7 @@ into offsets (default: none); each offset is then clamped to
 value is what the event records — the ground truth is what was executed.
 
 * **Return type:**
-  `tuple`[[`ImpactEvent`](an.impacts.performance.md#an.impacts.performance.ImpactEvent), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ImpactEvent`](an.impacts.performance.md#an.impacts.performance.ImpactEvent), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> [e.beat for e in perform(120, beats=2, subdivision=2, pattern=(1, 0))]
@@ -445,7 +445,7 @@ browser is needed: the keypoints and the truth come from the compiled
 document, not from the pixels.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.impacts.write_impact_set(out_dir, specs=None, , render=True, progress=None)
 
@@ -454,7 +454,7 @@ Write every clip in `specs` (default: [`impact_set_specs()`](#an.impacts.impact_
 `progress`, if given, is called with `(i, n, clip_dir)` after each clip.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### Modules
 

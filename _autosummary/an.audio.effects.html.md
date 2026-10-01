@@ -66,7 +66,7 @@ Effects a voice document may declare, with the range each accepts.
 
 ### *exception* an.audio.effects.VoiceEffectError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A voice declares an effect that is unknown, malformed or out of range.
 
@@ -79,14 +79,14 @@ ffmpeg is missing or fails — never returns unshifted audio for a voice that
 asked for a shift.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.audio.effects.filter_chain(effects)
 
 The ffmpeg `-af` chain for normalised `effects` (`""` for none).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.effects.normalize_effects(raw)
 
@@ -97,7 +97,7 @@ Omit-when-unset: `None`, `{}` and a zero-valued effect all normalise to
 Unknown keys raise — an effect that silently does nothing is worse than none.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.audio.effects.voice_effects(mall, voice_id)
 
@@ -107,4 +107,4 @@ A voice that is not in the store (the offline default, a raw provider voice
 id) has no effects; so does a store that does not exist.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]

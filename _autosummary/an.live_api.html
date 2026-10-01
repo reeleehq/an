@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.iterate" href="an.iterate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -571,20 +571,20 @@ would be a second answer to “may this run spend?”, and the two would drift.<
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.live_api.CI_ENV_VAR">
-<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">CI_ENV_VAR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CI'</span></span><a class="headerlink" href="#an.live_api.CI_ENV_VAR" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">CI_ENV_VAR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CI'</span></span><a class="headerlink" href="#an.live_api.CI_ENV_VAR" title="Link to this definition">#</a></dt>
 <dd><p>Set by every CI provider we care about. CI must never spend, whatever else
 is configured, because nobody is watching the bill in a CI run.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.live_api.LIVE_API_ENV_VAR">
-<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">LIVE_API_ENV_VAR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AN_LIVE_API_TESTS'</span></span><a class="headerlink" href="#an.live_api.LIVE_API_ENV_VAR" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">LIVE_API_ENV_VAR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AN_LIVE_API_TESTS'</span></span><a class="headerlink" href="#an.live_api.LIVE_API_ENV_VAR" title="Link to this definition">#</a></dt>
 <dd><p>Set this truthy to opt a run in to real, billed API calls.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.live_api.TRUTHY_VALUES">
-<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">TRUTHY_VALUES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'1',</span> <span class="pre">'on',</span> <span class="pre">'true',</span> <span class="pre">'yes'})</span></span><a class="headerlink" href="#an.live_api.TRUTHY_VALUES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">TRUTHY_VALUES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'1',</span> <span class="pre">'on',</span> <span class="pre">'true',</span> <span class="pre">'yes'})</span></span><a class="headerlink" href="#an.live_api.TRUTHY_VALUES" title="Link to this definition">#</a></dt>
 <dd><p>Accepted spellings of “yes”. Anything else — including an empty string, the
 shape an unset-but-exported variable takes — is “no”.</p>
 </dd></dl>
@@ -601,7 +601,7 @@ annotation was false about the function’s own primary argument and pushed
 callers into copying the whole environment to satisfy it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">live_api_enabled</span><span class="p">({})</span>

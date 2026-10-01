@@ -48,22 +48,22 @@ half moved when the number does.
 | [`runtime_literal_colours`](#an.bench.palette.runtime_literal_colours)(runtime_js)              | Every 6-digit hex literal the runtime source paints.                            |
 | [`svg_colours`](#an.bench.palette.svg_colours)(svg_path)                            | Every colour literal an SVG paints, plus the tokens that could not be resolved. |
 
-### an.bench.palette.COLOURED_KINDS *: frozenset[str]* *= frozenset({'ellipse', 'path', 'rect'})*
+### an.bench.palette.COLOURED_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'path', 'rect'})*
 
 `visual.kind` values whose `visual.color` the runtime actually paints.
 A stroked path (an#160) paints `path.color` — the compiler stamps the same
 value onto `visual.color` (asserted by `tests/test_styles.py`), so one read
 covers the stroke and the arrowhead, which is filled in that colour.
 
-### an.bench.palette.INERT_COLOUR_KINDS *: frozenset[str]* *= frozenset({'mouth', 'sprite', 'svg_sprite'})*
+### an.bench.palette.INERT_COLOUR_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'mouth', 'sprite', 'svg_sprite'})*
 
 `visual.kind` values whose `visual.color` is inert.
 
-### an.bench.palette.RUNTIME_DEFAULT_COLOUR *: int* *= 8947848*
+### an.bench.palette.RUNTIME_DEFAULT_COLOUR *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8947848*
 
 The runtime’s fallback when a `visual.color` is absent or not a string.
 
-### an.bench.palette.RUNTIME_EYE_COLOURS *: tuple[int, ...]* *= (16777215, 2236962)*
+### an.bench.palette.RUNTIME_EYE_COLOURS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (16777215, 2236962)*
 
 the sclera fill and the
 0.6-alpha outline. The outline’s alpha means it paints BLENDS, so it is a
@@ -72,15 +72,15 @@ lower bound on that node’s contribution — the safe direction.
 * **Type:**
   Painted by `makeEye` regardless of `visual.color`
 
-### an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT *: str* *= '#1a1a1a'*
+### an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 The runtime’s fallback pupil colour when a `visual.color` is absent.
 
-### an.bench.palette.RUNTIME_JS_RELPATH *: str* *= 'an/data/cutout_runtime/runtime.js'*
+### an.bench.palette.RUNTIME_JS_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an/data/cutout_runtime/runtime.js'*
 
 Where the runtime’s own hard-coded colours live, for the source cross-check.
 
-### an.bench.palette.RUNTIME_MOUTH_COLOURS *: tuple[int, ...]* *= (7023403, 2756624, 16448250, 11552840)*
+### an.bench.palette.RUNTIME_MOUTH_COLOURS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (7023403, 2756624, 16448250, 11552840)*
 
 lip, fill, teeth, tongue. The mouth node’s own
 `visual.color` is never read.
@@ -102,7 +102,7 @@ the palette is a superset of what was painted, and every token that could
 not be resolved.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.palette.parse_color(value)
 
@@ -122,7 +122,7 @@ Note what that is **not**: a 3-digit CSS shorthand expander. `"#222"`
 pads to `"222000"`, so the runtime paints `0x222000` and so must this.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> hex(parse_color("#222"))
@@ -143,7 +143,7 @@ so adding a fifth mouth colour reddens a test instead of silently inflating
 `off_palette_pixel_fraction`.
 
 * **Return type:**
-  `set`[`int`]
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.palette.svg_colours(svg_path)
 
@@ -159,4 +159,4 @@ An unresolvable token (a named colour, a `url(#gradient)` reference) is
 palette, and the metric then reads low with no error anywhere.
 
 * **Return type:**
-  `tuple`[`set`[`int`], `set`[`str`]]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`int`](https://docs.python.org/3/builtins/functions.html#int)], [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]

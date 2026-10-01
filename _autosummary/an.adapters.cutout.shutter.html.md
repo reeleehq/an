@@ -28,7 +28,7 @@ without an open shutter is byte-identical to one from before this module.
 
 ### *exception* an.adapters.cutout.shutter.ShutterError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 Frame samples a render cannot honour.
 
@@ -40,7 +40,7 @@ Checked before a browser launches, for `check_factor`’s reason: the render
 costs minutes and this costs microseconds.
 
 * **Return type:**
-  `tuple`[`tuple`[`float`, `...`], `...`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> check_frame_samples(None, total_frames=3, duration=0.1) is None
@@ -61,7 +61,7 @@ One screenshot takes exactly the spatial path — the same bytes a render
 without a shutter writes.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.adapters.cutout.shutter.temporal_mean(frames)
 
@@ -75,7 +75,7 @@ is drawn is still the average of the sampled positions, which is the
 property the impact ground truth relies on.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np

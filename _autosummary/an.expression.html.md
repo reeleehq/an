@@ -47,29 +47,29 @@ cutout compiler’s face solver consumes these; `an validate` and
 
 ### *class* an.expression.Axis(name, lo, hi, rest=0.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One numeric axis: its range and its rest (neutral) value.
 
 ### *class* an.expression.AxisCurve(axis, samples)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).
 
 ### *class* an.expression.ChannelBinding(axis, slot, property, gain, rig_scaled=False)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A numeric axis driving one transform property of one slot’s node.
 
-#### rig_scaled *: bool* *= False*
+#### rig_scaled *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 
 Whether the gain is a view-box length (scaled by the rig factor).
 
 ### *class* an.expression.DefaultExpressionProvider
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Sum of the shot’s expression spans on the entity, ramped, per frame.
 
@@ -83,23 +83,23 @@ asks once per line, never per frame, so at most one mouth swap
 property is live per instant.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.expression.ExpressionProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 The seam: whatever produces per-axis curves for one entity of one shot.
 
 ### *exception* an.expression.ExpressionResolutionError(who, problems)
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 An expression that cannot resolve on a character; `problems` says why.
 
 ### *class* an.expression.ExpressionSpan(start, end, preset, axes=<factory>, intensity=1.0, blend=0.0, source='action')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One expression contributor on one entity, in absolute shot time.
 
@@ -108,9 +108,9 @@ One expression contributor on one entity, in absolute shot time.
 The unscaled axis offsets this span asks for.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-#### source *: str* *= 'action'*
+#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'action'*
 
 `"action"` for an authored leaf, `"dialogue"` for the `[emotion]` sugar.
 
@@ -119,25 +119,25 @@ The unscaled axis offsets this span asks for.
 The ramped intensity at `t`: 0 outside, ramping over `blend` at each end.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *class* an.expression.Preset(name, axes=<factory>, mouth_form=None, anchor='')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A named expression: axis offsets, the mouth form it prefers, its anchor.
 
-#### anchor *: str* *= ''*
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
 
 FACS AU cross-reference (a comment, never a source).
 
-#### mouth_form *: str | None* *= None*
+#### mouth_form *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
 
 ### *class* an.expression.SetBinding(axis, slot, set_family='eyelid')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A lid axis driving one slot’s swap set through the ladder.
 
@@ -150,14 +150,14 @@ A declared binding is a list of dicts in the two dataclasses’ shapes
 `{"axis", "slot", "set_family"}`). An unknown axis in it is an error.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](an.expression.binding.html.md#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](an.expression.binding.html.md#an.expression.binding.SetBinding)]]
 
 ### an.expression.clamp_axes(values)
 
 Clamp every numeric axis to its range; an unknown axis is an error.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> clamp_axes({"brow_height_l": 2.0, "lid_open_r": -3.0})
@@ -173,7 +173,7 @@ ValueError: unknown expression axis 'eyebrow' (known: brow_angle_l, ...)
 `{form: set name}` for every `viseme@<form>` set the descriptor declares.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> declared_mouth_variants(CharacterDescriptor(name="m"))
@@ -190,7 +190,7 @@ end while on the RIGHT brow it lifts it — the axis says “+ = inner end
 up”, hence `-travel` on the left and `+travel` on the right.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](an.expression.binding.html.md#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](an.expression.binding.html.md#an.expression.binding.SetBinding)]]
 
 ### an.expression.expression_problems(desc, , preset, axes=(), who)
 
@@ -200,7 +200,7 @@ Shared by `an validate` (each becomes an error Finding) and the compiler
 (which raises [`ExpressionResolutionError`](#an.expression.ExpressionResolutionError) with the same list).
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> expression_problems(CharacterDescriptor(name="m"), preset="joyful", who="m")
@@ -216,7 +216,7 @@ dialogue sugar. `duration=None` runs to the shot end (the looping-play
 rule); a span never extends past the shot.
 
 * **Return type:**
-  `list`[[`ExpressionSpan`](an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExpressionSpan`](an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
 
 ### an.expression.from_blendshapes(coefficients)
 
@@ -225,14 +225,14 @@ Fold unipolar coefficients onto the axes (summed, then clamped).
 Unknown names raise — a misspelt coefficient must not vanish quietly.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.expression.known_presets()
 
 The preset names, in declaration order.
 
 * **Return type:**
-  `tuple`[`str`, `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> known_presets()[:3]
@@ -248,14 +248,14 @@ a rig without `half` stays open until the lower threshold and one without
 `wide` stays open above the upper one — never a blend of two drawings.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.expression.mouth_form_of(preset)
 
 The `viseme@<form>` a preset prefers, or `None` for the neutral set.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> mouth_form_of("amused"), mouth_form_of("thinking"), mouth_form_of(None)
@@ -272,7 +272,7 @@ An unknown preset or axis is a `ValueError` — validate reports it as an
 error, the compiler refuses it.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.expression.resolve_mouth_set(desc, preset, , keys_used, who=None)
 
@@ -285,14 +285,14 @@ was missing; else [`ExpressionResolutionError`](#an.expression.ExpressionResolut
 error, not a fallback.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.expression.variant_set_name(form)
 
 The swap-set name for a mouth form (`@` is a legal set-name character).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> variant_set_name("happy")

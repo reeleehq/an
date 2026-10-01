@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.expression.provider" href="an.expression.provider.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -605,7 +605,7 @@ period, sampled at the midpoints of <code class="docutils literal notranslate"><
 <dl class="py class">
 <dt class="sig sig-object py" id="an.frame_clock.CapturedFrame">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">CapturedFrame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_nominal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_open</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_close</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_reported</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/frame_clock.html#CapturedFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.frame_clock.CapturedFrame" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One output frame: when its exposure opened and closed, and what it saw.</p>
 <p><code class="docutils literal notranslate"><span class="pre">t_nominal</span></code> is <code class="docutils literal notranslate"><span class="pre">index</span> <span class="pre">/</span> <span class="pre">fps</span></code> — what a constant-rate container (an mp4)
 says the frame’s time is. <code class="docutils literal notranslate"><span class="pre">samples</span></code> are the instants actually rendered
@@ -619,7 +619,7 @@ clock’s <code class="docutils literal notranslate"><span class="pre">timestamp
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.frame_clock.DEFAULT_EXPOSURE_SAMPLES">
-<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_EXPOSURE_SAMPLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.frame_clock.DEFAULT_EXPOSURE_SAMPLES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_EXPOSURE_SAMPLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.frame_clock.DEFAULT_EXPOSURE_SAMPLES" title="Link to this definition">#</a></dt>
 <dd><p>Sub-samples integrated per frame when the shutter is open and the caller did
 not say how many. Eight midpoint samples put the smear of an object crossing
 100 px in one exposure at steps of ~12 px — continuous to a tracker, cheap to
@@ -629,7 +629,7 @@ render (each sample is one screenshot).</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.frame_clock.FrameClock">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">FrameClock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nominal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_noise_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/frame_clock.html#FrameClock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.frame_clock.FrameClock" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A camera’s timing, as data. Every field defaults to the ideal camera.</p>
 <p><code class="docutils literal notranslate"><span class="pre">fps</span></code>: nominal frame rate (need not be an integer: 29.97 is a camera).
 <code class="docutils literal notranslate"><span class="pre">exposure</span></code>: fraction of the frame period the shutter is open, in
@@ -666,14 +666,14 @@ sample a scene outside its own timeline; the clipped values are what
 <dd><p>One <a class="reference internal" href="#an.frame_clock.CapturedFrame" title="an.frame_clock.CapturedFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">CapturedFrame</span></code></a> per output frame of a <code class="docutils literal notranslate"><span class="pre">duration</span></code> render.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#an.frame_clock.CapturedFrame" title="an.frame_clock.CapturedFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">CapturedFrame</span></code></a>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.frame_clock.CapturedFrame" title="an.frame_clock.CapturedFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">CapturedFrame</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.frame_clock.FrameClock.max_jitter">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_jitter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.frame_clock.FrameClock.max_jitter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_jitter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.frame_clock.FrameClock.max_jitter" title="Link to this definition">#</a></dt>
 <dd><p>The clamp on a frame’s capture offset, in seconds.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">FrameClock</span><span class="p">(</span><span class="n">fps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">exposure</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">max_jitter</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
 <span class="go">0.0245</span>
@@ -687,14 +687,14 @@ sample a scene outside its own timeline; the clipped values are what
 <dd><p>Per frame, the scene instants to render and average — the render seam.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.frame_clock.FrameClock.samples_per_frame">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">samples_per_frame</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#an.frame_clock.FrameClock.samples_per_frame" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">samples_per_frame</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#an.frame_clock.FrameClock.samples_per_frame" title="Link to this definition">#</a></dt>
 <dd><p>1 for an instantaneous shutter.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">FrameClock</span><span class="p">()</span><span class="o">.</span><span class="n">samples_per_frame</span><span class="p">,</span> <span class="n">FrameClock</span><span class="p">(</span><span class="n">exposure</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">samples_per_frame</span>
 <span class="go">(1, 8)</span>
@@ -712,13 +712,13 @@ sample a scene outside its own timeline; the clipped values are what
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.frame_clock.FrameClockError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">FrameClockError</span></span><a class="reference internal" href="../_modules/an/frame_clock.html#FrameClockError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.frame_clock.FrameClockError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A frame clock that cannot describe a camera.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.frame_clock.MAX_JITTER_FRACTION">
-<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">MAX_JITTER_FRACTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.49</span></span><a class="headerlink" href="#an.frame_clock.MAX_JITTER_FRACTION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">MAX_JITTER_FRACTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.49</span></span><a class="headerlink" href="#an.frame_clock.MAX_JITTER_FRACTION" title="Link to this definition">#</a></dt>
 <dd><p>A frame’s capture offset is clamped to this fraction of the slack between
 one exposure closing and the next opening, on each side. Below one half, so
 two neighbouring frames can each move toward the other by the full clamp and
@@ -727,7 +727,7 @@ still not overlap: the clock never reorders frames, whatever <code class="docuti
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.frame_clock.MAX_REPORT_NOISE_FRACTION">
-<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">MAX_REPORT_NOISE_FRACTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.24</span></span><a class="headerlink" href="#an.frame_clock.MAX_REPORT_NOISE_FRACTION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">MAX_REPORT_NOISE_FRACTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.24</span></span><a class="headerlink" href="#an.frame_clock.MAX_REPORT_NOISE_FRACTION" title="Link to this definition">#</a></dt>
 <dd><p>Report noise is clamped to this fraction of the frame period, each side, so
 two neighbouring reported timestamps can never cross on a regular grid.</p>
 </dd></dl>
@@ -738,7 +738,7 @@ two neighbouring reported timestamps can never cross on a regular grid.</p>
 <dd><p>Frames in a render of <code class="docutils literal notranslate"><span class="pre">duration</span></code> seconds — the renderer’s own rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_count</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">frame_count</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>

@@ -22,7 +22,7 @@ adapters and the same flow handles them.
 
 ### *exception* an.render.RenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised on render-pipeline failures with actionable detail.
 
@@ -74,7 +74,7 @@ anything that measures pixels: a stand-in renders happily and is a
 different picture (an#33).
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
 
@@ -119,4 +119,4 @@ provider *instance* carries its own.
 Returns the absolute path of the final output file (under `output/`).
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

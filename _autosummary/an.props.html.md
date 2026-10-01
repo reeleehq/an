@@ -105,27 +105,27 @@ uses, not a second vocabulary:
 'parts/on.svg'
 ```
 
-#### animations *: dict[str, Any]*
+#### animations *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
 
 Present so `play` and the rig builder read the same attribute on either
 descriptor. Empty by default — a prop has no `idle_breath` and no
 `blink`, and seeding one would animate a lamp.
 
-#### asset_sets *: dict[str, dict[str, str]]*
+#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{channel: {key: attachment_name}}` — the same indirection a character
 uses for visemes. Empty by default: a prop with no moving parts declares
 none, and declaring a channel a rig cannot serve is what makes a swap
 silently keep the previous texture.
 
-#### face_overlay *: Literal[True]*
+#### face_overlay *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)[True]*
 
 Always true, and not a knob. `face_overlay=False` means “the face is
 baked into the head art”, which makes the builder suppress every slot
 nested under the head bone’s primary slot. A prop has no head bone, so
 the flag can only do harm; it exists because the shared builder reads it.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -135,15 +135,15 @@ Override this method to perform additional initialization after `__init__` and `
 This is useful if you want to do some validation that requires the entire model to be initialized.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this art came from and what its licence obliges. `None` means
 “we made this” — not “unknown”. Same field as `CharacterDescriptor`,
 because `an credits` should not need to know which store it came from.
 
-#### source_svg *: str | None*
+#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional source SVG the `parts/` folder was sliced from.
 
@@ -152,7 +152,7 @@ Optional source SVG the `parts/` folder was sliced from.
 One bone at the origin.
 
 * **Return type:**
-  `list`[[`Bone`](an.characters.schema.html.md#an.characters.schema.Bone)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](an.characters.schema.html.md#an.characters.schema.Bone)]
 
 ```pycon
 >>> [b.name for b in default_prop_bones()]
@@ -164,7 +164,7 @@ One bone at the origin.
 One slot on that bone.
 
 * **Return type:**
-  `list`[[`Slot`](an.characters.schema.html.md#an.characters.schema.Slot)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](an.characters.schema.html.md#an.characters.schema.Slot)]
 
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]

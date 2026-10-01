@@ -39,7 +39,7 @@ fraction of a second so the CLI is snappy.
 | [`swap_set_name_problem`](#an.base.swap_set_name_problem)(name)   | Why `name` cannot be a swap-set name, or `None` if it can.   |
 |--------------------------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.base.AUTHORABLE_PROPERTIES *: frozenset[str]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
@@ -49,7 +49,7 @@ the two sets is exactly `tint`, and a test pins that rather than trusting it.
 * **Type:**
   What a set/tween may name
 
-### an.base.BT709_SCALE_FILTER *: str* *= 'scale=out_range=tv:out_color_matrix=bt709'*
+### an.base.BT709_SCALE_FILTER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'scale=out_range=tv:out_color_matrix=bt709'*
 
 The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to
 the encoder flags to imply.
@@ -110,7 +110,7 @@ received”. Pin one and not the others and every encode-side metric silently
 measures a colour-space disagreement instead of encoder damage – the failure
 `an/bench/imageio.py`’s module docstring records CI catching once already.
 
-### an.base.COLOUR_PROPERTY *: str* *= 'tint'*
+### an.base.COLOUR_PROPERTY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'tint'*
 
 The property names the cutout runtime animates NUMERICALLY. Any other
 property on a set/tween names a swap SET declared by the target entity’s
@@ -125,11 +125,11 @@ sees it — `_expand_tint_actions` rewrites each leaf into the three numeric
 components before the swap-set dispatch, which would otherwise read it as an
 asset-set name (an#62).
 
-### an.base.COMPATIBLE_VERSION *: str* *= '0.3.0'*
+### an.base.COMPATIBLE_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.3.0'*
 
 Minimum Scene IR version this code can still read without migration.
 
-### an.base.DEFAULT_DUCK_DB *: float* *= -12.0*
+### an.base.DEFAULT_DUCK_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= -12.0*
 
 how far a ducked cue drops under dialogue, and how fast
 it gets there and comes back. The ramps are linear in gain.
@@ -137,7 +137,7 @@ it gets there and comes back. The ramps are linear in gain.
 * **Type:**
   Ducking defaults
 
-### an.base.DEFAULT_SUPERSAMPLE *: int* *= 1*
+### an.base.DEFAULT_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 Render at this many times the declared resolution, then resolve back with an
 exact block mean. **1 is off, and off is free**: the un-supersampled path
@@ -153,11 +153,11 @@ The default stays 1 deliberately. Supersampling ships OPT-IN with its A/B
 committed (an#58, discussion #52), per the standing rule that a default
 chosen by taste ships opt-in and the flip is its own one-line change.
 
-### an.base.DEFAULT_TRANSITION_COLOR *: str* *= '#000000'*
+### an.base.DEFAULT_TRANSITION_COLOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#000000'*
 
 The colour a `fade` passes through when it names none.
 
-### an.base.DEFAULT_TRANSITION_DURATION *: float* *= 0.5*
+### an.base.DEFAULT_TRANSITION_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 half a second
 is a conventional editor’s default, short enough not to eat a line of
@@ -166,23 +166,23 @@ dialogue and long enough to read as deliberate.
 * **Type:**
   Seconds, when a `fade` or `dissolve` names no duration
 
-### an.base.EASING_PRESETS *: tuple[str, ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
+### an.base.EASING_PRESETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
 
 Named easing presets. Renderers should accept these and the cubic-Bézier
 4-tuple form `[cx1, cy1, cx2, cy2]`. Names follow the GSAP / CSS convention.
 
-### an.base.EasingSpec *: TypeAlias* *= str | tuple[float, float, float, float] | list[float]*
+### an.base.EasingSpec *: [TypeAlias](https://docs.python.org/3/library/typing.html#typing.TypeAlias)* *= str | tuple[float, float, float, float] | list[float]*
 
 Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].
 
-### an.base.FILM_AUDIO_SAMPLE_RATE *: int* *= 44100*
+### an.base.FILM_AUDIO_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 44100*
 
 The film mix’s sample rate and channel count. The SAME values the per-shot
 audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
 assembled from sources and one concatenated from shot mp4s carry the same
 audio format.
 
-### an.base.MP4_FASTSTART_ARGS *: tuple[str, ...]* *= ('-movflags', '+faststart')*
+### an.base.MP4_FASTSTART_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('-movflags', '+faststart')*
 
 Put the mp4’s `moov` atom in front of `mdat`, so a player can start before
 the file has finished downloading.
@@ -222,9 +222,9 @@ the torso, not children of it.
 
 Which renderer draws a shot. The orchestrator uses this to pick an adapter.
 
-alias of `Literal`[‘cutout’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘cutout’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]
 
-### an.base.SCHEMA_VERSION *: str* *= '0.3.0'*
+### an.base.SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.3.0'*
 
 Current Scene IR schema version. Bump on additive changes; on breaking
 changes, also bump COMPATIBLE_VERSION and add a migration in `ir.migrate`.
@@ -234,13 +234,13 @@ changes, also bump COMPATIBLE_VERSION and add a migration in `ir.migrate`.
 described a 3D camera this package never had, and gave `Camera` a `keys`
 list so it can translate (an#109).
 
-### an.base.SUPPORTED_RENDERERS *: tuple[str, ...]* *= ('cutout', 'manim', 'motion_graphics', 'whiteboard')*
+### an.base.SUPPORTED_RENDERERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'manim', 'motion_graphics', 'whiteboard')*
 
 The same vocabulary as [`RendererName`](#an.base.RendererName), as a runtime tuple — DERIVED
 from it, because a hand-typed second copy is a second SSOT that drifts on
 the day a renderer is added and nothing fails.
 
-### an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS *: tuple[str, ...]* *= ('/', '::')*
+### an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('/', '::')*
 
 `/` would read
 as a path segment and `::` is the runtime’s pose-key separator.
@@ -253,12 +253,12 @@ as a path segment and `::` is the runtime’s pose-key separator.
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
 
-### an.base.TRANSITION_KINDS *: tuple[str, ...]* *= ('cut', 'fade', 'dissolve')*
+### an.base.TRANSITION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cut', 'fade', 'dissolve')*
 
 The transition kinds a shot may be entered by. `cut` is the default and
 what every document written before transitions existed means.
 
-### an.base.TRIM_PROPERTIES *: frozenset[str]* *= frozenset({'dash_offset', 'trim_end', 'trim_start'})*
+### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'dash_offset', 'trim_end', 'trim_start'})*
 
 The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the
 name predates `dash_offset`, an#161): trim and the dash phase. A node that
@@ -269,7 +269,7 @@ draws no path refuses all of them.
 Why `name` cannot be a swap-set name, or `None` if it can.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> swap_set_name_problem("hands") is None

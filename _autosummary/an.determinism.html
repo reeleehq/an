@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.data.cutout_runtime" href="an.data.cutout_runtime.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -575,13 +575,13 @@ hatch is the same variable read the other way — <code class="docutils literal 
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.determinism.AN_DETERMINISTIC_ENV_VAR">
-<span class="sig-prename descclassname"><span class="pre">an.determinism.</span></span><span class="sig-name descname"><span class="pre">AN_DETERMINISTIC_ENV_VAR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AN_DETERMINISTIC'</span></span><a class="headerlink" href="#an.determinism.AN_DETERMINISTIC_ENV_VAR" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.determinism.</span></span><span class="sig-name descname"><span class="pre">AN_DETERMINISTIC_ENV_VAR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AN_DETERMINISTIC'</span></span><a class="headerlink" href="#an.determinism.AN_DETERMINISTIC_ENV_VAR" title="Link to this definition">#</a></dt>
 <dd><p>Read as an OFF switch, not an on switch — see the module docstring.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.determinism.CAPTURE_PAGE">
-<span class="sig-prename descclassname"><span class="pre">an.determinism.</span></span><span class="sig-name descname"><span class="pre">CAPTURE_PAGE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'index.html'</span></span><a class="headerlink" href="#an.determinism.CAPTURE_PAGE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.determinism.</span></span><span class="sig-name descname"><span class="pre">CAPTURE_PAGE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'index.html'</span></span><a class="headerlink" href="#an.determinism.CAPTURE_PAGE" title="Link to this definition">#</a></dt>
 <dd><p>The page the capture path must be on. <code class="code docutils literal notranslate"><span class="pre">render.py</span></code> stages <code class="code docutils literal notranslate"><span class="pre">preview.html</span></code>
 into every work dir and it carries seven clock calls, so “which page did the
 browser actually load” is a real question with a wrong answer available.</p>
@@ -601,7 +601,7 @@ carry a field cannot testify that the field is fine, and silently reading
 into a clean bill of health.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">capture_violations</span><span class="p">({})[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"the determinism report is missing"</span><span class="p">)</span>
@@ -617,7 +617,7 @@ into a clean bill of health.</p>
 <p>True unless <a class="reference internal" href="#an.determinism.AN_DETERMINISTIC_ENV_VAR" title="an.determinism.AN_DETERMINISTIC_ENV_VAR"><code class="xref py py-data docutils literal notranslate"><span class="pre">AN_DETERMINISTIC_ENV_VAR</span></code></a> is explicitly falsey.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>

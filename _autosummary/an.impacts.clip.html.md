@@ -55,21 +55,21 @@ camera and the object over.
 * **Type:**
   A harder default for scoring estimators
 
-### an.impacts.clip.DEFAULT_JITTER_SD *: float* *= 0.008*
+### an.impacts.clip.DEFAULT_JITTER_SD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.008*
 
 Default humanisation (seconds, standard deviation). See `ImpactClipSpec`.
 
-### an.impacts.clip.DEFAULT_TAIL *: float* *= 0.5*
+### an.impacts.clip.DEFAULT_TAIL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Seconds after the last grid beat before the clip ends.
 
-### an.impacts.clip.DEFAULT_TRAJECTORY_HZ *: float* *= 1000.0*
+### an.impacts.clip.DEFAULT_TRAJECTORY_HZ *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1000.0*
 
 Samples per second of the dense trajectory in `trajectory.csv`.
 
 ### *class* an.impacts.clip.ImpactClipSpec(object='stick', kind='surface', tempo=100.0, beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.
 
@@ -95,7 +95,7 @@ taken), `timestamp_noise_sd` (noise on the reported timestamp only),
 camera’s — so clips that differ only in camera settings share the exact same
 performance.
 
-#### *property* clip_id *: str*
+#### *property* clip_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 A readable, deterministic directory name.
 
@@ -116,13 +116,13 @@ dropping one would regenerate a different clip under the same spec.
 
 ### *class* an.impacts.clip.ImpactPlan(spec, events, obj, stroke, frames, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A clip before it touches disk: events, motion, camera, and the Scene IR.
 
 ### *exception* an.impacts.clip.ImpactSpecError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A clip spec that cannot describe a clip.
 
@@ -131,7 +131,7 @@ A clip spec that cannot describe a clip.
 The cartesian product of the given axes over `base`.
 
 * **Return type:**
-  `list`[[`ImpactClipSpec`](#an.impacts.clip.ImpactClipSpec)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ImpactClipSpec`](#an.impacts.clip.ImpactClipSpec)]
 
 ```pycon
 >>> len(impact_set_specs())
@@ -156,7 +156,7 @@ browser is needed: the keypoints and the truth come from the compiled
 document, not from the pixels.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.impacts.clip.write_impact_set(out_dir, specs=None, , render=True, progress=None)
 
@@ -165,4 +165,4 @@ Write every clip in `specs` (default: [`impact_set_specs()`](#an.impacts.clip.im
 `progress`, if given, is called with `(i, n, clip_dir)` after each clip.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

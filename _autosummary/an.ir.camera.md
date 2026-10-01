@@ -34,7 +34,7 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 | [`CameraError`](#an.ir.camera.CameraError)   | A camera that cannot be resolved into keys.   |
 |----------------------------------------------------------------|-----------------------------------------------|
 
-### an.ir.camera.CAMERA_MOVES *: dict[str, Callable[[float], list[[CameraKey](an.ir.schema.md#an.ir.schema.CameraKey)]]]* *= {'hold': <function <lambda>>, 'pan_left': <function <lambda>>, 'pan_right': <function <lambda>>, 'pull_out': <function <lambda>>, 'push_in': <function <lambda>>, 'tilt_down': <function <lambda>>, 'tilt_up': <function <lambda>>, 'zoom_in': <function <lambda>>, 'zoom_out': <function <lambda>>}*
+### an.ir.camera.CAMERA_MOVES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[float](https://docs.python.org/3/builtins/functions.html#float)], [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](an.ir.schema.md#an.ir.schema.CameraKey)]]]* *= {'hold': <function <lambda>>, 'pan_left': <function <lambda>>, 'pan_right': <function <lambda>>, 'pull_out': <function <lambda>>, 'push_in': <function <lambda>>, 'tilt_down': <function <lambda>>, 'tilt_up': <function <lambda>>, 'zoom_in': <function <lambda>>, 'zoom_out': <function <lambda>>}*
 
 The named moves, as KEY LISTS. `move` is sugar over `keys` — one code path,
 two front doors.
@@ -50,7 +50,7 @@ where it was.
 
 ### *exception* an.ir.camera.CameraError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A camera that cannot be resolved into keys.
 
@@ -58,7 +58,7 @@ A plain `ValueError` subclass so the IR layer can raise it without knowing
 about any renderer; the cutout compiler re-raises it as a
 `CutoutCompileError` at its own boundary.
 
-### an.ir.camera.PAN_FRACTION *: float* *= 0.3333333333333333*
+### an.ir.camera.PAN_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.3333333333333333*
 
 How far a pan travels, as a fraction of the canvas width (a tilt uses the
 same fraction of the height). A third of the frame is a legible move at any
@@ -75,7 +75,7 @@ cannot then raise” true by construction rather than by two tables agreeing
 — the arrangement it replaced (an#109 review, H-1).
 
 * **Return type:**
-  `list`[[`CameraKey`](an.ir.schema.md#an.ir.schema.CameraKey)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.md#an.ir.schema.CameraKey)]
 
 ```pycon
 >>> from an.ir.schema import Camera, Shot

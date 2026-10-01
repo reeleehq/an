@@ -39,21 +39,21 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.
 | [`text_document`](#an.adapters.cutout.text.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                      |
 | [`unit_svg`](#an.adapters.cutout.text.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                     |
 
-### an.adapters.cutout.text.INLINE_SRC_PREFIX *: str* *= 'data:'*
+### an.adapters.cutout.text.INLINE_SRC_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:'*
 
 The `src` scheme of a texture that carries its bytes inline. The staging
 step skips it (there is nothing to copy) instead of warning that the prefix
 names no store.
 
-### an.adapters.cutout.text.TEXT_ALIAS_DIGEST_LEN *: int* *= 12*
+### an.adapters.cutout.text.TEXT_ALIAS_DIGEST_LEN *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 12*
 
 Hex digits of the texture’s sha256 kept in its alias.
 
-### an.adapters.cutout.text.TEXT_TEXTURE_OVERSAMPLE *: int* *= 2*
+### an.adapters.cutout.text.TEXT_TEXTURE_OVERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 Texels per scene pixel in a unit’s texture. See the module docstring.
 
-### an.adapters.cutout.text.TEXT_TEXTURE_PREFIX *: str* *= 'text.'*
+### an.adapters.cutout.text.TEXT_TEXTURE_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'text.'*
 
 What a text texture’s alias starts with — `text.<entity>.<unit>.<digest>`.
 
@@ -65,7 +65,7 @@ Raises `ValueError` subclasses (`TextFontError`, `TextLayoutError`,
 pydantic’s `ValidationError`) — the compiler wraps them.
 
 * **Return type:**
-  `tuple`[[`NodeJSON`](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON), [`TextDescriptor`](an.text.html.md#an.text.TextDescriptor), [`TextLayout`](an.text.html.md#an.text.TextLayout)]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`NodeJSON`](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON), [`TextDescriptor`](an.text.html.md#an.text.TextDescriptor), [`TextLayout`](an.text.html.md#an.text.TextLayout)]
 
 ### an.adapters.cutout.text.svg_data_uri(svg)
 
@@ -73,21 +73,21 @@ pydantic’s `ValidationError`) — the compiler wraps them.
 loader recognises by prefix.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.adapters.cutout.text.text_document(entity, props_store)
 
 The stored document behind a prop entity if it is a text block, else None.
 
 * **Return type:**
-  `Optional`[`Mapping`[`str`, `Any`]]
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.adapters.cutout.text.unit_svg(d, box, , color)
 
 One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> unit_svg("M0 0L2 0L2 2Z", (0, 0, 4, 4), color="#123456")[:60]

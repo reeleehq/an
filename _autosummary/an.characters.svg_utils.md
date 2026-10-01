@@ -64,10 +64,10 @@ it does not fill. The crop rect’s \*\*parent-space origin survives as the
 viewBox’s first two numbers\*\*, so where the part sat relative to its
 siblings is not lost and needs no separate record.
 
-If no match is found, raises `KeyError`.
+If no match is found, raises [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError).
 
 * **Return type:**
-  `ElementTree`
+  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
 
 ### an.characters.svg_utils.extract_pivots(source, , skeleton_id='skeleton')
 
@@ -79,7 +79,7 @@ The circle’s `cx`/`cy` is the pivot in the same coordinate system as
 the art (the SVG’s viewBox).
 
 * **Return type:**
-  `dict`[`str`, `tuple`[`float`, `float`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.characters.svg_utils.normalize_svg(source, , fallback_viewbox='0 0 1024 1024')
 
@@ -89,7 +89,7 @@ Returns the parsed `ElementTree`. Idempotent: running it twice is a
 no-op on the second pass.
 
 * **Return type:**
-  `ElementTree`
+  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
 
 ### an.characters.svg_utils.promote_inkscape_labels_to_ids(tree)
 
@@ -102,7 +102,7 @@ and does NOT promote it to `id` on save. This is a long-standing UX
 issue (Inkscape bug #243383); the workaround is to promote at parse time.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.characters.svg_utils.raster_size(source)
 
@@ -117,7 +117,7 @@ Falls back to the viewBox extent when no `width`/`height` is declared,
 matching the browser.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> raster_size('<svg xmlns="http://www.w3.org/2000/svg" '
@@ -135,4 +135,4 @@ Always emits `<?xml version="1.0" encoding="UTF-8"?>` and the SVG
 namespace as the default, so the output is a valid standalone SVG.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)

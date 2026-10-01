@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.objects" href="an.impacts.objects.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -602,7 +602,7 @@ accelerando from 60 to 120 BPM over four beats, so the gaps shrink:</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.performance.DEFAULT_LEAD_IN">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_LEAD_IN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.impacts.performance.DEFAULT_LEAD_IN" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_LEAD_IN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.impacts.performance.DEFAULT_LEAD_IN" title="Link to this definition">#</a></dt>
 <dd><p>Seconds before the first grid beat. Long enough for the first stroke’s
 preparation and for any humanisation to pull the first impact early.</p>
 </dd></dl>
@@ -613,19 +613,19 @@ preparation and for any humanisation to pull the first impact early.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(grid_times,</span> <span class="pre">rng)</span> <span class="pre">-&gt;</span> <span class="pre">offsets</span></code>, in seconds, one per grid time. The seam for
 timing models richer than <a class="reference internal" href="#an.impacts.performance.gaussian_humanizer" title="an.impacts.performance.gaussian_humanizer"><code class="xref py py-func docutils literal notranslate"><span class="pre">gaussian_humanizer()</span></code></a> (a learned groove, a
 drummer’s measured microtiming).</p>
-<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.performance.ImpactEvent">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">ImpactEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_impact</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/performance.html#ImpactEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.performance.ImpactEvent" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One impact: where the grid put it and when it was executed.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.impacts.performance.ImpactEvent.offset">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">offset</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.impacts.performance.ImpactEvent.offset" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">offset</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.impacts.performance.ImpactEvent.offset" title="Link to this definition">#</a></dt>
 <dd><p>the humanisation actually applied (post-clamp).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -638,7 +638,7 @@ drummer’s measured microtiming).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.impacts.performance.MAX_OFFSET_FRACTION">
-<span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">MAX_OFFSET_FRACTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.4</span></span><a class="headerlink" href="#an.impacts.performance.MAX_OFFSET_FRACTION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">MAX_OFFSET_FRACTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.4</span></span><a class="headerlink" href="#an.impacts.performance.MAX_OFFSET_FRACTION" title="Link to this definition">#</a></dt>
 <dd><p>A humanisation offset is clamped to this fraction of the gap to each
 neighbouring grid event, so executed impacts can never swap order or
 collide — whatever the jitter’s standard deviation.</p>
@@ -647,14 +647,14 @@ collide — whatever the jitter’s standard deviation.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.impacts.performance.PerformanceError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">PerformanceError</span></span><a class="reference internal" href="../_modules/an/impacts/performance.html#PerformanceError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.performance.PerformanceError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A performance description that cannot be played.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.impacts.performance.TempoMap">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.impacts.performance.</span></span><span class="sig-name descname"><span class="pre">TempoMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/impacts/performance.html#TempoMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.impacts.performance.TempoMap" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Tempo as a function of beat: piecewise-linear BPM between <code class="docutils literal notranslate"><span class="pre">(beat,</span> <span class="pre">bpm)</span></code> points.</p>
 <p>Constant before the first point and after the last. Linear in BEATS, not in
 seconds, which is how a score writes an accelerando (“speed up over these
@@ -676,7 +676,7 @@ four bars”); the time of a beat is the exact integral of <code class="docutils
 <dd><p>Seconds from beat 0 to <code class="docutils literal notranslate"><span class="pre">beat</span></code> (<code class="docutils literal notranslate"><span class="pre">beat</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -694,7 +694,7 @@ the timing wanders, not how far. <code class="docutils literal notranslate"><spa
 <code class="docutils literal notranslate"><span class="pre">bias</span></code> is a constant lead (negative) or lag (positive).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -721,7 +721,7 @@ into offsets (default: none); each offset is then clamped to
 value is what the event records — the ground truth is what was executed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#an.impacts.performance.ImpactEvent" title="an.impacts.performance.ImpactEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactEvent</span></code></a>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.impacts.performance.ImpactEvent" title="an.impacts.performance.ImpactEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactEvent</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">beat</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">perform</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="n">beats</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">subdivision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))]</span>

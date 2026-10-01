@@ -87,31 +87,31 @@ codes both “most consonants” and the vowel EE, so the letter alone cannot sa
 
 ### *class* an.adapters.cutout.coarticulate.Cue(time, code, intensity=1.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One mouth-shape cue: when it starts, which shape, how loudly it wants the lips.
 
-### an.adapters.cutout.coarticulate.DEFAULT_DECAY_S *: float* *= 0.12*
+### an.adapters.cutout.coarticulate.DEFAULT_DECAY_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.12*
 
 Time a shape is given to close before rest (JALI’s “120 ms to decay”).
 
-### an.adapters.cutout.coarticulate.DEFAULT_DOMINANCE *: float* *= 0.5*
+### an.adapters.cutout.coarticulate.DEFAULT_DOMINANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 A shape not in the table (another convention’s code) is neither strong nor weak.
 
-### an.adapters.cutout.coarticulate.DEFAULT_LEAD_S *: float* *= 0.08333333333333333*
+### an.adapters.cutout.coarticulate.DEFAULT_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.08333333333333333*
 
 Anticipation lead — two frames at 24 fps (art direction; JALI’s 120 ms is the ceiling).
 
-### an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S *: float* *= 0.14*
+### an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.14*
 
 The minimum hold, unchanged from the pre-an#97 compiler until measured.
 
-### an.adapters.cutout.coarticulate.DOMINANCE *: dict[str, float]* *= {'A': 1.0, 'B': 0.3, 'C': 0.6, 'D': 0.8, 'E': 0.8, 'F': 0.9, 'G': 0.9, 'H': 0.3, 'X': 0.5}*
+### an.adapters.cutout.coarticulate.DOMINANCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'A': 1.0, 'B': 0.3, 'C': 0.6, 'D': 0.8, 'E': 0.8, 'F': 0.9, 'G': 0.9, 'H': 0.3, 'X': 0.5}*
 
 Per-shape dominance for Rhubarb’s letters. Order sourced, values ours.
 
-### an.adapters.cutout.coarticulate.WEAK_BELOW *: float* *= 0.5*
+### an.adapters.cutout.coarticulate.WEAK_BELOW *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Below this dominance a cue is “weak” for [`suppress_weak()`](#an.adapters.cutout.coarticulate.suppress_weak).
 
@@ -131,7 +131,7 @@ in another convention closes with its own).
 The evidence, “Bye.” timed 0.0–0.5 s in a 1.84 s clip:
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
@@ -157,7 +157,7 @@ All the passes, in the order the module docstring gives.
 closes the mouth there instead of at `end` (an#213):
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
@@ -214,7 +214,7 @@ The defect the epic names, verbatim semantics of the old compiler loop —
 for 500 ms:
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
@@ -275,7 +275,7 @@ the shape before it is pushed out to `decay_s`, never past the next cue
 and never past `end` (a rest pushed to `end` is where the line closes).
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> [(round(c.time, 3), c.code) for c in decay([(0.0, "X"), (0.2, "D"), (0.25, "X"), (0.6, "B")], decay_s=0.12)]
@@ -295,7 +295,7 @@ the mouth; the hold would have refused a 70 ms word anyway, and the old
 condenser did.
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> [(round(c.time, 3), c.code) for c in lead([(0.0, "X"), (0.05, "D"), (0.5, "B")], lead_s=0.08)]
@@ -307,7 +307,7 @@ condenser did.
 Drop a cue whose shape is the one already showing.
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> [(c.time, c.code) for c in merge_duplicates([(0, "X"), (0.1, "B"), (0.2, "B"), (0.3, "C")])]
@@ -319,7 +319,7 @@ Drop a cue whose shape is the one already showing.
 Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.
 
 * **Return type:**
-  `list`[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> raw = [(0.0, "X"), (0.20, "D"), (0.40, "B"), (0.43, "D"), (0.80, "X")]

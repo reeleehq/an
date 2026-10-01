@@ -62,7 +62,7 @@ what tooling reasons about.
 
 ### *class* an.ir.compose.FlatAction(start, end, action)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A leaf action with its absolute start and end times.
 
@@ -82,7 +82,7 @@ A sentinel rather than `None` because `None` already means linear.
 a `sequence`. The default is [`default_play_extent()`](#an.ir.compose.default_play_extent); the compiler and
 `an validate` pass one bound to the entity’s descriptor.
 
-alias of `Callable`[[[`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction)], `float`]
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.ir.compose.default_play_extent(action)
 
@@ -93,7 +93,7 @@ The one resolver is `an.characters.play.play_extent()`; this is it with
 `desc=None`.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> default_play_extent(PlayAction(target="a", animation="hop"))
@@ -116,7 +116,7 @@ Compute the total duration of an action tree without evaluating it.
 `play_extent` resolves a duration-less `play` (see [`PlayExtent`](#an.ir.compose.PlayExtent)).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> duration_of(tween("a", "x", to=1.0, duration=2.0))
@@ -161,7 +161,7 @@ Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
 * **Return type:**
-  `list`[[`FlatAction`](#an.ir.compose.FlatAction)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](#an.ir.compose.FlatAction)]
 
 ### an.ir.compose.loop(action, count)
 

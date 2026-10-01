@@ -27,7 +27,7 @@ Layout (from spec §11):
 
 ### *class* an.project.Project(root, mall, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A loaded an project: directory + mall + current scene.
 
@@ -39,7 +39,7 @@ Idempotent unless the directory already contains a non-empty `scene.md`;
 pass `force=True` to overwrite. Returns the absolute project root.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.project.load(project_dir)
 
@@ -53,4 +53,4 @@ Load an existing project. Reconciles scene.md / ir/scene.json first.
 Persist a Project’s current scene back to disk (md + json).
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)

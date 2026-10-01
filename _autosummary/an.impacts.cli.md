@@ -44,7 +44,7 @@ seed: random seed (performance and camera streams derive from it)
 render: render the mp4; –no-render writes the truth and keypoints only
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.impacts.cli.clip_set(out_dir, objects='stick,ball', kinds='surface,air', fps='24,30,60', exposures='0,0.5', timestamp_jitter_sds='0', seeds='0', render=True)
 
@@ -64,4 +64,4 @@ seeds: comma-separated performance seeds
 render: render the videos; –no-render writes the truth and keypoints only
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

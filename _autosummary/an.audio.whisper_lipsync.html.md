@@ -27,7 +27,7 @@ Trade-offs vs. OfflineLipSync:
 
 ### *class* an.audio.whisper_lipsync.WhisperLipSync(, model_size='tiny', device='cpu', compute_type='int8', char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 faster-whisper word timestamps → visemes.
 
@@ -35,6 +35,6 @@ Implements the `LipSyncProvider` protocol. The model is lazy-loaded on
 the first call (subsequent calls in the same process reuse the instance
 via the class-level `_model` cache).
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Whisper aligns from words, so the track carries them (an#96).

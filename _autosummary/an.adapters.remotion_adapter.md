@@ -19,12 +19,12 @@ documenting what’s needed.
 
 ### *exception* an.adapters.remotion_adapter.RemotionRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a Remotion render fails.
 
 ### *class* an.adapters.remotion_adapter.RemotionRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).

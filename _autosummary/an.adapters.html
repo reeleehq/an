@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an" href="an.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -569,7 +569,7 @@ system deps still register but their <code class="docutils literal notranslate">
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.ManimRenderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">ManimRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/manim_adapter.html#ManimRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.ManimRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Manim Community Edition renderer (skeleton).</p>
 <p>Implements the <code class="docutils literal notranslate"><span class="pre">Renderer</span></code> Protocol. <code class="docutils literal notranslate"><span class="pre">can_render</span></code> is True for shots
 whose <code class="docutils literal notranslate"><span class="pre">renderer</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;manim&quot;</span></code>.</p>
@@ -578,14 +578,14 @@ whose <code class="docutils literal notranslate"><span class="pre">renderer</spa
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.RemotionRenderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">RemotionRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/remotion_adapter.html#RemotionRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RemotionRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Remotion-based renderer (skeleton).</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.RenderContext">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">RenderContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1920</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1080)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#RenderContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RenderContext" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Everything a renderer needs that isn’t on the Shot itself.</p>
 <p><code class="docutils literal notranslate"><span class="pre">mall</span></code> carries the project’s stores so the renderer can resolve assets
 by reference. <code class="docutils literal notranslate"><span class="pre">work_dir</span></code> is a scratch space; the renderer must clean up
@@ -594,7 +594,7 @@ after itself or treat it as ephemeral.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.capture">
-<span class="sig-name descname"><span class="pre">capture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.adapters.RenderContext.capture" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">capture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.capture" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code> (a Playwright element
 screenshot per instant) or <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code> (the runtime reads its own canvas
 in-page, in batches). <code class="docutils literal notranslate"><span class="pre">None</span></code> is the renderer’s module default, read at
@@ -612,7 +612,7 @@ per-shot provenance.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.default_easing">
-<span class="sig-name descname"><span class="pre">default_easing</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></span><a class="headerlink" href="#an.adapters.RenderContext.default_easing" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">default_easing</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.default_easing" title="Link to this definition">#</a></dt>
 <dd><p>the curve of every
 authored tween that names none. <code class="docutils literal notranslate"><span class="pre">None</span></code> = the built-in
 <code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;</span></code>, and a compiled document byte-identical to before the
@@ -627,7 +627,7 @@ with it — as it should.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.fps">
-<span class="sig-name descname"><span class="pre">fps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.adapters.RenderContext.fps" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">fps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.fps" title="Link to this definition">#</a></dt>
 <dd><p>Frames per second of the delivered video. May be non-integer — a
 camera’s 29.97 — and the capture loop and the mux honour it exactly. The
 COMPILER aligns its frame-sampled curves (gaze saccades, co-articulation,
@@ -638,7 +638,7 @@ every other keyframe are exact at any rate.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.frame_samples">
-<span class="sig-name descname"><span class="pre">frame_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.adapters.RenderContext.frame_samples" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">frame_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.frame_samples" title="Link to this definition">#</a></dt>
 <dd><p>Per output frame, the scene instants to render and average into it —
 <code class="docutils literal notranslate"><span class="pre">None</span></code> is one instant at <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">fps</span></code>, the path every render took before
 this field existed, byte for byte. Several instants per frame are an open
@@ -653,7 +653,7 @@ document. Its length must equal the render’s frame count.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.pix_fmt">
-<span class="sig-name descname"><span class="pre">pix_fmt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.adapters.RenderContext.pix_fmt" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">pix_fmt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.pix_fmt" title="Link to this definition">#</a></dt>
 <dd><p>The delivered encode’s pixel format, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the module default.
 <strong>The one first-order quality lever in the encoder</strong>: 4:2:0 -&gt; 4:4:4 cuts
 the edge-band error 11.35 -&gt; 3.79, where mathematically lossless 4:2:0
@@ -667,7 +667,7 @@ Predictive is refused by many hardware decoders, browsers and platforms.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.step_hz">
-<span class="sig-name descname"><span class="pre">step_hz</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.adapters.RenderContext.step_hz" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">step_hz</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.step_hz" title="Link to this definition">#</a></dt>
 <dd><p>Scene-level stepped-timing policy for authored tweens (an#89); a shot’s
 own <code class="docutils literal notranslate"><span class="pre">step_hz</span></code> overrides it. <code class="docutils literal notranslate"><span class="pre">None</span></code> = smooth. Reaches the compiled
 document’s <code class="docutils literal notranslate"><span class="pre">meta.step_hz</span></code> (only when set) and per-shot provenance.</p>
@@ -681,7 +681,7 @@ policy is the honest one. Omit-when-unset keeps the unset case free.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.strict_assets">
-<span class="sig-name descname"><span class="pre">strict_assets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#an.adapters.RenderContext.strict_assets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">strict_assets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.strict_assets" title="Link to this definition">#</a></dt>
 <dd><p>Refuse to draw a stand-in for a declared asset that the stores do not
 supply. Off by default so an asset-less project still renders; on for
 anything that measures pixels, where a stand-in is a different picture
@@ -690,7 +690,7 @@ that looks like a successful render (an#33).</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.style_pack">
-<span class="sig-name descname"><span class="pre">style_pack</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.styles.html#an.styles.StylePack" title="an.styles.StylePack"><span class="pre">StylePack</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.adapters.RenderContext.style_pack" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">style_pack</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.styles.html#an.styles.StylePack" title="an.styles.StylePack"><span class="pre">StylePack</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.style_pack" title="Link to this definition">#</a></dt>
 <dd><p>The <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> this render is drawn under, already resolved from the
 scene’s <code class="code docutils literal notranslate"><span class="pre">meta.style_pack</span></code> (an#112). Resolved ONCE per render rather than
 per shot: a pack is art direction for a project, and a scene whose shots
@@ -699,7 +699,7 @@ disagreed about it would be two scenes.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.RenderContext.supersample">
-<span class="sig-name descname"><span class="pre">supersample</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#an.adapters.RenderContext.supersample" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">supersample</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#an.adapters.RenderContext.supersample" title="Link to this definition">#</a></dt>
 <dd><p>Render at this many times the declared resolution and resolve back with
 an exact block mean. <strong>1 means off, and off is free</strong> — Chromium’s own
 PNG bytes reach disk untouched.</p>
@@ -719,7 +719,7 @@ a row that does not record it cannot be read back later.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.RenderResult">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">RenderResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_manifest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provenance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#RenderResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RenderResult" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Outcome of a single shot render.</p>
 <dl class="field-list simple">
 </dl>
@@ -728,7 +728,7 @@ a row that does not record it cannot be read back later.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.Renderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">Renderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/_base.html#Renderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.Renderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
 <p>Backend renderer interface.</p>
 <p>Implementations should be cheap to construct and stateless across renders;
 state belongs in the <code class="docutils literal notranslate"><span class="pre">RenderContext</span></code> or the project mall.</p>
@@ -738,7 +738,7 @@ state belongs in the <code class="docutils literal notranslate"><span class="pre
 <dd><p>Return True if this renderer can render <code class="docutils literal notranslate"><span class="pre">shot</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -756,7 +756,7 @@ state belongs in the <code class="docutils literal notranslate"><span class="pre
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.Renderer.supported_renderers">
-<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.adapters.Renderer.supported_renderers" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.adapters.Renderer.supported_renderers" title="Link to this definition">#</a></dt>
 <dd><p>The <code class="code docutils literal notranslate"><span class="pre">Shot.renderer</span></code> values this backend claims. It is the ONE place
 an adapter names them: <code class="code docutils literal notranslate"><span class="pre">can_render</span></code> derives from it rather than
 comparing to its own literal, so an adapter cannot advertise one
@@ -771,7 +771,7 @@ members, so <code class="code docutils literal notranslate"><span class="pre">is
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.RendererRegistry">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">RendererRegistry</span></span><a class="reference internal" href="../_modules/an/adapters/_base.html#RendererRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.RendererRegistry" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Name-keyed registry of renderers.</p>
 <p>A module-level instance is exposed via <code class="docutils literal notranslate"><span class="pre">register_renderer</span></code> /
 <code class="docutils literal notranslate"><span class="pre">get_renderer</span></code> / <code class="docutils literal notranslate"><span class="pre">list_renderers</span></code>; callers needing isolation (tests,
@@ -784,7 +784,7 @@ multi-tenant servers) can construct their own.</p>
 <dd><p>Return the first registered renderer that <code class="docutils literal notranslate"><span class="pre">can_render(shot)</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.adapters.Renderer" title="an.adapters._base.Renderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Renderer</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.adapters.Renderer" title="an.adapters._base.Renderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Renderer</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -794,7 +794,7 @@ multi-tenant servers) can construct their own.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.WhiteboardRenderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">WhiteboardRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/whiteboard.html#WhiteboardRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.WhiteboardRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Whiteboard-style renderer (stub).</p>
 </dd></dl>
 
@@ -815,7 +815,7 @@ multi-tenant servers) can construct their own.</p>
 <dd><p>Names of all renderers registered in the default registry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -826,7 +826,7 @@ multi-tenant servers) can construct their own.</p>
 <dd><p>Register a renderer in the default registry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>

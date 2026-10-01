@@ -47,7 +47,7 @@ Raises `ValueError` for unknown preset names or malformed sequences.
 ```
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.adapters.cutout.easing.cubic_bezier(cx1, cy1, cx2, cy2, t)
 
@@ -59,7 +59,7 @@ return the y coordinate. Newton’s-method approximation; 8 iterations is
 visually indistinguishable from analytic.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> round(cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear

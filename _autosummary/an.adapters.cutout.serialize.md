@@ -64,7 +64,7 @@ Bases: `_JSONModel`
 
 A named, reusable animation clip.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -74,7 +74,7 @@ Bases: `_JSONModel`
 
 A single asset (texture / audio file).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -103,19 +103,19 @@ the declared ref supplied nothing and a stand-in was drawn in its place.
 False
 ```
 
-#### detail *: str*
+#### detail *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 One human sentence saying why, when `fallback` is True.
 
-#### fallback *: bool*
+#### fallback *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 True when the declared ref supplied nothing and a stand-in was drawn.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### resolved *: str*
+#### resolved *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 “descriptor” | “parts” | “placeholder”.
 Environments: “store” | “preset” | “default”.
@@ -129,7 +129,7 @@ Bases: `_JSONModel`
 
 Map of asset id → AssetJSON, split by kind.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -139,7 +139,7 @@ Bases: `_JSONModel`
 
 One animated property of one target.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -151,17 +151,17 @@ Top-level cutout scene JSON — the JS runtime’s input contract.
 
 Versioned so the runtime can refuse incompatible inputs.
 
-#### asset_resolution *: list[[AssetResolutionJSON](#an.adapters.cutout.serialize.AssetResolutionJSON)]*
+#### asset_resolution *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[AssetResolutionJSON](#an.adapters.cutout.serialize.AssetResolutionJSON)]*
 
 One entry per drawable entity, in scene order — see
 [`AssetResolutionJSON`](#an.adapters.cutout.serialize.AssetResolutionJSON). Inert to the runtime; read by the bench
 harness and the golden-corpus bless to assert WHICH render path ran.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### overlay *: [NodeJSON](#an.adapters.cutout.serialize.NodeJSON) | None*
+#### overlay *: [NodeJSON](#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a second top-level container the
 runtime centres on the canvas and never indexes, so no channel — the
@@ -179,7 +179,7 @@ Bases: `_JSONModel`
 
 Per-shot metadata.
 
-#### blink_phases *: dict[str, float]*
+#### blink_phases *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Per-entity blink phase in [0, 1), a pure function of the entity NAME
 (an#88). Stamped by the compiler — which now emits blinks as channels —
@@ -189,7 +189,7 @@ a stamped phase turns that into a visible diff instead of an
 unexplained metric shift. (The runtime’s determinism probe used to
 carry this; the fact moved with the mechanism.)
 
-#### fonts *: dict[str, str]*
+#### fonts *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 entity id ->
 `"<family> <style> [(embedded)] sha256:<digest>"` — identity by the
@@ -199,18 +199,18 @@ runtime (the glyphs are already SVG). **Serialized only when non-empty.**
 * **Type:**
   Per text block, the face that set it (an#155)
 
-#### gaze_seeds *: dict[str, int]*
+#### gaze_seeds *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 
 Per-entity saccade seed (an#99), a pure function of the entity NAME
 like `blink_phases`; stamped for the rigs that have pupils and
 **serialized only when non-empty** — a pre-Wave-6 rig has no pupils and
 its compiled document, the bench’s scene contract, must not move.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stepped-timing policy the shot’s tweens were compiled under
 (an#89); `None` = smooth. **Serialized only when set**: the compiled
@@ -218,7 +218,7 @@ document is the bench’s scene contract (`scene_contract_sha256`), so a
 `null` here would move every committed row’s hash for a knob nobody
 turned. Inert to the runtime; read by the ledger.
 
-#### style_pack *: str | None*
+#### style_pack *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The name of the `StylePack` this scene was compiled under, or `None`.
 Recorded so a rendered document says which art direction produced it —
@@ -232,7 +232,7 @@ Bases: `_JSONModel`
 
 Single keyframe in an animation channel.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -242,7 +242,7 @@ Bases: `_JSONModel`
 
 One node in the scene tree.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -259,7 +259,7 @@ touches the node; channels on those two properties move them.
 `head_length == 0` means no arrowhead. What the runtime draws from this
 is specified by `an.adapters.cutout.path.path_geometry`.
 
-#### dash *: float*
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 `dash > 0` is on. `dash_offset` is the value
 shown before a channel touches it. These are wire fields of path
@@ -268,7 +268,7 @@ visuals only, so they cannot move a non-path document’s hash.
 * **Type:**
   Dash pattern (an#161)
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -278,7 +278,7 @@ Bases: `_JSONModel`
 
 An animation placed on a track at a specific time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -288,7 +288,7 @@ Bases: `_JSONModel`
 
 Top-level timeline: total duration + tracks.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -298,7 +298,7 @@ Bases: `_JSONModel`
 
 A sequence of placed clips with optional target-prefix metadata.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -323,7 +323,7 @@ texture first, which costs a render pass per node per frame.
 property’s rest value\*\* — see `compile.py`’s `_PROPERTY_REST_VALUES`,
 which is derived from them rather than restated.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -344,7 +344,7 @@ grows by `grow` on every side. `color` is the fill of a redrawn shape
 and the `tint` (a multiply) of a sprite copy. Compiled by
 `an.adapters.cutout.surface`; never authored.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -370,7 +370,7 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
-#### asset_geometry *: dict[str, dict[str, float]] | None*
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-texture geometry for a swap key drawn differently from the built
 one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
@@ -380,7 +380,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: Literal['add', 'multiply'] | None*
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
@@ -389,7 +389,7 @@ blend equation — no filter, no render texture. `None` = normal.
 * **Type:**
   The engine’s native blend mode for this visual (an#163)
 
-#### fit *: Literal['stretch', 'contain']*
+#### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
 
@@ -401,15 +401,15 @@ distorted `arm_l` by 3.929x on the repo’s own art.
 Additive with a `"stretch"` default so no stored scene changes meaning;
 the compiler emits `"contain"` for every sprite it builds.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### path *: [PathJSON](#an.adapters.cutout.serialize.PathJSON) | None*
+#### path *: [PathJSON](#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
 
-#### underlays *: list[[UnderlayJSON](#an.adapters.cutout.serialize.UnderlayJSON)] | None*
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
@@ -427,4 +427,4 @@ Rebuild a scene from a plain-dict representation.
 Dump a scene to a plain-dict representation (no None pruning).
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

@@ -66,11 +66,11 @@ True
 | [`ExpressionResolutionError`](#an.expression.binding.ExpressionResolutionError)(who, problems)   | An expression that cannot resolve on a character; `problems` says why.   |
 |---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### an.expression.binding.BROW_ANGLE_TRAVEL *: float* *= 0.35*
+### an.expression.binding.BROW_ANGLE_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.35*
 
 Brow rotation per unit of `brow_angle_*`, radians. Art direction.
 
-### an.expression.binding.BROW_HEIGHT_TRAVEL *: float* *= 10.0*
+### an.expression.binding.BROW_HEIGHT_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 10.0*
 
 Brow travel per unit of `brow_height_*`, in the rig’s view-box units
 (scaled to scene pixels by the entity’s rig factor). Art direction; about
@@ -78,33 +78,33 @@ the synthesized eye’s half-height.
 
 ### *class* an.expression.binding.ChannelBinding(axis, slot, property, gain, rig_scaled=False)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A numeric axis driving one transform property of one slot’s node.
 
-#### rig_scaled *: bool* *= False*
+#### rig_scaled *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 
 Whether the gain is a view-box length (scaled by the rig factor).
 
 ### *exception* an.expression.binding.ExpressionResolutionError(who, problems)
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 An expression that cannot resolve on a character; `problems` says why.
 
-### an.expression.binding.GAZE_TRAVEL *: float* *= 6.0*
+### an.expression.binding.GAZE_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 6.0*
 
 Pupil travel per unit of `gaze_*`, in view-box units — the default when a
 descriptor declares no travel of its own (`add_gaze` writes `gaze_travel`).
 
-### an.expression.binding.LID_SQUASH_GAIN *: float* *= 0.5*
+### an.expression.binding.LID_SQUASH_GAIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 On a rig whose eye squashes instead of swapping art, a lid offset scales
 the eye by this much per unit.
 
 ### *class* an.expression.binding.SetBinding(axis, slot, set_family='eyelid')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A lid axis driving one slot’s swap set through the ladder.
 
@@ -117,14 +117,14 @@ A declared binding is a list of dicts in the two dataclasses’ shapes
 `{"axis", "slot", "set_family"}`). An unknown axis in it is an error.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](#an.expression.binding.ChannelBinding), [`SetBinding`](#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](#an.expression.binding.ChannelBinding), [`SetBinding`](#an.expression.binding.SetBinding)]]
 
 ### an.expression.binding.declared_mouth_variants(desc)
 
 `{form: set name}` for every `viseme@<form>` set the descriptor declares.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> declared_mouth_variants(CharacterDescriptor(name="m"))
@@ -141,7 +141,7 @@ end while on the RIGHT brow it lifts it — the axis says “+ = inner end
 up”, hence `-travel` on the left and `+travel` on the right.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](#an.expression.binding.ChannelBinding), [`SetBinding`](#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](#an.expression.binding.ChannelBinding), [`SetBinding`](#an.expression.binding.SetBinding)]]
 
 ### an.expression.binding.expression_problems(desc, , preset, axes=(), who)
 
@@ -151,7 +151,7 @@ Shared by `an validate` (each becomes an error Finding) and the compiler
 (which raises [`ExpressionResolutionError`](#an.expression.binding.ExpressionResolutionError) with the same list).
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> expression_problems(CharacterDescriptor(name="m"), preset="joyful", who="m")
@@ -170,7 +170,7 @@ An unknown preset or axis is a `ValueError` — validate reports it as an
 error, the compiler refuses it.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.expression.binding.resolve_mouth_set(desc, preset, , keys_used, who=None)
 
@@ -183,14 +183,14 @@ was missing; else [`ExpressionResolutionError`](#an.expression.binding.Expressio
 error, not a fallback.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.expression.binding.touches_gaze(axes)
 
 Whether any of `axes` is a gaze axis (a no-op on a rig without pupils).
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> touches_gaze(["gaze_x"]), touches_gaze(["brow_angle_l"])
@@ -202,7 +202,7 @@ Whether any of `axes` is a gaze axis (a no-op on a rig without pupils).
 The swap-set name for a mouth form (`@` is a legal set-name character).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> variant_set_name("happy")

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.mutations" href="an.bench.mutations.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -594,7 +594,7 @@ half moved when the number does.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.COLOURED_KINDS">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">COLOURED_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'ellipse',</span> <span class="pre">'path',</span> <span class="pre">'rect'})</span></span><a class="headerlink" href="#an.bench.palette.COLOURED_KINDS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">COLOURED_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'ellipse',</span> <span class="pre">'path',</span> <span class="pre">'rect'})</span></span><a class="headerlink" href="#an.bench.palette.COLOURED_KINDS" title="Link to this definition">#</a></dt>
 <dd><p><code class="code docutils literal notranslate"><span class="pre">visual.kind</span></code> values whose <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> the runtime actually paints.
 A stroked path (an#160) paints <code class="code docutils literal notranslate"><span class="pre">path.color</span></code> — the compiler stamps the same
 value onto <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> (asserted by <code class="code docutils literal notranslate"><span class="pre">tests/test_styles.py</span></code>), so one read
@@ -603,19 +603,19 @@ covers the stroke and the arrowhead, which is filled in that colour.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.INERT_COLOUR_KINDS">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">INERT_COLOUR_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'mouth',</span> <span class="pre">'sprite',</span> <span class="pre">'svg_sprite'})</span></span><a class="headerlink" href="#an.bench.palette.INERT_COLOUR_KINDS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">INERT_COLOUR_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'mouth',</span> <span class="pre">'sprite',</span> <span class="pre">'svg_sprite'})</span></span><a class="headerlink" href="#an.bench.palette.INERT_COLOUR_KINDS" title="Link to this definition">#</a></dt>
 <dd><p><code class="code docutils literal notranslate"><span class="pre">visual.kind</span></code> values whose <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> is inert.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.RUNTIME_DEFAULT_COLOUR">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_DEFAULT_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8947848</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_DEFAULT_COLOUR" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_DEFAULT_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8947848</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_DEFAULT_COLOUR" title="Link to this definition">#</a></dt>
 <dd><p>The runtime’s fallback when a <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> is absent or not a string.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.RUNTIME_EYE_COLOURS">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_EYE_COLOURS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(16777215,</span> <span class="pre">2236962)</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_EYE_COLOURS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_EYE_COLOURS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(16777215,</span> <span class="pre">2236962)</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_EYE_COLOURS" title="Link to this definition">#</a></dt>
 <dd><p>the sclera fill and the
 0.6-alpha outline. The outline’s alpha means it paints BLENDS, so it is a
 lower bound on that node’s contribution — the safe direction.</p>
@@ -628,19 +628,19 @@ lower bound on that node’s contribution — the safe direction.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_EYE_PUPIL_DEFAULT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_EYE_PUPIL_DEFAULT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT" title="Link to this definition">#</a></dt>
 <dd><p>The runtime’s fallback pupil colour when a <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> is absent.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.RUNTIME_JS_RELPATH">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_JS_RELPATH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an/data/cutout_runtime/runtime.js'</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_JS_RELPATH" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_JS_RELPATH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an/data/cutout_runtime/runtime.js'</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_JS_RELPATH" title="Link to this definition">#</a></dt>
 <dd><p>Where the runtime’s own hard-coded colours live, for the source cross-check.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.RUNTIME_MOUTH_COLOURS">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_MOUTH_COLOURS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(7023403,</span> <span class="pre">2756624,</span> <span class="pre">16448250,</span> <span class="pre">11552840)</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_MOUTH_COLOURS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_MOUTH_COLOURS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(7023403,</span> <span class="pre">2756624,</span> <span class="pre">16448250,</span> <span class="pre">11552840)</span></span><a class="headerlink" href="#an.bench.palette.RUNTIME_MOUTH_COLOURS" title="Link to this definition">#</a></dt>
 <dd><p>lip, fill, teeth, tongue. The mouth node’s own
 <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> is never read.</p>
 <dl class="field-list simple">
@@ -663,7 +663,7 @@ the palette is a superset of what was painted, and every token that could
 not be resolved.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -684,7 +684,7 @@ not be resolved.</p>
 pads to <code class="docutils literal notranslate"><span class="pre">&quot;222000&quot;</span></code>, so the runtime paints <code class="docutils literal notranslate"><span class="pre">0x222000</span></code> and so must this.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="n">parse_color</span><span class="p">(</span><span class="s2">"#222"</span><span class="p">))</span>
@@ -707,7 +707,7 @@ so adding a fifth mouth colour reddens a test instead of silently inflating
 <code class="docutils literal notranslate"><span class="pre">off_palette_pixel_fraction</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#set" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -725,7 +725,7 @@ to a palette that never reach a pixel.</p>
 palette, and the metric then reads low with no error anywhere.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#set" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#set" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>

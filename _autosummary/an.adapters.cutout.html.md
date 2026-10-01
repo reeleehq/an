@@ -47,7 +47,7 @@ Bases: `_JSONModel`
 
 A named, reusable animation clip.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -57,7 +57,7 @@ Bases: `_JSONModel`
 
 A single asset (texture / audio file).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -86,19 +86,19 @@ the declared ref supplied nothing and a stand-in was drawn in its place.
 False
 ```
 
-#### detail *: str*
+#### detail *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 One human sentence saying why, when `fallback` is True.
 
-#### fallback *: bool*
+#### fallback *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 True when the declared ref supplied nothing and a stand-in was drawn.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### resolved *: str*
+#### resolved *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 “descriptor” | “parts” | “placeholder”.
 Environments: “store” | “preset” | “default”.
@@ -112,7 +112,7 @@ Bases: `_JSONModel`
 
 Map of asset id → AssetJSON, split by kind.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -122,19 +122,19 @@ Bases: `_JSONModel`
 
 One animated property of one target.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *exception* an.adapters.cutout.CutoutRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a cutout render fails. Carries actionable detail.
 
 ### *class* an.adapters.cutout.CutoutRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Headless cutout renderer: Playwright + ffmpeg.
 
@@ -161,17 +161,17 @@ Top-level cutout scene JSON — the JS runtime’s input contract.
 
 Versioned so the runtime can refuse incompatible inputs.
 
-#### asset_resolution *: list[[AssetResolutionJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
+#### asset_resolution *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[AssetResolutionJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
 
 One entry per drawable entity, in scene order — see
 [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON). Inert to the runtime; read by the bench
 harness and the golden-corpus bless to assert WHICH render path ran.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### overlay *: [NodeJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON) | None*
+#### overlay *: [NodeJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a second top-level container the
 runtime centres on the canvas and never indexes, so no channel — the
@@ -189,7 +189,7 @@ Bases: `_JSONModel`
 
 Single keyframe in an animation channel.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -199,7 +199,7 @@ Bases: `_JSONModel`
 
 One node in the scene tree.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -209,7 +209,7 @@ Bases: `_JSONModel`
 
 An animation placed on a track at a specific time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -219,7 +219,7 @@ Bases: `_JSONModel`
 
 Top-level timeline: total duration + tracks.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -229,7 +229,7 @@ Bases: `_JSONModel`
 
 A sequence of placed clips with optional target-prefix metadata.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -255,7 +255,7 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
-#### asset_geometry *: dict[str, dict[str, float]] | None*
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-texture geometry for a swap key drawn differently from the built
 one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
@@ -265,7 +265,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: Literal['add', 'multiply'] | None*
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
@@ -274,7 +274,7 @@ blend equation — no filter, no render texture. `None` = normal.
 * **Type:**
   The engine’s native blend mode for this visual (an#163)
 
-#### fit *: Literal['stretch', 'contain']*
+#### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
 
@@ -286,15 +286,15 @@ distorted `arm_l` by 3.929x on the repo’s own art.
 Additive with a `"stretch"` default so no stored scene changes meaning;
 the compiler emits `"contain"` for every sprite it builds.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### path *: [PathJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | None*
+#### path *: [PathJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
 
-#### underlays *: list[[UnderlayJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | None*
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`

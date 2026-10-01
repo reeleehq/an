@@ -92,7 +92,7 @@ length divided by `speed`, so two in a row run one after the other.
 | [`waddle`](#an.motion.waddle)(target, \*[, steps, step_duration, ...])    | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
 | [`walk`](#an.motion.walk)(target, \*[, to_x, distance, direction, ...]) | Walk: the body travels on `x` and bobs once per step while the legs alternate and the arms swing against them (an#214).                                                                                                                                                              |
 
-### an.motion.HOME_PRESETS *: frozenset[str]* *= frozenset({'pop_in', 'slide_in'})*
+### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
 
 Presets whose `rest` is the node’s HOME — where an entrance LANDS — rather
 than where the node is when the move starts. Played by name these read the
@@ -100,17 +100,17 @@ BUILT pose (`slide_out` then `slide_in` comes back home; `pop_in` after a
 `set` of the scales to 0 grows to full size); every other preset moves
 relative to where the node IS at its start (an#212).
 
-### an.motion.IDENTITY_POSE *: dict[str, float]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
+### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
 
 `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.
 
-### an.motion.OVERSHOOT *: tuple[float, float, float, float]* *= (0.34, 1.56, 0.64, 1.0)*
+### an.motion.OVERSHOOT *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.34, 1.56, 0.64, 1.0)*
 
 A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: dict[str, Callable[[...], Annotated[[SetAction](an.ir.schema.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](an.characters.play.md#an.characters.play.play_source), an#166) read.
@@ -127,7 +127,7 @@ those, with the same absolute times.
 A `set` keeps its absolute time in `at` instead of a wrapper.
 
 * **Return type:**
-  `list`[`Union`[[`SetAction`](an.ir.schema.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.md#an.ir.schema.LoopAction)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](an.ir.schema.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.md#an.ir.schema.LoopAction)]]
 
 ```pycon
 >>> leaves = as_leaves(hop("charlie"), start=1.0)
@@ -226,7 +226,7 @@ scale are read, never restated. Pass the same `mall` you render with:
 a descriptor rig is built from its character store.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> from an.ir.schema import AssetRef
@@ -301,7 +301,7 @@ target against (an#166, an#193). `width`/`height` (default: the
 compiler’s) matter to text, whose line breaks depend on the frame.
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `float`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> from an.ir.schema import AssetRef

@@ -83,7 +83,7 @@ Drawn with the engine’s native ADD blend (PixiJS 7 does it in the blend
 equation, no filter), as the entity’s first child, so it moves with the
 entity and lights the background around it, not the entity itself.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -99,7 +99,7 @@ frame — so it only ever darkens, by at most `amount`. The same seed is the
 same grain on every frame and every machine; nothing is random at render
 time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -130,7 +130,7 @@ itself rather than the background. A group fade needs the subtree drawn to
 a texture first (a filter), which this package refuses; the compiler warns
 when an `alpha` channel reaches a treated part.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -152,11 +152,11 @@ a procedural part; on an SVG part one copy scaled about the art’s centre, so
 it grows the art’s BOX by the width (one copy, because translucent copies
 would compound where they overlap).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.styles.REACHABLE_ROLES *: frozenset[str]* *= frozenset({'accessory', 'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
+### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'accessory', 'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
 
 Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.
@@ -219,31 +219,31 @@ pack that does not mention a role must leave it exactly as it was —
 which is what keeps a scene with no pack byte-identical.
 
 * **Return type:**
-  `Optional`[`str`]
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
-#### entities *: dict[str, dict[str, str]]*
+#### entities *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{entity id: {role: "#rrggbb"}}` — a per-entity override of `roles`.
 
-#### entity_surfaces *: dict[str, [SurfaceTreatment](#an.styles.SurfaceTreatment)]*
+#### entity_surfaces *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SurfaceTreatment](#an.styles.SurfaceTreatment)]*
 
 `{entity id: SurfaceTreatment}` — per-entity, key-by-key override of
 `surface`.
 
-#### grain *: [Grain](#an.styles.Grain) | None*
+#### grain *: [Grain](#an.styles.Grain) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 One static paper grain over the frame; `None` = none.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### roles *: dict[str, str]*
+#### roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 `{role: "#rrggbb"}`. Hex strings, not colour objects — see the module
 docstring for why a second representation is a liability here.
 
-#### surface *: [SurfaceTreatment](#an.styles.SurfaceTreatment) | None*
+#### surface *: [SurfaceTreatment](#an.styles.SurfaceTreatment) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Surface treatments for every drawable entity (characters and props);
 `None` = none. See [`SurfaceTreatment`](#an.styles.SurfaceTreatment) and [`surface_for()`](#an.styles.surface_for).
@@ -268,11 +268,11 @@ to store.
 {'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.styles.UNREACHABLE_ROLES *: dict[str, str]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
+### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
 
 Roles a pack must NOT declare, with what makes each unreachable. These are
 `runtime.js` literals: `_LIP_COLOR`, `_MOUTH_FILL`, `_TEETH_COLOR`,
@@ -290,7 +290,7 @@ that mentions none of the three, the caller’s own literals come back
 unchanged and the compiled document does not move a byte.
 
 * **Return type:**
-  `tuple`[`str`, `str`, `str`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> resolve_palette(None, "maya", ("#f4c89a", "#3a6ea5", "#3b2a1a"))
@@ -309,7 +309,7 @@ entity whose override switched everything off — which is what keeps every
 such scene’s compiled document byte-identical to before an#163.
 
 * **Return type:**
-  [`SurfaceTreatment`](#an.styles.SurfaceTreatment) | `None`
+  [`SurfaceTreatment`](#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> pack = StylePack(name="sp", surface={"outline": {}},

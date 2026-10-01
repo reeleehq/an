@@ -47,7 +47,7 @@ by the `cutout` extra, which this module cannot run without anyway.
 | [`SupersampleError`](#an.adapters.cutout.supersample.SupersampleError)   | A supersample factor or frame that cannot be resolved exactly.   |
 |---------------------------------------------------------------------|------------------------------------------------------------------|
 
-### an.adapters.cutout.supersample.NO_SUPERSAMPLE *: int* *= 1*
+### an.adapters.cutout.supersample.NO_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 The factor at which every code path here is a no-op rather than merely cheap.
 Aliased from [`an.base.DEFAULT_SUPERSAMPLE`](an.base.html.md#an.base.DEFAULT_SUPERSAMPLE) rather than restated: the
@@ -55,7 +55,7 @@ default and the off-switch are the same fact, and two copies of a fact drift.
 
 ### *exception* an.adapters.cutout.supersample.SupersampleError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A supersample factor or frame that cannot be resolved exactly.
 
@@ -76,7 +76,7 @@ Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -92,7 +92,7 @@ True
 Validate a supersample factor, or refuse with the reason.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> check_factor(1), check_factor(2)
@@ -119,4 +119,4 @@ unrunnable in the default CI lane, which installs `dev,test` and not
 `cutout` — and CI is where that was found.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)

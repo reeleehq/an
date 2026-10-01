@@ -49,7 +49,7 @@ agent can review what changed across runs.
 
 ### *exception* an.iterate.IterateError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when an iterate call cannot apply its proposed patches.
 
@@ -59,13 +59,13 @@ Bases: `BaseModel`
 
 Structured reply from Claude for a single iterate() call.
 
-#### model_config *: ClassVar[ConfigDict]* *= {}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.iterate.IterateResult(success=True, summary='', patches=<factory>, affected_shots=<factory>, new_scene=None, validation=None, error=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an iterate() call.
 
@@ -75,7 +75,7 @@ Bases: `BaseModel`
 
 A single mutation against the SceneIR JSON tree.
 
-#### model_config *: ClassVar[ConfigDict]* *= {}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 

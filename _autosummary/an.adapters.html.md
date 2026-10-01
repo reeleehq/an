@@ -27,7 +27,7 @@ system deps still register but their `render()` raises a clear error;
 
 ### *class* an.adapters.ManimRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Manim Community Edition renderer (skeleton).
 
@@ -36,13 +36,13 @@ whose `renderer` is `"manim"`.
 
 ### *class* an.adapters.RemotionRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
 ### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a renderer needs that isn’t on the Shot itself.
 
@@ -50,7 +50,7 @@ Everything a renderer needs that isn’t on the Shot itself.
 by reference. `work_dir` is a scratch space; the renderer must clean up
 after itself or treat it as ephemeral.
 
-#### capture *: str | None*
+#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"screenshot"` (a Playwright element
 screenshot per instant) or `"canvas"` (the runtime reads its own canvas
@@ -64,7 +64,7 @@ per-shot provenance.
 * **Type:**
   How frames leave the browser
 
-#### default_easing *: Any*
+#### default_easing *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
 
 the curve of every
 authored tween that names none. `None` = the built-in
@@ -75,7 +75,7 @@ with it — as it should.
 * **Type:**
   The scene’s `meta.default_easing` (an#166)
 
-#### fps *: int | float*
+#### fps *: [int](https://docs.python.org/3/builtins/functions.html#int) | [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Frames per second of the delivered video. May be non-integer — a
 camera’s 29.97 — and the capture loop and the mux honour it exactly. The
@@ -84,7 +84,7 @@ descriptor plays, face curves) to the nearest integer grid instead,
 because the compiled document’s `meta.fps` is an integer; tweens and
 every other keyframe are exact at any rate.
 
-#### frame_samples *: tuple[tuple[float, ...], ...] | None*
+#### frame_samples *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...], ...] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per output frame, the scene instants to render and average into it —
 `None` is one instant at `i / fps`, the path every render took before
@@ -98,7 +98,7 @@ A `RenderContext` field for `supersample`’s reason: it changes how frames
 are CAPTURED, not what the scene is, so it must not move the compiled
 document. Its length must equal the render’s frame count.
 
-#### pix_fmt *: str | None*
+#### pix_fmt *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The delivered encode’s pixel format, or `None` for the module default.
 **The one first-order quality lever in the encoder**: 4:2:0 -> 4:4:4 cuts
@@ -111,7 +111,7 @@ rebinds the module default — still reaches an unset render. The default
 stays 4:2:0 for a PRODUCT reason and not an encoder one: High 4:4:4
 Predictive is refused by many hardware decoders, browsers and platforms.
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Scene-level stepped-timing policy for authored tweens (an#89); a shot’s
 own `step_hz` overrides it. `None` = smooth. Reaches the compiled
@@ -124,21 +124,21 @@ keyframes are the contract — so the hash moves whenever it is set no
 matter where the knob lives, and a document that carries its own timing
 policy is the honest one. Omit-when-unset keeps the unset case free.
 
-#### strict_assets *: bool*
+#### strict_assets *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Refuse to draw a stand-in for a declared asset that the stores do not
 supply. Off by default so an asset-less project still renders; on for
 anything that measures pixels, where a stand-in is a different picture
 that looks like a successful render (an#33).
 
-#### style_pack *: [StylePack](an.styles.html.md#an.styles.StylePack) | None*
+#### style_pack *: [StylePack](an.styles.html.md#an.styles.StylePack) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The `StylePack` this render is drawn under, already resolved from the
 scene’s `meta.style_pack` (an#112). Resolved ONCE per render rather than
 per shot: a pack is art direction for a project, and a scene whose shots
 disagreed about it would be two scenes.
 
-#### supersample *: int*
+#### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 Render at this many times the declared resolution and resolve back with
 an exact block mean. **1 means off, and off is free** — Chromium’s own
@@ -156,13 +156,13 @@ a row that does not record it cannot be read back later.
 
 ### *class* an.adapters.RenderResult(mp4_path, duration, frame_manifest=<factory>, log='', provenance=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of a single shot render.
 
 ### *class* an.adapters.Renderer(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Backend renderer interface.
 
@@ -174,7 +174,7 @@ state belongs in the `RenderContext` or the project mall.
 Return True if this renderer can render `shot`.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 #### render(shot, ctx)
 
@@ -183,7 +183,7 @@ Render a single shot to mp4. Idempotent given identical inputs.
 * **Return type:**
   [`RenderResult`](#an.adapters.RenderResult)
 
-#### supported_renderers *: tuple[str, ...]*
+#### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
 
 The `Shot.renderer` values this backend claims. It is the ONE place
 an adapter names them: `can_render` derives from it rather than
@@ -195,7 +195,7 @@ members, so `isinstance(old_adapter, Renderer)` is now False.
 
 ### *class* an.adapters.RendererRegistry
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Name-keyed registry of renderers.
 
@@ -208,11 +208,11 @@ multi-tenant servers) can construct their own.
 Return the first registered renderer that `can_render(shot)`.
 
 * **Return type:**
-  [`Renderer`](#an.adapters.Renderer) | `None`
+  [`Renderer`](#an.adapters.Renderer) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.adapters.WhiteboardRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Whiteboard-style renderer (stub).
 
@@ -228,14 +228,14 @@ Look up a renderer by name in the default registry.
 Names of all renderers registered in the default registry.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.adapters.register_renderer(renderer)
 
 Register a renderer in the default registry.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### Modules
 

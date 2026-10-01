@@ -37,13 +37,13 @@ stale `phonetic` track replays.
 | [`RhubarbLipSync`](#an.audio.rhubarb_lipsync.RhubarbLipSync)(\*[, binary_path, language, ...])   | Wrap the rhubarb CLI.   |
 |-----------------------------------------------------------------------------------------------------|-------------------------|
 
-### an.audio.rhubarb_lipsync.ENGLISH_LANGUAGES *: frozenset[str]* *= frozenset({'en'})*
+### an.audio.rhubarb_lipsync.ENGLISH_LANGUAGES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'en'})*
 
 The languages `pocketSphinx` (CMU Sphinx US English acoustic model) covers.
 
 ### *class* an.audio.rhubarb_lipsync.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 
@@ -56,7 +56,7 @@ Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 'rhubarb:phonetic'
 ```
 
-#### *property* uses_dialog_file *: bool*
+#### *property* uses_dialog_file *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether the chosen recognizer reads a transcript at all.
 
@@ -68,7 +68,7 @@ Accepts the POSIX locale spelling too (`en_US`); an empty tag is refused
 rather than read as “non-English” (an#96 review).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> recognizer_for("en"), recognizer_for("en-GB"), recognizer_for("en_US"), recognizer_for("fr")

@@ -85,7 +85,7 @@ For step: returns the value of the latest frame whose time ≤ `t`.
 For linear: linear interpolation between bracketing frames.
 
 * **Return type:**
-  `object`
+  [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ```pycon
 >>> tr = AnimationTrack(target='bone:torso.y', type='sine', amplitude=2.0)
@@ -104,7 +104,7 @@ what the renderer uses today (see the module docstring); kept as the
 candidate for descriptor-driven scheduling.
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> times = random_blink_schedule(20.0, seed=0)

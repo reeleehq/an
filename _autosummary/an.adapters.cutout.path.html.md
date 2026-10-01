@@ -51,7 +51,7 @@ True
 | [`dash_spans`](#an.adapters.cutout.path.dash_spans)(a, b, dash, gap, offset)             | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
 | [`path_geometry`](#an.adapters.cutout.path.path_geometry)(points, trim_start, trim_end, \*) | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
 
-### an.adapters.cutout.path.HEAD_STROKE_INSET *: float* *= 0.5*
+### an.adapters.cutout.path.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Where the stroke stops under an arrowhead, as a fraction of the head’s
 length back from the tip. Half-way keeps a butt or round cap inside the
@@ -62,7 +62,7 @@ head for the default proportions, so the stroke never pokes past the tip.
 Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
@@ -79,7 +79,7 @@ window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 `+ - * /` and `floor`, in the order `runtime.js::pathDashSpans` uses.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
@@ -99,7 +99,7 @@ The polyline the runtime draws for `points`.
 at `samples` steps; shared endpoints appear once.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> flatten_curve([(0, 0), (10, 0)])
@@ -123,7 +123,7 @@ one. The stroke stops [`HEAD_STROKE_INSET`](#an.adapters.cutout.path.HEAD_STROKE
 from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ```pycon
 >>> path_geometry([(0.0, 0.0), (10.0, 0.0)], 0.3, 0.3)
@@ -135,7 +135,7 @@ from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
 The point at arc length `s`. Mirror of `runtime.js::pathPointAt`.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.adapters.cutout.path.trim_polyline(points, cum, a, b)
 
@@ -143,4 +143,4 @@ The sub-polyline between arc lengths `a < b`: the two cut points and
 every vertex strictly between them. Mirror of `runtime.js::pathTrim`.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]

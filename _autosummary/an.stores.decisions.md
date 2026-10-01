@@ -14,7 +14,7 @@ by integer index (as a string) for uniformity with the other stores, plus an
 
 ### *class* an.stores.decisions.DecisionLogStore(log_path)
 
-Bases: `MutableMapping`
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 
 Append-only JSONL log keyed by ordinal index (as string).
 
@@ -37,4 +37,4 @@ forbidden; the log is append-only by design.
 Append one decision; returns its ordinal index.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)

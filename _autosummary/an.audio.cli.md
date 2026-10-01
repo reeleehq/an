@@ -27,7 +27,7 @@ its server; for the others the filter is a case-insensitive substring over
 the name, id and labels.
 
 * **Return type:**
-  `list`[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
 
 ```pycon
 >>> from an.audio.tts import VoiceMeta
@@ -44,7 +44,7 @@ the name, id and labels.
 One line per voice: `voice_id  name  (labels)`.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.audio.tts import VoiceMeta

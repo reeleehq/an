@@ -95,24 +95,24 @@ adapter owns the body schema), so it is not written here.
 | [`CaptionTimingWarning`](#an.captions.CaptionTimingWarning) | A line is captioned on estimated timing, or not at all.         |
 | [`CaptionWarning`](#an.captions.CaptionWarning)       | Captions were built, but not everything was captioned as asked. |
 
-### an.captions.CAPTION_ID_PREFIX *: str* *= 'caption_'*
+### an.captions.CAPTION_ID_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'caption_'*
 
 A caption page’s entity id is this plus its index within the shot.
 
-### an.captions.CAPTION_PROP_REF *: str* *= 'an.captions'*
+### an.captions.CAPTION_PROP_REF *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.captions'*
 
 The props-store key the caption blocks resolve against — a style-only
 `TextDescriptor` supplied at render time, never stored in the project.
 
 ### *exception* an.captions.CaptionError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 Captions cannot be built as asked. Carries the fix.
 
 ### *class* an.captions.CaptionPage(shot, start, end, lines, word_frames, speaker=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One caption as shown: which shot, which frames, which words.
 
@@ -121,7 +121,7 @@ the first that does not. `lines` are the words per line, broken by
 [`wrap_words()`](#an.captions.wrap_words); `word_frames[j]` is the frame word `j` (in reading
 order) starts being spoken, clamped into the page.
 
-#### *property* text *: str*
+#### *property* text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 words joined by spaces, lines by
 newlines.
@@ -129,7 +129,7 @@ newlines.
 * **Type:**
   The page as both outputs write it
 
-#### *property* words *: tuple[str, ...]*
+#### *property* words *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
 
 Every word of the page, in reading order.
 
@@ -141,13 +141,13 @@ A line is captioned on estimated timing, or not at all.
 
 ### *exception* an.captions.CaptionWarning
 
-Bases: `UserWarning`
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 Captions were built, but not everything was captioned as asked.
 
 ### *class* an.captions.Cue(index, start, end, text)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One SubRip cue — `mixing.srt.Cue`’s fields, in its order.
 
@@ -156,7 +156,7 @@ One SubRip cue — `mixing.srt.Cue`’s fields, in its order.
 1.5
 ```
 
-#### *property* duration *: float*
+#### *property* duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Cue duration in seconds (never negative).
 
@@ -168,7 +168,7 @@ A cue starts on the film frame that first shows its page and ends on the
 first that does not — the same frames the picture shows it on.
 
 * **Return type:**
-  `list`[[`Cue`](#an.captions.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.captions.Cue)]
 
 ### an.captions.caption_pages(scene, , fps, captions=None)
 
@@ -185,7 +185,7 @@ the next, and a fade takes the burned caption through the colour with the
 rest of the picture, while the sidecar’s cue is simply on.
 
 * **Return type:**
-  `list`[[`CaptionPage`](#an.captions.CaptionPage)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CaptionPage`](#an.captions.CaptionPage)]
 
 ### an.captions.captioned_shot(shot, pages, captions, , fps, mall, shot_index=None, base_dir=None, resolution=None)
 
@@ -204,14 +204,14 @@ naming the shot and the words — before a browser launches, rather than
 from inside a shot’s compile after others have rendered.
 
 * **Return type:**
-  `tuple`[[`Shot`](an.ir.schema.md#an.ir.schema.Shot), `dict`[`str`, `Any`]]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](an.ir.schema.md#an.ir.schema.Shot), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.captions.dump_srt(cues)
 
 Serialize cues to SubRip text, renumbering from 1.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> print(dump_srt([Cue(7, 1.0, 2.5, "Hello\nthere")]))
@@ -227,7 +227,7 @@ Split `words` into pages of at most `max_lines` wrapped lines, a new
 page starting after each sentence end. Returns index ranges.
 
 * **Return type:**
-  `list`[`range`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
 
 ```pycon
 >>> paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)
@@ -239,7 +239,7 @@ page starting after each sentence end. Returns index ranges.
 `HH:MM:SS,mmm`, milliseconds ROUNDED with carry; negatives clamp to 0.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> seconds_to_srt_time(2592.187), seconds_to_srt_time(-3)
@@ -251,7 +251,7 @@ page starting after each sentence end. Returns index ranges.
 The SubRip sidecar of `scene` rendered at `fps`.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot, Transition, WordTimingIR
@@ -276,7 +276,7 @@ Greedy line breaks at `max_chars` characters (spaces counted); a word
 longer than a line gets a line of its own and is never split.
 
 * **Return type:**
-  `list`[`list`[`str`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> wrap_words("the quick brown fox jumps".split(), 10)

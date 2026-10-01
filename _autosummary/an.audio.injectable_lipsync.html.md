@@ -39,13 +39,13 @@ track = lipsync.align(audio_clip, "hello world")
 
 ### *class* an.audio.injectable_lipsync.StaticWordTimings(words, , label='static')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A `WordTimingProvider` over a fixed list of timings.
 
 ### *class* an.audio.injectable_lipsync.WordTimingsLipSync(provider, , char_to_viseme=None, convention='rhubarb', rest_viseme='X', min_gap_for_rest=0.2)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 `LipSyncProvider` driven by a `WordTimingProvider`.
 
@@ -55,17 +55,17 @@ pipeline).
 
 * **Parameters:**
   * **provider** ([`WordTimingProvider`](an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)) – any `WordTimingProvider`.
-  * **char_to_viseme** (`dict`[`str`, `str`] | `None`) – optional override of the character→viseme code
+  * **char_to_viseme** ([`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional override of the character→viseme code
     mapping; defaults to the one shared with
     `OfflineLipSync` / `WhisperLipSync`.
-  * **convention** (`str`) – declared viseme convention string for the produced
+  * **convention** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – declared viseme convention string for the produced
     track. Defaults to `"rhubarb"` for compatibility with the
     existing cutout adapter.
-  * **rest_viseme** (`str`) – code emitted in silent gaps. Defaults to
+  * **rest_viseme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – code emitted in silent gaps. Defaults to
     `_REST_VISEME`.
-  * **min_gap_for_rest** (`float`) – minimum inter-word silence (seconds) before
+  * **min_gap_for_rest** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – minimum inter-word silence (seconds) before
     we insert a rest keyframe. Defaults to `0.20`.
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Built from words, so the track carries them (an#96).

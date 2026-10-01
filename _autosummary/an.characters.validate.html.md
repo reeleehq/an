@@ -35,25 +35,25 @@ that cannot land.
 | [`render_contract`](#an.characters.validate.render_contract)()                        | The artist-facing spec, generated from the schema and the checks above. |
 | [`validate_character`](#an.characters.validate.validate_character)(char_dir, \*[, name]) | Check an art package against the contract, offline.                     |
 
-### an.characters.validate.ADVISORY *: str* *= 'warning'*
+### an.characters.validate.ADVISORY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'warning'*
 
 Severity for a problem worth fixing that still renders.
 
-### an.characters.validate.BLOCKING *: str* *= 'error'*
+### an.characters.validate.BLOCKING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'error'*
 
 Severity for a problem that stops the part rendering correctly.
 
-### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: float* *= 0.01*
+### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.01*
 
 How far a declared box’s aspect may differ from its art’s before the
 containment is worth saying (a rounding of a pixel or two is not).
 
-### an.characters.validate.DRAWABLE_ELEMENTS *: frozenset[str]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
+### an.characters.validate.DRAWABLE_ELEMENTS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
 
 Elements that put ink on the canvas. A part containing none of these is
 blank, whatever else it contains.
 
-### an.characters.validate.PART_SUFFIXES *: tuple[str, ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
+### an.characters.validate.PART_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
 
 SVG, or raster with the
 suffixes `an.raster` reads (an#211). Order is the lookup order for a
@@ -62,7 +62,7 @@ required part, so an SVG wins when both exist.
 * **Type:**
   The part file formats an art package may ship
 
-### an.characters.validate.PROHIBITED_ELEMENTS *: dict[str, str]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
+### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
 
 Elements an art package may not contain.
 
@@ -76,7 +76,7 @@ depends on script execution is not a drawing.
 A short human-readable rendering, for the CLI.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.validate.render_contract()
 
@@ -90,7 +90,7 @@ a freshly-built descriptor, the prohibitions from
 validator cannot disagree.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.validate.validate_character(char_dir, , name=None)
 

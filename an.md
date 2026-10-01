@@ -1,4 +1,4 @@
-> built 2026-10-01 10:56 UTC from ff26b6b (main) · an 0.1.129. Details: build_info.json
+> built 2026-10-01 11:23 UTC from a893770 (main) · an 0.1.130. Details: build_info.json
 
 # index.html.md
 
@@ -349,11 +349,11 @@ The loop that drives the page (batching, ordering, back-pressure) is
 
 ### *exception* an.adapters.cutout.canvas_capture.CanvasCaptureError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A captured frame that cannot be turned into the screenshot path’s frame.
 
-### an.adapters.cutout.canvas_capture.DATA_URL_PREFIX *: str* *= 'data:image/png;base64,'*
+### an.adapters.cutout.canvas_capture.DATA_URL_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:image/png;base64,'*
 
 What `HTMLCanvasElement.toDataURL('image/png')` returns. Anything else —
 `"data:,"` for a zero-size canvas, or a JPEG a browser fell back to — is
@@ -373,7 +373,7 @@ not `factor` times it is refused here, not muxed. `compress_level=None`
 reads `DEFAULT_PNG_COMPRESS_LEVEL` at call time.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -396,7 +396,7 @@ an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, 
 A `toDataURL('image/png')` result -> the PNG’s bytes, or refuse.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> decode_data_url(DATA_URL_PREFIX + "iVBORw==", frame=0)[:4]
@@ -423,7 +423,7 @@ view and copying it contiguous measured ~5x slower at 1080p, on a path whose
 whole point is time.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -505,7 +505,7 @@ would lerp what JS’s `typeof` snaps.
 
 ### *class* an.adapters.cutout.channel.Channel(target, property, keyframes=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Sorted keyframes for one property of one target.
 
@@ -513,7 +513,7 @@ Construction validates that `keyframes` is non-empty and sorted.
 
 ### *class* an.adapters.cutout.channel.Keyframe(time, value, easing=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One keyframe: time, value, optional per-segment easing.
 
@@ -525,7 +525,7 @@ toward the next one. The last keyframe’s easing is therefore unused.
 Evaluate `channel` at time `t`.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.adapters.cutout.clip.html.md
@@ -573,13 +573,13 @@ Loop modes:
 
 ### *class* an.adapters.cutout.clip.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Named animation: a duration + a bundle of channels.
 
 ### *class* an.adapters.cutout.clip.LoopMode(\*values)
 
-Bases: `str`, `Enum`
+Bases: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
 
 How a clip behaves past its natural duration.
 
@@ -590,14 +590,14 @@ animation evaluation. Application happens in `runtime.js` (`applyPose`);
 the Python side only ever *produces* poses (an#86 deleted the Python
 applier, which structurally could not apply swap or alpha values).
 
-alias of `dict`[`tuple`[`str`, `str`], `Any`]
+alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.adapters.cutout.clip.evaluate(clip, t)
 
 Evaluate `clip` at time `t`, returning a `Pose`.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.adapters.cutout.clip.merge_poses(\*poses)
 
@@ -606,7 +606,7 @@ Merge multiple poses with **override semantics** (later wins per key).
 Used by the timeline to combine concurrent clips on the same target.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
@@ -705,31 +705,31 @@ codes both “most consonants” and the vowel EE, so the letter alone cannot sa
 
 ### *class* an.adapters.cutout.coarticulate.Cue(time, code, intensity=1.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One mouth-shape cue: when it starts, which shape, how loudly it wants the lips.
 
-### an.adapters.cutout.coarticulate.DEFAULT_DECAY_S *: float* *= 0.12*
+### an.adapters.cutout.coarticulate.DEFAULT_DECAY_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.12*
 
 Time a shape is given to close before rest (JALI’s “120 ms to decay”).
 
-### an.adapters.cutout.coarticulate.DEFAULT_DOMINANCE *: float* *= 0.5*
+### an.adapters.cutout.coarticulate.DEFAULT_DOMINANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 A shape not in the table (another convention’s code) is neither strong nor weak.
 
-### an.adapters.cutout.coarticulate.DEFAULT_LEAD_S *: float* *= 0.08333333333333333*
+### an.adapters.cutout.coarticulate.DEFAULT_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.08333333333333333*
 
 Anticipation lead — two frames at 24 fps (art direction; JALI’s 120 ms is the ceiling).
 
-### an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S *: float* *= 0.14*
+### an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.14*
 
 The minimum hold, unchanged from the pre-an#97 compiler until measured.
 
-### an.adapters.cutout.coarticulate.DOMINANCE *: dict[str, float]* *= {'A': 1.0, 'B': 0.3, 'C': 0.6, 'D': 0.8, 'E': 0.8, 'F': 0.9, 'G': 0.9, 'H': 0.3, 'X': 0.5}*
+### an.adapters.cutout.coarticulate.DOMINANCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'A': 1.0, 'B': 0.3, 'C': 0.6, 'D': 0.8, 'E': 0.8, 'F': 0.9, 'G': 0.9, 'H': 0.3, 'X': 0.5}*
 
 Per-shape dominance for Rhubarb’s letters. Order sourced, values ours.
 
-### an.adapters.cutout.coarticulate.WEAK_BELOW *: float* *= 0.5*
+### an.adapters.cutout.coarticulate.WEAK_BELOW *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Below this dominance a cue is “weak” for [`suppress_weak()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak).
 
@@ -749,7 +749,7 @@ in another convention closes with its own).
 The evidence, “Bye.” timed 0.0–0.5 s in a 1.84 s clip:
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
@@ -775,7 +775,7 @@ All the passes, in the order the module docstring gives.
 closes the mouth there instead of at `end` (an#213):
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
@@ -832,7 +832,7 @@ The defect the epic names, verbatim semantics of the old compiler loop —
 for 500 ms:
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
@@ -893,7 +893,7 @@ the shape before it is pushed out to `decay_s`, never past the next cue
 and never past `end` (a rest pushed to `end` is where the line closes).
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> [(round(c.time, 3), c.code) for c in decay([(0.0, "X"), (0.2, "D"), (0.25, "X"), (0.6, "B")], decay_s=0.12)]
@@ -913,7 +913,7 @@ the mouth; the hold would have refused a 70 ms word anyway, and the old
 condenser did.
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> [(round(c.time, 3), c.code) for c in lead([(0.0, "X"), (0.05, "D"), (0.5, "B")], lead_s=0.08)]
@@ -925,7 +925,7 @@ condenser did.
 Drop a cue whose shape is the one already showing.
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> [(c.time, c.code) for c in merge_duplicates([(0, "X"), (0.1, "B"), (0.2, "B"), (0.3, "C")])]
@@ -937,7 +937,7 @@ Drop a cue whose shape is the one already showing.
 Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
 
 ```pycon
 >>> raw = [(0.0, "X"), (0.20, "D"), (0.40, "B"), (0.43, "D"), (0.80, "X")]
@@ -1036,14 +1036,14 @@ mall). It reads only.
 |-----------------------------------------------------------------------|-----------------------------------------------------------------|
 | [`CutoutCompileWarning`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.CutoutCompileWarning) | A shot compiles, but something in it will not reach the screen. |
 
-### an.adapters.cutout.compile.CAMERA_NODE *: str* *= 'root'*
+### an.adapters.cutout.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
 
 indexed by the runtime, absent from the tree.
 
 * **Type:**
   The runtime’s camera node
 
-### an.adapters.cutout.compile.CHARACTER_ART_PREFIX *: str* *= 'characters/'*
+### an.adapters.cutout.compile.CHARACTER_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'characters/'*
 
 The `assets.textures` `src` prefix a rig’s art is addressed under, which is
 also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).
@@ -1054,7 +1054,7 @@ about where their art lives. Two hardcoded copies of `"characters/"` — the
 what made “a prop is a rig too” read as a rewrite instead of an argument
 (an#108).
 
-### an.adapters.cutout.compile.COARTICULATION_ENABLED *: bool* *= True*
+### an.adapters.cutout.compile.COARTICULATION_ENABLED *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Co-articulation on/off (an#97). ON is the product; OFF reproduces the
 pre-#97 mouth CHOICE — the raw provider track thinned by the old drop-not-hold
@@ -1064,14 +1064,14 @@ render the two side by side. Not a RenderContext knob: nobody should ship
 the old behaviour, and a module flag rebound for one render is the shape
 the bench’s levers already use.
 
-### an.adapters.cutout.compile.CONTAIN_FIT *: str* *= 'contain'*
+### an.adapters.cutout.compile.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
 
 The fit policy every compiled sprite carries. Named rather than inlined so
 the one place that decides “the art keeps its shape” is greppable.
 
 ### *exception* an.adapters.cutout.compile.CutoutCompileError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A shot cannot be compiled to a cutout scene. Carries actionable detail.
 
@@ -1083,7 +1083,7 @@ machinery, not of the input.
 
 ### *exception* an.adapters.cutout.compile.CutoutCompileWarning
 
-Bases: `UserWarning`
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A shot compiles, but something in it will not reach the screen.
 
@@ -1093,27 +1093,27 @@ mistake, so it raises. A speaker with no mouth is usually an off-screen
 narrator and occasionally a typo — refusing it would break the documented
 idiom, and passing in silence is what this whole change is against.
 
-### an.adapters.cutout.compile.DFLT_LEG_COLOUR *: str* *= '#2c3e50'*
+### an.adapters.cutout.compile.DFLT_LEG_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#2c3e50'*
 
 The procedural rig’s leg colour — a literal the palette table never
 carried, which is why it is a named constant rather than two copies of a
 string. A `StylePack`’s `leg` role replaces it.
 
-### an.adapters.cutout.compile.DFLT_PUPIL_COLOUR *: str* *= '#1a1a1a'*
+### an.adapters.cutout.compile.DFLT_PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 The procedural rig’s pupil colour. `makeEye` reads it from the document —
 the eye WHITE beside it is a literal and cannot be reached, which is the
 split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
 
-### an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS *: int* *= 3*
+### an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How many “did you mean” paths an unknown-target message offers.
 
-### an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX *: str* *= 'environments/'*
+### an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'environments/'*
 
 The `assets.textures` `src` prefix an environment plate is addressed under.
 
-### an.adapters.cutout.compile.EYE_NODE_NAMES *: frozenset[str]* *= frozenset({'left_eye', 'right_eye'})*
+### an.adapters.cutout.compile.EYE_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_eye', 'right_eye'})*
 
 the default rig’s eye slots ARE its node
 names, on both the procedural and the descriptor path.
@@ -1121,7 +1121,7 @@ names, on both the procedural and the descriptor path.
 * **Type:**
   The nodes that blink, by name
 
-### an.adapters.cutout.compile.FOREGROUND_SUFFIX *: str* *= '_\_front'*
+### an.adapters.cutout.compile.FOREGROUND_SUFFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_front'*
 
 Suffix for the container holding an environment’s FOREGROUND planes.
 
@@ -1135,20 +1135,20 @@ and the runtime’s unknown-target throw does not fire because the name IS
 known, just bound to the wrong one of two. The determinism report’s
 `node_count` under-counted by one per split environment too.
 
-### an.adapters.cutout.compile.GAZE_ELLIPSE_MARGIN *: float* *= 0.95*
+### an.adapters.cutout.compile.GAZE_ELLIPSE_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.95*
 
 The summed gaze (x, y), in axis units, is clamped to a circle of this radius
 — the declared travel maps the unit circle onto the sclera’s inner ellipse,
 and 0.95 keeps the whole pupil disc inside it at every angle (measured on
 the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).
 
-### an.adapters.cutout.compile.PLANE_FILL_SPAN *: float* *= 4000.0*
+### an.adapters.cutout.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale
 — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR
 layer’s framing check reads the same number, re-exported here.
 
-### an.adapters.cutout.compile.PROCEDURAL_MOUTH_KEYS *: dict[str, str]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
+### an.adapters.cutout.compile.PROCEDURAL_MOUTH_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
 
 The procedural (drawn) mouth’s swap vocabulary, DECLARED as data on its
 visual exactly as the runtime declares it (`g._anDrawSets = {viseme: ...}`)
@@ -1157,16 +1157,16 @@ so each key maps to itself — the code the runtime’s shape table draws. The
 compiler never branches on the set’s NAME: the drawn mouth is just a node
 whose visual carries a `viseme` set (an#87).
 
-### an.adapters.cutout.compile.PROP_ART_PREFIX *: str* *= 'props/'*
+### an.adapters.cutout.compile.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
 
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
 
-### an.adapters.cutout.compile.PUPIL_NODE_NAMES *: frozenset[str]* *= frozenset({'left_pupil', 'right_pupil'})*
+### an.adapters.cutout.compile.PUPIL_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_pupil', 'right_pupil'})*
 
 The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.
 
-### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: frozenset[str]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT
@@ -1179,7 +1179,7 @@ node’s `asset_sets` projection (an#87) — `viseme` left the static
 switch when that landed, which is precisely what makes it a conventional
 set name rather than control flow.
 
-### an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX *: float* *= 345.0*
+### an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 345.0*
 
 Scene-graph pixels spanned by a descriptor’s full `view_box` height.
 
@@ -1200,7 +1200,7 @@ driving it all along.
 The entity’s blink phase in [0, 1): the runtime’s rule, ported exactly.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> blink_phase("charlie")
@@ -1217,7 +1217,7 @@ re-raises `CameraError` as a `CutoutCompileError`, which is the compiler’s
 own boundary contract: every failure out of `compile_shot` is one type.
 
 * **Return type:**
-  `list`[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 ### an.adapters.cutout.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
@@ -1267,7 +1267,7 @@ clothes (an#33).
 The node name an environment’s foreground planes live under.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> foreground_node_name("street")
@@ -1283,7 +1283,7 @@ mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 — or, when there are none, the closest spellings.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]
@@ -1305,7 +1305,7 @@ out of, and a fade between two hex values that did not pass through the
 values between them would surprise whoever wrote them (an#62).
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.adapters.cutout.compile.plane_parents(env, entity_id)
 
@@ -1316,7 +1316,7 @@ the alternative is two places deciding which container a plane ended up in,
 which is the class of drift this wave keeps closing.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from an.environments import EnvironmentDescriptor, Plane
@@ -1342,7 +1342,7 @@ a tween shorter than one step is a single step to its end value.
 reaches `duration` — an infinite loop, not an error — so it is refused.
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> step_times(0.0, 0.3, 10)
@@ -1367,7 +1367,7 @@ renders happily, which is the an#33 failure this package refuses everywhere
 else.
 
 * **Return type:**
-  [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) | `None`
+  [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.adapters.cutout.compile.unknown_target_message(target, paths)
 
@@ -1377,7 +1377,7 @@ Shared by the compiler (which raises it) and `an validate` (which
 reports it), so the two say the same thing about the same path.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))
@@ -1436,7 +1436,7 @@ Raises `ValueError` for unknown preset names or malformed sequences.
 ```
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.adapters.cutout.easing.cubic_bezier(cx1, cy1, cx2, cy2, t)
 
@@ -1448,7 +1448,7 @@ return the y coordinate. Newton’s-method approximation; 8 iterations is
 visually indistinguishable from analytic.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> round(cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
@@ -1515,22 +1515,22 @@ scaled, never stretched to fit a box.
 | [`PartFidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#an.adapters.cutout.fidelity.PartFidelity)(node_path, asset_id, src, box, ...)   | One sprite's box, its art's raster, and the disagreement between them.   |
 |-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### an.adapters.cutout.fidelity.CONTAIN_FIT *: str* *= 'contain'*
+### an.adapters.cutout.fidelity.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
 
 Fit policies, mirroring `VisualJSON.fit`.
 
-### an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE *: float* *= 1.000001*
+### an.adapters.cutout.fidelity.DFLT_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.000001*
 
 Ratios within this of 1.0 count as uniform. Guards float noise only — it is
 not a tolerance for “close enough”, which is why it is this tight.
 
 ### *class* an.adapters.cutout.fidelity.PartFidelity(node_path, asset_id, src, box, raster, fit='stretch')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One sprite’s box, its art’s raster, and the disagreement between them.
 
-#### *property* aspect_distortion *: float*
+#### *property* aspect_distortion *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The factor by which the art is actually reshaped on screen.
 
@@ -1540,7 +1540,7 @@ keeps its shape whatever the box says and this is 1.0. Under
 `stretch` the box wins on both axes and the disagreement is the
 distortion.
 
-#### *property* box_aspect_disagreement *: float*
+#### *property* box_aspect_disagreement *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 How far the box’s shape is from the art’s. 1.0 when they agree.
 
@@ -1550,7 +1550,7 @@ one axis — so it is a weaker signal than [`aspect_distortion`](_autosummary/an
 it is what tells you the compiler is sizing from the art rather than
 from a constant.
 
-### an.adapters.cutout.fidelity.SPRITE_KIND *: str* *= 'svg_sprite'*
+### an.adapters.cutout.fidelity.SPRITE_KIND *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'svg_sprite'*
 
 The visual kind whose art comes from a file and can therefore be distorted.
 
@@ -1563,7 +1563,7 @@ and sets `ir_path` to the scene-graph node path so a fix is routed to the
 part that needs it.
 
 * **Return type:**
-  `list`[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]
 
 ### an.adapters.cutout.fidelity.part_fidelity(scene, , asset_root, tolerance=1.000001)
 
@@ -1577,7 +1577,7 @@ Sprites whose art cannot be read are skipped rather than guessed at; a
 missing part is #76’s problem, not this function’s.
 
 * **Return type:**
-  `list`[[`PartFidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#an.adapters.cutout.fidelity.PartFidelity)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`PartFidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#an.adapters.cutout.fidelity.PartFidelity)]
 
 
 # _autosummary/an.adapters.cutout.gaze.html.md
@@ -1606,7 +1606,7 @@ hide the pop.
 Seeding follows the blink pattern — a pure function of the entity name — so
 renaming a character re-seeds its saccades (the recorded blink hazard); the
 seed is stamped into the compiled scene’s `meta` beside `blink_phases`.
-Integer seeding of `random.Random` is version-stable.
+Integer seeding of [`random.Random`](https://docs.python.org/3/library/random.html#random.Random) is version-stable.
 
 ```pycon
 >>> track = saccade_track("gale", duration=2.0, fps=24)
@@ -1634,13 +1634,13 @@ True
 | [`GazeStep`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.GazeStep)(time, x, y)   | The pupils rest at `(x, y)` (axis units) from `time` on.   |
 |-------------------------------------------------------------------------|------------------------------------------------------------|
 
-### an.adapters.cutout.gaze.GAZE_SALT *: int* *= 27182*
+### an.adapters.cutout.gaze.GAZE_SALT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 27182*
 
 XOR’d into the entity-name hash so saccades and blinks never share a seed.
 
 ### *class* an.adapters.cutout.gaze.GazeStep(time, x, y)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The pupils rest at `(x, y)` (axis units) from `time` on.
 
@@ -1649,7 +1649,7 @@ The pupils rest at `(x, y)` (axis units) from `time` on.
 The generator’s seed for an entity — a pure function of its name.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> gaze_seed("gale") == gaze_seed("gale") and gaze_seed("gale") != gaze_seed("nora")
@@ -1665,7 +1665,7 @@ values assume 1). `blink_windows` are the entity’s compiled blink
 windows, for the coupling rule.
 
 * **Return type:**
-  `list`[[`GazeStep`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.GazeStep)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`GazeStep`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.GazeStep)]
 
 
 # _autosummary/an.adapters.cutout.html.md
@@ -1719,7 +1719,7 @@ Bases: `_JSONModel`
 
 A named, reusable animation clip.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1729,7 +1729,7 @@ Bases: `_JSONModel`
 
 A single asset (texture / audio file).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1758,19 +1758,19 @@ the declared ref supplied nothing and a stand-in was drawn in its place.
 False
 ```
 
-#### detail *: str*
+#### detail *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 One human sentence saying why, when `fallback` is True.
 
-#### fallback *: bool*
+#### fallback *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 True when the declared ref supplied nothing and a stand-in was drawn.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### resolved *: str*
+#### resolved *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 “descriptor” | “parts” | “placeholder”.
 Environments: “store” | “preset” | “default”.
@@ -1784,7 +1784,7 @@ Bases: `_JSONModel`
 
 Map of asset id → AssetJSON, split by kind.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1794,19 +1794,19 @@ Bases: `_JSONModel`
 
 One animated property of one target.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *exception* an.adapters.cutout.CutoutRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a cutout render fails. Carries actionable detail.
 
 ### *class* an.adapters.cutout.CutoutRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Headless cutout renderer: Playwright + ffmpeg.
 
@@ -1833,17 +1833,17 @@ Top-level cutout scene JSON — the JS runtime’s input contract.
 
 Versioned so the runtime can refuse incompatible inputs.
 
-#### asset_resolution *: list[[AssetResolutionJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
+#### asset_resolution *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[AssetResolutionJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
 
 One entry per drawable entity, in scene order — see
 [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetResolutionJSON). Inert to the runtime; read by the bench
 harness and the golden-corpus bless to assert WHICH render path ran.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### overlay *: [NodeJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON) | None*
+#### overlay *: [NodeJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a second top-level container the
 runtime centres on the canvas and never indexes, so no channel — the
@@ -1861,7 +1861,7 @@ Bases: `_JSONModel`
 
 Single keyframe in an animation channel.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1871,7 +1871,7 @@ Bases: `_JSONModel`
 
 One node in the scene tree.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1881,7 +1881,7 @@ Bases: `_JSONModel`
 
 An animation placed on a track at a specific time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1891,7 +1891,7 @@ Bases: `_JSONModel`
 
 Top-level timeline: total duration + tracks.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1901,7 +1901,7 @@ Bases: `_JSONModel`
 
 A sequence of placed clips with optional target-prefix metadata.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -1927,7 +1927,7 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
-#### asset_geometry *: dict[str, dict[str, float]] | None*
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-texture geometry for a swap key drawn differently from the built
 one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
@@ -1937,7 +1937,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: Literal['add', 'multiply'] | None*
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
@@ -1946,7 +1946,7 @@ blend equation — no filter, no render texture. `None` = normal.
 * **Type:**
   The engine’s native blend mode for this visual (an#163)
 
-#### fit *: Literal['stretch', 'contain']*
+#### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
 
@@ -1958,15 +1958,15 @@ distorted `arm_l` by 3.929x on the repo’s own art.
 Additive with a `"stretch"` default so no stored scene changes meaning;
 the compiler emits `"contain"` for every sprite it builds.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | None*
+#### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
 
-#### underlays *: list[[UnderlayJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | None*
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
@@ -2092,7 +2092,7 @@ True
 | [`dash_spans`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.dash_spans)(a, b, dash, gap, offset)             | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
 | [`path_geometry`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.path_geometry)(points, trim_start, trim_end, \*) | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
 
-### an.adapters.cutout.path.HEAD_STROKE_INSET *: float* *= 0.5*
+### an.adapters.cutout.path.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Where the stroke stops under an arrowhead, as a fraction of the head’s
 length back from the tip. Half-way keeps a butt or round cap inside the
@@ -2103,7 +2103,7 @@ head for the default proportions, so the stroke never pokes past the tip.
 Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
@@ -2120,7 +2120,7 @@ window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 `+ - * /` and `floor`, in the order `runtime.js::pathDashSpans` uses.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
@@ -2140,7 +2140,7 @@ The polyline the runtime draws for `points`.
 at `samples` steps; shared endpoints appear once.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> flatten_curve([(0, 0), (10, 0)])
@@ -2164,7 +2164,7 @@ one. The stroke stops [`HEAD_STROKE_INSET`](_autosummary/an.adapters.cutout.path
 from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ```pycon
 >>> path_geometry([(0.0, 0.0), (10.0, 0.0)], 0.3, 0.3)
@@ -2176,7 +2176,7 @@ from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
 The point at arc length `s`. Mirror of `runtime.js::pathPointAt`.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.adapters.cutout.path.trim_polyline(points, cum, a, b)
 
@@ -2184,7 +2184,7 @@ The sub-polyline between arc lengths `a < b`: the two cut points and
 every vertex strictly between them. Mirror of `runtime.js::pathTrim`.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 
 # _autosummary/an.adapters.cutout.render.html.md
@@ -2243,12 +2243,12 @@ facade boundary.
 |-----------------------------------------------------------------------|----------------------------------------------------------------------|
 | [`CutoutRenderError`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.CutoutRenderError)    | Raised when a cutout render fails.                                   |
 
-### an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER *: str* *= 'an:asset-load-timeout'*
+### an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an:asset-load-timeout'*
 
 Sentinel the in-page deadline rejects with, so the Python side can tell a
 timeout apart from a load failure and say something different about each.
 
-### an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE *: dict[str, str]* *= {'characters/': 'characters', 'environments/': 'environments', 'props/': 'props', 'styles/': 'styles'}*
+### an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'characters/': 'characters', 'environments/': 'environments', 'props/': 'props', 'styles/': 'styles'}*
 
 Texture `src` prefix → the mall store that resolves the rest of the path.
 
@@ -2264,7 +2264,7 @@ store is named differently must still work.
 
 ### *exception* an.adapters.cutout.render.CutoutAssetWarning
 
-Bases: `UserWarning`
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A declared texture could not be staged into the runtime directory.
 
@@ -2282,13 +2282,13 @@ rather than as an error, which is what this warning exists to prevent.
 
 ### *exception* an.adapters.cutout.render.CutoutRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a cutout render fails. Carries actionable detail.
 
 ### *class* an.adapters.cutout.render.CutoutRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Headless cutout renderer: Playwright + ffmpeg.
 
@@ -2307,7 +2307,7 @@ Render `shot` to mp4 using `ctx` for paths + parameters.
 * **Return type:**
   [`RenderResult`](_autosummary/an.adapters.html.md#an.adapters.RenderResult)
 
-### an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS *: int* *= 60000*
+### an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 60000*
 
 Deadline for `anLoadScene`, which awaits `PIXI.Assets.load` for every declared
 texture. **A bound is required, not merely nice**: a degenerate part SVG —
@@ -2320,7 +2320,7 @@ The value is a policy choice, not a measurement: it needs to sit far above a
 legitimate cold load of a few dozen small SVGs and far below “a human gave
 up”. Raise it for a genuinely heavy art package rather than removing it.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH *: int* *= 8*
+### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 
 Frames per `anCaptureFrames` round trip. Measured at 1920x1080 on an M1
 Max, `single_character`: 67 ms/frame one frame per call, 46 at four, 46 at
@@ -2329,7 +2329,7 @@ also the memory the page holds before Python takes it: eight data URLs of a
 1080p frame are well under a megabyte of text, and at a supersampled 4K
 backbuffer a few megabytes each.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS *: int* *= 4147200*
+### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4147200*
 
 The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
 counts k² times and an open shutter once per instant): at most this many per
@@ -2345,7 +2345,7 @@ driver’s string limit in ONE reply (the render hung in `browser.close()`),
 and ~16 GB of Python memory at supersample 3. A frame whose instants alone
 exceed it is captured over several round trips.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: int* *= 2*
+### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 Threads decoding, resolving and re-encoding canvas frames while the page
 renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
@@ -2353,7 +2353,7 @@ at 1080p — the same order as the page’s own work — so it must overlap it o
 it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs
 one Chromium per shot, and each of them is another source of CPU pressure.
 
-### an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT *: int* *= 16*
+### an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
 
 frames handed to the encode pool and not yet written. When
 the pool falls behind, the capture loop blocks on the oldest one before it
@@ -2363,7 +2363,7 @@ batch however long the shot is.
 * **Type:**
   BACK-PRESSURE
 
-### an.adapters.cutout.render.DEFAULT_CAPTURE *: str* *= 'canvas'*
+### an.adapters.cutout.render.DEFAULT_CAPTURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'canvas'*
 
 the
 runtime’s `anCaptureFrames` reads the canvas in-page and hands back PNG data
@@ -2383,7 +2383,7 @@ would bind it at def time.
 * **Type:**
   How frames leave the browser. `"canvas"` (the default since an#192)
 
-### an.adapters.cutout.render.DEFAULT_PIX_FMT *: str* *= 'yuv420p'*
+### an.adapters.cutout.render.DEFAULT_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv420p'*
 
 x264 encode knobs pinned so the delivered mp4 is a function of the frames
 rather than of the machine (an#34, research §2).
@@ -2451,7 +2451,7 @@ bench’s lever rebind it from outside, exactly as `high_crf` rebinds
 `DETERMINISTIC_X264_ARGS`. Hoisting either into a default argument binds it
 at `def` time and disarms the lever silently.
 
-### an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS *: tuple[str, ...]* *= ('--no-sandbox', '--disable-gpu', '--enable-unsafe-swiftshader', '--force-color-profile=srgb')*
+### an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('--no-sandbox', '--disable-gpu', '--enable-unsafe-swiftshader', '--force-color-profile=srgb')*
 
 Chromium launch flags that pin the rasteriser (an#31, research §2).
 
@@ -2479,7 +2479,7 @@ Record the argv **verbatim** in any provenance row: all four rasteriser
 configurations report the byte-identical `UNMASKED_RENDERER_WEBGL` string,
 so the renderer string cannot witness this choice.
 
-### an.adapters.cutout.render.SUPPORTED_CAPTURES *: tuple[str, ...]* *= ('screenshot', 'canvas')*
+### an.adapters.cutout.render.SUPPORTED_CAPTURES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('screenshot', 'canvas')*
 
 a typo must
 fail before a browser launches, not minutes into a render.
@@ -2487,7 +2487,7 @@ fail before a browser launches, not minutes into a render.
 * **Type:**
   The capture paths `_check_capture` accepts. Not an open string
 
-### an.adapters.cutout.render.SUPPORTED_PIX_FMTS *: tuple[str, ...]* *= ('yuv420p', 'yuv444p')*
+### an.adapters.cutout.render.SUPPORTED_PIX_FMTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('yuv420p', 'yuv444p')*
 
 a typo would reach ffmpeg
 as an obscure failure minutes into a render, and a format outside this set
@@ -2503,7 +2503,7 @@ The stepped-timing policy a shot renders under (an#89): the shot’s own
 `None` — smooth. The compiler stamps whatever this returns.
 
 * **Return type:**
-  `float` | `None`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> from pathlib import Path
@@ -2549,21 +2549,21 @@ Return the directory containing index.html + runtime.js.
 Uses importlib.resources so it works from a wheel install too.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.adapters.cutout.runtime_files.runtime_index_html()
 
 Path to `index.html`.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.adapters.cutout.runtime_files.runtime_js()
 
 Path to `runtime.js`.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.adapters.cutout.serialize.html.md
@@ -2634,7 +2634,7 @@ Bases: `_JSONModel`
 
 A named, reusable animation clip.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2644,7 +2644,7 @@ Bases: `_JSONModel`
 
 A single asset (texture / audio file).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2673,19 +2673,19 @@ the declared ref supplied nothing and a stand-in was drawn in its place.
 False
 ```
 
-#### detail *: str*
+#### detail *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 One human sentence saying why, when `fallback` is True.
 
-#### fallback *: bool*
+#### fallback *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 True when the declared ref supplied nothing and a stand-in was drawn.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### resolved *: str*
+#### resolved *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 “descriptor” | “parts” | “placeholder”.
 Environments: “store” | “preset” | “default”.
@@ -2699,7 +2699,7 @@ Bases: `_JSONModel`
 
 Map of asset id → AssetJSON, split by kind.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2709,7 +2709,7 @@ Bases: `_JSONModel`
 
 One animated property of one target.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2721,17 +2721,17 @@ Top-level cutout scene JSON — the JS runtime’s input contract.
 
 Versioned so the runtime can refuse incompatible inputs.
 
-#### asset_resolution *: list[[AssetResolutionJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
+#### asset_resolution *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[AssetResolutionJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)]*
 
 One entry per drawable entity, in scene order — see
 [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON). Inert to the runtime; read by the bench
 harness and the golden-corpus bless to assert WHICH render path ran.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### overlay *: [NodeJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON) | None*
+#### overlay *: [NodeJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a second top-level container the
 runtime centres on the canvas and never indexes, so no channel — the
@@ -2749,7 +2749,7 @@ Bases: `_JSONModel`
 
 Per-shot metadata.
 
-#### blink_phases *: dict[str, float]*
+#### blink_phases *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Per-entity blink phase in [0, 1), a pure function of the entity NAME
 (an#88). Stamped by the compiler — which now emits blinks as channels —
@@ -2759,7 +2759,7 @@ a stamped phase turns that into a visible diff instead of an
 unexplained metric shift. (The runtime’s determinism probe used to
 carry this; the fact moved with the mechanism.)
 
-#### fonts *: dict[str, str]*
+#### fonts *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 entity id ->
 `"<family> <style> [(embedded)] sha256:<digest>"` — identity by the
@@ -2769,18 +2769,18 @@ runtime (the glyphs are already SVG). **Serialized only when non-empty.**
 * **Type:**
   Per text block, the face that set it (an#155)
 
-#### gaze_seeds *: dict[str, int]*
+#### gaze_seeds *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 
 Per-entity saccade seed (an#99), a pure function of the entity NAME
 like `blink_phases`; stamped for the rigs that have pupils and
 **serialized only when non-empty** — a pre-Wave-6 rig has no pupils and
 its compiled document, the bench’s scene contract, must not move.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stepped-timing policy the shot’s tweens were compiled under
 (an#89); `None` = smooth. **Serialized only when set**: the compiled
@@ -2788,7 +2788,7 @@ document is the bench’s scene contract (`scene_contract_sha256`), so a
 `null` here would move every committed row’s hash for a knob nobody
 turned. Inert to the runtime; read by the ledger.
 
-#### style_pack *: str | None*
+#### style_pack *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The name of the `StylePack` this scene was compiled under, or `None`.
 Recorded so a rendered document says which art direction produced it —
@@ -2802,7 +2802,7 @@ Bases: `_JSONModel`
 
 Single keyframe in an animation channel.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2812,7 +2812,7 @@ Bases: `_JSONModel`
 
 One node in the scene tree.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2829,7 +2829,7 @@ touches the node; channels on those two properties move them.
 `head_length == 0` means no arrowhead. What the runtime draws from this
 is specified by `an.adapters.cutout.path.path_geometry`.
 
-#### dash *: float*
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 `dash > 0` is on. `dash_offset` is the value
 shown before a channel touches it. These are wire fields of path
@@ -2838,7 +2838,7 @@ visuals only, so they cannot move a non-path document’s hash.
 * **Type:**
   Dash pattern (an#161)
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2848,7 +2848,7 @@ Bases: `_JSONModel`
 
 An animation placed on a track at a specific time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2858,7 +2858,7 @@ Bases: `_JSONModel`
 
 Top-level timeline: total duration + tracks.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2868,7 +2868,7 @@ Bases: `_JSONModel`
 
 A sequence of placed clips with optional target-prefix metadata.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2893,7 +2893,7 @@ texture first, which costs a render pass per node per frame.
 property’s rest value\*\* — see `compile.py`’s `_PROPERTY_REST_VALUES`,
 which is derived from them rather than restated.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2914,7 +2914,7 @@ grows by `grow` on every side. `color` is the fill of a redrawn shape
 and the `tint` (a multiply) of a sprite copy. Compiled by
 `an.adapters.cutout.surface`; never authored.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -2940,7 +2940,7 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
-#### asset_geometry *: dict[str, dict[str, float]] | None*
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-texture geometry for a swap key drawn differently from the built
 one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
@@ -2950,7 +2950,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: Literal['add', 'multiply'] | None*
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
@@ -2959,7 +2959,7 @@ blend equation — no filter, no render texture. `None` = normal.
 * **Type:**
   The engine’s native blend mode for this visual (an#163)
 
-#### fit *: Literal['stretch', 'contain']*
+#### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
 
@@ -2971,15 +2971,15 @@ distorted `arm_l` by 3.929x on the repo’s own art.
 Additive with a `"stretch"` default so no stored scene changes meaning;
 the compiler emits `"contain"` for every sprite it builds.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | None*
+#### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
 
-#### underlays *: list[[UnderlayJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | None*
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
@@ -2997,7 +2997,7 @@ Rebuild a scene from a plain-dict representation.
 Dump a scene to a plain-dict representation (no None pruning).
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
 # _autosummary/an.adapters.cutout.shutter.html.md
@@ -3032,7 +3032,7 @@ without an open shutter is byte-identical to one from before this module.
 
 ### *exception* an.adapters.cutout.shutter.ShutterError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 Frame samples a render cannot honour.
 
@@ -3044,7 +3044,7 @@ Checked before a browser launches, for `check_factor`’s reason: the render
 costs minutes and this costs microseconds.
 
 * **Return type:**
-  `tuple`[`tuple`[`float`, `...`], `...`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> check_frame_samples(None, total_frames=3, duration=0.1) is None
@@ -3065,7 +3065,7 @@ One screenshot takes exactly the spatial path — the same bytes a render
 without a shutter writes.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.adapters.cutout.shutter.temporal_mean(frames)
 
@@ -3079,7 +3079,7 @@ is drawn is still the average of the sampled positions, which is the
 property the impact ground truth relies on.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -3144,7 +3144,7 @@ by the `cutout` extra, which this module cannot run without anyway.
 | [`SupersampleError`](_autosummary/an.adapters.cutout.supersample.html.md#an.adapters.cutout.supersample.SupersampleError)   | A supersample factor or frame that cannot be resolved exactly.   |
 |---------------------------------------------------------------------|------------------------------------------------------------------|
 
-### an.adapters.cutout.supersample.NO_SUPERSAMPLE *: int* *= 1*
+### an.adapters.cutout.supersample.NO_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 The factor at which every code path here is a no-op rather than merely cheap.
 Aliased from [`an.base.DEFAULT_SUPERSAMPLE`](_autosummary/an.base.html.md#an.base.DEFAULT_SUPERSAMPLE) rather than restated: the
@@ -3152,7 +3152,7 @@ default and the off-switch are the same fact, and two copies of a fact drift.
 
 ### *exception* an.adapters.cutout.supersample.SupersampleError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A supersample factor or frame that cannot be resolved exactly.
 
@@ -3173,7 +3173,7 @@ Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -3189,7 +3189,7 @@ True
 Validate a supersample factor, or refuse with the reason.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> check_factor(1), check_factor(2)
@@ -3216,7 +3216,7 @@ unrunnable in the default CI lane, which installs `dev,test` and not
 `cutout` — and CI is where that was found.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 
 # _autosummary/an.adapters.cutout.surface.html.md
@@ -3270,13 +3270,13 @@ when unset.
 | [`grain_node`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.grain_node)(grain, \*, width, height, textures)     | The grain layer: one tile texture, tiled over the frame in frame pixels.                                               |
 | [`faded_treated_targets`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.faded_treated_targets)(scene, animations)           | The `alpha` channel targets that FADE a part carrying underlays.                                                       |
 
-### an.adapters.cutout.surface.GLOW_NODE *: str* *= '_glow'*
+### an.adapters.cutout.surface.GLOW_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_glow'*
 
 The glow’s node name inside its entity, and the grain’s on the overlay.
 Leading underscore: no rig slot or entity id is spelled like this, and a
 collision with an overlay entity still raises in `compile_shot`.
 
-### an.adapters.cutout.surface.GRAIN_LEVELS *: int* *= 16*
+### an.adapters.cutout.surface.GRAIN_LEVELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
 
 Grey levels in the grain tile. 16 = a 4-bit palette PNG (half the bytes
 of an 8-bit one), and finer steps than 8-bit output could show at the small
@@ -3287,7 +3287,7 @@ of an 8-bit one), and finer steps than 8-bit output could show at the small
 
 amount\`s grain is used at.
 
-### an.adapters.cutout.surface.UNDERLAY_KINDS *: frozenset[str]* *= frozenset({'ellipse', 'rect', 'svg_sprite'})*
+### an.adapters.cutout.surface.UNDERLAY_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'rect', 'svg_sprite'})*
 
 The visual kinds a copy can be drawn for. `runtime.js` refuses any other.
 An eye already draws its own rim, a procedural mouth is a redraw function,
@@ -3305,7 +3305,7 @@ The glow is added after the parts are walked, so it never gets an outline
 of its own.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from an.styles import SurfaceTreatment
@@ -3328,7 +3328,7 @@ root. That is an assumption about the rigs this compiler builds, not
 about arbitrary documents.
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`, `float`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> head = NodeJSON(name="h", transform=TransformJSON(y=-50),
@@ -3347,7 +3347,7 @@ A hide or a show is not a fade (`_fades()`), and an alpha on the glow
 node only fades the glow, which is fine.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.adapters.cutout.surface.glow_svg(width, height, , color, intensity, core)
 
@@ -3357,7 +3357,7 @@ It holds `intensity` out to `core` (a fraction of the radius) and
 fades to nothing at the edge.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> glow_svg(10, 10, color="#ffffff", intensity=0.5, core=0.4)[:52]
@@ -3370,7 +3370,7 @@ The palette: level `n` multiplies the frame by `grey/255`, from
 white (level 0) down to `1 − amount` (the last level).
 
 * **Return type:**
-  `list`[`int`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> grain_greys(0.06)[:3], grain_greys(0.06)[-1]
@@ -3382,7 +3382,7 @@ white (level 0) down to `1 − amount` (the last level).
 `tile × tile` grey-level indices in `[0, GRAIN_LEVELS)`, row-major.
 
 * **Return type:**
-  `list`[`int`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> grain_indices(0, 4)
@@ -3412,14 +3412,14 @@ It is opaque on purpose. With no alpha channel there is no premultiply
 step on load that could differ between engines.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.adapters.cutout.surface.ring_offsets(radius)
 
 The outline ring’s copy offsets at `radius` pixels.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> ring_offsets(2.0)[:3]
@@ -3472,21 +3472,21 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.
 | [`text_document`](_autosummary/an.adapters.cutout.text.html.md#an.adapters.cutout.text.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                      |
 | [`unit_svg`](_autosummary/an.adapters.cutout.text.html.md#an.adapters.cutout.text.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                     |
 
-### an.adapters.cutout.text.INLINE_SRC_PREFIX *: str* *= 'data:'*
+### an.adapters.cutout.text.INLINE_SRC_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:'*
 
 The `src` scheme of a texture that carries its bytes inline. The staging
 step skips it (there is nothing to copy) instead of warning that the prefix
 names no store.
 
-### an.adapters.cutout.text.TEXT_ALIAS_DIGEST_LEN *: int* *= 12*
+### an.adapters.cutout.text.TEXT_ALIAS_DIGEST_LEN *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 12*
 
 Hex digits of the texture’s sha256 kept in its alias.
 
-### an.adapters.cutout.text.TEXT_TEXTURE_OVERSAMPLE *: int* *= 2*
+### an.adapters.cutout.text.TEXT_TEXTURE_OVERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 Texels per scene pixel in a unit’s texture. See the module docstring.
 
-### an.adapters.cutout.text.TEXT_TEXTURE_PREFIX *: str* *= 'text.'*
+### an.adapters.cutout.text.TEXT_TEXTURE_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'text.'*
 
 What a text texture’s alias starts with — `text.<entity>.<unit>.<digest>`.
 
@@ -3498,7 +3498,7 @@ Raises `ValueError` subclasses (`TextFontError`, `TextLayoutError`,
 pydantic’s `ValidationError`) — the compiler wraps them.
 
 * **Return type:**
-  `tuple`[[`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON), [`TextDescriptor`](_autosummary/an.text.html.md#an.text.TextDescriptor), [`TextLayout`](_autosummary/an.text.html.md#an.text.TextLayout)]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON), [`TextDescriptor`](_autosummary/an.text.html.md#an.text.TextDescriptor), [`TextLayout`](_autosummary/an.text.html.md#an.text.TextLayout)]
 
 ### an.adapters.cutout.text.svg_data_uri(svg)
 
@@ -3506,21 +3506,21 @@ pydantic’s `ValidationError`) — the compiler wraps them.
 loader recognises by prefix.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.adapters.cutout.text.text_document(entity, props_store)
 
 The stored document behind a prop entity if it is a text block, else None.
 
 * **Return type:**
-  `Optional`[`Mapping`[`str`, `Any`]]
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.adapters.cutout.text.unit_svg(d, box, , color)
 
 One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> unit_svg("M0 0L2 0L2 2Z", (0, 0, 4, 4), color="#123456")[:60]
@@ -3585,15 +3585,15 @@ Evaluation semantics in Phase 2A:
 
 ### *class* an.adapters.cutout.timeline.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A clip placed at an absolute time on a track.
 
-#### *property* effective_duration *: float*
+#### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: str* *= '<swap>'*
+### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<swap>'*
 
 two keys in one group set the same
 thing, so only the more recently written can be showing. Every swap set on a
@@ -3607,13 +3607,13 @@ switch) writes only itself.
 
 ### *class* an.adapters.cutout.timeline.Timeline(duration, tracks=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A duration + ordered list of tracks. The canonical playback structure.
 
 ### *class* an.adapters.cutout.timeline.Track(target_root='', clips=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A sequence of placed clips that share a common purpose / target prefix.
 
@@ -3622,7 +3622,7 @@ runtime can use it to scope rendering); evaluation does not filter by it.
 
 ### *class* an.adapters.cutout.timeline.Transform2D(x=0.0, y=0.0, rotation=0.0, scale_x=1.0, scale_y=1.0, pivot_x=0.0, pivot_y=0.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One node’s local transform, in the runtime’s own vocabulary.
 
@@ -3642,7 +3642,7 @@ performs, and the reason `root.pivot` is a 2D camera: moving the pivot
 moves everything the node contains, in the opposite direction.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> Transform2D(x=10.0).apply((0.0, 0.0))
@@ -3658,7 +3658,7 @@ moves everything the node contains, in the opposite direction.
 The inverse of [`apply()`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.Transform2D.apply) — a parent-space point, in local space.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> t = Transform2D(x=10.0, pivot_x=3.0, scale_x=2.0, rotation=0.4)
@@ -3733,7 +3733,7 @@ while both played).
 ```
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.adapters.cutout.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
 
@@ -3747,7 +3747,7 @@ the root container.
 `evaluate_timeline` returns, and each node reads only its own entry.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> from an.adapters.cutout.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON
@@ -3815,7 +3815,7 @@ every keyframe instead of an offset from it.
 What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.SWAP_WRITE_GROUP).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
@@ -3854,7 +3854,7 @@ system deps still register but their `render()` raises a clear error;
 
 ### *class* an.adapters.ManimRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Manim Community Edition renderer (skeleton).
 
@@ -3863,13 +3863,13 @@ whose `renderer` is `"manim"`.
 
 ### *class* an.adapters.RemotionRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
 ### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a renderer needs that isn’t on the Shot itself.
 
@@ -3877,7 +3877,7 @@ Everything a renderer needs that isn’t on the Shot itself.
 by reference. `work_dir` is a scratch space; the renderer must clean up
 after itself or treat it as ephemeral.
 
-#### capture *: str | None*
+#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"screenshot"` (a Playwright element
 screenshot per instant) or `"canvas"` (the runtime reads its own canvas
@@ -3891,7 +3891,7 @@ per-shot provenance.
 * **Type:**
   How frames leave the browser
 
-#### default_easing *: Any*
+#### default_easing *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
 
 the curve of every
 authored tween that names none. `None` = the built-in
@@ -3902,7 +3902,7 @@ with it — as it should.
 * **Type:**
   The scene’s `meta.default_easing` (an#166)
 
-#### fps *: int | float*
+#### fps *: [int](https://docs.python.org/3/builtins/functions.html#int) | [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Frames per second of the delivered video. May be non-integer — a
 camera’s 29.97 — and the capture loop and the mux honour it exactly. The
@@ -3911,7 +3911,7 @@ descriptor plays, face curves) to the nearest integer grid instead,
 because the compiled document’s `meta.fps` is an integer; tweens and
 every other keyframe are exact at any rate.
 
-#### frame_samples *: tuple[tuple[float, ...], ...] | None*
+#### frame_samples *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...], ...] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per output frame, the scene instants to render and average into it —
 `None` is one instant at `i / fps`, the path every render took before
@@ -3925,7 +3925,7 @@ A `RenderContext` field for `supersample`’s reason: it changes how frames
 are CAPTURED, not what the scene is, so it must not move the compiled
 document. Its length must equal the render’s frame count.
 
-#### pix_fmt *: str | None*
+#### pix_fmt *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The delivered encode’s pixel format, or `None` for the module default.
 **The one first-order quality lever in the encoder**: 4:2:0 -> 4:4:4 cuts
@@ -3938,7 +3938,7 @@ rebinds the module default — still reaches an unset render. The default
 stays 4:2:0 for a PRODUCT reason and not an encoder one: High 4:4:4
 Predictive is refused by many hardware decoders, browsers and platforms.
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Scene-level stepped-timing policy for authored tweens (an#89); a shot’s
 own `step_hz` overrides it. `None` = smooth. Reaches the compiled
@@ -3951,21 +3951,21 @@ keyframes are the contract — so the hash moves whenever it is set no
 matter where the knob lives, and a document that carries its own timing
 policy is the honest one. Omit-when-unset keeps the unset case free.
 
-#### strict_assets *: bool*
+#### strict_assets *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Refuse to draw a stand-in for a declared asset that the stores do not
 supply. Off by default so an asset-less project still renders; on for
 anything that measures pixels, where a stand-in is a different picture
 that looks like a successful render (an#33).
 
-#### style_pack *: [StylePack](_autosummary/an.styles.html.md#an.styles.StylePack) | None*
+#### style_pack *: [StylePack](_autosummary/an.styles.html.md#an.styles.StylePack) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The `StylePack` this render is drawn under, already resolved from the
 scene’s `meta.style_pack` (an#112). Resolved ONCE per render rather than
 per shot: a pack is art direction for a project, and a scene whose shots
 disagreed about it would be two scenes.
 
-#### supersample *: int*
+#### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 Render at this many times the declared resolution and resolve back with
 an exact block mean. **1 means off, and off is free** — Chromium’s own
@@ -3983,13 +3983,13 @@ a row that does not record it cannot be read back later.
 
 ### *class* an.adapters.RenderResult(mp4_path, duration, frame_manifest=<factory>, log='', provenance=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of a single shot render.
 
 ### *class* an.adapters.Renderer(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Backend renderer interface.
 
@@ -4001,7 +4001,7 @@ state belongs in the `RenderContext` or the project mall.
 Return True if this renderer can render `shot`.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 #### render(shot, ctx)
 
@@ -4010,7 +4010,7 @@ Render a single shot to mp4. Idempotent given identical inputs.
 * **Return type:**
   [`RenderResult`](_autosummary/an.adapters.html.md#an.adapters.RenderResult)
 
-#### supported_renderers *: tuple[str, ...]*
+#### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
 
 The `Shot.renderer` values this backend claims. It is the ONE place
 an adapter names them: `can_render` derives from it rather than
@@ -4022,7 +4022,7 @@ members, so `isinstance(old_adapter, Renderer)` is now False.
 
 ### *class* an.adapters.RendererRegistry
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Name-keyed registry of renderers.
 
@@ -4035,11 +4035,11 @@ multi-tenant servers) can construct their own.
 Return the first registered renderer that `can_render(shot)`.
 
 * **Return type:**
-  [`Renderer`](_autosummary/an.adapters.html.md#an.adapters.Renderer) | `None`
+  [`Renderer`](_autosummary/an.adapters.html.md#an.adapters.Renderer) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.adapters.WhiteboardRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Whiteboard-style renderer (stub).
 
@@ -4055,14 +4055,14 @@ Look up a renderer by name in the default registry.
 Names of all renderers registered in the default registry.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.adapters.register_renderer(renderer)
 
 Register a renderer in the default registry.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### Modules
 
@@ -4099,13 +4099,13 @@ sanity check; not a real animation.
 
 ### *exception* an.adapters.manim_adapter.ManimRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a Manim render fails. Carries actionable detail.
 
 ### *class* an.adapters.manim_adapter.ManimRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Manim Community Edition renderer (skeleton).
 
@@ -4136,13 +4136,13 @@ documenting what’s needed.
 
 ### *exception* an.adapters.remotion_adapter.RemotionRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a Remotion render fails.
 
 ### *class* an.adapters.remotion_adapter.RemotionRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
@@ -4170,13 +4170,13 @@ A spike during v0.1 picks the direction.
 
 ### *exception* an.adapters.whiteboard.WhiteboardRenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised by the whiteboard stub.
 
 ### *class* an.adapters.whiteboard.WhiteboardRenderer
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Whiteboard-style renderer (stub).
 
@@ -4246,13 +4246,13 @@ whatever the transitions do.
 
 ### *exception* an.assemble.AssemblyError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The shots cannot be assembled as the scene asks. Carries the fix.
 
 ### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Where each shot’s frames land in the film, and what blends them.
 
@@ -4266,14 +4266,14 @@ NEXT shot’s fade colour).
 Film time just after shot `i`’s last frame.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### start_seconds(i)
 
 Film time of shot `i`’s first frame.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.assemble.assemble_film(scene, shot_results, output, , fps, mall, work_dir, pix_fmt=None)
 
@@ -4285,7 +4285,7 @@ each must carry its frames (``frame_manifest``), so a renderer that only
 produces an mp4 cannot take part in an assembled film.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.assemble.duck_gain(t, spans, , duck_db, attack, release)
 
@@ -4297,7 +4297,7 @@ ramp over `attack` seconds BEFORE each line (so its first syllable is
 already clear) and `release` seconds after.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> spans = [(1.0, 2.0)]
@@ -4313,7 +4313,7 @@ dissolve’s overlap. Exactly `sum(durations)` for a scene without one, so
 every existing document’s arithmetic is unchanged.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Shot, Transition
@@ -4339,7 +4339,7 @@ transition that rounds to zero frames asks for nothing, and must not cost a
 scene its byte-identical concat.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> from an.ir.schema import Meta, SceneIR, Shot, Transition
@@ -4357,7 +4357,7 @@ Every reason these shots’ transitions cannot be assembled, as
 [`film_timeline()`](_autosummary/an.assemble.html.md#an.assemble.film_timeline) raises on, so the two cannot disagree.
 
 * **Return type:**
-  `list`[`tuple`[`int`, `str`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> from an.ir.schema import Shot, Transition
@@ -4397,7 +4397,7 @@ its server; for the others the filter is a case-insensitive substring over
 the name, id and labels.
 
 * **Return type:**
-  `list`[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
 ```pycon
 >>> from an.audio.tts import VoiceMeta
@@ -4414,7 +4414,7 @@ the name, id and labels.
 One line per voice: `voice_id  name  (labels)`.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.audio.tts import VoiceMeta
@@ -4493,7 +4493,7 @@ Effects a voice document may declare, with the range each accepts.
 
 ### *exception* an.audio.effects.VoiceEffectError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A voice declares an effect that is unknown, malformed or out of range.
 
@@ -4506,14 +4506,14 @@ ffmpeg is missing or fails — never returns unshifted audio for a voice that
 asked for a shift.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.audio.effects.filter_chain(effects)
 
 The ffmpeg `-af` chain for normalised `effects` (`""` for none).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.effects.normalize_effects(raw)
 
@@ -4524,7 +4524,7 @@ Omit-when-unset: `None`, `{}` and a zero-valued effect all normalise to
 Unknown keys raise — an effect that silently does nothing is worse than none.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.audio.effects.voice_effects(mall, voice_id)
 
@@ -4534,7 +4534,7 @@ A voice that is not in the store (the offline default, a raw provider voice
 id) has no effects; so does a store that does not exist.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.audio.elevenlabs_tts.html.md
@@ -4592,7 +4592,7 @@ existing cache key moves.
 | [`ElevenLabsVoiceError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsVoiceError)   | A voice document declares ElevenLabs settings that are malformed.   |
 |-------------------------------------------------------------------------|---------------------------------------------------------------------|
 
-### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: tuple[str, ...]* *= ('eleven_v3', 'eleven_v4')*
+### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('eleven_v3', 'eleven_v4')*
 
 Model ids that read inline audio tags (`[excited]`, `[sighs]`). Matched
 as prefixes, so `eleven_v3_conversational` and `eleven_v4_turbo` count.
@@ -4600,7 +4600,7 @@ Every other model would speak the brackets, so it never receives a tag.
 
 ### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
@@ -4621,7 +4621,7 @@ absent key or SDK yields `[]`; a key that is present and a call that
 fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 
 * **Return type:**
-  `Iterable`[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
 #### synthesis_options(voice, , emotion=None, direction=None)
 
@@ -4635,7 +4635,7 @@ on a model that reads tags; elsewhere a direction is dropped with a
 warning and the emotion stays a face-only cue, as before.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 #### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
 
@@ -4647,11 +4647,11 @@ so alignment and captions never read a cue.
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A voice document declares ElevenLabs settings that are malformed.
 
-### an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES *: dict[str, tuple[float, float] | None]* *= {'similarity_boost': (0.0, 1.0), 'speed': (0.7, 1.2), 'stability': (0.0, 1.0), 'style': (0.0, 1.0), 'use_speaker_boost': None}*
+### an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'similarity_boost': (0.0, 1.0), 'speed': (0.7, 1.2), 'stability': (0.0, 1.0), 'style': (0.0, 1.0), 'use_speaker_boost': None}*
 
 The `voice_settings` keys the API takes, with the range each accepts
 (`None` = a boolean). `speed` is the API’s documented 0.7–1.2.
@@ -4664,7 +4664,7 @@ Omit-when-unset: `None` and `{}` give `{}`. Unknown keys and values out
 of range raise, so a typo cannot silently fall back to the account default.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> normalize_voice_settings({"style": 1, "stability": 0.25})
@@ -4680,14 +4680,14 @@ an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['st
 `text` with each tag prefixed as `[tag]` — what an audio-tag model reads.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.elevenlabs_tts.takes_audio_tags(model_id, , prefixes=('eleven_v3', 'eleven_v4'))
 
 Whether `model_id` reads inline audio tags.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")
@@ -4749,13 +4749,13 @@ without external services.
 
 ### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
 
 ### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
@@ -4776,7 +4776,7 @@ absent key or SDK yields `[]`; a key that is present and a call that
 fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 
 * **Return type:**
-  `Iterable`[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
 #### synthesis_options(voice, , emotion=None, direction=None)
 
@@ -4790,7 +4790,7 @@ on a model that reads tags; elsewhere a direction is dropped with a
 warning and the emotion stays a face-only cue, as before.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 #### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
 
@@ -4802,7 +4802,7 @@ so alignment and captions never read a cue.
 
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Audio + transcript → aligned viseme track.
 
@@ -4821,7 +4821,7 @@ Produce a viseme track for `audio` given its `transcript`.
 
 ### *class* an.audio.MacSayTTS(, default_voice_id='Samantha', sample_rate=22050, rate_wpm=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 macOS `say`-backed TTSProvider.
 
@@ -4830,7 +4830,7 @@ fully offline — uses Apple’s voice synthesis bundled with the OS.
 
 ### *class* an.audio.OfflineLipSync(, char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Default lip-sync provider: deterministic char-to-viseme mapping.
 
@@ -4838,7 +4838,7 @@ Implements the `LipSyncProvider` protocol.
 
 ### *class* an.audio.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Default TTS provider: silent WAV of length proportional to text.
 
@@ -4846,7 +4846,7 @@ Implements the `TTSProvider` protocol.
 
 ### *class* an.audio.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 
@@ -4859,19 +4859,19 @@ Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 'rhubarb:phonetic'
 ```
 
-#### *property* uses_dialog_file *: bool*
+#### *property* uses_dialog_file *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether the chosen recognizer reads a transcript at all.
 
 ### *class* an.audio.StaticWordTimings(words, , label='static')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider) over a fixed list of timings.
 
 ### *class* an.audio.TTSProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Text-to-speech provider.
 
@@ -4880,7 +4880,7 @@ Text-to-speech provider.
 Return all voices the provider exposes.
 
 * **Return type:**
-  `Iterable`[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
 #### synthesize(text, voice_id, \*\*kw)
 
@@ -4891,13 +4891,13 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 
 ### *class* an.audio.Viseme(time, code, intensity=1.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
 ### *class* an.audio.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Aligned viseme sequence produced by a LipSyncProvider.
 
@@ -4910,13 +4910,13 @@ viseme conversion: captions (Wave 8) and any consumer that wants to know
 
 ### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
 ### *class* an.audio.WhisperLipSync(, model_size='tiny', device='cpu', compute_type='int8', char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 faster-whisper word timestamps → visemes.
 
@@ -4924,13 +4924,13 @@ Implements the `LipSyncProvider` protocol. The model is lazy-loaded on
 the first call (subsequent calls in the same process reuse the instance
 via the class-level `_model` cache).
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Whisper aligns from words, so the track carries them (an#96).
 
 ### *class* an.audio.WordTimingProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Audio → `[(word, start_s, end_s), ...]`.
 
@@ -4944,11 +4944,11 @@ fine and represent silence the lipsync provider should rest through.
 Return the word timings for `audio`.
 
 * **Return type:**
-  `Sequence`[`tuple`[`str`, `float`, `float`]]
+  [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### *class* an.audio.WordTimingsLipSync(provider, , char_to_viseme=None, convention='rhubarb', rest_viseme='X', min_gap_for_rest=0.2)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 [`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider) driven by a [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider).
 
@@ -4958,18 +4958,18 @@ pipeline).
 
 * **Parameters:**
   * **provider** ([`WordTimingProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)) – any [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider).
-  * **char_to_viseme** (`dict`[`str`, `str`] | `None`) – optional override of the character→viseme code
+  * **char_to_viseme** ([`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional override of the character→viseme code
     mapping; defaults to the one shared with
     [`OfflineLipSync`](_autosummary/an.audio.html.md#an.audio.OfflineLipSync) / [`WhisperLipSync`](_autosummary/an.audio.html.md#an.audio.WhisperLipSync).
-  * **convention** (`str`) – declared viseme convention string for the produced
+  * **convention** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – declared viseme convention string for the produced
     track. Defaults to `"rhubarb"` for compatibility with the
     existing cutout adapter.
-  * **rest_viseme** (`str`) – code emitted in silent gaps. Defaults to
+  * **rest_viseme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – code emitted in silent gaps. Defaults to
     `_REST_VISEME`.
-  * **min_gap_for_rest** (`float`) – minimum inter-word silence (seconds) before
+  * **min_gap_for_rest** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – minimum inter-word silence (seconds) before
     we insert a rest keyframe. Defaults to `0.20`.
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Built from words, so the track carries them (an#96).
 
@@ -4992,14 +4992,14 @@ The default TTS provider: `OfflineTTS`.
 Return the registered LipSync provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.known_tts_names()
 
 Return the registered TTS provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.make_lipsync(name, , language='en')
 
@@ -5047,7 +5047,7 @@ to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
 * **Return type:**
-  `tuple`[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
 ### an.audio.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
 
@@ -5087,7 +5087,7 @@ transcribers occasionally round the last word’s end past the
 audio’s actual length.
 
 * **Return type:**
-  `list`[[`Viseme`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.Viseme)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Viseme`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.Viseme)]
 
 ### Modules
 
@@ -5151,13 +5151,13 @@ track = lipsync.align(audio_clip, "hello world")
 
 ### *class* an.audio.injectable_lipsync.StaticWordTimings(words, , label='static')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A `WordTimingProvider` over a fixed list of timings.
 
 ### *class* an.audio.injectable_lipsync.WordTimingsLipSync(provider, , char_to_viseme=None, convention='rhubarb', rest_viseme='X', min_gap_for_rest=0.2)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 `LipSyncProvider` driven by a `WordTimingProvider`.
 
@@ -5167,18 +5167,18 @@ pipeline).
 
 * **Parameters:**
   * **provider** ([`WordTimingProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)) – any `WordTimingProvider`.
-  * **char_to_viseme** (`dict`[`str`, `str`] | `None`) – optional override of the character→viseme code
+  * **char_to_viseme** ([`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional override of the character→viseme code
     mapping; defaults to the one shared with
     `OfflineLipSync` / `WhisperLipSync`.
-  * **convention** (`str`) – declared viseme convention string for the produced
+  * **convention** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – declared viseme convention string for the produced
     track. Defaults to `"rhubarb"` for compatibility with the
     existing cutout adapter.
-  * **rest_viseme** (`str`) – code emitted in silent gaps. Defaults to
+  * **rest_viseme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – code emitted in silent gaps. Defaults to
     `_REST_VISEME`.
-  * **min_gap_for_rest** (`float`) – minimum inter-word silence (seconds) before
+  * **min_gap_for_rest** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – minimum inter-word silence (seconds) before
     we insert a rest keyframe. Defaults to `0.20`.
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Built from words, so the track carries them (an#96).
 
@@ -5223,7 +5223,7 @@ Two protocols live here:
 
 ### *class* an.audio.lipsync.LipSyncProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Audio + transcript → aligned viseme track.
 
@@ -5242,13 +5242,13 @@ Produce a viseme track for `audio` given its `transcript`.
 
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
 ### *class* an.audio.lipsync.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Aligned viseme sequence produced by a LipSyncProvider.
 
@@ -5263,11 +5263,11 @@ viseme conversion: captions (Wave 8) and any consumer that wants to know
 
 One word’s slice in time. Tuple form keeps providers cheap.
 
-alias of `tuple`[`str`, `float`, `float`]
+alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### *class* an.audio.lipsync.WordTimingProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Audio → `[(word, start_s, end_s), ...]`.
 
@@ -5281,7 +5281,7 @@ fine and represent silence the lipsync provider should rest through.
 Return the word timings for `audio`.
 
 * **Return type:**
-  `Sequence`[`tuple`[`str`, `float`, `float`]]
+  [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.audio.lipsync.word_timings_to_visemes(words, , total_duration, char_to_viseme, rest_viseme='X', min_gap_for_rest=0.2)
 
@@ -5300,7 +5300,7 @@ transcribers occasionally round the last word’s end past the
 audio’s actual length.
 
 * **Return type:**
-  `list`[[`Viseme`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.Viseme)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Viseme`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.Viseme)]
 
 
 # _autosummary/an.audio.mac_say_tts.html.md
@@ -5335,7 +5335,7 @@ audio pipeline (which prefers WAV) can read frames + duration directly.
 
 ### *class* an.audio.mac_say_tts.MacSayTTS(, default_voice_id='Samantha', sample_rate=22050, rate_wpm=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 macOS `say`-backed TTSProvider.
 
@@ -5344,7 +5344,7 @@ fully offline — uses Apple’s voice synthesis bundled with the OS.
 
 ### *exception* an.audio.mac_say_tts.MacSayTTSError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when the `say` subprocess fails.
 
@@ -5382,7 +5382,7 @@ True
 
 ### *class* an.audio.offline_lipsync.OfflineLipSync(, char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Default lip-sync provider: deterministic char-to-viseme mapping.
 
@@ -5423,7 +5423,7 @@ True
 
 ### *class* an.audio.offline_tts.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Default TTS provider: silent WAV of length proportional to text.
 
@@ -5440,7 +5440,7 @@ synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> round(estimate_speech_duration("It only takes exact change."), 3)
@@ -5490,7 +5490,7 @@ the entire pipeline runs without API keys or external binaries.
 
 ### *exception* an.audio.pipeline.AudioPipelineError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The scene declares audio the pipeline cannot produce. Carries detail.
 
@@ -5503,7 +5503,7 @@ an#209). With none of them, the payload is exactly the pre-effects one, so
 every key a project already has is unchanged.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> audio_key("hi", "default", "offline") == audio_key(
@@ -5552,7 +5552,7 @@ to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
 * **Return type:**
-  `tuple`[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
 ### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
 
@@ -5614,14 +5614,14 @@ mac_say) and for a voice written for another provider — which is what
 keeps their cache keys where they were.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
 Content key of a line’s viseme track (a function of the audio HEARD).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.audio.providers.html.md
@@ -5655,7 +5655,7 @@ specific classes.
 | [`make_lipsync`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.         |
 | [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name)                     | Instantiate a TTS provider by name.             |
 
-### an.audio.providers.DEFAULT_LANGUAGE *: str* *= 'en'*
+### an.audio.providers.DEFAULT_LANGUAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'en'*
 
 The language a provider aligns for when the caller says nothing. Only
 Rhubarb reads it today (its recognizer follows the language, an#96).
@@ -5665,14 +5665,14 @@ Rhubarb reads it today (its recognizer follows the language, an#96).
 Return the registered LipSync provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.providers.known_tts_names()
 
 Return the registered TTS provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.providers.make_lipsync(name, , language='en')
 
@@ -5735,13 +5735,13 @@ stale `phonetic` track replays.
 | [`RhubarbLipSync`](_autosummary/an.audio.rhubarb_lipsync.html.md#an.audio.rhubarb_lipsync.RhubarbLipSync)(\*[, binary_path, language, ...])   | Wrap the rhubarb CLI.   |
 |-----------------------------------------------------------------------------------------------------|-------------------------|
 
-### an.audio.rhubarb_lipsync.ENGLISH_LANGUAGES *: frozenset[str]* *= frozenset({'en'})*
+### an.audio.rhubarb_lipsync.ENGLISH_LANGUAGES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'en'})*
 
 The languages `pocketSphinx` (CMU Sphinx US English acoustic model) covers.
 
 ### *class* an.audio.rhubarb_lipsync.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 
@@ -5754,7 +5754,7 @@ Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 'rhubarb:phonetic'
 ```
 
-#### *property* uses_dialog_file *: bool*
+#### *property* uses_dialog_file *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether the chosen recognizer reads a transcript at all.
 
@@ -5766,7 +5766,7 @@ Accepts the POSIX locale spelling too (`en_US`); an empty tag is refused
 rather than read as “non-English” (an#96 review).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> recognizer_for("en"), recognizer_for("en-GB"), recognizer_for("en_US"), recognizer_for("fr")
@@ -5789,13 +5789,13 @@ TTS provider protocol + supporting dataclasses.
 
 ### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
 
 ### *class* an.audio.tts.TTSProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Text-to-speech provider.
 
@@ -5804,7 +5804,7 @@ Text-to-speech provider.
 Return all voices the provider exposes.
 
 * **Return type:**
-  `Iterable`[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
 #### synthesize(text, voice_id, \*\*kw)
 
@@ -5815,7 +5815,7 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 
 ### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
@@ -5883,20 +5883,20 @@ exactly what the pipeline did before this module, so no cache key moves.
 | [`voice_applies`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_applies)(doc, tts_name)                     | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`. |
 | [`voice_document`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_document)(mall, voice_id)                   | `mall["voices"][voice_id]` when it is a mapping, else `{}`.            |
 
-### an.audio.voices.CHARACTER_VOICE_KEY *: str* *= 'voice_ref'*
+### an.audio.voices.CHARACTER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_ref'*
 
 The key, in a character descriptor (or an entity’s `overrides`), naming
 the character’s voice in the `voices` store.
 
-### an.audio.voices.DEFAULT_VOICE *: str* *= 'default'*
+### an.audio.voices.DEFAULT_VOICE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'default'*
 
 The voice a line gets when neither it nor its speaker names one.
 
-### an.audio.voices.PROVIDER_KEY *: str* *= 'provider'*
+### an.audio.voices.PROVIDER_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'provider'*
 
 The key, in a voice document, naming the TTS provider it is written for.
 
-### an.audio.voices.PROVIDER_VOICE_KEY *: str* *= 'voice_id'*
+### an.audio.voices.PROVIDER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_id'*
 
 The key, in a voice document, naming the TTS provider’s own voice.
 
@@ -5905,7 +5905,7 @@ The key, in a voice document, naming the TTS provider’s own voice.
 The `voices`-store key `line` is spoken with (see the module doc).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.voices.provider_voice(mall, voice_id, , tts_name=None)
 
@@ -5918,7 +5918,7 @@ Given `tts_name`, a document written for ANOTHER provider gives
 [`DEFAULT_VOICE`](_autosummary/an.audio.voices.html.md#an.audio.voices.DEFAULT_VOICE) — never a foreign voice id (an#209).
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.voices.speaker_voice_ref(speaker, shot, mall)
 
@@ -5930,7 +5930,7 @@ name a voice. A store that is absent, or that does not hold the ref, still
 lets the entity’s `overrides` speak.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.voices.voice_applies(doc, tts_name)
 
@@ -5940,7 +5940,7 @@ True when the document names no `provider`, or names this one (case
 ignored), or when the caller does not say which provider is speaking.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> voice_applies({}, "offline"), voice_applies({"provider": "ElevenLabs"}, "elevenlabs")
@@ -5954,7 +5954,7 @@ False
 `mall["voices"][voice_id]` when it is a mapping, else `{}`.
 
 * **Return type:**
-  `Mapping`
+  [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)
 
 
 # _autosummary/an.audio.whisper_lipsync.html.md
@@ -5988,7 +5988,7 @@ Trade-offs vs. OfflineLipSync:
 
 ### *class* an.audio.whisper_lipsync.WhisperLipSync(, model_size='tiny', device='cpu', compute_type='int8', char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 faster-whisper word timestamps → visemes.
 
@@ -5996,7 +5996,7 @@ Implements the `LipSyncProvider` protocol. The model is lazy-loaded on
 the first call (subsequent calls in the same process reuse the instance
 via the class-level `_model` cache).
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Whisper aligns from words, so the track carries them (an#96).
 
@@ -6044,7 +6044,7 @@ fraction of a second so the CLI is snappy.
 | [`swap_set_name_problem`](_autosummary/an.base.html.md#an.base.swap_set_name_problem)(name)   | Why `name` cannot be a swap-set name, or `None` if it can.   |
 |--------------------------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.base.AUTHORABLE_PROPERTIES *: frozenset[str]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
@@ -6054,7 +6054,7 @@ the two sets is exactly `tint`, and a test pins that rather than trusting it.
 * **Type:**
   What a set/tween may name
 
-### an.base.BT709_SCALE_FILTER *: str* *= 'scale=out_range=tv:out_color_matrix=bt709'*
+### an.base.BT709_SCALE_FILTER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'scale=out_range=tv:out_color_matrix=bt709'*
 
 The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to
 the encoder flags to imply.
@@ -6115,7 +6115,7 @@ received”. Pin one and not the others and every encode-side metric silently
 measures a colour-space disagreement instead of encoder damage – the failure
 `an/bench/imageio.py`’s module docstring records CI catching once already.
 
-### an.base.COLOUR_PROPERTY *: str* *= 'tint'*
+### an.base.COLOUR_PROPERTY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'tint'*
 
 The property names the cutout runtime animates NUMERICALLY. Any other
 property on a set/tween names a swap SET declared by the target entity’s
@@ -6130,11 +6130,11 @@ sees it — `_expand_tint_actions` rewrites each leaf into the three numeric
 components before the swap-set dispatch, which would otherwise read it as an
 asset-set name (an#62).
 
-### an.base.COMPATIBLE_VERSION *: str* *= '0.3.0'*
+### an.base.COMPATIBLE_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.3.0'*
 
 Minimum Scene IR version this code can still read without migration.
 
-### an.base.DEFAULT_DUCK_DB *: float* *= -12.0*
+### an.base.DEFAULT_DUCK_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= -12.0*
 
 how far a ducked cue drops under dialogue, and how fast
 it gets there and comes back. The ramps are linear in gain.
@@ -6142,7 +6142,7 @@ it gets there and comes back. The ramps are linear in gain.
 * **Type:**
   Ducking defaults
 
-### an.base.DEFAULT_SUPERSAMPLE *: int* *= 1*
+### an.base.DEFAULT_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 Render at this many times the declared resolution, then resolve back with an
 exact block mean. **1 is off, and off is free**: the un-supersampled path
@@ -6158,11 +6158,11 @@ The default stays 1 deliberately. Supersampling ships OPT-IN with its A/B
 committed (an#58, discussion #52), per the standing rule that a default
 chosen by taste ships opt-in and the flip is its own one-line change.
 
-### an.base.DEFAULT_TRANSITION_COLOR *: str* *= '#000000'*
+### an.base.DEFAULT_TRANSITION_COLOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#000000'*
 
 The colour a `fade` passes through when it names none.
 
-### an.base.DEFAULT_TRANSITION_DURATION *: float* *= 0.5*
+### an.base.DEFAULT_TRANSITION_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 half a second
 is a conventional editor’s default, short enough not to eat a line of
@@ -6171,23 +6171,23 @@ dialogue and long enough to read as deliberate.
 * **Type:**
   Seconds, when a `fade` or `dissolve` names no duration
 
-### an.base.EASING_PRESETS *: tuple[str, ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
+### an.base.EASING_PRESETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
 
 Named easing presets. Renderers should accept these and the cubic-Bézier
 4-tuple form `[cx1, cy1, cx2, cy2]`. Names follow the GSAP / CSS convention.
 
-### an.base.EasingSpec *: TypeAlias* *= str | tuple[float, float, float, float] | list[float]*
+### an.base.EasingSpec *: [TypeAlias](https://docs.python.org/3/library/typing.html#typing.TypeAlias)* *= str | tuple[float, float, float, float] | list[float]*
 
 Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].
 
-### an.base.FILM_AUDIO_SAMPLE_RATE *: int* *= 44100*
+### an.base.FILM_AUDIO_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 44100*
 
 The film mix’s sample rate and channel count. The SAME values the per-shot
 audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
 assembled from sources and one concatenated from shot mp4s carry the same
 audio format.
 
-### an.base.MP4_FASTSTART_ARGS *: tuple[str, ...]* *= ('-movflags', '+faststart')*
+### an.base.MP4_FASTSTART_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('-movflags', '+faststart')*
 
 Put the mp4’s `moov` atom in front of `mdat`, so a player can start before
 the file has finished downloading.
@@ -6227,9 +6227,9 @@ the torso, not children of it.
 
 Which renderer draws a shot. The orchestrator uses this to pick an adapter.
 
-alias of `Literal`[‘cutout’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘cutout’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]
 
-### an.base.SCHEMA_VERSION *: str* *= '0.3.0'*
+### an.base.SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.3.0'*
 
 Current Scene IR schema version. Bump on additive changes; on breaking
 changes, also bump COMPATIBLE_VERSION and add a migration in `ir.migrate`.
@@ -6239,13 +6239,13 @@ changes, also bump COMPATIBLE_VERSION and add a migration in `ir.migrate`.
 described a 3D camera this package never had, and gave `Camera` a `keys`
 list so it can translate (an#109).
 
-### an.base.SUPPORTED_RENDERERS *: tuple[str, ...]* *= ('cutout', 'manim', 'motion_graphics', 'whiteboard')*
+### an.base.SUPPORTED_RENDERERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'manim', 'motion_graphics', 'whiteboard')*
 
 The same vocabulary as [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName), as a runtime tuple — DERIVED
 from it, because a hand-typed second copy is a second SSOT that drifts on
 the day a renderer is added and nothing fails.
 
-### an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS *: tuple[str, ...]* *= ('/', '::')*
+### an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('/', '::')*
 
 `/` would read
 as a path segment and `::` is the runtime’s pose-key separator.
@@ -6258,12 +6258,12 @@ as a path segment and `::` is the runtime’s pose-key separator.
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
 
-### an.base.TRANSITION_KINDS *: tuple[str, ...]* *= ('cut', 'fade', 'dissolve')*
+### an.base.TRANSITION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cut', 'fade', 'dissolve')*
 
 The transition kinds a shot may be entered by. `cut` is the default and
 what every document written before transitions existed means.
 
-### an.base.TRIM_PROPERTIES *: frozenset[str]* *= frozenset({'dash_offset', 'trim_end', 'trim_start'})*
+### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'dash_offset', 'trim_end', 'trim_start'})*
 
 The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the
 name predates `dash_offset`, an#161): trim and the dash phase. A node that
@@ -6274,7 +6274,7 @@ draws no path refuses all of them.
 Why `name` cannot be a swap-set name, or `None` if it can.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> swap_set_name_problem("hands") is None
@@ -6345,18 +6345,18 @@ per-developer landmine, in the module whose docstring says the opposite.
 
 ### *exception* an.bench.capture.CaptureError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A capture could not produce something the metrics need.
 
-### an.bench.capture.FRAME_PNG_GLOB *: str* *= 'frame_\*.png'*
+### an.bench.capture.FRAME_PNG_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'frame_\*.png'*
 
 How a shot’s frames are named on disk. One constant rather than the literal
 repeated at each glob site.
 
 ### *exception* an.bench.capture.GitStatusUnavailable
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 `git status` did not answer, so “the tree is clean” is not known.
 
@@ -6370,7 +6370,7 @@ a concurrent `git` in a linked worktree of this repo takes `index.lock`,
 been green fifty times. A check that could not run is not evidence that
 nothing is wrong.
 
-### an.bench.capture.IGNORED_ON_COPY *: tuple[str, ...]* *= ('.an', 'output', '.anima')*
+### an.bench.capture.IGNORED_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.an', 'output', '.anima')*
 
 they are the previous render’s
 output, and one of them silently extends this one’s frame sequence.
@@ -6381,7 +6381,7 @@ spelled here. See [`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.capture.htm
 * **Type:**
   Copied for the render, but never these
 
-### an.bench.capture.IGNORED_RELPATHS_ON_COPY *: tuple[str, ...]* *= ('artifacts/shots',)*
+### an.bench.capture.IGNORED_RELPATHS_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/shots',)*
 
 Excluded by their path **relative to the project root**, POSIX-spelled.
 `mall["shots"]` is `<project>/artifacts/shots`, and `artifacts/`
@@ -6395,17 +6395,17 @@ can never match anything (no name contains a separator) and a bare
 `"shots"` would delete every directory of that name **anywhere** in the
 tree, a character rig’s included.
 
-### an.bench.capture.RENDER_WORK_RELPATH *: str* *= '.an/render_work'*
+### an.bench.capture.RENDER_WORK_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an/render_work'*
 
 Where the renderer leaves its per-shot working tree inside the project.
 
 ### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One fixture’s whole render.
 
-#### capture *: str*
+#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 How the frames left the browser (`"screenshot"` / `"canvas"`),
 resolved the way the render resolves it. The decoded pixels are the same
@@ -6415,17 +6415,17 @@ and a timing row is only readable beside the path that produced it
 
 ### *class* an.bench.capture.ShotCapture(shot_id, frames_dir, scene_json, runtime_dir, frame_count, duration=0.0, frame_sizes=())
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One rendered shot’s artifacts.
 
-#### duration *: float*
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The shot’s declared duration, from the IR rather than from the staged
 scene, so the expected frame count is derived from the same number the
 renderer used.
 
-#### frame_sizes *: tuple[tuple[int, int], ...]*
+#### frame_sizes *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)], ...]*
 
 The distinct pixel sizes actually on disk, from each PNG’s IHDR. The
 independent half of a pair whose other half — `SceneCapture.resolution`
@@ -6448,7 +6448,7 @@ and hands back the path. `captured()` is the scoped form.
 Remove a capture’s throwaway tree.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.capture.compiled_contract_sha256(fixture, , repo_root)
 
@@ -6466,7 +6466,7 @@ It is the contract of a bench render, which passes no overrides: a render
 given its own `step_hz`, fps or resolution compiles something else.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.capture.dirty_paths(repo_root)
 
@@ -6476,7 +6476,7 @@ Raises [`GitStatusUnavailable`](_autosummary/an.bench.capture.html.md#an.bench.c
 reporting a clean tree it never observed.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.capture.distinct_png_sizes(frames_dir)
 
@@ -6495,7 +6495,7 @@ the supersample — so this module reports what it saw and
 [`an.bench.run`](_autosummary/an.bench.run.html.md#module-an.bench.run) is where the *bench’s* invariant is asserted.
 
 * **Return type:**
-  `tuple`[`tuple`[`int`, `int`], `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.bench.capture.expected_frame_count(duration, fps)
 
@@ -6506,7 +6506,7 @@ banker’s rounding, so `math.ceil` or `int(x + 0.5)` silently disagrees
 on every half-frame duration.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> expected_frame_count(2.5, 24)
@@ -6531,7 +6531,7 @@ Two kinds of exclusion, because one kind cannot say both things:
 the only way to drop `artifacts/shots` while keeping `artifacts/audio`.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.bench.compare.html.md
@@ -6619,11 +6619,11 @@ than referencing the registry that happened to be installed.
 | [`ComparisonError`](_autosummary/an.bench.compare.html.md#an.bench.compare.ComparisonError)   | The comparer was handed something it cannot read at all.   |
 |--------------------------------------------------------------------|------------------------------------------------------------|
 
-### an.bench.compare.COMMON_ENV_PATHS *: tuple[tuple[str, ...], ...]* *= (('render_kwargs',),)*
+### an.bench.compare.COMMON_ENV_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('render_kwargs',),)*
 
 Row-provenance paths that must match for **either** side.
 
-### an.bench.compare.CROSS_CHECKED_FIELDS *: tuple[str, ...]* *= ('family', 'side', 'comparison_scope', 'reference')*
+### an.bench.compare.CROSS_CHECKED_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('family', 'side', 'comparison_scope', 'reference')*
 
 Every field a row stores TWICE — inline on the metric and in
 `metric_declarations` — except `under_mutation`, whose nested shape gets
@@ -6641,26 +6641,26 @@ COMPLETENESS by a test rather than maintained by hand — see
 
 ### *exception* an.bench.compare.ComparisonError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 The comparer was handed something it cannot read at all.
 
-### an.bench.compare.DECLARATION_KEYS *: tuple[str, ...]* *= ('family', 'side', 'optimum', 'unit')*
+### an.bench.compare.DECLARATION_KEYS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('family', 'side', 'optimum', 'unit')*
 
 Per-metric declaration fields that must agree, or the metric means something
 different in each row. `optimum` decides which way “better” points and
 `family` decides what an#41’s criterion counts.
 
-### an.bench.compare.ENCODE_ENV_PATHS *: tuple[tuple[str, ...], ...]* *= (('environment', 'encode_side', 'isa'), ('environment', 'encode_side', 'x264_sei'), ('environment', 'encode_side', 'x264_argv'), ('environment', 'encode_side', 'pix_fmt'), ('environment', 'encode_side', 'scale_filter'), ('encode_command_source',), ('decode_commands',))*
+### an.bench.compare.ENCODE_ENV_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('environment', 'encode_side', 'isa'), ('environment', 'encode_side', 'x264_sei'), ('environment', 'encode_side', 'x264_argv'), ('environment', 'encode_side', 'pix_fmt'), ('environment', 'encode_side', 'scale_filter'), ('encode_command_source',), ('decode_commands',))*
 
 Row-provenance paths that must match for an **encode-side** metric.
 
-### an.bench.compare.MASK_PARAM_PATHS *: tuple[tuple[str, ...], ...]* *= (('masks', 'edge', 'operator'), ('masks', 'edge', 'threshold'), ('masks', 'flat', 'operator'), ('masks', 'flat', 'dilate_k'), ('masks', 'held', 'operator'), ('masks', 'ring', 'operator'), ('masks', 'render_edge', 'operator'), ('masks', 'render_edge', 'threshold'))*
+### an.bench.compare.MASK_PARAM_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('masks', 'edge', 'operator'), ('masks', 'edge', 'threshold'), ('masks', 'flat', 'operator'), ('masks', 'flat', 'dilate_k'), ('masks', 'held', 'operator'), ('masks', 'ring', 'operator'), ('masks', 'render_edge', 'operator'), ('masks', 'render_edge', 'threshold'))*
 
 Mask **parameters**, addressed by path into the scene’s `masks` block. The
 counts and fractions beside them are measurements and are excluded.
 
-### an.bench.compare.RENDER_ENV_PATHS *: tuple[tuple[str, ...], ...]* *= (('environment', 'render_side', 'chromium_build'), ('environment', 'render_side', 'playwright'), ('environment', 'render_side', 'launch_argv'))*
+### an.bench.compare.RENDER_ENV_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('environment', 'render_side', 'chromium_build'), ('environment', 'render_side', 'playwright'), ('environment', 'render_side', 'launch_argv'))*
 
 Row-provenance paths that must match for a **render-side** metric.
 The Chromium build is here and not merely informational: the cross-arch
@@ -6669,14 +6669,14 @@ golden path keys on the build for the same reason. One bump has been measured
 to move zero pixels (1187 -> 1223), so this refusal is precautionary rather
 than a known break — and a deliberate re-bless is the intended response.
 
-### an.bench.compare.REQUIRED_FAMILIES *: int* *= 3*
+### an.bench.compare.REQUIRED_FAMILIES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How many distinct causal families must move as declared for a mutation to
 count as caught. an#41’s criterion, restated from the research: “>=3 metrics
 from >=3 distinct causal families, evaluated per mutation, with a per-metric
 per-mutation sign declared in advance”.
 
-### an.bench.compare.SCENE_KEYS *: tuple[str, ...]* *= ('scene_contract_sha256', 'resolution', 'fps', 'n_frames', 'shot_order', 'palette_hex', 'tolerances')*
+### an.bench.compare.SCENE_KEYS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('scene_contract_sha256', 'resolution', 'fps', 'n_frames', 'shot_order', 'palette_hex', 'tolerances')*
 
 Scene-provenance fields that must match for ANY metric to be comparable.
 Deliberately not the whole provenance block: that also carries per-run
@@ -6684,14 +6684,14 @@ Deliberately not the whole provenance block: that also carries per-run
 which change exactly when the render changes — i.e. when the two rows are
 most worth comparing.
 
-### an.bench.compare.SCORING_FIELDS *: tuple[str, ...]* *= ('expect', 'counts', 'gate', 'state')*
+### an.bench.compare.SCORING_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('expect', 'counts', 'gate', 'state')*
 
 The fields of a per-mutation prediction that the verdict actually reads.
 `reason` is prose and is deliberately NOT here — the declarations block
 carries it and the inline block drops it, so requiring it would refuse every
 real row.
 
-### an.bench.compare.SUPPORTED_SCHEMA_VERSIONS *: tuple[int, ...]* *= (1,)*
+### an.bench.compare.SUPPORTED_SCHEMA_VERSIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (1,)*
 
 Row schema versions this comparer understands. A row it cannot read is
 refused rather than guessed at — the whole point of the version field.
@@ -6706,7 +6706,7 @@ three distinct causal families do so. Without one, it answers “is the second
 row worse”, which only the one-sided metrics can answer at all.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.compare.direction_of(before, after)
 
@@ -6717,7 +6717,7 @@ delta and any nonzero one is real. Booleans compare as booleans: a tripwire
 that went `True -> False` has not “decreased”.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> direction_of(1.0, 1.0)
@@ -6731,12 +6731,12 @@ that went `True -> False` has not “decreased”.
 The human-readable digest. Refusals first, because they are the verdict.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.compare.latest_rows(, root=None, count=2)
 
 * **Return type:**
-  `list`[`Path`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 The most recent committed ledger rows, newest last — \*\*by 
 
@@ -6767,7 +6767,7 @@ nameable. `an bench --out` still lets a caller point at one explicitly.
 Read one ledger row from disk.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.compare.readable_sweep(sweep)
 
@@ -6778,7 +6778,7 @@ Possible means integers (a bool is not a count), `of > 0` and
 edited row, and reading it would let the edit choose the verdict.
 
 * **Return type:**
-  `dict` | `None`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> readable_sweep({"t=1": [3, 10]})
@@ -6816,7 +6816,7 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 `_compare_scene`.)
 
 * **Return type:**
-  `dict` | `None`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> sweep_verdict({"t=1": [1, 10], "t=2": [5, 10]}, {"t=1": [2, 10], "t=2": [4, 10]})["state"]
@@ -6867,7 +6867,7 @@ the render rather than appearing in it, so the two numbers differ on every
 scene with dialogue. Both are recorded; only this one is inside the hash.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> count_drawable_entities({"scene": {"children": [{}, {}]}})
@@ -6879,7 +6879,7 @@ scene with dialogue. Both are recorded; only this one is inside the hash.
 Every node in the tree, root included.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> count_nodes({"scene": {"children": [{"children": [{}]}]}})
@@ -6901,7 +6901,7 @@ pixels, so a file-byte digest goes red on the first Playwright bump for a
 reason unrelated to animation quality.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.contract.scene_contract_sha256(scene_json)
 
@@ -6916,7 +6916,7 @@ palette hash is `sum(ord(c)) % 5` rather than Python’s `hash()`, and
 the staged JSON is written with `sort_keys=True`).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> a = scene_contract_sha256({"meta": {"fps": 24}, "scene": {"children": []}})
@@ -6941,7 +6941,7 @@ hashing only the first shot would let a change to the second one pass as
 “the same scene” — which is precisely the claim this digest exists to deny.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> a = {"scene": {"children": []}}
@@ -6996,7 +6996,7 @@ scene JSON **the browser actually loaded** — an independent second opinion to
 | [`CorpusError`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.CorpusError)   | A fixture did not render what it declared.   |
 |----------------------------------------------------------------|----------------------------------------------|
 
-### an.bench.corpus.BENCH_RENDER_KWARGS *: dict[str, Any]* *= {'auto_audio': False, 'parallel': 1, 'strict_assets': True}*
+### an.bench.corpus.BENCH_RENDER_KWARGS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'auto_audio': False, 'parallel': 1, 'strict_assets': True}*
 
 Rendering knobs pinned for every bench capture, recorded verbatim into the
 ledger. NOT flags: a bench whose render knobs vary per invocation produces
@@ -7008,7 +7008,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.corpus.CORPUS_DIRNAME *: str* *= 'misc/bench/corpus'*
+### an.bench.corpus.CORPUS_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/corpus'*
 
 Where the bench-owned fixtures live. NOT under `examples/`, and the reason
 is mechanical rather than tidiness: `.gitignore` excludes every
@@ -7023,11 +7023,11 @@ changes.
 
 ### *exception* an.bench.corpus.CorpusError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: dict[str, [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'rect', 'ellipse', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect', 'eye', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -7077,15 +7077,15 @@ sensitivity the cross-arch work measured, not as AA witnesses.
 
 ### *class* an.bench.corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=<factory>, golden_note='')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A corpus scene: where it lives, how to build it, what it must render.
 
-#### expect_visual_kinds *: frozenset*
+#### expect_visual_kinds *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)*
 
 Visual kinds the staged scene MUST contain — see the module docstring.
 
-#### golden_frames *: tuple[float, ...]*
+#### golden_frames *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...]*
 
 Times (seconds, into the scene’s CONCATENATED timeline) at which a
 golden frame is blessed. Two per scene, the second chosen so something
@@ -7093,18 +7093,18 @@ has actually moved — `--bless` refuses a pair whose two frames are
 pixel-identical, which is not hypothetical: `promote_demo`’s frame 0 and
 its `duration/2` frame differ by exactly **zero** pixels.
 
-#### golden_note *: str*
+#### golden_note *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 One line saying what moves between the two golden times. Carried as data
 because “pick a time where something moved” is a rule that decays into a
 habit, and the reason is what a reviewer needs when a golden goes red.
 
-#### prepare *: Callable[[Path], None] | None*
+#### prepare *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Run against the throwaway copy before loading, to regenerate build
 products the repo does not track.
 
-### an.bench.corpus.SHOT_DIR_GLOB *: str* *= 'shot_\*'*
+### an.bench.corpus.SHOT_DIR_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'shot_\*'*
 
 Per-shot subdirectory naming inside `.an/render_work`, and the staged scene
 filename. Mirrored from the renderer rather than restated as literals at
@@ -7115,7 +7115,7 @@ each use site.
 Refuse a capture that did not exercise the path its fixture declares.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.corpus.iter_shot_dirs(work_dir, , order)
 
@@ -7131,7 +7131,7 @@ decoded frame *i* of another. The `multi_shot` fixture’s ids (`intro`
 then `beat`) are chosen so they disagree.
 
 * **Return type:**
-  `Iterator`[`tuple`[`str`, `Path`]]
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
 
 ```pycon
 >>> import tempfile
@@ -7147,7 +7147,7 @@ then `beat`) are chosen so they disagree.
 The compiled scene JSON the browser actually loaded, for one shot.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.corpus.visual_kinds(scene_json)
 
@@ -7163,7 +7163,7 @@ also collects an#33’s `asset_resolution` entries, whose `kind` is
 kinds, and mixing them makes the field mean two things at once.
 
 * **Return type:**
-  `set`[`str`]
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> sorted(visual_kinds({"scene": {"visual": {"kind": "rect"},
@@ -7270,14 +7270,14 @@ the file, and this field is what `bench-compare` uses to decide whether two
 encode-side rows may be compared at all.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.bench.environment.ffmpeg_identity()
 
 The ffmpeg build banner. Informational — the `x264_sei` is the key.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.bench.environment.home_relative(path, , home=None)
 
@@ -7288,7 +7288,7 @@ the absolute path of the machine that wrote it. Provenance only: nothing
 compares on this field. POSIX-spelled on every platform.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
@@ -7306,7 +7306,7 @@ capture, and a recorded `error` is more honest than a missing field that
 reads as “nothing to report”.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.bench.environment.runtime_sha256()
 
@@ -7324,14 +7324,14 @@ file that is not staged as a runtime asset — a stray `.DS_Store`, a
 `__pycache__` entry, package metadata — cannot move the digest (an#141).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.environment.x264_sei(mp4)
 
 The encoder build + thread count, read straight out of the file.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.bench.golden.html.md
@@ -7406,7 +7406,7 @@ otherwise carry a perfect score that no code could ever have failed.
 | [`GoldenError`](_autosummary/an.bench.golden.html.md#an.bench.golden.GoldenError)   | A bless was refused, or a committed golden is unusable.   |
 |----------------------------------------------------------------|-----------------------------------------------------------|
 
-### an.bench.golden.BLESS_MANIFEST_TEMPLATE *: str* *= 'bless-chromium{chromium_build}.json'*
+### an.bench.golden.BLESS_MANIFEST_TEMPLATE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'bless-chromium{chromium_build}.json'*
 
 Per-scene, per-build bless record, committed beside the frames. Per build
 rather than per scene: a Playwright bump adds a new set of frames under new
@@ -7414,15 +7414,15 @@ names, and the old set stays valid for anyone still on the old build.
 
 ### *class* an.bench.golden.FrameRef(key, time, index, shot_id, local_index)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One pinned golden frame, resolved against the render that just happened.
 
-#### local_index *: int*
+#### local_index *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 Index WITHIN that shot’s frame directory.
 
-### an.bench.golden.GATE_UNDECLARED *: str* *= 'golden_frames_undeclared'*
+### an.bench.golden.GATE_UNDECLARED *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'golden_frames_undeclared'*
 
 Gate names. Literals rather than an enum because they are written into the
 ledger and read back by `an bench --compare` from rows written by older
@@ -7430,17 +7430,17 @@ registries, so their spelling is a wire format.
 
 ### *exception* an.bench.golden.GoldenError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A bless was refused, or a committed golden is unusable.
 
-### an.bench.golden.REQUIRED_GOLDEN_FRAMES *: int* *= 2*
+### an.bench.golden.REQUIRED_GOLDEN_FRAMES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 How many golden frames a scene must declare. Two, because one frame tests a
 single instant and cannot notice a scene that renders its first frame
 correctly and then stops.
 
-### an.bench.golden.RETIRED_GATES *: dict[str, str]* *= {'golden_absent': 'golden_absent_for_chromium_build'}*
+### an.bench.golden.RETIRED_GATES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'golden_absent': 'golden_absent_for_chromium_build'}*
 
 Gate names that appear in rows written BEFORE this module existed, and what
 they meant. `an bench --compare` (an#40) reads old rows as fact, so the one
@@ -7469,7 +7469,7 @@ that cannot fail:
   frames would be written under a name no future run could look up.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.golden.chromium_build_of(environment)
 
@@ -7480,7 +7480,7 @@ not ask the browser” arrives here as a missing field rather than as an
 exception, and must not be confused with “nobody has blessed this scene”.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.golden.compare_scene(capture, , times, chromium_build, root=None)
 
@@ -7494,7 +7494,7 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 “the worst small window”.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.golden.frame_index_for(time, , fps, n_frames)
 
@@ -7504,7 +7504,7 @@ The frame a pinned time names, snapped to the nearest one.
 binary floating point, so the obvious spelling silently picks frame 5.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> frame_index_for(0.25, fps=24, n_frames=12)
@@ -7523,7 +7523,7 @@ which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> frame_key(7)
@@ -7535,28 +7535,28 @@ the right cause.
 Where the renderer left the PNG for one resolved frame.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.golden.iter_committed(scene, chromium_build, , root=None)
 
 Every committed golden PNG for one scene and build, in sorted order.
 
 * **Return type:**
-  `Iterator`[`Path`]
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.bench.golden.load_manifest(scene, chromium_build, , root=None)
 
 The committed bless record, or `None` when this scene has never been blessed.
 
 * **Return type:**
-  `dict` | `None`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.golden.manifest_path(scene, chromium_build, , root=None)
 
 Where one scene’s bless record for one Chromium build lives.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.golden.pixels_sha256(rgb)
 
@@ -7572,7 +7572,7 @@ its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> import numpy as np
@@ -7590,7 +7590,7 @@ mp4 shows — so a pinned time can land in the second shot, which is exactly
 what `multi_shot`’s second golden does.
 
 * **Return type:**
-  `list`[[`FrameRef`](_autosummary/an.bench.golden.html.md#an.bench.golden.FrameRef)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FrameRef`](_autosummary/an.bench.golden.html.md#an.bench.golden.FrameRef)]
 
 
 # _autosummary/an.bench.html.md
@@ -7659,29 +7659,29 @@ Entry points: [`an.bench.run.run_bench()`](_autosummary/an.bench.run.html.md#an.
 
 ### *exception* an.bench.BenchError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The bench could not produce a row it would be honest to file.
 
 ### *exception* an.bench.GoldenError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A bless was refused, or a committed golden is unusable.
 
 ### *exception* an.bench.LedgerSchemaError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A ledger row violates an invariant that would make it misreadable.
 
 ### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One row of the panel.
 
-#### requires *: str*
+#### requires *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 What a scene must HAVE for this row to exist at all, or `""` when the
 row applies to every scene (an#111).
@@ -7697,13 +7697,13 @@ Declared rather than hardcoded in the test, so the panel rule keeps
 naming its own exceptions instead of a test file carrying a list the
 registry does not know about.
 
-#### sweep *: [Sweep](_autosummary/an.bench.registry.html.md#an.bench.registry.Sweep) | None*
+#### sweep *: [Sweep](_autosummary/an.bench.registry.html.md#an.bench.registry.Sweep) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Set only on a hard-threshold counter (an#140); see `Sweep`.
 
 ### *exception* an.bench.PngFormatError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A PNG this module deliberately does not decode, or a malformed one.
 
@@ -7713,7 +7713,7 @@ than one that does not run.
 
 ### *class* an.bench.Prediction(expect, counts=False, gate=None, reason='', reference=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What one metric is expected to do under one mutation, declared in advance.
 
@@ -7722,13 +7722,13 @@ good or bad, and `gate` says why. It is not “no change”.
 
 ### *exception* an.bench.RegistryError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A metric declaration violates one of the table’s invariants.
 
 ### *class* an.bench.Value(value, state='measured', gate=None, detail='', extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One measured (or deliberately absent) number.
 
@@ -7751,14 +7751,14 @@ that cannot fail:
   frames would be written under a name no future run could look up.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.build_ledger(, provenance, scenes)
 
 The whole row.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.build_scene_block(, provenance, metrics, tripwires)
 
@@ -7770,7 +7770,7 @@ but the registry does not declare has no family, no side and no predicted
 direction, so nothing downstream can count it.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.compare_scene(capture, , times, chromium_build, root=None)
 
@@ -7784,7 +7784,7 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 “the worst small window”.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.decode_png(data)
 
@@ -7794,7 +7794,7 @@ Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -7808,7 +7808,7 @@ True
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -7824,7 +7824,7 @@ True
 A human-readable digest of a row — the thing `an bench` prints.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.frame_key(index)
 
@@ -7836,7 +7836,7 @@ which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> frame_key(7)
@@ -7857,7 +7857,7 @@ its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> import numpy as np
@@ -7880,7 +7880,7 @@ than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
 * **Return type:**
-  `tuple`[`int`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> import numpy as np
@@ -7893,7 +7893,7 @@ frame size changed partway through — is exactly the one sampling misses.
 `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.read_png_dimensions(path)
 
@@ -7904,7 +7904,7 @@ them. Reading only those is what makes checking every frame of every shot
 free rather than a second full decode of the corpus.
 
 * **Return type:**
-  `tuple`[`int`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None)
 
@@ -7927,7 +7927,7 @@ bless test did exactly that, replacing a real bless record’s reason with the
 test’s own.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.witnesses(ledger_scene, mutation)
 
@@ -7937,7 +7937,7 @@ Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
 * **Return type:**
-  `dict`[`str`, `list`[`str`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
@@ -7956,7 +7956,7 @@ exactly this — “assert the round trip at bless time against the in-memory
 screenshot pixels, so a bug in `an`’s own encoder cannot hide”.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### Modules
 
@@ -8102,11 +8102,11 @@ the sequence that every encode-side metric pairs frame-for-frame.
 
 ### *exception* an.bench.imageio.BenchDecodeError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 ffmpeg could not read something the bench needs.
 
-### an.bench.imageio.SOURCE_SCALE_FILTER *: str* *= 'scale=out_range=tv:out_color_matrix=bt709'*
+### an.bench.imageio.SOURCE_SCALE_FILTER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'scale=out_range=tv:out_color_matrix=bt709'*
 
 without it
 the encode-side metrics measure a colour-space conversion.
@@ -8121,7 +8121,7 @@ and would report as encoder damage.
 * **Type:**
   The pinned conversion applied to the PNG leg. Never remove it
 
-### an.bench.imageio.YUV_PIX_FMT *: str* *= 'yuv444p'*
+### an.bench.imageio.YUV_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv444p'*
 
 4 for both legs of every encode-side metric — never `rgb24` for
 the edge metrics, whose defect was clipping precisely at the saturated fills
@@ -8142,21 +8142,21 @@ different count from the source leg and records it as
 disagreement into a crash. See `_reshape()`.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.decoded_rgb_command(mp4)
 
 Decode the delivered mp4 to raw RGB.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.decoded_yuv(mp4, , height, width)
 
 `(N, 3, H, W)` uint8 planar YUV of the delivered mp4. `frames=None` — see [`decoded_rgb()`](_autosummary/an.bench.imageio.html.md#an.bench.imageio.decoded_rgb).
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.decoded_yuv_command(mp4)
 
@@ -8167,7 +8167,7 @@ No `scale` filter here, deliberately: the file carries BT.709 tags
 to. Adding one would convert twice.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.delivered_pix_fmt(mp4)
 
@@ -8184,7 +8184,7 @@ Probed, not remembered: this is the one source of truth that no future seam
 can route around.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.imageio.lossless_encode_command(frames_dir, fps, out, , pix_fmt=None)
 
@@ -8228,14 +8228,14 @@ A default (4:2:0) render is byte-identical to before this change, so no
 committed ledger row is invalidated.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.run_raw(cmd)
 
 Run an ffmpeg command and return its raw stdout, or raise with the stderr.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.bench.imageio.source_rgb(frames_dir, , height, width, frames)
 
@@ -8246,7 +8246,7 @@ is required rather than derived, so the decode cannot silently return a
 different number of them.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.source_rgb_command(frames_dir)
 
@@ -8258,21 +8258,21 @@ flat interior and to held pixels, both off-edge by construction, so the
 clipping that ruins the edge metrics cannot reach them.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.source_yuv(frames_dir, , height, width, frames)
 
 `(N, 3, H, W)` uint8 planar YUV of the pre-encode PNGs, range-pinned.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.source_yuv_command(frames_dir)
 
 Decode the pre-encode PNG sequence to planar YUV, **range- and matrix-pinned**.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.video_stream_bytes(mp4)
 
@@ -8283,7 +8283,7 @@ Sum of the video stream’s packet sizes — the AAC track excluded.
 This one does not.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 
 # _autosummary/an.bench.ledger.html.md
@@ -8341,7 +8341,7 @@ count for free:
 | [`LedgerSchemaError`](_autosummary/an.bench.ledger.html.md#an.bench.ledger.LedgerSchemaError)   | A ledger row violates an invariant that would make it misreadable.   |
 |----------------------------------------------------------------------|----------------------------------------------------------------------|
 
-### an.bench.ledger.INLINE_SPEC_FIELDS *: tuple[str, ...]* *= ('side', 'family', 'comparison_scope', 'reference', 'counts')*
+### an.bench.ledger.INLINE_SPEC_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('side', 'family', 'comparison_scope', 'reference', 'counts')*
 
 Fields a per-scene row carries inline. Everything else about a metric — the
 sentence, the notes, each prediction’s reason and reference — is identical
@@ -8357,18 +8357,18 @@ a second block to decide whether two rows may be compared at all.
 
 ### *exception* an.bench.ledger.LedgerSchemaError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A ledger row violates an invariant that would make it misreadable.
 
-### an.bench.ledger.SCHEMA_VERSION *: int* *= 1*
+### an.bench.ledger.SCHEMA_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 Bumped when a reader could misinterpret an older row. `an bench --compare`
 (an#40) must refuse a version it does not understand rather than guess.
 
 ### *class* an.bench.ledger.Value(value, state='measured', gate=None, detail='', extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One measured (or deliberately absent) number.
 
@@ -8377,7 +8377,7 @@ One measured (or deliberately absent) number.
 The whole row.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.ledger.build_scene_block(, provenance, metrics, tripwires)
 
@@ -8389,7 +8389,7 @@ but the registry does not declare has no family, no side and no predicted
 direction, so nothing downstream can count it.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.ledger.gated(gate, detail='')
 
@@ -8418,7 +8418,7 @@ written by older registries: a row from six months ago has to be
 interpretable without checking out the commit that wrote it.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.ledger.unavailable(detail)
 
@@ -8435,7 +8435,7 @@ Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
 * **Return type:**
-  `dict`[`str`, `list`[`str`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
@@ -8448,7 +8448,7 @@ against what was actually written down.
 Write a row. `sort_keys=True` so two rows diff line-for-line.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.bench.masks.html.md
@@ -8490,18 +8490,18 @@ a threshold that quietly changes.
 | [`held_mask`](_autosummary/an.bench.masks.html.md#an.bench.masks.held_mask)(rgb)                   | `(N-1, H, W)`: pixels the animator held perfectly still between frames. |
 | [`ring_mask`](_autosummary/an.bench.masks.html.md#an.bench.masks.ring_mask)(edge)                  | The band immediately *around* an edge, excluding the edge itself.       |
 
-### an.bench.masks.EDGE_MASK_THRESHOLD *: int* *= 40*
+### an.bench.masks.EDGE_MASK_THRESHOLD *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 40*
 
 Two-pixel-apart luma gradient above this counts as an edge. Recorded in the
 ledger with the operator string, because the research is explicit that the
 prototype’s absolute numbers are ordinal evidence only and no threshold may
 be written from them.
 
-### an.bench.masks.FLAT_DILATE_K *: int* *= 3*
+### an.bench.masks.FLAT_DILATE_K *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 Structuring element for the flat-field erosion.
 
-### an.bench.masks.RENDER_EDGE_OPERATOR *: str* *= 'max(|Y[:,2:]-Y[:,:-2]|, |Y[2:,:]-Y[:-2,:]|) > 40, on FULL-RANGE BT.709 luma from the SOURCE RGB (an.bench.metrics.luma_u8)'*
+### an.bench.masks.RENDER_EDGE_OPERATOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'max(|Y[:,2:]-Y[:,:-2]|, |Y[2:,:]-Y[:-2,:]|) > 40, on FULL-RANGE BT.709 luma from the SOURCE RGB (an.bench.metrics.luma_u8)'*
 
 The SAME operator on the render side, and deliberately a second string
 rather than a reuse of `EDGE_OPERATOR`. `an.bench.imageio`’s
@@ -8524,7 +8524,7 @@ so nine shifts beat pulling in scipy, and the package’s dependency
 perimeter is four names wide on purpose.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -8542,7 +8542,7 @@ two-apart difference is undefined there; excluding it is what keeps the
 operator string honest.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -8559,7 +8559,7 @@ The interior of large flat colour fields, from the source frames.
 and blocking live here, and without this mask they are invisible.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -8573,7 +8573,7 @@ True
 `(N-1, H, W)`: pixels the animator held perfectly still between frames.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -8591,7 +8591,7 @@ a different measurement from `coded_luma_edge_error` rather than a second
 name for it.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -8678,27 +8678,27 @@ video is smoother). Its existing use as a frozen-render detector in
 | [`ssim_map`](_autosummary/an.bench.metrics.html.md#an.bench.metrics.ssim_map)(a, b, \*[, r])                            | Windowed SSIM at stride 1, as a per-pixel map.                                  |
 | [`sweep_cell_key`](_autosummary/an.bench.metrics.html.md#an.bench.metrics.sweep_cell_key)(\*\*params)                         | The label of one cell of a parameter sweep, stable across rows.                 |
 
-### an.bench.metrics.BLEND_TOLERANCE *: int* *= 3*
+### an.bench.metrics.BLEND_TOLERANCE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How far off the line between two palette colours a pixel may sit and still
 be called a blend of them. 8-bit channels, so a couple of code values covers
 rounding in the compositor.
 
-### an.bench.metrics.EDGE_FLAT_TOL *: int* *= 4*
+### an.bench.metrics.EDGE_FLAT_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
 Two neighbours within this many code values count as “flat”. NOT 0 — see
 the module docstring.
 
-### an.bench.metrics.EDGE_TRIM *: float* *= 0.1*
+### an.bench.metrics.EDGE_TRIM *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
 
 Trim fraction for `edge_transition_width`’s mean, so one pathological run
 cannot carry the number.
 
-### an.bench.metrics.FLAT_DEV_TOL *: int* *= 6*
+### an.bench.metrics.FLAT_DEV_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 6*
 
 A flat-field pixel more than this far off is “deviated”.
 
-### an.bench.metrics.FLAT_DEV_TOL_SWEEP *: tuple[int, ...]* *= (4, 5, 6, 7, 8)*
+### an.bench.metrics.FLAT_DEV_TOL_SWEEP *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (4, 5, 6, 7, 8)*
 
 The neighbourhood of each threshold counter’s OWN free parameters over which
 its verdict must agree before `an bench-compare` will call it a direction
@@ -8712,16 +8712,16 @@ direction reverses”. The grids are the ones the defect was measured on, not
 tuned ones; the flicker grid is one-sided below because tol 0 counts every
 pixel.
 
-### an.bench.metrics.FLICKER_DELTA_TOL *: int* *= 2*
+### an.bench.metrics.FLICKER_DELTA_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 A held pixel that moved by at least this much “flickered”.
 
-### an.bench.metrics.LUMA_709 *: tuple[float, float, float]* *= (0.2126, 0.7152, 0.0722)*
+### an.bench.metrics.LUMA_709 *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.2126, 0.7152, 0.0722)*
 
 BT.709 luma coefficients, recorded in the ledger so a future change to the
 reduction is visible rather than folded into the number.
 
-### an.bench.metrics.SSIM_RADIUS *: int* *= 3*
+### an.bench.metrics.SSIM_RADIUS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 `ssim_map` window radius; 7x7, matched to feature size rather than the
 global-moment form.
@@ -8742,7 +8742,7 @@ reporting anti-aliasing correctly. One that is not is a derivation bug, and
 now it says so in the ledger rather than waiting for someone to look.
 
 * **Return type:**
-  `list`[`dict`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ```pycon
 >>> classify_off_palette([{"hex": "#808080"}], [0x000000, 0xffffff])[0]["blend_of"]
@@ -8829,7 +8829,7 @@ An empty mask is not a colour count of zero:
 ```
 
 * **Return type:**
-  `tuple`[`float`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.metrics.edge_transition_width(rgb, , tol=4, trim=0.1)
 
@@ -8844,7 +8844,7 @@ went soft” indiscriminately.
 Returns `(trimmed_mean, median)`.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> import numpy as np
@@ -8862,7 +8862,7 @@ Pooled over every frame pair rather than averaged per pair, so a pair with
 three held pixels does not weigh as much as one with seventy thousand.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -8883,7 +8883,7 @@ the panel’s other hard-threshold counter, and measured under the same
 and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
 
 * **Return type:**
-  `dict`[`str`, `list`[`int`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ```pycon
 >>> import numpy as np
@@ -8907,7 +8907,7 @@ question 4 — “does plain edge-band MAE beat this?” — is answered by the
 ledger rather than by nobody.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -8928,7 +8928,7 @@ orthogonal to the edge/AA axis: monotone over a 133x span on the CRF ladder
 Returns `(fraction_over_tol, p99_of_the_deviation)`.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> import numpy as np
@@ -8955,7 +8955,7 @@ metric, and the others say whether anywhere else on the declared grid of
 its own two parameters the direction reverses.
 
 * **Return type:**
-  `dict`[`str`, `list`[`int`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ```pycon
 >>> import numpy as np
@@ -8975,7 +8975,7 @@ an AA change. Do not count it alongside `off_palette_pixel_fraction`; they
 are the same family.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -8995,7 +8995,7 @@ for this look the flat fields are most of the picture.
 metrics block; they are returned here so the caller can put them there.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ```pycon
 >>> import numpy as np
@@ -9009,7 +9009,7 @@ True
 `(H,W,3)` uint8 -> `(H,W)` float in [0,1]. PIL-free.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -9038,7 +9038,7 @@ why the row records it under its own operator string rather than reusing
 `an.bench.masks.EDGE_OPERATOR`.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -9052,7 +9052,7 @@ why the row records it under its own operator string rather than reusing
 `|a - b|` averaged over `mask`, with the cast that makes it correct.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -9066,7 +9066,7 @@ why the row records it under its own operator string rather than reusing
 Fraction of the frame whose colour is not one the compiler declared.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -9087,7 +9087,7 @@ blends sitting between two palette entries, that is anti-aliasing and the
 number is right.
 
 * **Return type:**
-  `list`[`dict`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ```pycon
 >>> import numpy as np
@@ -9101,7 +9101,7 @@ number is right.
 Mean positive excursion above the source, over the ring band.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -9115,7 +9115,7 @@ Mean positive excursion above the source, over the ring band.
 `(N,H,W,3)` uint8 -> `(N,H,W)` uint32, one integer per colour.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -9143,7 +9143,7 @@ block sums at 4-pixel stride, disagrees by up to 0.0201, and the
 disagreement *grows* with degradation.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -9160,7 +9160,7 @@ Keyword order is irrelevant — the key is sorted — so two rows written by
 code that spells the call differently still match cell for cell.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> sweep_cell_key(tol=6, dilate_k=3)
@@ -9247,7 +9247,7 @@ invisible to the recovery and a later sweep would restore *to* the leftover.
 |-----------------------------------------------------------------------|------------------------------------------------------------------------|
 | [`MutantRunInterrupted`](_autosummary/an.bench.mutants.html.md#an.bench.mutants.MutantRunInterrupted) | A terminating signal arrived mid-sweep, raised so the restore can run. |
 
-### an.bench.mutants.INTERRUPTED_EXIT_CODE *: int* *= 130*
+### an.bench.mutants.INTERRUPTED_EXIT_CODE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 130*
 
 the shell convention of
 128 + SIGINT. Nonzero, and distinguishable from the 1 a surviving mutant
@@ -9256,7 +9256,7 @@ gives — “you stopped it” and “a guard is decoration” are different ans
 * **Type:**
   What the CLI exits with after an interrupted sweep
 
-### an.bench.mutants.MUTANTS *: tuple[[Mutant](_autosummary/an.bench.mutants.html.md#an.bench.mutants.Mutant), ...]* *= (Mutant(name='png_paeth_tiebreak', file='an/bench/png.py', old='if (pa <= pb and pa <= pc) else (b if pb <= pc else c)', new='if (pa <= pb and pa <= pc) else (b if pb < pc else c)', caught_by='tests/test_bench_png.py', why="the Paeth predictor's tie-break. Wrong, it still decodes this module's own filter-0 output perfectly and corrupts every real Chromium frame — the exact asymmetry that makes an encoder validating its own decoder worthless."), Mutant(name='png_first_idat_only', file='an/bench/png.py', old='            idat.append(payload)', new='            idat = [payload]', caught_by='tests/test_bench_png.py', why='Chromium splits the stream: a real frame has 2-9 IDAT chunks and our own output has one, so a first-chunk-only reader passes its own tests and fails on everything else.'), Mutant(name='png_no_write_verification', file='an/bench/png.py', old='    if not np.array_equal(decode_png(out.read_bytes()), np.asarray(rgb)):', new='    if False:', caught_by='tests/test_bench_png.py', why="the only thing between a bug in this module's own encoder and a committed golden that silently disagrees with the frame it was blessed from."), Mutant(name='golden_criterion_becomes_file_bytes', file='an/bench/golden.py', old='    digest.update(f"{arr.dtype.str}:{arr.shape}|".encode("ascii"))', new='    pass', caught_by='tests/test_bench_golden.py', why='\`ndarray.tobytes()\` carries no shape, so a transposed frame hashes identically and satisfies the criterion an#38 literally states.'), Mutant(name='golden_blesses_a_blank_reason', file='an/bench/golden.py', old='    if not reason.strip():', new='    if reason is None:', caught_by='tests/test_bench_golden.py', why='a re-bless with no recorded reason is the same failure as a silently widened threshold — the named failure mode this wave exists to end.'), Mutant(name='golden_blesses_an_identical_pair', file='an/bench/golden.py', old='            if np.array_equal(decoded[i], decoded[j]):', new='            if False:', caught_by='tests/test_bench_golden.py', why='measured on \`promote_demo\`: frame 0 and the duration/2 frame differ by ZERO pixels, so the obvious second time blesses one picture twice and the second golden tests nothing forever after.'), Mutant(name='compare_gains_a_tolerance_band', file='an/bench/compare.py', old='    if before == after:\\n        return "no_change"', new='    if abs(float(before) - float(after)) < 1e-9:\\n        return "no_change"', caught_by='tests/test_bench_compare.py', why='two consecutive runs on one machine are bit-identical, so a band can only ever hide a true movement.'), Mutant(name='compare_refuses_on_an_absent_key', file='an/bench/compare.py', old='        elif b is \_ABSENT or a is \_ABSENT:', new='        elif False:', caught_by='tests/test_bench_compare.py', why='the ledger grows additively, so treating absence as difference makes every future field retroactively destroy comparability with every row already written.'), Mutant(name='compare_counts_metrics_not_families', file='an/bench/compare.py', old='        block["family_count"] = len(families)', new='        block["family_count"] = sum(len(v) for v in families.values())', caught_by='tests/test_bench_compare.py', why="counting bare metrics is satisfiable by shipping one signal under three names, which is exactly what family A's three edge metrics would do."), Mutant(name='compare_exempts_the_whole_environment', file='an/bench/compare.py', old='        touched = {t.label for t in MUTATION_TOUCHES.get(mutation, ())}', new='        touched = {i["key"] for i in common + render + encode}', caught_by='tests/test_bench_compare.py', why='the knob the lever pulls is the independent variable; the ISA is not. A blanket exemption lets a row from another machine in through the same door.'), Mutant(name='compare_exempts_by_path_not_by_value', file='an/bench/registry.py', old='        if self.differs_only_in is None:\\n            return True', new='        if True:\\n            return True', caught_by='tests/test_bench_compare.py', why="\`x264_argv\` is the WHOLE encode command, so exempting the path exempts every flag in it. A \`-preset medium\` -> \`-preset veryslow\` change moves every encode-side number and rode in as 'the lever moved it — expected'. The exemption must match the change the lever actually makes."), Mutant(name='compare_trusts_an_edited_prediction', file='an/bench/compare.py', old='    if not isinstance(inline, dict) or not isinstance(declared, dict):\\n        return []', new='    if True:\\n        return []', caught_by='tests/test_bench_compare.py', why="the prediction IS the criterion, and it is read from the after row's inline block alone. Flipping one \`expect\` turns \`contrary\` into \`as_declared\` with nothing else in the report moving — the cheapest possible way to fake a caught mutation."), Mutant(name='compare_lets_a_row_forge_its_own_scope', file='an/bench/compare.py', old='    "comparison_scope",\\n    "reference",', new='    "reference",', caught_by='tests/test_bench_compare.py', why="\`comparison_scope\` decides whether a metric may be compared ACROSS MACHINES, and \`compare\` reads the row's INLINE copy. Editing that one word compared an encode-side metric across a different ISA with no refusal — the single invariant this module exists to hold, defeated from inside the row."), Mutant(name='ledger_substitutes_zero_for_unknown', file='an/bench/ledger.py', old='        if self.state == "measured":\\n            if self.value is None:', new='        if self.state == "measured":\\n            if False:', caught_by='tests/test_bench_ledger_schema.py', why='a substituted number — 0.0 especially — is read downstream as a measurement, which is the unknown-is-not-zero failure the whole schema exists to prevent.'), Mutant(name='ledger_lets_a_tripwire_vanish', file='an/bench/ledger.py', old='    absent_tw = sorted(set(TRIPWIRES) - set(tripwires))', new='    absent_tw = []', caught_by='tests/test_bench_ledger_schema.py', why='a change detector that quietly stopped being computed reads exactly like one that fired and found nothing.'), Mutant(name='registry_counts_a_tautology', file='an/bench/registry.py', old='        if self.expect in ("no_change", "not_applicable") and self.counts:', new='        if False:', caught_by='tests/test_bench_ledger_schema.py', why="'no change by construction' is a tautology; counting it lets any pre-encode statistic pad the witness count for free."), Mutant(name='golden_fabricates_a_zero_pixel_count', file='an/bench/golden.py', old='"changed_px": max((int(f["changed_px"]) for f in compared), default=None),', new='"changed_px": max((int(f["changed_px"] or 0) for f in frames), default=0),', caught_by='tests/test_bench_golden.py', why="a shape mismatch has no per-pixel comparison to count, and turning that into 0 printed 'GOLDEN MISMATCH: 0 px changed' — a fabricated number in the one schema whose whole premise is that unknown is not zero."), Mutant(name='compare_scope_absence_fails_open', file='an/bench/compare.py', old='        if scope not in env_refusals:', new='        if False:', caught_by='tests/test_bench_compare.py', why="an absent \`comparison_scope\` read as 'no refusals apply', so an encode-side metric from another ISA and another x264 build compared cleanly and reported a regression."), Mutant(name='strict_passes_a_comparison_that_compared_nothing', file='an/tools.py', old='            not report.get("answered")', new='            False', caught_by='tests/test_bench_compare.py', why="the documented CI gate exited 0 on a run in which every scene was refused, while printing '0 regression(s)' — a zero the compare module's own docstring calls worse than no number at all."), Mutant(name='cli_returns_nothing_to_the_terminal', file='an/_\_main_\_.py', old='        if result is not None:\\n            typer.echo(result)', new='        pass', caught_by='tests/test_cli_dispatch.py', why='typer discards return values and every \`an.tools\` function returns its report as a string, so the CLI would run correctly and print NOTHING — the worst possible failure for a diagnostic tool.'), Mutant(name='cli_loses_the_signature_that_is_the_command_line', file='an/_\_main_\_.py', old='    @functools.wraps(func)\\n    def run(', new='    def run(', caught_by='tests/test_cli_dispatch.py', why='\`inspect.signature\` follows \`_\_wrapped_\_\`, and that signature IS the command line. Without it typer sees \`(\*args, \*\*kwargs)\` and every flag on all 17 commands disappears at once, while \`--help\` still renders.'), Mutant(name='corpus_reads_shot_order_from_the_directory', file='an/bench/corpus.py', old='    for shot_id in order:\\n        shot_dir = root / f"shot_{shot_id}"', new='    for shot_dir in sorted(root.glob(SHOT_DIR_GLOB)):\\n        shot_id = shot_dir.name[len("shot_") :]', caught_by='tests/test_bench_corpus.py', why="\`an/render.py\` concatenates in timeline order; a directory sort agrees only by luck, and when it does not every encode-side metric pairs one shot's source frames against another's decode."), Mutant(name='reshape_checks_divisibility_not_shape', file='an/bench/imageio.py', old='    if frames is not None and len(buf) != per_frame \* frames:', new='    if False:', caught_by='tests/test_bench_shape_guard.py', why='a k-times supersample makes the decoded buffer exactly k\*\*2 larger, so a divisibility check ALWAYS passes and family A is computed over k\*\*2 as many scrambled frames — plausibly, because at k=2 most horizontal runs survive the wrong reshape.'), Mutant(name='bench_measures_a_supersampled_render', file='an/bench/run.py', old='        if sizes != {capture.resolution}:', new='        if False:', caught_by='tests/test_bench_shape_guard.py', why="\`capture.resolution\` comes from the staged scene's meta and never from a file, so without an independent read of the PNGs' own IHDRs nothing in the pipeline ever compares the declared size to the size on disk."), Mutant(name='png_dimensions_trusts_a_non_ihdr_first_chunk', file='an/bench/png.py', old='    if data[_IHDR_TAG] != b"IHDR":', new='    if False:', caught_by='tests/test_bench_png.py', why='without the tag check the four bytes that happen to sit at offset 16 are returned as a resolution — a plausible number fed straight into the shape guard, which is the failure class an#54 closes.'), Mutant(name='read_png_dimensions_reads_the_whole_file', file='an/bench/png.py', old='        return png_dimensions(handle.read(PNG_HEADER_BYTES))', new='        return png_dimensions(handle.read())', caught_by='tests/test_bench_png.py', why='the answer stays right and the cost stops being free: the bench reads one of these per frame of every shot, and a 1080p frame is megabytes against a 24-byte header.'), Mutant(name='strict_exits_zero_on_a_row_it_cannot_read', file='an/tools.py', old='        if strict:\\n            print(refusal)', new='        if False:\\n            print(refusal)', caught_by='tests/test_bench_compare.py', why='the documented CI gate exited 0 on an unreadable schema_version or an undeclared --mutation — precisely the state a \`--strict --mutation supersample\` run is in before the lever is registered. Same class an#51 closed for the refusal path.'), Mutant(name='latest_rows_orders_by_filename', file='an/bench/compare.py', old='    return sorted(rows, key=key)[-count:]', new='    return sorted(rows, key=lambda p: p.name)[-count:]', caught_by='tests/test_bench_compare.py', why="filenames are <date>-<sha7>.json, so within one date the order is sha HEX order. A re-baseline and its after-run on the same day swap silently when the after-commit's sha sorts lower, and every improvement is then reported as a regression."), Mutant(name='compare_hides_that_a_row_was_blessed', file='an/bench/compare.py', old='            "blessed_scenes": sorted(after["provenance"].get("blessed") or ()),', new='            "blessed_scenes": [],', caught_by='tests/test_bench_compare.py', why="a bless run gates family B \`blessed_this_run\`, and \`format_comparison\` skips \`unchanged\` entries — so family B vanishes from the table entirely. 'Family B agreed' and 'family B was never asked' are the same blank space."), Mutant(name='capture_inherits_the_previous_renders_shots', file='an/bench/capture.py', old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)', new='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()', caught_by='tests/test_bench_corpus.py', why="\`mall['shots']\` is \`<project>/artifacts/shots\`, and it is gitignored — so a previous render's per-shot mp4s cross into every bench run on a developer machine and on no clean checkout, in the module whose docstring is 'do not inherit a stale render'."), Mutant(name='capture_excludes_shots_by_basename_at_any_depth', file='an/bench/capture.py', old='            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY', new='            n\\n            for n in names\\n            if n in {p.rsplit("/", 1)[-1] for p in IGNORED_RELPATHS_ON_COPY}', caught_by='tests/test_bench_corpus.py', why="the obvious \`shutil.ignore_patterns('shots')\` spelling, restated. It fnmatches BASENAMES against the names in every directory, so it also deletes a character rig's \`assets/.../shots\` — and the other obvious spelling, \`'artifacts/shots'\` as a pattern, matches NOTHING, because no name contains a separator. Both fail silently."), Mutant(name='bless_names_its_row_after_the_tree_it_did_not_leave', file='an/bench/run.py', old='    return git_state(root) if blessed else git', new='    return git', caught_by='tests/test_bench_bless_protocol.py', why='\`git_state\` is read before the corpus loop and a \`--bless\` run writes inside it, so a bless on a clean tree filed itself as \`<date>-<sha>.json\` — a filename naming a commit whose tree that very run then modified, which is what the \`-dirty\` suffix exists to prevent.'), Mutant(name='golden_trusts_a_frame_its_own_record_disowns', file='an/bench/golden.py', old='        if expected is not None and expected != record["golden_sha256"]:', new='        if False:', caught_by='tests/test_bench_golden.py', why='the bless record and the committed PNG carry the same digest of the same file, written by two different calls. A disagreement means the golden is not the picture a human blessed — an edited file, a half-finished re-bless — and every one of those read as a clean PASS.'), Mutant(name='bench_asks_a_mutated_run_the_unmutated_question', file='an/tools.py', old='            compare_rows(load_row(compare), ledger, mutation=mutation or None)', new='            compare_rows(load_row(compare), ledger)', caught_by='tests/test_bench_mutation_cli.py', why="without the mutation, \`compare\` answers 'is the second row worse' of a run degraded on purpose — so the declared per-mutation predictions are never scored and the an#41 criterion cannot appear in the mandated \`--compare\` artifact at all."), Mutant(name='bench_blesses_a_deliberately_degraded_picture', file='an/tools.py', old='        if bless:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', new='        if False:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', caught_by='tests/test_bench_mutation_cli.py', why='blessing under a lever commits the degraded picture as the reference every future run is measured against — a permanent, silent re-baseline, and the one bless refusal that cannot be recovered by reading the recorded reason.'), Mutant(name='pix_fmt_knob_cannot_reach_the_encode', file='an/adapters/cutout/render.py', old='    resolved = pix_fmt or DEFAULT_PIX_FMT', new='    resolved = pix_fmt or "yuv420p"', caught_by='tests/test_encode_pins.py', why='reading the literal instead of the module global severs the seam any outside caller pulls — the same shape hoisting \`DETERMINISTIC_X264_ARGS\` into a default argument would sever for \`high_crf\`. That is why the seam is kept even though an#59 ships no lever — see the note there. (Until an#72 the row would ALSO have said 4:4:4 while the file stayed 4:2:0, because \`environment_record\` re-derived the format from the same global; it is measured off the delivered files now, so the row no longer lies about its own file — only the knob is broken.)'), Mutant(name='mux_argv_is_checked_by_subset_not_equality', file='an/adapters/cutout/render.py', old='        "-c:v",\\n        "libx264",\\n        "-pix_fmt",', new='        "-c:v",\\n        "libx264",\\n        "-tune",\\n        "animation",\\n        "-pix_fmt",', caught_by='tests/test_encode_pins.py', why='\`-tune animation\` is a measured-and-rejected flag (0.8%) and this is what adding it looks like. A SUBSET check passes — every pin is still present — and the encode moves and every encode-side metric is silently refused against every committed row. Only argv equality notices.'), Mutant(name='canvas_capture_flips_rows', file='an/adapters/cutout/canvas_capture.py', old='rgb = image.convert("RGB")', new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")', caught_by='tests/test_canvas_capture.py', why='the \`readPixels\` trap in reverse: WebGL readback is bottom-up and a PNG is top-down, so a capture path is one flip away from writing every frame upside down at exactly the declared size — past every shape check. The offline catcher is named here because a sweep runs the whole file per mutant; the browser equivalence gate (tests/test_canvas_capture_equivalence.py) catches the same flip in its own test.'), Mutant(name='capture_page_stops_compositing_the_canvas', file='an/data/cutout_runtime/index.html', old='#stage { display: block; }', new='#stage { display: none; }', caught_by='tests/test_cutout_runtime_files.py', why="an#57's proposal. The element screenshot (the \`--capture screenshot\` path, which shares this page with the canvas default) is a PAGE capture clipped to the element, so hiding the canvas does not make it cheaper — it makes \`Locator.screenshot\` time out after 30 s per frame. The two spellings Playwright does accept return an all-white frame."), Mutant(name='supersample_autodensity_true', file='an/data/cutout_runtime/runtime.js', old='            autoDensity: false,', new='            autoDensity: true,', caught_by='tests/test_bench_supersample_lever.py', why="\`autoDensity: true\` makes Chromium composite the k-times backbuffer down before the screenshot — a blind downscale with no filter choice and no record. The PNGs come out the DECLARED size, so every shape check passes and the whole knob silently measures nothing. It is the option whose name most suggests it is the right one. Lives on the PRODUCT's file since an#58, because the product owns the key."), Mutant(name='supersample_skips_the_frame_stage', file='an/bench/mutations.py', old='        render._capture_frames = \_capture_then_resolve', new='        render._capture_frames = original', caught_by='tests/test_bench_supersample_lever.py', why='drops the resolve, leaving k-times PNGs on disk. Before an#54 that was silent — \`_reshape\` checked byte-count divisibility and k\*\*2 always divides — and family A was computed on k\*\*2 scrambled frames that still produced a believable \`edge_transition_width\`. It is a loud refusal now, which is what makes this lever safe to run.'), Mutant(name='supersample_verify_is_merely_not_shipped', file='an/bench/mutations.py', old='    if recorded != expected:', new='    if False:', caught_by='tests/test_bench_supersample_lever.py', why="reduces the supersample fingerprint to \`disabled_aa\`'s inequality, which ANY render lever satisfies — both stage through one seam and both move \`render_side.runtime_sha256\`. A row rendered with \`antialias: false\` then verifies as a supersample row and the whole lever table is written from the wrong lever's numbers."), Mutant(name='edge_masked_colour_count_is_not_masked', file='an/bench/metrics.py', old='    per_frame = [len(np.unique(f[m])) for f, m in zip(packed, edge) if m.any()]', new='    per_frame = [len(np.unique(f)) for f, m in zip(packed, edge) if m.any()]', caught_by='tests/test_bench_metrics.py', why='unmasked it is \`frame_distinct_colours\` under a second name, and the one property the mask does buy — that an interior-only change cannot reach the number — is gone with no other symptom.'), Mutant(name='empty_edge_mask_reads_as_zero_colours', file='an/bench/metrics.py', old='        return float("nan"), 0', new='        return 0.0, 0', caught_by='tests/test_bench_metrics.py', why='a substituted zero is the largest possible DOWNWARD move in the one metric that exists to notice a downward move, on exactly the scenes where the number means nothing at all.'), Mutant(name='lossless_leg_pinned_to_420', file='an/bench/imageio.py', old='        "-pix_fmt",\\n        resolved,\\n        "-qp",', new='        "-pix_fmt",\\n        "yuv420p",\\n        "-qp",', caught_by='tests/test_bench_lossless_leg.py', why='a reference PINNED in the one dimension it has to track. The leg exists to be the plane libx264 received; \`-pix_fmt\` names what libx264 receives, so pinning it does not keep the reference lossless — it makes the reference a different colour pipeline from the delivered file, and every encode-side metric silently acquires the whole 4:2:0 conversion the reference exists to cancel. Distinct from every other entry here because the mutated code stays correct on the default path and is wrong only under a knob: measured on the corpus at 4:4:4, it changes the SIGN of family E on three of ten scenes (an#72).'), Mutant(name='sweep_never_finds_a_reversal', file='an/bench/compare.py', old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0', new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0', caught_by='tests/test_bench_compare.py', why="the robustness gate that stops being able to fire. Every row still carries its sweep and every report still prints a \`sweep\` block reading \`stable\`, so the instrument looks exactly like one that checked and found nothing — while \`graded_field\`'s +84.2% at tol 6, which is -81.6% at tol 8, counts toward family D again (an#140)."), Mutant(name='sweep_counts_a_different_statistic', file='an/bench/metrics.py', old='int((dev > t).sum())', new='int((dev >= t).sum())', caught_by='tests/test_bench_metrics.py', why="a sweep of a statistic the row does not report. Off by one code value, every cell stays a plausible, monotone survival count, and the comparer then certifies the robustness of \`>=\` while the ledger's number is \`>\` (an#140)."), Mutant(name='sweep_deletion_is_excused', file='an/bench/compare.py', old='    spec = declared.get("threshold_sweep")\\n', new='    spec = None\\n', caught_by='tests/test_bench_compare.py', why="a row that declares a threshold sweep and carries none reads as 'written before an#140' — so deleting one field from a row turns an \`unstable\` verdict back into a counted witness, the cheapest possible way to fake a caught mutation."), Mutant(name='strict_passes_an_unstable_movement', file='an/tools.py', old='else bool(report.get("has_regressions") or report.get("unstable"))', new='else bool(report.get("has_regressions"))', caught_by='tests/test_bench_compare.py', why="\`unstable\` is neither a regression nor a pass; with no mutation it means some cell of the metric's own grid got worse. A CI gate that exits 0 on it reads 'cannot tell' as 'fine' (an#140)."))*
+### an.bench.mutants.MUTANTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mutant](_autosummary/an.bench.mutants.html.md#an.bench.mutants.Mutant), ...]* *= (Mutant(name='png_paeth_tiebreak', file='an/bench/png.py', old='if (pa <= pb and pa <= pc) else (b if pb <= pc else c)', new='if (pa <= pb and pa <= pc) else (b if pb < pc else c)', caught_by='tests/test_bench_png.py', why="the Paeth predictor's tie-break. Wrong, it still decodes this module's own filter-0 output perfectly and corrupts every real Chromium frame — the exact asymmetry that makes an encoder validating its own decoder worthless."), Mutant(name='png_first_idat_only', file='an/bench/png.py', old='            idat.append(payload)', new='            idat = [payload]', caught_by='tests/test_bench_png.py', why='Chromium splits the stream: a real frame has 2-9 IDAT chunks and our own output has one, so a first-chunk-only reader passes its own tests and fails on everything else.'), Mutant(name='png_no_write_verification', file='an/bench/png.py', old='    if not np.array_equal(decode_png(out.read_bytes()), np.asarray(rgb)):', new='    if False:', caught_by='tests/test_bench_png.py', why="the only thing between a bug in this module's own encoder and a committed golden that silently disagrees with the frame it was blessed from."), Mutant(name='golden_criterion_becomes_file_bytes', file='an/bench/golden.py', old='    digest.update(f"{arr.dtype.str}:{arr.shape}|".encode("ascii"))', new='    pass', caught_by='tests/test_bench_golden.py', why='\`ndarray.tobytes()\` carries no shape, so a transposed frame hashes identically and satisfies the criterion an#38 literally states.'), Mutant(name='golden_blesses_a_blank_reason', file='an/bench/golden.py', old='    if not reason.strip():', new='    if reason is None:', caught_by='tests/test_bench_golden.py', why='a re-bless with no recorded reason is the same failure as a silently widened threshold — the named failure mode this wave exists to end.'), Mutant(name='golden_blesses_an_identical_pair', file='an/bench/golden.py', old='            if np.array_equal(decoded[i], decoded[j]):', new='            if False:', caught_by='tests/test_bench_golden.py', why='measured on \`promote_demo\`: frame 0 and the duration/2 frame differ by ZERO pixels, so the obvious second time blesses one picture twice and the second golden tests nothing forever after.'), Mutant(name='compare_gains_a_tolerance_band', file='an/bench/compare.py', old='    if before == after:\\n        return "no_change"', new='    if abs(float(before) - float(after)) < 1e-9:\\n        return "no_change"', caught_by='tests/test_bench_compare.py', why='two consecutive runs on one machine are bit-identical, so a band can only ever hide a true movement.'), Mutant(name='compare_refuses_on_an_absent_key', file='an/bench/compare.py', old='        elif b is \_ABSENT or a is \_ABSENT:', new='        elif False:', caught_by='tests/test_bench_compare.py', why='the ledger grows additively, so treating absence as difference makes every future field retroactively destroy comparability with every row already written.'), Mutant(name='compare_counts_metrics_not_families', file='an/bench/compare.py', old='        block["family_count"] = len(families)', new='        block["family_count"] = sum(len(v) for v in families.values())', caught_by='tests/test_bench_compare.py', why="counting bare metrics is satisfiable by shipping one signal under three names, which is exactly what family A's three edge metrics would do."), Mutant(name='compare_exempts_the_whole_environment', file='an/bench/compare.py', old='        touched = {t.label for t in MUTATION_TOUCHES.get(mutation, ())}', new='        touched = {i["key"] for i in common + render + encode}', caught_by='tests/test_bench_compare.py', why='the knob the lever pulls is the independent variable; the ISA is not. A blanket exemption lets a row from another machine in through the same door.'), Mutant(name='compare_exempts_by_path_not_by_value', file='an/bench/registry.py', old='        if self.differs_only_in is None:\\n            return True', new='        if True:\\n            return True', caught_by='tests/test_bench_compare.py', why="\`x264_argv\` is the WHOLE encode command, so exempting the path exempts every flag in it. A \`-preset medium\` -> \`-preset veryslow\` change moves every encode-side number and rode in as 'the lever moved it — expected'. The exemption must match the change the lever actually makes."), Mutant(name='compare_trusts_an_edited_prediction', file='an/bench/compare.py', old='    if not isinstance(inline, dict) or not isinstance(declared, dict):\\n        return []', new='    if True:\\n        return []', caught_by='tests/test_bench_compare.py', why="the prediction IS the criterion, and it is read from the after row's inline block alone. Flipping one \`expect\` turns \`contrary\` into \`as_declared\` with nothing else in the report moving — the cheapest possible way to fake a caught mutation."), Mutant(name='compare_lets_a_row_forge_its_own_scope', file='an/bench/compare.py', old='    "comparison_scope",\\n    "reference",', new='    "reference",', caught_by='tests/test_bench_compare.py', why="\`comparison_scope\` decides whether a metric may be compared ACROSS MACHINES, and \`compare\` reads the row's INLINE copy. Editing that one word compared an encode-side metric across a different ISA with no refusal — the single invariant this module exists to hold, defeated from inside the row."), Mutant(name='ledger_substitutes_zero_for_unknown', file='an/bench/ledger.py', old='        if self.state == "measured":\\n            if self.value is None:', new='        if self.state == "measured":\\n            if False:', caught_by='tests/test_bench_ledger_schema.py', why='a substituted number — 0.0 especially — is read downstream as a measurement, which is the unknown-is-not-zero failure the whole schema exists to prevent.'), Mutant(name='ledger_lets_a_tripwire_vanish', file='an/bench/ledger.py', old='    absent_tw = sorted(set(TRIPWIRES) - set(tripwires))', new='    absent_tw = []', caught_by='tests/test_bench_ledger_schema.py', why='a change detector that quietly stopped being computed reads exactly like one that fired and found nothing.'), Mutant(name='registry_counts_a_tautology', file='an/bench/registry.py', old='        if self.expect in ("no_change", "not_applicable") and self.counts:', new='        if False:', caught_by='tests/test_bench_ledger_schema.py', why="'no change by construction' is a tautology; counting it lets any pre-encode statistic pad the witness count for free."), Mutant(name='golden_fabricates_a_zero_pixel_count', file='an/bench/golden.py', old='"changed_px": max((int(f["changed_px"]) for f in compared), default=None),', new='"changed_px": max((int(f["changed_px"] or 0) for f in frames), default=0),', caught_by='tests/test_bench_golden.py', why="a shape mismatch has no per-pixel comparison to count, and turning that into 0 printed 'GOLDEN MISMATCH: 0 px changed' — a fabricated number in the one schema whose whole premise is that unknown is not zero."), Mutant(name='compare_scope_absence_fails_open', file='an/bench/compare.py', old='        if scope not in env_refusals:', new='        if False:', caught_by='tests/test_bench_compare.py', why="an absent \`comparison_scope\` read as 'no refusals apply', so an encode-side metric from another ISA and another x264 build compared cleanly and reported a regression."), Mutant(name='strict_passes_a_comparison_that_compared_nothing', file='an/tools.py', old='            not report.get("answered")', new='            False', caught_by='tests/test_bench_compare.py', why="the documented CI gate exited 0 on a run in which every scene was refused, while printing '0 regression(s)' — a zero the compare module's own docstring calls worse than no number at all."), Mutant(name='cli_returns_nothing_to_the_terminal', file='an/_\_main_\_.py', old='        if result is not None:\\n            typer.echo(result)', new='        pass', caught_by='tests/test_cli_dispatch.py', why='typer discards return values and every \`an.tools\` function returns its report as a string, so the CLI would run correctly and print NOTHING — the worst possible failure for a diagnostic tool.'), Mutant(name='cli_loses_the_signature_that_is_the_command_line', file='an/_\_main_\_.py', old='    @functools.wraps(func)\\n    def run(', new='    def run(', caught_by='tests/test_cli_dispatch.py', why='\`inspect.signature\` follows \`_\_wrapped_\_\`, and that signature IS the command line. Without it typer sees \`(\*args, \*\*kwargs)\` and every flag on all 17 commands disappears at once, while \`--help\` still renders.'), Mutant(name='corpus_reads_shot_order_from_the_directory', file='an/bench/corpus.py', old='    for shot_id in order:\\n        shot_dir = root / f"shot_{shot_id}"', new='    for shot_dir in sorted(root.glob(SHOT_DIR_GLOB)):\\n        shot_id = shot_dir.name[len("shot_") :]', caught_by='tests/test_bench_corpus.py', why="\`an/render.py\` concatenates in timeline order; a directory sort agrees only by luck, and when it does not every encode-side metric pairs one shot's source frames against another's decode."), Mutant(name='reshape_checks_divisibility_not_shape', file='an/bench/imageio.py', old='    if frames is not None and len(buf) != per_frame \* frames:', new='    if False:', caught_by='tests/test_bench_shape_guard.py', why='a k-times supersample makes the decoded buffer exactly k\*\*2 larger, so a divisibility check ALWAYS passes and family A is computed over k\*\*2 as many scrambled frames — plausibly, because at k=2 most horizontal runs survive the wrong reshape.'), Mutant(name='bench_measures_a_supersampled_render', file='an/bench/run.py', old='        if sizes != {capture.resolution}:', new='        if False:', caught_by='tests/test_bench_shape_guard.py', why="\`capture.resolution\` comes from the staged scene's meta and never from a file, so without an independent read of the PNGs' own IHDRs nothing in the pipeline ever compares the declared size to the size on disk."), Mutant(name='png_dimensions_trusts_a_non_ihdr_first_chunk', file='an/bench/png.py', old='    if data[_IHDR_TAG] != b"IHDR":', new='    if False:', caught_by='tests/test_bench_png.py', why='without the tag check the four bytes that happen to sit at offset 16 are returned as a resolution — a plausible number fed straight into the shape guard, which is the failure class an#54 closes.'), Mutant(name='read_png_dimensions_reads_the_whole_file', file='an/bench/png.py', old='        return png_dimensions(handle.read(PNG_HEADER_BYTES))', new='        return png_dimensions(handle.read())', caught_by='tests/test_bench_png.py', why='the answer stays right and the cost stops being free: the bench reads one of these per frame of every shot, and a 1080p frame is megabytes against a 24-byte header.'), Mutant(name='strict_exits_zero_on_a_row_it_cannot_read', file='an/tools.py', old='        if strict:\\n            print(refusal)', new='        if False:\\n            print(refusal)', caught_by='tests/test_bench_compare.py', why='the documented CI gate exited 0 on an unreadable schema_version or an undeclared --mutation — precisely the state a \`--strict --mutation supersample\` run is in before the lever is registered. Same class an#51 closed for the refusal path.'), Mutant(name='latest_rows_orders_by_filename', file='an/bench/compare.py', old='    return sorted(rows, key=key)[-count:]', new='    return sorted(rows, key=lambda p: p.name)[-count:]', caught_by='tests/test_bench_compare.py', why="filenames are <date>-<sha7>.json, so within one date the order is sha HEX order. A re-baseline and its after-run on the same day swap silently when the after-commit's sha sorts lower, and every improvement is then reported as a regression."), Mutant(name='compare_hides_that_a_row_was_blessed', file='an/bench/compare.py', old='            "blessed_scenes": sorted(after["provenance"].get("blessed") or ()),', new='            "blessed_scenes": [],', caught_by='tests/test_bench_compare.py', why="a bless run gates family B \`blessed_this_run\`, and \`format_comparison\` skips \`unchanged\` entries — so family B vanishes from the table entirely. 'Family B agreed' and 'family B was never asked' are the same blank space."), Mutant(name='capture_inherits_the_previous_renders_shots', file='an/bench/capture.py', old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)', new='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()', caught_by='tests/test_bench_corpus.py', why="\`mall['shots']\` is \`<project>/artifacts/shots\`, and it is gitignored — so a previous render's per-shot mp4s cross into every bench run on a developer machine and on no clean checkout, in the module whose docstring is 'do not inherit a stale render'."), Mutant(name='capture_excludes_shots_by_basename_at_any_depth', file='an/bench/capture.py', old='            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY', new='            n\\n            for n in names\\n            if n in {p.rsplit("/", 1)[-1] for p in IGNORED_RELPATHS_ON_COPY}', caught_by='tests/test_bench_corpus.py', why="the obvious \`shutil.ignore_patterns('shots')\` spelling, restated. It fnmatches BASENAMES against the names in every directory, so it also deletes a character rig's \`assets/.../shots\` — and the other obvious spelling, \`'artifacts/shots'\` as a pattern, matches NOTHING, because no name contains a separator. Both fail silently."), Mutant(name='bless_names_its_row_after_the_tree_it_did_not_leave', file='an/bench/run.py', old='    return git_state(root) if blessed else git', new='    return git', caught_by='tests/test_bench_bless_protocol.py', why='\`git_state\` is read before the corpus loop and a \`--bless\` run writes inside it, so a bless on a clean tree filed itself as \`<date>-<sha>.json\` — a filename naming a commit whose tree that very run then modified, which is what the \`-dirty\` suffix exists to prevent.'), Mutant(name='golden_trusts_a_frame_its_own_record_disowns', file='an/bench/golden.py', old='        if expected is not None and expected != record["golden_sha256"]:', new='        if False:', caught_by='tests/test_bench_golden.py', why='the bless record and the committed PNG carry the same digest of the same file, written by two different calls. A disagreement means the golden is not the picture a human blessed — an edited file, a half-finished re-bless — and every one of those read as a clean PASS.'), Mutant(name='bench_asks_a_mutated_run_the_unmutated_question', file='an/tools.py', old='            compare_rows(load_row(compare), ledger, mutation=mutation or None)', new='            compare_rows(load_row(compare), ledger)', caught_by='tests/test_bench_mutation_cli.py', why="without the mutation, \`compare\` answers 'is the second row worse' of a run degraded on purpose — so the declared per-mutation predictions are never scored and the an#41 criterion cannot appear in the mandated \`--compare\` artifact at all."), Mutant(name='bench_blesses_a_deliberately_degraded_picture', file='an/tools.py', old='        if bless:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', new='        if False:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', caught_by='tests/test_bench_mutation_cli.py', why='blessing under a lever commits the degraded picture as the reference every future run is measured against — a permanent, silent re-baseline, and the one bless refusal that cannot be recovered by reading the recorded reason.'), Mutant(name='pix_fmt_knob_cannot_reach_the_encode', file='an/adapters/cutout/render.py', old='    resolved = pix_fmt or DEFAULT_PIX_FMT', new='    resolved = pix_fmt or "yuv420p"', caught_by='tests/test_encode_pins.py', why='reading the literal instead of the module global severs the seam any outside caller pulls — the same shape hoisting \`DETERMINISTIC_X264_ARGS\` into a default argument would sever for \`high_crf\`. That is why the seam is kept even though an#59 ships no lever — see the note there. (Until an#72 the row would ALSO have said 4:4:4 while the file stayed 4:2:0, because \`environment_record\` re-derived the format from the same global; it is measured off the delivered files now, so the row no longer lies about its own file — only the knob is broken.)'), Mutant(name='mux_argv_is_checked_by_subset_not_equality', file='an/adapters/cutout/render.py', old='        "-c:v",\\n        "libx264",\\n        "-pix_fmt",', new='        "-c:v",\\n        "libx264",\\n        "-tune",\\n        "animation",\\n        "-pix_fmt",', caught_by='tests/test_encode_pins.py', why='\`-tune animation\` is a measured-and-rejected flag (0.8%) and this is what adding it looks like. A SUBSET check passes — every pin is still present — and the encode moves and every encode-side metric is silently refused against every committed row. Only argv equality notices.'), Mutant(name='canvas_capture_flips_rows', file='an/adapters/cutout/canvas_capture.py', old='rgb = image.convert("RGB")', new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")', caught_by='tests/test_canvas_capture.py', why='the \`readPixels\` trap in reverse: WebGL readback is bottom-up and a PNG is top-down, so a capture path is one flip away from writing every frame upside down at exactly the declared size — past every shape check. The offline catcher is named here because a sweep runs the whole file per mutant; the browser equivalence gate (tests/test_canvas_capture_equivalence.py) catches the same flip in its own test.'), Mutant(name='capture_page_stops_compositing_the_canvas', file='an/data/cutout_runtime/index.html', old='#stage { display: block; }', new='#stage { display: none; }', caught_by='tests/test_cutout_runtime_files.py', why="an#57's proposal. The element screenshot (the \`--capture screenshot\` path, which shares this page with the canvas default) is a PAGE capture clipped to the element, so hiding the canvas does not make it cheaper — it makes \`Locator.screenshot\` time out after 30 s per frame. The two spellings Playwright does accept return an all-white frame."), Mutant(name='supersample_autodensity_true', file='an/data/cutout_runtime/runtime.js', old='            autoDensity: false,', new='            autoDensity: true,', caught_by='tests/test_bench_supersample_lever.py', why="\`autoDensity: true\` makes Chromium composite the k-times backbuffer down before the screenshot — a blind downscale with no filter choice and no record. The PNGs come out the DECLARED size, so every shape check passes and the whole knob silently measures nothing. It is the option whose name most suggests it is the right one. Lives on the PRODUCT's file since an#58, because the product owns the key."), Mutant(name='supersample_skips_the_frame_stage', file='an/bench/mutations.py', old='        render._capture_frames = \_capture_then_resolve', new='        render._capture_frames = original', caught_by='tests/test_bench_supersample_lever.py', why='drops the resolve, leaving k-times PNGs on disk. Before an#54 that was silent — \`_reshape\` checked byte-count divisibility and k\*\*2 always divides — and family A was computed on k\*\*2 scrambled frames that still produced a believable \`edge_transition_width\`. It is a loud refusal now, which is what makes this lever safe to run.'), Mutant(name='supersample_verify_is_merely_not_shipped', file='an/bench/mutations.py', old='    if recorded != expected:', new='    if False:', caught_by='tests/test_bench_supersample_lever.py', why="reduces the supersample fingerprint to \`disabled_aa\`'s inequality, which ANY render lever satisfies — both stage through one seam and both move \`render_side.runtime_sha256\`. A row rendered with \`antialias: false\` then verifies as a supersample row and the whole lever table is written from the wrong lever's numbers."), Mutant(name='edge_masked_colour_count_is_not_masked', file='an/bench/metrics.py', old='    per_frame = [len(np.unique(f[m])) for f, m in zip(packed, edge) if m.any()]', new='    per_frame = [len(np.unique(f)) for f, m in zip(packed, edge) if m.any()]', caught_by='tests/test_bench_metrics.py', why='unmasked it is \`frame_distinct_colours\` under a second name, and the one property the mask does buy — that an interior-only change cannot reach the number — is gone with no other symptom.'), Mutant(name='empty_edge_mask_reads_as_zero_colours', file='an/bench/metrics.py', old='        return float("nan"), 0', new='        return 0.0, 0', caught_by='tests/test_bench_metrics.py', why='a substituted zero is the largest possible DOWNWARD move in the one metric that exists to notice a downward move, on exactly the scenes where the number means nothing at all.'), Mutant(name='lossless_leg_pinned_to_420', file='an/bench/imageio.py', old='        "-pix_fmt",\\n        resolved,\\n        "-qp",', new='        "-pix_fmt",\\n        "yuv420p",\\n        "-qp",', caught_by='tests/test_bench_lossless_leg.py', why='a reference PINNED in the one dimension it has to track. The leg exists to be the plane libx264 received; \`-pix_fmt\` names what libx264 receives, so pinning it does not keep the reference lossless — it makes the reference a different colour pipeline from the delivered file, and every encode-side metric silently acquires the whole 4:2:0 conversion the reference exists to cancel. Distinct from every other entry here because the mutated code stays correct on the default path and is wrong only under a knob: measured on the corpus at 4:4:4, it changes the SIGN of family E on three of ten scenes (an#72).'), Mutant(name='sweep_never_finds_a_reversal', file='an/bench/compare.py', old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0', new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0', caught_by='tests/test_bench_compare.py', why="the robustness gate that stops being able to fire. Every row still carries its sweep and every report still prints a \`sweep\` block reading \`stable\`, so the instrument looks exactly like one that checked and found nothing — while \`graded_field\`'s +84.2% at tol 6, which is -81.6% at tol 8, counts toward family D again (an#140)."), Mutant(name='sweep_counts_a_different_statistic', file='an/bench/metrics.py', old='int((dev > t).sum())', new='int((dev >= t).sum())', caught_by='tests/test_bench_metrics.py', why="a sweep of a statistic the row does not report. Off by one code value, every cell stays a plausible, monotone survival count, and the comparer then certifies the robustness of \`>=\` while the ledger's number is \`>\` (an#140)."), Mutant(name='sweep_deletion_is_excused', file='an/bench/compare.py', old='    spec = declared.get("threshold_sweep")\\n', new='    spec = None\\n', caught_by='tests/test_bench_compare.py', why="a row that declares a threshold sweep and carries none reads as 'written before an#140' — so deleting one field from a row turns an \`unstable\` verdict back into a counted witness, the cheapest possible way to fake a caught mutation."), Mutant(name='strict_passes_an_unstable_movement', file='an/tools.py', old='else bool(report.get("has_regressions") or report.get("unstable"))', new='else bool(report.get("has_regressions"))', caught_by='tests/test_bench_compare.py', why="\`unstable\` is neither a regression nor a pass; with no mutation it means some cell of the metric's own grid got worse. A CI gate that exits 0 on it reads 'cannot tell' as 'fine' (an#140)."))*
 
 A representative sweep rather than an exhaustive one, chosen so each entry
 pins a *different* class of failure: a silently widened comparison, a guard
@@ -9266,31 +9266,31 @@ output, and an instrument that goes blind without saying so.
 
 ### *class* an.bench.mutants.Mutant(name, file, old, new, caught_by, why)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One deliberate defect, and the guard that must notice it.
 
-#### caught_by *: str*
+#### caught_by *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The test file that must go red. The whole file runs.
 
-#### file *: str*
+#### file *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Repo-relative path of the file to break.
 
-#### old *: str*
+#### old *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Exact source text to replace. Must occur **exactly once**.
 
 ### *exception* an.bench.mutants.MutantError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A declared mutant no longer applies, or the tree was left dirty.
 
 ### *exception* an.bench.mutants.MutantRunInterrupted
 
-Bases: `KeyboardInterrupt`
+Bases: [`KeyboardInterrupt`](https://docs.python.org/3/builtins/exceptions.html#KeyboardInterrupt)
 
 A terminating signal arrived mid-sweep, raised so the restore can run.
 
@@ -9299,7 +9299,7 @@ Derived from `KeyboardInterrupt` — a `BaseException` — rather than from
 the top would swallow it and the sweep would carry on with a mutated file on
 disk, which is the outcome the whole mechanism exists to prevent.
 
-### an.bench.mutants.PYTEST_ARGS *: tuple[str, ...]* *= ('-q', '--no-header', '--tb=no', '-p', 'no:cacheprovider')*
+### an.bench.mutants.PYTEST_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('-q', '--no-header', '--tb=no', '-p', 'no:cacheprovider')*
 
 see the module docstring. No
 `--cache-provider` so a failed mutant cannot leave a `--lf` trail behind.
@@ -9307,7 +9307,7 @@ see the module docstring. No
 * **Type:**
   pytest flags for a mutant run. No `-k`
 
-### an.bench.mutants.RESTORE_ON_SIGNALS *: tuple[int, ...]* *= (Signals.SIGTERM, Signals.SIGHUP)*
+### an.bench.mutants.RESTORE_ON_SIGNALS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (Signals.SIGTERM, Signals.SIGHUP)*
 
 Terminating signals turned into an exception for the duration of a sweep, so
 the restoring `finally` runs. SIGINT is deliberately absent: it already
@@ -9315,12 +9315,12 @@ raises `KeyboardInterrupt`, and re-handling it would only replace a working
 mechanism. Built from what the platform actually has — Windows has no SIGHUP,
 and asking for one is an `AttributeError` at import time.
 
-### an.bench.mutants.RESTORE_TMP_SUFFIX *: str* *= '.an-restore-tmp'*
+### an.bench.mutants.RESTORE_TMP_SUFFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an-restore-tmp'*
 
 Suffix for the sibling file the restore is staged through. Same directory, so
 `os.replace` is a rename within one filesystem and therefore atomic.
 
-### an.bench.mutants.SWEEP_COPY_IGNORE *: tuple[str, ...]* *= ('_\_pycache_\_', '.pytest_cache', '.ruff_cache', '.venv', 'node_modules', 'out')*
+### an.bench.mutants.SWEEP_COPY_IGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('_\_pycache_\_', '.pytest_cache', '.ruff_cache', '.venv', 'node_modules', 'out')*
 
 Left out of a sweep’s throwaway tree. Caches and build output only —
 **\`.git\` IS copied**, because six of the thirteen guard files call
@@ -9336,14 +9336,14 @@ that matters most: a refactor moved the code, so a mutant no longer applies
 and has silently stopped proving anything.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.mutants.format_results(results)
 
 The digest, with the survivors and errors last because they are the finding.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.mutants.restore_on_termination(signals=(Signals.SIGTERM, Signals.SIGHUP))
 
@@ -9376,7 +9376,7 @@ so it cannot leave a mutation on disk.
 convenience.
 
 * **Return type:**
-  `Iterator`[`tuple`[`int`, `...`]]
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
 
 ### an.bench.mutants.run_mutants(names=None, , root=None)
 
@@ -9398,7 +9398,7 @@ also recognises a file left mutated by a previous kill and says so in those
 words rather than as declaration rot.
 
 * **Return type:**
-  `list`[`dict`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ### an.bench.mutants.sweep_tree(source)
 
@@ -9422,7 +9422,7 @@ It also retires an#67’s hazard for this path: a sweep killed by SIGKILL can
 now only leave a mutated file inside a temp directory that nothing reads.
 
 * **Return type:**
-  `Iterator`[`Path`]
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.bench.mutants.verdict_of(result)
 
@@ -9432,7 +9432,7 @@ now only leave a mutated file inside a temp directory that nothing reads.
 file from being collected has demonstrated nothing about the guard.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.bench.mutations.html.md
@@ -9527,13 +9527,13 @@ code under test, not a comparability key — see
 | [`MutationError`](_autosummary/an.bench.mutations.html.md#an.bench.mutations.MutationError)   | A lever could not be applied, or applied and left no trace.   |
 |------------------------------------------------------------------|---------------------------------------------------------------|
 
-### an.bench.mutations.AA_ON *: str* *= 'antialias: true'*
+### an.bench.mutations.AA_ON *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'antialias: true'*
 
 The exact text the AA lever flips, and where. Pinned as a literal so a
 rename in `runtime.js` fails here — loudly, at the lever — rather than
 producing a “mutation” that changes nothing.
 
-### an.bench.mutations.APP_OPEN *: str* *= 'const resolution = Math.max(1, (NS.anSupersample | 0) || 1);'*
+### an.bench.mutations.APP_OPEN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'const resolution = Math.max(1, (NS.anSupersample | 0) || 1);'*
 
 The exact text the supersample lever anchors to, and what it inserts. Pinned
 for the same reason `AA_ON` is: a reformat of the Pixi options object must
@@ -9564,7 +9564,7 @@ product sets `window.anSupersample` from `ctx.supersample` immediately before
 an#54’s shape guard — 160x120 frames against a 320x240 declaration — which is
 what that guard is for.
 
-### an.bench.mutations.HIGH_CRF *: str* *= '40'*
+### an.bench.mutations.HIGH_CRF *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '40'*
 
 measured on the CRF
 ladder, 40 gives C x8.4, D x8.0 and F -42% on `single_character` — large,
@@ -9575,7 +9575,7 @@ proxy for the regressions this instrument exists to catch.
 * **Type:**
   The CRF the encoder lever raises to. 40 rather than 51
 
-### an.bench.mutations.LEVERS *: dict[str, [Lever](_autosummary/an.bench.mutations.html.md#an.bench.mutations.Lever)]* *= {'disabled_aa': Lever(name='disabled_aa', side='render', what='build the PixiJS application with multisampling off', why='moves the render-side families and fires the golden tripwire. Its effect is scene-dependent by measurement, not by accident: MSAA applies to WebGL geometry, so an SVG sprite is nearly blind to it (96 differing pixels of 12.4M) and axis-aligned \`drawRect\` edges are bit-identical with it on or off. \`aa_probe\` exists so the corpus contains edges this lever can actually change.', apply=<function \_disabled_aa>, verify_row=<function \_verify_disabled_aa>), 'high_crf': Lever(name='high_crf', side='encode', what='raise the delivered encode from the pinned CRF to 40', why='moves only post-encode metrics. The golden corpus is upstream of the encoder, so family B cannot see this by construction — which is the reason two disjoint levers are mandatory.', apply=<function \_high_crf>, verify_row=<function \_verify_high_crf>), 'supersample': Lever(name='supersample', side='render', what='build the PixiJS application at resolution 2 with \`autoDensity: false\`, and resolve the frames back to the declared size with an exact 2x2 block mean before anything reads them', why="the instrument's exam against a change somebody WANTS to ship (an#56). Run instead as a plain commit-to-commit diff, \`_verdict_by_optimum\` reports it as 2 false regressions and 7 unearned improvements, plus 7 unscored \`changed\`s including the metric the wave's done-when names — a table that looks like evidence and is not. Its effect is scene-dependent BY MEASUREMENT and in the exact inverse of \`disabled_aa\`: +2.6% to +8.0% edge width on the five procedural scenes and -34.8% on \`promote_demo\`. The two render levers therefore reach complementary scenes, which strengthens the harness rather than diluting it.", apply=<function \_supersample>, verify_row=<function \_verify_supersample>)}*
+### an.bench.mutations.LEVERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Lever](_autosummary/an.bench.mutations.html.md#an.bench.mutations.Lever)]* *= {'disabled_aa': Lever(name='disabled_aa', side='render', what='build the PixiJS application with multisampling off', why='moves the render-side families and fires the golden tripwire. Its effect is scene-dependent by measurement, not by accident: MSAA applies to WebGL geometry, so an SVG sprite is nearly blind to it (96 differing pixels of 12.4M) and axis-aligned \`drawRect\` edges are bit-identical with it on or off. \`aa_probe\` exists so the corpus contains edges this lever can actually change.', apply=<function \_disabled_aa>, verify_row=<function \_verify_disabled_aa>), 'high_crf': Lever(name='high_crf', side='encode', what='raise the delivered encode from the pinned CRF to 40', why='moves only post-encode metrics. The golden corpus is upstream of the encoder, so family B cannot see this by construction — which is the reason two disjoint levers are mandatory.', apply=<function \_high_crf>, verify_row=<function \_verify_high_crf>), 'supersample': Lever(name='supersample', side='render', what='build the PixiJS application at resolution 2 with \`autoDensity: false\`, and resolve the frames back to the declared size with an exact 2x2 block mean before anything reads them', why="the instrument's exam against a change somebody WANTS to ship (an#56). Run instead as a plain commit-to-commit diff, \`_verdict_by_optimum\` reports it as 2 false regressions and 7 unearned improvements, plus 7 unscored \`changed\`s including the metric the wave's done-when names — a table that looks like evidence and is not. Its effect is scene-dependent BY MEASUREMENT and in the exact inverse of \`disabled_aa\`: +2.6% to +8.0% edge width on the five procedural scenes and -34.8% on \`promote_demo\`. The two render levers therefore reach complementary scenes, which strengthens the harness rather than diluting it.", apply=<function \_supersample>, verify_row=<function \_verify_supersample>)}*
 
 The levers, keyed by the mutation name the registry declares. At least one
 per SIDE is mandatory and the two sides are **disjoint on purpose**: an
@@ -9593,11 +9593,11 @@ scene hardest of all six (-34.8% edge width, because the sprite rasterises AT
 
 ### *class* an.bench.mutations.Lever(name, side, what, why, apply, verify_row=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One deliberate, declared change to the pipeline, with the evidence that it took.
 
-#### verify_row *: Callable[[dict], None] | None*
+#### verify_row *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Given the ledger row the mutated run produced, raise unless the lever’s
 fingerprint is in it. `None` when the row cannot carry one — see the
@@ -9605,11 +9605,11 @@ module docstring.
 
 ### *exception* an.bench.mutations.MutationError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 A lever could not be applied, or applied and left no trace.
 
-### an.bench.mutations.STAGING_IGNORE *: tuple[str, ...]* *= ('_\_pycache_\_',)*
+### an.bench.mutations.STAGING_IGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('_\_pycache_\_',)*
 
 Excluded from the staged copy so the staged tree is a pure function of the
 shipped source and the patch — which is what lets `_verify_supersample`
@@ -9618,7 +9618,7 @@ one”. `runtime_sha256()` walks whatever `render.runtime_dir()` returns, so
 with this excluded on the staging side and on the recompute side, the two
 hash byte-identical file sets.
 
-### an.bench.mutations.SUPERSAMPLE_K *: int* *= 2*
+### an.bench.mutations.SUPERSAMPLE_K *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 The supersample lever’s factor, read at call time so a test can move it. 2
 rather than 3, deliberately and with the residual on the record: research §3
@@ -9639,7 +9639,7 @@ Deliberately returns a row rather than a comparison: what to do with it is
 criterion be evaluated against a row written months ago.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 
 # _autosummary/an.bench.palette.html.md
@@ -9694,22 +9694,22 @@ half moved when the number does.
 | [`runtime_literal_colours`](_autosummary/an.bench.palette.html.md#an.bench.palette.runtime_literal_colours)(runtime_js)              | Every 6-digit hex literal the runtime source paints.                            |
 | [`svg_colours`](_autosummary/an.bench.palette.html.md#an.bench.palette.svg_colours)(svg_path)                            | Every colour literal an SVG paints, plus the tokens that could not be resolved. |
 
-### an.bench.palette.COLOURED_KINDS *: frozenset[str]* *= frozenset({'ellipse', 'path', 'rect'})*
+### an.bench.palette.COLOURED_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'path', 'rect'})*
 
 `visual.kind` values whose `visual.color` the runtime actually paints.
 A stroked path (an#160) paints `path.color` — the compiler stamps the same
 value onto `visual.color` (asserted by `tests/test_styles.py`), so one read
 covers the stroke and the arrowhead, which is filled in that colour.
 
-### an.bench.palette.INERT_COLOUR_KINDS *: frozenset[str]* *= frozenset({'mouth', 'sprite', 'svg_sprite'})*
+### an.bench.palette.INERT_COLOUR_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'mouth', 'sprite', 'svg_sprite'})*
 
 `visual.kind` values whose `visual.color` is inert.
 
-### an.bench.palette.RUNTIME_DEFAULT_COLOUR *: int* *= 8947848*
+### an.bench.palette.RUNTIME_DEFAULT_COLOUR *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8947848*
 
 The runtime’s fallback when a `visual.color` is absent or not a string.
 
-### an.bench.palette.RUNTIME_EYE_COLOURS *: tuple[int, ...]* *= (16777215, 2236962)*
+### an.bench.palette.RUNTIME_EYE_COLOURS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (16777215, 2236962)*
 
 the sclera fill and the
 0.6-alpha outline. The outline’s alpha means it paints BLENDS, so it is a
@@ -9718,15 +9718,15 @@ lower bound on that node’s contribution — the safe direction.
 * **Type:**
   Painted by `makeEye` regardless of `visual.color`
 
-### an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT *: str* *= '#1a1a1a'*
+### an.bench.palette.RUNTIME_EYE_PUPIL_DEFAULT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 The runtime’s fallback pupil colour when a `visual.color` is absent.
 
-### an.bench.palette.RUNTIME_JS_RELPATH *: str* *= 'an/data/cutout_runtime/runtime.js'*
+### an.bench.palette.RUNTIME_JS_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an/data/cutout_runtime/runtime.js'*
 
 Where the runtime’s own hard-coded colours live, for the source cross-check.
 
-### an.bench.palette.RUNTIME_MOUTH_COLOURS *: tuple[int, ...]* *= (7023403, 2756624, 16448250, 11552840)*
+### an.bench.palette.RUNTIME_MOUTH_COLOURS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (7023403, 2756624, 16448250, 11552840)*
 
 lip, fill, teeth, tongue. The mouth node’s own
 `visual.color` is never read.
@@ -9748,7 +9748,7 @@ the palette is a superset of what was painted, and every token that could
 not be resolved.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.palette.parse_color(value)
 
@@ -9768,7 +9768,7 @@ Note what that is **not**: a 3-digit CSS shorthand expander. `"#222"`
 pads to `"222000"`, so the runtime paints `0x222000` and so must this.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> hex(parse_color("#222"))
@@ -9789,7 +9789,7 @@ so adding a fifth mouth colour reddens a test instead of silently inflating
 `off_palette_pixel_fraction`.
 
 * **Return type:**
-  `set`[`int`]
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.palette.svg_colours(svg_path)
 
@@ -9805,7 +9805,7 @@ An unresolvable token (a named colour, a `url(#gradient)` reference) is
 palette, and the metric then reads low with no error anywhere.
 
 * **Return type:**
-  `tuple`[`set`[`int`], `set`[`str`]]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`int`](https://docs.python.org/3/builtins/functions.html#int)], [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 
 # _autosummary/an.bench.paths.html.md
@@ -9841,16 +9841,16 @@ from inside `shutil.copytree`.
 
 ### *exception* an.bench.paths.BenchLayoutError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The bench was run somewhere it cannot find the corpus.
 
-### an.bench.paths.GOLDEN_DIRNAME *: str* *= 'misc/bench/golden'*
+### an.bench.paths.GOLDEN_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/golden'*
 
 Golden frames (an#38 fills this; the path convention ships now so the
 cassette work and the corpus work do not have to agree on it later).
 
-### an.bench.paths.LEDGER_DIRNAME *: str* *= 'misc/bench/ledger'*
+### an.bench.paths.LEDGER_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/ledger'*
 
 Ledger rows live here, one file per (date, commit). Append-only by
 convention: an existing row is evidence about a commit, and editing it
@@ -9867,14 +9867,14 @@ rewrites history that `an bench --compare` (an#40) reads as fact.
 None\`\`s off-git.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.paths.golden_dir(root=None)
 
 The golden-frame directory (an#38).
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.golden_path(scene, frame_key, chromium_build, , root=None)
 
@@ -9890,7 +9890,7 @@ bump becomes a **new path requiring a deliberate re-bless** rather than a
 red test with no explanation.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> golden_path("s", "f0", "140.0.7339.16").name
@@ -9902,7 +9902,7 @@ red test with no explanation.
 The ledger directory, created if absent.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.ledger_path(, root=None, git=None)
 
@@ -9913,7 +9913,7 @@ edits describes no commit, and a filename that claims one would be read by
 an#40 as that commit’s evidence.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> ledger_path(git={"sha": "abc1234def", "dirty": True}).name.endswith("-dirty.json")
@@ -9933,7 +9933,7 @@ The checkout’s folder name is not asserted: a git worktree or a clone
 under another name is still a source checkout.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> (repo_root() / "an" / "bench" / "paths.py").is_file()
@@ -10003,12 +10003,12 @@ writes.
 | [`PngFormatError`](_autosummary/an.bench.png.html.md#an.bench.png.PngFormatError)   | A PNG this module deliberately does not decode, or a malformed one.   |
 |-------------------------------------------------------------------|-----------------------------------------------------------------------|
 
-### an.bench.png.DFLT_ZLIB_LEVEL *: int* *= 9*
+### an.bench.png.DFLT_ZLIB_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 9*
 
 zlib level for the IDAT stream. 9 because a golden is written rarely and
 read often, and because the committed bytes are reviewed in a diff.
 
-### an.bench.png.PNG_HEADER_BYTES *: int* *= 24*
+### an.bench.png.PNG_HEADER_BYTES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 24*
 
 the 8-byte signature, a
 4-byte chunk length, the 4-byte `IHDR` tag, and two big-endian uint32s. PNG
@@ -10017,13 +10017,13 @@ requires IHDR to be the FIRST chunk, so this prefix is always enough.
 * **Type:**
   Bytes needed to read an image’s declared size
 
-### an.bench.png.PNG_SIGNATURE *: bytes* *= b'\\x89PNG\\r\\n\\x1a\\n'*
+### an.bench.png.PNG_SIGNATURE *: [bytes](https://docs.python.org/3/builtins/stdtypes.html#bytes)* *= b'\\x89PNG\\r\\n\\x1a\\n'*
 
 PNG’s fixed 8-byte signature.
 
 ### *exception* an.bench.png.PngFormatError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A PNG this module deliberately does not decode, or a malformed one.
 
@@ -10031,12 +10031,12 @@ Typed and specific on purpose: the alternative to refusing is returning a
 plausible array, and a golden gate that compares a plausible array is worse
 than one that does not run.
 
-### an.bench.png.RGB_CHANNELS *: int* *= 3*
+### an.bench.png.RGB_CHANNELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 What [`encode_png()`](_autosummary/an.bench.png.html.md#an.bench.png.encode_png) writes, and the only channel count the golden gate
 compares. Alpha is dropped at the boundary (see [`to_rgb()`](_autosummary/an.bench.png.html.md#an.bench.png.to_rgb)), never here.
 
-### an.bench.png.SUPPORTED_BIT_DEPTH *: int* *= 8*
+### an.bench.png.SUPPORTED_BIT_DEPTH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 
 Bit depth. 16-bit PNGs are refused rather than truncated — a silently
 halved code value is exactly the class of bug this corpus exists to catch.
@@ -10049,7 +10049,7 @@ Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -10063,7 +10063,7 @@ True
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -10088,7 +10088,7 @@ than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
 * **Return type:**
-  `tuple`[`int`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> import numpy as np
@@ -10101,7 +10101,7 @@ frame size changed partway through — is exactly the one sampling misses.
 `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.png.read_png_dimensions(path)
 
@@ -10112,7 +10112,7 @@ them. Reading only those is what makes checking every frame of every shot
 free rather than a second full decode of the corpus.
 
 * **Return type:**
-  `tuple`[`int`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.png.to_rgb(arr)
 
@@ -10124,7 +10124,7 @@ transparency regression invisible to the one gate that exists to see
 changes, so a non-opaque alpha is an error rather than a silent narrowing.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -10143,7 +10143,7 @@ exactly this — “assert the round trip at bless time against the in-memory
 screenshot pixels, so a bug in `an`’s own encoder cannot hide”.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.bench.registry.html.md
@@ -10204,7 +10204,7 @@ The invariants are enforced in `__post_init__`, not by convention.
 | [`RegistryError`](_autosummary/an.bench.registry.html.md#an.bench.registry.RegistryError)   | A metric declaration violates one of the table's invariants.   |
 |------------------------------------------------------------------|----------------------------------------------------------------|
 
-### an.bench.registry.FAMILY_SIDE *: dict[str, str]* *= {'A': 'render', 'B': 'render', 'C': 'encode', 'D': 'encode', 'E': 'encode', 'F': 'encode', 'G': 'encode'}*
+### an.bench.registry.FAMILY_SIDE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'render', 'B': 'render', 'C': 'encode', 'D': 'encode', 'E': 'encode', 'F': 'encode', 'G': 'encode'}*
 
 Which side of the encoder each causal family lives on. Render-side metrics
 are computed on the pre-encode PNG and are blind to the encoder BY
@@ -10212,11 +10212,11 @@ CONSTRUCTION; encode-side metrics compare a decoded frame to its own source
 and are structurally blind to render regressions, because the reference
 moves with the mutation. They must never be mixed.
 
-### an.bench.registry.METRICS *: dict[str, [MetricSpec](_autosummary/an.bench.registry.html.md#an.bench.registry.MetricSpec)]* *= {'chroma_edge_dCr': MetricSpec(key='chroma_edge_dCr', family='C', unit='code values (8-bit Cr)', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='family C counts as ONE family until the correlation with coded_luma_edge_error is measured across the encoder matrix', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='measured -0.7% on a faithful AA-off simulation; the claimed +10.7% was refuted. Predict no render-side direction.', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='its subject IS the 4:2:0 subsampling of a conversion whose input this lever changes, so there is no fixed reference. Predict no render-side direction, exactly as for \`disabled_aa\`.', reference=None)}, sentence='How much the colour shifts on the pixels straddling a hard outline once the video is encoded.', role=None, reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'chroma_edge_dCr_over_dY': MetricSpec(key='chroma_edge_dCr_over_dY', family='C', unit='ratio', optimum=Optimum(kind='guard', expect=None, note="3.3 at qp0 yuv420p is real 4:2:0 bleed; 0.96 at crf51 is generic damage wearing the metric's name. The denominator IS \`coded_luma_edge_error\` — the research's \`chroma_edge_dY\` control is mean |dY| over the edge mask, which is that metric's definition verbatim. Measured identical (1.484149 for both on the first real row), so it is recorded once rather than twice: one signal under two names is exactly how a witness count is padded dishonestly."), predictions={'high_crf': Prediction(expect='decrease', counts=False, gate=None, reason='the chroma claim collapses as damage becomes generic', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None)}, sentence='dCr/dY on the edge mask: large means real chroma bleed, ~1 means generic blocking.', role='diagnostic', reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'chroma_edge_dY': MetricSpec(key='chroma_edge_dY', family='C', unit='code values (8-bit Y)', optimum=Optimum(kind='guard', expect=None, note="Read only as the ratio's denominator. NOT a second name for \`coded_luma_edge_error\`: that one references the lossless leg and this one references the PNG conversion, so they differ by exactly the conversion term. They were identical (1.484149) while both referenced the PNG conversion, which is why one of them was removed and then restored when the references diverged."), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='control for the ratio below', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None)}, sentence='The luma error on the SAME mask and the SAME reference as \`chroma_edge_dCr\` — a control, not a quality metric.', role='control', reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'coded_luma_edge_error': MetricSpec(key='coded_luma_edge_error', family='C', unit='code values (8-bit Y)', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=True, gate=None, reason="family C's witness", reference='0.419 (qp0) -> 1.875 (crf23) -> 41.2 (crf51)'), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='the source PNG moves with the mutation, so the delta is uninterpretable', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='same gate, same mechanism as \`disabled_aa\`: the source PNG moves with the mutation. A render lever of EITHER sign disqualifies it — and this one is the reason to say so out loud, because a softer source shrinks the edge mask to its easiest members and the number improves MECHANICALLY. Ungated it is one of the 7 unearned improvements a \`mutation=None\` diff reports for this change (an#56).', reference=None)}, sentence="How much the encoder's quantiser roughens the brightness step at a line's edge, measured on the codec's own luma plane.", role=None, reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=("Read the coded luma plane; NEVER recompute Y from decoded RGB. The RGB round trip clips at saturated edges, and ~83% of the broken form's baseline was chroma leakage.",), sweep=None), 'edge_masked_distinct_colours': MetricSpec(key='edge_masked_distinct_colours', family='A', unit='count', optimum=Optimum(kind='guard', expect=None, note="A guard, not a dial, for the exact reason Wave 2 deleted the ONE-SIDED \`edge_distinct_colours\`: a 3x3 blur raised that 9.2x and +/-3-LSB noise 55x, and BOTH degradations read as 'AA restored'. What the mask buys is narrower than an#55 assumed, and the difference was MEASURED before this row shipped: an INTERIOR-ONLY change cannot reach the number, but a whole-frame blur can, because the mask is recomputed from the frame being measured and a blur widens the edge band. 3x3 box blur on the six committed goldens, ratio against k=1, whole-frame vs edge-masked: aa_probe 10.25x/9.50x, graded_field 2.04x/2.35x, multi_shot 7.92x/4.63x, promote_demo 1.25x/0.83x, saturated_outline 1.49x/1.14x, single_character 8.60x/5.70x — damped on four of six, WORSE on one, blind on none. So the metric that separates a blur from a supersample is \`edge_transition_width\` (2.1x-3.4x under the same blur against +2.6% to +8.0% under an exact k=2 resolve), and this row is the second half of that reading, not the first. \*\*The pair is evidence for a human reader and NOT a gate\*\* — an#41's criterion counts metrics independently and cannot express a conjunction, so nothing here may be read as one. No figure for THIS metric under a lever exists yet, which is why \`reference\` is unset rather than borrowed from \`frame_distinct_colours\` (an#55)."), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='pre-encode, and blind to the encoder BY CONSTRUCTION like every family A row: both the mask and the colours come from the source PNG, which sits upstream of the encoder', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason="the same direction as \`frame_distinct_colours\`, deliberately: for flat cutout art essentially all colour variety lives at edges, so the mask is close to a no-op for the COUNT (wave2 research §1.3 measured the two within 6%). The whole-frame count under the lever on \`aa_probe\` goes 7.6 -> 3.0 at k=1 and 21.7 -> 6.9 at k=2 (wave3 research §5) — those are \`frame_distinct_colours\` numbers, NOT this metric's, and \`reference\` is deliberately left unset until a real row measures THIS one. NOT counted: family A spends its one witness on \`edge_transition_width\` and this is the same family. NOT gated either, and the distinction is the one most likely to be flipped by a later reviewer: the mask does move with the lever, but the mask and the number come from the SAME frames, so there is no reference to move. That is what makes \`flat_field_deviation\` further down gated and this one not.", reference=None), 'supersample': Prediction(expect='increase', counts=False, gate=None, reason="MEASURED under the lever before it was declared, on all six scenes, because this metric's whole-frame sibling has a scene-dependent sign and there was no reason to assume the masked one would not. Up on four: \`aa_probe\` +184.6%, \`single_character\` +179.3%, \`multi_shot\` +146.3%, \`graded_field\` +13.6%. Down on the two colour-rich scenes: \`saturated_outline\` -12.0%, \`promote_demo\` -7.6% — where 1x MSAA already emits many one-off blend values and an exact 2x resolve replaces them with fewer, more regular ones, so the picture gets better and the count goes down. \`increase\` is declared because the criterion is evaluated PER SCENE and met on four. NOT counted: family A spends its one witness on \`edge_transition_width\` and this is the same family — read the two together (aa_probe +184.6% colours with +7.4% width is gradation added; the same 3x3 blur that raises this metric 9.5x doubles the width) and the pair separates gradation from softening. It is evidence for a human, never a gate: an#41's criterion counts metrics independently and cannot express a conjunction.", reference='7.58 -> 21.58 on \`aa_probe\`; 422.25 -> 371.75 on \`saturated_outline\`')}, sentence='How many different colours sit ON the edges — the row above, restricted to the edge mask.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=("Its mask is NOT the \`masks.edge\` block the encode-side rows use. That one is ffmpeg's limited-range Y; this one is full-range BT.709 luma from the source RGB, so at the shared threshold of 40 it is the wider mask. The row records it separately as \`masks.render_edge\`, with its own operator.",), sweep=None), 'edge_transition_width': MetricSpec(key='edge_transition_width', family='A', unit='px', optimum=Optimum(kind='interior', expect=None, note='Two-sided: both lost AA and accidental softening (blur, non-integer canvas scale, LINEAR texel filtering) are failures. The absolute value is scene-dependent — a deliberately 3px black outline is legitimately non-flat — so compare deltas on a fixed scene, never absolutes across scenes.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNG; the encoder cannot move it', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=True, gate=None, reason="family A's single witness. Holds on five of six corpus scenes; on \`promote_demo\` it moves +0.0001 the OTHER way, because the descriptor path is nearly blind to MSAA (96 differing pixels of 12.4M — an SVG sprite is a pre-rasterised texture, and multisampling applies to WebGL geometry). A \`contrary\` verdict at that magnitude is the lever not reaching the scene, which is why the comparison reports the relative delta beside the direction (an#41).", reference='2.88 -> 2.00 on \`aa_probe\`; 5.6368 -> 5.6369 on \`promote_demo\`'), 'supersample': Prediction(expect='increase', counts=True, gate=None, reason="family A's witness for THIS lever, and scene-dependent by measurement in the exact inverse of \`disabled_aa\`. Holds on the five procedural scenes (\`graded_field\` +8.0%, \`aa_probe\` +7.4%, \`saturated_outline\` +5.2%, \`multi_shot\` +5.1%, \`single_character\` +2.6%) and is \`contrary\` on \`promote_demo\` at -34.8%. That inversion is REAL, not the +0.0001 nothing \`disabled_aa\` produces on the same scene: the SVG sprite rasterises AT 2x instead of being stretched up from a 1x texture, so the descriptor path is the one scene this lever reaches hardest and the AA lever cannot reach at all. The two render levers reach complementary scenes. \`increase\` is declared because the criterion is evaluated PER SCENE and met on at least one — the same shape \`video_stream_bytes\` already carries under \`disabled_aa\`. An increase here is not a regression: the optimum is interior, and this walks TOWARD a measured ceiling (2.5846 \`saturated_outline\`, 2.9167 \`graded_field\`, ~2.452 \`multi_shot\`, ~2.140 \`single_character\`, ~3.503 \`promote_demo\`). \`aa_probe\` has NO ceiling — its diagonals land the block-mean grid differently at every k, so it oscillates +/-5-8% with no settling — and gets no declared target, because a value nobody measured is not a value (research §3a).", reference='2.3685 -> 2.4921 on \`saturated_outline\`; 5.6368 -> 3.6775 on \`promote_demo\`')}, sentence='The average thickness, in pixels, of the fuzzy band between two flat colour areas — under 1 is a jagged staircase, ~1 is clean AA, 3+ means the picture has gone soft.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'encode_flicker_on_held_pixels': MetricSpec(key='encode_flicker_on_held_pixels', family='E', unit='fraction of held px moving >=2', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=True, gate=None, reason="family E's witness — and the least reliable of the four. It is NON-MONOTONE across the CRF ladder on the real corpus (0.000648 / 0.007018 / 0.000985 / 0.000916 / 0.001137 / 0.001685 over crf 18/23/28/33/40/51 on \`single_character\`, peaking at crf23), because at high CRF the whole frame flattens into large uniform skip regions and held pixels stop moving — the same mechanism the \`disabled_aa\` gate below documents. At the crf23 -> crf40 step the lever uses it holds on five of six scenes and inverts on \`single_character\`, so it is kept and not leaned on: C, D and F are monotone across the whole ladder and satisfy the criterion on all six scenes without it (an#41).", reference='0.0113 -> 0.0243 on aa_probe; 0.0070 -> 0.0011 on single_character'), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="excluded from EVERY renderer mutation's witness count: without the source gate, half-res-then-nearest-upscale — the most visible possible flat-art regression — reports a 7.1x IMPROVEMENT, because a flattened render gives x264 large uniform skip regions.", reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="'excluded from EVERY renderer mutation's witness count' is what the declaration beside \`disabled_aa\` says, and this is the second renderer mutation it was written for. Worth restating because THIS lever is the exact shape of the failure that gate exists for: without it, half-res-then-nearest-upscale — the most visible possible flat-art regression — reports a 7.1x improvement, because a flattened render gives x264 large uniform skip regions. A block-mean resolve flattens the source in the same direction, so ungated this metric would reward the improvement for the identical wrong reason and nobody could tell the two apart.", reference=None)}, sentence='The fraction of pixels the animator held perfectly still that moved by at least 2 code values in the delivered video.', role=None, reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=("The panel's other hard-threshold counter, so its row carries the count at every tol of \`metrics.FLICKER_DELTA_TOL_SWEEP\` and \`an bench-compare\` reports a direction that grid disagrees with as \`unstable\` (an#140). Measured: under \`high_crf\` \`graded_field\` reads -9% at tol 1 and +29% at tol 2; under 4:2:0 -> 4:4:4 \`single_character\` reads +25% at tol 2 and -15% at tol 3.",), sweep=Sweep(grid=(('tol', (1, 2, 3, 4)),), shipped=(('tol', 2),))), 'encode_ringing_excess': MetricSpec(key='encode_ringing_excess', family='G', unit='code values', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='provisional; kept out of the witness count until open question 4 is settled', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="declared 'both legs rise together by construction'; measured moving on ALL SIX corpus scenes under the real MSAA lever (an#41). The cancellation is exact only when both legs share a FIXED source, and a renderer mutation moves the source — so what is left is uninterpretable rather than zero.", reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='the cancellation is exact only when both legs share a FIXED source; this lever moves it. Measured moving on all six scenes under \`disabled_aa\`, and nothing about the sign of the render change makes it hold still.', reference=None)}, sentence='How much more the encoder overshoots around outlines than a mathematically lossless encode of the same frames does.', role=None, reference='source_png', provisional=True, unreviewed=False, tripwire=False, requires='', notes=('Provisional pending a cheap comparison against plain edge-band MAE over the identical mask. \`edge_band_mae\` is recorded beside it so the first ledger row answers that question.',), sweep=None), 'expression_min_pairwise_changed_px': MetricSpec(key='expression_min_pairwise_changed_px', family='B', unit='pixels', optimum=Optimum(kind='guard', expect=None, note="Not a quality dial: larger is not better beyond 'the presets are apart'. It exists so a regression that makes two expressions render alike moves a ledger number instead of waiting for someone to look."), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNGs; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate="AA-off moves every edge on every pinned frame, so the count of differing pixels between two frames moves with it in an undeclared direction — measured on the lane: it MOVED under \`supersample\` when first declared \`not_applicable\`. Gated, not predicted: the delta is uninterpretable, not good or bad. Family B's witness is \`min_ssim_win8_vs_golden\`.", reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='same as disabled_aa: an edge-quality lever softens every edge on every pinned frame and the pairwise count moves with it; not a face-solver lever, no declared sign', reason='', reference=None)}, sentence="The smallest number of pixels by which any two of the scene's pinned frames differ in TODAY'S render — on \`expressions\`, the closest pair of presets; a collapse of two emotions onto one face drives it to zero (an#98). On a two-frame scene it is that pair's own change, measured rather than withheld: a render-side row is never null on a real capture.", role='diagnostic', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=('Measured at the first bless (an#98): 106 px between \`thinking\` and \`skeptical\`, the two asymmetric presets, and 384 px at the far end. \`tests/test_expression_goldens.py\` pins half the minimum on the COMMITTED goldens; this row reports the same quantity on the live render, so the ledger sees it before a re-bless does.',), sweep=None), 'file_bytes': MetricSpec(key='file_bytes', family='F', unit='bytes', optimum=Optimum(kind='guard', expect=None, note='Contaminated by the audio cache: the renderer always emits an AAC track, silent or not. Prefer video_stream_bytes.'), predictions={'high_crf': Prediction(expect='decrease', counts=False, gate=None, reason='', reference=None), 'disabled_aa': Prediction(expect='increase', counts=False, gate=None, reason='companion to \`video_stream_bytes\`, SCENE-DEPENDENT in the same way, and additionally contaminated by the audio track. Measured AA-on -> off across the corpus: +3.6% / -2.7% / +7.0% / -0.0% / +4.0% / -2.9%, so it is \`contrary\` on half of it. Counts nothing; kept only as the companion the sentence above calls it (an#41 review).', reference=None), 'supersample': Prediction(expect='decrease', counts=False, gate=None, reason='companion to \`video_stream_bytes\`, contaminated by the AAC track the renderer always emits, silent or not, and therefore scene-dependent in the same way and then some. MEASURED alongside it rather than assumed to follow: it does follow, on every scene and with the same three-three split — \`single_character\` -5.9%, \`multi_shot\` -4.8%, \`saturated_outline\` -2.4%; up and small on \`promote_demo\` +0.6%, \`aa_probe\` +0.5%, \`graded_field\` +0.4%. Counts nothing — prefer \`video_stream_bytes\`, as its own \`optimum\` note says.', reference=None)}, sentence='The whole mp4 on disk, audio track included.', role='companion', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'flat_field_deviation': MetricSpec(key='flat_field_deviation', family='D', unit='fraction of flat px with |d|>6', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=True, gate=None, reason="family D's witness; monotone over a 133x span", reference='0.0003 / 0.0005 / 0.0035 / 0.0127 / 0.0399 (crf18->51)'), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="The research measured this flat across a SIMULATED AA matrix and called the orthogonality 'the metric's whole value'. Run against the real MSAA lever it moves on ALL SIX corpus scenes, in both directions (an#41). The mechanism is structural rather than surprising: the flat mask is derived from the SOURCE frames, which this lever changes, so the mask itself moves and the comparison has no fixed reference. That is the definition of gated — uninterpretable, not good or bad — and it is the same gate \`encode_flicker_on_held_pixels\` already carries for every renderer mutation, for the same reason.", reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='the flat mask is derived from the SOURCE frames, which this lever changes, so the mask itself moves and the comparison has no fixed reference — structurally identical to \`disabled_aa\`, and the DIRECTION of the render change is irrelevant to it. Note the gate is \`source_hash_differs\` and NOT \`reference_moved\`: an#56 describes every C/D/E/G row as \`reference_moved\`, which is right for 5 of the 9 and wrong for this one, \`flat_field_p99_dev\`, \`encode_flicker_on_held_pixels\` and \`encode_ringing_excess\`. The two gates are recorded separately on purpose: one says the reference moved, this one says the MASK moved.', reference=None)}, sentence='Of the pixels the renderer painted inside a large flat colour field, what fraction came back more than 6 code values off.', role=None, reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=('Covers the ~90% of the frame no edge metric touches. Banding regressions are invisible without it.', 'A hard-threshold count over a mask eroded by a second free parameter, so its row carries the count at every (dilate_k, tol) of \`metrics.FLAT_DILATE_K_SWEEP\` x \`FLAT_DEV_TOL_SWEEP\`, and \`an bench-compare\` reports a direction the grid disagrees with as \`unstable\` — neither counted nor contrary (an#140). Measured under 4:2:0 -> 4:4:4: 3 of 6 scenes reverse on that grid (\`graded_field\` +84.2% at tol 6, -81.6% at tol 8), and so does \`graded_field\` under \`high_crf\` (tol 5). No scalar replacement was stable on the same grid — mean excess over tol, the threshold-free mean, p99 and p99.9 each reverse on at least one scene — because the two deviation distributions CROSS (16 of 18 scene x k cells): some deviations shrink and others grow, and any scalar then encodes a choice of weighting as a direction.'), sweep=Sweep(grid=(('dilate_k', (1, 3, 5)), ('tol', (4, 5, 6, 7, 8))), shipped=(('dilate_k', 3), ('tol', 6)))), 'flat_field_p99_dev': MetricSpec(key='flat_field_p99_dev', family='D', unit='code values', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='companion to the rate above', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='gated for the same structural reason as the rate above: the flat mask moves with the source. Measured moving on one of six scenes and holding on five, which is what a metric with no fixed reference looks like — not evidence of orthogonality (an#41).', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='gated for the same structural reason as the rate above: the flat mask moves with the source, under a render lever of either sign.', reference=None)}, sentence='The 99th percentile of the same deviation, in human units.', role='companion', reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'frame_distinct_colours': MetricSpec(key='frame_distinct_colours', family='A', unit='count', optimum=Optimum(kind='guard', expect=None, note='No predicted direction on AA changes. A guard, not a dial.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='pre-encode', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason='do not count it alongside off_palette_pixel_fraction; same family', reference=None), 'supersample': Prediction(expect='increase', counts=False, gate=None, reason="do not count it alongside \`edge_transition_width\`; same family. SCENE-DEPENDENT and measured (research §4): +197% \`single_character\`, +186% \`aa_probe\`, +184% \`multi_shot\`, +10% \`graded_field\` — and DOWN 18% on \`saturated_outline\` and 23% on \`promote_demo\`. On a scene that already carries a lot of colour, 1x MSAA emits many one-off blend values and an exact 2x resolve replaces them with fewer, more regular ones: the picture gets BETTER and the count goes DOWN. This is what refutes epic #9's 'edge distinct-colour count materially up on every corpus scene' — the statistic has a scene-dependent sign, which is not a magnitude problem and cannot be fixed by rendering harder. (The metric that done-when literally names, \`edge_distinct_colours\`, does not exist: refuted and deleted in Wave 2.) Read as a PAIR with \`edge_transition_width\` — colours up + width up slightly = gradation added; colours +3600% + width +45% = lanczos ringing; colours down + width down = sharpened. an#41's criterion counts metrics INDEPENDENTLY and cannot express that conjunction, so the pair is evidence for a human reader and is NOT a gate.", reference='7.6 -> 21.7 on \`aa_probe\`; 478.2 -> 392.3 on \`saturated_outline\`')}, sentence='How many different colours are in the frame at all.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'min_ssim_win8_vs_golden': MetricSpec(key='min_ssim_win8_vs_golden', family='B', unit='ssim', optimum=Optimum(kind='one_sided', expect='maximize', note='SIGN AMBIGUITY, recorded deliberately: a supersampling IMPROVEMENT moves this away from 1.0 exactly as an AA regression does, and in changed-pixel terms reports the improvement as the LARGER change. It is a change detector, and must be paired with the no-reference family to say whether a change was good.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='the golden corpus is UPSTREAM of the encoder; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=True, gate=None, reason="family B's single witness. \`golden_identity\` is the tripwire beside it and counts ZERO — one family, at most one witness, and a boolean change detector is not it.", reference='0.9999 -> 0.279 at 1080p / 0.063 at native for a total eye-blink'), 'supersample': Prediction(expect='decrease', counts=True, gate=None, reason="family B's single witness, and THIS lever is what the SIGN AMBIGUITY note above was written about: a supersampling IMPROVEMENT moves this away from 1.0 exactly as an AA regression does, and reports the improvement as the LARGER change. It counts as evidence the render CHANGED, which is what family B measures; it is NOT evidence the change was good, and the note beside \`optimum\` is the standing disclaimer that must be read with it. Fires on all six scenes: the committed baseline is 1.0 on every one, and research §2/§4 measured a real pixel move on every one — including \`promote_demo\`, which \`disabled_aa\` cannot reach at all. The magnitude is the lever's own, from the exam run recorded in the an#56 PR body — not a figure lifted from a research table, which is the an#41-review defect this panel already caught once.", reference="1.0 -> 0.4380 on \`single_character\`, 0.4449 on \`promote_demo\`, 0.6144 on \`saturated_outline\`, 0.7756 on \`aa_probe\`, 0.7969 on \`multi_shot\`, 0.8201 on \`graded_field\` — every scene, because every scene's pixels move")}, sentence='The worst small window in the frame, scored against the committed golden — magnitude AND location of a golden failure.', role='diagnostic', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=('The metrics survey concluded SSIM should be excluded because whole-frame SSIM scores a total eye-blink at 0.9989. That was REFUTED: only the global-moment reduction is blind. Killing SSIM outright would have discarded the best numpy-only detector available.',), sweep=None), 'off_palette_pixel_fraction': MetricSpec(key='off_palette_pixel_fraction', family='A', unit='fraction', optimum=Optimum(kind='one_sided', expect='minimize', note='Honest caveat: a blur, drop shadow, gradient or sub-pixel offset moves this UP, indistinguishably from better AA. It is a change detector on that axis. Its floor is scene-dependent and is NOT zero on the SVG-sprite path.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason="pre-encode. NOT MEASURED — which is not the same as 'no change'", reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason='family A already supplies edge_transition_width as its witness', reference=None), 'supersample': Prediction(expect='increase', counts=False, gate=None, reason="family A already supplies \`edge_transition_width\` as its witness — count at most one per family. \`increase\` and NOT \`not_applicable\`: this is a render lever and the metric is render-side, so \`not_applicable\` would make every scene report \`unexpected_movement\` for a metric doing exactly what it should. An exact block-mean resolve replaces hard edge pixels with blends, and a blend is off-palette by definition. MEASURED on the corpus and scene-dependent, like everything else this lever touches: \`single_character\` +28.9%, \`multi_shot\` +24.2%, \`aa_probe\` +21.8%, \`graded_field\` +0.0%; contrary on the two scenes whose k=1 frames are already the most off-palette, \`promote_demo\` -22.8% and \`saturated_outline\` -9.9%, where an exact resolve REPLACES many one-off MSAA blends with fewer, more regular ones. It counts nothing either way. And the optimum says \`minimize\` while this improvement moves it UP, which is the metric's own caveat stated in its \`note\`: on this axis it is a change detector, not a quality dial.", reference=None)}, sentence='The fraction of the frame whose pixels are not exactly one of the colours the compiler declared for this shot.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'ring_band_mae': MetricSpec(key='ring_band_mae', family='G', unit='code values', optimum=Optimum(kind='one_sided', expect='minimize', note="Research §1.8 calls this 'plain edge-band MAE over the identical mask'. Named for the mask it actually uses, because MAE over the EDGE mask is \`coded_luma_edge_error\`'s definition verbatim — measured identical on the first real row — and recording it twice would answer open question 4 with a tautology."), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='the comparison arm', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None)}, sentence='Plain mean absolute luma error over the RING band — the simpler rival to \`encode_ringing_excess\`, on the same mask and with no second encode.', role='q4_comparator', reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'stage_min_plane_ratio_gap': MetricSpec(key='stage_min_plane_ratio_gap', family='B', unit='ratio', optimum=Optimum(kind='guard', expect=None, note='Not a quality dial: a larger gap is not a better picture, it is a fixture whose depths are further apart. It exists so a regression that flattens the parallax moves a ledger number instead of waiting for someone to look at a GIF.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNGs; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate="AA-off changes which pixels carry a plane's exact colour along its edges, so a centroid can shift by a fraction of a pixel and the mask COUNT can change — which the measurement refuses outright as a clipped plane. Gated, not predicted: the outcome is 'the instrument declines', which is neither better nor worse.", reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate="same as disabled_aa: an edge-quality lever moves the exact-colour mask's boundary, and this measurement is defined on exact colours", reason='', reference=None)}, sentence="The smallest gap between any two planes' displacement RATIOS on a panning multiplane stage (an#111). Each plane's centroid displacement is divided by the reference plane's, so a stage that parallaxes gives the declared depths back — on \`stage_pan\`, 0.25 / 1.0 / 2.0 — and a stage that flattened gives every plane 1.0 and this row zero. \`unavailable\`, never zero, for a scene with fewer than two colour-filled planes: a scene with nothing to compare has no ratio, and reporting that as flattened would fire on every other fixture.", role='diagnostic', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='a multiplane stage: two or more colour-filled planes', notes=("The trap this metric is shaped around: today's centre-anchored zoom ALREADY gives unequal per-plane displacements, so 'the planes moved at different rates' is satisfied by a scene with no parallax at all. The JSON half of the measurement probes at scene-space x = 0, where the zoom term cancels exactly; the pixel half cannot (a centroid sits at the plane's own offset), so the \`stage_pan\` fixture holds zoom CONSTANT instead.", 'Ratios are taken against the LARGEST mover, always. The pixel half cannot see a \`depth\`, so a depth-aware reference makes the two halves report different numbers for one stage — measured while this landed: 0.75 against the \`depth == 1\` plane and 0.375 against the largest mover, for the same measurement.', "Measured at the first bless: 0.375, the far/mid gap on depths 0.25 / 1.0 / 2.0 (reported as ratios 0.125 / 0.5 / 1.0). The \`stage_planes_parallaxed\` tripwire's floor is half of it, which is the \`expression_min_pairwise_changed_px\` precedent followed literally."), sweep=None), 'stage_planes_parallaxed': MetricSpec(key='stage_planes_parallaxed', family='B', unit='boolean', optimum=Optimum(kind='guard', expect=None, note='A change detector. Counts zero toward any criterion.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNGs', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='see stage_min_plane_ratio_gap', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='see stage_min_plane_ratio_gap', reason='', reference=None)}, sentence='True when the planes moved at DIFFERENT rates — i.e. the stage parallaxed rather than panning as one rigid image. The same measurement as \`stage_min_plane_ratio_gap\`, read as a verdict: a boolean and the number beside it must be the same evidence, or a reader has to reconcile them.', role='tripwire', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='a multiplane stage: two or more colour-filled planes', notes=("There is deliberately NO \`flat_camera\` mutation lever to prove this fires. A compile-time parallax change moves the scene's contract hash, so \`bench-compare\` refuses the row at comparability before any family is examined — the recorded \`step_hz\` verdict, verbatim. The proof belongs in \`an bench-mutants\` as a declared guard mutant.",), sweep=None), 'video_stream_bytes': MetricSpec(key='video_stream_bytes', family='F', unit='bytes', optimum=Optimum(kind='guard', expect=None, note='Not a quality dial in either direction — a cross-check that the metrics read the file they think they do.'), predictions={'high_crf': Prediction(expect='decrease', counts=True, gate=None, reason='free fourth cross-check', reference='x1.18 to x1.77 at crf23 -> crf40; x2.07 across the whole ladder'), 'disabled_aa': Prediction(expect='increase', counts=True, gate=None, reason="hard edges cost more to code. THE WEAKEST of this mutation's three witnesses, the only unreviewed metric in the set — and SCENE-DEPENDENT, measured. It holds where the lever has non-axis-aligned edges to change (aa_probe +6.6%, multi_shot +9.7%, saturated_outline +6.9%) and INVERTS where it does not (single_character -6.1%, graded_field -5.7%, promote_demo -0.1%), because AA-off on axis-aligned art removes intermediate colours and the picture gets CHEAPER instead of harder. So this mutation's criterion is met per scene, on the scenes the lever can reach — which is the measured reason \`aa_probe\` is in the corpus at all (an#38, an#41).", reference='+6.6% / -6.1%, scene-dependent'), 'supersample': Prediction(expect='decrease', counts=True, gate=None, reason="family F's witness, and the ONLY third family available to a render lever: A and B can count, C/D/E/G are all gated because their masks and references derive from the source frames, and F is the one encode-side family whose reference is \`none\` — a property of the encoded file rather than a comparison against a moving source. So an#41's three-family criterion for this lever is A + B + F, forced, with no substitute. MEASURED before it was declared, because two mechanisms fight here and guessing was not available: a block-mean resolve ADDS distinct values at edges (+184-197% on the three colour-poor scenes) and it LOWERS edge frequency, which is cheaper for the DCT. The second wins where there is geometry to smooth. Scene-dependent, the same shape this row already carries under \`disabled_aa\` — and \`decrease\` is declared because that is the sign that holds on the scenes where family A also holds, and because it is the side carrying the magnitude: the three down-moves are -4.0% to -12.2% and the three up-moves are +0.8% to +2.8%.", reference='single_character -12.2%, multi_shot -6.6%, saturated_outline -4.0%; contrary and small on graded_field +2.8%, promote_demo +1.1%, aa_probe +0.8%')}, sentence='How large the encoded video stream is, with the audio track excluded.', role=None, reference='none', provisional=False, unreviewed=True, tripwire=False, requires='', notes=('The one metric in the panel that went through NO adversarial pass.',), sweep=None)}*
+### an.bench.registry.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [MetricSpec](_autosummary/an.bench.registry.html.md#an.bench.registry.MetricSpec)]* *= {'chroma_edge_dCr': MetricSpec(key='chroma_edge_dCr', family='C', unit='code values (8-bit Cr)', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='family C counts as ONE family until the correlation with coded_luma_edge_error is measured across the encoder matrix', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='measured -0.7% on a faithful AA-off simulation; the claimed +10.7% was refuted. Predict no render-side direction.', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='its subject IS the 4:2:0 subsampling of a conversion whose input this lever changes, so there is no fixed reference. Predict no render-side direction, exactly as for \`disabled_aa\`.', reference=None)}, sentence='How much the colour shifts on the pixels straddling a hard outline once the video is encoded.', role=None, reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'chroma_edge_dCr_over_dY': MetricSpec(key='chroma_edge_dCr_over_dY', family='C', unit='ratio', optimum=Optimum(kind='guard', expect=None, note="3.3 at qp0 yuv420p is real 4:2:0 bleed; 0.96 at crf51 is generic damage wearing the metric's name. The denominator IS \`coded_luma_edge_error\` — the research's \`chroma_edge_dY\` control is mean |dY| over the edge mask, which is that metric's definition verbatim. Measured identical (1.484149 for both on the first real row), so it is recorded once rather than twice: one signal under two names is exactly how a witness count is padded dishonestly."), predictions={'high_crf': Prediction(expect='decrease', counts=False, gate=None, reason='the chroma claim collapses as damage becomes generic', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None)}, sentence='dCr/dY on the edge mask: large means real chroma bleed, ~1 means generic blocking.', role='diagnostic', reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'chroma_edge_dY': MetricSpec(key='chroma_edge_dY', family='C', unit='code values (8-bit Y)', optimum=Optimum(kind='guard', expect=None, note="Read only as the ratio's denominator. NOT a second name for \`coded_luma_edge_error\`: that one references the lossless leg and this one references the PNG conversion, so they differ by exactly the conversion term. They were identical (1.484149) while both referenced the PNG conversion, which is why one of them was removed and then restored when the references diverged."), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='control for the ratio below', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None)}, sentence='The luma error on the SAME mask and the SAME reference as \`chroma_edge_dCr\` — a control, not a quality metric.', role='control', reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'coded_luma_edge_error': MetricSpec(key='coded_luma_edge_error', family='C', unit='code values (8-bit Y)', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=True, gate=None, reason="family C's witness", reference='0.419 (qp0) -> 1.875 (crf23) -> 41.2 (crf51)'), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='the source PNG moves with the mutation, so the delta is uninterpretable', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='same gate, same mechanism as \`disabled_aa\`: the source PNG moves with the mutation. A render lever of EITHER sign disqualifies it — and this one is the reason to say so out loud, because a softer source shrinks the edge mask to its easiest members and the number improves MECHANICALLY. Ungated it is one of the 7 unearned improvements a \`mutation=None\` diff reports for this change (an#56).', reference=None)}, sentence="How much the encoder's quantiser roughens the brightness step at a line's edge, measured on the codec's own luma plane.", role=None, reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=("Read the coded luma plane; NEVER recompute Y from decoded RGB. The RGB round trip clips at saturated edges, and ~83% of the broken form's baseline was chroma leakage.",), sweep=None), 'edge_masked_distinct_colours': MetricSpec(key='edge_masked_distinct_colours', family='A', unit='count', optimum=Optimum(kind='guard', expect=None, note="A guard, not a dial, for the exact reason Wave 2 deleted the ONE-SIDED \`edge_distinct_colours\`: a 3x3 blur raised that 9.2x and +/-3-LSB noise 55x, and BOTH degradations read as 'AA restored'. What the mask buys is narrower than an#55 assumed, and the difference was MEASURED before this row shipped: an INTERIOR-ONLY change cannot reach the number, but a whole-frame blur can, because the mask is recomputed from the frame being measured and a blur widens the edge band. 3x3 box blur on the six committed goldens, ratio against k=1, whole-frame vs edge-masked: aa_probe 10.25x/9.50x, graded_field 2.04x/2.35x, multi_shot 7.92x/4.63x, promote_demo 1.25x/0.83x, saturated_outline 1.49x/1.14x, single_character 8.60x/5.70x — damped on four of six, WORSE on one, blind on none. So the metric that separates a blur from a supersample is \`edge_transition_width\` (2.1x-3.4x under the same blur against +2.6% to +8.0% under an exact k=2 resolve), and this row is the second half of that reading, not the first. \*\*The pair is evidence for a human reader and NOT a gate\*\* — an#41's criterion counts metrics independently and cannot express a conjunction, so nothing here may be read as one. No figure for THIS metric under a lever exists yet, which is why \`reference\` is unset rather than borrowed from \`frame_distinct_colours\` (an#55)."), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='pre-encode, and blind to the encoder BY CONSTRUCTION like every family A row: both the mask and the colours come from the source PNG, which sits upstream of the encoder', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason="the same direction as \`frame_distinct_colours\`, deliberately: for flat cutout art essentially all colour variety lives at edges, so the mask is close to a no-op for the COUNT (wave2 research §1.3 measured the two within 6%). The whole-frame count under the lever on \`aa_probe\` goes 7.6 -> 3.0 at k=1 and 21.7 -> 6.9 at k=2 (wave3 research §5) — those are \`frame_distinct_colours\` numbers, NOT this metric's, and \`reference\` is deliberately left unset until a real row measures THIS one. NOT counted: family A spends its one witness on \`edge_transition_width\` and this is the same family. NOT gated either, and the distinction is the one most likely to be flipped by a later reviewer: the mask does move with the lever, but the mask and the number come from the SAME frames, so there is no reference to move. That is what makes \`flat_field_deviation\` further down gated and this one not.", reference=None), 'supersample': Prediction(expect='increase', counts=False, gate=None, reason="MEASURED under the lever before it was declared, on all six scenes, because this metric's whole-frame sibling has a scene-dependent sign and there was no reason to assume the masked one would not. Up on four: \`aa_probe\` +184.6%, \`single_character\` +179.3%, \`multi_shot\` +146.3%, \`graded_field\` +13.6%. Down on the two colour-rich scenes: \`saturated_outline\` -12.0%, \`promote_demo\` -7.6% — where 1x MSAA already emits many one-off blend values and an exact 2x resolve replaces them with fewer, more regular ones, so the picture gets better and the count goes down. \`increase\` is declared because the criterion is evaluated PER SCENE and met on four. NOT counted: family A spends its one witness on \`edge_transition_width\` and this is the same family — read the two together (aa_probe +184.6% colours with +7.4% width is gradation added; the same 3x3 blur that raises this metric 9.5x doubles the width) and the pair separates gradation from softening. It is evidence for a human, never a gate: an#41's criterion counts metrics independently and cannot express a conjunction.", reference='7.58 -> 21.58 on \`aa_probe\`; 422.25 -> 371.75 on \`saturated_outline\`')}, sentence='How many different colours sit ON the edges — the row above, restricted to the edge mask.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=("Its mask is NOT the \`masks.edge\` block the encode-side rows use. That one is ffmpeg's limited-range Y; this one is full-range BT.709 luma from the source RGB, so at the shared threshold of 40 it is the wider mask. The row records it separately as \`masks.render_edge\`, with its own operator.",), sweep=None), 'edge_transition_width': MetricSpec(key='edge_transition_width', family='A', unit='px', optimum=Optimum(kind='interior', expect=None, note='Two-sided: both lost AA and accidental softening (blur, non-integer canvas scale, LINEAR texel filtering) are failures. The absolute value is scene-dependent — a deliberately 3px black outline is legitimately non-flat — so compare deltas on a fixed scene, never absolutes across scenes.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNG; the encoder cannot move it', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=True, gate=None, reason="family A's single witness. Holds on five of six corpus scenes; on \`promote_demo\` it moves +0.0001 the OTHER way, because the descriptor path is nearly blind to MSAA (96 differing pixels of 12.4M — an SVG sprite is a pre-rasterised texture, and multisampling applies to WebGL geometry). A \`contrary\` verdict at that magnitude is the lever not reaching the scene, which is why the comparison reports the relative delta beside the direction (an#41).", reference='2.88 -> 2.00 on \`aa_probe\`; 5.6368 -> 5.6369 on \`promote_demo\`'), 'supersample': Prediction(expect='increase', counts=True, gate=None, reason="family A's witness for THIS lever, and scene-dependent by measurement in the exact inverse of \`disabled_aa\`. Holds on the five procedural scenes (\`graded_field\` +8.0%, \`aa_probe\` +7.4%, \`saturated_outline\` +5.2%, \`multi_shot\` +5.1%, \`single_character\` +2.6%) and is \`contrary\` on \`promote_demo\` at -34.8%. That inversion is REAL, not the +0.0001 nothing \`disabled_aa\` produces on the same scene: the SVG sprite rasterises AT 2x instead of being stretched up from a 1x texture, so the descriptor path is the one scene this lever reaches hardest and the AA lever cannot reach at all. The two render levers reach complementary scenes. \`increase\` is declared because the criterion is evaluated PER SCENE and met on at least one — the same shape \`video_stream_bytes\` already carries under \`disabled_aa\`. An increase here is not a regression: the optimum is interior, and this walks TOWARD a measured ceiling (2.5846 \`saturated_outline\`, 2.9167 \`graded_field\`, ~2.452 \`multi_shot\`, ~2.140 \`single_character\`, ~3.503 \`promote_demo\`). \`aa_probe\` has NO ceiling — its diagonals land the block-mean grid differently at every k, so it oscillates +/-5-8% with no settling — and gets no declared target, because a value nobody measured is not a value (research §3a).", reference='2.3685 -> 2.4921 on \`saturated_outline\`; 5.6368 -> 3.6775 on \`promote_demo\`')}, sentence='The average thickness, in pixels, of the fuzzy band between two flat colour areas — under 1 is a jagged staircase, ~1 is clean AA, 3+ means the picture has gone soft.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'encode_flicker_on_held_pixels': MetricSpec(key='encode_flicker_on_held_pixels', family='E', unit='fraction of held px moving >=2', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=True, gate=None, reason="family E's witness — and the least reliable of the four. It is NON-MONOTONE across the CRF ladder on the real corpus (0.000648 / 0.007018 / 0.000985 / 0.000916 / 0.001137 / 0.001685 over crf 18/23/28/33/40/51 on \`single_character\`, peaking at crf23), because at high CRF the whole frame flattens into large uniform skip regions and held pixels stop moving — the same mechanism the \`disabled_aa\` gate below documents. At the crf23 -> crf40 step the lever uses it holds on five of six scenes and inverts on \`single_character\`, so it is kept and not leaned on: C, D and F are monotone across the whole ladder and satisfy the criterion on all six scenes without it (an#41).", reference='0.0113 -> 0.0243 on aa_probe; 0.0070 -> 0.0011 on single_character'), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="excluded from EVERY renderer mutation's witness count: without the source gate, half-res-then-nearest-upscale — the most visible possible flat-art regression — reports a 7.1x IMPROVEMENT, because a flattened render gives x264 large uniform skip regions.", reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="'excluded from EVERY renderer mutation's witness count' is what the declaration beside \`disabled_aa\` says, and this is the second renderer mutation it was written for. Worth restating because THIS lever is the exact shape of the failure that gate exists for: without it, half-res-then-nearest-upscale — the most visible possible flat-art regression — reports a 7.1x improvement, because a flattened render gives x264 large uniform skip regions. A block-mean resolve flattens the source in the same direction, so ungated this metric would reward the improvement for the identical wrong reason and nobody could tell the two apart.", reference=None)}, sentence='The fraction of pixels the animator held perfectly still that moved by at least 2 code values in the delivered video.', role=None, reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=("The panel's other hard-threshold counter, so its row carries the count at every tol of \`metrics.FLICKER_DELTA_TOL_SWEEP\` and \`an bench-compare\` reports a direction that grid disagrees with as \`unstable\` (an#140). Measured: under \`high_crf\` \`graded_field\` reads -9% at tol 1 and +29% at tol 2; under 4:2:0 -> 4:4:4 \`single_character\` reads +25% at tol 2 and -15% at tol 3.",), sweep=Sweep(grid=(('tol', (1, 2, 3, 4)),), shipped=(('tol', 2),))), 'encode_ringing_excess': MetricSpec(key='encode_ringing_excess', family='G', unit='code values', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='provisional; kept out of the witness count until open question 4 is settled', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="declared 'both legs rise together by construction'; measured moving on ALL SIX corpus scenes under the real MSAA lever (an#41). The cancellation is exact only when both legs share a FIXED source, and a renderer mutation moves the source — so what is left is uninterpretable rather than zero.", reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='the cancellation is exact only when both legs share a FIXED source; this lever moves it. Measured moving on all six scenes under \`disabled_aa\`, and nothing about the sign of the render change makes it hold still.', reference=None)}, sentence='How much more the encoder overshoots around outlines than a mathematically lossless encode of the same frames does.', role=None, reference='source_png', provisional=True, unreviewed=False, tripwire=False, requires='', notes=('Provisional pending a cheap comparison against plain edge-band MAE over the identical mask. \`edge_band_mae\` is recorded beside it so the first ledger row answers that question.',), sweep=None), 'expression_min_pairwise_changed_px': MetricSpec(key='expression_min_pairwise_changed_px', family='B', unit='pixels', optimum=Optimum(kind='guard', expect=None, note="Not a quality dial: larger is not better beyond 'the presets are apart'. It exists so a regression that makes two expressions render alike moves a ledger number instead of waiting for someone to look."), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNGs; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate="AA-off moves every edge on every pinned frame, so the count of differing pixels between two frames moves with it in an undeclared direction — measured on the lane: it MOVED under \`supersample\` when first declared \`not_applicable\`. Gated, not predicted: the delta is uninterpretable, not good or bad. Family B's witness is \`min_ssim_win8_vs_golden\`.", reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='same as disabled_aa: an edge-quality lever softens every edge on every pinned frame and the pairwise count moves with it; not a face-solver lever, no declared sign', reason='', reference=None)}, sentence="The smallest number of pixels by which any two of the scene's pinned frames differ in TODAY'S render — on \`expressions\`, the closest pair of presets; a collapse of two emotions onto one face drives it to zero (an#98). On a two-frame scene it is that pair's own change, measured rather than withheld: a render-side row is never null on a real capture.", role='diagnostic', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=('Measured at the first bless (an#98): 106 px between \`thinking\` and \`skeptical\`, the two asymmetric presets, and 384 px at the far end. \`tests/test_expression_goldens.py\` pins half the minimum on the COMMITTED goldens; this row reports the same quantity on the live render, so the ledger sees it before a re-bless does.',), sweep=None), 'file_bytes': MetricSpec(key='file_bytes', family='F', unit='bytes', optimum=Optimum(kind='guard', expect=None, note='Contaminated by the audio cache: the renderer always emits an AAC track, silent or not. Prefer video_stream_bytes.'), predictions={'high_crf': Prediction(expect='decrease', counts=False, gate=None, reason='', reference=None), 'disabled_aa': Prediction(expect='increase', counts=False, gate=None, reason='companion to \`video_stream_bytes\`, SCENE-DEPENDENT in the same way, and additionally contaminated by the audio track. Measured AA-on -> off across the corpus: +3.6% / -2.7% / +7.0% / -0.0% / +4.0% / -2.9%, so it is \`contrary\` on half of it. Counts nothing; kept only as the companion the sentence above calls it (an#41 review).', reference=None), 'supersample': Prediction(expect='decrease', counts=False, gate=None, reason='companion to \`video_stream_bytes\`, contaminated by the AAC track the renderer always emits, silent or not, and therefore scene-dependent in the same way and then some. MEASURED alongside it rather than assumed to follow: it does follow, on every scene and with the same three-three split — \`single_character\` -5.9%, \`multi_shot\` -4.8%, \`saturated_outline\` -2.4%; up and small on \`promote_demo\` +0.6%, \`aa_probe\` +0.5%, \`graded_field\` +0.4%. Counts nothing — prefer \`video_stream_bytes\`, as its own \`optimum\` note says.', reference=None)}, sentence='The whole mp4 on disk, audio track included.', role='companion', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'flat_field_deviation': MetricSpec(key='flat_field_deviation', family='D', unit='fraction of flat px with |d|>6', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=True, gate=None, reason="family D's witness; monotone over a 133x span", reference='0.0003 / 0.0005 / 0.0035 / 0.0127 / 0.0399 (crf18->51)'), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason="The research measured this flat across a SIMULATED AA matrix and called the orthogonality 'the metric's whole value'. Run against the real MSAA lever it moves on ALL SIX corpus scenes, in both directions (an#41). The mechanism is structural rather than surprising: the flat mask is derived from the SOURCE frames, which this lever changes, so the mask itself moves and the comparison has no fixed reference. That is the definition of gated — uninterpretable, not good or bad — and it is the same gate \`encode_flicker_on_held_pixels\` already carries for every renderer mutation, for the same reason.", reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='the flat mask is derived from the SOURCE frames, which this lever changes, so the mask itself moves and the comparison has no fixed reference — structurally identical to \`disabled_aa\`, and the DIRECTION of the render change is irrelevant to it. Note the gate is \`source_hash_differs\` and NOT \`reference_moved\`: an#56 describes every C/D/E/G row as \`reference_moved\`, which is right for 5 of the 9 and wrong for this one, \`flat_field_p99_dev\`, \`encode_flicker_on_held_pixels\` and \`encode_ringing_excess\`. The two gates are recorded separately on purpose: one says the reference moved, this one says the MASK moved.', reference=None)}, sentence='Of the pixels the renderer painted inside a large flat colour field, what fraction came back more than 6 code values off.', role=None, reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=('Covers the ~90% of the frame no edge metric touches. Banding regressions are invisible without it.', 'A hard-threshold count over a mask eroded by a second free parameter, so its row carries the count at every (dilate_k, tol) of \`metrics.FLAT_DILATE_K_SWEEP\` x \`FLAT_DEV_TOL_SWEEP\`, and \`an bench-compare\` reports a direction the grid disagrees with as \`unstable\` — neither counted nor contrary (an#140). Measured under 4:2:0 -> 4:4:4: 3 of 6 scenes reverse on that grid (\`graded_field\` +84.2% at tol 6, -81.6% at tol 8), and so does \`graded_field\` under \`high_crf\` (tol 5). No scalar replacement was stable on the same grid — mean excess over tol, the threshold-free mean, p99 and p99.9 each reverse on at least one scene — because the two deviation distributions CROSS (16 of 18 scene x k cells): some deviations shrink and others grow, and any scalar then encodes a choice of weighting as a direction.'), sweep=Sweep(grid=(('dilate_k', (1, 3, 5)), ('tol', (4, 5, 6, 7, 8))), shipped=(('dilate_k', 3), ('tol', 6)))), 'flat_field_p99_dev': MetricSpec(key='flat_field_p99_dev', family='D', unit='code values', optimum=Optimum(kind='one_sided', expect='minimize', note=''), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='companion to the rate above', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='gated for the same structural reason as the rate above: the flat mask moves with the source. Measured moving on one of six scenes and holding on five, which is what a metric with no fixed reference looks like — not evidence of orthogonality (an#41).', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='source_hash_differs', reason='gated for the same structural reason as the rate above: the flat mask moves with the source, under a render lever of either sign.', reference=None)}, sentence='The 99th percentile of the same deviation, in human units.', role='companion', reference='lossless', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'frame_distinct_colours': MetricSpec(key='frame_distinct_colours', family='A', unit='count', optimum=Optimum(kind='guard', expect=None, note='No predicted direction on AA changes. A guard, not a dial.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='pre-encode', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason='do not count it alongside off_palette_pixel_fraction; same family', reference=None), 'supersample': Prediction(expect='increase', counts=False, gate=None, reason="do not count it alongside \`edge_transition_width\`; same family. SCENE-DEPENDENT and measured (research §4): +197% \`single_character\`, +186% \`aa_probe\`, +184% \`multi_shot\`, +10% \`graded_field\` — and DOWN 18% on \`saturated_outline\` and 23% on \`promote_demo\`. On a scene that already carries a lot of colour, 1x MSAA emits many one-off blend values and an exact 2x resolve replaces them with fewer, more regular ones: the picture gets BETTER and the count goes DOWN. This is what refutes epic #9's 'edge distinct-colour count materially up on every corpus scene' — the statistic has a scene-dependent sign, which is not a magnitude problem and cannot be fixed by rendering harder. (The metric that done-when literally names, \`edge_distinct_colours\`, does not exist: refuted and deleted in Wave 2.) Read as a PAIR with \`edge_transition_width\` — colours up + width up slightly = gradation added; colours +3600% + width +45% = lanczos ringing; colours down + width down = sharpened. an#41's criterion counts metrics INDEPENDENTLY and cannot express that conjunction, so the pair is evidence for a human reader and is NOT a gate.", reference='7.6 -> 21.7 on \`aa_probe\`; 478.2 -> 392.3 on \`saturated_outline\`')}, sentence='How many different colours are in the frame at all.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'min_ssim_win8_vs_golden': MetricSpec(key='min_ssim_win8_vs_golden', family='B', unit='ssim', optimum=Optimum(kind='one_sided', expect='maximize', note='SIGN AMBIGUITY, recorded deliberately: a supersampling IMPROVEMENT moves this away from 1.0 exactly as an AA regression does, and in changed-pixel terms reports the improvement as the LARGER change. It is a change detector, and must be paired with the no-reference family to say whether a change was good.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='the golden corpus is UPSTREAM of the encoder; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=True, gate=None, reason="family B's single witness. \`golden_identity\` is the tripwire beside it and counts ZERO — one family, at most one witness, and a boolean change detector is not it.", reference='0.9999 -> 0.279 at 1080p / 0.063 at native for a total eye-blink'), 'supersample': Prediction(expect='decrease', counts=True, gate=None, reason="family B's single witness, and THIS lever is what the SIGN AMBIGUITY note above was written about: a supersampling IMPROVEMENT moves this away from 1.0 exactly as an AA regression does, and reports the improvement as the LARGER change. It counts as evidence the render CHANGED, which is what family B measures; it is NOT evidence the change was good, and the note beside \`optimum\` is the standing disclaimer that must be read with it. Fires on all six scenes: the committed baseline is 1.0 on every one, and research §2/§4 measured a real pixel move on every one — including \`promote_demo\`, which \`disabled_aa\` cannot reach at all. The magnitude is the lever's own, from the exam run recorded in the an#56 PR body — not a figure lifted from a research table, which is the an#41-review defect this panel already caught once.", reference="1.0 -> 0.4380 on \`single_character\`, 0.4449 on \`promote_demo\`, 0.6144 on \`saturated_outline\`, 0.7756 on \`aa_probe\`, 0.7969 on \`multi_shot\`, 0.8201 on \`graded_field\` — every scene, because every scene's pixels move")}, sentence='The worst small window in the frame, scored against the committed golden — magnitude AND location of a golden failure.', role='diagnostic', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=('The metrics survey concluded SSIM should be excluded because whole-frame SSIM scores a total eye-blink at 0.9989. That was REFUTED: only the global-moment reduction is blind. Killing SSIM outright would have discarded the best numpy-only detector available.',), sweep=None), 'off_palette_pixel_fraction': MetricSpec(key='off_palette_pixel_fraction', family='A', unit='fraction', optimum=Optimum(kind='one_sided', expect='minimize', note='Honest caveat: a blur, drop shadow, gradient or sub-pixel offset moves this UP, indistinguishably from better AA. It is a change detector on that axis. Its floor is scene-dependent and is NOT zero on the SVG-sprite path.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason="pre-encode. NOT MEASURED — which is not the same as 'no change'", reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason='family A already supplies edge_transition_width as its witness', reference=None), 'supersample': Prediction(expect='increase', counts=False, gate=None, reason="family A already supplies \`edge_transition_width\` as its witness — count at most one per family. \`increase\` and NOT \`not_applicable\`: this is a render lever and the metric is render-side, so \`not_applicable\` would make every scene report \`unexpected_movement\` for a metric doing exactly what it should. An exact block-mean resolve replaces hard edge pixels with blends, and a blend is off-palette by definition. MEASURED on the corpus and scene-dependent, like everything else this lever touches: \`single_character\` +28.9%, \`multi_shot\` +24.2%, \`aa_probe\` +21.8%, \`graded_field\` +0.0%; contrary on the two scenes whose k=1 frames are already the most off-palette, \`promote_demo\` -22.8% and \`saturated_outline\` -9.9%, where an exact resolve REPLACES many one-off MSAA blends with fewer, more regular ones. It counts nothing either way. And the optimum says \`minimize\` while this improvement moves it UP, which is the metric's own caveat stated in its \`note\`: on this axis it is a change detector, not a quality dial.", reference=None)}, sentence='The fraction of the frame whose pixels are not exactly one of the colours the compiler declared for this shot.', role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'ring_band_mae': MetricSpec(key='ring_band_mae', family='G', unit='code values', optimum=Optimum(kind='one_sided', expect='minimize', note="Research §1.8 calls this 'plain edge-band MAE over the identical mask'. Named for the mask it actually uses, because MAE over the EDGE mask is \`coded_luma_edge_error\`'s definition verbatim — measured identical on the first real row — and recording it twice would answer open question 4 with a tautology."), predictions={'high_crf': Prediction(expect='increase', counts=False, gate=None, reason='the comparison arm', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='reference_moved', reason='', reference=None)}, sentence='Plain mean absolute luma error over the RING band — the simpler rival to \`encode_ringing_excess\`, on the same mask and with no second encode.', role='q4_comparator', reference='source_png', provisional=False, unreviewed=False, tripwire=False, requires='', notes=(), sweep=None), 'stage_min_plane_ratio_gap': MetricSpec(key='stage_min_plane_ratio_gap', family='B', unit='ratio', optimum=Optimum(kind='guard', expect=None, note='Not a quality dial: a larger gap is not a better picture, it is a fixture whose depths are further apart. It exists so a regression that flattens the parallax moves a ledger number instead of waiting for someone to look at a GIF.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNGs; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate="AA-off changes which pixels carry a plane's exact colour along its edges, so a centroid can shift by a fraction of a pixel and the mask COUNT can change — which the measurement refuses outright as a clipped plane. Gated, not predicted: the outcome is 'the instrument declines', which is neither better nor worse.", reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate="same as disabled_aa: an edge-quality lever moves the exact-colour mask's boundary, and this measurement is defined on exact colours", reason='', reference=None)}, sentence="The smallest gap between any two planes' displacement RATIOS on a panning multiplane stage (an#111). Each plane's centroid displacement is divided by the reference plane's, so a stage that parallaxes gives the declared depths back — on \`stage_pan\`, 0.25 / 1.0 / 2.0 — and a stage that flattened gives every plane 1.0 and this row zero. \`unavailable\`, never zero, for a scene with fewer than two colour-filled planes: a scene with nothing to compare has no ratio, and reporting that as flattened would fire on every other fixture.", role='diagnostic', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='a multiplane stage: two or more colour-filled planes', notes=("The trap this metric is shaped around: today's centre-anchored zoom ALREADY gives unequal per-plane displacements, so 'the planes moved at different rates' is satisfied by a scene with no parallax at all. The JSON half of the measurement probes at scene-space x = 0, where the zoom term cancels exactly; the pixel half cannot (a centroid sits at the plane's own offset), so the \`stage_pan\` fixture holds zoom CONSTANT instead.", 'Ratios are taken against the LARGEST mover, always. The pixel half cannot see a \`depth\`, so a depth-aware reference makes the two halves report different numbers for one stage — measured while this landed: 0.75 against the \`depth == 1\` plane and 0.375 against the largest mover, for the same measurement.', "Measured at the first bless: 0.375, the far/mid gap on depths 0.25 / 1.0 / 2.0 (reported as ratios 0.125 / 0.5 / 1.0). The \`stage_planes_parallaxed\` tripwire's floor is half of it, which is the \`expression_min_pairwise_changed_px\` precedent followed literally."), sweep=None), 'stage_planes_parallaxed': MetricSpec(key='stage_planes_parallaxed', family='B', unit='boolean', optimum=Optimum(kind='guard', expect=None, note='A change detector. Counts zero toward any criterion.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='computed on the pre-encode PNGs', reference=None), 'disabled_aa': Prediction(expect=None, counts=False, gate='see stage_min_plane_ratio_gap', reason='', reference=None), 'supersample': Prediction(expect=None, counts=False, gate='see stage_min_plane_ratio_gap', reason='', reference=None)}, sentence='True when the planes moved at DIFFERENT rates — i.e. the stage parallaxed rather than panning as one rigid image. The same measurement as \`stage_min_plane_ratio_gap\`, read as a verdict: a boolean and the number beside it must be the same evidence, or a reader has to reconcile them.', role='tripwire', reference='none', provisional=False, unreviewed=False, tripwire=False, requires='a multiplane stage: two or more colour-filled planes', notes=("There is deliberately NO \`flat_camera\` mutation lever to prove this fires. A compile-time parallax change moves the scene's contract hash, so \`bench-compare\` refuses the row at comparability before any family is examined — the recorded \`step_hz\` verdict, verbatim. The proof belongs in \`an bench-mutants\` as a declared guard mutant.",), sweep=None), 'video_stream_bytes': MetricSpec(key='video_stream_bytes', family='F', unit='bytes', optimum=Optimum(kind='guard', expect=None, note='Not a quality dial in either direction — a cross-check that the metrics read the file they think they do.'), predictions={'high_crf': Prediction(expect='decrease', counts=True, gate=None, reason='free fourth cross-check', reference='x1.18 to x1.77 at crf23 -> crf40; x2.07 across the whole ladder'), 'disabled_aa': Prediction(expect='increase', counts=True, gate=None, reason="hard edges cost more to code. THE WEAKEST of this mutation's three witnesses, the only unreviewed metric in the set — and SCENE-DEPENDENT, measured. It holds where the lever has non-axis-aligned edges to change (aa_probe +6.6%, multi_shot +9.7%, saturated_outline +6.9%) and INVERTS where it does not (single_character -6.1%, graded_field -5.7%, promote_demo -0.1%), because AA-off on axis-aligned art removes intermediate colours and the picture gets CHEAPER instead of harder. So this mutation's criterion is met per scene, on the scenes the lever can reach — which is the measured reason \`aa_probe\` is in the corpus at all (an#38, an#41).", reference='+6.6% / -6.1%, scene-dependent'), 'supersample': Prediction(expect='decrease', counts=True, gate=None, reason="family F's witness, and the ONLY third family available to a render lever: A and B can count, C/D/E/G are all gated because their masks and references derive from the source frames, and F is the one encode-side family whose reference is \`none\` — a property of the encoded file rather than a comparison against a moving source. So an#41's three-family criterion for this lever is A + B + F, forced, with no substitute. MEASURED before it was declared, because two mechanisms fight here and guessing was not available: a block-mean resolve ADDS distinct values at edges (+184-197% on the three colour-poor scenes) and it LOWERS edge frequency, which is cheaper for the DCT. The second wins where there is geometry to smooth. Scene-dependent, the same shape this row already carries under \`disabled_aa\` — and \`decrease\` is declared because that is the sign that holds on the scenes where family A also holds, and because it is the side carrying the magnitude: the three down-moves are -4.0% to -12.2% and the three up-moves are +0.8% to +2.8%.", reference='single_character -12.2%, multi_shot -6.6%, saturated_outline -4.0%; contrary and small on graded_field +2.8%, promote_demo +1.1%, aa_probe +0.8%')}, sentence='How large the encoded video stream is, with the audio track excluded.', role=None, reference='none', provisional=False, unreviewed=True, tripwire=False, requires='', notes=('The one metric in the panel that went through NO adversarial pass.',), sweep=None)}*
 
 The panel. Order is display order; the ledger sorts keys anyway.
 
-### an.bench.registry.MUTATIONS *: tuple[str, ...]* *= ('high_crf', 'disabled_aa', 'supersample')*
+### an.bench.registry.MUTATIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('high_crf', 'disabled_aa', 'supersample')*
 
 an
 encoder lever cannot touch a golden-frame metric because the corpus is
@@ -10236,11 +10236,11 @@ that gets found before it is believed.
 
 ### *class* an.bench.registry.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One row of the panel.
 
-#### requires *: str*
+#### requires *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 What a scene must HAVE for this row to exist at all, or `""` when the
 row applies to every scene (an#111).
@@ -10256,26 +10256,26 @@ Declared rather than hardcoded in the test, so the panel rule keeps
 naming its own exceptions instead of a test file carrying a list the
 registry does not know about.
 
-#### sweep *: [Sweep](_autosummary/an.bench.registry.html.md#an.bench.registry.Sweep) | None*
+#### sweep *: [Sweep](_autosummary/an.bench.registry.html.md#an.bench.registry.Sweep) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Set only on a hard-threshold counter (an#140); see [`Sweep`](_autosummary/an.bench.registry.html.md#an.bench.registry.Sweep).
 
 ### *class* an.bench.registry.Optimum(kind, expect=None, note='')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Which way “better” points, and whether the optimum is interior.
 
 ### *class* an.bench.registry.Prediction(expect, counts=False, gate=None, reason='', reference=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What one metric is expected to do under one mutation, declared in advance.
 
 `expect=None` means **gated**: the number is uninterpretable rather than
 good or bad, and `gate` says why. It is not “no change”.
 
-### an.bench.registry.REFERENCE_NOTE *: dict[str, str]* *= {'lossless': 'the decode of a -qp 0 encode — the plane libx264 received', 'none': 'a property of the encoded file, not a comparison', 'source_png': 'an explicit RGB->YUV conversion of the pre-encode PNGs'}*
+### an.bench.registry.REFERENCE_NOTE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'lossless': 'the decode of a -qp 0 encode — the plane libx264 received', 'none': 'a property of the encoded file, not a comparison', 'source_png': 'an explicit RGB->YUV conversion of the pre-encode PNGs'}*
 
 What an encode-side metric is measured AGAINST. Two answers, and the choice
 is per metric rather than global:
@@ -10299,7 +10299,7 @@ build-dependent (exact on ffmpeg 8.1, mean 0.63 / max 5 on the Linux
 runner’s older build). It is recorded per metric so a reader can tell which
 numbers carry that term.
 
-### an.bench.registry.REFUSED_LEVERS *: dict[str, str]* *= {'flat_camera': 'a compile-time change to the plane-compensation channels, refused at comparability for the same reason as \`step_hz\`; the parallax claim is carried render-side by \`stage_min_plane_ratio_gap\` (an#111).', 'pix_fmt': "4:2:0 -> 4:4:4 at fixed CRF fails its own exam on the machine it was designed on, not only on Linux (an#72). Re-measured 2026-09-30 on macOS/arm64, ffmpeg 9.0.1, lossless leg tracking the delivered format (an#138) and with an#140's robustness gate: the three-family criterion is met on 1 of 10 scenes (\`dialogue\`); the pre-an#138 'four scenes' was taken against a contaminated reference. Three reasons, each measured: (1) the lever is not one variable — at fixed CRF 4:4:4 encodes at a coarser quantiser (I-frame Avg QP +2.9 to +9.5) and spends fewer bits, so every encode-side direction is the sum of two opposed effects; (2) family D cannot carry it — the flat-field deviation distributions CROSS (16 of 18 scene x dilate cells on the six lever scenes), so its direction is \`unstable\` over its own tol/dilate grid on 5 of 10 scenes; (3) family E's held mask is derived from the lossless leg, which moves with the format (0.02-2.65% of held pixels), so E has no fixed mask under this lever. The one witness whose subject IS chroma, \`chroma_edge_dCr\`, references \`source_png\` and may not count. The knob ships (\`an render --pix-fmt\`); a QUANTISER-matched lever is the route the evidence leaves open.", 'step_hz': 'moves \`scene_contract_sha256\` on every scene with a tween, so \`bench-compare\` refuses the row before any family is examined; the instrument is per-frame and stepping is a temporal choice (an#89).'}*
+### an.bench.registry.REFUSED_LEVERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'flat_camera': 'a compile-time change to the plane-compensation channels, refused at comparability for the same reason as \`step_hz\`; the parallax claim is carried render-side by \`stage_min_plane_ratio_gap\` (an#111).', 'pix_fmt': "4:2:0 -> 4:4:4 at fixed CRF fails its own exam on the machine it was designed on, not only on Linux (an#72). Re-measured 2026-09-30 on macOS/arm64, ffmpeg 9.0.1, lossless leg tracking the delivered format (an#138) and with an#140's robustness gate: the three-family criterion is met on 1 of 10 scenes (\`dialogue\`); the pre-an#138 'four scenes' was taken against a contaminated reference. Three reasons, each measured: (1) the lever is not one variable — at fixed CRF 4:4:4 encodes at a coarser quantiser (I-frame Avg QP +2.9 to +9.5) and spends fewer bits, so every encode-side direction is the sum of two opposed effects; (2) family D cannot carry it — the flat-field deviation distributions CROSS (16 of 18 scene x dilate cells on the six lever scenes), so its direction is \`unstable\` over its own tol/dilate grid on 5 of 10 scenes; (3) family E's held mask is derived from the lossless leg, which moves with the format (0.02-2.65% of held pixels), so E has no fixed mask under this lever. The one witness whose subject IS chroma, \`chroma_edge_dCr\`, references \`source_png\` and may not count. The knob ships (\`an render --pix-fmt\`); a QUANTISER-matched lever is the route the evidence leaves open.", 'step_hz': 'moves \`scene_contract_sha256\` on every scene with a tween, so \`bench-compare\` refuses the row before any family is examined; the instrument is per-frame and stepping is a temporal choice (an#89).'}*
 
 Levers that were TRIED and refused, each with the measured reason — data, so
 `an bench --mutation <name>` answers with the reason instead of “unknown”,
@@ -10308,13 +10308,13 @@ pulled, never predicted for; disjoint from `MUTATIONS` by test.
 
 ### *exception* an.bench.registry.RegistryError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A metric declaration violates one of the table’s invariants.
 
 ### *class* an.bench.registry.Sweep(grid, shipped)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The grid of a threshold counter’s OWN free parameters its verdict is checked on.
 
@@ -10323,14 +10323,14 @@ SHOULD carry a sweep: a sweep deleted from a row is then refused by
 `an bench-compare` instead of silently reading as “never had one” (an#140).
 `shipped` names the cell that IS the metric’s value.
 
-### an.bench.registry.TRIPWIRES *: dict[str, [MetricSpec](_autosummary/an.bench.registry.html.md#an.bench.registry.MetricSpec)]* *= {'golden_identity': MetricSpec(key='golden_identity', family='B', unit='boolean', optimum=Optimum(kind='guard', expect=None, note='Full-frame, never edge-masked.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='the corpus is UPSTREAM of the encoder; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason='it FAILS — a change detector firing, not a quality measurement, which is why it counts ZERO. Spelled \`decrease\` (True -> False) rather than \`no_change\`: the prediction was \`no_change\` while this very sentence said it fails, so the row reported \`unexpected_movement\` on every scene for a tripwire doing exactly its job. Found by \`an bench-compare\` (an#41).', reference=None), 'supersample': Prediction(expect='decrease', counts=False, gate=None, reason='it FAILS — \`True -> False\` — on all six scenes, because a block-mean resolve changes pixels on all six and the committed baseline is \`True\` on all six. A change detector firing, not a quality measurement, which is why it counts ZERO — and under THIS lever that distinction is the whole point: the tripwire fires identically for an improvement and for a regression, so it can never be the evidence that a supersample was worth shipping. Spelled \`decrease\` rather than \`no_change\` for the reason recorded beside \`disabled_aa\`.', reference=None)}, sentence="Today's frame is pixel-for-pixel the committed golden frame.", role=None, reference='none', provisional=False, unreviewed=False, tripwire=True, requires='', notes=('Compare sha256 of DECODED pixels, never file bytes: Chromium 1187 -> 1223 changes 144/144 PNG files and zero pixels.',), sweep=None)}*
+### an.bench.registry.TRIPWIRES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [MetricSpec](_autosummary/an.bench.registry.html.md#an.bench.registry.MetricSpec)]* *= {'golden_identity': MetricSpec(key='golden_identity', family='B', unit='boolean', optimum=Optimum(kind='guard', expect=None, note='Full-frame, never edge-masked.'), predictions={'high_crf': Prediction(expect='not_applicable', counts=False, gate=None, reason='the corpus is UPSTREAM of the encoder; no encode change can reach it', reference=None), 'disabled_aa': Prediction(expect='decrease', counts=False, gate=None, reason='it FAILS — a change detector firing, not a quality measurement, which is why it counts ZERO. Spelled \`decrease\` (True -> False) rather than \`no_change\`: the prediction was \`no_change\` while this very sentence said it fails, so the row reported \`unexpected_movement\` on every scene for a tripwire doing exactly its job. Found by \`an bench-compare\` (an#41).', reference=None), 'supersample': Prediction(expect='decrease', counts=False, gate=None, reason='it FAILS — \`True -> False\` — on all six scenes, because a block-mean resolve changes pixels on all six and the committed baseline is \`True\` on all six. A change detector firing, not a quality measurement, which is why it counts ZERO — and under THIS lever that distinction is the whole point: the tripwire fires identically for an improvement and for a regression, so it can never be the evidence that a supersample was worth shipping. Spelled \`decrease\` rather than \`no_change\` for the reason recorded beside \`disabled_aa\`.', reference=None)}, sentence="Today's frame is pixel-for-pixel the committed golden frame.", role=None, reference='none', provisional=False, unreviewed=False, tripwire=True, requires='', notes=('Compare sha256 of DECODED pixels, never file bytes: Chromium 1187 -> 1223 changes 144/144 PNG files and zero pixels.',), sweep=None)}*
 
 Tripwires. A separate block from `METRICS` because they count ZERO toward
 any criterion — they fire on improvements and regressions alike.
 
 ### *class* an.bench.registry.Touch(path, differs_only_in=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One environment key a lever is expected to change, and HOW.
 
@@ -10346,7 +10346,7 @@ any difference is the lever’s, which is right for an opaque digest.
 True when the observed difference is the one this lever makes.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
 # _autosummary/an.bench.run.html.md
@@ -10397,33 +10397,33 @@ dependence, and it belongs in provenance rather than inside a gate.
 
 ### *exception* an.bench.run.BenchError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The bench could not produce a row it would be honest to file.
 
-### an.bench.run.GOLDEN_METRIC_KEY *: str* *= 'min_ssim_win8_vs_golden'*
+### an.bench.run.GOLDEN_METRIC_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'min_ssim_win8_vs_golden'*
 
 Family B’s two rows, one in each block. Named here because the golden result
 fills both from one comparison, and a reader has to be able to see that the
 boolean and the number are the same evidence read two ways.
 
-### an.bench.run.JUST_BLESSED_DETAIL *: str* *= 'this run WROTE these goldens, so comparing against them is a tautology: the identity holds by construction and no code could have failed it. Run \`an bench\` again, without --bless, for a comparison that can fail.'*
+### an.bench.run.JUST_BLESSED_DETAIL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'this run WROTE these goldens, so comparing against them is a tautology: the identity holds by construction and no code could have failed it. Run \`an bench\` again, without --bless, for a comparison that can fail.'*
 
 Said when a run blessed the goldens it would otherwise have compared against.
 
-### an.bench.run.MIN_PINNED_FRAMES_FOR_PAIRWISE *: int* *= 2*
+### an.bench.run.MIN_PINNED_FRAMES_FOR_PAIRWISE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 A pairwise minimum needs two frames; every fixture pins at least two, so on
 a real capture this row is always measured (the render-side panel may not
 be null — `tests/test_bench_capture.py`).
 
-### an.bench.run.STAGE_METRIC_KEY *: str* *= 'stage_min_plane_ratio_gap'*
+### an.bench.run.STAGE_METRIC_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage_min_plane_ratio_gap'*
 
 The pan measurement (an#111). Metric and tripwire come from ONE measurement,
 as the golden pair does: the boolean and the number must be the same evidence
 read two ways, or a reader has to reconcile them.
 
-### an.bench.run.STAGE_MIN_RATIO_GAP *: float* *= 0.1875*
+### an.bench.run.STAGE_MIN_RATIO_GAP *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1875*
 
 The floor the tripwire fires below, set at HALF the first bless’s measured
 minimum — the `expression_min_pairwise_changed_px` precedent followed
@@ -10447,14 +10447,14 @@ longer depend on it, and the number is kept because it is the thing that
 will explain a future cross-build surprise.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.run.format_panel(ledger)
 
 A human-readable digest of a row — the thing `an bench` prints.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.run.lossless_reference(frames_dir, fps, out, , delivered)
 
@@ -10501,7 +10501,7 @@ conditional: it is the whole of the fix, and a guard for it must not have to
 render the corpus to reach it.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.run.pinned_frames_min_pairwise_changed_px(capture, times)
 
@@ -10535,7 +10535,7 @@ bless test did exactly that, replacing a real bless record’s reason with the
 test’s own.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.run.shot_policy_provenance(shots)
 
@@ -10563,7 +10563,7 @@ Additive scene-provenance facts read off each staged `scene_json`’s
 ```
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `Any`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.bench.run.viseme_keyframes_per_second(scene_json)
 
@@ -10582,7 +10582,7 @@ shapes. Recorded as provenance rather than a panel metric because no lever
 in the registry moves it.
 
 * **Return type:**
-  `float` | `None`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> viseme_keyframes_per_second({"animations": {}})
@@ -10655,11 +10655,11 @@ plane panning partly off-canvas biases its centroid — measured, that read a
 
 ### *class* an.bench.stage.PanMeasurement(tracks, reference)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a pan did, plane by plane.
 
-#### *property* is_rigid *: bool*
+#### *property* is_rigid *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 True when every plane moved by the same amount — the null
 hypothesis, and what a stage with no parallax looks like.
@@ -10679,7 +10679,7 @@ True
 False
 ```
 
-#### *property* ratios *: dict[str, float]*
+#### *property* ratios *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 `{plane: Δ_i / Δ_ref}`. A rigid stage gives 1.0 for every plane.
 
@@ -10689,7 +10689,7 @@ False
 {'a': 0.25, 'b': 1.0}
 ```
 
-#### reference *: str*
+#### reference *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 always the largest mover, so
 the JSON and pixel halves agree and the number does not depend on what
@@ -10700,17 +10700,17 @@ a descriptor declares (`_reference()`).
 
 ### *class* an.bench.stage.PlaneTrack(name, dx, dy, depth=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One plane’s displacement between the two probed times.
 
-#### depth *: float | None*
+#### depth *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The declared parallax factor, when the caller knows it.
 
 ### *exception* an.bench.stage.RotatingCamera
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The camera rolls, so a per-axis ratio is not a depth ratio.
 
@@ -10751,7 +10751,7 @@ means two planes moved together, which on a stage that declares distinct
 depths means the parallax flattened.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> min_ratio_gap({"far": 0.25, "mid": 1.0, "near": 2.0})
@@ -10770,7 +10770,7 @@ per colour, compared exactly, so a plane’s mask cannot pick up an
 anti-aliased edge pixel from its neighbour.
 
 * **Return type:**
-  `dict`[`str`, `tuple`[`float`, `float`, `int`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 
 # _autosummary/an.captions.html.md
@@ -10872,24 +10872,24 @@ adapter owns the body schema), so it is not written here.
 | [`CaptionTimingWarning`](_autosummary/an.captions.html.md#an.captions.CaptionTimingWarning) | A line is captioned on estimated timing, or not at all.         |
 | [`CaptionWarning`](_autosummary/an.captions.html.md#an.captions.CaptionWarning)       | Captions were built, but not everything was captioned as asked. |
 
-### an.captions.CAPTION_ID_PREFIX *: str* *= 'caption_'*
+### an.captions.CAPTION_ID_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'caption_'*
 
 A caption page’s entity id is this plus its index within the shot.
 
-### an.captions.CAPTION_PROP_REF *: str* *= 'an.captions'*
+### an.captions.CAPTION_PROP_REF *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.captions'*
 
 The props-store key the caption blocks resolve against — a style-only
 `TextDescriptor` supplied at render time, never stored in the project.
 
 ### *exception* an.captions.CaptionError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 Captions cannot be built as asked. Carries the fix.
 
 ### *class* an.captions.CaptionPage(shot, start, end, lines, word_frames, speaker=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One caption as shown: which shot, which frames, which words.
 
@@ -10898,7 +10898,7 @@ the first that does not. `lines` are the words per line, broken by
 [`wrap_words()`](_autosummary/an.captions.html.md#an.captions.wrap_words); `word_frames[j]` is the frame word `j` (in reading
 order) starts being spoken, clamped into the page.
 
-#### *property* text *: str*
+#### *property* text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 words joined by spaces, lines by
 newlines.
@@ -10906,7 +10906,7 @@ newlines.
 * **Type:**
   The page as both outputs write it
 
-#### *property* words *: tuple[str, ...]*
+#### *property* words *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
 
 Every word of the page, in reading order.
 
@@ -10918,13 +10918,13 @@ A line is captioned on estimated timing, or not at all.
 
 ### *exception* an.captions.CaptionWarning
 
-Bases: `UserWarning`
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 Captions were built, but not everything was captioned as asked.
 
 ### *class* an.captions.Cue(index, start, end, text)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One SubRip cue — `mixing.srt.Cue`’s fields, in its order.
 
@@ -10933,7 +10933,7 @@ One SubRip cue — `mixing.srt.Cue`’s fields, in its order.
 1.5
 ```
 
-#### *property* duration *: float*
+#### *property* duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Cue duration in seconds (never negative).
 
@@ -10945,7 +10945,7 @@ A cue starts on the film frame that first shows its page and ends on the
 first that does not — the same frames the picture shows it on.
 
 * **Return type:**
-  `list`[[`Cue`](_autosummary/an.captions.html.md#an.captions.Cue)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.captions.html.md#an.captions.Cue)]
 
 ### an.captions.caption_pages(scene, , fps, captions=None)
 
@@ -10962,7 +10962,7 @@ the next, and a fade takes the burned caption through the colour with the
 rest of the picture, while the sidecar’s cue is simply on.
 
 * **Return type:**
-  `list`[[`CaptionPage`](_autosummary/an.captions.html.md#an.captions.CaptionPage)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CaptionPage`](_autosummary/an.captions.html.md#an.captions.CaptionPage)]
 
 ### an.captions.captioned_shot(shot, pages, captions, , fps, mall, shot_index=None, base_dir=None, resolution=None)
 
@@ -10981,14 +10981,14 @@ naming the shot and the words — before a browser launches, rather than
 from inside a shot’s compile after others have rendered.
 
 * **Return type:**
-  `tuple`[[`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot), `dict`[`str`, `Any`]]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.captions.dump_srt(cues)
 
 Serialize cues to SubRip text, renumbering from 1.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> print(dump_srt([Cue(7, 1.0, 2.5, "Hello\nthere")]))
@@ -11004,7 +11004,7 @@ Split `words` into pages of at most `max_lines` wrapped lines, a new
 page starting after each sentence end. Returns index ranges.
 
 * **Return type:**
-  `list`[`range`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
 
 ```pycon
 >>> paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)
@@ -11016,7 +11016,7 @@ page starting after each sentence end. Returns index ranges.
 `HH:MM:SS,mmm`, milliseconds ROUNDED with carry; negatives clamp to 0.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> seconds_to_srt_time(2592.187), seconds_to_srt_time(-3)
@@ -11028,7 +11028,7 @@ page starting after each sentence end. Returns index ranges.
 The SubRip sidecar of `scene` rendered at `fps`.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot, Transition, WordTimingIR
@@ -11053,7 +11053,7 @@ Greedy line breaks at `max_chars` characters (spaces counted); a word
 longer than a line gets a line of its own and is never split.
 
 * **Return type:**
-  `list`[`list`[`str`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> wrap_words("the quick brown fox jumps".split(), 10)
@@ -11107,7 +11107,7 @@ overwrite_eyes: replace hand-drawn eye parts with the synthesized outline
 > and filled lid (refused otherwise — a promoted rig’s eyes are not the
 > factory’s to redraw)
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.add_views(name, out_dir='')
 
@@ -11121,7 +11121,7 @@ name: character id
 out_dir: parent directory; defaults to ./assets/characters
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.contract()
 
@@ -11133,7 +11133,7 @@ contract that disagrees with its checker is worse than none, because it
 gets a human paid for work that cannot land.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.mouths(name, out_dir='', palette='', variants='happy,sad')
 
@@ -11150,7 +11150,7 @@ palette: optional JSON string to override colors, e.g. ‘{“lip”:”#a44”}
 variants: comma-separated mouth forms (see `an character new`); “” = none
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
@@ -11191,7 +11191,7 @@ views: draw the turnaround — back, side (a profile facing right) and
 > three_quarter beside the front, as a `view` swap set (offline head
 > only), so `play: turn` can turn the character (an#197)
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.preview(name, out_dir='', open_browser=False)
 
@@ -11207,7 +11207,7 @@ out_dir: parent directory; defaults to ./assets/characters
 open_browser: also open the file in the default browser
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.record(name, out_dir='', output='', duration=8.0, width=640, height=480)
 
@@ -11223,7 +11223,7 @@ duration: recording length in seconds (default 8)
 width / height: video resolution (default 640x480)
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.silhouette(name, other='', out_dir='', output='', size=512)
 
@@ -11239,7 +11239,7 @@ output: output PNG path; defaults to <character_dir>/silhouette.png
 size: square output size in pixels (default 512)
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.cli.validate(name, out_dir='')
 
@@ -11249,7 +11249,7 @@ name: character id
 out_dir: parent directory; defaults to ./assets/characters
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.characters.colour_roles.html.md
@@ -11306,7 +11306,7 @@ the compiler says so.
 
 `{part path: {"#rrggbb": role}}` — the descriptor field’s shape.
 
-alias of `dict`[`str`, `dict`[`str`, `str`]]
+alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.characters.colour_roles.distinct_literal(colour, taken)
 
@@ -11318,7 +11318,7 @@ can a role and an untagged detail (a shoe, an outline) that happens to share
 it. One step in one channel is invisible and makes the key exact.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> distinct_literal("#222222", {"#222222"})
@@ -11334,7 +11334,7 @@ it. One step in one channel is invisible and makes the key exact.
 `'#ABC'` -> `'#aabbcc'`: the one spelling a literal is keyed by.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> normalise_hex("#A83249"), normalise_hex("#fa0")
@@ -11356,7 +11356,7 @@ length-insensitively (`#FA0` is `#ffaa00`). Deterministic, and cached by
 content: the same text and swaps are rewritten once per process.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> recolour_svg('<g style="fill:#fa0;stroke:#000"><use href="#fa0"/></g>',
@@ -11375,7 +11375,7 @@ unset keeps its literal, and a role set to the colour it already has is not
 a swap — so a pack that changes nothing produces nothing to rewrite.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> role_recolouring({"#a83249": "clothing", "#3b2a1a": "hair"},
@@ -11453,7 +11453,7 @@ All 27 styles stay requestable; only the default moves. See
 
 Fetch an avatar SVG from DiceBear’s HTTP API.
 
-Returns the SVG string. Raises `RuntimeError` if the API call
+Returns the SVG string. Raises [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError) if the API call
 fails (network error, HTTP error, non-SVG response).
 
 The URL pattern is:
@@ -11466,7 +11466,7 @@ Pass `extra_params` to forward style-specific options (e.g.
 `backgroundColor=transparent`).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.dicebear.wrap_dicebear_for_an(avatar_svg, , name, canvas_size=1024, head_size=600)
 
@@ -11482,7 +11482,7 @@ The user can later replace any part by dropping a hand-drawn SVG into
 scales accordingly.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.characters.factory.html.md
@@ -11542,13 +11542,13 @@ problem routes the way every other verifier’s does (an#78).
 | [`BodyBuild`](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)([torso_size, torso_radius, ...])   | The proportions of a synthesized body, in view_box units.   |
 |-----------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 
-### an.characters.factory.BUILDS *: dict[str, [BodyBuild](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)]* *= {'regular': BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), 'squat': BodyBuild(torso_size=(300, 220), torso_radius=80, torso_inset_bottom=4, arm_width=36, arm_length=140, hand_radius=18, limb_stroke=4, leg_width=50, leg_length=96, shoe_size=(34, 16), shoulder=(118, 168), hip_x=46, neck_height=214), 'stick': BodyBuild(torso_size=(170, 210), torso_radius=14, torso_inset_bottom=4, arm_width=10, arm_length=200, hand_radius=9, limb_stroke=3, leg_width=10, leg_length=230, shoe_size=(15, 7), shoulder=(82, 188), hip_x=28, neck_height=214), 'tall': BodyBuild(torso_size=(224, 320), torso_radius=36, torso_inset_bottom=4, arm_width=32, arm_length=320, hand_radius=18, limb_stroke=4, leg_width=36, leg_length=380, shoe_size=(30, 16), shoulder=(80, 304), hip_x=44, neck_height=324)}*
+### an.characters.factory.BUILDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [BodyBuild](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)]* *= {'regular': BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), 'squat': BodyBuild(torso_size=(300, 220), torso_radius=80, torso_inset_bottom=4, arm_width=36, arm_length=140, hand_radius=18, limb_stroke=4, leg_width=50, leg_length=96, shoe_size=(34, 16), shoulder=(118, 168), hip_x=46, neck_height=214), 'stick': BodyBuild(torso_size=(170, 210), torso_radius=14, torso_inset_bottom=4, arm_width=10, arm_length=200, hand_radius=9, limb_stroke=3, leg_width=10, leg_length=230, shoe_size=(15, 7), shoulder=(82, 188), hip_x=28, neck_height=214), 'tall': BodyBuild(torso_size=(224, 320), torso_radius=36, torso_inset_bottom=4, arm_width=32, arm_length=320, hand_radius=18, limb_stroke=4, leg_width=36, leg_length=380, shoe_size=(30, 16), shoulder=(80, 304), hip_x=44, neck_height=324)}*
 
 Named builds. `regular` is today’s body, number for number.
 
 ### *class* an.characters.factory.BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The proportions of a synthesized body, in view_box units.
 
@@ -11558,67 +11558,67 @@ disagree — a leg’s art is exactly `leg_length` tall and its bone sits
 `leg_length` above the ground, so it hangs from the hip to the ground at
 every build (tests/test_rig_layout.py).
 
-#### arm_width *: float* *= 36*
+#### arm_width *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 36*
 
 Sleeve thickness and the arm canvas’s length (sleeve + hand).
 
-#### hip_x *: float* *= 50*
+#### hip_x *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 50*
 
 The hip joints’ distance from the centre line.
 
-#### neck_height *: float* *= 260*
+#### neck_height *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 260*
 
 The neck’s height above the hip; the head hangs above it.
 
-#### shoulder *: tuple[float, float]* *= (90, 240)*
+#### shoulder *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (90, 240)*
 
 The shoulder joint (x from the centre line, height above the hip).
 
-#### torso_inset_bottom *: float* *= 20*
+#### torso_inset_bottom *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20*
 
 The gap between the drawn body and the canvas bottom (the hip). The
 regular body’s 20 leaves a sliver between body and legs; the other
 builds close it.
 
-#### torso_size *: tuple[float, float]* *= (256, 256)*
+#### torso_size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (256, 256)*
 
 Torso canvas; the drawn body is inset 20 on every side, and the canvas
 bottom sits on the hip.
 
-### an.characters.factory.DFLT_HAND_COLOUR *: str* *= '#f1c9a5'*
+### an.characters.factory.DFLT_HAND_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#f1c9a5'*
 
 Default hand, trouser and brow colours — the literals the factory always drew.
 
-### an.characters.factory.EYE_CANVAS *: tuple[int, int]* *= (64, 32)*
+### an.characters.factory.EYE_CANVAS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (64, 32)*
 
 The eye’s geometry in its 64x32 canvas, shared by the four synthesizers so
 the sclera, the pupil and the lid outline agree (an#99).
 
-### an.characters.factory.FACE_SLOTS *: tuple[str, ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
+### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
 
 The face slots of the default rig with the eye stack (an#99).
 
-### an.characters.factory.GAZE_PARTS *: tuple[str, ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
+### an.characters.factory.GAZE_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
 
 The parts a rig gains with `an character add-gaze`. Optional — never in
 `REQUIRED_PARTS`: a pre-Wave-6 rig without them still renders, and gaze is
 a no-op on it.
 
-### an.characters.factory.HATS *: tuple[str, ...]* *= ('none', 'cap', 'beanie', 'bowler', 'bicorne')*
+### an.characters.factory.HATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('none', 'cap', 'beanie', 'bowler', 'bicorne')*
 
 The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.
 
-### an.characters.factory.HEAD_ART_ROLES *: frozenset[str]* *= frozenset({'hair', 'skin'})*
+### an.characters.factory.HEAD_ART_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'hair', 'skin'})*
 
 The roles a head’s own art carries. On a head the factory did not draw
 (DiceBear) they are left untagged everywhere, never half-tagged.
 
-### an.characters.factory.MAX_HEAD_SCALE *: float* *= 2.5*
+### an.characters.factory.MAX_HEAD_SCALE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.5*
 
 The largest head scale accepted — past it the head no longer fits the
 1024-unit view box above a regular body.
 
-### an.characters.factory.OUTLINE_COLOUR *: str* *= '#222222'*
+### an.characters.factory.OUTLINE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#222222'*
 
 it is the
 drawing’s ink, not a costume colour.
@@ -11626,22 +11626,22 @@ drawing’s ink, not a costume colour.
 * **Type:**
   The outline every synthesized body part is stroked in. Untagged
 
-### an.characters.factory.PALETTE_ROLES *: tuple[str, ...]* *= ('skin', 'hair', 'clothing', 'leg', 'accessory')*
+### an.characters.factory.PALETTE_ROLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('skin', 'hair', 'clothing', 'leg', 'accessory')*
 
 The roles `new_character(palette=...)` takes. They are `StylePack` role
 names on purpose: a palette chosen at authoring time and a pack applied at
 compile time speak one vocabulary, and the factory records each as a colour
 role so the pack can reach what the palette drew.
 
-### an.characters.factory.PUPIL_COLOUR *: str* *= '#1a1a1a'*
+### an.characters.factory.PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 The pupil, in its own part (or the pre-gaze open eye). Role `pupil`.
 
-### an.characters.factory.SHOE_COLOUR *: str* *= '#1a1a1a'*
+### an.characters.factory.SHOE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 The shoe, drawn in the leg part. Untagged.
 
-### an.characters.factory.SIDE_EYE_SHIFT *: float* *= 14.0*
+### an.characters.factory.SIDE_EYE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 14.0*
 
 how far the near eye, its stack and brow slide toward
 the face’s edge, and the mouth with them (view_box units at head_scale 1);
@@ -11650,7 +11650,7 @@ the mouth is narrowed, seen edge-on.
 * **Type:**
   Profile (facing right)
 
-### an.characters.factory.SIDE_LEG_OFFSET *: float* *= 0.25*
+### an.characters.factory.SIDE_LEG_OFFSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
 
 both hang from under the body, the near leg
 (`leg_r`, drawn over the far one) a little forward and the far leg a
@@ -11663,7 +11663,7 @@ has two legs to alternate (an#203).
 * **Type:**
   Profile legs (facing right)
 
-### an.characters.factory.THREE_QUARTER_FACE_SHIFT *: float* *= 20.0*
+### an.characters.factory.THREE_QUARTER_FACE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20.0*
 
 the whole face slides toward the facing side,
 the far eye narrows, the far arm tucks in toward the body and the legs in.
@@ -11694,7 +11694,7 @@ fatal under `strict_assets` — every existing character would stop
 rendering on the bench.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.factory.add_views(char_dir)
 
@@ -11717,7 +11717,7 @@ views exactly as it recolours the front (an#191). The existing art is not
 touched: a shot that never sets a view renders byte-identically.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.factory.declare_mouth_variants(descriptor, variants)
 
@@ -11727,7 +11727,7 @@ default skin’s `mouth` slot with the neutral mouth’s geometry. The
 neutral set is the SSOT for which shapes exist; a variant mirrors it.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.factory.gaze_travel_for(rx=14, ry=10, pupil_r=5)
 
@@ -11738,7 +11738,7 @@ of that circle (`GAZE_ELLIPSE_MARGIN`), which is what keeps the pupil disc
 inside the white at every angle without a runtime mask.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> gaze_travel_for()
@@ -11801,11 +11801,11 @@ Steps:
 
 Returns the path to the created `character.json`.
 
-Raises `FileExistsError` if `out_dir/name` already exists and
+Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#FileExistsError) if `out_dir/name` already exists and
 `overwrite=False`.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.factory.scale_part_files(paths, scale)
 
@@ -11814,7 +11814,7 @@ the compiler draws a part at its own raster size, so that IS its size on
 screen. Missing files are skipped.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
 
@@ -11926,7 +11926,7 @@ list of `[time_s, value]` pairs evaluated in order.
 2.0
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -11942,15 +11942,15 @@ A drawable: an SVG path + anchor point (in 0..1 per-axis units).
 (0.5, 0.78)
 ```
 
-#### anchor *: tuple[float, float]*
+#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where THIS part’s art came from, when it is not the descriptor’s
 `source` — a character composed from several clips, or a carved head
@@ -11959,7 +11959,7 @@ on a CC0 body, credits each (an#220). `None` = the descriptor’s
 reserved part makes the render NOT PUBLISHABLE like any other.
 Omitted from the stored document when unset.
 
-#### width *: float | None*
+#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The size the part draws at, in **view_box units** — the rig’s units,
 the ones `x`/`y` and the bones use (an#220). \*\*A declared size
@@ -11974,7 +11974,7 @@ the art’s aspect; with both, the art is contained in the box
 validate` says when the two aspects disagree. See
 `attachment_box()`.
 
-#### x *: float*
+#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Offset from the slot’s bone, in view_box units.
 
@@ -11998,11 +11998,11 @@ A skeleton joint with a local transform relative to its parent.
 'torso'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pivot *: str | None*
+#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
 
@@ -12034,7 +12034,7 @@ True
 True
 ```
 
-#### asset_sets *: dict[str, dict[str, str]]*
+#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{channel: {key: attachment_name}}` — what a swap key SELECTS, layered
 over `skins`, which is the SSOT for what art EXISTS. The indirection is
@@ -12044,7 +12044,7 @@ are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
 
-#### colour_roles *: dict[str, dict[str, str]]*
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 Which colour literal in which part plays which `StylePack` role —
 `{part path: {"#rrggbb": role}}`, e.g.
@@ -12058,7 +12058,7 @@ Additive: no schema bump, and a descriptor without it reads back as
 untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
 one a pack can set ([`an.styles.REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)).
 
-#### expression_binding *: list[dict[str, Any]] | None*
+#### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How expression axes reach this rig (an#98), as a list of binding dicts —
 `{"axis", "slot", "property", "gain"[, "rig_scaled"]}` for a transform
@@ -12067,7 +12067,7 @@ the default binding derived from the slots the rig has
 ([`an.expression.binding.default_binding()`](_autosummary/an.expression.binding.html.md#an.expression.binding.default_binding)). Additive: no schema bump,
 and a pre-Wave-6 descriptor reads back unchanged.
 
-#### face_overlay *: bool*
+#### face_overlay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether this character’s face is drawn as separate overlay parts
 (eyes, brows, mouth as their own slots — the default) or baked into the
@@ -12081,7 +12081,7 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
-#### gait *: str | None*
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 This character’s default walk `gait` (one of `GAITS`, an#220);
 an author’s `gait` arg overrides it. `None` = `legs` when the rig
@@ -12089,7 +12089,7 @@ builds a leg pair, else `rock`. A robe figure whose leg slots are hem
 halves declares `"hem"` once, here, rather than on every walk.
 Omitted from the stored document when unset.
 
-#### gaze_travel *: dict[str, float] | None*
+#### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
 (an#99): the sclera’s clearance minus the pupil’s radius, written by
@@ -12100,7 +12100,7 @@ inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
 circle, which keeps the whole pupil disc inside the white at every
 angle (a per-axis box pokes out at the diagonal) — no runtime mask.
 
-#### metadata *: dict[str, Any]*
+#### metadata *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
 
 Free-form metadata (dicebear style/seed, etc.). Schema-evolution
 friendly: anything an external tool wants to record can land here.
@@ -12108,7 +12108,7 @@ friendly: anything an external tool wants to record can land here.
 This comment used to say “art license, etc.” — an invitation nothing ever
 took up. Rights live in `source` now, typed, so they can be found.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -12118,9 +12118,9 @@ Override this method to perform additional initialization after `__init__` and `
 This is useful if you want to do some validation that requires the entire model to be initialized.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-#### rest_view *: str | None*
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The view the DEFAULT art is drawn in (an#220) — a declared fact about
 the art, like `face_overlay`. `None` means `DFLT_VIEW`
@@ -12130,7 +12130,7 @@ force before any turn — `walk` swinging its legs rather than lifting
 them — reads it instead of the author passing `view: side` by hand.
 Omitted from the stored document when unset.
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this character’s art came from, and what its licence obliges.
 
@@ -12143,12 +12143,12 @@ Field names match `illustration.ImageResult` exactly, so an adapter is a
 dict copy rather than a rename table — and a rename table is where a field
 quietly stops being carried. Pinned by test.
 
-#### source_svg *: str | None*
+#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
-#### swap_poses *: dict[str, dict[str, dict[str, [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
+#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
 
 {slot:
 SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
@@ -12172,7 +12172,7 @@ schema bump, and a descriptor without it reads back unposed.
 * **Type:**
   {key
 
-#### voice_ref *: str | None*
+#### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
 can override per shot.
@@ -12189,7 +12189,7 @@ A named idle loop (e.g., breath, blink).
 True
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -12205,7 +12205,7 @@ A named outfit/variant: maps slot → {attachment_name → Attachment}.
 'parts/mouth/mouth_a.svg'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -12221,12 +12221,12 @@ A draw-order slot bound to a bone, displaying one attachment at a time.
 'mouth_x'
 ```
 
-#### attachment *: str | None*
+#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Default attachment name; the active attachment can change at runtime
 via animation tracks targeting `slot:<name>.attachment`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -12268,7 +12268,7 @@ at the midpoint, and the intersection-over-union of the foreground (dark)
 pixels is computed.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> # Two identical silhouettes → IoU = 1.0; two empty → 0.0 (no overlap).
@@ -12296,10 +12296,10 @@ it does not fill. The crop rect’s \*\*parent-space origin survives as the
 viewBox’s first two numbers\*\*, so where the part sat relative to its
 siblings is not lost and needs no separate record.
 
-If no match is found, raises `KeyError`.
+If no match is found, raises [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError).
 
 * **Return type:**
-  `ElementTree`
+  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
 
 ### an.characters.extract_pivots(source, , skeleton_id='skeleton')
 
@@ -12311,13 +12311,13 @@ The circle’s `cx`/`cy` is the pivot in the same coordinate system as
 the art (the SVG’s viewBox).
 
 * **Return type:**
-  `dict`[`str`, `tuple`[`float`, `float`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.characters.fetch_dicebear(seed, , style='lorelei', api_version='9.x', timeout_s=10.0, extra_params=None)
 
 Fetch an avatar SVG from DiceBear’s HTTP API.
 
-Returns the SVG string. Raises `RuntimeError` if the API call
+Returns the SVG string. Raises [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError) if the API call
 fails (network error, HTTP error, non-SVG response).
 
 The URL pattern is:
@@ -12330,14 +12330,14 @@ Pass `extra_params` to forward style-specific options (e.g.
 `backgroundColor=transparent`).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.generate_default_mouths(, canvas=(256, 128), palette=None, shapes=('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x'), smile=0.0, form=None)
 
 Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> svgs = generate_default_mouths()
@@ -12403,11 +12403,11 @@ Steps:
 
 Returns the path to the created `character.json`.
 
-Raises `FileExistsError` if `out_dir/name` already exists and
+Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#FileExistsError) if `out_dir/name` already exists and
 `overwrite=False`.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.normalize_svg(source, , fallback_viewbox='0 0 1024 1024')
 
@@ -12417,33 +12417,33 @@ Returns the parsed `ElementTree`. Idempotent: running it twice is a
 no-op on the second pass.
 
 * **Return type:**
-  `ElementTree`
+  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
 
 ### an.characters.promote(project_dir, entity, as_, , source_svg=None, voice_ref=None, use_dicebear=True, overwrite=False)
 
 Promote `entity` from `project_dir`’s inline assets into the mall.
 
 * **Parameters:**
-  * **project_dir** (`str` | `Path`) – Path to an `an` project (must contain `assets/characters/`).
-  * **entity** (`str`) – Inline entity id used inside the scene (the directory under
+  * **project_dir** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)) – Path to an `an` project (must contain `assets/characters/`).
+  * **entity** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Inline entity id used inside the scene (the directory under
     `assets/characters/<entity>`, or the SVG file at
     `assets/characters/<entity>.svg`).
-  * **as_** (`str`) – The mall character id to register the result as. Becomes the
+  * **as_** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The mall character id to register the result as. Becomes the
     directory name under `assets/characters/` and the descriptor’s
     `name` field.
-  * **source_svg** (`str` | `Path` | `None`) – Optional explicit path to a source SVG. If omitted, the function
+  * **source_svg** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – Optional explicit path to a source SVG. If omitted, the function
     looks for `assets/characters/<entity>.svg` or
     `assets/characters/<entity>/<entity>.svg`.
-  * **voice_ref** (`Optional`[`str`]) – Voice reference to embed in the descriptor.
-  * **use_dicebear** (`bool`) – Forwarded to [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on the
+  * **voice_ref** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Voice reference to embed in the descriptor.
+  * **use_dicebear** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – Forwarded to [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on the
     no-source fallback path. Pass `False` to keep the call offline —
     without it that fallback always reaches the DiceBear API, and
     `new_character` swallows the failure and generates geometry instead,
     so an offline test looks like it passed rather than like it was skipped.
-  * **overwrite** (`bool`) – If False and the target already exists, raises `FileExistsError`.
+  * **overwrite** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – If False and the target already exists, raises `FileExistsError`.
   * **character.json.** (*Returns the path to the new*)
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.promote_inkscape_labels_to_ids(tree)
 
@@ -12456,7 +12456,7 @@ and does NOT promote it to `id` on save. This is a long-standing UX
 issue (Inkscape bug #243383); the workaround is to promote at parse time.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.characters.record_character(char_dir, , name=None, out_mp4=None, duration_s=8.0, size=(640, 480))
 
@@ -12466,7 +12466,7 @@ The preview HTML is generated/refreshed via the same writer used by
 `an character preview`, so this command is self-contained.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.record_preview_to_mp4(preview_html, out_mp4, , duration_s=8.0, size=(640, 480), fps=30, crf=23)
 
@@ -12487,7 +12487,7 @@ Both Playwright (project dep) and ffmpeg (system dep, already
 required by the renderer) must be installed.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.render_silhouette(svg_source, out_png, , size=(256, 256), background='#ffffff')
 
@@ -12500,7 +12500,7 @@ The output is RGB; the silhouette is filled with black (#000) and the
 background with the given color.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.validate_character(char_dir, , name=None)
 
@@ -12534,7 +12534,7 @@ Returns the list of paths written: the neutral set in shape order, then
 each variant’s.
 
 * **Return type:**
-  `list`[`Path`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.characters.write_svg(tree_or_element, path=None)
 
@@ -12544,7 +12544,7 @@ Always emits `<?xml version="1.0" encoding="UTF-8"?>` and the SVG
 namespace as the default, so the output is a valid standalone SVG.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### Modules
 
@@ -12653,7 +12653,7 @@ For step: returns the value of the latest frame whose time ≤ `t`.
 For linear: linear interpolation between bracketing frames.
 
 * **Return type:**
-  `object`
+  [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ```pycon
 >>> tr = AnimationTrack(target='bone:torso.y', type='sine', amplitude=2.0)
@@ -12672,7 +12672,7 @@ what the renderer uses today (see the module docstring); kept as the
 candidate for descriptor-driven scheduling.
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> times = random_blink_schedule(20.0, seed=0)
@@ -12721,7 +12721,7 @@ which is why they are their own code here rather than being rounded to one.
 | [`StyleLicense`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.StyleLicense)(license, license_url, author, ...)   | One style's design licence and the credit it obliges.   |
 |----------------------------------------------------------------------------------------------------|---------------------------------------------------------|
 
-### an.characters.licenses.DICEBEAR_STYLE_LICENSES *: dict[str, [StyleLicense](_autosummary/an.characters.licenses.html.md#an.characters.licenses.StyleLicense)]* *= {'adventurer': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Adventurer', 'https://www.figma.com/community/file/1184595184137881796'), 'adventurer-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Adventurer Neutral', 'https://www.figma.com/community/file/1184595184137881796'), 'avataaars': ('free-personal-and-commercial', 'https://avataaars.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://avataaars.com/'), 'avataaars-neutral': ('free-personal-and-commercial', 'https://avataaars.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://avataaars.com/'), 'big-ears': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'The Visual Team', 'https://thevisual.team/', 'Face Generator', 'https://www.figma.com/community/file/986078800058673824'), 'big-ears-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'The Visual Team', 'https://thevisual.team/', 'Face Generator', 'https://www.figma.com/community/file/986078800058673824'), 'big-smile': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Ashley Seo', 'http://www.ashleyseo.com/', 'Custom Avatar', 'https://www.figma.com/community/file/881358461963645496'), 'bottts': ('free-personal-and-commercial', 'https://bottts.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://bottts.com/'), 'bottts-neutral': ('free-personal-and-commercial', 'https://bottts.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://bottts.com/'), 'croodles': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'vijay verma', 'https://vjy.me/', 'Croodles - Doodle your face', 'https://www.figma.com/community/file/966199982810283152'), 'croodles-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'vijay verma', 'https://vjy.me/', 'Croodles - Doodle your face', 'https://www.figma.com/community/file/966199982810283152'), 'dylan': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Natalia Spivak', 'https://nataspvk.tilda.ws/', 'Dylan! The Avatar Generator', 'https://www.figma.com/community/file/1356575240759683500'), 'fun-emoji': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Davis Uche', 'https://www.instagram.com/davedirect3/', 'Fun Emoji Set', 'https://www.figma.com/community/file/968125295144990435'), 'glass': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', 'https://www.dicebear.com', 'Glass', 'https://www.dicebear.com'), 'icons': ('mit', 'https://opensource.org/licenses/MIT', 'The Bootstrap Authors', None, None, None), 'identicon': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'initials': ('mit', 'https://opensource.org/licenses/MIT', 'Florian Körner', None, None, None), 'lorelei': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Lorelei', 'https://www.figma.com/community/file/1198749693280469639'), 'lorelei-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Lorelei Neutral', 'https://www.figma.com/community/file/1198749693280469639'), 'micah': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Micah Lanier', 'https://dribbble.com/micahlanier', 'Avatar Illustration System', 'https://www.figma.com/community/file/829741575478342595'), 'miniavs': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Webpixels', 'https://webpixels.io/', 'Miniavs - Free Avatar Creator', 'https://www.figma.com/community/file/923211396597067458'), 'notionists': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Zoish', 'https://bio.link/heyzoish', 'Notionists', 'https://heyzoish.gumroad.com/l/notionists'), 'notionists-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Zoish', 'https://bio.link/heyzoish', 'Notionists', 'https://heyzoish.gumroad.com/l/notionists'), 'open-peeps': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Pablo Stanley', 'https://twitter.com/pablostanley', 'Open Peeps', 'https://www.openpeeps.com/'), 'personas': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Draftbit', 'https://draftbit.com/', 'Personas by Draftbit', 'https://personas.draftbit.com/'), 'pixel-art': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, 'Pixel Art', 'https://www.figma.com/community/file/1198754108850888330'), 'pixel-art-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, 'Pixel Art Neutral', 'https://www.figma.com/community/file/1198754108850888330'), 'rings': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', 'https://www.dicebear.com', 'Rings', 'https://www.dicebear.com'), 'shapes': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'thumbs': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'toon-head': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Johan Melin', 'https://www.johanmelin.com', 'ToonHead', 'https://www.figma.com/community/file/1589627891082866389')}*
+### an.characters.licenses.DICEBEAR_STYLE_LICENSES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [StyleLicense](_autosummary/an.characters.licenses.html.md#an.characters.licenses.StyleLicense)]* *= {'adventurer': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Adventurer', 'https://www.figma.com/community/file/1184595184137881796'), 'adventurer-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Adventurer Neutral', 'https://www.figma.com/community/file/1184595184137881796'), 'avataaars': ('free-personal-and-commercial', 'https://avataaars.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://avataaars.com/'), 'avataaars-neutral': ('free-personal-and-commercial', 'https://avataaars.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://avataaars.com/'), 'big-ears': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'The Visual Team', 'https://thevisual.team/', 'Face Generator', 'https://www.figma.com/community/file/986078800058673824'), 'big-ears-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'The Visual Team', 'https://thevisual.team/', 'Face Generator', 'https://www.figma.com/community/file/986078800058673824'), 'big-smile': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Ashley Seo', 'http://www.ashleyseo.com/', 'Custom Avatar', 'https://www.figma.com/community/file/881358461963645496'), 'bottts': ('free-personal-and-commercial', 'https://bottts.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://bottts.com/'), 'bottts-neutral': ('free-personal-and-commercial', 'https://bottts.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://bottts.com/'), 'croodles': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'vijay verma', 'https://vjy.me/', 'Croodles - Doodle your face', 'https://www.figma.com/community/file/966199982810283152'), 'croodles-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'vijay verma', 'https://vjy.me/', 'Croodles - Doodle your face', 'https://www.figma.com/community/file/966199982810283152'), 'dylan': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Natalia Spivak', 'https://nataspvk.tilda.ws/', 'Dylan! The Avatar Generator', 'https://www.figma.com/community/file/1356575240759683500'), 'fun-emoji': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Davis Uche', 'https://www.instagram.com/davedirect3/', 'Fun Emoji Set', 'https://www.figma.com/community/file/968125295144990435'), 'glass': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', 'https://www.dicebear.com', 'Glass', 'https://www.dicebear.com'), 'icons': ('mit', 'https://opensource.org/licenses/MIT', 'The Bootstrap Authors', None, None, None), 'identicon': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'initials': ('mit', 'https://opensource.org/licenses/MIT', 'Florian Körner', None, None, None), 'lorelei': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Lorelei', 'https://www.figma.com/community/file/1198749693280469639'), 'lorelei-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Lorelei Neutral', 'https://www.figma.com/community/file/1198749693280469639'), 'micah': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Micah Lanier', 'https://dribbble.com/micahlanier', 'Avatar Illustration System', 'https://www.figma.com/community/file/829741575478342595'), 'miniavs': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Webpixels', 'https://webpixels.io/', 'Miniavs - Free Avatar Creator', 'https://www.figma.com/community/file/923211396597067458'), 'notionists': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Zoish', 'https://bio.link/heyzoish', 'Notionists', 'https://heyzoish.gumroad.com/l/notionists'), 'notionists-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Zoish', 'https://bio.link/heyzoish', 'Notionists', 'https://heyzoish.gumroad.com/l/notionists'), 'open-peeps': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Pablo Stanley', 'https://twitter.com/pablostanley', 'Open Peeps', 'https://www.openpeeps.com/'), 'personas': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Draftbit', 'https://draftbit.com/', 'Personas by Draftbit', 'https://personas.draftbit.com/'), 'pixel-art': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, 'Pixel Art', 'https://www.figma.com/community/file/1198754108850888330'), 'pixel-art-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, 'Pixel Art Neutral', 'https://www.figma.com/community/file/1198754108850888330'), 'rings': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', 'https://www.dicebear.com', 'Rings', 'https://www.dicebear.com'), 'shapes': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'thumbs': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'toon-head': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Johan Melin', 'https://www.johanmelin.com', 'ToonHead', 'https://www.figma.com/community/file/1589627891082866389')}*
 
 style name -> its DESIGN licence. Absent from this table means “unverified”,
 which is refused rather than assumed permissive.
@@ -12731,37 +12731,37 @@ which is refused rather than assumed permissive.
 Pablo Stanley’s own terms. Permissive in effect, not a CC licence, and not
 something to silently relabel as one.
 
-### an.characters.licenses.NO_ATTRIBUTION_REQUIRED *: frozenset[str]* *= frozenset({'cc0-1.0', 'free-personal-and-commercial', 'mit'})*
+### an.characters.licenses.NO_ATTRIBUTION_REQUIRED *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'cc0-1.0', 'free-personal-and-commercial', 'mit'})*
 
 Licences that need no credit from whoever ships the output.
 
 ### *class* an.characters.licenses.StyleLicense(license, license_url, author, author_url, source_title, source_page_url)
 
-Bases: `NamedTuple`
+Bases: [`NamedTuple`](https://docs.python.org/3/library/typing.html#typing.NamedTuple)
 
 One style’s design licence and the credit it obliges.
 
-#### author *: str | None*
+#### author *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Alias for field number 2
 
-#### author_url *: str | None*
+#### author_url *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Alias for field number 3
 
-#### license *: str*
+#### license *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Alias for field number 0
 
-#### license_url *: str | None*
+#### license_url *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Alias for field number 1
 
-#### source_page_url *: str | None*
+#### source_page_url *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Alias for field number 5
 
-#### source_title *: str | None*
+#### source_title *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Alias for field number 4
 
@@ -12775,7 +12775,7 @@ the “Remix of the original” half — which is what discharges CC BY’s
 it genuinely produces a modified work.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.licenses.dicebear_source(style, , seed)
 
@@ -12796,7 +12796,7 @@ An unlisted style counts as requiring acknowledgement — an unverified
 licence is a refusal, not a warning.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
 # _autosummary/an.characters.mouth_set.html.md
@@ -12837,7 +12837,7 @@ True
 | [`mouth_attachment_name`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.mouth_attachment_name)(shape[, form])             | The attachment (and file stem) of one mouth drawing.                                                                                                                                |
 | [`write_default_mouths`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.write_default_mouths)(out_dir, \*[, canvas, ...]) | Write the default mouth SVGs into `out_dir` (created if missing), plus one `mouth_<shape>_<form>.svg` per shape for every `variants` entry (`{form: smile offset}`; `None` = none). |
 
-### an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS *: dict[str, float]* *= {'happy': 0.35, 'sad': -0.35}*
+### an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'happy': 0.35, 'sad': -0.35}*
 
 a
 `viseme@<form>` set per entry, its shapes drawn with this corner upturn
@@ -12848,7 +12848,7 @@ most-authored presets (`happy`/`amused`, `sad`) ask for.
 * **Type:**
   The mouth-form variants a synthesized character gets by default
 
-### an.characters.mouth_set.DEFAULT_MOUTH_VIEWBOX *: tuple[int, int]* *= (256, 128)*
+### an.characters.mouth_set.DEFAULT_MOUTH_VIEWBOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (256, 128)*
 
 Mouth canvas viewBox (width, height) — small per-shape and centered so the
 anchor is always (0.5, 0.5).
@@ -12858,7 +12858,7 @@ anchor is always (0.5, 0.5).
 Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> svgs = generate_default_mouths()
@@ -12873,7 +12873,7 @@ True
 The attachment (and file stem) of one mouth drawing.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> mouth_attachment_name("a"), mouth_attachment_name("a", "happy")
@@ -12890,7 +12890,7 @@ Returns the list of paths written: the neutral set in shape order, then
 each variant’s.
 
 * **Return type:**
-  `list`[`Path`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 
 # _autosummary/an.characters.play.html.md
@@ -13005,14 +13005,14 @@ so an author never passes `rest`.
 | [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError)(animation, problems)   | A `play` that cannot resolve; `problems` lists every reason found.   |
 |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
 
-### an.characters.play.BONE_TRACK_PROPERTIES *: dict[str, tuple[str, float]]* *= {'rotation_deg': ('rotation', 0.017453292519943295), 'scale_x': ('scale_x', 1.0), 'scale_y': ('scale_y', 1.0), 'x': ('x', 1.0), 'y': ('y', 1.0)}*
+### an.characters.play.BONE_TRACK_PROPERTIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'rotation_deg': ('rotation', 0.017453292519943295), 'scale_x': ('scale_x', 1.0), 'scale_y': ('scale_y', 1.0), 'x': ('x', 1.0), 'y': ('y', 1.0)}*
 
 Descriptor bone-track properties → `(runtime property, unit factor)`.
 The descriptor speaks degrees for rotation; the runtime is radians.
 
 ### *class* an.characters.play.BoneTrack(track, slot, property, unit, rig_scaled)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A resolved `bone:<name>.<prop>` track.
 
@@ -13030,7 +13030,7 @@ the entity descriptor’s own `animations`…
 
 ### *class* an.characters.play.Facing(view=None, direction=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What an entity shows at one instant, read off a flat timeline.
 
@@ -13050,11 +13050,11 @@ The bone whose primary slot’s nested slots are the FACE — what
 
 ### *exception* an.characters.play.PlayResolutionError(animation, problems)
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A `play` that cannot resolve; `problems` lists every reason found.
 
-### an.characters.play.RESERVED_PRESET_ARGS *: frozenset[str]* *= frozenset({'parts', 'rest', 'target'})*
+### an.characters.play.RESERVED_PRESET_ARGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'parts', 'rest', 'target'})*
 
 the target is
 the play’s own, and the rest pose is read off the built scene.
@@ -13062,7 +13062,7 @@ the play’s own, and the rest pose is read off the built scene.
 * **Type:**
   Preset parameters an author may NOT pass through `args`
 
-### an.characters.play.RIG_SCALED_PROPERTIES *: frozenset[str]* *= frozenset({'x', 'y'})*
+### an.characters.play.RIG_SCALED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'x', 'y'})*
 
 Bone-track properties whose values are view-box LENGTHS, so a renderer
 scales them by the rig’s view-box → scene-pixel factor. Scales and angles
@@ -13078,11 +13078,11 @@ container node rather than any slot.
 
 ### *class* an.characters.play.ResolvedPlay(animation, tracks)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ### *class* an.characters.play.SlotTrack(track, slot, set_name, frames)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A resolved `slot:<name>.attachment` track: one set, frames as KEYS.
 
@@ -13097,7 +13097,7 @@ knows.
 
 ### *class* an.characters.play.TurnInference(index, start, entity, before, declared=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One `play` of [`TURN_PRESET`](_autosummary/an.characters.play.html.md#an.characters.play.TURN_PRESET) and the state it starts from.
 
@@ -13105,14 +13105,14 @@ One `play` of [`TURN_PRESET`](_autosummary/an.characters.play.html.md#an.charact
 `declared` is the `from_direction` the author passed (`None`: left
 to the timeline).
 
-#### *property* contradicted *: bool*
+#### *property* contradicted *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 The author’s `from_direction` disagrees with the timeline — the
 turn would jump to the other side before it squashes.
 
 ### *class* an.characters.play.TurnResolution(flats, turns, events)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 [`resolve_turns()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns)’ result: `flats` is the input with each turn’s
 inferred `from_direction` filled in; `turns` says what each turn
@@ -13134,14 +13134,14 @@ fake) — a store that can answer nothing must assume presence, not absence,
 exactly as the rig builder’s part probe does.
 
 * **Return type:**
-  `Callable`[[`str`], `bool`] | `None`
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`bool`](https://docs.python.org/3/builtins/functions.html#bool)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.play.drawn_attachment(desc, skin, slot)
 
 The `(name, attachment)` a slot draws by default, or `None`.
 
 * **Return type:**
-  `tuple`[`str`, [`Attachment`](_autosummary/an.characters.schema.html.md#an.characters.schema.Attachment)] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](_autosummary/an.characters.schema.html.md#an.characters.schema.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.play.expand_preset_play(action, , start, rest_of, parts_of=None)
 
@@ -13161,7 +13161,7 @@ A preset that moves several nodes of the entity (it takes `parts`,
 `rest_of` poses, and every node its expansion moves is checked.
 
 * **Return type:**
-  `list`
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ```pycon
 >>> from an.ir.schema import PlayAction
@@ -13200,7 +13200,7 @@ when it can. THE verdict `an validate` reports and the compiler raises
 on, for both sources (an#7, an#166).
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> play_problems(None, "hop", args={"heigth": 3})
@@ -13220,7 +13220,7 @@ Raises [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.charac
 has the name.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.play.preset_moved_node(action_target, animation, args=None)
 
@@ -13229,7 +13229,7 @@ the target itself for the rest. Read off the expansion rather than
 restated per preset, so a preset added later needs no entry here.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")
@@ -13243,7 +13243,7 @@ paths, relative to it) is what a multi-node preset chooses its limbs from;
 `None` lets it assume the rig contract’s names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> preset_moved_nodes("bob", "walk", {"distance": 80}, parts=["torso", "left_leg", "right_leg"])
@@ -13260,7 +13260,7 @@ else the preset’s natural length divided by `speed`. What a
 source.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> from an.ir.schema import PlayAction
@@ -13279,14 +13279,14 @@ building it (at the identity pose), so a value the preset itself refuses —
 `cycles: 0`, a string height — is reported in the preset’s own words.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.characters.play.preset_takes(animation, name)
 
 Whether the motion preset `animation` has the keyword `name`.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> preset_takes("walk", "parts"), preset_takes("hop", "parts")
@@ -13305,7 +13305,7 @@ itself, which is what puts eyes and mouth under `head` and leaves every
 limb a direct child of the entity.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> primary_slot_per_bone(CharacterDescriptor(name="m"))["head"]
@@ -13361,7 +13361,7 @@ that cannot resolve is left for [`play_problems()`](_autosummary/an.characters.p
 descriptor’s own evaluator stays the one definition of a sine track.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.characters.play.sine_sample_times(duration, fps)
 
@@ -13373,7 +13373,7 @@ the cycle-closing sample (equal to the first) was never emitted and the
 clip wrapped with a jump (an#7 review).
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> sine_sample_times(0.19, 24)[-2:]
@@ -13388,7 +13388,7 @@ The node path of a slot RELATIVE to its entity (`head/left_eye`,
 `torso`) — the rig builder’s nesting rule, stated once.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> slot_node_path(CharacterDescriptor(name="m"), "left_eye")
@@ -13402,7 +13402,7 @@ The node path of a slot RELATIVE to its entity (`head/left_eye`,
 The slot `slot` nests under, or `None` when it is a direct child.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.play.suppressed_slots(desc)
 
@@ -13411,7 +13411,7 @@ art (`face_overlay=false`), every slot nested under the HEAD BONE’s
 primary slot — keyed on the bone, not on a slot named “head”.
 
 * **Return type:**
-  `frozenset`[`str`]
+  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> sorted(suppressed_slots(CharacterDescriptor(name="m", face_overlay=False)))
@@ -13452,7 +13452,7 @@ directly.
 
 ### *exception* an.characters.record.PreviewRecordError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when preview recording fails.
 
@@ -13464,7 +13464,7 @@ The preview HTML is generated/refreshed via the same writer used by
 `an character preview`, so this command is self-contained.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.characters.record.record_preview_to_mp4(preview_html, out_mp4, , duration_s=8.0, size=(640, 480), fps=30, crf=23)
 
@@ -13485,7 +13485,7 @@ Both Playwright (project dep) and ffmpeg (system dep, already
 required by the renderer) must be installed.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.characters.schema.html.md
@@ -13604,7 +13604,7 @@ list of `[time_s, value]` pairs evaluated in order.
 2.0
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -13620,15 +13620,15 @@ A drawable: an SVG path + anchor point (in 0..1 per-axis units).
 (0.5, 0.78)
 ```
 
-#### anchor *: tuple[float, float]*
+#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where THIS part’s art came from, when it is not the descriptor’s
 `source` — a character composed from several clips, or a carved head
@@ -13637,7 +13637,7 @@ on a CC0 body, credits each (an#220). `None` = the descriptor’s
 reserved part makes the render NOT PUBLISHABLE like any other.
 Omitted from the stored document when unset.
 
-#### width *: float | None*
+#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The size the part draws at, in **view_box units** — the rig’s units,
 the ones `x`/`y` and the bones use (an#220). \*\*A declared size
@@ -13652,7 +13652,7 @@ the art’s aspect; with both, the art is contained in the box
 validate` says when the two aspects disagree. See
 [`attachment_box()`](_autosummary/an.characters.schema.html.md#an.characters.schema.attachment_box).
 
-#### x *: float*
+#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Offset from the slot’s bone, in view_box units.
 
@@ -13676,11 +13676,11 @@ A skeleton joint with a local transform relative to its parent.
 'torso'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pivot *: str | None*
+#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
 
@@ -13720,7 +13720,7 @@ True
 True
 ```
 
-#### asset_sets *: dict[str, dict[str, str]]*
+#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{channel: {key: attachment_name}}` — what a swap key SELECTS, layered
 over `skins`, which is the SSOT for what art EXISTS. The indirection is
@@ -13730,7 +13730,7 @@ are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
 
-#### colour_roles *: dict[str, dict[str, str]]*
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 Which colour literal in which part plays which `StylePack` role —
 `{part path: {"#rrggbb": role}}`, e.g.
@@ -13744,7 +13744,7 @@ Additive: no schema bump, and a descriptor without it reads back as
 untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
 one a pack can set ([`an.styles.REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)).
 
-#### expression_binding *: list[dict[str, Any]] | None*
+#### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How expression axes reach this rig (an#98), as a list of binding dicts —
 `{"axis", "slot", "property", "gain"[, "rig_scaled"]}` for a transform
@@ -13753,7 +13753,7 @@ the default binding derived from the slots the rig has
 ([`an.expression.binding.default_binding()`](_autosummary/an.expression.binding.html.md#an.expression.binding.default_binding)). Additive: no schema bump,
 and a pre-Wave-6 descriptor reads back unchanged.
 
-#### face_overlay *: bool*
+#### face_overlay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether this character’s face is drawn as separate overlay parts
 (eyes, brows, mouth as their own slots — the default) or baked into the
@@ -13767,7 +13767,7 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
-#### gait *: str | None*
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 This character’s default walk `gait` (one of [`GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS), an#220);
 an author’s `gait` arg overrides it. `None` = `legs` when the rig
@@ -13775,7 +13775,7 @@ builds a leg pair, else `rock`. A robe figure whose leg slots are hem
 halves declares `"hem"` once, here, rather than on every walk.
 Omitted from the stored document when unset.
 
-#### gaze_travel *: dict[str, float] | None*
+#### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
 (an#99): the sclera’s clearance minus the pupil’s radius, written by
@@ -13786,7 +13786,7 @@ inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
 circle, which keeps the whole pupil disc inside the white at every
 angle (a per-axis box pokes out at the diagonal) — no runtime mask.
 
-#### metadata *: dict[str, Any]*
+#### metadata *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
 
 Free-form metadata (dicebear style/seed, etc.). Schema-evolution
 friendly: anything an external tool wants to record can land here.
@@ -13794,7 +13794,7 @@ friendly: anything an external tool wants to record can land here.
 This comment used to say “art license, etc.” — an invitation nothing ever
 took up. Rights live in `source` now, typed, so they can be found.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -13804,9 +13804,9 @@ Override this method to perform additional initialization after `__init__` and `
 This is useful if you want to do some validation that requires the entire model to be initialized.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-#### rest_view *: str | None*
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The view the DEFAULT art is drawn in (an#220) — a declared fact about
 the art, like `face_overlay`. `None` means [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)
@@ -13816,7 +13816,7 @@ force before any turn — `walk` swinging its legs rather than lifting
 them — reads it instead of the author passing `view: side` by hand.
 Omitted from the stored document when unset.
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this character’s art came from, and what its licence obliges.
 
@@ -13829,12 +13829,12 @@ Field names match `illustration.ImageResult` exactly, so an adapter is a
 dict copy rather than a rename table — and a rename table is where a field
 quietly stops being carried. Pinned by test.
 
-#### source_svg *: str | None*
+#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
-#### swap_poses *: dict[str, dict[str, dict[str, [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
+#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
 
 {slot:
 SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
@@ -13858,16 +13858,16 @@ schema bump, and a descriptor without it reads back unposed.
 * **Type:**
   {key
 
-#### voice_ref *: str | None*
+#### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
 can override per shot.
 
-### an.characters.schema.DEFAULT_EYELID_MAP *: dict[str, str]* *= {'CLOSED': 'closed', 'OPEN': 'open'}*
+### an.characters.schema.DEFAULT_EYELID_MAP *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CLOSED': 'closed', 'OPEN': 'open'}*
 
 Default eyelid-state → attachment-name mapping, shared by both eye slots.
 
-### an.characters.schema.DEFAULT_VIEW_BOX *: tuple[int, int, int, int]* *= (0, 0, 1024, 1024)*
+### an.characters.schema.DEFAULT_VIEW_BOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (0, 0, 1024, 1024)*
 
 1024x1024 with feet near y≈980. All parts
 inherit this viewBox at export so PixiJS can use the SVG’s intrinsic
@@ -13876,12 +13876,12 @@ viewBox without a calibration step.
 * **Type:**
   Canonical character viewBox
 
-### an.characters.schema.DEFAULT_VISEME_MAP *: dict[str, str]* *= {'A': 'mouth_a', 'B': 'mouth_b', 'C': 'mouth_c', 'D': 'mouth_d', 'E': 'mouth_e', 'F': 'mouth_f', 'G': 'mouth_g', 'H': 'mouth_h', 'X': 'mouth_x'}*
+### an.characters.schema.DEFAULT_VISEME_MAP *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'mouth_a', 'B': 'mouth_b', 'C': 'mouth_c', 'D': 'mouth_d', 'E': 'mouth_e', 'F': 'mouth_f', 'G': 'mouth_g', 'H': 'mouth_h', 'X': 'mouth_x'}*
 
 Default Rhubarb-letter → mouth-attachment-name mapping. Uppercase keys
 because Rhubarb emits A-X; lowercase attachment names by convention.
 
-### an.characters.schema.DFLT_VIEW *: str* *= 'front'*
+### an.characters.schema.DFLT_VIEW *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'front'*
 
 its default attachments ARE this view.
 A descriptor whose art is drawn in another view says so in `rest_view`.
@@ -13889,7 +13889,7 @@ A descriptor whose art is drawn in another view says so in `rest_view`.
 * **Type:**
   The view a character shows at rest
 
-### an.characters.schema.EYELID_CHANNEL *: str* *= 'eyelid'*
+### an.characters.schema.EYELID_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'eyelid'*
 
 The swap channel blinks drive. One set serves BOTH eye slots because the
 eye slots share per-slot attachment names (`open` / `closed`) — the 0.3.0
@@ -13897,7 +13897,7 @@ migration renamed them from the file-derived `eye_l_open` spelling for
 exactly this: a set’s keys are looked up per slot, so slots that a single
 channel must drive together need attachment names in common.
 
-### an.characters.schema.FACE_OFFSETS *: dict[str, tuple[float, float]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
+### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
 
 Where each face part sits relative to the `head` bone, in view_box units.
 
@@ -13909,7 +13909,7 @@ anchored the head at 0.5); the bone is the NECK, and the head hangs above it
 at [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
 the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
 
-### an.characters.schema.GAITS *: tuple[str, ...]* *= ('legs', 'hem', 'rock')*
+### an.characters.schema.GAITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('legs', 'hem', 'rock')*
 
 `legs`
 swing about the hip in a profile and step up and down facing the camera;
@@ -13920,7 +13920,7 @@ sack) and rocks the body.
 * **Type:**
   How a character walks (`an.motion.walk`’s `gait`, an#220)
 
-### an.characters.schema.HEAD_ANCHOR *: tuple[float, float]* *= (0.5, 0.78)*
+### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
 
 the head hangs above the neck, its lower
 ~fifth overlapping the collar.
@@ -13940,34 +13940,34 @@ A named idle loop (e.g., breath, blink).
 True
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.characters.schema.LEG_LENGTH *: float* *= 300.0*
+### an.characters.schema.LEG_LENGTH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 300.0*
 
 Hip to ground in the default rig, in view_box units. The torso bone (the
 hip) and both leg bones sit this far above the root (the ground contact), so
 a leg drawn this long reaches the ground. The factory draws its legs to it.
 
-### an.characters.schema.MOUTH_SHAPES *: tuple[str, ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
+### an.characters.schema.MOUTH_SHAPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
 
 Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
 are emitted when `--extendedShapes GHX` is on (Rhubarb’s default).
 We always ship all 9 so the renderer never has to fall back.
 
-### an.characters.schema.REFERENCE_HEAD_HEIGHT *: float* *= 285.0*
+### an.characters.schema.REFERENCE_HEAD_HEIGHT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 285.0*
 
 The head height the default face layout is drawn for, in view_box units —
 the pre-Wave-4 compiler’s 96 px head at k = 345/1024. The factory writes its
 head art at this height, so [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS) lands on the face.
 
-### an.characters.schema.REQUIRED_PARTS *: tuple[str, ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
+### an.characters.schema.REQUIRED_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
 
 Required body parts. A character missing any of these can’t be rendered
 as a full puppet; `validate_character` flags the gap.
 
-### an.characters.schema.SLOT_POSE_OFFSETS *: tuple[str, ...]* *= ('x', 'y')*
+### an.characters.schema.SLOT_POSE_OFFSETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y')*
 
 The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an
 OFFSET added to the rest (in view_box units, so scaled by the rig), an
@@ -13985,7 +13985,7 @@ A named outfit/variant: maps slot → {attachment_name → Attachment}.
 'parts/mouth/mouth_a.svg'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -14001,12 +14001,12 @@ A draw-order slot bound to a bone, displaying one attachment at a time.
 'mouth_x'
 ```
 
-#### attachment *: str | None*
+#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Default attachment name; the active attachment can change at runtime
 via animation tracks targeting `slot:<name>.attachment`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -14029,17 +14029,17 @@ paths guessed by trial.
 (0.0, 0.0, 0.0)
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.characters.schema.VIEWS *: tuple[str, ...]* *= ('front', 'three_quarter', 'side', 'back')*
+### an.characters.schema.VIEWS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('front', 'three_quarter', 'side', 'back')*
 
 The views the factory draws, in turnaround order. `side` is a profile
 facing the viewer’s RIGHT at a positive `scale_x`; a negative `scale_x`
 (`an.motion.turn(direction="left")`) mirrors it to face left.
 
-### an.characters.schema.VIEW_CHANNEL *: str* *= 'view'*
+### an.characters.schema.VIEW_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'view'*
 
 one KEY per drawn view, projected
 onto the slots whose art changes with the view (the factory draws the head
@@ -14050,13 +14050,13 @@ reads it; `an.motion.turn` is the one writer that defaults to it.
 * **Type:**
   The swap set a turnaround rides (an#197)
 
-### an.characters.schema.VIEW_VARIANT_SEP *: str* *= '@'*
+### an.characters.schema.VIEW_VARIANT_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '@'*
 
 What joins a swap set’s name to the view a variant of it serves:
 `eyelid@side` is the `eyelid` set drawn for the `side` view (an#220),
 the same separator the expression variants (`viseme@happy`, an#98) use.
 
-### an.characters.schema.VISEME_CHANNEL *: str* *= 'viseme'*
+### an.characters.schema.VISEME_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'viseme'*
 
 The swap channel lip-sync drives. `viseme` is a conventional set name, not
 a special case in control flow (an#87): the compiler projects EVERY
@@ -14069,7 +14069,7 @@ The box a part draws in, in view_box units: the declared size wins, the
 art’s aspect is kept (an#220).
 
 * **Return type:**
-  `tuple`[`float`, `float`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> attachment_box(None, None, (40, 20))       # the art's own extent
@@ -14123,14 +14123,14 @@ first, which is why this walks in declaration order rather than by index.
 `{channel: {key: attachment_name}}` for a freshly-built character.
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `str`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.characters.schema.view_variant_set(set_name, view)
 
 The name of `set_name`’s variant for `view` (an#220).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> view_variant_set("eyelid", "side")
@@ -14146,7 +14146,7 @@ is a declared set and `<view>` a key of its `view` set (or its
 so the expression variants (an#98) and the view variants never collide.
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `str`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> d = CharacterDescriptor(name="v")
@@ -14196,7 +14196,7 @@ at the midpoint, and the intersection-over-union of the foreground (dark)
 pixels is computed.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> # Two identical silhouettes → IoU = 1.0; two empty → 0.0 (no overlap).
@@ -14214,7 +14214,7 @@ The output is RGB; the silhouette is filled with black (#000) and the
 background with the given color.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.characters.svg_utils.html.md
@@ -14285,10 +14285,10 @@ it does not fill. The crop rect’s \*\*parent-space origin survives as the
 viewBox’s first two numbers\*\*, so where the part sat relative to its
 siblings is not lost and needs no separate record.
 
-If no match is found, raises `KeyError`.
+If no match is found, raises [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError).
 
 * **Return type:**
-  `ElementTree`
+  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
 
 ### an.characters.svg_utils.extract_pivots(source, , skeleton_id='skeleton')
 
@@ -14300,7 +14300,7 @@ The circle’s `cx`/`cy` is the pivot in the same coordinate system as
 the art (the SVG’s viewBox).
 
 * **Return type:**
-  `dict`[`str`, `tuple`[`float`, `float`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.characters.svg_utils.normalize_svg(source, , fallback_viewbox='0 0 1024 1024')
 
@@ -14310,7 +14310,7 @@ Returns the parsed `ElementTree`. Idempotent: running it twice is a
 no-op on the second pass.
 
 * **Return type:**
-  `ElementTree`
+  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
 
 ### an.characters.svg_utils.promote_inkscape_labels_to_ids(tree)
 
@@ -14323,7 +14323,7 @@ and does NOT promote it to `id` on save. This is a long-standing UX
 issue (Inkscape bug #243383); the workaround is to promote at parse time.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.characters.svg_utils.raster_size(source)
 
@@ -14338,7 +14338,7 @@ Falls back to the viewBox extent when no `width`/`height` is declared,
 matching the browser.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> raster_size('<svg xmlns="http://www.w3.org/2000/svg" '
@@ -14356,7 +14356,7 @@ Always emits `<?xml version="1.0" encoding="UTF-8"?>` and the SVG
 namespace as the default, so the output is a valid standalone SVG.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 
 # _autosummary/an.characters.validate.html.md
@@ -14398,25 +14398,25 @@ that cannot land.
 | [`render_contract`](_autosummary/an.characters.validate.html.md#an.characters.validate.render_contract)()                        | The artist-facing spec, generated from the schema and the checks above. |
 | [`validate_character`](_autosummary/an.characters.validate.html.md#an.characters.validate.validate_character)(char_dir, \*[, name]) | Check an art package against the contract, offline.                     |
 
-### an.characters.validate.ADVISORY *: str* *= 'warning'*
+### an.characters.validate.ADVISORY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'warning'*
 
 Severity for a problem worth fixing that still renders.
 
-### an.characters.validate.BLOCKING *: str* *= 'error'*
+### an.characters.validate.BLOCKING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'error'*
 
 Severity for a problem that stops the part rendering correctly.
 
-### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: float* *= 0.01*
+### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.01*
 
 How far a declared box’s aspect may differ from its art’s before the
 containment is worth saying (a rounding of a pixel or two is not).
 
-### an.characters.validate.DRAWABLE_ELEMENTS *: frozenset[str]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
+### an.characters.validate.DRAWABLE_ELEMENTS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
 
 Elements that put ink on the canvas. A part containing none of these is
 blank, whatever else it contains.
 
-### an.characters.validate.PART_SUFFIXES *: tuple[str, ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
+### an.characters.validate.PART_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
 
 SVG, or raster with the
 suffixes `an.raster` reads (an#211). Order is the lookup order for a
@@ -14425,7 +14425,7 @@ required part, so an SVG wins when both exist.
 * **Type:**
   The part file formats an art package may ship
 
-### an.characters.validate.PROHIBITED_ELEMENTS *: dict[str, str]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
+### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
 
 Elements an art package may not contain.
 
@@ -14439,7 +14439,7 @@ depends on script execution is not a drawing.
 A short human-readable rendering, for the CLI.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.validate.render_contract()
 
@@ -14453,7 +14453,7 @@ a freshly-built descriptor, the prohibitions from
 validator cannot disagree.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.validate.validate_character(char_dir, , name=None)
 
@@ -14553,7 +14553,7 @@ parts carved out of several clips credits each clip, part by part.
 
 ### *class* an.credits.CreditsReport(entries=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a project owes, split by whether we actually know.
 
@@ -14562,13 +14562,13 @@ Everything a project owes, split by whether we actually know.
 Human-readable, and honest about what it does not know.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-#### *property* owed *: list[CreditEntry]*
+#### *property* owed *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 Entries that definitely require an attribution.
 
-#### *property* private *: list[CreditEntry]*
+#### *property* private *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 all rights reserved, private
 study only (an#211). A video containing any of them is not shippable,
@@ -14577,11 +14577,11 @@ whatever else it credits.
 * **Type:**
   Entries that may NOT be published
 
-#### *property* publishable *: bool*
+#### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 `False` when any entry is private-study material.
 
-#### *property* unverified *: list[CreditEntry]*
+#### *property* unverified *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 Entries whose licence we could not classify.
 
@@ -14592,7 +14592,7 @@ reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
 
 ### *exception* an.credits.PrivateStudyWarning
 
-Bases: `UserWarning`
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A render used material that is all rights reserved, private study only.
 
@@ -14648,7 +14648,7 @@ Returns whether it warned. Called at the end of a render, so the warning is
 the last word about the file; `output` names it.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
 # _autosummary/an.data.cutout_runtime.html.md
@@ -14723,11 +14723,11 @@ hatch is the same variable read the other way — `AN_DETERMINISTIC=0`.
 |---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
 | [`determinism_enforced`](_autosummary/an.determinism.html.md#an.determinism.determinism_enforced)()                           | Whether to refuse a render whose determinism perimeter has been breached. |
 
-### an.determinism.AN_DETERMINISTIC_ENV_VAR *: str* *= 'AN_DETERMINISTIC'*
+### an.determinism.AN_DETERMINISTIC_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'AN_DETERMINISTIC'*
 
 Read as an OFF switch, not an on switch — see the module docstring.
 
-### an.determinism.CAPTURE_PAGE *: str* *= 'index.html'*
+### an.determinism.CAPTURE_PAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'index.html'*
 
 The page the capture path must be on. `render.py` stages `preview.html`
 into every work dir and it carries seven clock calls, so “which page did the
@@ -14748,7 +14748,7 @@ carry a field cannot testify that the field is fine, and silently reading
 into a clean bill of health.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> capture_violations({})[0].startswith("the determinism report is missing")
@@ -14762,7 +14762,7 @@ Whether to refuse a render whose determinism perimeter has been breached.
 True unless [`AN_DETERMINISTIC_ENV_VAR`](_autosummary/an.determinism.html.md#an.determinism.AN_DETERMINISTIC_ENV_VAR) is explicitly falsey.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> import os
@@ -14891,22 +14891,22 @@ drawn over them. `None` puts every plane behind every character, which is
 what the two-loop builder did before an#110 and is why an environment that
 declares no planes compiles byte-identically.
 
-#### anchors *: dict[str, tuple[float, float]]*
+#### anchors *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Named stage marks — a horizon is one of them. A dedicated `horizon`
 field would be two fields for one fact, which is how the intersecting
 override arrived.
 
-#### characters_after *: str | None*
+#### characters_after *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The plane the characters are drawn in FRONT of. `None` = all planes
 behind all characters.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### planes *: list[[Plane](_autosummary/an.environments.html.md#an.environments.Plane)]*
+#### planes *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[Plane](_autosummary/an.environments.html.md#an.environments.Plane)]*
 
 the runtime sets no
 `zIndex`, so a second ordering would be one it could not honour.
@@ -14914,14 +14914,14 @@ the runtime sets no
 * **Type:**
   **LIST ORDER IS DRAW ORDER.** There is no `z` field
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this art came from and what its licence obliges. Not decoration:
 `an credits` walked ONLY `mall["characters"]`, so the PR that gives
 environments art is the PR that closes that hole — otherwise
 `an credits` becomes an affirmative false statement about plates.
 
-### an.environments.PLANE_FILL_SPAN *: float* *= 4000.0*
+### an.environments.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale.
 The same 4000 the preset backdrop uses, and for the same reason — the runtime
@@ -14951,11 +14951,11 @@ a misspelled key there is the exact failure an#110 exists to remove. The
 old override path *silently dropped* every key it did not know, and the
 test pinning that warning used `parallax_layers: 3` as its example.
 
-#### anchor *: tuple[float, float]*
+#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 The art’s anchor within its own box, in 0..1 per axis.
 
-#### depth *: float*
+#### depth *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The parallax factor — a RATIO, in Godot’s `Parallax2D.scroll_scale`
 coordinates. `1.0` is the character plane and emits nothing. See this
@@ -14966,7 +14966,7 @@ module’s docstring for the table and for the Unity sign trap.
 The per-axis parallax factors this plane actually moves by.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> Plane(name="p", depth=0.4).factors()
@@ -14975,31 +14975,31 @@ The per-axis parallax factors this plane actually moves by.
 (0.2, 0.0)
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### name *: str*
+#### name *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Becomes the scene node’s name, under the environment entity’s id.
 
-#### offset *: tuple[float, float]*
+#### offset *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Where the plane sits, in scene pixels from the stage centre.
 
-#### parallax *: tuple[float, float] | None*
+#### parallax *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-axis override of `depth`, for a plane that scrolls horizontally but
 not vertically. `None` means `(depth, depth)`.
 
-#### size *: tuple[float, float] | None*
+#### size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the art’s own extent. A `fill` with no size covers the canvas.
 The box the art is fitted into, in scene pixels. **A declared size wins**
 (an#211); `None` = the art’s own extent — an SVG’s `width`/`height`, a
 raster’s pixel size. A `fill` with no size covers the canvas.
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where THIS plane’s art came from, when it is not the environment’s —
 a composite stage of a carved plate and a CC0 prop credits both
@@ -15030,18 +15030,18 @@ and this package’s standing rule is that schema without a consumer is
 worse than an absent field — the `repeat`/`TilingSprite` decision in
 an#110 is the same call made the same way.
 
-#### color *: str*
+#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 a CSS colour.
 
 * **Type:**
   `fill` only
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### src *: str | None*
+#### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a path under the environment’s own folder in the store,
 exactly as a character attachment’s `path` is — `.svg`, `.png`,
@@ -15054,7 +15054,7 @@ exactly as a character attachment’s `path` is — `.svg`, `.png`,
 
 `(left, top, right, bottom)` in scene pixels, `y` down (the stage’s axes).
 
-alias of `tuple`[`float`, `float`, `float`, `float`]
+alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.environments.frame_rect(, x, y, zoom, rotation, width, height)
 
@@ -15067,7 +15067,7 @@ not show, so a plate that covers a rolled view can still be flagged).
 canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
@@ -15086,7 +15086,7 @@ extent cannot be known (an image whose art cannot be measured and whose
 `fit` makes the drawn size depend on it) — an unknown, not a hole.
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`, `float`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
@@ -15106,7 +15106,7 @@ rects: the view is cut into cells at every cover edge, and a cell is
 covered or not as a whole.
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`, `float`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])
@@ -15164,7 +15164,7 @@ opens monotonically `X → A → B → C → D`).
 | [`Axis`](_autosummary/an.expression.axes.html.md#an.expression.axes.Axis)(name, lo, hi[, rest])   | One numeric axis: its range and its rest (neutral) value.   |
 |-------------------------------------------------------------------------------|-------------------------------------------------------------|
 
-### an.expression.axes.AXES *: dict[str, [Axis](_autosummary/an.expression.axes.html.md#an.expression.axes.Axis)]* *= {'brow_angle_l': Axis(name='brow_angle_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_angle_r': Axis(name='brow_angle_r', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_l': Axis(name='brow_height_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_r': Axis(name='brow_height_r', lo=-1.0, hi=1.0, rest=0.0), 'gaze_x': Axis(name='gaze_x', lo=-1.0, hi=1.0, rest=0.0), 'gaze_y': Axis(name='gaze_y', lo=-1.0, hi=1.0, rest=0.0), 'lid_open_l': Axis(name='lid_open_l', lo=-1.0, hi=0.5, rest=0.0), 'lid_open_r': Axis(name='lid_open_r', lo=-1.0, hi=0.5, rest=0.0)}*
+### an.expression.axes.AXES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Axis](_autosummary/an.expression.axes.html.md#an.expression.axes.Axis)]* *= {'brow_angle_l': Axis(name='brow_angle_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_angle_r': Axis(name='brow_angle_r', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_l': Axis(name='brow_height_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_r': Axis(name='brow_height_r', lo=-1.0, hi=1.0, rest=0.0), 'gaze_x': Axis(name='gaze_x', lo=-1.0, hi=1.0, rest=0.0), 'gaze_y': Axis(name='gaze_y', lo=-1.0, hi=1.0, rest=0.0), 'lid_open_l': Axis(name='lid_open_l', lo=-1.0, hi=0.5, rest=0.0), 'lid_open_r': Axis(name='lid_open_r', lo=-1.0, hi=0.5, rest=0.0)}*
 
 + raises the brow, scaled by the rig’s eye height.
 
@@ -15178,25 +15178,25 @@ Gaze: pupil travel inside the eye, clamped by the rig’s declared travel.
 
 ### *class* an.expression.axes.Axis(name, lo, hi, rest=0.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One numeric axis: its range and its rest (neutral) value.
 
-### an.expression.axes.INTENSITY_AXIS *: str* *= 'intensity'*
+### an.expression.axes.INTENSITY_AXIS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'intensity'*
 
 The scalar on every offset (MPEG-4 “excitation”); the blend ramp is a curve on it.
 
-### an.expression.axes.LID_KEY_WIDE *: str* *= 'WIDE'*
+### an.expression.axes.LID_KEY_WIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'WIDE'*
 
 Eyelid set keys the ladder can name, by openness.
 
-### an.expression.axes.LID_WIDE_ABOVE *: float* *= 0.25*
+### an.expression.axes.LID_WIDE_ABOVE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
 
 The eyelid ladder — one rule, stated once (research §6). A lid state
 `min(lid_expr, lid_blink)` reads off these thresholds; a rig without the
 intermediate art degrades to the key it has.
 
-### an.expression.axes.MOUTH_FORM_AXIS *: str* *= 'mouth_form'*
+### an.expression.axes.MOUTH_FORM_AXIS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'mouth_form'*
 
 which `viseme@<form>` set the mouth’s key indexes.
 
@@ -15208,7 +15208,7 @@ which `viseme@<form>` set the mouth’s key indexes.
 Clamp every numeric axis to its range; an unknown axis is an error.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> clamp_axes({"brow_height_l": 2.0, "lid_open_r": -3.0})
@@ -15228,7 +15228,7 @@ a rig without `half` stays open until the lower threshold and one without
 `wide` stays open above the upper one — never a blend of two drawings.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.expression.binding.html.md
@@ -15301,11 +15301,11 @@ True
 | [`ExpressionResolutionError`](_autosummary/an.expression.binding.html.md#an.expression.binding.ExpressionResolutionError)(who, problems)   | An expression that cannot resolve on a character; `problems` says why.   |
 |---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### an.expression.binding.BROW_ANGLE_TRAVEL *: float* *= 0.35*
+### an.expression.binding.BROW_ANGLE_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.35*
 
 Brow rotation per unit of `brow_angle_*`, radians. Art direction.
 
-### an.expression.binding.BROW_HEIGHT_TRAVEL *: float* *= 10.0*
+### an.expression.binding.BROW_HEIGHT_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 10.0*
 
 Brow travel per unit of `brow_height_*`, in the rig’s view-box units
 (scaled to scene pixels by the entity’s rig factor). Art direction; about
@@ -15313,33 +15313,33 @@ the synthesized eye’s half-height.
 
 ### *class* an.expression.binding.ChannelBinding(axis, slot, property, gain, rig_scaled=False)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A numeric axis driving one transform property of one slot’s node.
 
-#### rig_scaled *: bool* *= False*
+#### rig_scaled *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 
 Whether the gain is a view-box length (scaled by the rig factor).
 
 ### *exception* an.expression.binding.ExpressionResolutionError(who, problems)
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 An expression that cannot resolve on a character; `problems` says why.
 
-### an.expression.binding.GAZE_TRAVEL *: float* *= 6.0*
+### an.expression.binding.GAZE_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 6.0*
 
 Pupil travel per unit of `gaze_*`, in view-box units — the default when a
 descriptor declares no travel of its own (`add_gaze` writes `gaze_travel`).
 
-### an.expression.binding.LID_SQUASH_GAIN *: float* *= 0.5*
+### an.expression.binding.LID_SQUASH_GAIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 On a rig whose eye squashes instead of swapping art, a lid offset scales
 the eye by this much per unit.
 
 ### *class* an.expression.binding.SetBinding(axis, slot, set_family='eyelid')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A lid axis driving one slot’s swap set through the ladder.
 
@@ -15352,14 +15352,14 @@ A declared binding is a list of dicts in the two dataclasses’ shapes
 `{"axis", "slot", "set_family"}`). An unknown axis in it is an error.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
 
 ### an.expression.binding.declared_mouth_variants(desc)
 
 `{form: set name}` for every `viseme@<form>` set the descriptor declares.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> declared_mouth_variants(CharacterDescriptor(name="m"))
@@ -15376,7 +15376,7 @@ end while on the RIGHT brow it lifts it — the axis says “+ = inner end
 up”, hence `-travel` on the left and `+travel` on the right.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
 
 ### an.expression.binding.expression_problems(desc, , preset, axes=(), who)
 
@@ -15386,7 +15386,7 @@ Shared by `an validate` (each becomes an error Finding) and the compiler
 (which raises [`ExpressionResolutionError`](_autosummary/an.expression.binding.html.md#an.expression.binding.ExpressionResolutionError) with the same list).
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> expression_problems(CharacterDescriptor(name="m"), preset="joyful", who="m")
@@ -15405,7 +15405,7 @@ An unknown preset or axis is a `ValueError` — validate reports it as an
 error, the compiler refuses it.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.expression.binding.resolve_mouth_set(desc, preset, , keys_used, who=None)
 
@@ -15418,14 +15418,14 @@ was missing; else [`ExpressionResolutionError`](_autosummary/an.expression.bindi
 error, not a fallback.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.expression.binding.touches_gaze(axes)
 
 Whether any of `axes` is a gaze axis (a no-op on a rig without pupils).
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> touches_gaze(["gaze_x"]), touches_gaze(["brow_angle_l"])
@@ -15437,7 +15437,7 @@ Whether any of `axes` is a gaze axis (a no-op on a rig without pupils).
 The swap-set name for a mouth form (`@` is a legal set-name character).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> variant_set_name("happy")
@@ -15483,7 +15483,7 @@ Fold unipolar coefficients onto the axes (summed, then clamped).
 Unknown names raise — a misspelt coefficient must not vanish quietly.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.expression.html.md
@@ -15537,29 +15537,29 @@ cutout compiler’s face solver consumes these; `an validate` and
 
 ### *class* an.expression.Axis(name, lo, hi, rest=0.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One numeric axis: its range and its rest (neutral) value.
 
 ### *class* an.expression.AxisCurve(axis, samples)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).
 
 ### *class* an.expression.ChannelBinding(axis, slot, property, gain, rig_scaled=False)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A numeric axis driving one transform property of one slot’s node.
 
-#### rig_scaled *: bool* *= False*
+#### rig_scaled *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 
 Whether the gain is a view-box length (scaled by the rig factor).
 
 ### *class* an.expression.DefaultExpressionProvider
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Sum of the shot’s expression spans on the entity, ramped, per frame.
 
@@ -15573,23 +15573,23 @@ asks once per line, never per frame, so at most one mouth swap
 property is live per instant.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.expression.ExpressionProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 The seam: whatever produces per-axis curves for one entity of one shot.
 
 ### *exception* an.expression.ExpressionResolutionError(who, problems)
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 An expression that cannot resolve on a character; `problems` says why.
 
 ### *class* an.expression.ExpressionSpan(start, end, preset, axes=<factory>, intensity=1.0, blend=0.0, source='action')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One expression contributor on one entity, in absolute shot time.
 
@@ -15598,9 +15598,9 @@ One expression contributor on one entity, in absolute shot time.
 The unscaled axis offsets this span asks for.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-#### source *: str* *= 'action'*
+#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'action'*
 
 `"action"` for an authored leaf, `"dialogue"` for the `[emotion]` sugar.
 
@@ -15609,25 +15609,25 @@ The unscaled axis offsets this span asks for.
 The ramped intensity at `t`: 0 outside, ramping over `blend` at each end.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *class* an.expression.Preset(name, axes=<factory>, mouth_form=None, anchor='')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A named expression: axis offsets, the mouth form it prefers, its anchor.
 
-#### anchor *: str* *= ''*
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
 
 FACS AU cross-reference (a comment, never a source).
 
-#### mouth_form *: str | None* *= None*
+#### mouth_form *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
 
 ### *class* an.expression.SetBinding(axis, slot, set_family='eyelid')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A lid axis driving one slot’s swap set through the ladder.
 
@@ -15640,14 +15640,14 @@ A declared binding is a list of dicts in the two dataclasses’ shapes
 `{"axis", "slot", "set_family"}`). An unknown axis in it is an error.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
 
 ### an.expression.clamp_axes(values)
 
 Clamp every numeric axis to its range; an unknown axis is an error.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> clamp_axes({"brow_height_l": 2.0, "lid_open_r": -3.0})
@@ -15663,7 +15663,7 @@ ValueError: unknown expression axis 'eyebrow' (known: brow_angle_l, ...)
 `{form: set name}` for every `viseme@<form>` set the descriptor declares.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> declared_mouth_variants(CharacterDescriptor(name="m"))
@@ -15680,7 +15680,7 @@ end while on the RIGHT brow it lifts it — the axis says “+ = inner end
 up”, hence `-travel` on the left and `+travel` on the right.
 
 * **Return type:**
-  `list`[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
 
 ### an.expression.expression_problems(desc, , preset, axes=(), who)
 
@@ -15690,7 +15690,7 @@ Shared by `an validate` (each becomes an error Finding) and the compiler
 (which raises [`ExpressionResolutionError`](_autosummary/an.expression.html.md#an.expression.ExpressionResolutionError) with the same list).
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> expression_problems(CharacterDescriptor(name="m"), preset="joyful", who="m")
@@ -15706,7 +15706,7 @@ dialogue sugar. `duration=None` runs to the shot end (the looping-play
 rule); a span never extends past the shot.
 
 * **Return type:**
-  `list`[[`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
 
 ### an.expression.from_blendshapes(coefficients)
 
@@ -15715,14 +15715,14 @@ Fold unipolar coefficients onto the axes (summed, then clamped).
 Unknown names raise — a misspelt coefficient must not vanish quietly.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.expression.known_presets()
 
 The preset names, in declaration order.
 
 * **Return type:**
-  `tuple`[`str`, `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> known_presets()[:3]
@@ -15738,14 +15738,14 @@ a rig without `half` stays open until the lower threshold and one without
 `wide` stays open above the upper one — never a blend of two drawings.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.expression.mouth_form_of(preset)
 
 The `viseme@<form>` a preset prefers, or `None` for the neutral set.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> mouth_form_of("amused"), mouth_form_of("thinking"), mouth_form_of(None)
@@ -15762,7 +15762,7 @@ An unknown preset or axis is a `ValueError` — validate reports it as an
 error, the compiler refuses it.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.expression.resolve_mouth_set(desc, preset, , keys_used, who=None)
 
@@ -15775,14 +15775,14 @@ was missing; else [`ExpressionResolutionError`](_autosummary/an.expression.html.
 error, not a fallback.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.expression.variant_set_name(form)
 
 The swap-set name for a mouth form (`@` is a legal set-name character).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> variant_set_name("happy")
@@ -15844,15 +15844,15 @@ True
 
 ### *class* an.expression.presets.Preset(name, axes=<factory>, mouth_form=None, anchor='')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A named expression: axis offsets, the mouth form it prefers, its anchor.
 
-#### anchor *: str* *= ''*
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
 
 FACS AU cross-reference (a comment, never a source).
 
-#### mouth_form *: str | None* *= None*
+#### mouth_form *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
 
@@ -15861,7 +15861,7 @@ The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
 The preset names, in declaration order.
 
 * **Return type:**
-  `tuple`[`str`, `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> known_presets()[:3]
@@ -15873,7 +15873,7 @@ The preset names, in declaration order.
 The `viseme@<form>` a preset prefers, or `None` for the neutral set.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> mouth_form_of("amused"), mouth_form_of("thinking"), mouth_form_of(None)
@@ -15890,7 +15890,7 @@ An unknown preset or axis is a `ValueError` — validate reports it as an
 error, the compiler refuses it.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.expression.provider.html.md
@@ -15949,18 +15949,18 @@ construction.
 
 ### *class* an.expression.provider.AxisCurve(axis, samples)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).
 
-### an.expression.provider.DIALOGUE_EMOTION_BLEND_S *: float* *= 0.15*
+### an.expression.provider.DIALOGUE_EMOTION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
 The `[emotion]` sugar ramps in and out over this; it is a comment on the
 line, not a cut.
 
 ### *class* an.expression.provider.DefaultExpressionProvider
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Sum of the shot’s expression spans on the entity, ramped, per frame.
 
@@ -15974,17 +15974,17 @@ asks once per line, never per frame, so at most one mouth swap
 property is live per instant.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.expression.provider.ExpressionProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 The seam: whatever produces per-axis curves for one entity of one shot.
 
 ### *class* an.expression.provider.ExpressionSpan(start, end, preset, axes=<factory>, intensity=1.0, blend=0.0, source='action')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One expression contributor on one entity, in absolute shot time.
 
@@ -15993,9 +15993,9 @@ One expression contributor on one entity, in absolute shot time.
 The unscaled axis offsets this span asks for.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-#### source *: str* *= 'action'*
+#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'action'*
 
 `"action"` for an authored leaf, `"dialogue"` for the `[emotion]` sugar.
 
@@ -16004,7 +16004,7 @@ The unscaled axis offsets this span asks for.
 The ramped intensity at `t`: 0 outside, ramping over `blend` at each end.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.expression.provider.expression_spans(shot, entity_id)
 
@@ -16013,7 +16013,7 @@ dialogue sugar. `duration=None` runs to the shot end (the looping-play
 rule); a span never extends past the shot.
 
 * **Return type:**
-  `list`[[`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
 
 ### an.expression.provider.flatten_expressions(shot)
 
@@ -16096,7 +16096,7 @@ True
 
 ### *class* an.frame_clock.CapturedFrame(index, t_nominal, t_open, t_close, samples, t_reported)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One output frame: when its exposure opened and closed, and what it saw.
 
@@ -16107,7 +16107,7 @@ best instant to attribute a blurred frame to. `t_reported` is the
 timestamp a capture pipeline hands downstream: nominal or actual, per the
 clock’s `timestamps` setting.
 
-### an.frame_clock.DEFAULT_EXPOSURE_SAMPLES *: int* *= 8*
+### an.frame_clock.DEFAULT_EXPOSURE_SAMPLES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 
 Sub-samples integrated per frame when the shutter is open and the caller did
 not say how many. Eight midpoint samples put the smear of an object crossing
@@ -16116,7 +16116,7 @@ render (each sample is one screenshot).
 
 ### *class* an.frame_clock.FrameClock(fps=30.0, exposure=0.0, samples=None, jitter_sd=0.0, phase=0.0, timestamps='nominal', report_noise_sd=0.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A camera’s timing, as data. Every field defaults to the ideal camera.
 
@@ -16154,9 +16154,9 @@ sample a scene outside its own timeline; the clipped values are what
 One [`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame) per output frame of a `duration` render.
 
 * **Return type:**
-  `tuple`[[`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-#### *property* max_jitter *: float*
+#### *property* max_jitter *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The clamp on a frame’s capture offset, in seconds.
 
@@ -16170,9 +16170,9 @@ The clamp on a frame’s capture offset, in seconds.
 Per frame, the scene instants to render and average — the render seam.
 
 * **Return type:**
-  `tuple`[`tuple`[`float`, `...`], `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-#### *property* samples_per_frame *: int*
+#### *property* samples_per_frame *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 1 for an instantaneous shutter.
 
@@ -16186,18 +16186,18 @@ Per frame, the scene instants to render and average — the render seam.
 
 ### *exception* an.frame_clock.FrameClockError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A frame clock that cannot describe a camera.
 
-### an.frame_clock.MAX_JITTER_FRACTION *: float* *= 0.49*
+### an.frame_clock.MAX_JITTER_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.49*
 
 A frame’s capture offset is clamped to this fraction of the slack between
 one exposure closing and the next opening, on each side. Below one half, so
 two neighbouring frames can each move toward the other by the full clamp and
 still not overlap: the clock never reorders frames, whatever `jitter_sd` is.
 
-### an.frame_clock.MAX_REPORT_NOISE_FRACTION *: float* *= 0.24*
+### an.frame_clock.MAX_REPORT_NOISE_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.24*
 
 Report noise is clamped to this fraction of the frame period, each side, so
 two neighbouring reported timestamps can never cross on a regular grid.
@@ -16207,7 +16207,7 @@ two neighbouring reported timestamps can never cross on a regular grid.
 Frames in a render of `duration` seconds — the renderer’s own rule.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> frame_count(2.0, 30), frame_count(0.01, 30)
@@ -16281,7 +16281,7 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: Literal['character', 'environment', 'voice', 'prop']*
+#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
@@ -16290,11 +16290,11 @@ renderer selector. Art direction arrives as a StylePack (#112).
 * **Type:**
   `"style"` was retired in an#106
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### stage *: [StagePlacement](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement) | None*
+#### stage *: [StagePlacement](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where on the stage this entity stands. `None` — the default and what
 every existing document has — means “wherever the layout puts it”,
@@ -16331,15 +16331,15 @@ block it regenerates.
 written into every `scene.md` this package ever generated and read by
 nothing; a registered migration drops them.
 
-#### keys *: list[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)] | None*
+#### keys *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The explicit door. `None` = use `move`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### move *: str | None*
+#### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 `an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
@@ -16356,14 +16356,14 @@ One line of spoken dialogue.
 gives us a real duration); the pipeline stamps them then, deriving
 `start` from the author’s `pause` / `at` ([`planned_start()`](_autosummary/an.html.md#an.Dialogue.planned_start)).
 
-#### at *: float | None*
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this line starts, in SHOT seconds, whatever came before it —
 `(at 3.0)` in `scene.md`. `start` is what the audio pipeline
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
-#### direction *: list[str] | None*
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How the line is DELIVERED — cues such as `["excited"]` or
 `["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
@@ -16371,11 +16371,11 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pause *: float | None*
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Seconds of silence before this line, after the previous line ends (the
 shot start, for the first line) — `(pause 1.5)` in `scene.md`.
@@ -16391,7 +16391,7 @@ spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
@@ -16402,14 +16402,14 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 0.8
 ```
 
-#### word_timings *: list[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | None*
+#### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The provider’s word timings, line-relative; `None` when the provider
 has none (offline, Rhubarb) or the line was stamped before an#96.
 
 ### *class* an.FlatAction(start, end, action)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A leaf action with its absolute start and end times.
 
@@ -16423,12 +16423,12 @@ Bases: `_IRModel`
 
 Scene metadata.
 
-#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | None*
+#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Captions from the dialogue’s word timings (`Captions`, an#175);
 `None` — the default — is none, omitted from JSON like `style_pack`.
 
-#### default_easing *: str | tuple[float, float, float, float] | list[float] | None*
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with
 (an#166) — `"linear"` for a snappy South Park cadence, an overshooting
@@ -16441,16 +16441,16 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### sounds *: list[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
 Sound cues in FILM time — a music bed, an ambience under every shot
 (`SoundCue`). Empty, the default, is no sound layer at all.
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
 (the default) leaves every tween smooth. At 30 fps, `15` is “on twos”
@@ -16467,7 +16467,7 @@ likewise lands where it was authored). A shot’s own `step_hz`
 overrides this. Must be positive (schema) and `<= fps` (validate +
 compile), an#89.
 
-#### style_pack *: str | None*
+#### style_pack *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The `StylePack` in the project’s `styles` store this scene is drawn
 under, by key. `None` — the default and what every existing document
@@ -16483,7 +16483,7 @@ cannot reach is WARNED about by name at compile.
 
 ### *class* an.Project(root, mall, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A loaded an project: directory + mall + current scene.
 
@@ -16493,7 +16493,7 @@ Bases: `_IRModel`
 
 Pixel dimensions of the rendered output.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -16516,7 +16516,7 @@ True
 'Hello'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -16529,11 +16529,11 @@ A single rendered unit. A scene is a sequence of shots.
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: Literal['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
@@ -16541,15 +16541,15 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
-#### sounds *: list[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
 Sound cues in SHOT-local time (`SoundCue`).
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](_autosummary/an.html.md#an.Meta.step_hz) (`None` = inherit).
 
-#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | None*
+#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How this shot is entered (`Transition`); `None` is a hard cut.
 
@@ -16562,7 +16562,7 @@ don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory `dict` for tests).
 
 * **Return type:**
-  `dict`[`str`, `MutableMapping`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/typing.html#typing.MutableMapping)]
 
 ### an.check_requirements()
 
@@ -16572,7 +16572,7 @@ The CLI subcommand `an check` pretty-prints this. Programmatic callers
 can inspect the dict directly.
 
 * **Return type:**
-  `dict`[`str`, `dict`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ### an.delay(duration)
 
@@ -16594,7 +16594,7 @@ Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
 * **Return type:**
-  `list`[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
 ### an.init(project_dir, , name=None, force=False)
 
@@ -16604,14 +16604,14 @@ Idempotent unless the directory already contains a non-empty `scene.md`;
 pass `force=True` to overwrite. Returns the absolute project root.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.ir_to_markdown(scene)
 
 Render a SceneIR back into the structured Markdown form.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Meta, Shot
@@ -16722,7 +16722,7 @@ A name the descriptor does not declare falls back to a motion preset of
 Persist a Project’s current scene back to disk (md + json).
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.sequence(\*actions)
 
@@ -16876,7 +16876,7 @@ seed: random seed (performance and camera streams derive from it)
 render: render the mp4; –no-render writes the truth and keypoints only
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.impacts.cli.clip_set(out_dir, objects='stick,ball', kinds='surface,air', fps='24,30,60', exposures='0,0.5', timestamp_jitter_sds='0', seeds='0', render=True)
 
@@ -16896,7 +16896,7 @@ seeds: comma-separated performance seeds
 render: render the videos; –no-render writes the truth and keypoints only
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.impacts.clip.html.md
@@ -16958,21 +16958,21 @@ camera and the object over.
 * **Type:**
   A harder default for scoring estimators
 
-### an.impacts.clip.DEFAULT_JITTER_SD *: float* *= 0.008*
+### an.impacts.clip.DEFAULT_JITTER_SD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.008*
 
 Default humanisation (seconds, standard deviation). See `ImpactClipSpec`.
 
-### an.impacts.clip.DEFAULT_TAIL *: float* *= 0.5*
+### an.impacts.clip.DEFAULT_TAIL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Seconds after the last grid beat before the clip ends.
 
-### an.impacts.clip.DEFAULT_TRAJECTORY_HZ *: float* *= 1000.0*
+### an.impacts.clip.DEFAULT_TRAJECTORY_HZ *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1000.0*
 
 Samples per second of the dense trajectory in `trajectory.csv`.
 
 ### *class* an.impacts.clip.ImpactClipSpec(object='stick', kind='surface', tempo=100.0, beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.
 
@@ -16998,7 +16998,7 @@ taken), `timestamp_noise_sd` (noise on the reported timestamp only),
 camera’s — so clips that differ only in camera settings share the exact same
 performance.
 
-#### *property* clip_id *: str*
+#### *property* clip_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 A readable, deterministic directory name.
 
@@ -17019,13 +17019,13 @@ dropping one would regenerate a different clip under the same spec.
 
 ### *class* an.impacts.clip.ImpactPlan(spec, events, obj, stroke, frames, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A clip before it touches disk: events, motion, camera, and the Scene IR.
 
 ### *exception* an.impacts.clip.ImpactSpecError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A clip spec that cannot describe a clip.
 
@@ -17034,7 +17034,7 @@ A clip spec that cannot describe a clip.
 The cartesian product of the given axes over `base`.
 
 * **Return type:**
-  `list`[[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)]
 
 ```pycon
 >>> len(impact_set_specs())
@@ -17059,7 +17059,7 @@ browser is needed: the keypoints and the truth come from the compiled
 document, not from the pixels.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.impacts.clip.write_impact_set(out_dir, specs=None, , render=True, progress=None)
 
@@ -17068,7 +17068,7 @@ Write every clip in `specs` (default: [`impact_set_specs()`](_autosummary/an.imp
 `progress`, if given, is called with `(i, n, clip_dir)` after each clip.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.impacts.html.md
@@ -17145,7 +17145,7 @@ Or from the shell: `an impacts clip OUT_DIR` / `an impacts clip-set OUT_DIR`.
 
 ### *class* an.impacts.CapturedFrame(index, t_nominal, t_open, t_close, samples, t_reported)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One output frame: when its exposure opened and closed, and what it saw.
 
@@ -17158,7 +17158,7 @@ clock’s `timestamps` setting.
 
 ### *class* an.impacts.FrameClock(fps=30.0, exposure=0.0, samples=None, jitter_sd=0.0, phase=0.0, timestamps='nominal', report_noise_sd=0.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A camera’s timing, as data. Every field defaults to the ideal camera.
 
@@ -17196,9 +17196,9 @@ sample a scene outside its own timeline; the clipped values are what
 One [`CapturedFrame`](_autosummary/an.impacts.html.md#an.impacts.CapturedFrame) per output frame of a `duration` render.
 
 * **Return type:**
-  `tuple`[[`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-#### *property* max_jitter *: float*
+#### *property* max_jitter *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The clamp on a frame’s capture offset, in seconds.
 
@@ -17212,9 +17212,9 @@ The clamp on a frame’s capture offset, in seconds.
 Per frame, the scene instants to render and average — the render seam.
 
 * **Return type:**
-  `tuple`[`tuple`[`float`, `...`], `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-#### *property* samples_per_frame *: int*
+#### *property* samples_per_frame *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 1 for an instantaneous shutter.
 
@@ -17228,7 +17228,7 @@ Per frame, the scene instants to render and average — the render seam.
 
 ### *class* an.impacts.ImpactClipSpec(object='stick', kind='surface', tempo=100.0, beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.
 
@@ -17254,7 +17254,7 @@ taken), `timestamp_noise_sd` (noise on the reported timestamp only),
 camera’s — so clips that differ only in camera settings share the exact same
 performance.
 
-#### *property* clip_id *: str*
+#### *property* clip_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 A readable, deterministic directory name.
 
@@ -17275,11 +17275,11 @@ dropping one would regenerate a different clip under the same spec.
 
 ### *class* an.impacts.ImpactEvent(index, beat, t_grid, t_impact, amplitude)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One impact: where the grid put it and when it was executed.
 
-#### *property* offset *: float*
+#### *property* offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 the humanisation actually applied (post-clamp).
 
@@ -17288,7 +17288,7 @@ the humanisation actually applied (post-clamp).
 
 ### *class* an.impacts.ImpactObject(name, art, at, channels, keypoints, impact_keypoint, keypoint_nodes=<factory>, surface_art=None, surface_at=None, params=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One striking object, its surface, and how the stroke moves it.
 
@@ -17297,11 +17297,11 @@ ball, two for a forearm-plus-stick limb (each affine in the SAME `h`, so
 the motion stays exact). `keypoints` are local points by name; each lives
 on the node `keypoint_nodes[name]` names, the entity itself by default.
 
-#### impact_keypoint *: str*
+#### impact_keypoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The keypoint that does the striking (a stick’s tip, a ball’s bottom).
 
-#### keypoints *: Mapping[str, tuple[float, float]]*
+#### keypoints *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Local points by name. What a tracker would report.
 
@@ -17310,21 +17310,21 @@ Local points by name. What a tracker would report.
 `{(node path, property): value}` at stroke height `h`.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-#### surface_at *: tuple[float, float] | None*
+#### surface_at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where the surface’s top edge is centred, in scene coordinates.
 
 ### *class* an.impacts.ImpactPlan(spec, events, obj, stroke, frames, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A clip before it touches disk: events, motion, camera, and the Scene IR.
 
 ### *class* an.impacts.Stroke(kind, duration, segments, kinematics)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The whole curve, plus the kinematics of every impact on it.
 
@@ -17333,24 +17333,24 @@ The whole curve, plus the kinematics of every impact on it.
 Stroke height at scene time `t` (clamped to the clip).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### velocity(t)
 
 `dh/dt` at `t`; at a segment boundary, the LATER segment’s value.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *class* an.impacts.StrokeSegment(t0, t1, h0, h1, easing)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 `h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.
 
 ### *class* an.impacts.TempoMap(points)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points.
 
@@ -17373,11 +17373,11 @@ four bars”); the time of a beat is the exact integral of `60 / bpm`.
 Seconds from beat 0 to `beat` (`beat >= 0`).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *exception* an.impacts.TruthMismatch
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The ground truth and the thing it describes disagree.
 
@@ -17414,7 +17414,7 @@ the timing wanders, not how far. `rho = 0` is independent jitter;
 `bias` is a constant lead (negative) or lag (positive).
 
 * **Return type:**
-  `Callable`[[`Sequence`[`float`], `object`], `Sequence`[`float`]]
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> import numpy as np
@@ -17447,7 +17447,7 @@ KeyError: "no impact object 'hammer'; known: ['ball', 'stick']"
 The cartesian product of the given axes over `base`.
 
 * **Return type:**
-  `list`[[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)]
 
 ```pycon
 >>> len(impact_set_specs())
@@ -17469,7 +17469,7 @@ into offsets (default: none); each offset is then clamped to
 value is what the event records — the ground truth is what was executed.
 
 * **Return type:**
-  `tuple`[[`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> [e.beat for e in perform(120, beats=2, subdivision=2, pattern=(1, 0))]
@@ -17520,7 +17520,7 @@ browser is needed: the keypoints and the truth come from the compiled
 document, not from the pixels.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.impacts.write_impact_set(out_dir, specs=None, , render=True, progress=None)
 
@@ -17529,7 +17529,7 @@ Write every clip in `specs` (default: [`impact_set_specs()`](_autosummary/an.imp
 `progress`, if given, is called with `(i, n, clip_dir)` after each clip.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### Modules
 
@@ -17596,13 +17596,13 @@ True
 | [`PropArt`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.PropArt)(ref, descriptor, parts)                     | A prop's descriptor and its SVG parts — what goes into a props store. |
 | [`StrokeChannel`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.StrokeChannel)(target, property, ...)                | One animated property, AFFINE in stroke height `h`.                   |
 
-### an.impacts.objects.IMPACT_OBJECTS *: dict[str, Callable[[...], [ImpactObject](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)]]* *= {'ball': <function ball>, 'stick': <function stick>}*
+### an.impacts.objects.IMPACT_OBJECTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [ImpactObject](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)]]* *= {'ball': <function ball>, 'stick': <function stick>}*
 
 Name -> factory. The registry the clip spec and the CLI resolve names through.
 
 ### *class* an.impacts.objects.ImpactObject(name, art, at, channels, keypoints, impact_keypoint, keypoint_nodes=<factory>, surface_art=None, surface_at=None, params=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One striking object, its surface, and how the stroke moves it.
 
@@ -17611,11 +17611,11 @@ ball, two for a forearm-plus-stick limb (each affine in the SAME `h`, so
 the motion stays exact). `keypoints` are local points by name; each lives
 on the node `keypoint_nodes[name]` names, the entity itself by default.
 
-#### impact_keypoint *: str*
+#### impact_keypoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The keypoint that does the striking (a stick’s tip, a ball’s bottom).
 
-#### keypoints *: Mapping[str, tuple[float, float]]*
+#### keypoints *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Local points by name. What a tracker would report.
 
@@ -17624,21 +17624,21 @@ Local points by name. What a tracker would report.
 `{(node path, property): value}` at stroke height `h`.
 
 * **Return type:**
-  `dict`[`tuple`[`str`, `str`], `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-#### surface_at *: tuple[float, float] | None*
+#### surface_at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where the surface’s top edge is centred, in scene coordinates.
 
 ### *class* an.impacts.objects.PropArt(ref, descriptor, parts)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A prop’s descriptor and its SVG parts — what goes into a props store.
 
 ### *class* an.impacts.objects.StrokeChannel(target, property, contact_value, stroke_extent)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One animated property, AFFINE in stroke height `h`.
 
@@ -17746,7 +17746,7 @@ accelerando from 60 to 120 BPM over four beats, so the gaps shrink:
 | [`PerformanceError`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.PerformanceError)   | A performance description that cannot be played.   |
 |---------------------------------------------------------------------|----------------------------------------------------|
 
-### an.impacts.performance.DEFAULT_LEAD_IN *: float* *= 0.5*
+### an.impacts.performance.DEFAULT_LEAD_IN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Seconds before the first grid beat. Long enough for the first stroke’s
 preparation and for any humanisation to pull the first impact early.
@@ -17757,22 +17757,22 @@ preparation and for any humanisation to pull the first impact early.
 timing models richer than [`gaussian_humanizer()`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.gaussian_humanizer) (a learned groove, a
 drummer’s measured microtiming).
 
-alias of `Callable`[[`Sequence`[`float`], `object`], `Sequence`[`float`]]
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### *class* an.impacts.performance.ImpactEvent(index, beat, t_grid, t_impact, amplitude)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One impact: where the grid put it and when it was executed.
 
-#### *property* offset *: float*
+#### *property* offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 the humanisation actually applied (post-clamp).
 
 * **Type:**
   `t_impact - t_grid`
 
-### an.impacts.performance.MAX_OFFSET_FRACTION *: float* *= 0.4*
+### an.impacts.performance.MAX_OFFSET_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
 
 A humanisation offset is clamped to this fraction of the gap to each
 neighbouring grid event, so executed impacts can never swap order or
@@ -17780,13 +17780,13 @@ collide — whatever the jitter’s standard deviation.
 
 ### *exception* an.impacts.performance.PerformanceError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A performance description that cannot be played.
 
 ### *class* an.impacts.performance.TempoMap(points)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points.
 
@@ -17809,7 +17809,7 @@ four bars”); the time of a beat is the exact integral of `60 / bpm`.
 Seconds from beat 0 to `beat` (`beat >= 0`).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.impacts.performance.gaussian_humanizer(sd=0.0, , rho=0.0, bias=0.0)
 
@@ -17822,7 +17822,7 @@ the timing wanders, not how far. `rho = 0` is independent jitter;
 `bias` is a constant lead (negative) or lag (positive).
 
 * **Return type:**
-  `Callable`[[`Sequence`[`float`], `object`], `Sequence`[`float`]]
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> import numpy as np
@@ -17847,7 +17847,7 @@ into offsets (default: none); each offset is then clamped to
 value is what the event records — the ground truth is what was executed.
 
 * **Return type:**
-  `tuple`[[`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent), `...`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> [e.beat for e in perform(120, beats=2, subdivision=2, pattern=(1, 0))]
@@ -17938,11 +17938,11 @@ In both kinds the speed at the peak is `2 * apex / fall`.
 | [`StrokeError`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.StrokeError)   | A stroke that cannot be built from these events.   |
 |----------------------------------------------------------------|----------------------------------------------------|
 
-### an.impacts.stroke.DEFAULT_BRAKE *: float* *= 0.03*
+### an.impacts.stroke.DEFAULT_BRAKE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.03*
 
 The air stroke’s braking time before its turning point (seconds).
 
-### an.impacts.stroke.DEFAULT_RISE *: float* *= 0.18*
+### an.impacts.stroke.DEFAULT_RISE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.18*
 
 Longest rise after an impact, and longest fall into one (seconds). A slower
 tempo holds at the apex between them instead of floating: a drummer’s stroke
@@ -17950,7 +17950,7 @@ takes about as long at 60 BPM as at 120, it is the wait that changes.
 
 ### *class* an.impacts.stroke.Stroke(kind, duration, segments, kinematics)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The whole curve, plus the kinematics of every impact on it.
 
@@ -17959,24 +17959,24 @@ The whole curve, plus the kinematics of every impact on it.
 Stroke height at scene time `t` (clamped to the clip).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### velocity(t)
 
 `dh/dt` at `t`; at a segment boundary, the LATER segment’s value.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### *exception* an.impacts.stroke.StrokeError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A stroke that cannot be built from these events.
 
 ### *class* an.impacts.stroke.StrokeKinematics(index, kind, t_impact, t_peak_speed, peak_speed, apex, fall, brake)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 How the object moved into one impact.
 
@@ -17986,7 +17986,7 @@ How the object moved into one impact.
 
 ### *class* an.impacts.stroke.StrokeSegment(t0, t1, h0, h1, easing)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 `h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.
 
@@ -18100,19 +18100,19 @@ time). `trajectory.csv` is `t, h, <object>.<kp>_x, <object>.<kp>_y, ...` at
 | [`TruthMismatch`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.TruthMismatch)   | The ground truth and the thing it describes disagree.   |
 |------------------------------------------------------------------|---------------------------------------------------------|
 
-### an.impacts.truth.KEYPOINT_TOLERANCE_PX *: float* *= 1e-06*
+### an.impacts.truth.KEYPOINT_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-06*
 
 The analytic and compiled keypoints must agree to this many pixels. Both are
 double-precision evaluations of the same easing, so any real disagreement is
 orders of magnitude larger.
 
-### an.impacts.truth.TRUTH_SCHEMA_VERSION *: str* *= '1.0.0'*
+### an.impacts.truth.TRUTH_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1.0.0'*
 
 Bumped on any change a reader must know about; additive fields bump MINOR.
 
 ### *exception* an.impacts.truth.TruthMismatch
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The ground truth and the thing it describes disagree.
 
@@ -18124,7 +18124,7 @@ The truth document for one clip (see the module docstring for its schema).
 function owns `objects`, `events` and `frames`.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.impacts.truth.keypoint_lines(truth, , digits=4)
 
@@ -18135,14 +18135,14 @@ One observation per frame, in thoremin’s recorder shape.
 points are what the frame shows; nothing else from the truth leaks in.
 
 * **Return type:**
-  `Iterator`[`dict`[`str`, `Any`]]
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.impacts.truth.trajectory_rows(, scene, obj, stroke, hz, digits=6)
 
 The dense continuous trajectory: a header row, then one row per `1/hz` s.
 
 * **Return type:**
-  `Iterator`[`list`[`Any`]]
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 
 # _autosummary/an.ir.assets.html.md
@@ -18214,7 +18214,7 @@ what keeps `an` from shipping unattributed work in the meantime.
 | [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
 |--------------------------------------------------------------------------|----------------------------------------------------|
 
-### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: frozenset[str]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
+### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
 
 Licence codes that oblige the *user of the output* to credit someone.
 
@@ -18239,7 +18239,7 @@ False
 True
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -18252,9 +18252,9 @@ What a licence means for shipping the video it ends up in.
 - `private` — NOT shippable: all rights reserved, private study only;
 - `unknown` — not classified, which is not the same as free.
 
-alias of `Literal`[‘attribution’, ‘free’, ‘private’, ‘unknown’]
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘private’, ‘unknown’]
 
-### an.ir.assets.PRIVATE_STUDY *: str* *= 'all-rights-reserved-private-study'*
+### an.ir.assets.PRIVATE_STUDY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'all-rights-reserved-private-study'*
 
 The recognised code for material its owner has not licensed at all — frames
 or art carved out of a film, a show, a book — that a user may study
@@ -18262,7 +18262,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PUBLIC_DOMAIN *: str* *= 'public-domain'*
+### an.ir.assets.PUBLIC_DOMAIN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'public-domain'*
 
 The recognised code for the public domain — no rights to clear, nothing
 owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
@@ -18273,7 +18273,7 @@ owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
 What this asset’s licence means for shipping the video (an#211).
 
 * **Return type:**
-  `Literal`[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
 
 ```pycon
 >>> license_class(AssetSource(provider="p", license="pd"))
@@ -18294,7 +18294,7 @@ Free text is what people actually write in a licence field, so the
 classifier reads through punctuation and spacing:
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> normalise_license("All rights reserved - private study only; never publish")
@@ -18314,7 +18314,7 @@ silently dropped. Private-study material (all rights reserved) also answers
 at all; [`license_class()`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class) says so (`"private"`).
 
 * **Return type:**
-  `bool` | `None`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.ir.camera.html.md
@@ -18355,7 +18355,7 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 | [`CameraError`](_autosummary/an.ir.camera.html.md#an.ir.camera.CameraError)   | A camera that cannot be resolved into keys.   |
 |----------------------------------------------------------------|-----------------------------------------------|
 
-### an.ir.camera.CAMERA_MOVES *: dict[str, Callable[[float], list[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]]]* *= {'hold': <function <lambda>>, 'pan_left': <function <lambda>>, 'pan_right': <function <lambda>>, 'pull_out': <function <lambda>>, 'push_in': <function <lambda>>, 'tilt_down': <function <lambda>>, 'tilt_up': <function <lambda>>, 'zoom_in': <function <lambda>>, 'zoom_out': <function <lambda>>}*
+### an.ir.camera.CAMERA_MOVES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[float](https://docs.python.org/3/builtins/functions.html#float)], [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]]]* *= {'hold': <function <lambda>>, 'pan_left': <function <lambda>>, 'pan_right': <function <lambda>>, 'pull_out': <function <lambda>>, 'push_in': <function <lambda>>, 'tilt_down': <function <lambda>>, 'tilt_up': <function <lambda>>, 'zoom_in': <function <lambda>>, 'zoom_out': <function <lambda>>}*
 
 The named moves, as KEY LISTS. `move` is sugar over `keys` — one code path,
 two front doors.
@@ -18371,7 +18371,7 @@ where it was.
 
 ### *exception* an.ir.camera.CameraError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A camera that cannot be resolved into keys.
 
@@ -18379,7 +18379,7 @@ A plain `ValueError` subclass so the IR layer can raise it without knowing
 about any renderer; the cutout compiler re-raises it as a
 `CutoutCompileError` at its own boundary.
 
-### an.ir.camera.PAN_FRACTION *: float* *= 0.3333333333333333*
+### an.ir.camera.PAN_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.3333333333333333*
 
 How far a pan travels, as a fraction of the canvas width (a tilt uses the
 same fraction of the height). A third of the frame is a legible move at any
@@ -18396,7 +18396,7 @@ cannot then raise” true by construction rather than by two tables agreeing
 — the arrangement it replaced (an#109 review, H-1).
 
 * **Return type:**
-  `list`[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 ```pycon
 >>> from an.ir.schema import Camera, Shot
@@ -18475,7 +18475,7 @@ what tooling reasons about.
 
 ### *class* an.ir.compose.FlatAction(start, end, action)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A leaf action with its absolute start and end times.
 
@@ -18495,7 +18495,7 @@ A sentinel rather than `None` because `None` already means linear.
 a `sequence`. The default is [`default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent); the compiler and
 `an validate` pass one bound to the entity’s descriptor.
 
-alias of `Callable`[[[`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)], `float`]
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.ir.compose.default_play_extent(action)
 
@@ -18506,7 +18506,7 @@ The one resolver is `an.characters.play.play_extent()`; this is it with
 `desc=None`.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> default_play_extent(PlayAction(target="a", animation="hop"))
@@ -18529,7 +18529,7 @@ Compute the total duration of an action tree without evaluating it.
 `play_extent` resolves a duration-less `play` (see [`PlayExtent`](_autosummary/an.ir.compose.html.md#an.ir.compose.PlayExtent)).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> duration_of(tween("a", "x", to=1.0, duration=2.0))
@@ -18574,7 +18574,7 @@ Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
 * **Return type:**
-  `list`[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
 ### an.ir.compose.loop(action, count)
 
@@ -18730,7 +18730,7 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: Literal['character', 'environment', 'voice', 'prop']*
+#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
@@ -18739,11 +18739,11 @@ renderer selector. Art direction arrives as a StylePack (#112).
 * **Type:**
   `"style"` was retired in an#106
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### stage *: [StagePlacement](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement) | None*
+#### stage *: [StagePlacement](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where on the stage this entity stands. `None` — the default and what
 every existing document has — means “wherever the layout puts it”,
@@ -18780,15 +18780,15 @@ block it regenerates.
 written into every `scene.md` this package ever generated and read by
 nothing; a registered migration drops them.
 
-#### keys *: list[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)] | None*
+#### keys *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The explicit door. `None` = use `move`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### move *: str | None*
+#### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 `an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
@@ -18805,14 +18805,14 @@ One line of spoken dialogue.
 gives us a real duration); the pipeline stamps them then, deriving
 `start` from the author’s `pause` / `at` ([`planned_start()`](_autosummary/an.ir.html.md#an.ir.Dialogue.planned_start)).
 
-#### at *: float | None*
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this line starts, in SHOT seconds, whatever came before it —
 `(at 3.0)` in `scene.md`. `start` is what the audio pipeline
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
-#### direction *: list[str] | None*
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How the line is DELIVERED — cues such as `["excited"]` or
 `["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
@@ -18820,11 +18820,11 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pause *: float | None*
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Seconds of silence before this line, after the previous line ends (the
 shot start, for the first line) — `(pause 1.5)` in `scene.md`.
@@ -18840,7 +18840,7 @@ spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
@@ -18851,14 +18851,14 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 0.8
 ```
 
-#### word_timings *: list[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | None*
+#### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The provider’s word timings, line-relative; `None` when the provider
 has none (offline, Rhubarb) or the line was stamped before an#96.
 
 ### *class* an.ir.DocumentKind(name, version_field, current_version)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A schema-versioned document kind.
 
@@ -18871,11 +18871,11 @@ migrator cannot simply reach for `doc["version"]`.
 The document’s declared version, defaulting to this build’s.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### *class* an.ir.FlatAction(start, end, action)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A leaf action with its absolute start and end times.
 
@@ -18889,12 +18889,12 @@ Bases: `_IRModel`
 
 Scene metadata.
 
-#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | None*
+#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Captions from the dialogue’s word timings (`Captions`, an#175);
 `None` — the default — is none, omitted from JSON like `style_pack`.
 
-#### default_easing *: str | tuple[float, float, float, float] | list[float] | None*
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with
 (an#166) — `"linear"` for a snappy South Park cadence, an overshooting
@@ -18907,16 +18907,16 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### sounds *: list[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
 Sound cues in FILM time — a music bed, an ambience under every shot
 (`SoundCue`). Empty, the default, is no sound layer at all.
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
 (the default) leaves every tween smooth. At 30 fps, `15` is “on twos”
@@ -18933,7 +18933,7 @@ likewise lands where it was authored). A shot’s own `step_hz`
 overrides this. Must be positive (schema) and `<= fps` (validate +
 compile), an#89.
 
-#### style_pack *: str | None*
+#### style_pack *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The `StylePack` in the project’s `styles` store this scene is drawn
 under, by key. `None` — the default and what every existing document
@@ -18953,7 +18953,7 @@ Bases: `_IRModel`
 
 Pixel dimensions of the rendered output.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -18976,7 +18976,7 @@ True
 'Hello'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -18989,11 +18989,11 @@ A single rendered unit. A scene is a sequence of shots.
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: Literal['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
@@ -19001,27 +19001,27 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
-#### sounds *: list[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
 Sound cues in SHOT-local time (`SoundCue`).
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](_autosummary/an.ir.html.md#an.ir.Meta.step_hz) (`None` = inherit).
 
-#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | None*
+#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How this shot is entered (`Transition`); `None` is a hard cut.
 
 ### *class* an.ir.ValidationFinding(severity, ir_path, description)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single validation issue with a path into the IR.
 
 ### *class* an.ir.ValidationReport(passed=True, findings=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Result of running one or more validators.
 
@@ -19064,14 +19064,14 @@ Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
 * **Return type:**
-  `list`[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
 ### an.ir.ir_to_markdown(scene)
 
 Render a SceneIR back into the structured Markdown form.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Meta, Shot
@@ -19145,7 +19145,7 @@ migrations registered for this document’s kind. Raises `ValueError` if no
 path exists between the source and target versions.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> from an.base import SCHEMA_VERSION
@@ -19218,7 +19218,7 @@ test that ran afterwards — which is exactly what happened once, and it
 presented as one unrelated test failing only in a full run (an#106).
 
 * **Return type:**
-  `Callable`[[`Callable`[[`dict`[`str`, `Any`]], `dict`[`str`, `Any`]]], `Callable`[[`dict`[`str`, `Any`]], `dict`[`str`, `Any`]]]
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
 ```pycon
 >>> @register_migration("Widget", "1.0", "2.0")
@@ -19415,7 +19415,7 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: Literal['character', 'environment', 'voice', 'prop']*
+#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
@@ -19424,11 +19424,11 @@ renderer selector. Art direction arrives as a StylePack (#112).
 * **Type:**
   `"style"` was retired in an#106
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### stage *: [StagePlacement](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement) | None*
+#### stage *: [StagePlacement](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where on the stage this entity stands. `None` — the default and what
 every existing document has — means “wherever the layout puts it”,
@@ -19465,15 +19465,15 @@ block it regenerates.
 written into every `scene.md` this package ever generated and read by
 nothing; a registered migration drops them.
 
-#### keys *: list[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)] | None*
+#### keys *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The explicit door. `None` = use `move`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### move *: str | None*
+#### move *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 `an.adapters.cutout.compile.CAMERA_MOVES`; validate and the compiler are
@@ -19504,19 +19504,19 @@ and `null` on the terminal one, so a per-key default of `"ease_in_out"`
 would put it on both and move every camera scene’s contract hash. The
 named moves supply the easing they have always supplied.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### rotation *: float*
+#### rotation *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Camera roll, radians.
 
-#### x *: float*
+#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Camera position in scene pixels. `+x` moves the camera right.
 
-#### zoom *: float*
+#### zoom *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 On-screen magnification. Must be > 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.
@@ -19545,16 +19545,16 @@ feeds BOTH outputs, so the picture and the sidecar cannot disagree:
 '#ffcc00'
 ```
 
-#### anchor *: str*
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 One of tituli’s nine title-safe anchors.
 
-#### font *: str | None*
+#### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the embedded face; else an ABSOLUTE font file path, or one
 relative to the project directory.
 
-#### highlight *: str | None*
+#### highlight *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 the word being spoken is drawn in this colour (karaoke);
 `None` draws every word in `color`.
@@ -19562,7 +19562,7 @@ the word being spoken is drawn in this colour (karaoke);
 * **Type:**
   `#rrggbb`
 
-#### max_chars *: int*
+#### max_chars *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
 Line breaks are made HERE, by character count, and written into both
 the burned block and the sidecar — the same lines in both. 42 fits the
@@ -19570,16 +19570,16 @@ title-safe width of a 16:9 or 4:3 frame at the default size; a square
 or portrait frame needs fewer (about 32 at 1:1) or a smaller `size` —
 a line that does not fit is REFUSED before the render, never clipped.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### strict *: bool*
+#### strict *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
 
-### an.ir.schema.DEFAULT_CAPTION_MAX_CHARS *: int* *= 42*
+### an.ir.schema.DEFAULT_CAPTION_MAX_CHARS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 42*
 
 the broadcast
 convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
@@ -19587,12 +19587,12 @@ convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
 * **Type:**
   Characters per caption line and lines per caption page
 
-### an.ir.schema.DEFAULT_CAPTION_SIZE *: float* *= 0.05*
+### an.ir.schema.DEFAULT_CAPTION_SIZE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.05*
 
 Caption type size as a fraction of frame height — a little under the title
 default, as captions are read while something else is watched.
 
-### an.ir.schema.DFLT_EXPRESSION_BLEND_S *: float* *= 0.15*
+### an.ir.schema.DFLT_EXPRESSION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
 Default ramp in/out of an expression, seconds (0 = cut). The dialogue
 `[emotion]` sugar uses its own in `an.expression.provider`.
@@ -19603,7 +19603,7 @@ Bases: `_ActionBase`
 
 Composition: an empty span that consumes time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19617,14 +19617,14 @@ One line of spoken dialogue.
 gives us a real duration); the pipeline stamps them then, deriving
 `start` from the author’s `pause` / `at` ([`planned_start()`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue.planned_start)).
 
-#### at *: float | None*
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this line starts, in SHOT seconds, whatever came before it —
 `(at 3.0)` in `scene.md`. `start` is what the audio pipeline
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
-#### direction *: list[str] | None*
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How the line is DELIVERED — cues such as `["excited"]` or
 `["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
@@ -19632,11 +19632,11 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pause *: float | None*
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Seconds of silence before this line, after the previous line ends (the
 shot start, for the first line) — `(pause 1.5)` in `scene.md`.
@@ -19652,7 +19652,7 @@ spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
@@ -19663,7 +19663,7 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 0.8
 ```
 
-#### word_timings *: list[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | None*
+#### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The provider’s word timings, line-relative; `None` when the provider
 has none (offline, Rhubarb) or the line was stamped before an#96.
@@ -19691,7 +19691,7 @@ never reaches full intensity (a 0.2 s expression at the default 0.15 s
 blend peaks at 0.67) and a `duration=0` expression shows only where a
 frame lands on it with `blend=0` — cut the blend for a flash.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19701,7 +19701,7 @@ Bases: `_ActionBase`
 
 Composition: repeat `child` `count` times.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19711,12 +19711,12 @@ Bases: `_IRModel`
 
 Scene metadata.
 
-#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | None*
+#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Captions from the dialogue’s word timings ([`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions), an#175);
 `None` — the default — is none, omitted from JSON like `style_pack`.
 
-#### default_easing *: str | tuple[float, float, float, float] | list[float] | None*
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with
 (an#166) — `"linear"` for a snappy South Park cadence, an overshooting
@@ -19729,16 +19729,16 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### sounds *: list[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
 Sound cues in FILM time — a music bed, an ambience under every shot
 ([`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)). Empty, the default, is no sound layer at all.
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
 (the default) leaves every tween smooth. At 30 fps, `15` is “on twos”
@@ -19755,7 +19755,7 @@ likewise lands where it was authored). A shot’s own `step_hz`
 overrides this. Must be positive (schema) and `<= fps` (validate +
 compile), an#89.
 
-#### style_pack *: str | None*
+#### style_pack *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The `StylePack` in the project’s `styles` store this scene is drawn
 under, by key. `None` — the default and what every existing document
@@ -19775,7 +19775,7 @@ Bases: `_IRModel`
 
 Off-screen narration. Same shape as Dialogue minus the speaker pin.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19785,7 +19785,7 @@ Bases: `_ActionBase`
 
 Composition: run all children simultaneously starting at the same time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19817,7 +19817,7 @@ length, a non-looping descriptor animation’s `duration`, both over
 `speed` — so the next sibling starts when it ends; a looping one runs to
 the shot end and occupies ZERO (`an.characters.play.play_extent()`).
 
-#### args *: dict[str, Any] | None*
+#### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Parameters of a MOTION PRESET (an#166) — `{"height": 30}` for a
 `hop` — passed to its [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) function as keyword
@@ -19825,7 +19825,7 @@ arguments. `None` (the default, omitted from JSON) means the preset’s
 own defaults. A descriptor animation takes none, and one given to it is
 refused; `rest` is never one — it is read off the built scene.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19835,7 +19835,7 @@ Bases: `_IRModel`
 
 Pixel dimensions of the rendered output.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19858,7 +19858,7 @@ True
 'Hello'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19868,7 +19868,7 @@ Bases: `_ActionBase`
 
 Composition: run children one after the other.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19878,7 +19878,7 @@ Bases: `_ActionBase`
 
 Set a property to a value at a specific time. Discrete, no tween.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19891,11 +19891,11 @@ A single rendered unit. A scene is a sequence of shots.
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: Literal['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
@@ -19903,15 +19903,15 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
-#### sounds *: list[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
 Sound cues in SHOT-local time ([`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)).
 
-#### step_hz *: float | None*
+#### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta.step_hz) (`None` = inherit).
 
-#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | None*
+#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How this shot is entered ([`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)); `None` is a hard cut.
 
@@ -19936,12 +19936,12 @@ whole thing).
 -12.0
 ```
 
-#### duck_db *: float | None*
+#### duck_db *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Attenuation, in dB, while any dialogue line plays; `None` never ducks.
 A music bed usually wants `DEFAULT_DUCK_DB`; an SFX hit wants none.
 
-#### duration *: float | None*
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 the asset’s own length, or — when
 `loop` — to the end of its shot (shot cue) or of the film (meta cue).
@@ -19949,7 +19949,7 @@ the asset’s own length, or — when
 * **Type:**
   How long it plays. `None`
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -19997,7 +19997,7 @@ What each would cost, so the next reader does not re-derive it:
 Neither is hard. Both are unmotivated, and an unmotivated knob in a
 versioned schema is a migration you owe later for a feature nobody used.
 
-#### at *: tuple[Annotated[float, FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])], Annotated[float, FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])]] | None*
+#### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `(x, y)` in scene pixels from the stage centre. `None` = default layout.
 
@@ -20008,11 +20008,11 @@ author finds out on the next load rather than at the edit that did it
 (an#108 review, M-1). `gt=0` already refuses `scale=0` and `scale=-1`; it
 does not refuse `inf`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### scale *: float*
+#### scale *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
 
@@ -20043,7 +20043,7 @@ from nothing.
   shot’s picture; audio from both shots is heard in the overlap. Not
   allowed on the first shot.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -20053,7 +20053,7 @@ Bases: `_ActionBase`
 
 Animate a property from a start value to an end value over a duration.
 
-#### easing *: str | tuple[float, float, float, float] | list[float] | None*
+#### easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a
 tween that does not name an easing takes the scene’s
@@ -20080,7 +20080,7 @@ ramp (the evaluators’ reading of a null easing), not “unset”.
 
   \*\* (an#166)
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -20112,7 +20112,7 @@ The easing this tween draws with under a scene default of
 ```
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### *class* an.ir.schema.VisemeKeyframe(\*\*data)
 
@@ -20120,7 +20120,7 @@ Bases: `_IRModel`
 
 A single mouth-shape keyframe in a viseme track.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -20130,7 +20130,7 @@ Bases: `_IRModel`
 
 Aligned viseme track produced by the lip-sync stage. Optional in P1.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -20143,7 +20143,7 @@ start (like [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.Vi
 pipeline from the provider’s word timings when it has them (an#96); JSON
 only — `scene.md` never carries it, the way it never carries visemes.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -20155,7 +20155,7 @@ statement of the shot-over-scene rule — the cutout renderer, the preview
 and the project renderer all call it (an#89 review: three copies).
 
 * **Return type:**
-  `float` | `None`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> resolve_step_hz(Shot(id="s", step_hz=10.0), 15.0)
@@ -20203,14 +20203,14 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 |------------------------------------------------------------------------------------------------------|------------------------------------------------------|
 | [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)([passed, findings])                | Result of running one or more validators.            |
 
-### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: float* *= 0.016666666666666666*
+### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
 a frame at 60 fps.
 
 * **Type:**
   Slack before a line counts as running past its shot
 
-### an.ir.validate.RETIRED_CAMERA_KEYS *: frozenset[str]* *= frozenset({'focal_length', 'position', 'target'})*
+### an.ir.validate.RETIRED_CAMERA_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'focal_length', 'position', 'target'})*
 
 an#109’s removed camera fields. A WARNING, not an error, and the difference
 is the harm: a surviving `style` silently picks the wrong RENDERER, while
@@ -20223,7 +20223,7 @@ at the current version is never migrated again, so a camera block that came
 through a sync between the version bump and this check keeps them forever as
 `extra="allow"` extras, and nothing else looks.
 
-### an.ir.validate.RETIRED_KEYS *: dict[str, dict[str, str]]* *= {'meta': {'default_style': 'default_renderer'}, 'shot': {'style': 'renderer'}}*
+### an.ir.validate.RETIRED_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'meta': {'default_style': 'default_renderer'}, 'shot': {'style': 'renderer'}}*
 
 Keys an#106 retired, and what to write instead. `SceneIR`’s models are
 `extra="allow"` (deliberately — forward compatibility), so a document that
@@ -20233,7 +20233,7 @@ a document that is already 0.2.0: an agent patch, a hand edit, or a caller
 passing `style=` to `Shot(...)` all produce a permanently dead key that no
 later migration will touch. So it is caught here, at ERROR, by name.
 
-### an.ir.validate.RIG_STORES *: dict[str, tuple[str, str]]* *= {'character': ('characters', 'CharacterDescriptor'), 'prop': ('props', 'PropDescriptor')}*
+### an.ir.validate.RIG_STORES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'character': ('characters', 'CharacterDescriptor'), 'prop': ('props', 'PropDescriptor')}*
 
 Entity kind → (the mall store holding its rig, the descriptor `kind` tag
 that store’s documents carry). `environment` and `voice` are absent because
@@ -20241,13 +20241,13 @@ neither has a rig to declare asset sets on.
 
 ### *class* an.ir.validate.ValidationFinding(severity, ir_path, description)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single validation issue with a path into the IR.
 
 ### *class* an.ir.validate.ValidationReport(passed=True, findings=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Result of running one or more validators.
 
@@ -20342,7 +20342,7 @@ agent can review what changed across runs.
 
 ### *exception* an.iterate.IterateError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when an iterate call cannot apply its proposed patches.
 
@@ -20352,13 +20352,13 @@ Bases: `BaseModel`
 
 Structured reply from Claude for a single iterate() call.
 
-#### model_config *: ClassVar[ConfigDict]* *= {}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.iterate.IterateResult(success=True, summary='', patches=<factory>, affected_shots=<factory>, new_scene=None, validation=None, error=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an iterate() call.
 
@@ -20368,7 +20368,7 @@ Bases: `BaseModel`
 
 A single mutation against the SceneIR JSON tree.
 
-#### model_config *: ClassVar[ConfigDict]* *= {}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -20440,16 +20440,16 @@ would be a second answer to “may this run spend?”, and the two would drift.
 | [`live_api_enabled`](_autosummary/an.live_api.html.md#an.live_api.live_api_enabled)([env])   | Whether this run has explicitly opted in to paid API calls.   |
 |----------------------------------------------------------------------------|---------------------------------------------------------------|
 
-### an.live_api.CI_ENV_VAR *: str* *= 'CI'*
+### an.live_api.CI_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'CI'*
 
 Set by every CI provider we care about. CI must never spend, whatever else
 is configured, because nobody is watching the bill in a CI run.
 
-### an.live_api.LIVE_API_ENV_VAR *: str* *= 'AN_LIVE_API_TESTS'*
+### an.live_api.LIVE_API_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'AN_LIVE_API_TESTS'*
 
 Set this truthy to opt a run in to real, billed API calls.
 
-### an.live_api.TRUTHY_VALUES *: frozenset[str]* *= frozenset({'1', 'on', 'true', 'yes'})*
+### an.live_api.TRUTHY_VALUES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'1', 'on', 'true', 'yes'})*
 
 Accepted spellings of “yes”. Anything else — including an empty string, the
 shape an unset-but-exported variable takes — is “no”.
@@ -20467,7 +20467,7 @@ annotation was false about the function’s own primary argument and pushed
 callers into copying the whole environment to satisfy it.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> live_api_enabled({})
@@ -20577,7 +20577,7 @@ length divided by `speed`, so two in a row run one after the other.
 | [`waddle`](_autosummary/an.motion.html.md#an.motion.waddle)(target, \*[, steps, step_duration, ...])    | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
 | [`walk`](_autosummary/an.motion.html.md#an.motion.walk)(target, \*[, to_x, distance, direction, ...]) | Walk: the body travels on `x` and bobs once per step while the legs alternate and the arms swing against them (an#214).                                                                                                                                                              |
 
-### an.motion.HOME_PRESETS *: frozenset[str]* *= frozenset({'pop_in', 'slide_in'})*
+### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
 
 Presets whose `rest` is the node’s HOME — where an entrance LANDS — rather
 than where the node is when the move starts. Played by name these read the
@@ -20585,17 +20585,17 @@ BUILT pose (`slide_out` then `slide_in` comes back home; `pop_in` after a
 `set` of the scales to 0 grows to full size); every other preset moves
 relative to where the node IS at its start (an#212).
 
-### an.motion.IDENTITY_POSE *: dict[str, float]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
+### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
 
 `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.
 
-### an.motion.OVERSHOOT *: tuple[float, float, float, float]* *= (0.34, 1.56, 0.64, 1.0)*
+### an.motion.OVERSHOOT *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.34, 1.56, 0.64, 1.0)*
 
 A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: dict[str, Callable[[...], Annotated[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read.
@@ -20612,7 +20612,7 @@ those, with the same absolute times.
 A `set` keeps its absolute time in `at` instead of a wrapper.
 
 * **Return type:**
-  `list`[`Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]]
 
 ```pycon
 >>> leaves = as_leaves(hop("charlie"), start=1.0)
@@ -20711,7 +20711,7 @@ scale are read, never restated. Pass the same `mall` you render with:
 a descriptor rig is built from its character store.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> from an.ir.schema import AssetRef
@@ -20786,7 +20786,7 @@ target against (an#166, an#193). `width`/`height` (default: the
 compiler’s) matter to text, whose line breaks depend on the frame.
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `float`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> from an.ir.schema import AssetRef
@@ -20948,7 +20948,7 @@ True
 
 ### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an end-to-end orchestrated run.
 
@@ -20997,7 +20997,7 @@ a `TypeError` — invisible because the CLI test stubbed THIS function
 rather than the leaf (an#98 review). A pass-through cannot drift.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.orchestrate.validate_project(project_dir)
 
@@ -21075,7 +21075,7 @@ SVG; a path has none of those, and its colour is decided by the compiler
 | [`PathDescriptor`](_autosummary/an.paths.html.md#an.paths.PathDescriptor)(\*\*data)   | The on-disk path schema, saved as a prop's `prop.json`.   |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------|
 
-### an.paths.DFLT_STROKE_COLOUR *: str* *= '#c0392b'*
+### an.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
 
 The stroke colour when the document names none. A `StylePack`’s `stroke`
 role replaces it (an#161) — but only this default: a document that sets
@@ -21083,7 +21083,7 @@ role replaces it (an#161) — but only this default: a document that sets
 same line `an.styles` draws for SVG). A per-entity `stroke` override in the
 pack wins over both.
 
-### an.paths.MIN_DASH_PERIOD *: float* *= 1.0*
+### an.paths.MIN_DASH_PERIOD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
 
 The shortest dash period (dash + gap), scene pixels. Bounds the number of
 dashes a path can ask the runtime to redraw every frame: a path a few
@@ -21120,11 +21120,11 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
 ...
 ```
 
-#### color *: str*
+#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `#rrggbb`.
 
-#### dash *: float | None*
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `dash` on, `gap` off, repeating along
 the path from ITS start — anchored to the path, not to the trimmed span,
@@ -21134,37 +21134,37 @@ so a draw-on reveals dashes in place instead of making them crawl.
 * **Type:**
   A dash pattern, scene pixels
 
-#### dash_offset *: float*
+#### dash_offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Shifts the pattern along the path (positive = forward). An ordinary
 numeric node property like `trim_end`, so `tween route dash_offset`
 is the “marching ants” route; only a dashed path has one.
 
-#### *property* gap_px *: float*
+#### *property* gap_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The gap of the dash pattern, scene pixels (`dash` when unset).
 
-#### head_length *: float | None*
+#### head_length *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Scene pixels; `None` = a multiple of `width`.
 
-#### *property* head_length_px *: float*
+#### *property* head_length_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The arrowhead’s length in scene pixels.
 
-#### *property* head_width_px *: float*
+#### *property* head_width_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The arrowhead’s base width in scene pixels.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### points *: list[tuple[float, float]]*
+#### points *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Scene pixels, relative to the node’s origin (`AssetRef.stage.at`).
 
-#### trim_start *: float*
+#### trim_start *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The visible span before anything animates it, as fractions of arc
 length. `trim_end=0` starts a draw-on hidden, and a trim tween
@@ -21233,13 +21233,13 @@ True
 
 ### *exception* an.preview.PreviewError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a preview cannot be staged or served.
 
 ### *class* an.preview.PreviewStaging(runtime_dir, scene_json_path, shot_id)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of staging a preview’s runtime + initial compiled scene.
 
@@ -21258,7 +21258,7 @@ Blocks the calling thread until interrupted (Ctrl-C). Returns the
 base URL after teardown.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.project.html.md
@@ -21292,7 +21292,7 @@ Layout (from spec §11):
 
 ### *class* an.project.Project(root, mall, scene)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A loaded an project: directory + mall + current scene.
 
@@ -21304,7 +21304,7 @@ Idempotent unless the directory already contains a non-empty `scene.md`;
 pass `force=True` to overwrite. Returns the absolute project root.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.project.load(project_dir)
 
@@ -21318,7 +21318,7 @@ Load an existing project. Reconciles scene.md / ir/scene.json first.
 Persist a Project’s current scene back to disk (md + json).
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.props.html.md
@@ -21430,27 +21430,27 @@ uses, not a second vocabulary:
 'parts/on.svg'
 ```
 
-#### animations *: dict[str, Any]*
+#### animations *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
 
 Present so `play` and the rig builder read the same attribute on either
 descriptor. Empty by default — a prop has no `idle_breath` and no
 `blink`, and seeding one would animate a lamp.
 
-#### asset_sets *: dict[str, dict[str, str]]*
+#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{channel: {key: attachment_name}}` — the same indirection a character
 uses for visemes. Empty by default: a prop with no moving parts declares
 none, and declaring a channel a rig cannot serve is what makes a swap
 silently keep the previous texture.
 
-#### face_overlay *: Literal[True]*
+#### face_overlay *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)[True]*
 
 Always true, and not a knob. `face_overlay=False` means “the face is
 baked into the head art”, which makes the builder suppress every slot
 nested under the head bone’s primary slot. A prop has no head bone, so
 the flag can only do harm; it exists because the shared builder reads it.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -21460,15 +21460,15 @@ Override this method to perform additional initialization after `__init__` and `
 This is useful if you want to do some validation that requires the entire model to be initialized.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this art came from and what its licence obliges. `None` means
 “we made this” — not “unknown”. Same field as `CharacterDescriptor`,
 because `an credits` should not need to know which store it came from.
 
-#### source_svg *: str | None*
+#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional source SVG the `parts/` folder was sliced from.
 
@@ -21477,7 +21477,7 @@ Optional source SVG the `parts/` folder was sliced from.
 One bone at the origin.
 
 * **Return type:**
-  `list`[[`Bone`](_autosummary/an.characters.schema.html.md#an.characters.schema.Bone)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](_autosummary/an.characters.schema.html.md#an.characters.schema.Bone)]
 
 ```pycon
 >>> [b.name for b in default_prop_bones()]
@@ -21489,7 +21489,7 @@ One bone at the origin.
 One slot on that bone.
 
 * **Return type:**
-  `list`[[`Slot`](_autosummary/an.characters.schema.html.md#an.characters.schema.Slot)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](_autosummary/an.characters.schema.html.md#an.characters.schema.Slot)]
 
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]
@@ -21561,7 +21561,7 @@ compiler says so once.
 | [`RasterFormatError`](_autosummary/an.raster.html.md#an.raster.RasterFormatError)   | A file named as raster art whose header this module cannot read.   |
 |----------------------------------------------------------------------|--------------------------------------------------------------------|
 
-### an.raster.RASTER_SUFFIXES *: tuple[str, ...]* *= ('.png', '.jpg', '.jpeg', '.webp')*
+### an.raster.RASTER_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.png', '.jpg', '.jpeg', '.webp')*
 
 The raster formats a plate or a part may be, by file suffix. PixiJS 7’s
 `loadTextures` picks its parser by extension and accepts exactly these
@@ -21570,7 +21570,7 @@ whose output is not specified bit-exactly and the render is a contract).
 
 ### *exception* an.raster.RasterFormatError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A file named as raster art whose header this module cannot read.
 
@@ -21588,7 +21588,7 @@ The ONE probe the compiler, the fidelity check and `an validate` share, so
 none of them can size a PNG as if it were XML again.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.raster.content_digest(path)
 
@@ -21603,7 +21603,7 @@ compiles each shot separately; keyed on the stat so an edited file is
 re-read, which is what makes the digest safe to put in a texture alias.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.raster.has_alpha(source)
 
@@ -21616,7 +21616,7 @@ canvas draws, background and all — which is what `an character validate`
 uses this for.
 
 * **Return type:**
-  `bool` | `None`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.raster.image_size(source)
 
@@ -21625,7 +21625,7 @@ uses this for.
 `source` is a path or the file’s bytes.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> import struct, zlib
@@ -21641,7 +21641,7 @@ uses this for.
 Whether `src` names raster art, by its suffix (case-insensitive).
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> is_raster("plates/Street.JPG")
@@ -21655,7 +21655,7 @@ False
 The file path a (possibly versioned) texture `src` names.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> strip_version("props/lamp/parts/on.png?v=abc123")
@@ -21667,7 +21667,7 @@ The file path a (possibly versioned) texture `src` names.
 `src` with its content digest as a query string.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> versioned_src("props/lamp/parts/on.png", "abc123")
@@ -21701,7 +21701,7 @@ adapters and the same flow handles them.
 
 ### *exception* an.render.RenderError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised on render-pipeline failures with actionable detail.
 
@@ -21753,7 +21753,7 @@ anything that measures pixels: a stand-in renders happily and is a
 different picture (an#33).
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
 
@@ -21798,7 +21798,7 @@ provider *instance* carries its own.
 Returns the absolute path of the final output file (under `output/`).
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.sounds.html.md
@@ -21870,21 +21870,21 @@ Bases: `BaseModel`
 
 The `sound.json` of one entry in the `sounds` store.
 
-#### duration *: float*
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Seconds, from the WAV header.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### sha256 *: str*
+#### sha256 *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Digest of `audio.wav` as it entered the project; checked on every read.
 
 ### *exception* an.sounds.SoundError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A sound the store cannot hold, or holds wrongly.
 
@@ -21907,7 +21907,7 @@ A mismatch raises: the licence is attached to the digest, so different
 bytes under the same key are an asset nobody recorded.
 
 * **Return type:**
-  `tuple`[[`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset), `bytes`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 ### an.sounds.synth_bed(duration, , chord=(220.0, 277.18, 329.63), pulse_hz=2.0, sample_rate=44100, amplitude=0.3)
 
@@ -21917,7 +21917,7 @@ The pulse is a whole number of cycles over `duration` when
 `duration * pulse_hz` is whole, so a looped bed does not bump at the seam.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> len(synth_bed(1.0)) > 44 and synth_bed(1.0) == synth_bed(1.0)
@@ -21929,7 +21929,7 @@ True
 A percussive hit: a seeded noise burst over a low thump, decaying fast.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_hit(seed=1) == synth_hit(seed=1), synth_hit(seed=1) == synth_hit(seed=2)
@@ -21941,7 +21941,7 @@ A percussive hit: a seeded noise burst over a low thump, decaying fast.
 A sine at `freq` Hz, with short linear ramps so it does not click.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_tone(440.0, 0.1) == synth_tone(440.0, 0.1)
@@ -21953,7 +21953,7 @@ True
 `(sample_rate, channels, frames)` from a WAV’s header.
 
 * **Return type:**
-  `tuple`[`int`, `int`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
@@ -22072,7 +22072,7 @@ by integer index (as a string) for uniformity with the other stores, plus an
 
 ### *class* an.stores.decisions.DecisionLogStore(log_path)
 
-Bases: `MutableMapping`
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 
 Append-only JSONL log keyed by ordinal index (as string).
 
@@ -22095,7 +22095,7 @@ forbidden; the log is append-only by design.
 Append one decision; returns its ordinal index.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 
 # _autosummary/an.stores.environments.html.md
@@ -22187,7 +22187,7 @@ Per-character directory store.
 
 ### *class* an.stores.DecisionLogStore(log_path)
 
-Bases: `MutableMapping`
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 
 Append-only JSONL log keyed by ordinal index (as string).
 
@@ -22210,7 +22210,7 @@ forbidden; the log is append-only by design.
 Append one decision; returns its ordinal index.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### *class* an.stores.EnvironmentsStore(root_dir)
 
@@ -22247,7 +22247,7 @@ Per-prop directory store.
 
 ### *class* an.stores.ScenesStore(project_dir)
 
-Bases: `MutableMapping`
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 
 `MutableMapping` exposing the scene file pair under a project root.
 
@@ -22320,7 +22320,7 @@ don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory `dict` for tests).
 
 * **Return type:**
-  `dict`[`str`, `MutableMapping`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/typing.html#typing.MutableMapping)]
 
 ### Modules
 
@@ -22395,7 +22395,7 @@ validates as one) and persists both the JSON and the regenerated Markdown.
 
 ### *class* an.stores.scenes.ScenesStore(project_dir)
 
-Bases: `MutableMapping`
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 
 `MutableMapping` exposing the scene file pair under a project root.
 
@@ -22581,7 +22581,7 @@ Drawn with the engine’s native ADD blend (PixiJS 7 does it in the blend
 equation, no filter), as the entity’s first child, so it moves with the
 entity and lights the background around it, not the entity itself.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -22597,7 +22597,7 @@ frame — so it only ever darkens, by at most `amount`. The same seed is the
 same grain on every frame and every machine; nothing is random at render
 time.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -22628,7 +22628,7 @@ itself rather than the background. A group fade needs the subtree drawn to
 a texture first (a filter), which this package refuses; the compiler warns
 when an `alpha` channel reaches a treated part.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -22650,11 +22650,11 @@ a procedural part; on an SVG part one copy scaled about the art’s centre, so
 it grows the art’s BOX by the width (one copy, because translucent copies
 would compound where they overlap).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.styles.REACHABLE_ROLES *: frozenset[str]* *= frozenset({'accessory', 'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
+### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'accessory', 'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
 
 Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.
@@ -22717,31 +22717,31 @@ pack that does not mention a role must leave it exactly as it was —
 which is what keeps a scene with no pack byte-identical.
 
 * **Return type:**
-  `Optional`[`str`]
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
-#### entities *: dict[str, dict[str, str]]*
+#### entities *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{entity id: {role: "#rrggbb"}}` — a per-entity override of `roles`.
 
-#### entity_surfaces *: dict[str, [SurfaceTreatment](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment)]*
+#### entity_surfaces *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SurfaceTreatment](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment)]*
 
 `{entity id: SurfaceTreatment}` — per-entity, key-by-key override of
 `surface`.
 
-#### grain *: [Grain](_autosummary/an.styles.html.md#an.styles.Grain) | None*
+#### grain *: [Grain](_autosummary/an.styles.html.md#an.styles.Grain) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 One static paper grain over the frame; `None` = none.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### roles *: dict[str, str]*
+#### roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 `{role: "#rrggbb"}`. Hex strings, not colour objects — see the module
 docstring for why a second representation is a liability here.
 
-#### surface *: [SurfaceTreatment](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | None*
+#### surface *: [SurfaceTreatment](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Surface treatments for every drawable entity (characters and props);
 `None` = none. See [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) and [`surface_for()`](_autosummary/an.styles.html.md#an.styles.surface_for).
@@ -22766,11 +22766,11 @@ to store.
 {'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.styles.UNREACHABLE_ROLES *: dict[str, str]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
+### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
 
 Roles a pack must NOT declare, with what makes each unreachable. These are
 `runtime.js` literals: `_LIP_COLOR`, `_MOUTH_FILL`, `_TEETH_COLOR`,
@@ -22788,7 +22788,7 @@ that mentions none of the three, the caller’s own literals come back
 unchanged and the compiled document does not move a byte.
 
 * **Return type:**
-  `tuple`[`str`, `str`, `str`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> resolve_palette(None, "maya", ("#f4c89a", "#3a6ea5", "#3b2a1a"))
@@ -22807,7 +22807,7 @@ entity whose override switched everything off — which is what keeps every
 such scene’s compiled document byte-identical to before an#163.
 
 * **Return type:**
-  [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | `None`
+  [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> pack = StylePack(name="sp", surface={"outline": {}},
@@ -22913,12 +22913,12 @@ recorded in the compiled document.
 |------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [`TextLayoutError`](_autosummary/an.text.html.md#an.text.TextLayoutError) | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
 
-### an.text.DFLT_TEXT_COLOUR *: str* *= '#1a1a1a'*
+### an.text.DFLT_TEXT_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 Ink when the document names none — a near-black that reads on the default
 white background.
 
-### an.text.DFLT_TEXT_SIZE *: float* *= 0.06*
+### an.text.DFLT_TEXT_SIZE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.06*
 
 0.06 is
 65 px at 1080p, and the same block reads the same at 720p and at 4K.
@@ -22928,7 +22928,7 @@ white background.
 
 ### *class* an.text.FontIdentity(family, style, sha256, embedded, layout_engine='basic')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Which face drew a block — by its bytes, not its name.
 
@@ -22938,9 +22938,9 @@ Which face drew a block — by its bytes, not its name.
 compiled document records.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-#### layout_engine *: str* *= 'basic'*
+#### layout_engine *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'basic'*
 
 Pillow’s layout engine for this face (`basic` or `raqm`). Recorded
 because it moves glyph ADVANCES: RAQM (HarfBuzz) applies kerning and
@@ -22948,7 +22948,7 @@ ligatures and is used for a font file whenever libraqm can be loaded,
 so the same bytes can set differently on two machines. The embedded
 face is always `basic`.
 
-### an.text.RESERVED_TEXT_IDS *: frozenset[str]* *= frozenset({'overlay', 'root'})*
+### an.text.RESERVED_TEXT_IDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'overlay', 'root'})*
 
 the runtime indexes the scene’s
 container as `root` (the camera’s target), and the overlay container is
@@ -22982,7 +22982,7 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for TextDescrip
 ...
 ```
 
-#### anchor *: str | None*
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 one of tituli’s nine anchors (`"top"`, `"bottom-left"`,
 `"center"`, …) inside the title-safe area. `None` centres the block
@@ -22991,31 +22991,31 @@ on the node origin (the frame centre, or `stage.at`).
 * **Type:**
   Overlay only
 
-#### color *: str*
+#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `#rrggbb`.
 
-#### font *: str | None*
+#### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the embedded face; else a font FILE path (see the module doc).
 
-#### max_width *: float | None*
+#### max_width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Wrap width as a fraction of frame WIDTH; `None` = break only at newlines.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'forbid'}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### size *: float*
+#### size *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Fraction of frame height.
 
-#### text *: str*
+#### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The words. Explicit newlines break lines; `max_width` wraps.
 
-#### tracking *: float*
+#### tracking *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 tituli sets a
 tracked string one run per glyph, so a word unit would not exist.
@@ -23023,7 +23023,7 @@ tracked string one run per glyph, so a word unit would not exist.
 * **Type:**
   Extra advance per glyph, in em. Only with `unit="glyph"`
 
-#### unit *: Literal['word', 'glyph', 'line']*
+#### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line']*
 
 a word, a glyph, or a whole line.
 
@@ -23032,7 +23032,7 @@ a word, a glyph, or a whole line.
 
 ### *exception* an.text.TextFontError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A text block’s font cannot be used: not a file, not a font, or not the
 face the typesetter actually used. Raised instead of falling back, because
@@ -23040,7 +23040,7 @@ a fallback face is a different picture wearing the right one’s clothes.
 
 ### *class* an.text.TextLayout(units, origin, font)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A placed block: its units, its reference point, and the face that set it.
 
@@ -23050,13 +23050,13 @@ node sits; each unit’s node is placed relative to it.
 
 ### *exception* an.text.TextLayoutError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 The text cannot be set as asked (a glyph the face lacks, nothing to draw).
 
 ### *class* an.text.TextUnit(name, text, box, d)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One addressable unit: its node name, its string, its box and its ink.
 
@@ -23065,11 +23065,11 @@ pixels and containing both the layout box and the ink, so the sprite’s
 corners sit on the pixel grid and nothing is clipped. `d` is the unit’s
 glyph contours as SVG path data in frame pixels.
 
-#### *property* center *: tuple[float, float]*
+#### *property* center *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 The box centre in frame pixels — where the unit’s node sits.
 
-#### *property* size *: tuple[int, int]*
+#### *property* size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 
 `(width, height)` of `box`.
 
@@ -23081,7 +23081,7 @@ relative path then RAISES rather than resolving against the working
 directory (which would make the picture depend on where you ran it).
 
 * **Return type:**
-  `Path` | `None`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.text.layout_text(desc, , width, height, base_dir=None)
 
@@ -23137,7 +23137,7 @@ round-trips through `scene.md`. (A `parallel` would not: the markdown
 writer only knows leaf shapes and that one wrapper.)
 
 * **Return type:**
-  `list`
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ```pycon
 >>> [a.kind for a in stagger("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
@@ -23156,14 +23156,14 @@ raises) and by `an validate` (which reports) so the two agree:
 - `anchor` and `stage.at` together — two answers to one question.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.text.unit_names(desc, , width, height, base_dir=None)
 
 The node names a block builds — what `<id>/<name>` targets may address.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 
 # _autosummary/an.tools.html.md
@@ -23230,7 +23230,7 @@ look at the PNG diff (GitHub renders 2-up, swipe and onion-skin) before
 writing one.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.bench_compare(before='', after='', mutation='', strict=False, raw=False)
 
@@ -23259,7 +23259,7 @@ and a number reported across incomparable rows is worse than none.
 uncommitted edits describes no commit. Name one explicitly to compare it.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.bench_mutants(names='', quiet=False)
 
@@ -23278,14 +23278,14 @@ happens to exclude the catching test reports “not caught” and sends you to
 write a test that already exists. Takes about forty seconds.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.check()
 
 Print a status report of all backend system + Python deps.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.credits(project_dir, json_out=None)
 
@@ -23298,7 +23298,7 @@ A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.init(project_dir, name=None, force=False)
 
@@ -23309,7 +23309,7 @@ name: project display name (defaults to the directory name)
 force: overwrite an existing scene.md
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.iterate(project_dir, instruction, apply_changes=True, model='claude-opus-4-7')
 
@@ -23321,7 +23321,7 @@ apply_changes: persist the new scene to disk + invalidate affected shot caches (
 model: Anthropic model id (default claude-opus-4-7)
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.preview(project_dir, shot='', no_browser=False)
 
@@ -23336,7 +23336,7 @@ shot: shot id to preview (default: first shot in the timeline)
 no_browser: don’t auto-open the default browser
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='')
 
@@ -23384,21 +23384,21 @@ capture: how frames leave the browser — “canvas” (the default), an in-page
   instant. Both write frames with the same decoded pixels
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.sync(project_dir)
 
 Reconcile scene.md and ir/scene.json inside `project_dir`.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.validate(project_dir)
 
 Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.util.html.md
@@ -23436,7 +23436,7 @@ already in `sys.modules`.
 
 ### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single verification issue.
 
@@ -23445,31 +23445,31 @@ the IR — e.g. `"timeline/0/dialogue/1"`.
 
 ### *class* an.verify.HumanInTheLoopVerifier(, prompt='Approve render? [y/N/r=reject]: ')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Open the mp4, prompt the user to approve. Implements `Verifier`.
 
 ### *class* an.verify.LayoutLintVerifier
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Cheap IR-only verifier. Implements `Verifier`.
 
 ### *class* an.verify.MediaQualityVerifier(, max_db_floor=-75.0, dialogue_silence_ratio=0.7, frozen_ssim_threshold=0.999, frame_sample_fps=4.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
 
 ### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Result of running one or more verifiers.
 
 ### *class* an.verify.Verifier(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Pluggable verifier. Same interface for human, lint, vision-LM, MoVer.
 
@@ -23483,7 +23483,7 @@ for pre-render lint passes.
 
 ### *class* an.verify.VisionLMVerifier(, model='claude-haiku-4-5-20251001', frame_count=4, max_tokens=800, api_key=None, judge=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Claude vision Verifier (skip-if-missing-deps).
 
@@ -23522,7 +23522,7 @@ informational finding.
 
 ### *class* an.verify.human.HumanInTheLoopVerifier(, prompt='Approve render? [y/N/r=reject]: ')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Open the mp4, prompt the user to approve. Implements `Verifier`.
 
@@ -23548,7 +23548,7 @@ IR is broken.
 
 ### *class* an.verify.layout.LayoutLintVerifier
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Cheap IR-only verifier. Implements `Verifier`.
 
@@ -23584,7 +23584,7 @@ loading frames). No scikit-image, no opencv.
 
 ### *class* an.verify.media.SilenceSpan(start, end)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A contiguous run of near-silence inside an audio stream.
 
@@ -23593,7 +23593,7 @@ A contiguous run of near-silence inside an audio stream.
 Return dict with mean_db and max_db of the media’s audio stream.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.verify.media.detect_silence(media_path, , noise_db=-30.0, min_duration_s=0.3)
 
@@ -23604,14 +23604,14 @@ Wraps `ffmpeg -af silencedetect=...` and parses the stderr “silence_start”
 (silence at the start/end of a shot when speech was expected).
 
 * **Return type:**
-  `list`[[`SilenceSpan`](_autosummary/an.verify.media.html.md#an.verify.media.SilenceSpan)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SilenceSpan`](_autosummary/an.verify.media.html.md#an.verify.media.SilenceSpan)]
 
 ### an.verify.media.extract_frames(media_path, out_dir, , fps=4.0, pattern='frame_%04d.png')
 
 Extract frames from `media_path` at `fps` to `out_dir`.
 
 * **Return type:**
-  `list`[`Path`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.verify.media.ssim(a, b)
 
@@ -23636,7 +23636,7 @@ Inputs are float arrays in [0, 1]. Returns a float in roughly `[-1, 1]`;
 1 means identical.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -23650,7 +23650,7 @@ Inputs are float arrays in [0, 1]. Returns a float in roughly `[-1, 1]`;
 SSIM between two image files (any format Pillow can read).
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.verify.media.transcribe(media_path, , model_size='tiny')
 
@@ -23660,7 +23660,7 @@ Lazily imports faster-whisper. Raises `RuntimeError` with a clear
 message when the package isn’t installed.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.verify.media_quality.html.md
@@ -23690,7 +23690,7 @@ proceeds; the orchestrator can decide whether to surface or block.
 
 ### *class* an.verify.media_quality.MediaQualityVerifier(, max_db_floor=-75.0, dialogue_silence_ratio=0.7, frozen_ssim_threshold=0.999, frame_sample_fps=4.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
 
@@ -23801,14 +23801,14 @@ ValueError: unknown style target 'camera_shake'; measurable targets are [...]
 | [`StyleLintVerifier`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintVerifier)(spec_or_targets, \*[, ...]) | Compare a render to a style spec's `targets`.                                                                      |
 | [`ShotMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.ShotMetrics)(shot, start_s, duration_s, ...)   | The cadence of one shot, measured with the WHOLE clip's change threshold so a shot's numbers add up to the clip's. |
 
-### an.verify.style.METRICS *: dict[str, str]* *= {'cuts_per_min': 'hard cuts per minute', 'dark_pixel_share': 'share of pixels with every channel below 60', 'identical_frame_share': 'share of frames identical to the previous one (holds)', 'max_hold_frames': 'longest run of identical frames', 'mean_saturation': 'mean HSV saturation, 0..1', 'mean_shot_s': 'mean shot length in seconds', 'one_frame_interval_share': 'share of change gaps of one frame (on ones)', 'pose_changes_per_s': 'changed frames per second', 'three_plus_interval_share': 'share of change gaps of three to twelve frames', 'top16_colour_coverage': 'coverage of the 16 commonest 4-bit colours (flatness)', 'two_frame_interval_share': 'share of change gaps of two frames (on twos)'}*
+### an.verify.style.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'cuts_per_min': 'hard cuts per minute', 'dark_pixel_share': 'share of pixels with every channel below 60', 'identical_frame_share': 'share of frames identical to the previous one (holds)', 'max_hold_frames': 'longest run of identical frames', 'mean_saturation': 'mean HSV saturation, 0..1', 'mean_shot_s': 'mean shot length in seconds', 'one_frame_interval_share': 'share of change gaps of one frame (on ones)', 'pose_changes_per_s': 'changed frames per second', 'three_plus_interval_share': 'share of change gaps of three to twelve frames', 'top16_colour_coverage': 'coverage of the 16 commonest 4-bit colours (flatness)', 'two_frame_interval_share': 'share of change gaps of two frames (on twos)'}*
 
 every key a spec’s `targets` may use, and what it is.
 
 * **Type:**
   The target vocabulary
 
-### an.verify.style.SHOT_METRICS *: tuple[str, ...]* *= ('identical_frame_share', 'pose_changes_per_s', 'one_frame_interval_share', 'two_frame_interval_share', 'three_plus_interval_share', 'max_hold_frames')*
+### an.verify.style.SHOT_METRICS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('identical_frame_share', 'pose_changes_per_s', 'one_frame_interval_share', 'two_frame_interval_share', 'three_plus_interval_share', 'max_hold_frames')*
 
 the cadence ones, which a single static shot (a date
 card, a held map) can swing for the whole clip.
@@ -23818,14 +23818,14 @@ card, a held map) can swing for the whole clip.
 
 ### *class* an.verify.style.ShotMetrics(shot, start_s, duration_s, frames, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The cadence of one shot, measured with the WHOLE clip’s change
 threshold so a shot’s numbers add up to the clip’s.
 
 ### *class* an.verify.style.StyleLintResult(metrics, report, per_shot=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What one lint run measured, and what it found.
 
@@ -23835,7 +23835,7 @@ static date card is 90% identical frames on its own).
 
 ### *class* an.verify.style.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Compare a render to a style spec’s `targets`. Implements `Verifier`.
 
@@ -23847,11 +23847,11 @@ measure yet.
 
 ### *class* an.verify.style.StyleMetrics(fps, frames, duration_s, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames, cuts, cuts_per_min, mean_shot_s, mean_saturation, dark_pixel_share, top16_colour_coverage, cut_source, change_threshold)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The statistics [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) names, measured on one clip.
 
-#### cut_source *: str*
+#### cut_source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `"shots"` (a shot list, exact) or `"pixels"`.
 
@@ -23867,7 +23867,7 @@ respects it — a style that sets `step_hz` is never told to drop it, one
 that leaves it unset is never told to set it:
 
 * **Return type:**
-  `list`[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]
 
 ```pycon
 >>> m = measure_style(np.zeros((8, 4, 4, 3), np.uint8), fps=8.0, shot_durations=[1.0])
@@ -23890,7 +23890,7 @@ than their sum ([`an.assemble.film_timeline()`](_autosummary/an.assemble.html.md
 counted from where its frames start in the film.
 
 * **Return type:**
-  `list`[`tuple`[`str`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> from an.ir.schema import Shot, Transition
@@ -23905,7 +23905,7 @@ counted from where its frames start in the film.
 A style spec as a dict: a mapping is passed through, a path is read as YAML.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None)
 
@@ -23917,7 +23917,7 @@ change, so it belongs to no shot. A one-frame shot has no step of its own
 and measures as all-identical.
 
 * **Return type:**
-  `list`[[`ShotMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.ShotMetrics)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ShotMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.ShotMetrics)]
 
 ```pycon
 >>> import numpy as np
@@ -23961,7 +23961,7 @@ The project directory an `an` render sits in — `<project>/output/x.mp4`
 beside `<project>/ir/scene.json` — or `None` for any other video.
 
 * **Return type:**
-  `Path` | `None`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.style.style_lint(mp4, spec_or_targets, , shot_durations=None, scene=None, miss_severity='warning')
 
@@ -24051,7 +24051,7 @@ prompt. Roughly $0.005 with Haiku.
 
 ### *exception* an.verify.vision.CassetteMiss
 
-Bases: `BaseException`
+Bases: [`BaseException`](https://docs.python.org/3/builtins/exceptions.html#BaseException)
 
 A recorded reply was asked for and there is none.
 
@@ -24066,7 +24066,7 @@ Same reasoning, and the same shape, as `tests/conftest.py`’s
 `OutboundNetworkAttempt` — whose own docstring names “the verifiers’ broad
 handlers” as the reason.
 
-### an.verify.vision.FAILURE_SEVERITY *: str* *= 'warning'*
+### an.verify.vision.FAILURE_SEVERITY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'warning'*
 
 Severity for “configured, called, no verdict” — a failed call, or a reply
 that carried no verdict.
@@ -24081,7 +24081,7 @@ choice, and it is one constant.
 
 ### *exception* an.verify.vision.VisionJudgeError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The judge was configured, was called, and produced no verdict.
 
@@ -24093,7 +24093,7 @@ vendor class at a catch site in this package’s own control flow.
 
 ### *class* an.verify.vision.VisionLMVerifier(, model='claude-haiku-4-5-20251001', frame_count=4, max_tokens=800, api_key=None, judge=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Claude vision Verifier (skip-if-missing-deps).
 
@@ -24110,7 +24110,7 @@ The name-the-emotion prompt over a closed label set. The labels are part
 of the key, so a different set is a different recording.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> "happy" in emotion_prompt(["neutral", "happy"])
@@ -24126,7 +24126,7 @@ reply named nothing in `labels` (an#98).
 the `judge_frames`-shaped seam; parsing stays outside the recording.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.vision.judge_envelope(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
@@ -24138,7 +24138,7 @@ can record nothing beside the reply, and the provenance that makes a
 cassette auditable would be unwritable.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.verify.vision.judge_frames(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
@@ -24151,7 +24151,7 @@ keeps `_parse_issues` outside any recording — a parser fix is then testable
 against the recording for free, and record-vs-replay drift is impossible.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.verify.vision.judge_key(\*args, \*\*kwargs)
 
@@ -24167,7 +24167,7 @@ unrecoverable, so the default has to be *include*.
 the fully-spelled call are two different keys for one request.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> k = judge_key([b"a"], model="m", max_tokens=1, prompt="p")
@@ -24187,7 +24187,7 @@ Score a dense in-line frame strip for lip-sync legibility (an#97).
 tests, the paid one otherwise. Parsing stays outside the recording.
 
 * **Return type:**
-  `tuple`[`int`, `str`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.vision.legibility_prompt(text)
 
@@ -24195,7 +24195,7 @@ The legibility prompt for one line. The text is part of the key, so a
 different line is a different recording.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # about-this-build.html.md
@@ -24204,18 +24204,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 10:56 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/ff26b6b84d25f3e0684aba03ad13cff15c350b89"><code>ff26b6b</code></a> on branch <code>main</code>, for **an 0.1.129** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 11:23 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a893770a7c3bc1779dbf6412b8b516cb65b8e3d7"><code>a893770</code></a> on branch <code>main</code>, for **an 0.1.130** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.130) is ahead of the latest release on PyPI (0.1.129): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/ff26b6b84d25f3e0684aba03ad13cff15c350b89"><code>ff26b6b84d25f3e0684aba03ad13cff15c350b89</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/a893770a7c3bc1779dbf6412b8b516cb65b8e3d7"><code>a893770a7c3bc1779dbf6412b8b516cb65b8e3d7</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.129</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.130</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -24224,9 +24226,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36851802856">36851802856</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36854656927">36854656927</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>d231cd90bcc71b02adaf0095c131d5615b312727</code> (in the history of the built commit) |
+| Event commit | <code>e6d5f64d388a7b7cd34229f26476ff640b58aebf</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -24251,13 +24253,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.129/">0.1.129</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.129/">0.1.129</a>, older than the documented version (0.1.130).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout ff26b6b84d25f3e0684aba03ad13cff15c350b89
+git checkout a893770a7c3bc1779dbf6412b8b516cb65b8e3d7
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

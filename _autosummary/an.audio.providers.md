@@ -27,7 +27,7 @@ specific classes.
 | [`make_lipsync`](#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.         |
 | [`make_tts`](#an.audio.providers.make_tts)(name)                     | Instantiate a TTS provider by name.             |
 
-### an.audio.providers.DEFAULT_LANGUAGE *: str* *= 'en'*
+### an.audio.providers.DEFAULT_LANGUAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'en'*
 
 The language a provider aligns for when the caller says nothing. Only
 Rhubarb reads it today (its recognizer follows the language, an#96).
@@ -37,14 +37,14 @@ Rhubarb reads it today (its recognizer follows the language, an#96).
 Return the registered LipSync provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.providers.known_tts_names()
 
 Return the registered TTS provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.providers.make_lipsync(name, , language='en')
 

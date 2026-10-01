@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.project" href="an.project.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -651,7 +651,7 @@ uses, not a second vocabulary:</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.props.PropDescriptor.animations">
-<span class="sig-name descname"><span class="pre">animations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.props.PropDescriptor.animations" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">animations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.props.PropDescriptor.animations" title="Link to this definition">#</a></dt>
 <dd><p>Present so <code class="code docutils literal notranslate"><span class="pre">play</span></code> and the rig builder read the same attribute on either
 descriptor. Empty by default — a prop has no <code class="code docutils literal notranslate"><span class="pre">idle_breath</span></code> and no
 <code class="code docutils literal notranslate"><span class="pre">blink</span></code>, and seeding one would animate a lamp.</p>
@@ -659,7 +659,7 @@ descriptor. Empty by default — a prop has no <code class="code docutils litera
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.props.PropDescriptor.asset_sets">
-<span class="sig-name descname"><span class="pre">asset_sets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.props.PropDescriptor.asset_sets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">asset_sets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.props.PropDescriptor.asset_sets" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{channel:</span> <span class="pre">{key:</span> <span class="pre">attachment_name}}</span></code> — the same indirection a character
 uses for visemes. Empty by default: a prop with no moving parts declares
 none, and declaring a channel a rig cannot serve is what makes a swap
@@ -668,7 +668,7 @@ silently keep the previous texture.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.props.PropDescriptor.face_overlay">
-<span class="sig-name descname"><span class="pre">face_overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.props.PropDescriptor.face_overlay" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">face_overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.props.PropDescriptor.face_overlay" title="Link to this definition">#</a></dt>
 <dd><p>Always true, and not a knob. <code class="code docutils literal notranslate"><span class="pre">face_overlay=False</span></code> means “the face is
 baked into the head art”, which makes the builder suppress every slot
 nested under the head bone’s primary slot. A prop has no head bone, so
@@ -677,7 +677,7 @@ the flag can only do harm; it exists because the shared builder reads it.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.props.PropDescriptor.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.props.PropDescriptor.model_config" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.props.PropDescriptor.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
@@ -688,14 +688,14 @@ the flag can only do harm; it exists because the shared builder reads it.</p>
 This is useful if you want to do some validation that requires the entire model to be initialized.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.props.PropDescriptor.source">
-<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><span class="pre">AssetSource</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.props.PropDescriptor.source" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><span class="pre">AssetSource</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.props.PropDescriptor.source" title="Link to this definition">#</a></dt>
 <dd><p>Where this art came from and what its licence obliges. <code class="docutils literal notranslate"><span class="pre">None</span></code> means
 “we made this” — not “unknown”. Same field as <code class="code docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code>,
 because <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> should not need to know which store it came from.</p>
@@ -703,7 +703,7 @@ because <code class="code docutils literal notranslate"><span class="pre">an</sp
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.props.PropDescriptor.source_svg">
-<span class="sig-name descname"><span class="pre">source_svg</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.props.PropDescriptor.source_svg" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">source_svg</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.props.PropDescriptor.source_svg" title="Link to this definition">#</a></dt>
 <dd><p>Optional source SVG the <code class="docutils literal notranslate"><span class="pre">parts/</span></code> folder was sliced from.</p>
 </dd></dl>
 
@@ -715,7 +715,7 @@ because <code class="code docutils literal notranslate"><span class="pre">an</sp
 <dd><p>One bone at the origin.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="an.characters.schema.html#an.characters.schema.Bone" title="an.characters.schema.Bone"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bone</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.characters.schema.html#an.characters.schema.Bone" title="an.characters.schema.Bone"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bone</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">default_prop_bones</span><span class="p">()]</span>
@@ -730,7 +730,7 @@ because <code class="code docutils literal notranslate"><span class="pre">an</sp
 <dd><p>One slot on that bone.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="an.characters.schema.html#an.characters.schema.Slot" title="an.characters.schema.Slot"><code class="xref py py-class docutils literal notranslate"><span class="pre">Slot</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.characters.schema.html#an.characters.schema.Slot" title="an.characters.schema.Slot"><code class="xref py py-class docutils literal notranslate"><span class="pre">Slot</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">draw_order</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">default_prop_slots</span><span class="p">()]</span>

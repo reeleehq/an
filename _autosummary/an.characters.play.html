@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.mouth_set" href="an.characters.mouth_set.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -705,7 +705,7 @@ so an author never passes <code class="docutils literal notranslate"><span class
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.play.BONE_TRACK_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">BONE_TRACK_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'rotation_deg':</span> <span class="pre">('rotation',</span> <span class="pre">0.017453292519943295),</span> <span class="pre">'scale_x':</span> <span class="pre">('scale_x',</span> <span class="pre">1.0),</span> <span class="pre">'scale_y':</span> <span class="pre">('scale_y',</span> <span class="pre">1.0),</span> <span class="pre">'x':</span> <span class="pre">('x',</span> <span class="pre">1.0),</span> <span class="pre">'y':</span> <span class="pre">('y',</span> <span class="pre">1.0)}</span></span><a class="headerlink" href="#an.characters.play.BONE_TRACK_PROPERTIES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">BONE_TRACK_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'rotation_deg':</span> <span class="pre">('rotation',</span> <span class="pre">0.017453292519943295),</span> <span class="pre">'scale_x':</span> <span class="pre">('scale_x',</span> <span class="pre">1.0),</span> <span class="pre">'scale_y':</span> <span class="pre">('scale_y',</span> <span class="pre">1.0),</span> <span class="pre">'x':</span> <span class="pre">('x',</span> <span class="pre">1.0),</span> <span class="pre">'y':</span> <span class="pre">('y',</span> <span class="pre">1.0)}</span></span><a class="headerlink" href="#an.characters.play.BONE_TRACK_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>Descriptor bone-track properties → <code class="docutils literal notranslate"><span class="pre">(runtime</span> <span class="pre">property,</span> <span class="pre">unit</span> <span class="pre">factor)</span></code>.
 The descriptor speaks degrees for rotation; the runtime is radians.</p>
 </dd></dl>
@@ -713,7 +713,7 @@ The descriptor speaks degrees for rotation; the runtime is radians.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.play.BoneTrack">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">BoneTrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rig_scaled</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#BoneTrack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.BoneTrack" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A resolved <code class="docutils literal notranslate"><span class="pre">bone:&lt;name&gt;.&lt;prop&gt;</span></code> track.</p>
 <p><code class="docutils literal notranslate"><span class="pre">slot</span></code> is the primary slot whose node carries the bone, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for
 the entity container (<code class="docutils literal notranslate"><span class="pre">bone:root</span></code>). <code class="docutils literal notranslate"><span class="pre">property</span></code> is the RUNTIME name;
@@ -737,7 +737,7 @@ values are <code class="docutils literal notranslate"><span class="pre">rest</sp
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.play.Facing">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">Facing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#Facing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.Facing" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What an entity shows at one instant, read off a flat timeline.</p>
 <p><code class="docutils literal notranslate"><span class="pre">view</span></code> is the key of its view set last set on the ENTITY (<code class="docutils literal notranslate"><span class="pre">None</span></code>: not
 set in this shot, so the rig’s default — <code class="docutils literal notranslate"><span class="pre">front</span></code> on a factory
@@ -763,7 +763,7 @@ last <code class="docutils literal notranslate"><span class="pre">scale_x</span>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.characters.play.PlayResolutionError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">PlayResolutionError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problems</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#PlayResolutionError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.PlayResolutionError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A <code class="docutils literal notranslate"><span class="pre">play</span></code> that cannot resolve; <code class="docutils literal notranslate"><span class="pre">problems</span></code> lists every reason found.</p>
 <dl class="field-list simple">
 </dl>
@@ -771,7 +771,7 @@ last <code class="docutils literal notranslate"><span class="pre">scale_x</span>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.play.RESERVED_PRESET_ARGS">
-<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">RESERVED_PRESET_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'parts',</span> <span class="pre">'rest',</span> <span class="pre">'target'})</span></span><a class="headerlink" href="#an.characters.play.RESERVED_PRESET_ARGS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">RESERVED_PRESET_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'parts',</span> <span class="pre">'rest',</span> <span class="pre">'target'})</span></span><a class="headerlink" href="#an.characters.play.RESERVED_PRESET_ARGS" title="Link to this definition">#</a></dt>
 <dd><p>the target is
 the play’s own, and the rest pose is read off the built scene.</p>
 <dl class="field-list simple">
@@ -783,7 +783,7 @@ the play’s own, and the rest pose is read off the built scene.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.play.RIG_SCALED_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">RIG_SCALED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.characters.play.RIG_SCALED_PROPERTIES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">RIG_SCALED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.characters.play.RIG_SCALED_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>Bone-track properties whose values are view-box LENGTHS, so a renderer
 scales them by the rig’s view-box → scene-pixel factor. Scales and angles
 are dimensionless.</p>
@@ -804,7 +804,7 @@ container node rather than any slot.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.play.ResolvedPlay">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">ResolvedPlay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#ResolvedPlay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.ResolvedPlay" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -812,7 +812,7 @@ container node rather than any slot.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.play.SlotTrack">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">SlotTrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#SlotTrack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.SlotTrack" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A resolved <code class="docutils literal notranslate"><span class="pre">slot:&lt;name&gt;.attachment</span></code> track: one set, frames as KEYS.</p>
 <dl class="field-list simple">
 </dl>
@@ -834,7 +834,7 @@ knows.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.play.TurnInference">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">TurnInference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#TurnInference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.TurnInference" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One <code class="docutils literal notranslate"><span class="pre">play</span></code> of <a class="reference internal" href="#an.characters.play.TURN_PRESET" title="an.characters.play.TURN_PRESET"><code class="xref py py-data docutils literal notranslate"><span class="pre">TURN_PRESET</span></code></a> and the state it starts from.</p>
 <p><code class="docutils literal notranslate"><span class="pre">index</span></code> is the play’s position in the flat list it was read from;
 <code class="docutils literal notranslate"><span class="pre">declared</span></code> is the <code class="docutils literal notranslate"><span class="pre">from_direction</span></code> the author passed (<code class="docutils literal notranslate"><span class="pre">None</span></code>: left
@@ -843,7 +843,7 @@ to the timeline).</p>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.characters.play.TurnInference.contradicted">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">contradicted</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#an.characters.play.TurnInference.contradicted" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">contradicted</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.characters.play.TurnInference.contradicted" title="Link to this definition">#</a></dt>
 <dd><p>The author’s <code class="docutils literal notranslate"><span class="pre">from_direction</span></code> disagrees with the timeline — the
 turn would jump to the other side before it squashes.</p>
 </dd></dl>
@@ -853,7 +853,7 @@ turn would jump to the other side before it squashes.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.play.TurnResolution">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">TurnResolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#TurnResolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.TurnResolution" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p><a class="reference internal" href="#an.characters.play.resolve_turns" title="an.characters.play.resolve_turns"><code class="xref py py-func docutils literal notranslate"><span class="pre">resolve_turns()</span></code></a>’ result: <code class="docutils literal notranslate"><span class="pre">flats</span></code> is the input with each turn’s
 inferred <code class="docutils literal notranslate"><span class="pre">from_direction</span></code> filled in; <code class="docutils literal notranslate"><span class="pre">turns</span></code> says what each turn
 started from; <code class="docutils literal notranslate"><span class="pre">events</span></code> is the timeline with every preset play expanded,
@@ -882,7 +882,7 @@ fake) — a store that can answer nothing must assume presence, not absence,
 exactly as the rig builder’s part probe does.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -893,7 +893,7 @@ exactly as the rig builder’s part probe does.</p>
 <dd><p>The <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">attachment)</span></code> a slot draws by default, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <a class="reference internal" href="an.characters.schema.html#an.characters.schema.Attachment" title="an.characters.schema.Attachment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Attachment</span></code></a>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="an.characters.schema.html#an.characters.schema.Attachment" title="an.characters.schema.Attachment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Attachment</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -915,7 +915,7 @@ move to that length; <code class="docutils literal notranslate"><span class="pre
 <code class="docutils literal notranslate"><span class="pre">rest_of</span></code> poses, and every node its expansion moves is checked.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlayAction</span>
@@ -960,7 +960,7 @@ when it can. THE verdict <code class="docutils literal notranslate"><span class=
 on, for both sources (an#7, an#166).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">play_problems</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"heigth"</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
@@ -982,7 +982,7 @@ has it. <code class="docutils literal notranslate"><span class="pre">desc=None</
 has the name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -995,7 +995,7 @@ the target itself for the rest. Read off the expansion rather than
 restated per preset, so a preset added later needs no entry here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preset_moved_node</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"nod"</span><span class="p">),</span> <span class="n">preset_moved_node</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">)</span>
@@ -1012,7 +1012,7 @@ paths, relative to it) is what a multi-node preset chooses its limbs from;
 <code class="docutils literal notranslate"><span class="pre">None</span></code> lets it assume the rig contract’s names.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preset_moved_nodes</span><span class="p">(</span><span class="s2">"bob"</span><span class="p">,</span> <span class="s2">"walk"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"distance"</span><span class="p">:</span> <span class="mi">80</span><span class="p">},</span> <span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="s2">"torso"</span><span class="p">,</span> <span class="s2">"left_leg"</span><span class="p">,</span> <span class="s2">"right_leg"</span><span class="p">])</span>
@@ -1032,7 +1032,7 @@ else the preset’s natural length divided by <code class="docutils literal notr
 source.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlayAction</span>
@@ -1053,7 +1053,7 @@ building it (at the identity pose), so a value the preset itself refuses —
 <code class="docutils literal notranslate"><span class="pre">cycles:</span> <span class="pre">0</span></code>, a string height — is reported in the preset’s own words.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1064,7 +1064,7 @@ building it (at the identity pose), so a value the preset itself refuses —
 <dd><p>Whether the motion preset <code class="docutils literal notranslate"><span class="pre">animation</span></code> has the keyword <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preset_takes</span><span class="p">(</span><span class="s2">"walk"</span><span class="p">,</span> <span class="s2">"parts"</span><span class="p">),</span> <span class="n">preset_takes</span><span class="p">(</span><span class="s2">"hop"</span><span class="p">,</span> <span class="s2">"parts"</span><span class="p">)</span>
@@ -1085,7 +1085,7 @@ itself, which is what puts eyes and mouth under <code class="docutils literal no
 limb a direct child of the entity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">primary_slot_per_bone</span><span class="p">(</span><span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"m"</span><span class="p">))[</span><span class="s2">"head"</span><span class="p">]</span>
@@ -1149,7 +1149,7 @@ that cannot resolve is left for <a class="reference internal" href="#an.characte
 descriptor’s own evaluator stays the one definition of a sine track.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1164,7 +1164,7 @@ the cycle-closing sample (equal to the first) was never emitted and the
 clip wrapped with a jump (an#7 review).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sine_sample_times</span><span class="p">(</span><span class="mf">0.19</span><span class="p">,</span> <span class="mi">24</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
@@ -1182,7 +1182,7 @@ clip wrapped with a jump (an#7 review).</p>
 <code class="docutils literal notranslate"><span class="pre">torso</span></code>) — the rig builder’s nesting rule, stated once.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">slot_node_path</span><span class="p">(</span><span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"m"</span><span class="p">),</span> <span class="s2">"left_eye"</span><span class="p">)</span>
@@ -1199,7 +1199,7 @@ clip wrapped with a jump (an#7 review).</p>
 <dd><p>The slot <code class="docutils literal notranslate"><span class="pre">slot</span></code> nests under, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it is a direct child.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1212,7 +1212,7 @@ art (<code class="docutils literal notranslate"><span class="pre">face_overlay=f
 primary slot — keyed on the bone, not on a slot named “head”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">suppressed_slots</span><span class="p">(</span><span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"m"</span><span class="p">,</span> <span class="n">face_overlay</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>

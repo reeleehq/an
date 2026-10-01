@@ -65,7 +65,7 @@ All 27 styles stay requestable; only the default moves. See
 
 Fetch an avatar SVG from DiceBear’s HTTP API.
 
-Returns the SVG string. Raises `RuntimeError` if the API call
+Returns the SVG string. Raises [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError) if the API call
 fails (network error, HTTP error, non-SVG response).
 
 The URL pattern is:
@@ -78,7 +78,7 @@ Pass `extra_params` to forward style-specific options (e.g.
 `backgroundColor=transparent`).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.dicebear.wrap_dicebear_for_an(avatar_svg, , name, canvas_size=1024, head_size=600)
 
@@ -94,4 +94,4 @@ The user can later replace any part by dropping a hand-drawn SVG into
 scales accordingly.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

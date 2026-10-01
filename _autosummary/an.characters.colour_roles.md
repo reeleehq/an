@@ -50,7 +50,7 @@ the compiler says so.
 
 `{part path: {"#rrggbb": role}}` — the descriptor field’s shape.
 
-alias of `dict`[`str`, `dict`[`str`, `str`]]
+alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.characters.colour_roles.distinct_literal(colour, taken)
 
@@ -62,7 +62,7 @@ can a role and an untagged detail (a shoe, an outline) that happens to share
 it. One step in one channel is invisible and makes the key exact.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> distinct_literal("#222222", {"#222222"})
@@ -78,7 +78,7 @@ it. One step in one channel is invisible and makes the key exact.
 `'#ABC'` -> `'#aabbcc'`: the one spelling a literal is keyed by.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> normalise_hex("#A83249"), normalise_hex("#fa0")
@@ -100,7 +100,7 @@ length-insensitively (`#FA0` is `#ffaa00`). Deterministic, and cached by
 content: the same text and swaps are rewritten once per process.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> recolour_svg('<g style="fill:#fa0;stroke:#000"><use href="#fa0"/></g>',
@@ -119,7 +119,7 @@ unset keeps its literal, and a role set to the colour it already has is not
 a swap — so a pack that changes nothing produces nothing to rewrite.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> role_recolouring({"#a83249": "clothing", "#3b2a1a": "hair"},

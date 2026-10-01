@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.palette" href="an.bench.palette.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -574,20 +574,20 @@ from inside <code class="docutils literal notranslate"><span class="pre">shutil.
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.bench.paths.BenchLayoutError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.paths.</span></span><span class="sig-name descname"><span class="pre">BenchLayoutError</span></span><a class="reference internal" href="../_modules/an/bench/paths.html#BenchLayoutError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.paths.BenchLayoutError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>The bench was run somewhere it cannot find the corpus.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.paths.GOLDEN_DIRNAME">
-<span class="sig-prename descclassname"><span class="pre">an.bench.paths.</span></span><span class="sig-name descname"><span class="pre">GOLDEN_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'misc/bench/golden'</span></span><a class="headerlink" href="#an.bench.paths.GOLDEN_DIRNAME" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.paths.</span></span><span class="sig-name descname"><span class="pre">GOLDEN_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'misc/bench/golden'</span></span><a class="headerlink" href="#an.bench.paths.GOLDEN_DIRNAME" title="Link to this definition">#</a></dt>
 <dd><p>Golden frames (an#38 fills this; the path convention ships now so the
 cassette work and the corpus work do not have to agree on it later).</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.paths.LEDGER_DIRNAME">
-<span class="sig-prename descclassname"><span class="pre">an.bench.paths.</span></span><span class="sig-name descname"><span class="pre">LEDGER_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'misc/bench/ledger'</span></span><a class="headerlink" href="#an.bench.paths.LEDGER_DIRNAME" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.paths.</span></span><span class="sig-name descname"><span class="pre">LEDGER_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'misc/bench/ledger'</span></span><a class="headerlink" href="#an.bench.paths.LEDGER_DIRNAME" title="Link to this definition">#</a></dt>
 <dd><p>Ledger rows live here, one file per (date, commit). Append-only by
 convention: an existing row is evidence about a commit, and editing it
 rewrites history that <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span> <span class="pre">--compare</span></code> (an#40) reads as fact.</p>
@@ -599,7 +599,7 @@ rewrites history that <code class="code docutils literal notranslate"><span clas
 <dd><p><code class="docutils literal notranslate"><span class="pre">sha</span></code> / <code class="docutils literal notranslate"><span class="pre">branch</span></code> / <code class="docutils literal notranslate"><span class="pre">dirty</span></code> for the checkout, or <a href="#id3"><span class="problematic" id="id4">``</span></a>None``s off-git.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -610,7 +610,7 @@ rewrites history that <code class="code docutils literal notranslate"><span clas
 <dd><p>The golden-frame directory (an#38).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -629,7 +629,7 @@ bump becomes a <strong>new path requiring a deliberate re-bless</strong> rather 
 red test with no explanation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">golden_path</span><span class="p">(</span><span class="s2">"s"</span><span class="p">,</span> <span class="s2">"f0"</span><span class="p">,</span> <span class="s2">"140.0.7339.16"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
@@ -644,7 +644,7 @@ red test with no explanation.</p>
 <dd><p>The ledger directory, created if absent.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -658,7 +658,7 @@ edits describes no commit, and a filename that claims one would be read by
 an#40 as that commit’s evidence.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ledger_path</span><span class="p">(</span><span class="n">git</span><span class="o">=</span><span class="p">{</span><span class="s2">"sha"</span><span class="p">:</span> <span class="s2">"abc1234def"</span><span class="p">,</span> <span class="s2">"dirty"</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"-dirty.json"</span><span class="p">)</span>
@@ -679,7 +679,7 @@ symptom would be a missing-fixture error three frames deep.</p>
 under another name is still a source checkout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">repo_root</span><span class="p">()</span> <span class="o">/</span> <span class="s2">"an"</span> <span class="o">/</span> <span class="s2">"bench"</span> <span class="o">/</span> <span class="s2">"paths.py"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>

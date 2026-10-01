@@ -108,14 +108,14 @@ so an author never passes `rest`.
 | [`PlayResolutionError`](#an.characters.play.PlayResolutionError)(animation, problems)   | A `play` that cannot resolve; `problems` lists every reason found.   |
 |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
 
-### an.characters.play.BONE_TRACK_PROPERTIES *: dict[str, tuple[str, float]]* *= {'rotation_deg': ('rotation', 0.017453292519943295), 'scale_x': ('scale_x', 1.0), 'scale_y': ('scale_y', 1.0), 'x': ('x', 1.0), 'y': ('y', 1.0)}*
+### an.characters.play.BONE_TRACK_PROPERTIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'rotation_deg': ('rotation', 0.017453292519943295), 'scale_x': ('scale_x', 1.0), 'scale_y': ('scale_y', 1.0), 'x': ('x', 1.0), 'y': ('y', 1.0)}*
 
 Descriptor bone-track properties → `(runtime property, unit factor)`.
 The descriptor speaks degrees for rotation; the runtime is radians.
 
 ### *class* an.characters.play.BoneTrack(track, slot, property, unit, rig_scaled)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A resolved `bone:<name>.<prop>` track.
 
@@ -133,7 +133,7 @@ the entity descriptor’s own `animations`…
 
 ### *class* an.characters.play.Facing(view=None, direction=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What an entity shows at one instant, read off a flat timeline.
 
@@ -153,11 +153,11 @@ The bone whose primary slot’s nested slots are the FACE — what
 
 ### *exception* an.characters.play.PlayResolutionError(animation, problems)
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A `play` that cannot resolve; `problems` lists every reason found.
 
-### an.characters.play.RESERVED_PRESET_ARGS *: frozenset[str]* *= frozenset({'parts', 'rest', 'target'})*
+### an.characters.play.RESERVED_PRESET_ARGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'parts', 'rest', 'target'})*
 
 the target is
 the play’s own, and the rest pose is read off the built scene.
@@ -165,7 +165,7 @@ the play’s own, and the rest pose is read off the built scene.
 * **Type:**
   Preset parameters an author may NOT pass through `args`
 
-### an.characters.play.RIG_SCALED_PROPERTIES *: frozenset[str]* *= frozenset({'x', 'y'})*
+### an.characters.play.RIG_SCALED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'x', 'y'})*
 
 Bone-track properties whose values are view-box LENGTHS, so a renderer
 scales them by the rig’s view-box → scene-pixel factor. Scales and angles
@@ -181,11 +181,11 @@ container node rather than any slot.
 
 ### *class* an.characters.play.ResolvedPlay(animation, tracks)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ### *class* an.characters.play.SlotTrack(track, slot, set_name, frames)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A resolved `slot:<name>.attachment` track: one set, frames as KEYS.
 
@@ -200,7 +200,7 @@ knows.
 
 ### *class* an.characters.play.TurnInference(index, start, entity, before, declared=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One `play` of [`TURN_PRESET`](#an.characters.play.TURN_PRESET) and the state it starts from.
 
@@ -208,14 +208,14 @@ One `play` of [`TURN_PRESET`](#an.characters.play.TURN_PRESET) and the state it 
 `declared` is the `from_direction` the author passed (`None`: left
 to the timeline).
 
-#### *property* contradicted *: bool*
+#### *property* contradicted *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 The author’s `from_direction` disagrees with the timeline — the
 turn would jump to the other side before it squashes.
 
 ### *class* an.characters.play.TurnResolution(flats, turns, events)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 [`resolve_turns()`](#an.characters.play.resolve_turns)’ result: `flats` is the input with each turn’s
 inferred `from_direction` filled in; `turns` says what each turn
@@ -237,14 +237,14 @@ fake) — a store that can answer nothing must assume presence, not absence,
 exactly as the rig builder’s part probe does.
 
 * **Return type:**
-  `Callable`[[`str`], `bool`] | `None`
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`bool`](https://docs.python.org/3/builtins/functions.html#bool)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.play.drawn_attachment(desc, skin, slot)
 
 The `(name, attachment)` a slot draws by default, or `None`.
 
 * **Return type:**
-  `tuple`[`str`, [`Attachment`](an.characters.schema.html.md#an.characters.schema.Attachment)] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](an.characters.schema.html.md#an.characters.schema.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.play.expand_preset_play(action, , start, rest_of, parts_of=None)
 
@@ -264,7 +264,7 @@ A preset that moves several nodes of the entity (it takes `parts`,
 `rest_of` poses, and every node its expansion moves is checked.
 
 * **Return type:**
-  `list`
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ```pycon
 >>> from an.ir.schema import PlayAction
@@ -303,7 +303,7 @@ when it can. THE verdict `an validate` reports and the compiler raises
 on, for both sources (an#7, an#166).
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> play_problems(None, "hop", args={"heigth": 3})
@@ -323,7 +323,7 @@ Raises [`PlayResolutionError`](#an.characters.play.PlayResolutionError) naming B
 has the name.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.characters.play.preset_moved_node(action_target, animation, args=None)
 
@@ -332,7 +332,7 @@ the target itself for the rest. Read off the expansion rather than
 restated per preset, so a preset added later needs no entry here.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")
@@ -346,7 +346,7 @@ paths, relative to it) is what a multi-node preset chooses its limbs from;
 `None` lets it assume the rig contract’s names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> preset_moved_nodes("bob", "walk", {"distance": 80}, parts=["torso", "left_leg", "right_leg"])
@@ -363,7 +363,7 @@ else the preset’s natural length divided by `speed`. What a
 source.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> from an.ir.schema import PlayAction
@@ -382,14 +382,14 @@ building it (at the identity pose), so a value the preset itself refuses —
 `cycles: 0`, a string height — is reported in the preset’s own words.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.characters.play.preset_takes(animation, name)
 
 Whether the motion preset `animation` has the keyword `name`.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> preset_takes("walk", "parts"), preset_takes("hop", "parts")
@@ -408,7 +408,7 @@ itself, which is what puts eyes and mouth under `head` and leaves every
 limb a direct child of the entity.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> primary_slot_per_bone(CharacterDescriptor(name="m"))["head"]
@@ -464,7 +464,7 @@ that cannot resolve is left for [`play_problems()`](#an.characters.play.play_pro
 descriptor’s own evaluator stays the one definition of a sine track.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.characters.play.sine_sample_times(duration, fps)
 
@@ -476,7 +476,7 @@ the cycle-closing sample (equal to the first) was never emitted and the
 clip wrapped with a jump (an#7 review).
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> sine_sample_times(0.19, 24)[-2:]
@@ -491,7 +491,7 @@ The node path of a slot RELATIVE to its entity (`head/left_eye`,
 `torso`) — the rig builder’s nesting rule, stated once.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> slot_node_path(CharacterDescriptor(name="m"), "left_eye")
@@ -505,7 +505,7 @@ The node path of a slot RELATIVE to its entity (`head/left_eye`,
 The slot `slot` nests under, or `None` when it is a direct child.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.characters.play.suppressed_slots(desc)
 
@@ -514,7 +514,7 @@ art (`face_overlay=false`), every slot nested under the HEAD BONE’s
 primary slot — keyed on the bone, not on a slot named “head”.
 
 * **Return type:**
-  `frozenset`[`str`]
+  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> sorted(suppressed_slots(CharacterDescriptor(name="m", face_overlay=False)))

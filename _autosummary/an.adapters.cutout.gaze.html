@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.fidelity" href="an.adapters.cutout.fidelity.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -544,7 +544,7 @@ hide the pop.</p>
 <p>Seeding follows the blink pattern — a pure function of the entity name — so
 renaming a character re-seeds its saccades (the recorded blink hazard); the
 seed is stamped into the compiled scene’s <code class="docutils literal notranslate"><span class="pre">meta</span></code> beside <code class="docutils literal notranslate"><span class="pre">blink_phases</span></code>.
-Integer seeding of <code class="xref py py-class docutils literal notranslate"><span class="pre">random.Random</span></code> is version-stable.</p>
+Integer seeding of <a class="reference external" href="https://docs.python.org/3/library/random.html#random.Random" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">random.Random</span></code></a> is version-stable.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">track</span> <span class="o">=</span> <span class="n">saccade_track</span><span class="p">(</span><span class="s2">"gale"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">track</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="nb">all</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mf">2.0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">track</span><span class="p">)</span>
 <span class="go">(0.0, True)</span>
@@ -586,14 +586,14 @@ Integer seeding of <code class="xref py py-class docutils literal notranslate"><
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.gaze.GAZE_SALT">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.gaze.</span></span><span class="sig-name descname"><span class="pre">GAZE_SALT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">27182</span></span><a class="headerlink" href="#an.adapters.cutout.gaze.GAZE_SALT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.gaze.</span></span><span class="sig-name descname"><span class="pre">GAZE_SALT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">27182</span></span><a class="headerlink" href="#an.adapters.cutout.gaze.GAZE_SALT" title="Link to this definition">#</a></dt>
 <dd><p>XOR’d into the entity-name hash so saccades and blinks never share a seed.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.gaze.GazeStep">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.gaze.</span></span><span class="sig-name descname"><span class="pre">GazeStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/gaze.html#GazeStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.gaze.GazeStep" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The pupils rest at <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> (axis units) from <code class="docutils literal notranslate"><span class="pre">time</span></code> on.</p>
 <dl class="field-list simple">
 </dl>
@@ -605,7 +605,7 @@ Integer seeding of <code class="xref py py-class docutils literal notranslate"><
 <dd><p>The generator’s seed for an entity — a pure function of its name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gaze_seed</span><span class="p">(</span><span class="s2">"gale"</span><span class="p">)</span> <span class="o">==</span> <span class="n">gaze_seed</span><span class="p">(</span><span class="s2">"gale"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">gaze_seed</span><span class="p">(</span><span class="s2">"gale"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">gaze_seed</span><span class="p">(</span><span class="s2">"nora"</span><span class="p">)</span>
@@ -623,7 +623,7 @@ values assume 1). <code class="docutils literal notranslate"><span class="pre">b
 windows, for the coupling rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#an.adapters.cutout.gaze.GazeStep" title="an.adapters.cutout.gaze.GazeStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">GazeStep</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.adapters.cutout.gaze.GazeStep" title="an.adapters.cutout.gaze.GazeStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">GazeStep</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>

@@ -73,27 +73,27 @@ video is smoother). Its existing use as a frozen-render detector in
 | [`ssim_map`](#an.bench.metrics.ssim_map)(a, b, \*[, r])                            | Windowed SSIM at stride 1, as a per-pixel map.                                  |
 | [`sweep_cell_key`](#an.bench.metrics.sweep_cell_key)(\*\*params)                         | The label of one cell of a parameter sweep, stable across rows.                 |
 
-### an.bench.metrics.BLEND_TOLERANCE *: int* *= 3*
+### an.bench.metrics.BLEND_TOLERANCE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How far off the line between two palette colours a pixel may sit and still
 be called a blend of them. 8-bit channels, so a couple of code values covers
 rounding in the compositor.
 
-### an.bench.metrics.EDGE_FLAT_TOL *: int* *= 4*
+### an.bench.metrics.EDGE_FLAT_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
 Two neighbours within this many code values count as “flat”. NOT 0 — see
 the module docstring.
 
-### an.bench.metrics.EDGE_TRIM *: float* *= 0.1*
+### an.bench.metrics.EDGE_TRIM *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
 
 Trim fraction for `edge_transition_width`’s mean, so one pathological run
 cannot carry the number.
 
-### an.bench.metrics.FLAT_DEV_TOL *: int* *= 6*
+### an.bench.metrics.FLAT_DEV_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 6*
 
 A flat-field pixel more than this far off is “deviated”.
 
-### an.bench.metrics.FLAT_DEV_TOL_SWEEP *: tuple[int, ...]* *= (4, 5, 6, 7, 8)*
+### an.bench.metrics.FLAT_DEV_TOL_SWEEP *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (4, 5, 6, 7, 8)*
 
 The neighbourhood of each threshold counter’s OWN free parameters over which
 its verdict must agree before `an bench-compare` will call it a direction
@@ -107,16 +107,16 @@ direction reverses”. The grids are the ones the defect was measured on, not
 tuned ones; the flicker grid is one-sided below because tol 0 counts every
 pixel.
 
-### an.bench.metrics.FLICKER_DELTA_TOL *: int* *= 2*
+### an.bench.metrics.FLICKER_DELTA_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 A held pixel that moved by at least this much “flickered”.
 
-### an.bench.metrics.LUMA_709 *: tuple[float, float, float]* *= (0.2126, 0.7152, 0.0722)*
+### an.bench.metrics.LUMA_709 *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.2126, 0.7152, 0.0722)*
 
 BT.709 luma coefficients, recorded in the ledger so a future change to the
 reduction is visible rather than folded into the number.
 
-### an.bench.metrics.SSIM_RADIUS *: int* *= 3*
+### an.bench.metrics.SSIM_RADIUS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 `ssim_map` window radius; 7x7, matched to feature size rather than the
 global-moment form.
@@ -137,7 +137,7 @@ reporting anti-aliasing correctly. One that is not is a derivation bug, and
 now it says so in the ledger rather than waiting for someone to look.
 
 * **Return type:**
-  `list`[`dict`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ```pycon
 >>> classify_off_palette([{"hex": "#808080"}], [0x000000, 0xffffff])[0]["blend_of"]
@@ -224,7 +224,7 @@ An empty mask is not a colour count of zero:
 ```
 
 * **Return type:**
-  `tuple`[`float`, `int`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.metrics.edge_transition_width(rgb, , tol=4, trim=0.1)
 
@@ -239,7 +239,7 @@ went soft” indiscriminately.
 Returns `(trimmed_mean, median)`.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> import numpy as np
@@ -257,7 +257,7 @@ Pooled over every frame pair rather than averaged per pair, so a pair with
 three held pixels does not weigh as much as one with seventy thousand.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -278,7 +278,7 @@ the panel’s other hard-threshold counter, and measured under the same
 and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
 
 * **Return type:**
-  `dict`[`str`, `list`[`int`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ```pycon
 >>> import numpy as np
@@ -302,7 +302,7 @@ question 4 — “does plain edge-band MAE beat this?” — is answered by the
 ledger rather than by nobody.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -323,7 +323,7 @@ orthogonal to the edge/AA axis: monotone over a 133x span on the CRF ladder
 Returns `(fraction_over_tol, p99_of_the_deviation)`.
 
 * **Return type:**
-  `tuple`[`float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> import numpy as np
@@ -350,7 +350,7 @@ metric, and the others say whether anywhere else on the declared grid of
 its own two parameters the direction reverses.
 
 * **Return type:**
-  `dict`[`str`, `list`[`int`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ```pycon
 >>> import numpy as np
@@ -370,7 +370,7 @@ an AA change. Do not count it alongside `off_palette_pixel_fraction`; they
 are the same family.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -390,7 +390,7 @@ for this look the flat fields are most of the picture.
 metrics block; they are returned here so the caller can put them there.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ```pycon
 >>> import numpy as np
@@ -404,7 +404,7 @@ True
 `(H,W,3)` uint8 -> `(H,W)` float in [0,1]. PIL-free.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -433,7 +433,7 @@ why the row records it under its own operator string rather than reusing
 `an.bench.masks.EDGE_OPERATOR`.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -447,7 +447,7 @@ why the row records it under its own operator string rather than reusing
 `|a - b|` averaged over `mask`, with the cast that makes it correct.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -461,7 +461,7 @@ why the row records it under its own operator string rather than reusing
 Fraction of the frame whose colour is not one the compiler declared.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -482,7 +482,7 @@ blends sitting between two palette entries, that is anti-aliasing and the
 number is right.
 
 * **Return type:**
-  `list`[`dict`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ```pycon
 >>> import numpy as np
@@ -496,7 +496,7 @@ number is right.
 Mean positive excursion above the source, over the ring band.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -510,7 +510,7 @@ Mean positive excursion above the source, over the ring band.
 `(N,H,W,3)` uint8 -> `(N,H,W)` uint32, one integer per colour.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -538,7 +538,7 @@ block sums at 4-pixel stride, disagrees by up to 0.0201, and the
 disagreement *grows* with degradation.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -555,7 +555,7 @@ Keyword order is irrelevant — the key is sorted — so two rows written by
 code that spells the call differently still match cell for cell.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> sweep_cell_key(tol=6, dilate_k=3)

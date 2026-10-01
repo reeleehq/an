@@ -34,13 +34,13 @@ True
 
 ### *exception* an.preview.PreviewError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 Raised when a preview cannot be staged or served.
 
 ### *class* an.preview.PreviewStaging(runtime_dir, scene_json_path, shot_id)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of staging a preview’s runtime + initial compiled scene.
 
@@ -59,4 +59,4 @@ Blocks the calling thread until interrupted (Ctrl-C). Returns the
 base URL after teardown.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

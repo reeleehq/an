@@ -47,13 +47,13 @@ when unset.
 | [`grain_node`](#an.adapters.cutout.surface.grain_node)(grain, \*, width, height, textures)     | The grain layer: one tile texture, tiled over the frame in frame pixels.                                               |
 | [`faded_treated_targets`](#an.adapters.cutout.surface.faded_treated_targets)(scene, animations)           | The `alpha` channel targets that FADE a part carrying underlays.                                                       |
 
-### an.adapters.cutout.surface.GLOW_NODE *: str* *= '_glow'*
+### an.adapters.cutout.surface.GLOW_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_glow'*
 
 The glow’s node name inside its entity, and the grain’s on the overlay.
 Leading underscore: no rig slot or entity id is spelled like this, and a
 collision with an overlay entity still raises in `compile_shot`.
 
-### an.adapters.cutout.surface.GRAIN_LEVELS *: int* *= 16*
+### an.adapters.cutout.surface.GRAIN_LEVELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
 
 Grey levels in the grain tile. 16 = a 4-bit palette PNG (half the bytes
 of an 8-bit one), and finer steps than 8-bit output could show at the small
@@ -64,7 +64,7 @@ of an 8-bit one), and finer steps than 8-bit output could show at the small
 
 amount\`s grain is used at.
 
-### an.adapters.cutout.surface.UNDERLAY_KINDS *: frozenset[str]* *= frozenset({'ellipse', 'rect', 'svg_sprite'})*
+### an.adapters.cutout.surface.UNDERLAY_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'rect', 'svg_sprite'})*
 
 The visual kinds a copy can be drawn for. `runtime.js` refuses any other.
 An eye already draws its own rim, a procedural mouth is a redraw function,
@@ -82,7 +82,7 @@ The glow is added after the parts are walked, so it never gets an outline
 of its own.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from an.styles import SurfaceTreatment
@@ -105,7 +105,7 @@ root. That is an assumption about the rigs this compiler builds, not
 about arbitrary documents.
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`, `float`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> head = NodeJSON(name="h", transform=TransformJSON(y=-50),
@@ -124,7 +124,7 @@ A hide or a show is not a fade (`_fades()`), and an alpha on the glow
 node only fades the glow, which is fine.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.adapters.cutout.surface.glow_svg(width, height, , color, intensity, core)
 
@@ -134,7 +134,7 @@ It holds `intensity` out to `core` (a fraction of the radius) and
 fades to nothing at the edge.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> glow_svg(10, 10, color="#ffffff", intensity=0.5, core=0.4)[:52]
@@ -147,7 +147,7 @@ The palette: level `n` multiplies the frame by `grey/255`, from
 white (level 0) down to `1 − amount` (the last level).
 
 * **Return type:**
-  `list`[`int`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> grain_greys(0.06)[:3], grain_greys(0.06)[-1]
@@ -159,7 +159,7 @@ white (level 0) down to `1 − amount` (the last level).
 `tile × tile` grey-level indices in `[0, GRAIN_LEVELS)`, row-major.
 
 * **Return type:**
-  `list`[`int`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> grain_indices(0, 4)
@@ -189,14 +189,14 @@ It is opaque on purpose. With no alpha channel there is no premultiply
 step on load that could differ between engines.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.adapters.cutout.surface.ring_offsets(radius)
 
 The outline ring’s copy offsets at `radius` pixels.
 
 * **Return type:**
-  `list`[`tuple`[`float`, `float`]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> ring_offsets(2.0)[:3]

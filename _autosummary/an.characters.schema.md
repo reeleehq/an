@@ -112,7 +112,7 @@ list of `[time_s, value]` pairs evaluated in order.
 2.0
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -128,15 +128,15 @@ A drawable: an SVG path + anchor point (in 0..1 per-axis units).
 (0.5, 0.78)
 ```
 
-#### anchor *: tuple[float, float]*
+#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where THIS part’s art came from, when it is not the descriptor’s
 `source` — a character composed from several clips, or a carved head
@@ -145,7 +145,7 @@ on a CC0 body, credits each (an#220). `None` = the descriptor’s
 reserved part makes the render NOT PUBLISHABLE like any other.
 Omitted from the stored document when unset.
 
-#### width *: float | None*
+#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The size the part draws at, in **view_box units** — the rig’s units,
 the ones `x`/`y` and the bones use (an#220). \*\*A declared size
@@ -160,7 +160,7 @@ the art’s aspect; with both, the art is contained in the box
 validate` says when the two aspects disagree. See
 [`attachment_box()`](#an.characters.schema.attachment_box).
 
-#### x *: float*
+#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Offset from the slot’s bone, in view_box units.
 
@@ -184,11 +184,11 @@ A skeleton joint with a local transform relative to its parent.
 'torso'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pivot *: str | None*
+#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
 
@@ -228,7 +228,7 @@ True
 True
 ```
 
-#### asset_sets *: dict[str, dict[str, str]]*
+#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `{channel: {key: attachment_name}}` — what a swap key SELECTS, layered
 over `skins`, which is the SSOT for what art EXISTS. The indirection is
@@ -238,7 +238,7 @@ are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
 
-#### colour_roles *: dict[str, dict[str, str]]*
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 Which colour literal in which part plays which `StylePack` role —
 `{part path: {"#rrggbb": role}}`, e.g.
@@ -252,7 +252,7 @@ Additive: no schema bump, and a descriptor without it reads back as
 untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
 one a pack can set ([`an.styles.REACHABLE_ROLES`](an.styles.md#an.styles.REACHABLE_ROLES)).
 
-#### expression_binding *: list[dict[str, Any]] | None*
+#### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How expression axes reach this rig (an#98), as a list of binding dicts —
 `{"axis", "slot", "property", "gain"[, "rig_scaled"]}` for a transform
@@ -261,7 +261,7 @@ the default binding derived from the slots the rig has
 ([`an.expression.binding.default_binding()`](an.expression.binding.md#an.expression.binding.default_binding)). Additive: no schema bump,
 and a pre-Wave-6 descriptor reads back unchanged.
 
-#### face_overlay *: bool*
+#### face_overlay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether this character’s face is drawn as separate overlay parts
 (eyes, brows, mouth as their own slots — the default) or baked into the
@@ -275,7 +275,7 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
-#### gait *: str | None*
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 This character’s default walk `gait` (one of [`GAITS`](#an.characters.schema.GAITS), an#220);
 an author’s `gait` arg overrides it. `None` = `legs` when the rig
@@ -283,7 +283,7 @@ builds a leg pair, else `rock`. A robe figure whose leg slots are hem
 halves declares `"hem"` once, here, rather than on every walk.
 Omitted from the stored document when unset.
 
-#### gaze_travel *: dict[str, float] | None*
+#### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
 (an#99): the sclera’s clearance minus the pupil’s radius, written by
@@ -294,7 +294,7 @@ inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
 circle, which keeps the whole pupil disc inside the white at every
 angle (a per-axis box pokes out at the diagonal) — no runtime mask.
 
-#### metadata *: dict[str, Any]*
+#### metadata *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
 
 Free-form metadata (dicebear style/seed, etc.). Schema-evolution
 friendly: anything an external tool wants to record can land here.
@@ -302,7 +302,7 @@ friendly: anything an external tool wants to record can land here.
 This comment used to say “art license, etc.” — an invitation nothing ever
 took up. Rights live in `source` now, typed, so they can be found.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -312,9 +312,9 @@ Override this method to perform additional initialization after `__init__` and `
 This is useful if you want to do some validation that requires the entire model to be initialized.
 
 * **Return type:**
-  `None`
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-#### rest_view *: str | None*
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The view the DEFAULT art is drawn in (an#220) — a declared fact about
 the art, like `face_overlay`. `None` means [`DFLT_VIEW`](#an.characters.schema.DFLT_VIEW)
@@ -324,7 +324,7 @@ force before any turn — `walk` swinging its legs rather than lifting
 them — reads it instead of the author passing `view: side` by hand.
 Omitted from the stored document when unset.
 
-#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | None*
+#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Where this character’s art came from, and what its licence obliges.
 
@@ -337,12 +337,12 @@ Field names match `illustration.ImageResult` exactly, so an adapter is a
 dict copy rather than a rename table — and a rename table is where a field
 quietly stops being carried. Pinned by test.
 
-#### source_svg *: str | None*
+#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
-#### swap_poses *: dict[str, dict[str, dict[str, [SlotPose](#an.characters.schema.SlotPose)]]]*
+#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](#an.characters.schema.SlotPose)]]]*
 
 {slot:
 SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
@@ -366,16 +366,16 @@ schema bump, and a descriptor without it reads back unposed.
 * **Type:**
   {key
 
-#### voice_ref *: str | None*
+#### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
 can override per shot.
 
-### an.characters.schema.DEFAULT_EYELID_MAP *: dict[str, str]* *= {'CLOSED': 'closed', 'OPEN': 'open'}*
+### an.characters.schema.DEFAULT_EYELID_MAP *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CLOSED': 'closed', 'OPEN': 'open'}*
 
 Default eyelid-state → attachment-name mapping, shared by both eye slots.
 
-### an.characters.schema.DEFAULT_VIEW_BOX *: tuple[int, int, int, int]* *= (0, 0, 1024, 1024)*
+### an.characters.schema.DEFAULT_VIEW_BOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (0, 0, 1024, 1024)*
 
 1024x1024 with feet near y≈980. All parts
 inherit this viewBox at export so PixiJS can use the SVG’s intrinsic
@@ -384,12 +384,12 @@ viewBox without a calibration step.
 * **Type:**
   Canonical character viewBox
 
-### an.characters.schema.DEFAULT_VISEME_MAP *: dict[str, str]* *= {'A': 'mouth_a', 'B': 'mouth_b', 'C': 'mouth_c', 'D': 'mouth_d', 'E': 'mouth_e', 'F': 'mouth_f', 'G': 'mouth_g', 'H': 'mouth_h', 'X': 'mouth_x'}*
+### an.characters.schema.DEFAULT_VISEME_MAP *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'mouth_a', 'B': 'mouth_b', 'C': 'mouth_c', 'D': 'mouth_d', 'E': 'mouth_e', 'F': 'mouth_f', 'G': 'mouth_g', 'H': 'mouth_h', 'X': 'mouth_x'}*
 
 Default Rhubarb-letter → mouth-attachment-name mapping. Uppercase keys
 because Rhubarb emits A-X; lowercase attachment names by convention.
 
-### an.characters.schema.DFLT_VIEW *: str* *= 'front'*
+### an.characters.schema.DFLT_VIEW *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'front'*
 
 its default attachments ARE this view.
 A descriptor whose art is drawn in another view says so in `rest_view`.
@@ -397,7 +397,7 @@ A descriptor whose art is drawn in another view says so in `rest_view`.
 * **Type:**
   The view a character shows at rest
 
-### an.characters.schema.EYELID_CHANNEL *: str* *= 'eyelid'*
+### an.characters.schema.EYELID_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'eyelid'*
 
 The swap channel blinks drive. One set serves BOTH eye slots because the
 eye slots share per-slot attachment names (`open` / `closed`) — the 0.3.0
@@ -405,7 +405,7 @@ migration renamed them from the file-derived `eye_l_open` spelling for
 exactly this: a set’s keys are looked up per slot, so slots that a single
 channel must drive together need attachment names in common.
 
-### an.characters.schema.FACE_OFFSETS *: dict[str, tuple[float, float]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
+### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
 
 Where each face part sits relative to the `head` bone, in view_box units.
 
@@ -417,7 +417,7 @@ anchored the head at 0.5); the bone is the NECK, and the head hangs above it
 at [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
 the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
 
-### an.characters.schema.GAITS *: tuple[str, ...]* *= ('legs', 'hem', 'rock')*
+### an.characters.schema.GAITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('legs', 'hem', 'rock')*
 
 `legs`
 swing about the hip in a profile and step up and down facing the camera;
@@ -428,7 +428,7 @@ sack) and rocks the body.
 * **Type:**
   How a character walks (`an.motion.walk`’s `gait`, an#220)
 
-### an.characters.schema.HEAD_ANCHOR *: tuple[float, float]* *= (0.5, 0.78)*
+### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
 
 the head hangs above the neck, its lower
 ~fifth overlapping the collar.
@@ -448,34 +448,34 @@ A named idle loop (e.g., breath, blink).
 True
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.characters.schema.LEG_LENGTH *: float* *= 300.0*
+### an.characters.schema.LEG_LENGTH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 300.0*
 
 Hip to ground in the default rig, in view_box units. The torso bone (the
 hip) and both leg bones sit this far above the root (the ground contact), so
 a leg drawn this long reaches the ground. The factory draws its legs to it.
 
-### an.characters.schema.MOUTH_SHAPES *: tuple[str, ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
+### an.characters.schema.MOUTH_SHAPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
 
 Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
 are emitted when `--extendedShapes GHX` is on (Rhubarb’s default).
 We always ship all 9 so the renderer never has to fall back.
 
-### an.characters.schema.REFERENCE_HEAD_HEIGHT *: float* *= 285.0*
+### an.characters.schema.REFERENCE_HEAD_HEIGHT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 285.0*
 
 The head height the default face layout is drawn for, in view_box units —
 the pre-Wave-4 compiler’s 96 px head at k = 345/1024. The factory writes its
 head art at this height, so [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS) lands on the face.
 
-### an.characters.schema.REQUIRED_PARTS *: tuple[str, ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
+### an.characters.schema.REQUIRED_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
 
 Required body parts. A character missing any of these can’t be rendered
 as a full puppet; `validate_character` flags the gap.
 
-### an.characters.schema.SLOT_POSE_OFFSETS *: tuple[str, ...]* *= ('x', 'y')*
+### an.characters.schema.SLOT_POSE_OFFSETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y')*
 
 The transform properties a [`SlotPose`](#an.characters.schema.SlotPose) sets, and whether each is an
 OFFSET added to the rest (in view_box units, so scaled by the rig), an
@@ -493,7 +493,7 @@ A named outfit/variant: maps slot → {attachment_name → Attachment}.
 'parts/mouth/mouth_a.svg'
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -509,12 +509,12 @@ A draw-order slot bound to a bone, displaying one attachment at a time.
 'mouth_x'
 ```
 
-#### attachment *: str | None*
+#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Default attachment name; the active attachment can change at runtime
 via animation tracks targeting `slot:<name>.attachment`.
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
@@ -537,17 +537,17 @@ paths guessed by trial.
 (0.0, 0.0, 0.0)
 ```
 
-#### model_config *: ClassVar[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.characters.schema.VIEWS *: tuple[str, ...]* *= ('front', 'three_quarter', 'side', 'back')*
+### an.characters.schema.VIEWS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('front', 'three_quarter', 'side', 'back')*
 
 The views the factory draws, in turnaround order. `side` is a profile
 facing the viewer’s RIGHT at a positive `scale_x`; a negative `scale_x`
 (`an.motion.turn(direction="left")`) mirrors it to face left.
 
-### an.characters.schema.VIEW_CHANNEL *: str* *= 'view'*
+### an.characters.schema.VIEW_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'view'*
 
 one KEY per drawn view, projected
 onto the slots whose art changes with the view (the factory draws the head
@@ -558,13 +558,13 @@ reads it; `an.motion.turn` is the one writer that defaults to it.
 * **Type:**
   The swap set a turnaround rides (an#197)
 
-### an.characters.schema.VIEW_VARIANT_SEP *: str* *= '@'*
+### an.characters.schema.VIEW_VARIANT_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '@'*
 
 What joins a swap set’s name to the view a variant of it serves:
 `eyelid@side` is the `eyelid` set drawn for the `side` view (an#220),
 the same separator the expression variants (`viseme@happy`, an#98) use.
 
-### an.characters.schema.VISEME_CHANNEL *: str* *= 'viseme'*
+### an.characters.schema.VISEME_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'viseme'*
 
 The swap channel lip-sync drives. `viseme` is a conventional set name, not
 a special case in control flow (an#87): the compiler projects EVERY
@@ -577,7 +577,7 @@ The box a part draws in, in view_box units: the declared size wins, the
 art’s aspect is kept (an#220).
 
 * **Return type:**
-  `tuple`[`float`, `float`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> attachment_box(None, None, (40, 20))       # the art's own extent
@@ -631,14 +631,14 @@ first, which is why this walks in declaration order rather than by index.
 `{channel: {key: attachment_name}}` for a freshly-built character.
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `str`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.characters.schema.view_variant_set(set_name, view)
 
 The name of `set_name`’s variant for `view` (an#220).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> view_variant_set("eyelid", "side")
@@ -654,7 +654,7 @@ is a declared set and `<view>` a key of its `view` set (or its
 so the expression variants (an#98) and the view variants never collide.
 
 * **Return type:**
-  `dict`[`str`, `dict`[`str`, `str`]]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ```pycon
 >>> d = CharacterDescriptor(name="v")

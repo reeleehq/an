@@ -44,7 +44,7 @@ opens monotonically `X → A → B → C → D`).
 | [`Axis`](#an.expression.axes.Axis)(name, lo, hi[, rest])   | One numeric axis: its range and its rest (neutral) value.   |
 |-------------------------------------------------------------------------------|-------------------------------------------------------------|
 
-### an.expression.axes.AXES *: dict[str, [Axis](#an.expression.axes.Axis)]* *= {'brow_angle_l': Axis(name='brow_angle_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_angle_r': Axis(name='brow_angle_r', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_l': Axis(name='brow_height_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_r': Axis(name='brow_height_r', lo=-1.0, hi=1.0, rest=0.0), 'gaze_x': Axis(name='gaze_x', lo=-1.0, hi=1.0, rest=0.0), 'gaze_y': Axis(name='gaze_y', lo=-1.0, hi=1.0, rest=0.0), 'lid_open_l': Axis(name='lid_open_l', lo=-1.0, hi=0.5, rest=0.0), 'lid_open_r': Axis(name='lid_open_r', lo=-1.0, hi=0.5, rest=0.0)}*
+### an.expression.axes.AXES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Axis](#an.expression.axes.Axis)]* *= {'brow_angle_l': Axis(name='brow_angle_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_angle_r': Axis(name='brow_angle_r', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_l': Axis(name='brow_height_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_r': Axis(name='brow_height_r', lo=-1.0, hi=1.0, rest=0.0), 'gaze_x': Axis(name='gaze_x', lo=-1.0, hi=1.0, rest=0.0), 'gaze_y': Axis(name='gaze_y', lo=-1.0, hi=1.0, rest=0.0), 'lid_open_l': Axis(name='lid_open_l', lo=-1.0, hi=0.5, rest=0.0), 'lid_open_r': Axis(name='lid_open_r', lo=-1.0, hi=0.5, rest=0.0)}*
 
 + raises the brow, scaled by the rig’s eye height.
 
@@ -58,25 +58,25 @@ Gaze: pupil travel inside the eye, clamped by the rig’s declared travel.
 
 ### *class* an.expression.axes.Axis(name, lo, hi, rest=0.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One numeric axis: its range and its rest (neutral) value.
 
-### an.expression.axes.INTENSITY_AXIS *: str* *= 'intensity'*
+### an.expression.axes.INTENSITY_AXIS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'intensity'*
 
 The scalar on every offset (MPEG-4 “excitation”); the blend ramp is a curve on it.
 
-### an.expression.axes.LID_KEY_WIDE *: str* *= 'WIDE'*
+### an.expression.axes.LID_KEY_WIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'WIDE'*
 
 Eyelid set keys the ladder can name, by openness.
 
-### an.expression.axes.LID_WIDE_ABOVE *: float* *= 0.25*
+### an.expression.axes.LID_WIDE_ABOVE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
 
 The eyelid ladder — one rule, stated once (research §6). A lid state
 `min(lid_expr, lid_blink)` reads off these thresholds; a rig without the
 intermediate art degrades to the key it has.
 
-### an.expression.axes.MOUTH_FORM_AXIS *: str* *= 'mouth_form'*
+### an.expression.axes.MOUTH_FORM_AXIS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'mouth_form'*
 
 which `viseme@<form>` set the mouth’s key indexes.
 
@@ -88,7 +88,7 @@ which `viseme@<form>` set the mouth’s key indexes.
 Clamp every numeric axis to its range; an unknown axis is an error.
 
 * **Return type:**
-  `dict`[`str`, `float`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> clamp_axes({"brow_height_l": 2.0, "lid_open_r": -3.0})
@@ -108,4 +108,4 @@ a rig without `half` stays open until the lower threshold and one without
 `wide` stays open above the upper one — never a blend of two drawings.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

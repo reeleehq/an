@@ -93,19 +93,19 @@ time). `trajectory.csv` is `t, h, <object>.<kp>_x, <object>.<kp>_y, ...` at
 | [`TruthMismatch`](#an.impacts.truth.TruthMismatch)   | The ground truth and the thing it describes disagree.   |
 |------------------------------------------------------------------|---------------------------------------------------------|
 
-### an.impacts.truth.KEYPOINT_TOLERANCE_PX *: float* *= 1e-06*
+### an.impacts.truth.KEYPOINT_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-06*
 
 The analytic and compiled keypoints must agree to this many pixels. Both are
 double-precision evaluations of the same easing, so any real disagreement is
 orders of magnitude larger.
 
-### an.impacts.truth.TRUTH_SCHEMA_VERSION *: str* *= '1.0.0'*
+### an.impacts.truth.TRUTH_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1.0.0'*
 
 Bumped on any change a reader must know about; additive fields bump MINOR.
 
 ### *exception* an.impacts.truth.TruthMismatch
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The ground truth and the thing it describes disagree.
 
@@ -117,7 +117,7 @@ The truth document for one clip (see the module docstring for its schema).
 function owns `objects`, `events` and `frames`.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.impacts.truth.keypoint_lines(truth, , digits=4)
 
@@ -128,11 +128,11 @@ One observation per frame, in thoremin’s recorder shape.
 points are what the frame shows; nothing else from the truth leaks in.
 
 * **Return type:**
-  `Iterator`[`dict`[`str`, `Any`]]
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.impacts.truth.trajectory_rows(, scene, obj, stroke, hz, digits=6)
 
 The dense continuous trajectory: a header row, then one row per `1/hz` s.
 
 * **Return type:**
-  `Iterator`[`list`[`Any`]]
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]

@@ -29,16 +29,16 @@ from inside `shutil.copytree`.
 
 ### *exception* an.bench.paths.BenchLayoutError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The bench was run somewhere it cannot find the corpus.
 
-### an.bench.paths.GOLDEN_DIRNAME *: str* *= 'misc/bench/golden'*
+### an.bench.paths.GOLDEN_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/golden'*
 
 Golden frames (an#38 fills this; the path convention ships now so the
 cassette work and the corpus work do not have to agree on it later).
 
-### an.bench.paths.LEDGER_DIRNAME *: str* *= 'misc/bench/ledger'*
+### an.bench.paths.LEDGER_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/ledger'*
 
 Ledger rows live here, one file per (date, commit). Append-only by
 convention: an existing row is evidence about a commit, and editing it
@@ -55,14 +55,14 @@ rewrites history that `an bench --compare` (an#40) reads as fact.
 None\`\`s off-git.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.paths.golden_dir(root=None)
 
 The golden-frame directory (an#38).
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.golden_path(scene, frame_key, chromium_build, , root=None)
 
@@ -78,7 +78,7 @@ bump becomes a **new path requiring a deliberate re-bless** rather than a
 red test with no explanation.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> golden_path("s", "f0", "140.0.7339.16").name
@@ -90,7 +90,7 @@ red test with no explanation.
 The ledger directory, created if absent.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.ledger_path(, root=None, git=None)
 
@@ -101,7 +101,7 @@ edits describes no commit, and a filename that claims one would be read by
 an#40 as that commit’s evidence.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> ledger_path(git={"sha": "abc1234def", "dirty": True}).name.endswith("-dirty.json")
@@ -121,7 +121,7 @@ The checkout’s folder name is not asserted: a git worktree or a clone
 under another name is still a source checkout.
 
 * **Return type:**
-  `Path`
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> (repo_root() / "an" / "bench" / "paths.py").is_file()

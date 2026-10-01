@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.svg_utils" href="an.characters.svg_utils.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -582,33 +582,33 @@ that cannot land.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.validate.ADVISORY">
-<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">ADVISORY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'warning'</span></span><a class="headerlink" href="#an.characters.validate.ADVISORY" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">ADVISORY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'warning'</span></span><a class="headerlink" href="#an.characters.validate.ADVISORY" title="Link to this definition">#</a></dt>
 <dd><p>Severity for a problem worth fixing that still renders.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.validate.BLOCKING">
-<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">BLOCKING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'error'</span></span><a class="headerlink" href="#an.characters.validate.BLOCKING" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">BLOCKING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'error'</span></span><a class="headerlink" href="#an.characters.validate.BLOCKING" title="Link to this definition">#</a></dt>
 <dd><p>Severity for a problem that stops the part rendering correctly.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.validate.DECLARED_ASPECT_TOLERANCE">
-<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">DECLARED_ASPECT_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></span><a class="headerlink" href="#an.characters.validate.DECLARED_ASPECT_TOLERANCE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">DECLARED_ASPECT_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></span><a class="headerlink" href="#an.characters.validate.DECLARED_ASPECT_TOLERANCE" title="Link to this definition">#</a></dt>
 <dd><p>How far a declared box’s aspect may differ from its art’s before the
 containment is worth saying (a rounding of a pixel or two is not).</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.validate.DRAWABLE_ELEMENTS">
-<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">DRAWABLE_ELEMENTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'circle',</span> <span class="pre">'ellipse',</span> <span class="pre">'line',</span> <span class="pre">'path',</span> <span class="pre">'polygon',</span> <span class="pre">'polyline',</span> <span class="pre">'rect',</span> <span class="pre">'text',</span> <span class="pre">'use'})</span></span><a class="headerlink" href="#an.characters.validate.DRAWABLE_ELEMENTS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">DRAWABLE_ELEMENTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'circle',</span> <span class="pre">'ellipse',</span> <span class="pre">'line',</span> <span class="pre">'path',</span> <span class="pre">'polygon',</span> <span class="pre">'polyline',</span> <span class="pre">'rect',</span> <span class="pre">'text',</span> <span class="pre">'use'})</span></span><a class="headerlink" href="#an.characters.validate.DRAWABLE_ELEMENTS" title="Link to this definition">#</a></dt>
 <dd><p>Elements that put ink on the canvas. A part containing none of these is
 blank, whatever else it contains.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.validate.PART_SUFFIXES">
-<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">PART_SUFFIXES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.svg',</span> <span class="pre">'.png',</span> <span class="pre">'.jpg',</span> <span class="pre">'.jpeg',</span> <span class="pre">'.webp')</span></span><a class="headerlink" href="#an.characters.validate.PART_SUFFIXES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">PART_SUFFIXES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.svg',</span> <span class="pre">'.png',</span> <span class="pre">'.jpg',</span> <span class="pre">'.jpeg',</span> <span class="pre">'.webp')</span></span><a class="headerlink" href="#an.characters.validate.PART_SUFFIXES" title="Link to this definition">#</a></dt>
 <dd><p>SVG, or raster with the
 suffixes <code class="code docutils literal notranslate"><span class="pre">an.raster</span></code> reads (an#211). Order is the lookup order for a
 required part, so an SVG wins when both exist.</p>
@@ -621,7 +621,7 @@ required part, so an SVG wins when both exist.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.validate.PROHIBITED_ELEMENTS">
-<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">PROHIBITED_ELEMENTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'foreignObject':</span> <span class="pre">'embeds</span> <span class="pre">non-SVG</span> <span class="pre">content</span> <span class="pre">that</span> <span class="pre">most</span> <span class="pre">rasterisers</span> <span class="pre">drop',</span> <span class="pre">'image':</span> <span class="pre">'raster</span> <span class="pre">embed;</span> <span class="pre">ship</span> <span class="pre">the</span> <span class="pre">raster</span> <span class="pre">as</span> <span class="pre">its</span> <span class="pre">own</span> <span class="pre">part</span> <span class="pre">instead</span> <span class="pre">(parts/&lt;name&gt;.png,</span> <span class="pre">with</span> <span class="pre">alpha</span> <span class="pre">—</span> <span class="pre">an#211)',</span> <span class="pre">'script':</span> <span class="pre">'executable</span> <span class="pre">content;</span> <span class="pre">a</span> <span class="pre">part</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">drawing,</span> <span class="pre">not</span> <span class="pre">a</span> <span class="pre">program'}</span></span><a class="headerlink" href="#an.characters.validate.PROHIBITED_ELEMENTS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">PROHIBITED_ELEMENTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'foreignObject':</span> <span class="pre">'embeds</span> <span class="pre">non-SVG</span> <span class="pre">content</span> <span class="pre">that</span> <span class="pre">most</span> <span class="pre">rasterisers</span> <span class="pre">drop',</span> <span class="pre">'image':</span> <span class="pre">'raster</span> <span class="pre">embed;</span> <span class="pre">ship</span> <span class="pre">the</span> <span class="pre">raster</span> <span class="pre">as</span> <span class="pre">its</span> <span class="pre">own</span> <span class="pre">part</span> <span class="pre">instead</span> <span class="pre">(parts/&lt;name&gt;.png,</span> <span class="pre">with</span> <span class="pre">alpha</span> <span class="pre">—</span> <span class="pre">an#211)',</span> <span class="pre">'script':</span> <span class="pre">'executable</span> <span class="pre">content;</span> <span class="pre">a</span> <span class="pre">part</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">drawing,</span> <span class="pre">not</span> <span class="pre">a</span> <span class="pre">program'}</span></span><a class="headerlink" href="#an.characters.validate.PROHIBITED_ELEMENTS" title="Link to this definition">#</a></dt>
 <dd><p>Elements an art package may not contain.</p>
 <p>Not a security perimeter — the renderer loads these files into a headless
 browser we control — but a portability one: each of these makes a part render
@@ -635,7 +635,7 @@ depends on script execution is not a drawing.</p>
 <dd><p>A short human-readable rendering, for the CLI.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -652,7 +652,7 @@ a freshly-built descriptor, the prohibitions from
 validator cannot disagree.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>

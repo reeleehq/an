@@ -81,11 +81,11 @@ than referencing the registry that happened to be installed.
 | [`ComparisonError`](#an.bench.compare.ComparisonError)   | The comparer was handed something it cannot read at all.   |
 |--------------------------------------------------------------------|------------------------------------------------------------|
 
-### an.bench.compare.COMMON_ENV_PATHS *: tuple[tuple[str, ...], ...]* *= (('render_kwargs',),)*
+### an.bench.compare.COMMON_ENV_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('render_kwargs',),)*
 
 Row-provenance paths that must match for **either** side.
 
-### an.bench.compare.CROSS_CHECKED_FIELDS *: tuple[str, ...]* *= ('family', 'side', 'comparison_scope', 'reference')*
+### an.bench.compare.CROSS_CHECKED_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('family', 'side', 'comparison_scope', 'reference')*
 
 Every field a row stores TWICE — inline on the metric and in
 `metric_declarations` — except `under_mutation`, whose nested shape gets
@@ -103,26 +103,26 @@ COMPLETENESS by a test rather than maintained by hand — see
 
 ### *exception* an.bench.compare.ComparisonError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 The comparer was handed something it cannot read at all.
 
-### an.bench.compare.DECLARATION_KEYS *: tuple[str, ...]* *= ('family', 'side', 'optimum', 'unit')*
+### an.bench.compare.DECLARATION_KEYS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('family', 'side', 'optimum', 'unit')*
 
 Per-metric declaration fields that must agree, or the metric means something
 different in each row. `optimum` decides which way “better” points and
 `family` decides what an#41’s criterion counts.
 
-### an.bench.compare.ENCODE_ENV_PATHS *: tuple[tuple[str, ...], ...]* *= (('environment', 'encode_side', 'isa'), ('environment', 'encode_side', 'x264_sei'), ('environment', 'encode_side', 'x264_argv'), ('environment', 'encode_side', 'pix_fmt'), ('environment', 'encode_side', 'scale_filter'), ('encode_command_source',), ('decode_commands',))*
+### an.bench.compare.ENCODE_ENV_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('environment', 'encode_side', 'isa'), ('environment', 'encode_side', 'x264_sei'), ('environment', 'encode_side', 'x264_argv'), ('environment', 'encode_side', 'pix_fmt'), ('environment', 'encode_side', 'scale_filter'), ('encode_command_source',), ('decode_commands',))*
 
 Row-provenance paths that must match for an **encode-side** metric.
 
-### an.bench.compare.MASK_PARAM_PATHS *: tuple[tuple[str, ...], ...]* *= (('masks', 'edge', 'operator'), ('masks', 'edge', 'threshold'), ('masks', 'flat', 'operator'), ('masks', 'flat', 'dilate_k'), ('masks', 'held', 'operator'), ('masks', 'ring', 'operator'), ('masks', 'render_edge', 'operator'), ('masks', 'render_edge', 'threshold'))*
+### an.bench.compare.MASK_PARAM_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('masks', 'edge', 'operator'), ('masks', 'edge', 'threshold'), ('masks', 'flat', 'operator'), ('masks', 'flat', 'dilate_k'), ('masks', 'held', 'operator'), ('masks', 'ring', 'operator'), ('masks', 'render_edge', 'operator'), ('masks', 'render_edge', 'threshold'))*
 
 Mask **parameters**, addressed by path into the scene’s `masks` block. The
 counts and fractions beside them are measurements and are excluded.
 
-### an.bench.compare.RENDER_ENV_PATHS *: tuple[tuple[str, ...], ...]* *= (('environment', 'render_side', 'chromium_build'), ('environment', 'render_side', 'playwright'), ('environment', 'render_side', 'launch_argv'))*
+### an.bench.compare.RENDER_ENV_PATHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], ...]* *= (('environment', 'render_side', 'chromium_build'), ('environment', 'render_side', 'playwright'), ('environment', 'render_side', 'launch_argv'))*
 
 Row-provenance paths that must match for a **render-side** metric.
 The Chromium build is here and not merely informational: the cross-arch
@@ -131,14 +131,14 @@ golden path keys on the build for the same reason. One bump has been measured
 to move zero pixels (1187 -> 1223), so this refusal is precautionary rather
 than a known break — and a deliberate re-bless is the intended response.
 
-### an.bench.compare.REQUIRED_FAMILIES *: int* *= 3*
+### an.bench.compare.REQUIRED_FAMILIES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How many distinct causal families must move as declared for a mutation to
 count as caught. an#41’s criterion, restated from the research: “>=3 metrics
 from >=3 distinct causal families, evaluated per mutation, with a per-metric
 per-mutation sign declared in advance”.
 
-### an.bench.compare.SCENE_KEYS *: tuple[str, ...]* *= ('scene_contract_sha256', 'resolution', 'fps', 'n_frames', 'shot_order', 'palette_hex', 'tolerances')*
+### an.bench.compare.SCENE_KEYS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('scene_contract_sha256', 'resolution', 'fps', 'n_frames', 'shot_order', 'palette_hex', 'tolerances')*
 
 Scene-provenance fields that must match for ANY metric to be comparable.
 Deliberately not the whole provenance block: that also carries per-run
@@ -146,14 +146,14 @@ Deliberately not the whole provenance block: that also carries per-run
 which change exactly when the render changes — i.e. when the two rows are
 most worth comparing.
 
-### an.bench.compare.SCORING_FIELDS *: tuple[str, ...]* *= ('expect', 'counts', 'gate', 'state')*
+### an.bench.compare.SCORING_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('expect', 'counts', 'gate', 'state')*
 
 The fields of a per-mutation prediction that the verdict actually reads.
 `reason` is prose and is deliberately NOT here — the declarations block
 carries it and the inline block drops it, so requiring it would refuse every
 real row.
 
-### an.bench.compare.SUPPORTED_SCHEMA_VERSIONS *: tuple[int, ...]* *= (1,)*
+### an.bench.compare.SUPPORTED_SCHEMA_VERSIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (1,)*
 
 Row schema versions this comparer understands. A row it cannot read is
 refused rather than guessed at — the whole point of the version field.
@@ -168,7 +168,7 @@ three distinct causal families do so. Without one, it answers “is the second
 row worse”, which only the one-sided metrics can answer at all.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.compare.direction_of(before, after)
 
@@ -179,7 +179,7 @@ delta and any nonzero one is real. Booleans compare as booleans: a tripwire
 that went `True -> False` has not “decreased”.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> direction_of(1.0, 1.0)
@@ -193,12 +193,12 @@ that went `True -> False` has not “decreased”.
 The human-readable digest. Refusals first, because they are the verdict.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.compare.latest_rows(, root=None, count=2)
 
 * **Return type:**
-  `list`[`Path`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 The most recent committed ledger rows, newest last — \*\*by 
 
@@ -229,7 +229,7 @@ nameable. `an bench --out` still lets a caller point at one explicitly.
 Read one ledger row from disk.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.compare.readable_sweep(sweep)
 
@@ -240,7 +240,7 @@ Possible means integers (a bool is not a count), `of > 0` and
 edited row, and reading it would let the edit choose the verdict.
 
 * **Return type:**
-  `dict` | `None`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> readable_sweep({"t=1": [3, 10]})
@@ -278,7 +278,7 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 `_compare_scene`.)
 
 * **Return type:**
-  `dict` | `None`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> sweep_verdict({"t=1": [1, 10], "t=2": [5, 10]}, {"t=1": [2, 10], "t=2": [4, 10]})["state"]

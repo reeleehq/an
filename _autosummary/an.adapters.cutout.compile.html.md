@@ -79,14 +79,14 @@ mall). It reads only.
 |-----------------------------------------------------------------------|-----------------------------------------------------------------|
 | [`CutoutCompileWarning`](#an.adapters.cutout.compile.CutoutCompileWarning) | A shot compiles, but something in it will not reach the screen. |
 
-### an.adapters.cutout.compile.CAMERA_NODE *: str* *= 'root'*
+### an.adapters.cutout.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
 
 indexed by the runtime, absent from the tree.
 
 * **Type:**
   The runtime’s camera node
 
-### an.adapters.cutout.compile.CHARACTER_ART_PREFIX *: str* *= 'characters/'*
+### an.adapters.cutout.compile.CHARACTER_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'characters/'*
 
 The `assets.textures` `src` prefix a rig’s art is addressed under, which is
 also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).
@@ -97,7 +97,7 @@ about where their art lives. Two hardcoded copies of `"characters/"` — the
 what made “a prop is a rig too” read as a rewrite instead of an argument
 (an#108).
 
-### an.adapters.cutout.compile.COARTICULATION_ENABLED *: bool* *= True*
+### an.adapters.cutout.compile.COARTICULATION_ENABLED *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Co-articulation on/off (an#97). ON is the product; OFF reproduces the
 pre-#97 mouth CHOICE — the raw provider track thinned by the old drop-not-hold
@@ -107,14 +107,14 @@ render the two side by side. Not a RenderContext knob: nobody should ship
 the old behaviour, and a module flag rebound for one render is the shape
 the bench’s levers already use.
 
-### an.adapters.cutout.compile.CONTAIN_FIT *: str* *= 'contain'*
+### an.adapters.cutout.compile.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
 
 The fit policy every compiled sprite carries. Named rather than inlined so
 the one place that decides “the art keeps its shape” is greppable.
 
 ### *exception* an.adapters.cutout.compile.CutoutCompileError
 
-Bases: `ValueError`
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A shot cannot be compiled to a cutout scene. Carries actionable detail.
 
@@ -126,7 +126,7 @@ machinery, not of the input.
 
 ### *exception* an.adapters.cutout.compile.CutoutCompileWarning
 
-Bases: `UserWarning`
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A shot compiles, but something in it will not reach the screen.
 
@@ -136,27 +136,27 @@ mistake, so it raises. A speaker with no mouth is usually an off-screen
 narrator and occasionally a typo — refusing it would break the documented
 idiom, and passing in silence is what this whole change is against.
 
-### an.adapters.cutout.compile.DFLT_LEG_COLOUR *: str* *= '#2c3e50'*
+### an.adapters.cutout.compile.DFLT_LEG_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#2c3e50'*
 
 The procedural rig’s leg colour — a literal the palette table never
 carried, which is why it is a named constant rather than two copies of a
 string. A `StylePack`’s `leg` role replaces it.
 
-### an.adapters.cutout.compile.DFLT_PUPIL_COLOUR *: str* *= '#1a1a1a'*
+### an.adapters.cutout.compile.DFLT_PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
 The procedural rig’s pupil colour. `makeEye` reads it from the document —
 the eye WHITE beside it is a literal and cannot be reached, which is the
 split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
 
-### an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS *: int* *= 3*
+### an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How many “did you mean” paths an unknown-target message offers.
 
-### an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX *: str* *= 'environments/'*
+### an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'environments/'*
 
 The `assets.textures` `src` prefix an environment plate is addressed under.
 
-### an.adapters.cutout.compile.EYE_NODE_NAMES *: frozenset[str]* *= frozenset({'left_eye', 'right_eye'})*
+### an.adapters.cutout.compile.EYE_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_eye', 'right_eye'})*
 
 the default rig’s eye slots ARE its node
 names, on both the procedural and the descriptor path.
@@ -164,7 +164,7 @@ names, on both the procedural and the descriptor path.
 * **Type:**
   The nodes that blink, by name
 
-### an.adapters.cutout.compile.FOREGROUND_SUFFIX *: str* *= '_\_front'*
+### an.adapters.cutout.compile.FOREGROUND_SUFFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_front'*
 
 Suffix for the container holding an environment’s FOREGROUND planes.
 
@@ -178,20 +178,20 @@ and the runtime’s unknown-target throw does not fire because the name IS
 known, just bound to the wrong one of two. The determinism report’s
 `node_count` under-counted by one per split environment too.
 
-### an.adapters.cutout.compile.GAZE_ELLIPSE_MARGIN *: float* *= 0.95*
+### an.adapters.cutout.compile.GAZE_ELLIPSE_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.95*
 
 The summed gaze (x, y), in axis units, is clamped to a circle of this radius
 — the declared travel maps the unit circle onto the sclera’s inner ellipse,
 and 0.95 keeps the whole pupil disc inside it at every angle (measured on
 the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).
 
-### an.adapters.cutout.compile.PLANE_FILL_SPAN *: float* *= 4000.0*
+### an.adapters.cutout.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale
 — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR
 layer’s framing check reads the same number, re-exported here.
 
-### an.adapters.cutout.compile.PROCEDURAL_MOUTH_KEYS *: dict[str, str]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
+### an.adapters.cutout.compile.PROCEDURAL_MOUTH_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
 
 The procedural (drawn) mouth’s swap vocabulary, DECLARED as data on its
 visual exactly as the runtime declares it (`g._anDrawSets = {viseme: ...}`)
@@ -200,16 +200,16 @@ so each key maps to itself — the code the runtime’s shape table draws. The
 compiler never branches on the set’s NAME: the drawn mouth is just a node
 whose visual carries a `viseme` set (an#87).
 
-### an.adapters.cutout.compile.PROP_ART_PREFIX *: str* *= 'props/'*
+### an.adapters.cutout.compile.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
 
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
 
-### an.adapters.cutout.compile.PUPIL_NODE_NAMES *: frozenset[str]* *= frozenset({'left_pupil', 'right_pupil'})*
+### an.adapters.cutout.compile.PUPIL_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_pupil', 'right_pupil'})*
 
 The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.
 
-### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: frozenset[str]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT
@@ -222,7 +222,7 @@ node’s `asset_sets` projection (an#87) — `viseme` left the static
 switch when that landed, which is precisely what makes it a conventional
 set name rather than control flow.
 
-### an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX *: float* *= 345.0*
+### an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 345.0*
 
 Scene-graph pixels spanned by a descriptor’s full `view_box` height.
 
@@ -243,7 +243,7 @@ driving it all along.
 The entity’s blink phase in [0, 1): the runtime’s rule, ported exactly.
 
 * **Return type:**
-  `float`
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> blink_phase("charlie")
@@ -260,7 +260,7 @@ re-raises `CameraError` as a `CutoutCompileError`, which is the compiler’s
 own boundary contract: every failure out of `compile_shot` is one type.
 
 * **Return type:**
-  `list`[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 ### an.adapters.cutout.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
@@ -310,7 +310,7 @@ clothes (an#33).
 The node name an environment’s foreground planes live under.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> foreground_node_name("street")
@@ -326,7 +326,7 @@ mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 — or, when there are none, the closest spellings.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]
@@ -348,7 +348,7 @@ out of, and a fade between two hex values that did not pass through the
 values between them would surprise whoever wrote them (an#62).
 
 * **Return type:**
-  `tuple`[`float`, `float`, `float`]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.adapters.cutout.compile.plane_parents(env, entity_id)
 
@@ -359,7 +359,7 @@ the alternative is two places deciding which container a plane ended up in,
 which is the class of drift this wave keeps closing.
 
 * **Return type:**
-  `dict`[`str`, `str`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from an.environments import EnvironmentDescriptor, Plane
@@ -385,7 +385,7 @@ a tween shorter than one step is a single step to its end value.
 reaches `duration` — an infinite loop, not an error — so it is refused.
 
 * **Return type:**
-  `list`[`float`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> step_times(0.0, 0.3, 10)
@@ -410,7 +410,7 @@ renders happily, which is the an#33 failure this package refuses everywhere
 else.
 
 * **Return type:**
-  [`StylePack`](an.styles.html.md#an.styles.StylePack) | `None`
+  [`StylePack`](an.styles.html.md#an.styles.StylePack) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.adapters.cutout.compile.unknown_target_message(target, paths)
 
@@ -420,7 +420,7 @@ Shared by the compiler (which raises it) and `an validate` (which
 reports it), so the two say the same thing about the same path.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))

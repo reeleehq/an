@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench" href="an.bench.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -612,13 +612,13 @@ per-developer landmine, in the module whose docstring says the opposite.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.bench.capture.CaptureError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureError</span></span><a class="reference internal" href="../_modules/an/bench/capture.html#CaptureError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.CaptureError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>A capture could not produce something the metrics need.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.capture.FRAME_PNG_GLOB">
-<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">FRAME_PNG_GLOB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'frame_*.png'</span></span><a class="headerlink" href="#an.bench.capture.FRAME_PNG_GLOB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">FRAME_PNG_GLOB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'frame_*.png'</span></span><a class="headerlink" href="#an.bench.capture.FRAME_PNG_GLOB" title="Link to this definition">#</a></dt>
 <dd><p>How a shot’s frames are named on disk. One constant rather than the literal
 repeated at each glob site.</p>
 </dd></dl>
@@ -626,7 +626,7 @@ repeated at each glob site.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.bench.capture.GitStatusUnavailable">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">GitStatusUnavailable</span></span><a class="reference internal" href="../_modules/an/bench/capture.html#GitStatusUnavailable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.GitStatusUnavailable" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p><code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code> did not answer, so “the tree is clean” is not known.</p>
 <p>Separated from an empty result on purpose. <code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code> failing prints
 nothing to stdout, so <code class="code docutils literal notranslate"><span class="pre">check=False</span></code> turned every failure into “no dirty
@@ -641,7 +641,7 @@ nothing is wrong.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.capture.IGNORED_ON_COPY">
-<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">IGNORED_ON_COPY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.an',</span> <span class="pre">'output',</span> <span class="pre">'.anima')</span></span><a class="headerlink" href="#an.bench.capture.IGNORED_ON_COPY" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">IGNORED_ON_COPY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.an',</span> <span class="pre">'output',</span> <span class="pre">'.anima')</span></span><a class="headerlink" href="#an.bench.capture.IGNORED_ON_COPY" title="Link to this definition">#</a></dt>
 <dd><p>they are the previous render’s
 output, and one of them silently extends this one’s frame sequence.
 Matched on the <strong>basename</strong>, at any depth — that is exactly what
@@ -656,7 +656,7 @@ spelled here. See <a class="reference internal" href="#an.bench.capture.IGNORED_
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.capture.IGNORED_RELPATHS_ON_COPY">
-<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">IGNORED_RELPATHS_ON_COPY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('artifacts/shots',)</span></span><a class="headerlink" href="#an.bench.capture.IGNORED_RELPATHS_ON_COPY" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">IGNORED_RELPATHS_ON_COPY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('artifacts/shots',)</span></span><a class="headerlink" href="#an.bench.capture.IGNORED_RELPATHS_ON_COPY" title="Link to this definition">#</a></dt>
 <dd><p>Excluded by their path <strong>relative to the project root</strong>, POSIX-spelled.
 <code class="docutils literal notranslate"><span class="pre">mall[&quot;shots&quot;]</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;project&gt;/artifacts/shots</span></code>, and <code class="docutils literal notranslate"><span class="pre">artifacts/</span></code>
 itself is kept on purpose — it holds the audio cache, whose warm/cold state
@@ -671,20 +671,20 @@ tree, a character rig’s included.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.capture.RENDER_WORK_RELPATH">
-<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">RENDER_WORK_RELPATH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.an/render_work'</span></span><a class="headerlink" href="#an.bench.capture.RENDER_WORK_RELPATH" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">RENDER_WORK_RELPATH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.an/render_work'</span></span><a class="headerlink" href="#an.bench.capture.RENDER_WORK_RELPATH" title="Link to this definition">#</a></dt>
 <dd><p>Where the renderer leaves its per-shot working tree inside the project.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.bench.capture.SceneCapture">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">SceneCapture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepared</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_declared_entity_refs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual_kinds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_cache</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">determinism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/capture.html#SceneCapture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.SceneCapture" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One fixture’s whole render.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.bench.capture.SceneCapture.capture">
-<span class="sig-name descname"><span class="pre">capture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#an.bench.capture.SceneCapture.capture" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">capture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.bench.capture.SceneCapture.capture" title="Link to this definition">#</a></dt>
 <dd><p>How the frames left the browser (<code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code>),
 resolved the way the render resolves it. The decoded pixels are the same
 either way, so no metric moves — but <code class="docutils literal notranslate"><span class="pre">wall_seconds</span></code> does, several-fold,
@@ -697,13 +697,13 @@ and a timing row is only readable beside the path that produced it
 <dl class="py class">
 <dt class="sig sig-object py" id="an.bench.capture.ShotCapture">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">ShotCapture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/capture.html#ShotCapture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.ShotCapture" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One rendered shot’s artifacts.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.bench.capture.ShotCapture.duration">
-<span class="sig-name descname"><span class="pre">duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#an.bench.capture.ShotCapture.duration" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.bench.capture.ShotCapture.duration" title="Link to this definition">#</a></dt>
 <dd><p>The shot’s declared duration, from the IR rather than from the staged
 scene, so the expected frame count is derived from the same number the
 renderer used.</p>
@@ -711,7 +711,7 @@ renderer used.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.bench.capture.ShotCapture.frame_sizes">
-<span class="sig-name descname"><span class="pre">frame_sizes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.bench.capture.ShotCapture.frame_sizes" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">frame_sizes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.bench.capture.ShotCapture.frame_sizes" title="Link to this definition">#</a></dt>
 <dd><p>The distinct pixel sizes actually on disk, from each PNG’s IHDR. The
 independent half of a pair whose other half — <code class="docutils literal notranslate"><span class="pre">SceneCapture.resolution</span></code>
 — comes from the staged scene’s <code class="docutils literal notranslate"><span class="pre">meta</span></code> and never from a file. Empty
@@ -740,7 +740,7 @@ and hands back the path. <code class="xref py py-func docutils literal notransla
 <dd><p>Remove a capture’s throwaway tree.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -760,7 +760,7 @@ record — run on every PR, not only in the labelled browser lane.</p>
 given its own <code class="docutils literal notranslate"><span class="pre">step_hz</span></code>, fps or resolution compiles something else.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -773,7 +773,7 @@ given its own <code class="docutils literal notranslate"><span class="pre">step_
 reporting a clean tree it never observed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -794,7 +794,7 @@ the supersample — so this module reports what it saw and
 <a class="reference internal" href="an.bench.run.html#module-an.bench.run" title="an.bench.run"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.bench.run</span></code></a> is where the <em>bench’s</em> invariant is asserted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -808,7 +808,7 @@ banker’s rounding, so <code class="docutils literal notranslate"><span class="
 on every half-frame duration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">expected_frame_count</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
@@ -834,7 +834,7 @@ appended to this one’s source leg and to nothing else.</p>
 the only way to drop <code class="docutils literal notranslate"><span class="pre">artifacts/shots</span></code> while keeping <code class="docutils literal notranslate"><span class="pre">artifacts/audio</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>

@@ -50,13 +50,13 @@ without external services.
 
 ### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
 
 ### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
@@ -77,7 +77,7 @@ absent key or SDK yields `[]`; a key that is present and a call that
 fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 
 * **Return type:**
-  `Iterable`[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
 
 #### synthesis_options(voice, , emotion=None, direction=None)
 
@@ -91,7 +91,7 @@ on a model that reads tags; elsewhere a direction is dropped with a
 warning and the emotion stays a face-only cue, as before.
 
 * **Return type:**
-  `dict`[`str`, `Any`]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 #### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
 
@@ -103,7 +103,7 @@ so alignment and captions never read a cue.
 
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Audio + transcript → aligned viseme track.
 
@@ -122,7 +122,7 @@ Produce a viseme track for `audio` given its `transcript`.
 
 ### *class* an.audio.MacSayTTS(, default_voice_id='Samantha', sample_rate=22050, rate_wpm=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 macOS `say`-backed TTSProvider.
 
@@ -131,7 +131,7 @@ fully offline — uses Apple’s voice synthesis bundled with the OS.
 
 ### *class* an.audio.OfflineLipSync(, char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Default lip-sync provider: deterministic char-to-viseme mapping.
 
@@ -139,7 +139,7 @@ Implements the `LipSyncProvider` protocol.
 
 ### *class* an.audio.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Default TTS provider: silent WAV of length proportional to text.
 
@@ -147,7 +147,7 @@ Implements the `TTSProvider` protocol.
 
 ### *class* an.audio.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 
@@ -160,19 +160,19 @@ Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
 'rhubarb:phonetic'
 ```
 
-#### *property* uses_dialog_file *: bool*
+#### *property* uses_dialog_file *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether the chosen recognizer reads a transcript at all.
 
 ### *class* an.audio.StaticWordTimings(words, , label='static')
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A [`WordTimingProvider`](#an.audio.WordTimingProvider) over a fixed list of timings.
 
 ### *class* an.audio.TTSProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Text-to-speech provider.
 
@@ -181,7 +181,7 @@ Text-to-speech provider.
 Return all voices the provider exposes.
 
 * **Return type:**
-  `Iterable`[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](an.audio.tts.md#an.audio.tts.VoiceMeta)]
 
 #### synthesize(text, voice_id, \*\*kw)
 
@@ -192,13 +192,13 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 
 ### *class* an.audio.Viseme(time, code, intensity=1.0)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
 ### *class* an.audio.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Aligned viseme sequence produced by a LipSyncProvider.
 
@@ -211,13 +211,13 @@ viseme conversion: captions (Wave 8) and any consumer that wants to know
 
 ### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
 ### *class* an.audio.WhisperLipSync(, model_size='tiny', device='cpu', compute_type='int8', char_to_viseme=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 faster-whisper word timestamps → visemes.
 
@@ -225,13 +225,13 @@ Implements the `LipSyncProvider` protocol. The model is lazy-loaded on
 the first call (subsequent calls in the same process reuse the instance
 via the class-level `_model` cache).
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Whisper aligns from words, so the track carries them (an#96).
 
 ### *class* an.audio.WordTimingProvider(\*args, \*\*kwargs)
 
-Bases: `Protocol`
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Audio → `[(word, start_s, end_s), ...]`.
 
@@ -245,11 +245,11 @@ fine and represent silence the lipsync provider should rest through.
 Return the word timings for `audio`.
 
 * **Return type:**
-  `Sequence`[`tuple`[`str`, `float`, `float`]]
+  [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### *class* an.audio.WordTimingsLipSync(provider, , char_to_viseme=None, convention='rhubarb', rest_viseme='X', min_gap_for_rest=0.2)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 [`LipSyncProvider`](#an.audio.LipSyncProvider) driven by a [`WordTimingProvider`](#an.audio.WordTimingProvider).
 
@@ -259,18 +259,18 @@ pipeline).
 
 * **Parameters:**
   * **provider** ([`WordTimingProvider`](an.audio.lipsync.md#an.audio.lipsync.WordTimingProvider)) – any [`WordTimingProvider`](#an.audio.WordTimingProvider).
-  * **char_to_viseme** (`dict`[`str`, `str`] | `None`) – optional override of the character→viseme code
+  * **char_to_viseme** ([`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional override of the character→viseme code
     mapping; defaults to the one shared with
     [`OfflineLipSync`](#an.audio.OfflineLipSync) / [`WhisperLipSync`](#an.audio.WhisperLipSync).
-  * **convention** (`str`) – declared viseme convention string for the produced
+  * **convention** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – declared viseme convention string for the produced
     track. Defaults to `"rhubarb"` for compatibility with the
     existing cutout adapter.
-  * **rest_viseme** (`str`) – code emitted in silent gaps. Defaults to
+  * **rest_viseme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – code emitted in silent gaps. Defaults to
     `_REST_VISEME`.
-  * **min_gap_for_rest** (`float`) – minimum inter-word silence (seconds) before
+  * **min_gap_for_rest** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – minimum inter-word silence (seconds) before
     we insert a rest keyframe. Defaults to `0.20`.
 
-#### emits_word_timings *: bool* *= True*
+#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Built from words, so the track carries them (an#96).
 
@@ -293,14 +293,14 @@ The default TTS provider: `OfflineTTS`.
 Return the registered LipSync provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.known_tts_names()
 
 Return the registered TTS provider names.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.make_lipsync(name, , language='en')
 
@@ -348,7 +348,7 @@ to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
 * **Return type:**
-  `tuple`[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
 
 ### an.audio.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
 
@@ -388,7 +388,7 @@ transcribers occasionally round the last word’s end past the
 audio’s actual length.
 
 * **Return type:**
-  `list`[[`Viseme`](an.audio.lipsync.md#an.audio.lipsync.Viseme)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Viseme`](an.audio.lipsync.md#an.audio.lipsync.Viseme)]
 
 ### Modules
 

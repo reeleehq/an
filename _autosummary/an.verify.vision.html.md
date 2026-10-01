@@ -63,7 +63,7 @@ prompt. Roughly $0.005 with Haiku.
 
 ### *exception* an.verify.vision.CassetteMiss
 
-Bases: `BaseException`
+Bases: [`BaseException`](https://docs.python.org/3/builtins/exceptions.html#BaseException)
 
 A recorded reply was asked for and there is none.
 
@@ -78,7 +78,7 @@ Same reasoning, and the same shape, as `tests/conftest.py`’s
 `OutboundNetworkAttempt` — whose own docstring names “the verifiers’ broad
 handlers” as the reason.
 
-### an.verify.vision.FAILURE_SEVERITY *: str* *= 'warning'*
+### an.verify.vision.FAILURE_SEVERITY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'warning'*
 
 Severity for “configured, called, no verdict” — a failed call, or a reply
 that carried no verdict.
@@ -93,7 +93,7 @@ choice, and it is one constant.
 
 ### *exception* an.verify.vision.VisionJudgeError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The judge was configured, was called, and produced no verdict.
 
@@ -105,7 +105,7 @@ vendor class at a catch site in this package’s own control flow.
 
 ### *class* an.verify.vision.VisionLMVerifier(, model='claude-haiku-4-5-20251001', frame_count=4, max_tokens=800, api_key=None, judge=None)
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Claude vision Verifier (skip-if-missing-deps).
 
@@ -122,7 +122,7 @@ The name-the-emotion prompt over a closed label set. The labels are part
 of the key, so a different set is a different recording.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> "happy" in emotion_prompt(["neutral", "happy"])
@@ -138,7 +138,7 @@ reply named nothing in `labels` (an#98).
 the `judge_frames`-shaped seam; parsing stays outside the recording.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.vision.judge_envelope(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
@@ -150,7 +150,7 @@ can record nothing beside the reply, and the provenance that makes a
 cassette auditable would be unwritable.
 
 * **Return type:**
-  `dict`
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.verify.vision.judge_frames(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
@@ -163,7 +163,7 @@ keeps `_parse_issues` outside any recording — a parser fix is then testable
 against the recording for free, and record-vs-replay drift is impossible.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.verify.vision.judge_key(\*args, \*\*kwargs)
 
@@ -179,7 +179,7 @@ unrecoverable, so the default has to be *include*.
 the fully-spelled call are two different keys for one request.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> k = judge_key([b"a"], model="m", max_tokens=1, prompt="p")
@@ -199,7 +199,7 @@ Score a dense in-line frame strip for lip-sync legibility (an#97).
 tests, the paid one otherwise. Parsing stays outside the recording.
 
 * **Return type:**
-  `tuple`[`int`, `str`] | `None`
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.vision.legibility_prompt(text)
 
@@ -207,4 +207,4 @@ The legibility prompt for one line. The text is part of the key, so a
 different line is a different recording.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

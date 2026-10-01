@@ -17,6 +17,6 @@ IR is broken.
 
 ### *class* an.verify.layout.LayoutLintVerifier
 
-Bases: `object`
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Cheap IR-only verifier. Implements `Verifier`.

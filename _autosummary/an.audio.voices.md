@@ -59,20 +59,20 @@ exactly what the pipeline did before this module, so no cache key moves.
 | [`voice_applies`](#an.audio.voices.voice_applies)(doc, tts_name)                     | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`. |
 | [`voice_document`](#an.audio.voices.voice_document)(mall, voice_id)                   | `mall["voices"][voice_id]` when it is a mapping, else `{}`.            |
 
-### an.audio.voices.CHARACTER_VOICE_KEY *: str* *= 'voice_ref'*
+### an.audio.voices.CHARACTER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_ref'*
 
 The key, in a character descriptor (or an entity’s `overrides`), naming
 the character’s voice in the `voices` store.
 
-### an.audio.voices.DEFAULT_VOICE *: str* *= 'default'*
+### an.audio.voices.DEFAULT_VOICE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'default'*
 
 The voice a line gets when neither it nor its speaker names one.
 
-### an.audio.voices.PROVIDER_KEY *: str* *= 'provider'*
+### an.audio.voices.PROVIDER_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'provider'*
 
 The key, in a voice document, naming the TTS provider it is written for.
 
-### an.audio.voices.PROVIDER_VOICE_KEY *: str* *= 'voice_id'*
+### an.audio.voices.PROVIDER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_id'*
 
 The key, in a voice document, naming the TTS provider’s own voice.
 
@@ -81,7 +81,7 @@ The key, in a voice document, naming the TTS provider’s own voice.
 The `voices`-store key `line` is spoken with (see the module doc).
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.voices.provider_voice(mall, voice_id, , tts_name=None)
 
@@ -94,7 +94,7 @@ Given `tts_name`, a document written for ANOTHER provider gives
 [`DEFAULT_VOICE`](#an.audio.voices.DEFAULT_VOICE) — never a foreign voice id (an#209).
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.voices.speaker_voice_ref(speaker, shot, mall)
 
@@ -106,7 +106,7 @@ name a voice. A store that is absent, or that does not hold the ref, still
 lets the entity’s `overrides` speak.
 
 * **Return type:**
-  `str` | `None`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.voices.voice_applies(doc, tts_name)
 
@@ -116,7 +116,7 @@ True when the document names no `provider`, or names this one (case
 ignored), or when the caller does not say which provider is speaking.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> voice_applies({}, "offline"), voice_applies({"provider": "ElevenLabs"}, "elevenlabs")
@@ -130,4 +130,4 @@ False
 `mall["voices"][voice_id]` when it is a mapping, else `{}`.
 
 * **Return type:**
-  `Mapping`
+  [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)

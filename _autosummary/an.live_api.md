@@ -44,16 +44,16 @@ would be a second answer to “may this run spend?”, and the two would drift.
 | [`live_api_enabled`](#an.live_api.live_api_enabled)([env])   | Whether this run has explicitly opted in to paid API calls.   |
 |----------------------------------------------------------------------------|---------------------------------------------------------------|
 
-### an.live_api.CI_ENV_VAR *: str* *= 'CI'*
+### an.live_api.CI_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'CI'*
 
 Set by every CI provider we care about. CI must never spend, whatever else
 is configured, because nobody is watching the bill in a CI run.
 
-### an.live_api.LIVE_API_ENV_VAR *: str* *= 'AN_LIVE_API_TESTS'*
+### an.live_api.LIVE_API_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'AN_LIVE_API_TESTS'*
 
 Set this truthy to opt a run in to real, billed API calls.
 
-### an.live_api.TRUTHY_VALUES *: frozenset[str]* *= frozenset({'1', 'on', 'true', 'yes'})*
+### an.live_api.TRUTHY_VALUES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'1', 'on', 'true', 'yes'})*
 
 Accepted spellings of “yes”. Anything else — including an empty string, the
 shape an unset-but-exported variable takes — is “no”.
@@ -71,7 +71,7 @@ annotation was false about the function’s own primary argument and pushed
 callers into copying the whole environment to satisfy it.
 
 * **Return type:**
-  `bool`
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> live_api_enabled({})

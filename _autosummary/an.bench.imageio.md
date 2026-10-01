@@ -117,11 +117,11 @@ the sequence that every encode-side metric pairs frame-for-frame.
 
 ### *exception* an.bench.imageio.BenchDecodeError
 
-Bases: `RuntimeError`
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 ffmpeg could not read something the bench needs.
 
-### an.bench.imageio.SOURCE_SCALE_FILTER *: str* *= 'scale=out_range=tv:out_color_matrix=bt709'*
+### an.bench.imageio.SOURCE_SCALE_FILTER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'scale=out_range=tv:out_color_matrix=bt709'*
 
 without it
 the encode-side metrics measure a colour-space conversion.
@@ -136,7 +136,7 @@ and would report as encoder damage.
 * **Type:**
   The pinned conversion applied to the PNG leg. Never remove it
 
-### an.bench.imageio.YUV_PIX_FMT *: str* *= 'yuv444p'*
+### an.bench.imageio.YUV_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv444p'*
 
 4 for both legs of every encode-side metric — never `rgb24` for
 the edge metrics, whose defect was clipping precisely at the saturated fills
@@ -157,21 +157,21 @@ different count from the source leg and records it as
 disagreement into a crash. See `_reshape()`.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.decoded_rgb_command(mp4)
 
 Decode the delivered mp4 to raw RGB.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.decoded_yuv(mp4, , height, width)
 
 `(N, 3, H, W)` uint8 planar YUV of the delivered mp4. `frames=None` — see [`decoded_rgb()`](#an.bench.imageio.decoded_rgb).
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.decoded_yuv_command(mp4)
 
@@ -182,7 +182,7 @@ No `scale` filter here, deliberately: the file carries BT.709 tags
 to. Adding one would convert twice.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.delivered_pix_fmt(mp4)
 
@@ -199,7 +199,7 @@ Probed, not remembered: this is the one source of truth that no future seam
 can route around.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.imageio.lossless_encode_command(frames_dir, fps, out, , pix_fmt=None)
 
@@ -243,14 +243,14 @@ A default (4:2:0) render is byte-identical to before this change, so no
 committed ledger row is invalidated.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.run_raw(cmd)
 
 Run an ffmpeg command and return its raw stdout, or raise with the stderr.
 
 * **Return type:**
-  `bytes`
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.bench.imageio.source_rgb(frames_dir, , height, width, frames)
 
@@ -261,7 +261,7 @@ is required rather than derived, so the decode cannot silently return a
 different number of them.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.source_rgb_command(frames_dir)
 
@@ -273,21 +273,21 @@ flat interior and to held pixels, both off-edge by construction, so the
 clipping that ruins the edge metrics cannot reach them.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.source_yuv(frames_dir, , height, width, frames)
 
 `(N, 3, H, W)` uint8 planar YUV of the pre-encode PNGs, range-pinned.
 
 * **Return type:**
-  `Any`
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.imageio.source_yuv_command(frames_dir)
 
 Decode the pre-encode PNG sequence to planar YUV, **range- and matrix-pinned**.
 
 * **Return type:**
-  `list`[`str`]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.bench.imageio.video_stream_bytes(mp4)
 
@@ -298,4 +298,4 @@ Sum of the video stream’s packet sizes — the AAC track excluded.
 This one does not.
 
 * **Return type:**
-  `int`
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)

@@ -60,7 +60,7 @@ look at the PNG diff (GitHub renders 2-up, swipe and onion-skin) before
 writing one.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.bench_compare(before='', after='', mutation='', strict=False, raw=False)
 
@@ -89,7 +89,7 @@ and a number reported across incomparable rows is worse than none.
 uncommitted edits describes no commit. Name one explicitly to compare it.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.bench_mutants(names='', quiet=False)
 
@@ -108,14 +108,14 @@ happens to exclude the catching test reports “not caught” and sends you to
 write a test that already exists. Takes about forty seconds.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.check()
 
 Print a status report of all backend system + Python deps.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.credits(project_dir, json_out=None)
 
@@ -128,7 +128,7 @@ A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.init(project_dir, name=None, force=False)
 
@@ -139,7 +139,7 @@ name: project display name (defaults to the directory name)
 force: overwrite an existing scene.md
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.iterate(project_dir, instruction, apply_changes=True, model='claude-opus-4-7')
 
@@ -151,7 +151,7 @@ apply_changes: persist the new scene to disk + invalidate affected shot caches (
 model: Anthropic model id (default claude-opus-4-7)
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.preview(project_dir, shot='', no_browser=False)
 
@@ -166,7 +166,7 @@ shot: shot id to preview (default: first shot in the timeline)
 no_browser: don’t auto-open the default browser
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='')
 
@@ -214,18 +214,18 @@ capture: how frames leave the browser — “canvas” (the default), an in-page
   instant. Both write frames with the same decoded pixels
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.sync(project_dir)
 
 Reconcile scene.md and ir/scene.json inside `project_dir`.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.validate(project_dir)
 
 Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 * **Return type:**
-  `str`
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

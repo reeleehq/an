@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=132995b1"></script>
+    <script src="../_static/documentation_options.js?v=f00df2e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.shutter" href="an.adapters.cutout.shutter.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.129" />
+  <meta name="docsearch:version" content="0.1.130" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -586,7 +586,7 @@ by the <code class="code docutils literal notranslate"><span class="pre">cutout<
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.supersample.NO_SUPERSAMPLE">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">NO_SUPERSAMPLE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.adapters.cutout.supersample.NO_SUPERSAMPLE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">NO_SUPERSAMPLE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.adapters.cutout.supersample.NO_SUPERSAMPLE" title="Link to this definition">#</a></dt>
 <dd><p>The factor at which every code path here is a no-op rather than merely cheap.
 Aliased from <a class="reference internal" href="an.base.html#an.base.DEFAULT_SUPERSAMPLE" title="an.base.DEFAULT_SUPERSAMPLE"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.base.DEFAULT_SUPERSAMPLE</span></code></a> rather than restated: the
 default and the off-switch are the same fact, and two copies of a fact drift.</p>
@@ -595,7 +595,7 @@ default and the off-switch are the same fact, and two copies of a fact drift.</p
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.adapters.cutout.supersample.SupersampleError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.supersample.</span></span><span class="sig-name descname"><span class="pre">SupersampleError</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/supersample.html#SupersampleError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.supersample.SupersampleError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A supersample factor or frame that cannot be resolved exactly.</p>
 </dd></dl>
 
@@ -615,7 +615,7 @@ Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -634,7 +634,7 @@ invisible in a picture and moves every golden.</p>
 <dd><p>Validate a supersample factor, or refuse with the reason.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_factor</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">check_factor</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -662,7 +662,7 @@ unrunnable in the default CI lane, which installs <code class="code docutils lit
 <code class="code docutils literal notranslate"><span class="pre">cutout</span></code> — and CI is where that was found.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
