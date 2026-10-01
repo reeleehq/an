@@ -92,6 +92,8 @@ def test_a_recorded_label_answers_the_unlabelled_bytes(tmp_path):
     stored = library_api.read_version(lib, "character.amy", "v003")
     assert stored["relabel"] == LABEL
     assert library_api.version_manifest(stored) == stored["manifest_sha256"]
+    # who labelled, and why, is part of the version identity (a tampered label fails check-out)
+    assert library_api.version_manifest({**stored, "relabel": {**LABEL, "by": "someone"}}) != stored["manifest_sha256"]
     # the label is part of the version identity
     assert not publish_dir(lib, char, "character.amy", source=CC0, relabel=LABEL).created
     other = publish_dir(lib, char, "character.amy", source=CC0, relabel={**LABEL, "reason": "x"})
