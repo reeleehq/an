@@ -91,12 +91,21 @@ class Genre:
     ``spaces`` are :class:`an.timing.spaces.PropertySpace` objects and
     ``field_kinds`` are ``(name, factory)`` pairs for
     :func:`an.timing.kinds.register_kind`.
+
+    ``library`` names the package whose data root holds the genre's asset
+    library and its projects (``~/.local/share/<library>``, ADR 0005, plan §1
+    decision 7); empty means the core's (``an``). It is not ``package``: the
+    distribution that ships a genre and the root its data lives under can
+    differ (the cut-out genre ships inside ``an`` today, while its library is
+    already ``cutan``'s). The core never names a genre's library itself —
+    a project made in a genre asks the genre (:func:`genre_library`).
     """
 
     name: str
     title: str = ""
     description: str = ""
     package: str = ""
+    library: str = ""
     action_kinds: tuple[ActionKind, ...] = ()
     entity_kinds: tuple[EntityKind, ...] = ()
     spaces: tuple = ()
@@ -244,6 +253,20 @@ def installed_genre(name: str) -> Genre | None:
 IN_DISTRIBUTION_GENRES: tuple[tuple[str, str], ...] = (
     ("cutout_animation", "an.genres.cutout:CUTOUT"),
 )
+
+
+def genre_library(name: str | None, *, default: str = "an") -> str:
+    """The package whose data root holds genre ``name``'s library and projects.
+
+    ``default`` (the core package) for no genre, an unknown one, or a genre
+    that declares none. Reads the genres installed in this process (call
+    :func:`load` first, as every entry point does).
+
+    >>> genre_library(None)
+    'an'
+    """
+    genre = installed_genre(name) if name else None
+    return (genre.library if genre is not None else "") or default
 
 
 def genre_entry_points(*, group: str = ENTRY_POINT_GROUP) -> tuple[EntryPoint, ...]:
@@ -453,6 +476,7 @@ __all__ = [
     "genre_entry_points",
     "genres_declaring",
     "installed",
+    "genre_library",
     "installed_genre",
     "load",
     "providers_of",

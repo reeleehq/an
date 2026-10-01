@@ -143,8 +143,11 @@ def project_dir(
     """The default directory of the agent-made project ``project_id`` (design §7.5).
 
     ``an init <dir>`` with an explicit directory keeps working anywhere; this is
-    the default for projects an agent makes, so they never land in a session's
-    working folder or a repository.
+    the default for projects an agent makes (``an init --id <id>``), so they
+    never land in a session's working folder or a repository. ``package`` is
+    the library package of the genre the video is made in
+    (:func:`an.genres.genre_library`; the core's, ``an``, by default — the core
+    names no genre).
 
     >>> project_dir("alice-and-bob", "/lib").as_posix()
     '/lib/projects/alice-and-bob'

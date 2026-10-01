@@ -191,9 +191,22 @@ def render_project(
     it when ``lipsync`` is a provider *name* — Rhubarb's recognizer (an#96). A
     provider *instance* carries its own.
 
+    A scene whose ``library:`` pins disagree with the project's
+    ``assets.lock.json`` renders with a ``LibraryPinWarning`` per pin, and is
+    refused under ``strict_assets`` (:func:`an.library.checkout.check_pins_before_render`).
+
     Returns the absolute path of the final output file (under ``output/``).
     """
     project: Project = load(project_dir)
+    if any(e.library for shot in project.scene.timeline for e in shot.entities):
+        # The asset library's pins (an#240): the scene's `library:` must say what
+        # assets.lock.json says the project holds — a warning, fatal under
+        # --strict-assets. Imported only for a scene that pins anything.
+        from an.library.checkout import check_pins_before_render
+
+        check_pins_before_render(
+            project.scene, project.mall.get("library_lock"), strict=strict_assets
+        )
     return render(
         project,
         output_name=output_name,

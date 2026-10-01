@@ -25,16 +25,49 @@ from an.characters.cli import (
 from an.impacts.cli import _dispatch_funcs as _impacts_dispatch_funcs
 from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
 from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
+from an.library.root import CORE_PACKAGE
+from an.library.root import project_dir as _project_dir
 
 
-def init(project_dir: str, name: str | None = None, force: bool = False) -> str:
-    """Create a fresh an project at ``project_dir``.
+def init(
+    project_dir: str,
+    name: str | None = None,
+    force: bool = False,
+    id: bool = False,
+    genre: str = "",
+    package: str = "",
+    root: str = "",
+) -> str:
+    """Create a fresh an project at ``project_dir`` — or, with --id, at the default location.
 
-    project_dir: where to create the project (created if missing)
+    project_dir: where to create the project (created if missing); with --id, the project's id
     name: project display name (defaults to the directory name)
     force: overwrite an existing scene.md
+    id: treat project_dir as a project id and create the project under its genre's projects folder (an init --id alice-and-bob --genre cutout_animation -> ~/.local/share/cutan/projects/alice-and-bob)
+    genre: with --id, the genre the video is made in (e.g. cutout_animation); the genre names the package whose root holds the project
+    package: with --id, that package directly, overriding --genre (default: the genre's, else an)
+    root: with --id, that package's root (default: its data folder, or <PKG>_HOME)
     """
-    path = _init(project_dir, name=name, force=force)
+    if id:
+        from an.genres import genre_library, installed, load
+
+        load()
+        if genre and genre not in installed():
+            raise SystemExit(
+                f"an init: no genre named {genre!r}; installed: {', '.join(installed())}"
+            )
+        owner = package or genre_library(genre or None, default=CORE_PACKAGE)
+        try:
+            target = _project_dir(project_dir, root or None, package=owner)
+        except ValueError as e:
+            raise SystemExit(f"an init: {e}") from e
+    elif genre or package or root:
+        raise SystemExit(
+            "an init: --genre, --package and --root place a project by --id only"
+        )
+    else:
+        target = project_dir
+    path = _init(target, name=name, force=force)
     return f"initialized an project at {path}"
 
 

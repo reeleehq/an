@@ -25,9 +25,14 @@ What lives where:
 - :mod:`an.library.affordances` — capabilities and per-kind analysers (the seed
   of ADR 0002's registry); :mod:`an.library.character` — the character analyser;
 - :mod:`an.library.rights` — the most-restrictive roll-up over ``AssetSource``;
+  :mod:`an.library.floor` — the strictest statement any library on the machine
+  makes about a blob; :mod:`an.library.registry` — the machine's registry of
+  library roots the floor reads, independent of the environment;
 - :mod:`an.library.api` — ``publish``, ``find``, ``vocabulary``, ``show``,
   ``promote``; :mod:`an.library.checkout` — ``checkout``, ``verify_checkout``,
-  ``check_pins``; :mod:`an.library.lock` — the project lockfile;
+  ``check_pins``, ``drift_findings`` (both run by ``an validate``);
+  :mod:`an.library.lock` — the project lockfile (a project store,
+  ``mall["library_lock"]``);
 - :mod:`an.library.cli` — ``an library …``, a projection of the same functions.
 """
 
@@ -56,7 +61,13 @@ from an.library.api import (
     show,
     vocabulary,
 )
-from an.library.checkout import CheckoutResult, check_pins, checkout, verify_checkout
+from an.library.checkout import (
+    CheckoutResult,
+    check_pins,
+    checkout,
+    drift_findings,
+    verify_checkout,
+)
 from an.library.federation import (
     AssetNotFoundError,
     Library,
@@ -67,6 +78,7 @@ from an.library.federation import (
 from an.library.ids import AssetIdError, LibraryRef, parse_ref
 from an.library.kinds import register_asset_kind
 from an.library.lock import ProjectLock
+from an.library.registry import RegistryError, register_root, registered_roots
 from an.library.rights import Rights, RightsRefusal, roll_up
 from an.library.root import library_root, project_dir, projects_root
 from an.library.stores import VersionExistsError, build_library_mall
@@ -87,6 +99,7 @@ __all__ = [
     "LibraryRef",
     "ProjectLock",
     "PublishResult",
+    "RegistryError",
     "Rights",
     "RightsRefusal",
     "VersionExistsError",
@@ -94,6 +107,7 @@ __all__ = [
     "build_library_mall",
     "check_pins",
     "checkout",
+    "drift_findings",
     "effective_rights",
     "find",
     "library_root",
@@ -108,6 +122,8 @@ __all__ = [
     "register_analyser",
     "register_asset_kind",
     "register_capability",
+    "register_root",
+    "registered_roots",
     "resolve",
     "roll_up",
     "scan_index",

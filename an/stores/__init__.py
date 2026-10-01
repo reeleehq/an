@@ -3,8 +3,9 @@
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
-final output and its caption sidecar, and the agent's
-decision log — is keyed inside a store. Stores are dol-backed so the same call
+final output and its caption sidecar, the agent's decision log, and the asset
+library's lockfile of pinned check-outs — is keyed inside a store. Stores are
+dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
 >>> import tempfile
@@ -13,7 +14,8 @@ sites work against filesystem, SQLite, S3, etc.
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'output', 'previews', 'props', 'scenes', 'shot_cache', 'shots',
+...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
+...         'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
@@ -27,6 +29,7 @@ from typing import MutableMapping
 from an.stores.characters import CharactersStore
 from an.stores.decisions import DecisionLogStore
 from an.stores.environments import EnvironmentsStore
+from an.stores.library_lock import ProjectLock
 from an.stores.props import PropsStore
 from an.stores.scenes import ScenesStore
 from an.stores.sounds import SoundsStore
@@ -56,6 +59,7 @@ __all__ = [
     "PreviewArtifactStore",
     "OutputStore",
     "DecisionLogStore",
+    "ProjectLock",
     "build_project_mall",
 ]
 
@@ -112,6 +116,11 @@ def build_project_mall(
         # share a folder but not a key space: each lists only its extension.
         "captions": CaptionsStore(pdir / "output"),
         "decisions": DecisionLogStore(pdir / ".an" / "decisions.jsonl"),
+        # The asset library's lockfile (`assets.lock.json` at the project root,
+        # ADR 0005, an#240): `<store>/<key>` -> the library version checked out
+        # there. The single source of truth for a pin; `an validate` checks the
+        # scene's `library:` fields against it. Opening it creates nothing.
+        "library_lock": ProjectLock(pdir),
     }
     mall.update(overrides)
     return mall

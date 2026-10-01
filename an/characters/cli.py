@@ -167,6 +167,8 @@ def mouths(
     written = write_default_mouths(target, palette=palette_dict, variants=variant_map)
     desc_path = char_dir / "character.json"
     if desc_path.is_file():
+        from an.characters.factory import stamp_factory_parts
+
         raw = json.loads(desc_path.read_text(encoding="utf-8"))
         desc = CharacterDescriptor.model_validate(
             migrate(raw, kind="CharacterDescriptor")
@@ -176,6 +178,11 @@ def mouths(
         if variant_map:
             declare_mouth_variants(desc, variant_map)
             desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+        # The factory drew these bytes just now: stamp them, so they stay the
+        # factory's cc0 work in the asset library and in `an credits` (an#249).
+        stamp_factory_parts(
+            char_dir, {Path(w).relative_to(char_dir).as_posix() for w in written}
+        )
     return f"wrote {len(written)} mouth shapes to {target}"
 
 

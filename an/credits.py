@@ -29,17 +29,21 @@ parts carved out of several clips credits each clip, part by part.
 
 from __future__ import annotations
 
+import hashlib
 import warnings
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from an.ir.assets import AssetSource, LicenseClass, license_class, requires_attribution
+from an.stores._common import is_os_junk
 
 __all__ = [
     "CreditsReport",
+    "is_factory_stamp",
+    "is_generated_source",
     "PrivateStudyWarning",
     "collect_credits",
     "credits_for_project",
@@ -64,6 +68,22 @@ class CreditEntry:
     def license_class(self) -> LicenseClass:
         """``attribution`` / ``free`` / ``private`` / ``unknown`` (an#211)."""
         return license_class(self.source)
+
+    @property
+    def own_work(self) -> bool:
+        """Whether ``an`` itself made it (the character factory, the sound
+        synthesizer) — recorded, but not third-party work and nothing owed."""
+        return self.source.provider in _own_work_providers() and (
+            self.license_class == "free"
+        )
+
+
+def _own_work_providers() -> frozenset[str]:
+    """The providers of the sources ``an`` writes on what it generates itself."""
+    from an.characters.factory import FACTORY_PROVIDER
+    from an.sounds import SYNTH_SOURCE
+
+    return frozenset({FACTORY_PROVIDER, SYNTH_SOURCE.provider})
 
 
 @dataclass
@@ -111,14 +131,29 @@ class CreditsReport:
             ],
             "unverified": [e.asset for e in self.unverified],
             "private_study": [e.asset for e in self.private],
+            "own_work": [e.asset for e in self.entries if e.own_work],
             "publishable": self.publishable,
         }
 
     def format(self) -> str:
         """Human-readable, and honest about what it does not know."""
-        if not self.entries:
-            return "credits: no third-party assets recorded."
-        lines = [f"credits: {len(self.entries)} third-party asset(s)."]
+        own = [e for e in self.entries if e.own_work]
+        third_party = [e for e in self.entries if not e.own_work]
+        made_here = (
+            f"{len(own)} asset(s) made by an itself (nothing owed)" if own else ""
+        )
+        if not third_party:
+            if not own:
+                return "credits: no third-party assets recorded."
+            lines = [f"credits: no third-party assets recorded; {made_here}."]
+            lines.append("")
+            lines.append(f"Made by an itself, nothing owed ({len(own)}):")
+            lines += [f"  {e.asset}: {e.source.provider}" for e in own]
+            return "\n".join(lines)
+        lines = [
+            f"credits: {len(third_party)} third-party asset(s)"
+            + (f"; {made_here}." if own else ".")
+        ]
         if self.private:
             lines.append("")
             lines.append(
@@ -145,12 +180,16 @@ class CreditsReport:
             )
             for e in self.unverified:
                 lines.append(f"  {e.asset}: license={e.source.license!r}")
-        clear = [e for e in self.entries if e.license_class == "free"]
+        clear = [e for e in third_party if e.license_class == "free"]
         if clear:
             lines.append("")
             lines.append(f"No attribution required ({len(clear)}):")
             for e in clear:
                 lines.append(f"  {e.asset}: {e.source.license}")
+        if own:
+            lines.append("")
+            lines.append(f"Made by an itself, nothing owed ({len(own)}):")
+            lines += [f"  {e.asset}: {e.source.provider}" for e in own]
         return "\n".join(lines)
 
 
@@ -236,16 +275,78 @@ def collect_credits(
                 source = _source_or_unknown(raw, f"{store_name}/{key}") if raw else None
             if source is None and store_name == "characters":
                 source = _reconstruct_legacy_source(descriptor)
+            found: list[CreditEntry] = []
             if source is not None:
-                report.entries.append(
-                    CreditEntry(asset=f"{store_name}/{key}", source=source)
-                )
+                found.append(CreditEntry(asset=f"{store_name}/{key}", source=source))
             if store_name == "environments":
-                report.entries.extend(_plane_credits(key, descriptor))
+                found.extend(_plane_credits(key, descriptor))
             if store_name in ("characters", "props"):
-                report.entries.extend(_part_credits(store_name, key, descriptor))
-            report.entries.extend(_library_origin_credits(store_name, key, descriptor))
+                parts = _part_credits(
+                    store_name, key, descriptor, digests=_digests_of(store, key)
+                )
+                # A part stamped with the descriptor's own source (DiceBear's
+                # head) owes what the descriptor owes: one credit, not two.
+                said = {_source_identity(source)} if source is not None else set()
+                found.extend(e for e in parts if _source_identity(e.source) not in said)
+            # A check-out's recorded contributors that say exactly what this
+            # entry already says (the same source restated by the version it
+            # follows) are one statement, not two credits.
+            shown = [_source_identity(e.source) for e in found]
+            found.extend(
+                e
+                for e in _library_origin_credits(store_name, key, descriptor)
+                if _source_identity(e.source) not in shown
+            )
+            report.entries.extend(found)
     return report
+
+
+def _source_identity(source: AssetSource) -> str:
+    """What a source says, whichever bytes it pins (its ``sha256`` left out)."""
+    return source.model_dump_json(exclude_defaults=True, exclude={"sha256"})
+
+
+def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
+    """A lazy ``{relative path: sha256}`` of the files beside ``store[key]``.
+
+    Read only when a provenance stamp has to be checked against the bytes it
+    claims (a factory stamp is only true of the bytes it pins). A store may
+    provide them itself (``file_digests(key)`` — the asset library does, for a
+    version that is not on disk); a folder store is hashed from its sidecars;
+    anything else gives ``None``: unknowable, so stamps are taken as written.
+    Operating-system clutter is not an asset (:func:`an.stores._common.is_os_junk`,
+    the rule a publish and a check-out apply too).
+    """
+    memo: list[Mapping[str, str] | None] = []
+
+    def compute() -> Mapping[str, str] | None:
+        provided = getattr(store, "file_digests", None)
+        if callable(provided):
+            return provided(key)
+        meta = getattr(store, "META_NAME", None)
+        sidecar = getattr(store, "sidecar_path", None)
+        if meta is None or not callable(sidecar):
+            return None
+        try:
+            entry = Path(sidecar(key, meta)).parent
+            if not entry.is_dir():
+                return None
+            out: dict[str, str] = {}
+            for path in sorted(entry.rglob("*")):
+                rel = path.relative_to(entry).as_posix()
+                if not path.is_file() or rel == meta or is_os_junk(rel):
+                    continue
+                out[rel] = hashlib.sha256(path.read_bytes()).hexdigest()
+            return out
+        except (OSError, ValueError):
+            return None
+
+    def get() -> Mapping[str, str] | None:
+        if not memo:
+            memo.append(compute())
+        return memo[0]
+
+    return get
 
 
 #: Where a library check-out records itself in a descriptor (ADR 0005); the
@@ -341,13 +442,38 @@ def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
     return out
 
 
-def _part_credits(store_name: str, key: str, descriptor: Any) -> list[CreditEntry]:
+def _part_credits(
+    store_name: str,
+    key: str,
+    descriptor: Any,
+    *,
+    digests: Callable[[], Mapping[str, str] | None] | None = None,
+) -> list[CreditEntry]:
     """One entry per part (attachment) that declares its OWN `source` (an#220).
 
     A character carved from several clips — a head from one, the arms from
     another — cannot be credited by one descriptor `source`. Keyed by the part's
     PATH, once, whichever slots or skins name it: the credit is for the art,
     and one file used by two attachments is one piece of work.
+
+    **A stamp is true only of the bytes it pins** (an#249, an#251, review-259).
+    The character factory stamps each part it draws, and the descriptor, as its
+    own ``cc0`` work; a DiceBear head and the drawing wrapping it carry
+    DiceBear's source the same way; each pinned to a SHA-256 (a descriptor's
+    stamp pins its ``source_svg``). With the files' ``digests`` known:
+
+    - a part whose pinned digest matches its file is itemised by that source
+      (the factory's own is not listed: not third-party, nothing owed);
+    - a part whose pinned digest no longer matches (re-drawn or re-carved since)
+      speaks for nothing: it is UNVERIFIED, unless the descriptor declares a
+      source a PERSON wrote, which then speaks for it. A stale claim that is
+      ``private`` is still listed as such — stricter never gives way;
+    - under a generator's descriptor-level source (the factory's, DiceBear's)
+      that pins a digest, every file no stamp pins is UNVERIFIED: a generator
+      made claims only about the bytes it produced.
+
+    The asset library reads the same walk (:mod:`an.library.rights`), so the
+    library and ``an credits`` agree about which bytes are the factory's.
 
     >>> d = {"skins": {"default": {"slots": {"head": {"head": {
     ...     "path": "parts/head.png",
@@ -358,8 +484,20 @@ def _part_credits(store_name: str, key: str, descriptor: Any) -> list[CreditEntr
     raw = descriptor if isinstance(descriptor, Mapping) else None
     if raw is None and hasattr(descriptor, "model_dump"):
         raw = descriptor.model_dump(mode="json")
+    raw = raw or {}
+    own = raw.get("source")
+    generated = is_generated_source(own)
+    # Only a source a person wrote speaks for parts nothing itemises; a source a
+    # machine wrote (the factory's, DiceBear's) speaks for what it pins.
+    covered = isinstance(own, Mapping) and not generated
+
+    def known() -> Mapping[str, str] | None:  # hashed only if a stamp needs it
+        return digests() if digests is not None else None
+
     out: dict[str, CreditEntry] = {}
-    for skin in ((raw or {}).get("skins") or {}).values():
+    pinned: set[str] = set()
+    stale: set[str] = set()
+    for skin in (raw.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
             continue
         for attachments in (skin.get("slots") or {}).values():
@@ -368,27 +506,105 @@ def _part_credits(store_name: str, key: str, descriptor: Any) -> list[CreditEntr
             for att in attachments.values():
                 if not isinstance(att, Mapping) or att.get("source") is None:
                     continue  # an empty `{}` is still a claim: reported UNKNOWN
-                if _is_factory_stamp(att["source"]):
+                path = str(att.get("path", "?"))
+                source = att["source"]
+                sha = _stamp_digest(source) if isinstance(source, Mapping) else None
+                if sha is not None:
+                    files = known()
+                    if files is None or sha == files.get(path):
+                        pinned.add(path)
+                    else:
+                        stale.add(path)  # a claim about other bytes
+                else:
+                    pinned.add(path)
+                if is_factory_stamp(source):
                     continue  # this package drew it: nothing owed, not third-party
-                asset = f"{store_name}/{key}/{att.get('path', '?')}"
+                asset = f"{store_name}/{key}/{path}"
                 if asset not in out:
                     out[asset] = CreditEntry(
-                        asset=asset, source=_source_or_unknown(att["source"], asset)
+                        asset=asset, source=_source_or_unknown(source, asset)
                     )
+    if not covered:
+        unpinned = set(stale - pinned)
+        files = known() if generated and _stamp_digest(own) else None
+        if files is not None:
+            svg = raw.get("source_svg")
+            unpinned |= {
+                path
+                for path, digest in files.items()
+                if path not in pinned
+                and not (path == svg and digest == _stamp_digest(own))
+            }
+        for path in sorted(unpinned):
+            asset = f"{store_name}/{key}/{path}"
+            if asset in out and out[asset].license_class == "private":
+                continue  # a stale claim stricter than unknown still binds
+            # Otherwise it replaces a stale claim's entry: that speaks for other bytes.
+            out[asset] = (
+                CreditEntry(
+                    asset=asset,
+                    source=AssetSource(
+                        provider="unknown",
+                        extra={
+                            "reason": (
+                                "the stamp on this part no longer matches its bytes "
+                                "(re-drawn or re-carved)"
+                                if path in stale
+                                else "no stamp pins these bytes, and the descriptor's "
+                                "source was written by a generator, not a person"
+                            )
+                        },
+                    ),
+                )
+            )
     return [out[a] for a in sorted(out)]
 
 
-def _is_factory_stamp(raw: Any) -> bool:
-    """Whether a per-part source is the character factory's own stamp (an#236).
+#: Providers whose descriptor-level source a GENERATOR writes (the character
+#: factory, DiceBear through the factory): such a source speaks only for the
+#: bytes a stamp pins, never for a part re-carved or added since.
+GENERATED_PROVIDERS: frozenset[str] = frozenset({"dicebear"})
 
-    The factory stamps every part it draws ``cc0`` with the part's digest, so the
-    asset library can tell its shared parts from carved ones. It is ``an``'s own
-    work, not third-party: a credits report lists what is OWED, and listing
-    fifty generated parts per character would bury the one carved head.
+
+def is_generated_source(raw: Any) -> bool:
+    """Whether a descriptor's source was written by a generator rather than a person.
+
+    >>> is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})
+    True
+    >>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
+    False
     """
-    from an.characters.factory import FACTORY_PROVIDER
+    return is_factory_stamp(raw) or (
+        isinstance(raw, Mapping) and raw.get("provider") in GENERATED_PROVIDERS
+    )
 
-    return isinstance(raw, Mapping) and raw.get("provider") == FACTORY_PROVIDER
+
+def _stamp_digest(raw: Any) -> str | None:
+    sha = str((raw or {}).get("sha256") or "").strip().lower()
+    return sha.removeprefix("sha256:") or None
+
+
+def is_factory_stamp(raw: Any) -> bool:
+    """Whether a source is the character factory's own stamp (an#236, an#251).
+
+    The factory stamps every part it draws ``cc0`` with the part's digest, and
+    the descriptor with its ``source_svg``'s, so the asset library can tell its
+    shared parts from carved ones. It is ``an``'s own work, not third-party: a
+    credits report lists what is OWED, and listing fifty generated parts per
+    character would bury the one carved head.
+    """
+    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+
+    # Both fields: a record naming the factory but another licence is not the
+    # factory's stamp — it is a claim, and is reported (and counted) as one.
+    return (
+        isinstance(raw, Mapping)
+        and raw.get("provider") == FACTORY_PROVIDER
+        and raw.get("license") == FACTORY_LICENSE
+    )
+
+
+_is_factory_stamp = is_factory_stamp
 
 
 def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:

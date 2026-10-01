@@ -645,7 +645,18 @@ def new_character(
         add_views(out)
     # Last, so every part is stamped with the bytes it finally has. A DiceBear
     # head is not this factory's drawing: it keeps the descriptor's source.
-    stamp_factory_parts(out, skip=() if head_is_ours else ("parts/head.svg",))
+    stamp_factory_parts(
+        out,
+        _attachment_paths(out) - ({"parts/head.svg"} if not head_is_ours else set()),
+    )
+    if source is None:
+        # The descriptor says who made the character (an#251): the factory,
+        # pinned to the drawing the parts were cut from.
+        stamp_factory_descriptor(out)
+    else:
+        # DiceBear's source speaks only for DiceBear's bytes (review-259 S1):
+        # pinned on the head it drew and on the drawing wrapping it.
+        stamp_generated_head(out, source)
     return desc_path
 
 
@@ -653,6 +664,8 @@ def new_character(
 FACTORY_PROVIDER: str = "an character factory"
 #: The licence of the factory's own drawings: no rights to clear.
 FACTORY_LICENSE: str = "cc0-1.0"
+#: Who the factory's descriptor-level source names as the author.
+FACTORY_AUTHOR: str = "an (generated locally)"
 
 
 def factory_source(data: bytes) -> AssetSource:
@@ -669,9 +682,101 @@ def factory_source(data: bytes) -> AssetSource:
     )
 
 
+def factory_descriptor_source(source_svg: bytes) -> AssetSource:
+    """The descriptor-level source of a character this factory drew, pinned to its drawing.
+
+    The digest is that of the descriptor's ``source_svg`` — the drawing every
+    part was cut from. Like a part stamp it speaks only for bytes it pins: the
+    asset library and ``an credits`` read every file of the character that no
+    stamp pins (a part re-carved later, a file added by hand) as UNVERIFIED,
+    never as the factory's (:func:`an.credits._part_credits`).
+
+    >>> s = factory_descriptor_source(b"<svg/>")
+    >>> (s.provider, s.license, len(s.sha256))
+    ('an character factory', 'cc0-1.0', 64)
+    """
+    return AssetSource(
+        provider=FACTORY_PROVIDER,
+        license=FACTORY_LICENSE,
+        author=FACTORY_AUTHOR,
+        sha256=hashlib.sha256(source_svg).hexdigest(),
+        cost_usd=0.0,
+    )
+
+
+def stamp_factory_descriptor(char_dir: str | Path) -> Path:
+    """Record the factory as the source of the character it just drew at ``char_dir``.
+
+    Only a descriptor that declares no source is stamped (a DiceBear head
+    carries DiceBear's); the stamp pins the bytes of its ``source_svg``. Called
+    by :func:`new_character` on what it has just drawn, never on a character
+    someone may have edited since.
+    """
+    from an.characters.schema import CharacterDescriptor
+    from an.ir.migrate import migrate
+
+    char_dir = Path(char_dir)
+    desc_path = char_dir / "character.json"
+    raw = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
+    drawing = char_dir / (desc.source_svg or "")
+    if desc.source is not None or not desc.source_svg or not drawing.is_file():
+        return desc_path
+    desc.source = factory_descriptor_source(drawing.read_bytes())
+    desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+    return desc_path
+
+
+def stamp_generated_head(char_dir: str | Path, source: AssetSource) -> Path:
+    """Pin a generator's ``source`` (DiceBear's) to the bytes it produced at ``char_dir``.
+
+    The head part(s) the generator drew (``parts/head.svg``) carry the source
+    with their own digest, and the descriptor carries it with the digest of its
+    ``source_svg``. Like the factory's stamps, it then speaks only for those
+    bytes: a part re-carved since, or a file added, is UNVERIFIED in ``an
+    credits`` and ``unknown`` in the asset library. Called by
+    :func:`new_character` on what it has just written.
+    """
+    from an.characters.schema import CharacterDescriptor
+    from an.ir.migrate import migrate
+
+    char_dir = Path(char_dir)
+    desc_path = char_dir / "character.json"
+    raw = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
+
+    def pinned(path: Path) -> AssetSource:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        return source.model_copy(update={"sha256": digest})
+
+    for skin in desc.skins.values():
+        for attachments in skin.slots.values():
+            for att in attachments.values():
+                file = char_dir / att.path
+                if att.path == "parts/head.svg" and att.source is None and file.is_file():
+                    att.source = pinned(file)
+    drawing = char_dir / (desc.source_svg or "")
+    if desc.source_svg and drawing.is_file():
+        desc.source = pinned(drawing)
+    desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+    return desc_path
+
+
+def _attachment_paths(char_dir: Path) -> set[str]:
+    """Every attachment path the descriptor at ``char_dir`` names."""
+    raw = json.loads((char_dir / "character.json").read_text(encoding="utf-8"))
+    return {
+        att["path"]
+        for skin in (raw.get("skins") or {}).values()
+        for attachments in (skin.get("slots") or {}).values()
+        for att in attachments.values()
+        if isinstance(att, dict) and att.get("path")
+    }
+
+
 def stamp_factory_parts(
     char_dir: str | Path,
-    paths: "set[str] | None" = None,
+    paths: "set[str]",
     *,
     skip: tuple[str, ...] = (),
 ) -> Path:
@@ -686,9 +791,11 @@ def stamp_factory_parts(
     digest, so a part later re-drawn or re-carved no longer matches it and stops
     being itemised as the factory's — the stamp cannot launder new bytes.
 
-    paths: the relative paths this call drew (default: every attachment whose
-        file exists, minus ``skip``). A part carrying some other provider's
-        source is never re-stamped.
+    paths: the relative paths this call has just DRAWN — required (an#249
+        R4-N1): a stamp says "the factory made these bytes", so only the code
+        that made them may write it. Stamping every part by default would label
+        a part re-carved since as the factory's ``cc0``. A part carrying some
+        other provider's source is never re-stamped.
     """
     from an.characters.schema import CharacterDescriptor
     from an.ir.migrate import migrate
@@ -703,7 +810,7 @@ def stamp_factory_parts(
                 file = char_dir / att.path
                 if (
                     att.path in skip
-                    or (paths is not None and att.path not in paths)
+                    or att.path not in paths
                     or not file.is_file()
                     or (
                         att.source is not None

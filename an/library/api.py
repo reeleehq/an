@@ -45,6 +45,7 @@ from typing import Any
 from dol.content import ContentRef, content_hash
 
 from an.ir.assets import PRIVATE_STUDY, PUBLIC_DOMAIN, AssetSource, license_class
+from an.credits import is_generated_source
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 from an.library import character as _character  # noqa: F401 — registers the analyser
 from an.library.affordances import (
@@ -57,7 +58,7 @@ from an.library.affordances import (
     missing,
     remedy_for,
 )
-from an.library.floor import BlobFloor, record_statement
+from an.library.floor import BlobFloor, record_statement, register_library, remember
 from an.library.federation import (
     AssetNotFoundError,
     Libraries,
@@ -78,6 +79,7 @@ from an.library.ids import (
     version_number,
 )
 from an.library.kinds import ASSET_KINDS, UnknownKindError, asset_kind_info
+from an.library.registry import RegistryError
 from an.library.rights import (
     LICENSE_CLASS_ORDER,
     PUBLISHABLE_CLASSES,
@@ -89,6 +91,7 @@ from an.library.rights import (
 )
 from an.library.root import CORE_PACKAGE
 from an.library.stores import VersionExistsError, canonical_json, version_key
+from an.stores._common import is_os_junk
 
 __all__ = [
     "CheckoutError",
@@ -152,6 +155,10 @@ RELICENSE_FIELD: str = "relicense"
 #: The version field naming the head this version follows (``<lib>:<id>@vNNN``):
 #: a new version inherits the old one's rights, so it cannot relabel them.
 PREVIOUS_FIELD: str = "previous"
+#: The version field listing the files a CARRIED asset-level source does not
+#: speak for: changed or added since the version the source was declared on
+#: (S1 of review-259). Each is ``unknown`` until a publish labels it again.
+UNLABELLED_FIELD: str = "unlabelled"
 #: How many labels a publish tries when another publisher takes the one it chose.
 MAX_PUBLISH_ATTEMPTS: int = 8
 #: How many close capability names a typo's error suggests.
@@ -187,6 +194,7 @@ LIBRARY_ERRORS: tuple[type[BaseException], ...] = (
     VersionExistsError,
     RightsRefusal,
     UnknownKindError,
+    RegistryError,
 )
 
 #: ``publish(expect_head=…)`` default: no expectation about the head.
@@ -337,6 +345,7 @@ def _manifest(
     *,
     previous: str | None = None,
     relicense: Mapping[str, Any] | None = None,
+    unlabelled: Iterable[str] = (),
 ) -> str:
     payload: dict[str, Any] = {
         "doc": doc,
@@ -348,6 +357,8 @@ def _manifest(
         payload[PREVIOUS_FIELD] = previous
     if relicense:
         payload[RELICENSE_FIELD] = dict(relicense)
+    if unlabelled:
+        payload[UNLABELLED_FIELD] = sorted(unlabelled)
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
 
 
@@ -364,6 +375,7 @@ def version_manifest(version: Mapping[str, Any]) -> str:
         version.get("derived_from") or [],
         previous=version.get(PREVIOUS_FIELD),
         relicense=version.get(RELICENSE_FIELD),
+        unlabelled=version.get(UNLABELLED_FIELD) or (),
     )
 
 
@@ -422,9 +434,21 @@ def itemising_source(
 
     It itemises only if it pins the same digest: a per-part source left on a
     file whose bytes have since changed (a factory stamp on a re-carved part)
-    describes other bytes and speaks for nothing.
+    describes other bytes and speaks for nothing. The descriptor's ``source_svg``
+    is itemised by a generator's descriptor-level stamp pinning its digest.
     """
-    for skin in ((version.get("doc") or {}).get("skins") or {}).values():
+    doc = version.get("doc") or {}
+    own = doc.get("source")
+    if path == doc.get("source_svg") and is_generated_source(own):
+        # The generator's descriptor-level stamp pins the drawing the parts were
+        # cut from — the same rule `an credits` applies (S2 of review-259).
+        try:
+            claim = AssetSource.model_validate(dict(own))
+        except ValueError:
+            claim = None
+        if claim is not None and _digest_of(claim) == digest:
+            return claim
+    for skin in (doc.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
             continue
         for attachments in (skin.get("slots") or {}).values():
@@ -495,7 +519,16 @@ def version_sources(
             version.get("doc") or {},
             store=kind.credits_store if kind else None,
             source=_source_model(version.get("source")),
+            files=_file_hashes(version.get("files") or {}),
         )
+    ]
+    out += [
+        (
+            f"{_prefix}{path} (changed since the carried source was declared; "
+            "not labelled)",
+            None,
+        )
+        for path in version.get(UNLABELLED_FIELD) or []
     ]
     lineage = [
         (ref, f"previous version {ref}") for ref in [version.get(PREVIOUS_FIELD)] if ref
@@ -548,9 +581,19 @@ def version_sources(
 
 
 def blob_statement(
-    libraries: Libraries, version: Mapping[str, Any], path: str, digest: str
+    libraries: Libraries,
+    version: Mapping[str, Any],
+    path: str,
+    digest: str,
+    *,
+    own_label: Callable[[], str] | None = None,
 ) -> dict[str, Any]:
-    """What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor)."""
+    """What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor).
+
+    own_label: the class of the version's own label, computed once by the
+        caller for all its files (it is the same for every file the version
+        does not itemise); default: computed here
+    """
     relicense = version.get(RELICENSE_FIELD)
     itemised = None if relicense else itemising_source(version, path, digest)
     if relicense:
@@ -566,7 +609,11 @@ def blob_statement(
             f"{path} itemised as {itemised.license or 'no licence'}",
         )
     else:
-        cls = roll_up(version_sources(libraries, version, floor=None)).license_class
+        cls = (
+            own_label()
+            if own_label is not None
+            else _own_label_class(libraries, version)
+        )
         label = "the asset's own label"
     return {
         "version": version.get("version"),
@@ -577,27 +624,62 @@ def blob_statement(
     }
 
 
+def _own_label_class(libraries: Libraries, version: Mapping[str, Any]) -> str:
+    """The class of what a version says about every file it does not itemise."""
+    return roll_up(version_sources(libraries, version, floor=None)).license_class
+
+
+def _version_statements(
+    library: Library, readers: Libraries, version: Mapping[str, Any]
+) -> Iterator[tuple[str, str, dict[str, Any]]]:
+    """``(digest, asset_key, statement)`` for each file of ``version``.
+
+    The version's own label is computed at most once (an#249 R4-N3): it walks
+    the version's lineage, and it is the same for every un-itemised file.
+    """
+    asset_key = f"{library.name}:{version['asset']}"
+    memo: list[str] = []
+
+    def own_label() -> str:
+        if not memo:
+            memo.append(_own_label_class(readers, version))
+        return memo[0]
+
+    for path, raw in sorted((version.get("files") or {}).items()):
+        digest = ContentRef.from_json(raw).item_id
+        yield (
+            digest,
+            asset_key,
+            blob_statement(readers, version, path, digest, own_label=own_label),
+        )
+
+
 def _index_version(
     library: Library, readers: Libraries, version: Mapping[str, Any]
 ) -> None:
-    """Record what ``version`` says about each of its blobs in ``library``'s floor index."""
-    asset_key = f"{library.name}:{version['asset']}"
-    for path, raw in sorted((version.get("files") or {}).items()):
-        digest = ContentRef.from_json(raw).item_id
-        record_statement(
-            library.blob_rights,
-            digest,
-            asset_key,
-            blob_statement(readers, version, path, digest),
-        )
+    """Record what ``version`` says about each of its blobs: in ``library``'s floor
+    index, and in the machine's memory (which outlives the library's root)."""
+    said = list(_version_statements(library, readers, version))
+    remember(library, said)
+    for digest, asset_key, statement in said:
+        record_statement(library.blob_rights, digest, asset_key, statement)
 
 
 def reindex(library: Library, *, search: Libraries | None = None) -> int:
     """Rebuild ``library``'s floor index from its versions. Returns the number of blobs indexed.
 
     The index is derived data: rebuilding it is always safe, and the way to
-    repair a library whose index was lost or written by an older ``an``.
+    repair a library whose index was lost or written by an older ``an``. It also
+    (re-)registers the library's root in the machine registry
+    (:mod:`an.library.registry`), so a library made at a custom root before the
+    registry existed becomes visible to every other library's rights floor.
+
+    The new index is computed in full first, then written over the old one
+    entry by entry, and only then are stale entries removed: a crash midway
+    leaves old and new statements side by side, never an empty floor (an#249
+    R4-N4).
     """
+    register_library(library)
     readers = [
         library,
         *(
@@ -606,9 +688,7 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
             if lib.name != library.name
         ),
     ]
-    store = library.blob_rights
-    for digest in list(store):
-        del store[digest]
+    fresh: dict[str, dict[str, Any]] = {}
     for key in sorted(
         library.versions,
         key=lambda k: (k.split("@")[0], version_number(k.split("@")[1])),
@@ -617,8 +697,16 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
             version = migrate(dict(library.versions[key]), kind=VERSION_KIND.name)
         except Exception:  # noqa: BLE001 — reported by scan_index; nothing to index
             continue
-        _index_version(library, readers, version)
-    return len(store)
+        said = list(_version_statements(library, readers, version))
+        remember(library, said)
+        for digest, asset_key, statement in said:
+            record_statement(fresh, digest, asset_key, statement)
+    store = library.blob_rights
+    for digest, entries in fresh.items():
+        store[digest] = entries
+    for digest in [d for d in store if d not in fresh]:
+        del store[digest]
+    return len(fresh)
 
 
 #: The licence code standing in for each class when only a recorded class is known.
@@ -705,6 +793,8 @@ def _same_as_head(
         or _file_hashes(head.get("files") or {}) != dict(hashes)
         or head.get("source") != pending["source"]
         or (head.get(RELICENSE_FIELD) or None) != (pending.get(RELICENSE_FIELD) or None)
+        or sorted(head.get(UNLABELLED_FIELD) or [])
+        != sorted(pending.get(UNLABELLED_FIELD) or [])
     ):
         return False
     parents = sorted(pending["derived_from"])
@@ -771,9 +861,13 @@ def publish(
         (``parts/head.svg``) — stored once each in the content-addressed blobs
     source: provenance declared for the asset as a whole. It contributes BESIDE
         the descriptor's own ``source`` (the most restrictive wins), never
-        instead of it. With no ``source`` and none in the descriptor, the source
-        of the previous version carries forward (``carry_source``); with none at
-        all the version is ``unknown`` — recorded and visible, not refused
+        instead of it. With no ``source``, and a descriptor declaring nothing
+        or exactly what the head's declared, the source of the previous version
+        carries forward (``carry_source``) — for the bytes it was declared on
+        only: a file changed or added since is recorded as ``unlabelled`` on the
+        version and is ``unknown`` until a publish passes ``source=`` (or a
+        relicence) again; with no source at all the version is ``unknown`` —
+        recorded and visible, not refused
     relicense: ``{"by": who, "reason": why}`` — the ONLY way to relax rights.
         Rights attach to the bytes and the lineage: a new version inherits the
         version it follows (``previous``), every version it derives from, and
@@ -811,11 +905,13 @@ def publish(
         relicense = {k: str(v).strip() for k, v in dict(relicense).items()}
         if not relicense.get("by") or not relicense.get("reason"):
             raise LibraryError(
-                "a relicence records who and why: relicense={'by': …, 'reason': …}"
+                "a relicence records who and why: relicense={'by': …, 'reason': …} "
+                "(--relicense-by, --relicense-reason)"
             )
         if source is None:
             raise LibraryError(
-                "a relicence needs the source= it relicenses the asset under"
+                "a relicence needs the source= it relicenses the asset under "
+                "(--license and --provider)"
             )
     doc = _doc_dict(doc)
     origin_block = pop_origin(doc)
@@ -850,13 +946,16 @@ def publish(
             + (f"already exists (head {head})" if head else "does not exist yet")
             + f", but this publish expected {'a new asset' if expect_head is None else expect_head}. "
             "Pick another id (a different asset sharing an id would be merged into it), "
-            "or pass the head you mean to follow."
+            "or pass the head you mean to follow (expect_head=…, --expect-head)."
         )
     head_version = read_version(library, asset_id, head) if head else None
 
+    check_path_set(files or {})
+    # Before anything is written: a library the machine registry does not know
+    # is invisible to every other library's rights floor (an#249).
+    register_library(library)
     blobs = library.blobs
     file_refs: dict[str, dict[str, Any]] = {}
-    check_path_set(files or {})
     for path, data in sorted((files or {}).items()):
         rel = check_relpath(path)
         file_refs[rel] = blobs.add(bytes(data), name=rel).to_json()
@@ -865,11 +964,29 @@ def publish(
     if (
         source_doc is None
         and carry_source
-        and descriptor_source(doc, store=kind.credits_store) is None
+        and head_version is not None
+        and descriptor_source(doc, store=kind.credits_store)
+        == descriptor_source(head_version.get("doc") or {}, store=kind.credits_store)
     ):
         # A source declared on an earlier publish carries forward — but only
-        # where the descriptor says nothing itself: it never masks it.
-        source_doc = (head_version or {}).get("source")
+        # where the descriptor says nothing new itself (nothing, or exactly
+        # what the head's said, such as the factory's own stamp): a descriptor
+        # that now declares another source is never masked by it.
+        source_doc = head_version.get("source")
+    hashes = _file_hashes(file_refs)
+    unlabelled: list[str] = []
+    if source_doc is not None and source is None and head_version is not None:
+        # The carried source was a statement about the bytes it was declared
+        # on. A file changed or added since is bytes nobody has labelled: it
+        # stays `unknown` (in the floor, in the rights, in the credits of a
+        # check-out) until a publish passes `source=` again.
+        before = _file_hashes(head_version.get("files") or {})
+        still = set(head_version.get(UNLABELLED_FIELD) or [])
+        unlabelled = sorted(
+            path
+            for path, digest in hashes.items()
+            if before.get(path) != digest or path in still
+        )
     pending: dict[str, Any] = {
         "doc_kind": kind.name,
         "doc": doc,
@@ -881,9 +998,10 @@ def publish(
         pending[PREVIOUS_FIELD] = str(LibraryRef(asset_id, head, library.name))
     if relicense:
         pending[RELICENSE_FIELD] = relicense
+    if unlabelled:
+        pending[UNLABELLED_FIELD] = unlabelled
     floor = BlobFloor(readers)
     rights = effective_rights(readers, pending, floor=floor)
-    hashes = _file_hashes(file_refs)
     manifest = _manifest(
         doc,
         hashes,
@@ -891,6 +1009,7 @@ def publish(
         pinned_parents,
         previous=pending.get(PREVIOUS_FIELD),
         relicense=relicense,
+        unlabelled=unlabelled,
     )
     affordances, analysers = analyse(kind.name, doc, file_refs)
     if kind.name == "character" and _character.renders_as_placeholder(doc):
@@ -1031,11 +1150,7 @@ def _read_folder(folder: Path, *, skip: str | None) -> dict[str, bytes]:
     out: dict[str, bytes] = {}
     for path in sorted(folder.rglob("*")):
         rel = path.relative_to(folder).as_posix()
-        if (
-            not path.is_file()
-            or rel == skip
-            or any(part.startswith(".") for part in rel.split("/"))
-        ):
+        if not path.is_file() or rel == skip or is_os_junk(rel):
             continue
         out[rel] = path.read_bytes()
     return out
@@ -1047,8 +1162,9 @@ def publish_dir(
     """Publish an asset folder as it sits in a project store (``assets/characters/alice/``).
 
     The descriptor is the kind's descriptor file (``character.json``); every other
-    non-hidden file under the folder is published as one of the asset's files, so
-    a check-out reproduces the folder. Keyword arguments go to :func:`publish`.
+    file under the folder is published as one of the asset's files, so a
+    check-out reproduces the folder — except operating-system clutter
+    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`). Keyword arguments go to :func:`publish`.
     """
     folder = Path(folder)
     kind = asset_kind_info(asset_kind(check_asset_id(asset_id)))
@@ -1506,7 +1622,8 @@ def promote(
     if not rights.publishable and not allow_restricted:
         raise RightsRefusal(
             f"{pinned} is {rights.license_class} ({'; '.join(rights.reasons) or 'no reasons recorded'}); "
-            "it is not copied out of its library without allow_restricted=True"
+            "it is not copied out of its library without allow_restricted=True "
+            "(--allow-restricted)"
         )
     target_id = check_asset_id(as_id) if as_id else pinned.asset_id
     if asset_kind(target_id) != pinned.kind:
@@ -1516,7 +1633,7 @@ def promote(
     ):
         raise LibraryError(
             f"the {target.name!r} library already has {target_id}, and it is not a copy of "
-            f"{library.name}:{pinned.asset_id}; promote under another id (as_id=…)"
+            f"{library.name}:{pinned.asset_id}; promote under another id (as_id=…, --as-id)"
         )
     record = _read_record(library, pinned.asset_id)
     facets = record.get("facets") or {}

@@ -45,6 +45,9 @@ CUTOUT = Genre(
         "drawn by the stage engine"
     ),
     package="an",
+    # Its assets and projects live under the cut-out genre's own data root
+    # (`~/.local/share/cutan`, plan §1 decision 7), whatever ships the code.
+    library="cutan",
     action_kinds=(PLAY, EXPRESSION),
     entity_kinds=(CHARACTER,),
     checks=(

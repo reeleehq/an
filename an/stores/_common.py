@@ -19,6 +19,28 @@ from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Any, Iterator
 
+#: File and folder names an operating system or file manager drops into any
+#: folder: never an asset. Hidden names (a leading ``.``: ``.DS_Store``,
+#: ``._head.svg`` AppleDouble files, ``.Spotlight-V100``) are junk too.
+OS_JUNK_NAMES: frozenset[str] = frozenset(
+    {"Thumbs.db", "ehthumbs.db", "desktop.ini", "Desktop.ini", "Icon\r", "__MACOSX"}
+)
+
+
+def is_os_junk(relpath: str) -> bool:
+    """Whether a path inside an asset folder is operating-system clutter, not the asset.
+
+    One rule for every reader of an asset folder — a library publish, a
+    check-out's drift test, the credits walk's digests — so a ``.DS_Store``
+    Finder drops into a character folder never makes a copy look edited.
+
+    >>> [is_os_junk(p) for p in ("parts/head.svg", ".DS_Store", "parts/Thumbs.db", "__MACOSX/x")]
+    [False, True, True, True]
+    """
+    return any(
+        part.startswith(".") or part in OS_JUNK_NAMES for part in relpath.split("/")
+    )
+
 
 class JsonDirStore(MutableMapping):
     """`MutableMapping` of name -> JSON document, stored as ``<name>.json`` files.

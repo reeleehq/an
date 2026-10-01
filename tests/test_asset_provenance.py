@@ -339,12 +339,23 @@ def test_an_acknowledged_cc_by_character_carries_the_attribution_it_owes(
 
 
 def test_offline_art_records_nothing_because_nothing_is_owed(tmp_path):
-    """The one case where "no third-party assets" is the true answer."""
-    from an.characters.factory import new_character
-    from an.characters.schema import CharacterDescriptor
+    """The one case where "no third-party assets" is the true answer.
 
-    desc_path = new_character(tmp_path, name="amy", use_dicebear=False)
-    assert CharacterDescriptor.model_validate_json(desc_path.read_text(encoding="utf-8")).source is None
+    Since an#251 the factory SAYS so rather than leaving the field empty: the
+    descriptor carries its own ``cc0`` stamp, pinned to the drawing the parts
+    were cut from — not a third-party source, and nothing owed.
+    """
+    from an.characters.factory import FACTORY_PROVIDER, new_character
+    from an.characters.schema import CharacterDescriptor
+    from an.credits import collect_credits
+    from an.stores import build_project_mall
+
+    desc_path = new_character(tmp_path / "assets" / "characters", name="amy", use_dicebear=False)
+    source = CharacterDescriptor.model_validate_json(desc_path.read_text(encoding="utf-8")).source
+    assert (source.provider, source.license) == (FACTORY_PROVIDER, "cc0-1.0")
+    report = collect_credits(build_project_mall(tmp_path))
+    assert [e.own_work for e in report.entries] == [True]
+    assert report.format().startswith("credits: no third-party assets recorded")
 
 
 # --------------- the legacy projects, which were told they owe nothing
