@@ -1,0 +1,27 @@
+an.mcp.tools
+============
+
+.. automodule:: an.mcp.tools
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TOOLS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      applicable_methods
+      apply_patch
+      describe_character
+      job_status
+      scene_schema
+      start_render
+      validate_scene
+      vocabulary
+      vocabulary_entry
+      why_not_method
+   

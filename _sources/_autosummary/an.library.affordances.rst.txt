@@ -4,14 +4,6 @@ an.library.affordances
 .. automodule:: an.library.affordances
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      KEY_SEP
-      CAPABILITIES
-      ANALYSERS
-   
    .. rubric:: Functions
 
    .. autosummary::

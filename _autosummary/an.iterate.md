@@ -32,8 +32,9 @@ agent can review what changed across runs.
 
 ### Functions
 
-| [`iterate`](#an.iterate.iterate)(project_dir, instruction, \*[, ...])   | Apply a free-text instruction to the scene at `project_dir`.   |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| [`iterate`](#an.iterate.iterate)(project_dir, instruction, \*[, ...])   | Apply a free-text instruction to the scene at `project_dir`.                  |
+|-------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`system_prompt`](#an.iterate.system_prompt)()                                | The `an iterate` system prompt: the protocol around the generated vocabulary. |
 
 ### Classes
 
@@ -99,3 +100,20 @@ which those are, for the reader, not the mechanism.
 
 * **Return type:**
   [`IterateResult`](#an.iterate.IterateResult)
+
+### an.iterate.system_prompt()
+
+The `an iterate` system prompt: the protocol around the generated vocabulary.
+
+Loads the installed genres first (their presets and methods are part of
+the vocabulary). Stable for a given registry, so it caches as well as the
+hand-written one did.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> text = system_prompt()
+>>> "walk" in text and "Rules:" in text
+True
+```

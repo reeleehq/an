@@ -41,7 +41,7 @@ What lives where:
 
 ### Functions
 
-| [`analyse`](#an.library.analyse)(kind, doc, art)                            | `(affordances, analysers)` of one asset: its capabilities and the analyser versions used.                                                     |
+| [`analyse`](#an.library.analyse)(kind, doc[, art])                          | `(profile, analysers)` of one subject: its capabilities and the analyser versions used.                                                       |
 |-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | [`build_library_mall`](#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
@@ -58,9 +58,9 @@ What lives where:
 | [`publish`](#an.library.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.                                                                 |
 | [`publish_dir`](#an.library.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).                                                           |
 | [`reindex`](#an.library.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                                                                            |
-| [`register_analyser`](#an.library.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                                                                          |
+| [`register_analyser`](#an.library.register_analyser)(kind, \*[, version, ...])        | Register an analyser.                                                                                                                         |
 | [`register_asset_kind`](#an.library.register_asset_kind)(name, \*[, store, ...])        | Register (or re-register) an asset kind.                                                                                                      |
-| [`register_capability`](#an.library.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                                                                       |
+| [`register_capability`](#an.library.register_capability)(name, \*[, description, ...])  | Register a capability (or a [`Capability`](#an.library.Capability)).                                                     |
 | [`register_root`](#an.library.register_root)(package, root, \*[, registry])       | Record `root` (`package`'s library root) in the registry; `True` if it was new.                                                               |
 | [`registered_roots`](#an.library.registered_roots)(\*[, registry])                   | `(package, root)` for every root ever registered, oldest first, each once.                                                                    |
 | [`resolve`](#an.library.resolve)(libraries, ref)                            | `(library, pinned_ref, version_doc)` for a reference, along the search path.                                                                  |
@@ -73,7 +73,7 @@ What lives where:
 
 ### Classes
 
-| [`Capability`](#an.library.Capability)(name, description, remedy)             | A registered capability name, what it means, and how to add it.                      |
+| [`Capability`](#an.library.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it.                 |
 |----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
 | [`CheckoutResult`](#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
 | [`FindResult`](#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
@@ -108,11 +108,22 @@ Bases: [`LookupError`](https://docs.python.org/3/builtins/exceptions.html#Lookup
 
 No library on the search path holds the asset or version asked for.
 
-### *class* an.library.Capability(name, description, remedy)
+### *class* an.library.Capability(name, description, remedy, subject='asset', command=None, version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-A registered capability name, what it means, and how to add it.
+A registered capability: its name, what it means, and how to add it.
+
+`command` is the CLI that adds it, when one exists (`an character
+add-views`); `version` bumps when the *meaning* of the name changes (a
+persisted name is never redefined in place).
+
+#### to_json()
+
+The capability as the generated docs and the MCP surface list it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *exception* an.library.CheckoutError
 
@@ -288,15 +299,20 @@ Bases: [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError)
 
 A write-once key was written twice, or deleted. Versions are immutable.
 
-### an.library.analyse(kind, doc, art)
+### an.library.analyse(kind, doc, art=None)
 
-`(affordances, analysers)` of one asset: its capabilities and the analyser versions used.
+`(profile, analysers)` of one subject: its capabilities and the analyser versions used.
 
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> analyse("no-such-kind", {})
+({}, {})
+```
 
 ### an.library.build_library_mall(root=None, , package='an', \*\*overrides)
 
@@ -613,15 +629,17 @@ check-out reproduces the folder — except operating-system clutter
 * **Return type:**
   [`PublishResult`](an.library.api.md#an.library.api.PublishResult)
 
-### an.library.register_analyser(kind, , version)
+### an.library.register_analyser(kind, , version='', subject='asset', owner='an')
 
-Decorator: register `derive` as the analyser of `kind` at `version`.
+Register an analyser. Two forms.
 
-Bump `version` whenever the derivation’s output can change for the same
-input: versions published under the old one are then recomputed on read.
+`register_analyser(Analyser(...), owner=...)` registers the object and
+returns it (a genre’s `analysers` field goes this way). With a `kind`
+string it is a decorator: `@register_analyser("character", version="0.1.0")`
+registers the decorated derivation.
 
 * **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]], [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]]
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.library.register_asset_kind(name, , store=None, descriptor=None, credits_store=None)
 
@@ -630,12 +648,23 @@ Register (or re-register) an asset kind. Returns it.
 * **Return type:**
   [`AssetKind`](an.library.kinds.md#an.library.kinds.AssetKind)
 
-### an.library.register_capability(name, , description, remedy)
+### an.library.register_capability(name, , description='', remedy='', subject='asset', command=None, version='1', owner='an')
 
-Register (or re-register) a capability. Returns it.
+Register a capability (or a [`Capability`](#an.library.Capability)). Returns it.
+
+Re-registering the same definition is a no-op; a different definition
+under a name another owner holds raises, because capability names are
+persisted and two meanings for one name would make a stored facet lie.
 
 * **Return type:**
-  [`Capability`](an.library.affordances.md#an.library.affordances.Capability)
+  [`Capability`](an.capabilities.md#an.capabilities.Capability)
+
+```pycon
+>>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
+>>> CAPABILITIES["demo.thing"] is cap
+True
+>>> _ = drop_owner("demo")
+```
 
 ### an.library.register_root(package, root, , registry=None)
 
@@ -784,7 +813,7 @@ True
 
 ### Modules
 
-| [`affordances`](an.library.affordances.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                                                                                          |
+| [`affordances`](an.library.affordances.md#module-an.library.affordances)   | Affordances for the library: the capability registry, re-exported from [`an.capabilities`](an.capabilities.md#module-an.capabilities).              |
 |----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`api`](an.library.api.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                                                                                                     |
 | [`character`](an.library.character.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |

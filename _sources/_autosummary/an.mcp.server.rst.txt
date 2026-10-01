@@ -1,0 +1,25 @@
+an.mcp.server
+=============
+
+.. automodule:: an.mcp.server
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SERVER_INSTRUCTIONS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+      mk_server
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MCPExtraMissingError
+   

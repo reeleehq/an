@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -724,7 +724,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  nodes live in, plus any new **property spaces** and **field kinds** for the</span>
 <span class="sd">  timing kernel (:mod:`an.timing`);</span>
 <span class="sd">- **semantic checks** (:class:`SemanticCheck`) that ``an validate`` runs;</span>
-<span class="sd">- **md sugar** (:class:`DialogueSugar`) on ``scene.md`` dialogue lines.</span>
+<span class="sd">- **md sugar** (:class:`DialogueSugar`) on ``scene.md`` dialogue lines;</span>
+<span class="sd">- **capabilities** and **analysers** (:mod:`an.capabilities`, ADR 0002): the</span>
+<span class="sd">  capability names its methods require and the derivation of what its assets</span>
+<span class="sd">  afford;</span>
+<span class="sd">- **vocabulary** entries — presets, methods, IR-field notes — and **aspects**</span>
+<span class="sd">  with their default chains (:mod:`an.semantic`, ADR 0003).</span>
 
 <span class="sd">Because the object is plain data, a genre is **inspectable before it is</span>
 <span class="sd">loaded**: :func:`available` reads every installed genre's declaration without</span>
@@ -807,7 +812,13 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    ``spaces`` are :class:`an.timing.spaces.PropertySpace` objects and</span>
 <span class="sd">    ``field_kinds`` are ``(name, factory)`` pairs for</span>
-<span class="sd">    :func:`an.timing.kinds.register_kind`.</span>
+<span class="sd">    :func:`an.timing.kinds.register_kind`. ``capabilities`` are</span>
+<span class="sd">    :class:`an.capabilities.Capability` objects, ``analysers``</span>
+<span class="sd">    :class:`an.capabilities.Analyser` objects, ``vocabulary``</span>
+<span class="sd">    :class:`an.semantic.Entry` objects (methods included) and ``aspects``</span>
+<span class="sd">    :class:`an.semantic.Aspect` objects; registering the genre checks the whole</span>
+<span class="sd">    (:func:`an.semantic.check_registry`): every aspect's chain ends in a method</span>
+<span class="sd">    that requires nothing, and every requirement names a registered capability.</span>
 
 <span class="sd">    ``library`` names the package whose data root holds the genre's asset</span>
 <span class="sd">    library and its projects (``~/.local/share/&lt;library&gt;``, ADR 0005, plan §1</span>
@@ -829,6 +840,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">field_kinds</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">checks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SemanticCheck</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">dialogue_sugar</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DialogueSugar</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">capabilities</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">analysers</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">vocabulary</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">aspects</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
 
 <div class="viewcode-block" id="Genre.provides">
 <a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.Genre.provides">[docs]</a>
@@ -845,6 +860,10 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"field kinds"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_kinds</span><span class="p">),</span>
             <span class="s2">"checks"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checks</span><span class="p">),</span>
             <span class="s2">"dialogue sugar"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_sugar</span><span class="p">),</span>
+            <span class="s2">"capabilities"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">capabilities</span><span class="p">),</span>
+            <span class="s2">"analysers"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">analysers</span><span class="p">),</span>
+            <span class="s2">"vocabulary"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="p">),</span>
+            <span class="s2">"aspects"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspects</span><span class="p">),</span>
         <span class="p">}</span></div>
 </div>
 
@@ -856,13 +875,18 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="register_genre">
 <a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.register_genre">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">register_genre</span><span class="p">(</span><span class="n">genre</span><span class="p">:</span> <span class="n">Genre</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Genre</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_genre</span><span class="p">(</span>
+    <span class="n">genre</span><span class="p">:</span> <span class="n">Genre</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Genre</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Register everything ``genre`` declares, owned by ``genre.name``.</span>
 
 <span class="sd">    Idempotent for the same object: registering a genre that is already</span>
 <span class="sd">    installed is a no-op, so :func:`load` can be called from every entry point.</span>
 <span class="sd">    A different object under an installed name raises unless ``replace``.</span>
 <span class="sd">    All or nothing: a registration that fails part-way leaves no trace.</span>
+<span class="sd">    ``check_capabilities=False`` defers the "every requirement names a</span>
+<span class="sd">    registered capability" check to the caller (:func:`load` runs it once all</span>
+<span class="sd">    genres are in, so a genre extending another loads in any order).</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">Genre</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">GenreError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"not a Genre: </span><span class="si">{</span><span class="n">genre</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
@@ -876,21 +900,26 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"a different genre named </span><span class="si">{</span><span class="n">genre</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered; "</span>
             <span class="s2">"pass replace=True to replace it"</span>
         <span class="p">)</span>
-    <span class="n">state</span><span class="p">,</span> <span class="n">timing_state</span> <span class="o">=</span> <span class="n">snapshot</span><span class="p">(),</span> <span class="n">_timing_snapshot</span><span class="p">()</span>
+    <span class="n">state</span><span class="p">,</span> <span class="n">timing_state</span><span class="p">,</span> <span class="n">sem_state</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snapshot</span><span class="p">(),</span>
+        <span class="n">_timing_snapshot</span><span class="p">(),</span>
+        <span class="n">_semantic_snapshot</span><span class="p">(),</span>
+    <span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_uninstall</span><span class="p">(</span><span class="n">genre</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">_install</span><span class="p">(</span><span class="n">genre</span><span class="p">)</span>
+        <span class="n">_install</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="o">=</span><span class="n">check_capabilities</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">restore</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="n">_timing_restore</span><span class="p">(</span><span class="n">timing_state</span><span class="p">)</span>
+        <span class="n">_semantic_restore</span><span class="p">(</span><span class="n">sem_state</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="n">_INSTALLED</span><span class="p">[</span><span class="n">genre</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">genre</span>
     <span class="k">return</span> <span class="n">genre</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_install</span><span class="p">(</span><span class="n">genre</span><span class="p">:</span> <span class="n">Genre</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_install</span><span class="p">(</span><span class="n">genre</span><span class="p">:</span> <span class="n">Genre</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_kind</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_space</span>
 
@@ -907,12 +936,68 @@ window.runMermaid = runMermaid;</script>
         <span class="n">register_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">sugar</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">dialogue_sugar</span><span class="p">:</span>
         <span class="n">register_dialogue_sugar</span><span class="p">(</span><span class="n">sugar</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">genre</span><span class="o">.</span><span class="n">capabilities</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">analysers</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">vocabulary</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">aspects</span><span class="p">:</span>
+        <span class="n">_install_semantics</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="o">=</span><span class="n">check_capabilities</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_install_semantics</span><span class="p">(</span><span class="n">genre</span><span class="p">:</span> <span class="n">Genre</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Capabilities, analysers, vocabulary and aspects (ADRs 0002, 0003), then the check."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">capabilities</span> <span class="k">as</span> <span class="n">caps</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">semantic</span> <span class="k">as</span> <span class="n">sem</span>
+
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">genre</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">capabilities</span><span class="p">:</span>
+            <span class="n">caps</span><span class="o">.</span><span class="n">register_capability</span><span class="p">(</span><span class="n">cap</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">analyser</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">analysers</span><span class="p">:</span>
+            <span class="n">caps</span><span class="o">.</span><span class="n">register_analyser</span><span class="p">(</span><span class="n">analyser</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">vocabulary</span><span class="p">:</span>
+            <span class="n">sem</span><span class="o">.</span><span class="n">register_entry</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aspect</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">aspects</span><span class="p">:</span>
+            <span class="n">sem</span><span class="o">.</span><span class="n">register_aspect</span><span class="p">(</span><span class="n">aspect</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">caps</span><span class="o">.</span><span class="n">CapabilityError</span><span class="p">,</span> <span class="n">sem</span><span class="o">.</span><span class="n">VocabularyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">GenreError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"genre </span><span class="si">{</span><span class="n">genre</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="n">sem</span><span class="o">.</span><span class="n">check_registry</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">capabilities</span><span class="o">=</span><span class="n">check_capabilities</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">GenreError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"genre </span><span class="si">{</span><span class="n">genre</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> registers an unsound vocabulary:</span><span class="se">\n</span><span class="s2">  - "</span>
+            <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  - "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_uninstall</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">unregister_owner</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="n">_timing_drop_owner</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">_semantic_drop_owner</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="n">_INSTALLED</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="c1"># The capability and vocabulary registries (P7) sit beside the core's tables:</span>
+<span class="c1"># a genre's entries there come out with it, exactly like its kinds. Imported</span>
+<span class="c1"># lazily: `an.semantic` is below `an.ir` but above this registry module.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_semantic_snapshot</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">capabilities</span> <span class="k">as</span> <span class="n">caps</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">registry</span> <span class="k">as</span> <span class="n">sem</span>
+
+    <span class="k">return</span> <span class="n">caps</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(),</span> <span class="n">sem</span><span class="o">.</span><span class="n">snapshot</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_semantic_restore</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">capabilities</span> <span class="k">as</span> <span class="n">caps</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">registry</span> <span class="k">as</span> <span class="n">sem</span>
+
+    <span class="n">caps</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">sem</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_semantic_drop_owner</span><span class="p">(</span><span class="n">owner</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">capabilities</span> <span class="k">as</span> <span class="n">caps</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">registry</span> <span class="k">as</span> <span class="n">sem</span>
+
+    <span class="n">caps</span><span class="o">.</span><span class="n">drop_owner</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span>
+    <span class="n">sem</span><span class="o">.</span><span class="n">drop_owner</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span>
 
 
 <span class="c1"># The timing kernel's registries are P1's; a genre's spaces and field kinds go</span>
@@ -1100,9 +1185,23 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">genre</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># the same genre under two entry-point names</span>
         <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">genre</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">register_genre</span><span class="p">(</span><span class="n">genre</span><span class="p">)</span>
+        <span class="n">register_genre</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_check_capabilities_of</span><span class="p">(</span><span class="n">seen</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">installed</span><span class="p">()</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_capabilities_of</span><span class="p">(</span><span class="n">names</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every requirement of these genres names a capability registered by SOME</span>
+<span class="sd">    genre — checked once all are in, so load order never matters (review-256 S7)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">semantic</span> <span class="k">as</span> <span class="n">sem</span>
+
+    <span class="n">problems</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">sem</span><span class="o">.</span><span class="n">check_registry</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">name</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">GenreError</span><span class="p">(</span>
+            <span class="s2">"the loaded genres register an unsound vocabulary:</span><span class="se">\n</span><span class="s2">  - "</span>
+            <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  - "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="genres_declaring">
@@ -1188,7 +1287,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...     action_kind("play") is None</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
-    <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">snapshot</span><span class="p">(),</span> <span class="n">_timing_snapshot</span><span class="p">(),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_INSTALLED</span><span class="p">))</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">snapshot</span><span class="p">(),</span> <span class="n">_timing_snapshot</span><span class="p">(),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_INSTALLED</span><span class="p">),</span> <span class="n">_semantic_snapshot</span><span class="p">())</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">_INSTALLED</span><span class="p">):</span>
             <span class="n">_uninstall</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -1199,7 +1298,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">restore</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">_timing_restore</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">_INSTALLED</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="n">_INSTALLED</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+        <span class="n">_INSTALLED</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">_semantic_restore</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
 
 
 

@@ -1,0 +1,21 @@
+an.semantic.digest
+==================
+
+.. automodule:: an.semantic.digest
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      VOCABULARY_KEY_PART
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      register_vocabulary_key_part
+      vocabulary_key_part
+      vocabulary_digest
+      vocabulary_versions
+   

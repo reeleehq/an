@@ -9,6 +9,7 @@ an.iterate
    .. autosummary::
    
       iterate
+      system_prompt
    
    .. rubric:: Classes
 

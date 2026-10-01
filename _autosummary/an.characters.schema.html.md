@@ -342,6 +342,21 @@ quietly stops being carried. Pinned by test.
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
+#### speech *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a
+method’s spelling (`mouth_chart`, `pulse`), its id
+(`speech.pose_only`) or a choice with args and an optional version pin
+(`{method: pulse, args: {strength: 0}}` — a mime). `None` = the
+default chain: lip-sync when the character has a mouth chart, else a
+head pulse, recorded. Declaring it is also how a baked-face character
+renders under `--strict-assets`: a declared pulse is the request, not a
+fallback. Resolved (and refused when unknown) by the capability
+registry. Omitted from the stored document when unset.
+
+* **Type:**
+  How this character shows it is speaking (the speech aspect, an#248)
+
 #### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](#an.characters.schema.SlotPose)]]]*
 
 {slot:

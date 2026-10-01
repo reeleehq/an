@@ -1,0 +1,13 @@
+an.semantic.docs
+================
+
+.. automodule:: an.semantic.docs
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      replace_section
+      skill_vocabulary_section
+   

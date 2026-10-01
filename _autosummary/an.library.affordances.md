@@ -1,91 +1,84 @@
 # an.library.affordances
 
-Affordances: what an asset can do, derived from its descriptor and the art present.
+Affordances for the library: the capability registry, re-exported from [`an.capabilities`](an.capabilities.md#module-an.capabilities).
 
-This is the seed of ADR 0002’s `affordances(asset) → set[Capability]`, built
-so its registry (P7) adopts it rather than writing a second derivation:
+P5 seeded ADR 0002’s `affordances(asset)` here; P7 moved the tables and the
+matcher to the core registry, [`an.capabilities`](an.capabilities.md#module-an.capabilities), and this module now
+re-exports the SAME objects (`ANALYSERS is an.capabilities.ANALYSERS`), so the
+library’s facets and `find(…, near=True)` and the compiler’s method choice
+are one derivation and one matcher, never two.
 
-- an **analyser** is registered per asset kind ([`register_analyser()`](#an.library.affordances.register_analyser)) with a
-  version. It reads the descriptor document and the art present — a mapping of
-  each file’s relative path to its `ContentRef` (so a later analyser can read
-  bytes through the blob store; today’s tests membership only) —
-  never a hand-typed list beside them (ADR 0002 decision 2) — and returns
-  `{capability: params}`. A capability that is absent is not afforded;
-- a **capability** is a dotted, registered name ([`register_capability()`](#an.library.affordances.register_capability))
-  with a description and a **remedy** (what would add it, and the command when
-  one exists), because `find(…, near=True)` must say how to close a near miss;
-- **params** are the capability’s parameters. The one convention every query
-  relies on: `keys` lists the discrete values it affords, so `swap.view:side`
-  asks for `swap.view` with `side` among its keys. `overrides` lists the
-  declared descriptor fields (`rest_view`, …) the
-  derivation used instead of deriving — ADR 0002’s “the derivation reports which
-  overrides it used”.
-
-The library snapshots an analyser’s output on each version with the analyser’s
-version (`analysers: {kind: version}`); a reader whose analyser is newer
-recomputes rather than trusting the snapshot ([`current_affordances()`](#an.library.affordances.current_affordances)).
-
-Capability names are persisted identifiers: once a version stores one, it is
-renamed only through this registry, never in place.
+The character analyser is the cut-out genre’s: it registers through
+`an.genres.cutout.CUTOUT` (its `capabilities` and `analysers`
+fields) when the genres load, which the library’s entry points do
+([`an.library.api.publish()`](an.library.api.md#an.library.api.publish), [`an.library.api.find()`](an.library.api.md#an.library.api.find)).
 
 ```pycon
+>>> import an.capabilities
+>>> ANALYSERS is an.capabilities.ANALYSERS and CAPABILITIES is an.capabilities.CAPABILITIES
+True
 >>> afford = {"swap.view": {"keys": ["front", "side"]}, "limbs.legs": {}}
 >>> matches(afford, "swap.view:side"), matches(afford, "swap.view:back"), matches(afford, "limbs.legs")
 (True, False, True)
 ```
 
-### Module Attributes
-
-| [`KEY_SEP`](#an.library.affordances.KEY_SEP)      | Separates a capability from one of its keys in a query (`swap.view:side`).   |
-|---------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`CAPABILITIES`](#an.library.affordances.CAPABILITIES) | Registered capabilities, by name.                                            |
-| [`ANALYSERS`](#an.library.affordances.ANALYSERS)    | Registered analysers, by asset kind.                                         |
-
 ### Functions
 
-| [`analyse`](#an.library.affordances.analyse)(kind, doc, art)                            | `(affordances, analysers)` of one asset: its capabilities and the analyser versions used.   |
-|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| [`capability_of`](#an.library.affordances.capability_of)(query)                               | `(capability, key)` of a query term.                                                        |
-| [`current_affordances`](#an.library.affordances.current_affordances)(kind, doc, art, \*, ...)       | The stored snapshot when its analyser version is current, else a fresh derivation.          |
-| [`matches`](#an.library.affordances.matches)(affordances, query)                        | Whether `affordances` satisfy one query term (`cap` or `cap:key`).                          |
-| [`missing`](#an.library.affordances.missing)(affordances, queries)                      | The query terms `affordances` do not satisfy, in the order asked.                           |
-| [`register_analyser`](#an.library.affordances.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                        |
-| [`register_capability`](#an.library.affordances.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                     |
-| [`remedy_for`](#an.library.affordances.remedy_for)(query)                                  | What would add the capability a query term asks for.                                        |
+| [`analyse`](#an.library.affordances.analyse)(kind, doc[, art])                         | `(profile, analysers)` of one subject: its capabilities and the analyser versions used.   |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`capability_of`](#an.library.affordances.capability_of)(query)                              | `(capability, key)` of a query term (the library's `find` form).                          |
+| [`current_affordances`](#an.library.affordances.current_affordances)(kind, doc, art, \*, ...)      | The stored snapshot when its analyser version is current, else a fresh derivation.        |
+| [`matches`](#an.library.affordances.matches)(profile, term)                            | Whether `profile` (or the subject of `term` in a `Subjects`) meets `term`.                |
+| [`missing`](#an.library.affordances.missing)(profile, requires)                        | The requirement terms `profile` does not meet, spelled, in the order asked.               |
+| [`register_analyser`](#an.library.affordances.register_analyser)(kind, \*[, version, ...])       | Register an analyser.                                                                     |
+| [`register_capability`](#an.library.affordances.register_capability)(name, \*[, description, ...]) | Register a capability (or a [`Capability`](#an.library.affordances.Capability)). |
+| [`remedy_for`](#an.library.affordances.remedy_for)(term)                                  | What would add the capability a requirement term asks for.                                |
 
 ### Classes
 
-| [`Analyser`](#an.library.affordances.Analyser)(kind, version, derive)       | The derivation of one asset kind's affordances, versioned.      |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`Capability`](#an.library.affordances.Capability)(name, description, remedy) | A registered capability name, what it means, and how to add it. |
+| [`Analyser`](#an.library.affordances.Analyser)(kind, version, derive[, subject, ...])   | The derivation of one kind's profile, versioned.                     |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| [`Capability`](#an.library.affordances.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it. |
 
-### an.library.affordances.ANALYSERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Analyser](#an.library.affordances.Analyser)]* *= {'character': Analyser(kind='character', version='0.1.0', derive=<function character_affordances>)}*
-
-Registered analysers, by asset kind.
-
-### *class* an.library.affordances.Analyser(kind, version, derive)
+### *class* an.library.affordances.Analyser(kind, version, derive, subject='asset', declares=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-The derivation of one asset kind’s affordances, versioned.
+The derivation of one kind’s profile, versioned.
 
-### an.library.affordances.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](#an.library.affordances.Capability)]* *= {'face.mouth': Capability(name='face.mouth', description='an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)', remedy="give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\` writes the default nine) and face_overlay: true — a face baked into the head art cannot lip-sync"), 'limbs.arms': Capability(name='limbs.arms', description='a pair of arm slots with art that a walk swings and gestures move', remedy='add two arm slots named arm_l/arm_r (or left_arm/right_arm) with their art, pivoted at the shoulder (an-art-package skill)'), 'limbs.legs': Capability(name='limbs.legs', description='a pair of leg slots with art that a legged walk swings', remedy='add two leg slots named leg_l/leg_r (or left_leg/right_leg) with their art, pivoted at the hip; \`an character new\` builds them (an-art-package skill)'), 'swap.view': Capability(name='swap.view', description='the turnaround views the character can show (keys); swappable=true when a \`view\` swap set lets it turn', remedy='add turnaround art and list it in the \`view\` swap set: \`an character add-views <dir>\` for an offline character, else draw the views')}*
+`kind` is an asset kind (`character`) or a subject that has one
+analyser (`engine`, `environment`). Bump `version` whenever the
+output can change for the same input: snapshots made under the old one are
+then recomputed on read. The version is NOT a compile input (consult §5):
+the derived profile is, so touching an analyser without changing its output
+re-renders nothing.
 
-Registered capabilities, by name. Genre packages add theirs on import.
+#### declares *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ()*
 
-### *class* an.library.affordances.Capability(name, description, remedy)
+The document’s declared facts the derivation honours instead of deriving
+(`rest_view`, `face_overlay`) or reads as a request (`gait`):
+reported by `describe_asset` (ADR 0002 decision 2).
+
+### *class* an.library.affordances.Capability(name, description, remedy, subject='asset', command=None, version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-A registered capability name, what it means, and how to add it.
+A registered capability: its name, what it means, and how to add it.
 
-### an.library.affordances.KEY_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ':'*
+`command` is the CLI that adds it, when one exists (`an character
+add-views`); `version` bumps when the *meaning* of the name changes (a
+persisted name is never redefined in place).
 
-Separates a capability from one of its keys in a query (`swap.view:side`).
+#### to_json()
 
-### an.library.affordances.analyse(kind, doc, art)
+The capability as the generated docs and the MCP surface list it.
 
-`(affordances, analysers)` of one asset: its capabilities and the analyser versions used.
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.library.affordances.analyse(kind, doc, art=None)
+
+`(profile, analysers)` of one subject: its capabilities and the analyser versions used.
 
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
@@ -93,9 +86,14 @@ analyser — an honest empty answer, not a guess.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
+```pycon
+>>> analyse("no-such-kind", {})
+({}, {})
+```
+
 ### an.library.affordances.capability_of(query)
 
-`(capability, key)` of a query term.
+`(capability, key)` of a query term (the library’s `find` form).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
@@ -115,40 +113,61 @@ snapshot made by an older analyser is what would make a facet lie.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.library.affordances.matches(affordances, query)
+### an.library.affordances.matches(profile, term)
 
-Whether `affordances` satisfy one query term (`cap` or `cap:key`).
+Whether `profile` (or the subject of `term` in a `Subjects`) meets `term`.
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
-### an.library.affordances.missing(affordances, queries)
+### an.library.affordances.missing(profile, requires)
 
-The query terms `affordances` do not satisfy, in the order asked.
+The requirement terms `profile` does not meet, spelled, in the order asked.
+
+THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
+`resolve` and the library’s `find(…, near=True)` all call it.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
-### an.library.affordances.register_analyser(kind, , version)
+```pycon
+>>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
+(['env.ffmpeg'], [])
+```
 
-Decorator: register `derive` as the analyser of `kind` at `version`.
+### an.library.affordances.register_analyser(kind, , version='', subject='asset', owner='an')
 
-Bump `version` whenever the derivation’s output can change for the same
-input: versions published under the old one are then recomputed on read.
+Register an analyser. Two forms.
+
+`register_analyser(Analyser(...), owner=...)` registers the object and
+returns it (a genre’s `analysers` field goes this way). With a `kind`
+string it is a decorator: `@register_analyser("character", version="0.1.0")`
+registers the decorated derivation.
 
 * **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]], [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]]
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.library.affordances.register_capability(name, , description, remedy)
+### an.library.affordances.register_capability(name, , description='', remedy='', subject='asset', command=None, version='1', owner='an')
 
-Register (or re-register) a capability. Returns it.
+Register a capability (or a [`Capability`](#an.library.affordances.Capability)). Returns it.
+
+Re-registering the same definition is a no-op; a different definition
+under a name another owner holds raises, because capability names are
+persisted and two meanings for one name would make a stored facet lie.
 
 * **Return type:**
-  [`Capability`](#an.library.affordances.Capability)
+  [`Capability`](an.capabilities.md#an.capabilities.Capability)
 
-### an.library.affordances.remedy_for(query)
+```pycon
+>>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
+>>> CAPABILITIES["demo.thing"] is cap
+True
+>>> _ = drop_owner("demo")
+```
 
-What would add the capability a query term asks for.
+### an.library.affordances.remedy_for(term)
+
+What would add the capability a requirement term asks for.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

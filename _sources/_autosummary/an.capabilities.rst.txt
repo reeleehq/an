@@ -1,0 +1,60 @@
+an.capabilities
+===============
+
+.. automodule:: an.capabilities
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SUBJECTS
+      KEY_SEP
+      KEYS_PARAM
+      OVERRIDES_PARAM
+      Profile
+      CAPABILITIES
+      ANALYSERS
+      FATAL_REASONS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      affordances
+      analyse
+      art_in_dir
+      capability_names
+      capability_of
+      current_affordances
+      matches
+      missing
+      parse_requirement
+      register_analyser
+      register_capability
+      remedy_for
+      subject_of
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Analyser
+      Capability
+      Requirement
+      Subjects
+      Substitution
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CapabilityError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   subjects

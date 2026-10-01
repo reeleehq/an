@@ -1,0 +1,20 @@
+an.mcp
+======
+
+.. automodule:: an.mcp
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TOOL_REFS
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   server
+   tools

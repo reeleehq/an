@@ -10,6 +10,7 @@ an.characters.cli
    
       add_gaze
       add_views
+      capabilities
       contract
       mouths
       new

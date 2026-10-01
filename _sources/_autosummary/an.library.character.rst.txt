@@ -10,6 +10,8 @@ an.library.character
    
       CHARACTER_ANALYSER_VERSION
       MOUTH_CHART_RHUBARB
+      CHARACTER_CAPABILITIES
+      CHARACTER_ANALYSER
    
    .. rubric:: Functions
 

@@ -182,7 +182,7 @@ the face’s edge, and the mouth with them (view_box units at head_scale 1);
 the mouth is narrowed, seen edge-on.
 
 * **Type:**
-  Profile (facing right)
+  [*Profile*](an.capabilities.html.md#an.capabilities.Profile) (facing right)
 
 ### an.characters.factory.SIDE_LEG_OFFSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
 

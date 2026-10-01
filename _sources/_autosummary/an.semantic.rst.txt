@@ -1,0 +1,59 @@
+an.semantic
+===========
+
+.. automodule:: an.semantic
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      applicable
+      aspect
+      aspect_names
+      aspects
+      check_registry
+      entries
+      entry
+      lookup
+      methods_of
+      owner_of
+      register_aspect
+      register_entry
+      resolve
+      vocabulary
+      why_not
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Aspect
+      Choice
+      Entry
+      Method
+      Missing
+      Policy
+      Resolution
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnknownEntryError
+      VocabularyError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   describe
+   digest
+   docs
+   matcher
+   prompt
+   registry
+   seeds
+   views

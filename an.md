@@ -1,4 +1,4 @@
-> built 2026-10-01 16:24 UTC from bf42ae0 (main) · an 0.1.138. Details: build_info.json
+> built 2026-10-01 16:46 UTC from 9667434 (main) · an 0.1.139. Details: build_info.json
 
 # index.html.md
 
@@ -7192,7 +7192,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'rect', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'mouth', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -11765,6 +11765,490 @@ A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
+# _autosummary/an.capabilities.html.md
+
+# an.capabilities
+
+Capabilities: what an asset, an engine or the environment affords, and the one matcher.
+
+ADR 0002 (capability-based applicability, with a universal default) and the core
+study §2.13 (three subjects). This is the LOWER layer of the pair: it knows
+capabilities, analysers, requirements and substitution records, and nothing
+about vocabulary entries, methods or aspects — [`an.semantic`](_autosummary/an.semantic.html.md#module-an.semantic) imports it,
+never the reverse, and neither imports [`an.ir`](_autosummary/an.ir.html.md#module-an.ir) at module level.
+
+- A **capability** is a named, possibly parametrised fact (`limbs.legs`,
+  `face.mouth` with chart `rhubarb9`, `env.latex`). Names use one dotted
+  grammar, are registered with a description and a **remedy** (what would add
+  it, and the command where one exists), and are **persisted identifiers**: the
+  asset library’s facets and the substitution records store them. A capability
+  belongs to one **subject**: `asset`, `engine` or `environment`.
+- An **analyser** derives a subject’s capabilities — a **profile**,
+  `{capability: params}` — from what is there (a descriptor and its art, a
+  renderer’s implemented members, the tools on `PATH`), never from a list
+  typed beside it (ADR 0002 decision 2). It is versioned: a stored snapshot
+  made by an older analyser is recomputed ([`current_affordances()`](_autosummary/an.capabilities.html.md#an.capabilities.current_affordances)).
+  Declared facts used *instead of* deriving are listed under the
+  `overrides` param, so the derivation reports which overrides it used.
+- A **requirement** is a predicate over a profile, spelled as a string. The
+  whole grammar (consult on P7, §3): `cap` (afforded), `cap:key` (`key`
+  among the capability’s `keys`), `cap>=N` (its `count` param — else its
+  number of `keys` — is at least `N`) and `a|b` (any of). No callables:
+  a requirement must name its remedy, render into the generated docs and the
+  MCP surface, and diff when a method’s version bumps.
+- [`missing()`](_autosummary/an.capabilities.html.md#an.capabilities.missing) is THE matcher: the requirement terms a profile (or a
+  [`Subjects`](_autosummary/an.capabilities.html.md#an.capabilities.Subjects) triple) does not meet, in the order asked. `why_not`,
+  > `applicable` and `resolve` (in [`an.semantic`](_autosummary/an.semantic.html.md#module-an.semantic)) and the library’s
+  > `find(…, near=True)` are all calls to it.
+- A [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) records that a method other than the requested one
+  was used (generalising the compiled document’s `asset_resolution`).
+  `policy` choices are information; `missing` and `noop` are warnings
+  that `--strict-assets` makes fatal ([`FATAL_REASONS`](_autosummary/an.capabilities.html.md#an.capabilities.FATAL_REASONS)).
+
+```pycon
+>>> profile = {"swap.view": {"keys": ["front", "side"]}, "limbs.legs": {}}
+>>> matches(profile, "swap.view:side"), matches(profile, "swap.view:back"), matches(profile, "limbs.legs")
+(True, False, True)
+>>> missing(profile, ["limbs.legs", "face.mouth|face.jaw", "swap.view>=3"])
+['face.mouth|face.jaw', 'swap.view>=3']
+```
+
+### Module Attributes
+
+| [`SUBJECTS`](_autosummary/an.capabilities.html.md#an.capabilities.SUBJECTS)        | The three subjects a capability can belong to (core study §2.13).                    |
+|------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`KEY_SEP`](_autosummary/an.capabilities.html.md#an.capabilities.KEY_SEP)         | Separates a capability from one of its keys in a term (`swap.view:side`).            |
+| [`KEYS_PARAM`](_autosummary/an.capabilities.html.md#an.capabilities.KEYS_PARAM)      | The params entry listing the discrete values a capability affords.                   |
+| [`OVERRIDES_PARAM`](_autosummary/an.capabilities.html.md#an.capabilities.OVERRIDES_PARAM) | The params entry listing the declared facts the derivation used instead of deriving. |
+| [`Profile`](_autosummary/an.capabilities.html.md#an.capabilities.Profile)         | `{capability: params}` — what an analyser derives, and the matcher's only input.     |
+| [`CAPABILITIES`](_autosummary/an.capabilities.html.md#an.capabilities.CAPABILITIES)    | Registered capabilities, by name.                                                    |
+| [`ANALYSERS`](_autosummary/an.capabilities.html.md#an.capabilities.ANALYSERS)       | Registered analysers, by kind.                                                       |
+| [`FATAL_REASONS`](_autosummary/an.capabilities.html.md#an.capabilities.FATAL_REASONS)   | The reasons `--strict-assets` makes fatal (a test pins this set).                    |
+
+### Functions
+
+| [`affordances`](_autosummary/an.capabilities.html.md#an.capabilities.affordances)(asset[, art, kind])                   | `affordances(asset)` (ADR 0002 decision 2): what `asset` affords, derived.                                                |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`analyse`](_autosummary/an.capabilities.html.md#an.capabilities.analyse)(kind, doc[, art])                         | `(profile, analysers)` of one subject: its capabilities and the analyser versions used.                                   |
+| [`art_in_dir`](_autosummary/an.capabilities.html.md#an.capabilities.art_in_dir)(directory, \*[, exclude])              | The art an asset folder holds, as an analyser reads it: `{relative path: True}`.                                          |
+| [`capability_names`](_autosummary/an.capabilities.html.md#an.capabilities.capability_names)(\*[, subject, owner])            | The registered capability names, sorted; filtered by `subject`/`owner`.                                                   |
+| [`capability_of`](_autosummary/an.capabilities.html.md#an.capabilities.capability_of)(query)                              | `(capability, key)` of a query term (the library's `find` form).                                                          |
+| [`current_affordances`](_autosummary/an.capabilities.html.md#an.capabilities.current_affordances)(kind, doc, art, \*, ...)      | The stored snapshot when its analyser version is current, else a fresh derivation.                                        |
+| [`matches`](_autosummary/an.capabilities.html.md#an.capabilities.matches)(profile, term)                            | Whether `profile` (or the subject of `term` in a [`Subjects`](_autosummary/an.capabilities.html.md#an.capabilities.Subjects)) meets `term`. |
+| [`missing`](_autosummary/an.capabilities.html.md#an.capabilities.missing)(profile, requires)                        | The requirement terms `profile` does not meet, spelled, in the order asked.                                               |
+| [`parse_requirement`](_autosummary/an.capabilities.html.md#an.capabilities.parse_requirement)(spec)                           | A [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement) from its spelling (`cap`, `cap:key`, `cap>=N`, `a|b`).     |
+| [`register_analyser`](_autosummary/an.capabilities.html.md#an.capabilities.register_analyser)(kind, \*[, version, ...])       | Register an analyser.                                                                                                     |
+| [`register_capability`](_autosummary/an.capabilities.html.md#an.capabilities.register_capability)(name, \*[, description, ...]) | Register a capability (or a [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)).                                 |
+| [`remedy_for`](_autosummary/an.capabilities.html.md#an.capabilities.remedy_for)(term)                                  | What would add the capability a requirement term asks for.                                                                |
+| [`subject_of`](_autosummary/an.capabilities.html.md#an.capabilities.subject_of)(term)                                  | The subject whose profile a requirement term is matched against.                                                          |
+
+### Classes
+
+| [`Analyser`](_autosummary/an.capabilities.html.md#an.capabilities.Analyser)(kind, version, derive[, subject, ...])   | The derivation of one kind's profile, versioned.                                   |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it.               |
+| [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement)([capability, key, at_least, any_of])  | One requirement term: a capability, optionally a key or a count, or a disjunction. |
+| [`Subjects`](_autosummary/an.capabilities.html.md#an.capabilities.Subjects)([asset, engine, environment])            | The three profiles a requirement can be matched against.                           |
+| [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution)(aspect, entity, requested, ...)      | One recorded substitution: the method asked for, the one used, and why.            |
+
+### Exceptions
+
+| [`CapabilityError`](_autosummary/an.capabilities.html.md#an.capabilities.CapabilityError)   | A capability, analyser or requirement is malformed, or collides with one registered.   |
+|--------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+
+### an.capabilities.ANALYSERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Analyser](_autosummary/an.capabilities.html.md#an.capabilities.Analyser)]* *= {'engine': Analyser(kind='engine', version='1', subject='engine', declares=()), 'environment': Analyser(kind='environment', version='1', subject='environment', declares=())}*
+
+Registered analysers, by kind.
+
+### *class* an.capabilities.Analyser(kind, version, derive, subject='asset', declares=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The derivation of one kind’s profile, versioned.
+
+`kind` is an asset kind (`character`) or a subject that has one
+analyser (`engine`, `environment`). Bump `version` whenever the
+output can change for the same input: snapshots made under the old one are
+then recomputed on read. The version is NOT a compile input (consult §5):
+the derived profile is, so touching an analyser without changing its output
+re-renders nothing.
+
+#### declares *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ()*
+
+The document’s declared facts the derivation honours instead of deriving
+(`rest_view`, `face_overlay`) or reads as a request (`gait`):
+reported by `describe_asset` (ADR 0002 decision 2).
+
+### an.capabilities.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability)]* *= {'engine.compile': Capability(name='engine.compile', description='the engine implements the optional \`compile\` member', remedy='use an engine that implements \`compile\`', subject='engine', command=None, version='1'), 'engine.preview': Capability(name='engine.preview', description='the engine implements the optional \`preview\` member', remedy='use an engine that implements \`preview\`', subject='engine', command=None, version='1'), 'engine.render': Capability(name='engine.render', description='the engine renders shots (keys: the Shot.renderer values it claims)', remedy="register a renderer that claims the shot's \`renderer\` (an.adapters.register_renderer)", subject='engine', command=None, version='1'), 'engine.render_frames': Capability(name='engine.render_frames', description='the engine implements the optional \`render_frames\` member', remedy='use an engine that implements \`render_frames\`', subject='engine', command=None, version='1'), 'engine.seek': Capability(name='engine.seek', description='the engine implements the optional \`seek\` member', remedy='use an engine that implements \`seek\`', subject='engine', command=None, version='1'), 'env.browser': Capability(name='env.browser', description='Playwright with a Chromium build, which the stage engine renders in', remedy="pip install 'an[cutout]' && playwright install chromium", subject='environment', command=None, version='1'), 'env.ffmpeg': Capability(name='env.ffmpeg', description='\`ffmpeg\` is on PATH', remedy='install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)', subject='environment', command=None, version='1'), 'env.key.anthropic': Capability(name='env.key.anthropic', description='the ANTHROPIC_API_KEY environment variable is set (its value is never read)', remedy='set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)', subject='environment', command=None, version='1'), 'env.key.elevenlabs': Capability(name='env.key.elevenlabs', description='the ELEVEN_API_KEY environment variable is set (its value is never read)', remedy='set ELEVEN_API_KEY (needed by the ElevenLabs voices)', subject='environment', command=None, version='1'), 'env.latex': Capability(name='env.latex', description='\`latex\` is on PATH', remedy='install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH', subject='environment', command=None, version='1'), 'env.node': Capability(name='env.node', description='\`node\` is on PATH', remedy='install Node.js (\`brew install node\`)', subject='environment', command=None, version='1'), 'env.rhubarb': Capability(name='env.rhubarb', description='\`rhubarb\` is on PATH', remedy='install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)', subject='environment', command=None, version='1'), 'space.framing2d': Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'), 'space.orbit3d': Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1')}*
+
+Registered capabilities, by name.
+
+### *class* an.capabilities.Capability(name, description, remedy, subject='asset', command=None, version='1')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A registered capability: its name, what it means, and how to add it.
+
+`command` is the CLI that adds it, when one exists (`an character
+add-views`); `version` bumps when the *meaning* of the name changes (a
+persisted name is never redefined in place).
+
+#### to_json()
+
+The capability as the generated docs and the MCP surface list it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *exception* an.capabilities.CapabilityError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A capability, analyser or requirement is malformed, or collides with one registered.
+
+### an.capabilities.FATAL_REASONS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'missing', 'noop'})*
+
+The reasons `--strict-assets` makes fatal (a test pins this set).
+
+### an.capabilities.KEYS_PARAM *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'keys'*
+
+The params entry listing the discrete values a capability affords.
+
+### an.capabilities.KEY_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ':'*
+
+Separates a capability from one of its keys in a term (`swap.view:side`).
+
+### an.capabilities.OVERRIDES_PARAM *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'overrides'*
+
+The params entry listing the declared facts the derivation used instead of deriving.
+
+### an.capabilities.Profile
+
+`{capability: params}` — what an analyser derives, and the matcher’s only input.
+
+alias of [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### *class* an.capabilities.Requirement(capability='', key=None, at_least=None, any_of=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One requirement term: a capability, optionally a key or a count, or a disjunction.
+
+```pycon
+>>> str(parse_requirement("swap.view:side")), str(parse_requirement("rig.slots>=2"))
+('swap.view:side', 'rig.slots>=2')
+>>> [str(r) for r in parse_requirement("face.eyes|face.brows").any_of]
+['face.eyes', 'face.brows']
+```
+
+#### capabilities()
+
+Every capability name this term mentions.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.capabilities.SUBJECTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('asset', 'engine', 'environment')*
+
+The three subjects a capability can belong to (core study §2.13).
+
+### *class* an.capabilities.Subjects(asset=<factory>, engine=<factory>, environment=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The three profiles a requirement can be matched against.
+
+A bare profile passed where `Subjects` is expected is the asset’s.
+
+```pycon
+>>> Subjects.of({"limbs.legs": {}}).asset
+{'limbs.legs': {}}
+```
+
+### *class* an.capabilities.Substitution(aspect, entity, requested, chosen, reason, requested_version=None, chosen_version='', missing=(), remedies=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One recorded substitution: the method asked for, the one used, and why.
+
+It generalises the compiled document’s `asset_resolution` (ADR 0002
+decision 6): a requested method replaced by a default is said out loud,
+and fatal under `--strict-assets` unless it was a policy choice.
+
+```pycon
+>>> s = Substitution("locomotion", "bob", requested="loco.hem_sway", chosen="loco.rock",
+...                  reason="missing", missing=("limbs.legs",))
+>>> s.fatal, s.sentence()
+(True, "bob: locomotion 'loco.hem_sway' does not apply (missing limbs.legs); used 'loco.rock'")
+```
+
+#### sentence()
+
+One human sentence saying what happened.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.capabilities.affordances(asset, art=None, , kind='character')
+
+`affordances(asset)` (ADR 0002 decision 2): what `asset` affords, derived.
+
+`asset` is the document (a mapping, or a pydantic model, dumped to JSON
+first); `art` the files present, `{relative path: ref}`. The kind’s
+registered analyser decides; with none, nothing is afforded.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.capabilities.analyse(kind, doc, art=None)
+
+`(profile, analysers)` of one subject: its capabilities and the analyser versions used.
+
+A kind with no registered analyser affords nothing *derived* and records no
+analyser — an honest empty answer, not a guess.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> analyse("no-such-kind", {})
+({}, {})
+```
+
+### an.capabilities.art_in_dir(directory, , exclude=())
+
+The art an asset folder holds, as an analyser reads it: `{relative path: True}`.
+
+`exclude` drops the document files themselves (`character.json`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
+
+```pycon
+>>> import tempfile, pathlib
+>>> with tempfile.TemporaryDirectory() as d:
+...     _ = (pathlib.Path(d) / "parts").mkdir(); _ = (pathlib.Path(d) / "parts" / "head.svg").write_text("<svg/>", encoding="utf-8")
+...     sorted(art_in_dir(d))
+['parts/head.svg']
+```
+
+### an.capabilities.capability_names(, subject=None, owner=None)
+
+The registered capability names, sorted; filtered by `subject`/`owner`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.capabilities.capability_of(query)
+
+`(capability, key)` of a query term (the library’s `find` form).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+```pycon
+>>> capability_of("swap.view:side"), capability_of("limbs.legs")
+(('swap.view', 'side'), ('limbs.legs', None))
+```
+
+### an.capabilities.current_affordances(kind, doc, art, , stored, stored_analysers)
+
+The stored snapshot when its analyser version is current, else a fresh derivation.
+
+Affordances are derived data, so recomputing them is always safe; trusting a
+snapshot made by an older analyser is what would make a facet lie.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.capabilities.matches(profile, term)
+
+Whether `profile` (or the subject of `term` in a [`Subjects`](_autosummary/an.capabilities.html.md#an.capabilities.Subjects)) meets `term`.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.capabilities.missing(profile, requires)
+
+The requirement terms `profile` does not meet, spelled, in the order asked.
+
+THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
+`resolve` and the library’s `find(…, near=True)` all call it.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
+(['env.ffmpeg'], [])
+```
+
+### an.capabilities.parse_requirement(spec)
+
+A [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement) from its spelling (`cap`, `cap:key`, `cap>=N`, `a|b`).
+
+* **Return type:**
+  [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement)
+
+```pycon
+>>> parse_requirement("rig.slots>=2").at_least
+2
+>>> parse_requirement("limbs.legs(hips)")
+Traceback (most recent call last):
+...
+an.capabilities.CapabilityError: requirement 'limbs.legs(hips)': ...
+```
+
+### an.capabilities.register_analyser(kind, , version='', subject='asset', owner='an')
+
+Register an analyser. Two forms.
+
+`register_analyser(Analyser(...), owner=...)` registers the object and
+returns it (a genre’s `analysers` field goes this way). With a `kind`
+string it is a decorator: `@register_analyser("character", version="0.1.0")`
+registers the decorated derivation.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.capabilities.register_capability(name, , description='', remedy='', subject='asset', command=None, version='1', owner='an')
+
+Register a capability (or a [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)). Returns it.
+
+Re-registering the same definition is a no-op; a different definition
+under a name another owner holds raises, because capability names are
+persisted and two meanings for one name would make a stored facet lie.
+
+* **Return type:**
+  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
+
+```pycon
+>>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
+>>> CAPABILITIES["demo.thing"] is cap
+True
+>>> _ = drop_owner("demo")
+```
+
+### an.capabilities.remedy_for(term)
+
+What would add the capability a requirement term asks for.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> remedy_for("no.such.capability")
+'no registered capability no.such.capability; see vocabulary() for the known names'
+```
+
+### an.capabilities.subject_of(term)
+
+The subject whose profile a requirement term is matched against.
+
+An unregistered capability is matched against the asset (and reported
+missing there): [`an.semantic.check_registry()`](_autosummary/an.semantic.html.md#an.semantic.check_registry) is what refuses it.
+
+* **Return type:**
+  str
+
+```pycon
+>>> subject_of("env.latex") == subject_of("limbs.legs")
+False
+```
+
+### Modules
+
+| [`subjects`](_autosummary/an.capabilities.subjects.html.md#module-an.capabilities.subjects)   | The core's two non-asset subjects: the engine (a renderer) and the environment.   |
+|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+
+
+# _autosummary/an.capabilities.subjects.html.md
+
+# an.capabilities.subjects
+
+The core’s two non-asset subjects: the engine (a renderer) and the environment.
+
+Core study §2.13: a requirement can name what the **engine** draws (which shot
+kinds it claims, which optional members it implements — previz’s rule, “a flag
+can never disagree with the code”) and what the **environment** has (ffmpeg, a
+browser, LaTeX, an API key). Each gets one minimal, real analyser here, owned by
+the core and registered on import of [`an.capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities):
+
+- `engine` — derived from the renderer object’s *implemented members*:
+  `engine.render` (`keys`: the `Shot.renderer` values it claims) and one
+  `engine.<member>` per optional member it implements. When the `Engine`
+  protocol (P3) lands, its optional members join [`ENGINE_OPTIONAL_MEMBERS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS)
+  and nothing else changes. A stub whose `render` always raises still claims
+  its renderer here — the protocol cannot tell yet, and saying so is better
+  than a declared flag that could lie. `space.<name>`: the view spaces it
+  lowers (an#257), from a `view_spaces` member, else
+  `DFLT_ENGINE_VIEW_SPACES`.
+- `environment` — cheap probes only (`PATH` lookups, an import spec, the
+  Playwright browser cache, the *presence* of API-key variables — never their
+  values). No subprocess, no import of the probed package.
+
+Both analysers take their evidence as `doc` so a test can inject it:
+`environment_affordances(probe={"which": {...}, "env": {...}})`.
+
+```pycon
+>>> profile = environment_affordances(probe={"which": {"ffmpeg"}, "env": {}, "modules": set(), "browsers": False})
+>>> sorted(profile)
+['env.ffmpeg']
+```
+
+### Module Attributes
+
+| [`ENGINE_OPTIONAL_MEMBERS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS)   | Optional engine members a renderer may implement, each afforded as `engine.<member>` when it is a callable attribute of the renderer.   |
+|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`ENV_TOOLS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_TOOLS)                 | `capability: (executables, remedy)` — afforded when any executable is on PATH.                                                          |
+| [`ENV_KEYS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)                  | `capability: (environment variables, remedy)` — afforded when any is set.                                                               |
+
+### Functions
+
+| [`engine_affordances`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.engine_affordances)(renderer)         | What a renderer (or a registered renderer's name) affords, from its members.   |
+|---------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`environment_affordances`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.environment_affordances)(\*[, probe]) | What this machine affords: tools on PATH, a browser, API keys set.             |
+
+### an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('compile', 'preview', 'render_frames', 'seek')*
+
+Optional engine members a renderer may implement, each afforded as
+`engine.<member>` when it is a callable attribute of the renderer.
+
+### an.capabilities.subjects.ENV_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'env.key.anthropic': (('ANTHROPIC_API_KEY',), 'set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)'), 'env.key.elevenlabs': (('ELEVEN_API_KEY', 'ELEVENLABS_API_KEY'), 'set ELEVEN_API_KEY (needed by the ElevenLabs voices)')}*
+
+`capability: (environment variables, remedy)` — afforded when any is set.
+
+### an.capabilities.subjects.ENV_TOOLS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'env.ffmpeg': (('ffmpeg',), 'install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)'), 'env.latex': (('latex', 'pdflatex', 'xelatex'), 'install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH'), 'env.node': (('node',), 'install Node.js (\`brew install node\`)'), 'env.rhubarb': (('rhubarb',), 'install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)')}*
+
+`capability: (executables, remedy)` — afforded when any executable is on PATH.
+
+### an.capabilities.subjects.engine_affordances(renderer)
+
+What a renderer (or a registered renderer’s name) affords, from its members.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+```pycon
+>>> class Fake:
+...     supported_renderers = ("toy",)
+...     def render(self, shot, ctx): ...
+...     def preview(self, shot): ...
+>>> engine_affordances(Fake())
+{'engine.render': {'keys': ['toy']}, 'engine.preview': {}}
+```
+
+### an.capabilities.subjects.environment_affordances(, probe=None)
+
+What this machine affords: tools on PATH, a browser, API keys set.
+
+`probe` injects the evidence (`which`, `env`, `modules`,
+`browsers`); `None` probes the real machine (cheap: no subprocess).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+
 # _autosummary/an.captions.html.md
 
 # an.captions
@@ -12069,6 +12553,7 @@ Subcommands (used as `an character <verb> ...`):
 - `add-views` — give an offline character its turnaround (an#197).
 - `mouths`    — regenerate the 9-shape default mouth set.
 - `validate`  — completeness check.
+- `capabilities` — what it affords, and per aspect which methods apply (an#248).
 - `silhouette`— rasterize silhouettes; for two characters, also IoU.
 - `preview`   — open an HTML viewer cycling visemes + idle animation.
 
@@ -12077,6 +12562,7 @@ Subcommands (used as `an character <verb> ...`):
 | [`add_gaze`](_autosummary/an.characters.cli.html.md#an.characters.cli.add_gaze)(name[, out_dir, overwrite_eyes])         | Give `name` the eye stack (an#99): sclera and pupil slots under each lid, a filled closed lid, and the `gaze_travel` clamp — so `gaze_x` / `gaze_y` and the ambient saccades move its pupils.   |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_views`](_autosummary/an.characters.cli.html.md#an.characters.cli.add_views)(name[, out_dir])                        | Give `name` its turnaround (an#197): back, side and three-quarter head and torso art, a `view` swap set, and a pose per view — so `play: turn` and `set <name> view <key>` turn it.             |
+| [`capabilities`](_autosummary/an.characters.cli.html.md#an.characters.cli.capabilities)(name[, out_dir, as_json])            | What a character affords, and per aspect which methods apply and what the rest lack.                                                                                                            |
 | [`contract`](_autosummary/an.characters.cli.html.md#an.characters.cli.contract)()                                        | Print the art-package contract an illustrator must satisfy.                                                                                                                                     |
 | [`mouths`](_autosummary/an.characters.cli.html.md#an.characters.cli.mouths)(name[, out_dir, palette, variants])        | Regenerate the default 9-shape mouth set for `name`, plus its `viseme@<form>` variants, and declare them in the descriptor.                                                                     |
 | [`new`](_autosummary/an.characters.cli.html.md#an.characters.cli.new)(name[, out_dir, seed, style, voice_ref, ...]) | Create a new character at `out_dir`/`name`.                                                                                                                                                     |
@@ -12111,6 +12597,23 @@ hand-drawn rig, whose views are an illustrator’s to draw.
 
 name: character id
 out_dir: parent directory; defaults to ./assets/characters
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.characters.cli.capabilities(name, out_dir='', as_json=False)
+
+What a character affords, and per aspect which methods apply and what the rest lack.
+
+The affordances are derived from `character.json` and the art files
+present (ADR 0002 decision 2), with the declared overrides it used; per
+aspect (`locomotion`, `speech`, …) the method the default chain picks,
+the methods that apply, and for each other method the missing capabilities
+with the remedy that would add them.
+
+name: character id
+out_dir: parent directory; defaults to ./assets/characters
+as_json: print the answer as JSON (what the MCP surface returns)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -12663,7 +13166,7 @@ the face’s edge, and the mouth with them (view_box units at head_scale 1);
 the mouth is narrowed, seen edge-on.
 
 * **Type:**
-  Profile (facing right)
+  [*Profile*](_autosummary/an.capabilities.html.md#an.capabilities.Profile) (facing right)
 
 ### an.characters.factory.SIDE_LEG_OFFSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
 
@@ -13242,6 +13745,21 @@ quietly stops being carried. Pinned by test.
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
+#### speech *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a
+method’s spelling (`mouth_chart`, `pulse`), its id
+(`speech.pose_only`) or a choice with args and an optional version pin
+(`{method: pulse, args: {strength: 0}}` — a mime). `None` = the
+default chain: lip-sync when the character has a mouth chart, else a
+head pulse, recorded. Declaring it is also how a baked-face character
+renders under `--strict-assets`: a declared pulse is the request, not a
+fallback. Resolved (and refused when unknown) by the capability
+registry. Omitted from the stored document when unset.
+
+* **Type:**
+  How this character shows it is speaking (the speech aspect, an#248)
+
 #### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
 
 {slot:
@@ -13642,21 +14160,23 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                            |
-|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…         |
-| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                           |
-| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                           |
-| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                            |
-| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                             |
-| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                        |
-| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).  |
-| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                      |
-| [`registration`](_autosummary/an.characters.registration.html.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`. |
-| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                          |
-| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                      |
-| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.           |
-| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                   |
+| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                                      |
+|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…                   |
+| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                                     |
+| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                                     |
+| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                                      |
+| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                                       |
+| [`methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)           | The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).      |
+| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                                  |
+| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).            |
+| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                                |
+| [`registration`](_autosummary/an.characters.registration.html.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`.           |
+| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                                    |
+| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                                |
+| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.                     |
+| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                             |
+| [`vocabulary`](_autosummary/an.characters.vocabulary.html.md#module-an.characters.vocabulary)     | The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes. |
 
 
 # _autosummary/an.characters.idle.html.md
@@ -13894,6 +14414,214 @@ licence is a refusal, not a warning.
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
+# _autosummary/an.characters.methods.html.md
+
+# an.characters.methods
+
+The cut-out genre’s methods and aspects, and their compile-time resolution (ADR 0002).
+
+The first two aspects of ADR 0002’s first slice, as registry data:
+
+| aspect     | method (spelled)                     | requires     | chain      |
+|------------|--------------------------------------|--------------|------------|
+| locomotion | `loco.legged_cycle` (`legs`)         | `limbs.legs` | 1st        |
+| locomotion | `loco.hem_sway` (`hem`)              | `limbs.legs` | by request |
+| locomotion | `loco.rock` (`rock`)                 | nothing      | last link  |
+| speech     | `speech.mouth_chart` (`mouth_chart`) | `face.mouth` | 1st        |
+| speech     | `speech.pose_only` (`pulse`)         | nothing      | last link  |
+
+**Locomotion is today’s walk/gait chain, moved, not changed** (ADR 0002
+decision 8: the gate is byte-identical output). A walk’s `gait` arg is the
+author’s request, the descriptor’s `gait` a declared override (reported as
+such); with neither, the chain picks `legs` when the character affords a leg
+pair and `rock` when it does not — exactly what [`an.motion.walk()`](_autosummary/an.motion.html.md#an.motion.walk) did on
+its own. What is new is that the choice is the registry’s, made once, and a
+requested gait the rig cannot honour (`hem` on a legless blob) is a
+**recorded substitution**: a warning, fatal under `--strict-assets`.
+
+**Speech gains a requirement-free last link.** A character whose face is baked
+into its art (`face_overlay: false`) used to speak with a frozen mouth; it now
+pulses its head on each syllable (`an.motion.speech_pulse()`, parametrised:
+`strength`, `part`, `attack`, `release`; `strength: 0` is a mime).
+
+The asset profile the compiler resolves against is the character analyser’s
+(`an.capabilities.affordances`), fed what the compiler actually has: the
+descriptor and the art its store holds, or — for a rig drawn from `parts` or
+the placeholder — the parts the builder built. Characters only: other entity
+kinds have no analyser yet, and keep the preset’s own rig lookup.
+
+Importing this module registers nothing: `an.genres.cutout.CUTOUT` lists
+[`CUTOUT_METHODS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_METHODS) and [`CUTOUT_ASPECTS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_ASPECTS).
+
+### Module Attributes
+
+| [`LOCOMOTION`](_autosummary/an.characters.methods.html.md#an.characters.methods.LOCOMOTION)     | The aspect names (persisted in substitution records).       |
+|-----------------------------------------------------------------|-------------------------------------------------------------|
+| [`CUTOUT_METHODS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_METHODS) | The genre's methods, as vocabulary entries (kind `method`). |
+| [`CUTOUT_ASPECTS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_ASPECTS) | each chain ends in a method that requires nothing.          |
+
+### Functions
+
+| [`check_declared_speech`](_autosummary/an.characters.methods.html.md#an.characters.methods.check_declared_speech)(ctx)                         | The cut-out genre's semantic check: each character's declared `speech` resolves.                                             |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| [`compile_profile`](_autosummary/an.characters.methods.html.md#an.characters.methods.compile_profile)(descriptor, \*[, ...])             | The character's profile, from what the compiler has: the analyser, fed honestly.                                             |
+| [`speech_problems`](_autosummary/an.characters.methods.html.md#an.characters.methods.speech_problems)(declared)                          | Why a character's declared `speech` cannot be honoured (empty: it can).                                                      |
+| [`normalise_gait_args`](_autosummary/an.characters.methods.html.md#an.characters.methods.normalise_gait_args)(args)                          | A walk's args with `gait` as the walk spells it (`legs`/`hem`/`rock`).                                                       |
+| [`resolve_walk_gait`](_autosummary/an.characters.methods.html.md#an.characters.methods.resolve_walk_gait)(entity, \*, args, ...[, policy]) | `(gait, resolution)` of a walk on `entity`: the locomotion method's spelling.                                                |
+| [`speech_plan`](_autosummary/an.characters.methods.html.md#an.characters.methods.speech_plan)(shot, \*, is_character, profile_of)    | Resolve the speech aspect ONCE per speaking character, and say what it adds.                                                 |
+| [`substitution_record`](_autosummary/an.characters.methods.html.md#an.characters.methods.substitution_record)(sub, \*[, entity_ref])         | A [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) as an `asset_resolution` entry. |
+| [`syllable_beats`](_autosummary/an.characters.methods.html.md#an.characters.methods.syllable_beats)(line, \*[, min_gap_s])              | Syllable onsets of a dialogue line, in seconds from its start.                                                               |
+
+### Classes
+
+| [`SpeechPlan`](_autosummary/an.characters.methods.html.md#an.characters.methods.SpeechPlan)([actions, no_lip_sync])   | What the speech aspect decided for a shot: the actions it adds, and the speakers whose lip-sync it switched off (the viseme pass skips them).   |
+|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### an.characters.methods.CUTOUT_ASPECTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Aspect](_autosummary/an.semantic.html.md#an.semantic.Aspect), ...]* *= (Aspect(name='locomotion', chain=('loco.legged_cycle', 'loco.rock'), applies_to=frozenset(), description='how a character travels when it walks.', declared_by='gait', records_fallback=False), Aspect(name='speech', chain=('speech.mouth_chart', 'speech.pose_only'), applies_to=frozenset(), description='how a character shows that it is speaking.', declared_by='speech', records_fallback=True))*
+
+each chain ends in a method that requires nothing.
+
+* **Type:**
+  The genre’s aspects
+
+### an.characters.methods.CUTOUT_METHODS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Method](_autosummary/an.semantic.html.md#an.semantic.Method), ...]* *= (Method(id='loco.legged_cycle', kind='method', version='1', name='legs', title='legged walk cycle', description='a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs', usage='', params={'type': 'object', 'properties': {'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'bob': {'type': 'number', 'default': 6.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'legs'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': 'split the legs into two slots named leg_l/leg_r, each with its art, pivoted at the hip (an-art-package skill; \`an character new\` builds them)'}), Method(id='loco.hem_sway', kind='method', version='1', name='hem', title='hem sway', description="a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs", usage='', params={'type': 'object', 'properties': {'hem_tilt': {'type': 'number', 'default': 0.24}, 'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'stride': {'type': 'number', 'default': 0.35}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'hem'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': "carve the robe's hem into two halves on slots leg_l/leg_r, pivoted at the hip, and declare \`gait: hem\` in character.json"}), Method(id='loco.rock', kind='method', version='1', name='rock', title='rock and bob', description='no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable)', usage='', params={'type': 'object', 'properties': {'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'rock'}},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='locomotion', remedies={}), Method(id='speech.mouth_chart', kind='method', version='1', name='mouth_chart', title='mouth chart lip-sync', description="lip-sync on the character's mouth chart: the line's visemes swap the mouth drawings (the nine Rhubarb shapes, or the character's own set)", usage='', params={}, examples=(), requires=(Requirement(capability='face.mouth', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='speech', remedies={'face.mouth': "give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\`) and face_overlay: true"}), Method(id='speech.pose_only', kind='method', version='1', name='pulse', title='speech pulse', description='no lip-sync: the head (or the body) pulses on each syllable, so a baked face or a mime still reads as speaking', usage='', params={'type': 'object', 'properties': {'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=('a character with face_overlay: false speaks',), requires=(), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='speech', remedies={}))*
+
+The genre’s methods, as vocabulary entries (kind `method`).
+
+### an.characters.methods.LOCOMOTION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'locomotion'*
+
+The aspect names (persisted in substitution records).
+
+### *class* an.characters.methods.SpeechPlan(actions=(), no_lip_sync=frozenset({}))
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What the speech aspect decided for a shot: the actions it adds, and the
+speakers whose lip-sync it switched off (the viseme pass skips them).
+
+### an.characters.methods.check_declared_speech(ctx)
+
+The cut-out genre’s semantic check: each character’s declared `speech` resolves.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.methods.compile_profile(descriptor, , built_parts=(), art_exists=None)
+
+The character’s profile, from what the compiler has: the analyser, fed honestly.
+
+`descriptor` is the migrated `CharacterDescriptor` (or `None` for a
+rig drawn from `parts` / the placeholder); `art_exists(rel_path)` the
+store’s probe (`None`: the store cannot say, so every declared drawing
+counts — the rig builder’s own rule); `built_parts` the part names the
+builder built under the entity (for a non-descriptor rig, they ARE its
+parts document).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.characters.methods.normalise_gait_args(args)
+
+A walk’s args with `gait` as the walk spells it (`legs`/`hem`/`rock`).
+
+`gait` may name a locomotion method by id (`loco.rock`) or be a choice
+`{method, args, version}` — the level-(a) form, and how a scene pins a
+method’s version (ADR 0003 decision 2). The choice’s `args` join the
+walk’s (an explicit arg wins); a pin that no longer holds, or a method of
+another aspect, raises [`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> normalise_gait_args({"gait": {"method": "loco.legged_cycle", "args": {"stride": 0.5}, "version": "1"}})
+{'stride': 0.5, 'gait': 'legs'}
+>>> normalise_gait_args({"gait": "hem", "distance": 80})
+{'gait': 'hem', 'distance': 80}
+```
+
+### an.characters.methods.resolve_walk_gait(entity, , args, descriptor, profile, policy=None)
+
+`(gait, resolution)` of a walk on `entity`: the locomotion method’s spelling.
+
+The request is the walk’s `gait` arg, else the descriptor’s declared
+`gait` (an override of the derivation, and reported as one). An explicit
+`legs` arg names the limbs itself: a non-empty pair affords legs whatever
+the derivation says, `()` affords none.
+
+```pycon
+>>> gait, r = resolve_walk_gait("blob", args={"gait": "hem"}, descriptor=None, profile={})
+>>> gait, r.substitution.reason, r.substitution.missing
+('rock', 'missing', ('limbs.legs',))
+```
+
+### an.characters.methods.speech_plan(shot, \*, is_character, profile_of, descriptor_of=<function <lambda>>, has_part, record=None, policy=None)
+
+Resolve the speech aspect ONCE per speaking character, and say what it adds.
+
+The request is the character’s declared `speech` (a method spelling or a
+`{method, args, version}` choice); `policy` is the shot/style policy.
+The one resolution decides both halves: a speaker resolved to anything but
+`speech.mouth_chart` gets no viseme channel (`SpeechPlan.no_lip_sync`),
+and one resolved to `speech.pose_only` gets a `speech_pulse` play at each
+syllable onset of each timed line — one play per syllable, each built at the
+head’s pose at that instant, so it rides an authored head-scale tween rather
+than overwriting it; a syllable that starts while the speaker’s previous pulse
+is still running is skipped, so the head always settles back. `strength: 0`
+is a mime: no pulse at all. An authored `play: speech_pulse` on the speaker
+replaces the automatic pulses (nothing is added beside it), but it is not a
+declaration: the fall from the mouth chart is still recorded, and only a
+declared `speech` makes it the request. Substitutions (a declared method
+the rig cannot honour; the fall from the mouth chart to the pulse) go to
+`record`, once per speaker. A declared `speech` naming no method of the
+aspect, or pinned to a stale version, raises
+[`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError) naming the aspect’s methods
+([`speech_problems()`](_autosummary/an.characters.methods.html.md#an.characters.methods.speech_problems) is `an validate`’s side of it).
+
+* **Return type:**
+  [`SpeechPlan`](_autosummary/an.characters.methods.html.md#an.characters.methods.SpeechPlan)
+
+### an.characters.methods.speech_problems(declared)
+
+Why a character’s declared `speech` cannot be honoured (empty: it can).
+
+An unknown method, a method of another aspect, or a pin to a version the
+registry no longer has; the message names the speech methods.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> speech_problems("pulse"), speech_problems(None)
+([], [])
+>>> speech_problems("flap")[0].startswith("speech 'flap'")
+True
+```
+
+### an.characters.methods.substitution_record(sub, , entity_ref=None)
+
+A [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) as an `asset_resolution` entry.
+
+The compiled document’s record generalised (ADR 0002 decision 6):
+`kind: method`, `store` the aspect, `ref` what was asked for,
+`resolved` what was used, `fallback` whether `--strict-assets` makes
+it fatal.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.characters.methods.syllable_beats(line, , min_gap_s=0.18)
+
+Syllable onsets of a dialogue line, in seconds from its start.
+
+From the line’s viseme track (a syllable starts where the mouth opens out
+of a closed shape), else its word timings (one beat per word), else one
+beat at its start. Beats closer than `min_gap_s` merge.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+
 # _autosummary/an.characters.mouth_set.html.md
 
 # an.characters.mouth_set
@@ -14044,7 +14772,8 @@ so an author never passes `rest`.
 >>> play_problems(desc, "moonwalk")
 ["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle', 'walk'])"]
+  'shake', 'slide_in', 'slide_out', 'speech_pulse', 'squash_stretch', 'turn',
+  'waddle', 'walk'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 ```
@@ -14999,6 +15728,21 @@ quietly stops being carried. Pinned by test.
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
+#### speech *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a
+method’s spelling (`mouth_chart`, `pulse`), its id
+(`speech.pose_only`) or a choice with args and an optional version pin
+(`{method: pulse, args: {strength: 0}}` — a mime). `None` = the
+default chain: lip-sync when the character has a mouth chart, else a
+head pulse, recorded. Declaring it is also how a baked-face character
+renders under `--strict-assets`: a declared pulse is the request, not a
+fallback. Resolved (and refused when unknown) by the capability
+registry. Omitted from the stored document when unset.
+
+* **Type:**
+  How this character shows it is speaking (the speech aspect, an#248)
+
 #### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
 
 {slot:
@@ -15641,6 +16385,53 @@ False
 >>> any("character.json" in f.description for f in report.findings)
 True
 ```
+
+
+# _autosummary/an.characters.vocabulary.html.md
+
+# an.characters.vocabulary
+
+The cut-out genre’s vocabulary entries: motion presets, expression presets, IR-field notes.
+
+ADR 0003’s first slice, the genre’s share (the core’s is
+[`an.semantic.seeds`](_autosummary/an.semantic.seeds.html.md#module-an.semantic.seeds)). Each entry is built FROM the table that already
+defines the thing — [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (with
+`an.motion.PRESET_VERSIONS`), `an.expression.presets.PRESETS`, the
+expression axes — never restated, so a preset added there is an entry here
+with nothing else to edit. The genre declares them through
+`an.genres.cutout.CUTOUT`’s `vocabulary` field; importing this module
+registers nothing.
+
+```pycon
+>>> walk = next(e for e in MOTION_PRESET_ENTRIES if e.term == "walk")
+>>> walk.id, walk.aspects, "gait" in walk.params["properties"]
+('motion.walk', ('locomotion',), True)
+```
+
+### Module Attributes
+
+| [`PRESET_ASPECTS`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.PRESET_ASPECTS)             | a `walk` picks a locomotion method; `speech_pulse` IS the speech aspect's last link.                                                                                          |
+|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`EXPRESSION_PRESET_VERSIONS`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS) | Each expression preset's vocabulary version (ADR 0003).                                                                                                                       |
+| [`CUTOUT_VOCABULARY`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.CUTOUT_VOCABULARY)          | Everything this genre contributes to the vocabulary except its methods ([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)). |
+
+### an.characters.vocabulary.CUTOUT_VOCABULARY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.shot.actions.swap_set', kind='field', version='1', name='shot.actions.swap_set', title='', description='a set action that swaps a drawing (replacement animation)', usage="A set/tween property may also be the name of a swap set the target character's descriptor declares in asset_sets (e.g. 'viseme', 'eyelid', 'hands'), used with a 'set' action whose 'value' is one of that set's declared KEYS (replacement animation). The compiler refuses any other name with the declared sets listed. Never invent a set or a key.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.actions.play', kind='field', version='1', name='shot.actions.play', title='', description='play a named animation of the target character, or a motion preset', usage="A 'play' action ({kind: play, target: <entity>, animation: <name>, [duration], [speed], [loop], [args]}) plays one of the target character's descriptor animations ('idle_breath', 'blink', or any it declares) or, for a name the descriptor does not declare, a motion preset (listed below) with 'args' as its parameters (e.g. {'height': 30}); a name in neither fails validation — never invent one. 'point' targets the arm node. A 'walk' picks its gait from the character's structure (its locomotion method, below) unless 'gait' is given.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('locomotion',)), Entry(id='field.shot.actions.expression', kind='field', version='1', name='shot.actions.expression', title='', description='hold a facial expression on a character', usage="An 'expression' action ({kind: expression, target: <entity>, preset: <name>, [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial expression on a character: brows, eyelids, and the mouth's set for any dialogue under it. 'preset' is an expression preset (listed below) — an unknown preset fails validation. Axes are offsets within their ranges: brow_height_l [-1, 1], brow_height_r [-1, 1], brow_angle_l [-1, 1], brow_angle_r [-1, 1], lid_open_l [-1, 0.5], lid_open_r [-1, 0.5], gaze_x [-1, 1], gaze_y [-1, 1]. 'duration' omitted = to the shot end. A character whose descriptor says face_overlay: false cannot take one.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue.emotion', kind='field', version='1', name='shot.dialogue.emotion', title='', description='the mood a line is said in', usage="A dialogue line's 'emotion' is an expression preset name ([happy] on a scene.md line): it sets the face for the line and the voice's mood. When a line's wording changes, update its emotion if the mood changed too.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('speech',)), Entry(id='motion.pop_in', kind='motion_preset', version='1', name='pop_in', title='pop in', description='Grow from nothing to full size, overshooting and settling (an entrance).', usage='', params={'type': 'object', 'properties': {'duration': {'type': 'number', 'default': 0.45}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'pop_in'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.hop', kind='motion_preset', version='1', name='hop', title='hop', description='Jump up by \`height\` scene pixels and land back where it started.', usage='', params={'type': 'object', 'properties': {'height': {'type': 'number', 'default': 40.0}, 'duration': {'type': 'number', 'default': 0.5}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'hop'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.shake', kind='motion_preset', version='1', name='shake', title='shake', description='Tremble side to side \`cycles\` times and come back to rest (on \`x\`).', usage='', params={'type': 'object', 'properties': {'amplitude': {'type': 'number', 'default': 8.0}, 'duration': {'type': 'number', 'default': 0.4}, 'cycles': {'type': 'integer', 'default': 3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'shake'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.nod', kind='motion_preset', version='1', name='nod', title='nod', description='Dip the head \`count\` times (a rotation of \`<target>/<part>\`).', usage='', params={'type': 'object', 'properties': {'part': {'type': 'string', 'default': 'head'}, 'angle': {'type': 'number', 'default': 0.18}, 'duration': {'type': 'number', 'default': 0.5}, 'count': {'type': 'integer', 'default': 2}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'nod'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.point', kind='motion_preset', version='1', name='point', title='point', description='Swing an arm out to point, hold it, and lower it again.', usage='', params={'type': 'object', 'properties': {'angle': {'type': 'number', 'default': -1.3}, 'raise_duration': {'type': 'number', 'default': 0.25}, 'hold': {'type': 'number', 'default': 0.6}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'point'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.slide_in', kind='motion_preset', version='1', name='slide_in', title='slide in', description='Whip in from \`distance\` pixels off to one side, overshoot, and settle.', usage='', params={'type': 'object', 'properties': {'from_side': {'type': 'string', 'default': 'left'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_in'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.slide_out', kind='motion_preset', version='1', name='slide_out', title='slide out', description='Exit \`distance\` pixels off to one side, accelerating (an exit).', usage='', params={'type': 'object', 'properties': {'to_side': {'type': 'string', 'default': 'right'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'type': 'string', 'default': 'ease_in'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_out'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.squash_stretch', kind='motion_preset', version='1', name='squash_stretch', title='squash stretch', description='Squash (wide and short), stretch (narrow and tall), then settle.', usage='', params={'type': 'object', 'properties': {'amount': {'type': 'number', 'default': 0.2}, 'duration': {'type': 'number', 'default': 0.36}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'squash_stretch'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.waddle', kind='motion_preset', version='1', name='waddle', title='waddle', description='A walk cycle for a rig with no legs to animate: rock and bob per step.', usage='', params={'type': 'object', 'properties': {'steps': {'type': 'integer', 'default': 4}, 'step_duration': {'type': 'number', 'default': 0.3}, 'angle': {'type': 'number', 'default': 0.1}, 'lift': {'type': 'number', 'default': 6.0}, 'travel': {'type': 'number', 'default': 0.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'waddle'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.turn', kind='motion_preset', version='1', name='turn', title='turn', description='Turn a character to the view \`to\` — the classic cut-out turn.', usage='', params={'type': 'object', 'properties': {'to': {'type': 'string', 'default': 'back'}, 'direction': {'type': 'string', 'default': 'right'}, 'from_direction': {'type': 'string', 'default': None}, 'duration': {'type': 'number', 'default': 0.3}, 'view_set': {'type': 'string', 'default': 'view'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'turn'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.walk', kind='motion_preset', version='1', name='walk', title='walk', description='Walk: the body travels on \`x\` and bobs once per step while the legs alternate and the arms swing against them.', usage='', params={'type': 'object', 'properties': {'to_x': {'type': 'number', 'default': None}, 'distance': {'type': 'number', 'default': None}, 'direction': {'type': 'string', 'default': None}, 'steps': {'type': 'integer', 'default': None}, 'step_s': {'type': 'number', 'default': 0.4}, 'step_length': {'type': 'number', 'default': 80.0}, 'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'rock': {'type': 'number', 'default': 0.06}, 'hem_tilt': {'type': 'number', 'default': 0.24}, 'view': {'type': 'string', 'default': None}, 'gait': {'type': 'string', 'default': None}, 'legs': {'type': 'array', 'default': None}, 'arms': {'type': 'array', 'default': None}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('locomotion',)), Entry(id='motion.speech_pulse', kind='motion_preset', version='1', name='speech_pulse', title='speech pulse', description='Pulse a part on each syllable: speech carried without a mouth.', usage='', params={'type': 'object', 'properties': {'beats': {'type': 'array', 'default': [0.0]}, 'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'speech_pulse'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('speech',)), Entry(id='expression.neutral', kind='expression_preset', version='1', name='neutral', title='', description='the rest face: every axis at its neutral value', usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'neutral'}, '[neutral] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.happy', kind='expression_preset', version='1', name='happy', title='', description="expression-sheet preset: brow_angle_l +0.1, brow_angle_r +0.1, brow_height_l +0.2, brow_height_r +0.2, lid_open_l -0.2, lid_open_r -0.2; mouth form 'happy'", usage='FACS cross-reference 6+12', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'happy'}, '[happy] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.sad', kind='expression_preset', version='1', name='sad', title='', description="expression-sheet preset: brow_angle_l +0.6, brow_angle_r +0.6, brow_height_l +0.3, brow_height_r +0.3, lid_open_l -0.3, lid_open_r -0.3; mouth form 'sad'", usage='FACS cross-reference 1+4+15', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'sad'}, '[sad] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.angry', kind='expression_preset', version='1', name='angry', title='', description="expression-sheet preset: brow_angle_l -0.8, brow_angle_r -0.8, brow_height_l -0.6, brow_height_r -0.6, lid_open_l +0.1, lid_open_r +0.1; mouth form 'angry'", usage='FACS cross-reference 4+5+7+23', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'angry'}, '[angry] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.surprised', kind='expression_preset', version='1', name='surprised', title='', description="expression-sheet preset: brow_angle_l +0, brow_angle_r +0, brow_height_l +1, brow_height_r +1, lid_open_l +0.4, lid_open_r +0.4; mouth form 'surprised'", usage='FACS cross-reference 1+2+5+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'}, '[surprised] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.afraid', kind='expression_preset', version='1', name='afraid', title='', description="expression-sheet preset: brow_angle_l +0.5, brow_angle_r +0.5, brow_height_l +0.7, brow_height_r +0.7, lid_open_l +0.5, lid_open_r +0.5; mouth form 'afraid'", usage='FACS cross-reference 1+2+4+5+7+20+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'afraid'}, '[afraid] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.disgusted', kind='expression_preset', version='1', name='disgusted', title='', description="expression-sheet preset: brow_angle_l -0.3, brow_angle_r -0.3, brow_height_l -0.3, brow_height_r -0.3, lid_open_l -0.4, lid_open_r -0.4; mouth form 'disgusted'", usage='FACS cross-reference 9+15+17', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'disgusted'}, '[disgusted] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.thinking', kind='expression_preset', version='1', name='thinking', title='', description='expression-sheet preset: brow_angle_l +0.3, brow_angle_r -0.1, brow_height_l +0.5, brow_height_r -0.2, lid_open_l -0.1, lid_open_r -0.1', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'thinking'}, '[thinking] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.skeptical', kind='expression_preset', version='1', name='skeptical', title='', description='expression-sheet preset: brow_angle_l +0, brow_angle_r -0.2, brow_height_l +0.6, brow_height_r -0.3, lid_open_l +0, lid_open_r -0.2', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'skeptical'}, '[skeptical] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.amused', kind='expression_preset', version='1', name='amused', title='', description="expression-sheet preset: brow_angle_l +0.05, brow_angle_r +0.05, brow_height_l +0.1, brow_height_r +0.1, lid_open_l -0.1, lid_open_r -0.1; mouth form 'happy'", usage='FACS cross-reference happy at ~0.6', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'amused'}, '[amused] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()))*
+
+Everything this genre contributes to the vocabulary except its methods
+([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)).
+
+### an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {}*
+
+Each expression preset’s vocabulary version (ADR 0003). Bump one in the same
+change that moves its axes or its mouth form.
+
+### an.characters.vocabulary.PRESET_ASPECTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]]* *= {'speech_pulse': ('speech',), 'walk': ('locomotion',)}*
+
+a `walk` picks a
+locomotion method; `speech_pulse` IS the speech aspect’s last link.
+
+* **Type:**
+  Which aspect a preset resolves when played (ADR 0002)
 
 
 # _autosummary/an.conftest.html.md
@@ -18390,7 +19181,13 @@ wired into the core. `CUTOUT` lists:
 - the **\`\`[emotion]\`\`** dialogue sugar;
 - its **semantic checks**: `play` and `expression` resolution, the turn
   checks (contradicted `from_direction`, a mouth hidden while speaking) and
-  view continuity across a cut, placed in the report where they always were.
+  view continuity across a cut, placed in the report where they always were;
+- its **capabilities** and the **character analyser** (ADR 0002:
+  [`an.library.character`](_autosummary/an.library.character.html.md#module-an.library.character)), its **vocabulary** (motion and expression
+  > presets, IR-field notes: [`an.characters.vocabulary`](_autosummary/an.characters.vocabulary.html.md#module-an.characters.vocabulary); the methods:
+
+  [`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)) and its **aspects**, `locomotion` and
+  : `speech`, each with a default chain that ends in a method requiring nothing.
 
 Its `name` is the persisted genre slug `cutout_animation`, the one
 `an.genre` declares to `nw` (ADR 0001 decision 9: persisted
@@ -18434,7 +19231,12 @@ one file”) — listing what it registers:
   nodes live in, plus any new **property spaces** and **field kinds** for the
   timing kernel ([`an.timing`](_autosummary/an.timing.html.md#module-an.timing));
 - **semantic checks** ([`SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)) that `an validate` runs;
-- **md sugar** ([`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)) on `scene.md` dialogue lines.
+- **md sugar** ([`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)) on `scene.md` dialogue lines;
+- **capabilities** and **analysers** ([`an.capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities), ADR 0002): the
+  capability names its methods require and the derivation of what its assets
+  afford;
+- **vocabulary** entries — presets, methods, IR-field notes — and **aspects**
+  with their default chains ([`an.semantic`](_autosummary/an.semantic.html.md#module-an.semantic), ADR 0003).
 
 Because the object is plain data, a genre is \*\*inspectable before it is
 loaded\*\*: [`available()`](_autosummary/an.genres.html.md#an.genres.available) reads every installed genre’s declaration without
@@ -18489,7 +19291,7 @@ genre defined in the same process).
 | `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
 | [`load`](_autosummary/an.genres.html.md#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
 | [`providers_of`](_autosummary/an.genres.html.md#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](_autosummary/an.genres.html.md#an.genres.Genre.provides)).                                                                    |
-| [`register_genre`](_autosummary/an.genres.html.md#an.genres.register_genre)(genre, \*[, replace])             | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
+| [`register_genre`](_autosummary/an.genres.html.md#an.genres.register_genre)(genre, \*[, replace, ...])        | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
 | [`without_genres`](_autosummary/an.genres.html.md#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                    |
 
 ### Classes
@@ -18497,7 +19299,7 @@ genre defined in the same process).
 | [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
 |------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
-| [`EntityKind`](_autosummary/an.genres.html.md#an.genres.EntityKind)(name[, space, store, description])       | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
+| [`EntityKind`](_autosummary/an.genres.html.md#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
 | [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                |
 | [`SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
 
@@ -18508,7 +19310,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.           |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                      |
 
-### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='')
+### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18534,6 +19336,15 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 
 Does `start:` in `scene.md` wrap this kind in `sequence(delay(start), …)`?
 
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+bump when what an action of
+this kind compiles to changes for the same fields, so the shots that use
+it re-render visibly ([`an.semantic`](_autosummary/an.semantic.html.md#module-an.semantic) folds it into the shot digest).
+
+* **Type:**
+  The kind’s vocabulary version (ADR 0003)
+
 ### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -18549,7 +19360,7 @@ the line carries none). The cut-out genre’s `[emotion]` is one.
 
 The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='')
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18559,7 +19370,11 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](_autosummary/an.genres.html.md#an.genres.ActionKind.version).
+
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18573,7 +19388,13 @@ touching any genre that does not use it.
 
 `spaces` are [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) objects and
 `field_kinds` are `(name, factory)` pairs for
-[`an.timing.kinds.register_kind()`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.register_kind).
+[`an.timing.kinds.register_kind()`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.register_kind). `capabilities` are
+[`an.capabilities.Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability) objects, `analysers`
+[`an.capabilities.Analyser`](_autosummary/an.capabilities.html.md#an.capabilities.Analyser) objects, `vocabulary`
+[`an.semantic.Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry) objects (methods included) and `aspects`
+[`an.semantic.Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect) objects; registering the genre checks the whole
+([`an.semantic.check_registry()`](_autosummary/an.semantic.html.md#an.semantic.check_registry)): every aspect’s chain ends in a method
+that requires nothing, and every requirement names a registered capability.
 
 `library` names the package whose data root holds the genre’s asset
 library and its projects (`~/.local/share/<library>`, ADR 0005, plan §1
@@ -18763,7 +19584,7 @@ The installed genres (loaded or not) that declare `kind` in `registry`
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-### an.genres.register_genre(genre, , replace=False)
+### an.genres.register_genre(genre, , replace=False, check_capabilities=True)
 
 Register everything `genre` declares, owned by `genre.name`.
 
@@ -18771,6 +19592,9 @@ Idempotent for the same object: registering a genre that is already
 installed is a no-op, so [`load()`](_autosummary/an.genres.html.md#an.genres.load) can be called from every entry point.
 A different object under an installed name raises unless `replace`.
 All or nothing: a registration that fails part-way leaves no trace.
+`check_capabilities=False` defers the “every requirement names a
+registered capability” check to the caller ([`load()`](_autosummary/an.genres.html.md#an.genres.load) runs it once all
+genres are in, so a genre extending another loads in any order).
 
 * **Return type:**
   [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)
@@ -18854,7 +19678,7 @@ False
 | [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
 |------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`DialogueSugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
-| [`EntityKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.EntityKind)(name[, space, store, description])       | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
+| [`EntityKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
 | [`SemanticCheck`](_autosummary/an.genres.registry.html.md#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
 
 ### Exceptions
@@ -18863,7 +19687,7 @@ False
 |-----------------------------------------------------------------------------------------------|------------------------------------------------------------------|
 | [`UnregisteredKindError`](_autosummary/an.genres.registry.html.md#an.genres.registry.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.              |
 
-### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='')
+### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18888,6 +19712,15 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 #### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Does `start:` in `scene.md` wrap this kind in `sequence(delay(start), …)`?
+
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+bump when what an action of
+this kind compiles to changes for the same fields, so the shots that use
+it re-render visibly ([`an.semantic`](_autosummary/an.semantic.html.md#module-an.semantic) folds it into the shot digest).
+
+* **Type:**
+  The kind’s vocabulary version (ADR 0003)
 
 ### an.genres.registry.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
 
@@ -18932,7 +19765,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='')
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18941,6 +19774,10 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind.version).
 
 ### *exception* an.genres.registry.RegistryError
 
@@ -19731,46 +20568,49 @@ skip that shot rather than crash.
 
 ### Modules
 
-| [`adapters`](_autosummary/an.adapters.html.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).            |
-|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| [`assemble`](_autosummary/an.assemble.html.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.               |
-| [`audio`](_autosummary/an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                                |
-| [`base`](_autosummary/an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                               |
-| [`bench`](_autosummary/an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.          |
-| [`build`](_autosummary/an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                       |
-| [`captions`](_autosummary/an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                |
-| [`characters`](_autosummary/an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                               |
-| [`conftest`](_autosummary/an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                            |
-| [`credits`](_autosummary/an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                                    |
-| [`data`](_autosummary/an.data.html.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                     |
-| [`determinism`](_autosummary/an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.             |
-| [`engines`](_autosummary/an.engines.html.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them. |
-| [`environments`](_autosummary/an.environments.html.md#module-an.environments) | Environments: a stage made of planes, at declared depths.                                   |
-| [`expression`](_autosummary/an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                              |
-| [`frame_clock`](_autosummary/an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                 |
-| [`genres`](_autosummary/an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                  |
-| [`impacts`](_autosummary/an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.               |
-| [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                          |
-| [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.              |
-| [`library`](_autosummary/an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                    |
-| [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                   |
-| [`media`](_autosummary/an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.       |
-| [`motion`](_autosummary/an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                   |
-| [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                           |
-| [`paths`](_autosummary/an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                     |
-| [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit.      |
-| [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                              |
-| [`props`](_autosummary/an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                     |
-| [`raster`](_autosummary/an.raster.html.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                     |
-| [`render`](_autosummary/an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.             |
-| [`sounds`](_autosummary/an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.            |
-| [`stores`](_autosummary/an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                                 |
-| [`styles`](_autosummary/an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had.      |
-| [`text`](_autosummary/an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.                |
-| [`timing`](_autosummary/an.timing.html.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                       |
-| [`tools`](_autosummary/an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                         |
-| [`util`](_autosummary/an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                 |
-| [`verify`](_autosummary/an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.                   |
+| [`adapters`](_autosummary/an.adapters.html.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).                   |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| [`assemble`](_autosummary/an.assemble.html.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.                      |
+| [`audio`](_autosummary/an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                                       |
+| [`base`](_autosummary/an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                                      |
+| [`bench`](_autosummary/an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.                 |
+| [`build`](_autosummary/an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                              |
+| [`capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities) | Capabilities: what an asset, an engine or the environment affords, and the one matcher.            |
+| [`captions`](_autosummary/an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                       |
+| [`characters`](_autosummary/an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                                      |
+| [`conftest`](_autosummary/an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                                   |
+| [`credits`](_autosummary/an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                                           |
+| [`data`](_autosummary/an.data.html.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                            |
+| [`determinism`](_autosummary/an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                    |
+| [`engines`](_autosummary/an.engines.html.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.        |
+| [`environments`](_autosummary/an.environments.html.md#module-an.environments) | Environments: a stage made of planes, at declared depths.                                          |
+| [`expression`](_autosummary/an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                                     |
+| [`frame_clock`](_autosummary/an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                        |
+| [`genres`](_autosummary/an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                         |
+| [`impacts`](_autosummary/an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.                      |
+| [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                 |
+| [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.                     |
+| [`library`](_autosummary/an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                           |
+| [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                          |
+| [`mcp`](_autosummary/an.mcp.html.md#module-an.mcp)                   | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry. |
+| [`media`](_autosummary/an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.              |
+| [`motion`](_autosummary/an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                          |
+| [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                  |
+| [`paths`](_autosummary/an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                            |
+| [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit.             |
+| [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                     |
+| [`props`](_autosummary/an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                            |
+| [`raster`](_autosummary/an.raster.html.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                            |
+| [`render`](_autosummary/an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.                    |
+| [`semantic`](_autosummary/an.semantic.html.md#module-an.semantic)         | The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.           |
+| [`sounds`](_autosummary/an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.                   |
+| [`stores`](_autosummary/an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                                        |
+| [`styles`](_autosummary/an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had.             |
+| [`text`](_autosummary/an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.                       |
+| [`timing`](_autosummary/an.timing.html.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                              |
+| [`tools`](_autosummary/an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                                |
+| [`util`](_autosummary/an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                        |
+| [`verify`](_autosummary/an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.                          |
 
 
 # _autosummary/an.impacts.cli.html.md
@@ -23696,8 +24536,9 @@ agent can review what changed across runs.
 
 ### Functions
 
-| [`iterate`](_autosummary/an.iterate.html.md#an.iterate.iterate)(project_dir, instruction, \*[, ...])   | Apply a free-text instruction to the scene at `project_dir`.   |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| [`iterate`](_autosummary/an.iterate.html.md#an.iterate.iterate)(project_dir, instruction, \*[, ...])   | Apply a free-text instruction to the scene at `project_dir`.                  |
+|-------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`system_prompt`](_autosummary/an.iterate.html.md#an.iterate.system_prompt)()                                | The `an iterate` system prompt: the protocol around the generated vocabulary. |
 
 ### Classes
 
@@ -23764,97 +24605,107 @@ which those are, for the reader, not the mechanism.
 * **Return type:**
   [`IterateResult`](_autosummary/an.iterate.html.md#an.iterate.IterateResult)
 
+### an.iterate.system_prompt()
+
+The `an iterate` system prompt: the protocol around the generated vocabulary.
+
+Loads the installed genres first (their presets and methods are part of
+the vocabulary). Stable for a given registry, so it caches as well as the
+hand-written one did.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> text = system_prompt()
+>>> "walk" in text and "Rules:" in text
+True
+```
+
 
 # _autosummary/an.library.affordances.html.md
 
 # an.library.affordances
 
-Affordances: what an asset can do, derived from its descriptor and the art present.
+Affordances for the library: the capability registry, re-exported from [`an.capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities).
 
-This is the seed of ADR 0002’s `affordances(asset) → set[Capability]`, built
-so its registry (P7) adopts it rather than writing a second derivation:
+P5 seeded ADR 0002’s `affordances(asset)` here; P7 moved the tables and the
+matcher to the core registry, [`an.capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities), and this module now
+re-exports the SAME objects (`ANALYSERS is an.capabilities.ANALYSERS`), so the
+library’s facets and `find(…, near=True)` and the compiler’s method choice
+are one derivation and one matcher, never two.
 
-- an **analyser** is registered per asset kind ([`register_analyser()`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_analyser)) with a
-  version. It reads the descriptor document and the art present — a mapping of
-  each file’s relative path to its `ContentRef` (so a later analyser can read
-  bytes through the blob store; today’s tests membership only) —
-  never a hand-typed list beside them (ADR 0002 decision 2) — and returns
-  `{capability: params}`. A capability that is absent is not afforded;
-- a **capability** is a dotted, registered name ([`register_capability()`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_capability))
-  with a description and a **remedy** (what would add it, and the command when
-  one exists), because `find(…, near=True)` must say how to close a near miss;
-- **params** are the capability’s parameters. The one convention every query
-  relies on: `keys` lists the discrete values it affords, so `swap.view:side`
-  asks for `swap.view` with `side` among its keys. `overrides` lists the
-  declared descriptor fields (`rest_view`, …) the
-  derivation used instead of deriving — ADR 0002’s “the derivation reports which
-  overrides it used”.
-
-The library snapshots an analyser’s output on each version with the analyser’s
-version (`analysers: {kind: version}`); a reader whose analyser is newer
-recomputes rather than trusting the snapshot ([`current_affordances()`](_autosummary/an.library.affordances.html.md#an.library.affordances.current_affordances)).
-
-Capability names are persisted identifiers: once a version stores one, it is
-renamed only through this registry, never in place.
+The character analyser is the cut-out genre’s: it registers through
+`an.genres.cutout.CUTOUT` (its `capabilities` and `analysers`
+fields) when the genres load, which the library’s entry points do
+([`an.library.api.publish()`](_autosummary/an.library.api.html.md#an.library.api.publish), [`an.library.api.find()`](_autosummary/an.library.api.html.md#an.library.api.find)).
 
 ```pycon
+>>> import an.capabilities
+>>> ANALYSERS is an.capabilities.ANALYSERS and CAPABILITIES is an.capabilities.CAPABILITIES
+True
 >>> afford = {"swap.view": {"keys": ["front", "side"]}, "limbs.legs": {}}
 >>> matches(afford, "swap.view:side"), matches(afford, "swap.view:back"), matches(afford, "limbs.legs")
 (True, False, True)
 ```
 
-### Module Attributes
-
-| [`KEY_SEP`](_autosummary/an.library.affordances.html.md#an.library.affordances.KEY_SEP)      | Separates a capability from one of its keys in a query (`swap.view:side`).   |
-|---------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`CAPABILITIES`](_autosummary/an.library.affordances.html.md#an.library.affordances.CAPABILITIES) | Registered capabilities, by name.                                            |
-| [`ANALYSERS`](_autosummary/an.library.affordances.html.md#an.library.affordances.ANALYSERS)    | Registered analysers, by asset kind.                                         |
-
 ### Functions
 
-| [`analyse`](_autosummary/an.library.affordances.html.md#an.library.affordances.analyse)(kind, doc, art)                            | `(affordances, analysers)` of one asset: its capabilities and the analyser versions used.   |
-|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| [`capability_of`](_autosummary/an.library.affordances.html.md#an.library.affordances.capability_of)(query)                               | `(capability, key)` of a query term.                                                        |
-| [`current_affordances`](_autosummary/an.library.affordances.html.md#an.library.affordances.current_affordances)(kind, doc, art, \*, ...)       | The stored snapshot when its analyser version is current, else a fresh derivation.          |
-| [`matches`](_autosummary/an.library.affordances.html.md#an.library.affordances.matches)(affordances, query)                        | Whether `affordances` satisfy one query term (`cap` or `cap:key`).                          |
-| [`missing`](_autosummary/an.library.affordances.html.md#an.library.affordances.missing)(affordances, queries)                      | The query terms `affordances` do not satisfy, in the order asked.                           |
-| [`register_analyser`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                        |
-| [`register_capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                     |
-| [`remedy_for`](_autosummary/an.library.affordances.html.md#an.library.affordances.remedy_for)(query)                                  | What would add the capability a query term asks for.                                        |
+| [`analyse`](_autosummary/an.library.affordances.html.md#an.library.affordances.analyse)(kind, doc[, art])                         | `(profile, analysers)` of one subject: its capabilities and the analyser versions used.   |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`capability_of`](_autosummary/an.library.affordances.html.md#an.library.affordances.capability_of)(query)                              | `(capability, key)` of a query term (the library's `find` form).                          |
+| [`current_affordances`](_autosummary/an.library.affordances.html.md#an.library.affordances.current_affordances)(kind, doc, art, \*, ...)      | The stored snapshot when its analyser version is current, else a fresh derivation.        |
+| [`matches`](_autosummary/an.library.affordances.html.md#an.library.affordances.matches)(profile, term)                            | Whether `profile` (or the subject of `term` in a `Subjects`) meets `term`.                |
+| [`missing`](_autosummary/an.library.affordances.html.md#an.library.affordances.missing)(profile, requires)                        | The requirement terms `profile` does not meet, spelled, in the order asked.               |
+| [`register_analyser`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_analyser)(kind, \*[, version, ...])       | Register an analyser.                                                                     |
+| [`register_capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.register_capability)(name, \*[, description, ...]) | Register a capability (or a [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)). |
+| [`remedy_for`](_autosummary/an.library.affordances.html.md#an.library.affordances.remedy_for)(term)                                  | What would add the capability a requirement term asks for.                                |
 
 ### Classes
 
-| [`Analyser`](_autosummary/an.library.affordances.html.md#an.library.affordances.Analyser)(kind, version, derive)       | The derivation of one asset kind's affordances, versioned.      |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)(name, description, remedy) | A registered capability name, what it means, and how to add it. |
+| [`Analyser`](_autosummary/an.library.affordances.html.md#an.library.affordances.Analyser)(kind, version, derive[, subject, ...])   | The derivation of one kind's profile, versioned.                     |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it. |
 
-### an.library.affordances.ANALYSERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Analyser](_autosummary/an.library.affordances.html.md#an.library.affordances.Analyser)]* *= {'character': Analyser(kind='character', version='0.1.0', derive=<function character_affordances>)}*
-
-Registered analysers, by asset kind.
-
-### *class* an.library.affordances.Analyser(kind, version, derive)
+### *class* an.library.affordances.Analyser(kind, version, derive, subject='asset', declares=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-The derivation of one asset kind’s affordances, versioned.
+The derivation of one kind’s profile, versioned.
 
-### an.library.affordances.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)]* *= {'face.mouth': Capability(name='face.mouth', description='an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)', remedy="give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\` writes the default nine) and face_overlay: true — a face baked into the head art cannot lip-sync"), 'limbs.arms': Capability(name='limbs.arms', description='a pair of arm slots with art that a walk swings and gestures move', remedy='add two arm slots named arm_l/arm_r (or left_arm/right_arm) with their art, pivoted at the shoulder (an-art-package skill)'), 'limbs.legs': Capability(name='limbs.legs', description='a pair of leg slots with art that a legged walk swings', remedy='add two leg slots named leg_l/leg_r (or left_leg/right_leg) with their art, pivoted at the hip; \`an character new\` builds them (an-art-package skill)'), 'swap.view': Capability(name='swap.view', description='the turnaround views the character can show (keys); swappable=true when a \`view\` swap set lets it turn', remedy='add turnaround art and list it in the \`view\` swap set: \`an character add-views <dir>\` for an offline character, else draw the views')}*
+`kind` is an asset kind (`character`) or a subject that has one
+analyser (`engine`, `environment`). Bump `version` whenever the
+output can change for the same input: snapshots made under the old one are
+then recomputed on read. The version is NOT a compile input (consult §5):
+the derived profile is, so touching an analyser without changing its output
+re-renders nothing.
 
-Registered capabilities, by name. Genre packages add theirs on import.
+#### declares *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ()*
 
-### *class* an.library.affordances.Capability(name, description, remedy)
+The document’s declared facts the derivation honours instead of deriving
+(`rest_view`, `face_overlay`) or reads as a request (`gait`):
+reported by `describe_asset` (ADR 0002 decision 2).
+
+### *class* an.library.affordances.Capability(name, description, remedy, subject='asset', command=None, version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-A registered capability name, what it means, and how to add it.
+A registered capability: its name, what it means, and how to add it.
 
-### an.library.affordances.KEY_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ':'*
+`command` is the CLI that adds it, when one exists (`an character
+add-views`); `version` bumps when the *meaning* of the name changes (a
+persisted name is never redefined in place).
 
-Separates a capability from one of its keys in a query (`swap.view:side`).
+#### to_json()
 
-### an.library.affordances.analyse(kind, doc, art)
+The capability as the generated docs and the MCP surface list it.
 
-`(affordances, analysers)` of one asset: its capabilities and the analyser versions used.
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.library.affordances.analyse(kind, doc, art=None)
+
+`(profile, analysers)` of one subject: its capabilities and the analyser versions used.
 
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
@@ -23862,9 +24713,14 @@ analyser — an honest empty answer, not a guess.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
+```pycon
+>>> analyse("no-such-kind", {})
+({}, {})
+```
+
 ### an.library.affordances.capability_of(query)
 
-`(capability, key)` of a query term.
+`(capability, key)` of a query term (the library’s `find` form).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
@@ -23884,40 +24740,61 @@ snapshot made by an older analyser is what would make a facet lie.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.library.affordances.matches(affordances, query)
+### an.library.affordances.matches(profile, term)
 
-Whether `affordances` satisfy one query term (`cap` or `cap:key`).
+Whether `profile` (or the subject of `term` in a `Subjects`) meets `term`.
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
-### an.library.affordances.missing(affordances, queries)
+### an.library.affordances.missing(profile, requires)
 
-The query terms `affordances` do not satisfy, in the order asked.
+The requirement terms `profile` does not meet, spelled, in the order asked.
+
+THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
+`resolve` and the library’s `find(…, near=True)` all call it.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
-### an.library.affordances.register_analyser(kind, , version)
+```pycon
+>>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
+(['env.ffmpeg'], [])
+```
 
-Decorator: register `derive` as the analyser of `kind` at `version`.
+### an.library.affordances.register_analyser(kind, , version='', subject='asset', owner='an')
 
-Bump `version` whenever the derivation’s output can change for the same
-input: versions published under the old one are then recomputed on read.
+Register an analyser. Two forms.
+
+`register_analyser(Analyser(...), owner=...)` registers the object and
+returns it (a genre’s `analysers` field goes this way). With a `kind`
+string it is a decorator: `@register_analyser("character", version="0.1.0")`
+registers the decorated derivation.
 
 * **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]], [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]]
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.library.affordances.register_capability(name, , description, remedy)
+### an.library.affordances.register_capability(name, , description='', remedy='', subject='asset', command=None, version='1', owner='an')
 
-Register (or re-register) a capability. Returns it.
+Register a capability (or a [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)). Returns it.
+
+Re-registering the same definition is a no-op; a different definition
+under a name another owner holds raises, because capability names are
+persisted and two meanings for one name would make a stored facet lie.
 
 * **Return type:**
-  [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)
+  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
 
-### an.library.affordances.remedy_for(query)
+```pycon
+>>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
+>>> CAPABILITIES["demo.thing"] is cap
+True
+>>> _ = drop_owner("demo")
+```
 
-What would add the capability a query term asks for.
+### an.library.affordances.remedy_for(term)
+
+What would add the capability a requirement term asks for.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -24342,8 +25219,11 @@ when an attachment it names has its file among the asset’s files — a descrip
 promising a side view whose drawing is missing does not afford one.
 
 It is genre code (cut-out characters). It lives here until the genre package
-exists (plan P8), registered under the `character` kind, and imports the
-cut-out modules lazily so `import an.library` stays free of them.
+exists (plan P8) and imports the cut-out modules lazily so `import an.library`
+stays free of them. **Importing it registers nothing** (P7): the cut-out genre
+declares [`CHARACTER_CAPABILITIES`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_CAPABILITIES) and [`CHARACTER_ANALYSER`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER) in its
+`capabilities` and `analysers` fields (`an.genres.cutout.CUTOUT`), so
+they register with the genre, owned by it, and come out with it.
 
 | capability   | afforded when                                                                                       | `keys`                                 |
 |--------------|-----------------------------------------------------------------------------------------------------|----------------------------------------|
@@ -24354,9 +25234,11 @@ cut-out modules lazily so `import an.library` stays free of them.
 
 ### Module Attributes
 
-| [`CHARACTER_ANALYSER_VERSION`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER_VERSION)   | Bump when the derivation can answer differently for the same input.        |
-|-------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`MOUTH_CHART_RHUBARB`](_autosummary/an.library.character.html.md#an.library.character.MOUTH_CHART_RHUBARB)          | The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`'s default. |
+| [`CHARACTER_ANALYSER_VERSION`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER_VERSION)   | Bump when the derivation can answer differently for the same input.              |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`MOUTH_CHART_RHUBARB`](_autosummary/an.library.character.html.md#an.library.character.MOUTH_CHART_RHUBARB)          | The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`'s default.       |
+| [`CHARACTER_CAPABILITIES`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_CAPABILITIES)       | The capabilities the character analyser derives (declared by the cut-out genre). |
+| [`CHARACTER_ANALYSER`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER)           | The character analyser (declared by the cut-out genre, registered with it).      |
 
 ### Functions
 
@@ -24364,9 +25246,17 @@ cut-out modules lazily so `import an.library` stays free of them.
 |------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`renders_as_placeholder`](_autosummary/an.library.character.html.md#an.library.character.renders_as_placeholder)(doc)       | Whether the compiler would draw this character only as its placeholder stand-in. |
 
+### an.library.character.CHARACTER_ANALYSER *: [Analyser](_autosummary/an.capabilities.html.md#an.capabilities.Analyser)* *= Analyser(kind='character', version='0.1.0', subject='asset', declares=('rest_view', 'face_overlay', 'gait', 'speech'))*
+
+The character analyser (declared by the cut-out genre, registered with it).
+
 ### an.library.character.CHARACTER_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
 
 Bump when the derivation can answer differently for the same input.
+
+### an.library.character.CHARACTER_CAPABILITIES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability), ...]* *= (Capability(name='limbs.legs', description='a pair of leg slots with art that a legged walk swings', remedy='add two leg slots named leg_l/leg_r (or left_leg/right_leg) with their art, pivoted at the hip; \`an character new\` builds them (an-art-package skill)', subject='asset', command=None, version='1'), Capability(name='limbs.arms', description='a pair of arm slots with art that a walk swings and gestures move', remedy='add two arm slots named arm_l/arm_r (or left_arm/right_arm) with their art, pivoted at the shoulder (an-art-package skill)', subject='asset', command=None, version='1'), Capability(name='swap.view', description='the turnaround views the character can show (keys); swappable=true when a \`view\` swap set lets it turn', remedy='add turnaround art and list it in the \`view\` swap set: \`an character add-views <dir>\` for an offline character, else draw the views', subject='asset', command='an character add-views', version='1'), Capability(name='face.mouth', description='an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)', remedy="give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\` writes the default nine) and face_overlay: true — a face baked into the head art cannot lip-sync", subject='asset', command='an character mouths', version='1'))*
+
+The capabilities the character analyser derives (declared by the cut-out genre).
 
 ### an.library.character.MOUTH_CHART_RHUBARB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rhubarb9'*
 
@@ -24852,7 +25742,7 @@ What lives where:
 
 ### Functions
 
-| [`analyse`](_autosummary/an.library.html.md#an.library.analyse)(kind, doc, art)                            | `(affordances, analysers)` of one asset: its capabilities and the analyser versions used.                                                     |
+| [`analyse`](_autosummary/an.library.html.md#an.library.analyse)(kind, doc[, art])                          | `(profile, analysers)` of one subject: its capabilities and the analyser versions used.                                                       |
 |-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | [`build_library_mall`](_autosummary/an.library.html.md#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](_autosummary/an.library.html.md#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
@@ -24869,9 +25759,9 @@ What lives where:
 | [`publish`](_autosummary/an.library.html.md#an.library.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.                                                                 |
 | [`publish_dir`](_autosummary/an.library.html.md#an.library.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).                                                           |
 | [`reindex`](_autosummary/an.library.html.md#an.library.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                                                                            |
-| [`register_analyser`](_autosummary/an.library.html.md#an.library.register_analyser)(kind, \*, version)               | Decorator: register `derive` as the analyser of `kind` at `version`.                                                                          |
+| [`register_analyser`](_autosummary/an.library.html.md#an.library.register_analyser)(kind, \*[, version, ...])        | Register an analyser.                                                                                                                         |
 | [`register_asset_kind`](_autosummary/an.library.html.md#an.library.register_asset_kind)(name, \*[, store, ...])        | Register (or re-register) an asset kind.                                                                                                      |
-| [`register_capability`](_autosummary/an.library.html.md#an.library.register_capability)(name, \*, description, remedy) | Register (or re-register) a capability.                                                                                                       |
+| [`register_capability`](_autosummary/an.library.html.md#an.library.register_capability)(name, \*[, description, ...])  | Register a capability (or a [`Capability`](_autosummary/an.library.html.md#an.library.Capability)).                                                     |
 | [`register_root`](_autosummary/an.library.html.md#an.library.register_root)(package, root, \*[, registry])       | Record `root` (`package`'s library root) in the registry; `True` if it was new.                                                               |
 | [`registered_roots`](_autosummary/an.library.html.md#an.library.registered_roots)(\*[, registry])                   | `(package, root)` for every root ever registered, oldest first, each once.                                                                    |
 | [`resolve`](_autosummary/an.library.html.md#an.library.resolve)(libraries, ref)                            | `(library, pinned_ref, version_doc)` for a reference, along the search path.                                                                  |
@@ -24884,7 +25774,7 @@ What lives where:
 
 ### Classes
 
-| [`Capability`](_autosummary/an.library.html.md#an.library.Capability)(name, description, remedy)             | A registered capability name, what it means, and how to add it.                      |
+| [`Capability`](_autosummary/an.library.html.md#an.library.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it.                 |
 |----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
 | [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
 | [`FindResult`](_autosummary/an.library.html.md#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
@@ -24919,11 +25809,22 @@ Bases: [`LookupError`](https://docs.python.org/3/builtins/exceptions.html#Lookup
 
 No library on the search path holds the asset or version asked for.
 
-### *class* an.library.Capability(name, description, remedy)
+### *class* an.library.Capability(name, description, remedy, subject='asset', command=None, version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-A registered capability name, what it means, and how to add it.
+A registered capability: its name, what it means, and how to add it.
+
+`command` is the CLI that adds it, when one exists (`an character
+add-views`); `version` bumps when the *meaning* of the name changes (a
+persisted name is never redefined in place).
+
+#### to_json()
+
+The capability as the generated docs and the MCP surface list it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *exception* an.library.CheckoutError
 
@@ -25099,15 +26000,20 @@ Bases: [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError)
 
 A write-once key was written twice, or deleted. Versions are immutable.
 
-### an.library.analyse(kind, doc, art)
+### an.library.analyse(kind, doc, art=None)
 
-`(affordances, analysers)` of one asset: its capabilities and the analyser versions used.
+`(profile, analysers)` of one subject: its capabilities and the analyser versions used.
 
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> analyse("no-such-kind", {})
+({}, {})
+```
 
 ### an.library.build_library_mall(root=None, , package='an', \*\*overrides)
 
@@ -25424,15 +26330,17 @@ check-out reproduces the folder — except operating-system clutter
 * **Return type:**
   [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
 
-### an.library.register_analyser(kind, , version)
+### an.library.register_analyser(kind, , version='', subject='asset', owner='an')
 
-Decorator: register `derive` as the analyser of `kind` at `version`.
+Register an analyser. Two forms.
 
-Bump `version` whenever the derivation’s output can change for the same
-input: versions published under the old one are then recomputed on read.
+`register_analyser(Analyser(...), owner=...)` registers the object and
+returns it (a genre’s `analysers` field goes this way). With a `kind`
+string it is a decorator: `@register_analyser("character", version="0.1.0")`
+registers the decorated derivation.
 
 * **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]], [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]]
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.library.register_asset_kind(name, , store=None, descriptor=None, credits_store=None)
 
@@ -25441,12 +26349,23 @@ Register (or re-register) an asset kind. Returns it.
 * **Return type:**
   [`AssetKind`](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)
 
-### an.library.register_capability(name, , description, remedy)
+### an.library.register_capability(name, , description='', remedy='', subject='asset', command=None, version='1', owner='an')
 
-Register (or re-register) a capability. Returns it.
+Register a capability (or a [`Capability`](_autosummary/an.library.html.md#an.library.Capability)). Returns it.
+
+Re-registering the same definition is a no-op; a different definition
+under a name another owner holds raises, because capability names are
+persisted and two meanings for one name would make a stored facet lie.
 
 * **Return type:**
-  [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)
+  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
+
+```pycon
+>>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
+>>> CAPABILITIES["demo.thing"] is cap
+True
+>>> _ = drop_owner("demo")
+```
 
 ### an.library.register_root(package, root, , registry=None)
 
@@ -25595,7 +26514,7 @@ True
 
 ### Modules
 
-| [`affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances)   | Affordances: what an asset can do, derived from its descriptor and the art present.                                                                                          |
+| [`affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances)   | Affordances for the library: the capability registry, re-exported from [`an.capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities).              |
 |----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`api`](_autosummary/an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                                                                                                     |
 | [`character`](_autosummary/an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |
@@ -26749,6 +27668,233 @@ False
 ```
 
 
+# _autosummary/an.mcp.html.md
+
+# an.mcp
+
+The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry.
+
+ADR 0003 decision 6. The tools are plain functions in [`an.mcp.tools`](_autosummary/an.mcp.tools.html.md#module-an.mcp.tools)
+(queries, typed edits, long work as start/poll jobs; the bench stays CLI-only);
+[`an.mcp.server.mk_server()`](_autosummary/an.mcp.server.html.md#an.mcp.server.mk_server) projects them with `py2mcp`. The MCP stack is
+an optional extra and is imported only when a server is built:
+
+```default
+pip install 'an[mcp]'
+python -m an.mcp            # serve over stdio
+```
+
+`import an` never imports this package, and importing it imports no MCP
+dependency (a test holds both).
+
+```pycon
+>>> from an.mcp import TOOL_REFS
+>>> "an.mcp.tools:vocabulary" in TOOL_REFS
+True
+```
+
+### Module Attributes
+
+| [`TOOL_REFS`](_autosummary/an.mcp.html.md#an.mcp.TOOL_REFS)   | The tools as `module:function` references (`py2mcp.mk_mcp_from_refs`'s input).   |
+|--------------------------------------------------------------|----------------------------------------------------------------------------------|
+
+### an.mcp.TOOL_REFS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('an.mcp.tools:vocabulary', 'an.mcp.tools:vocabulary_entry', 'an.mcp.tools:scene_schema', 'an.mcp.tools:validate_scene', 'an.mcp.tools:describe_character', 'an.mcp.tools:applicable_methods', 'an.mcp.tools:why_not_method', 'an.mcp.tools:apply_patch', 'an.mcp.tools:start_render', 'an.mcp.tools:job_status')*
+
+The tools as `module:function` references (`py2mcp.mk_mcp_from_refs`’s input).
+
+### Modules
+
+| [`server`](_autosummary/an.mcp.server.html.md#module-an.mcp.server)   | Build and serve the `an` MCP server with `py2mcp` (the `an[mcp]` extra).                           |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| [`tools`](_autosummary/an.mcp.tools.html.md#module-an.mcp.tools)     | The curated MCP tools: plain functions over the vocabulary, the capability registry and a project. |
+
+
+# _autosummary/an.mcp.server.html.md
+
+# an.mcp.server
+
+Build and serve the `an` MCP server with `py2mcp` (the `an[mcp]` extra).
+
+`py2mcp` is imported inside [`mk_server()`](_autosummary/an.mcp.server.html.md#an.mcp.server.mk_server), never at module level, so this
+module imports without the extra (CI collects every module’s doctests with no
+extras installed) and a missing extra is a typed, install-hinting error.
+
+### Module Attributes
+
+| [`SERVER_INSTRUCTIONS`](_autosummary/an.mcp.server.html.md#an.mcp.server.SERVER_INSTRUCTIONS)   | What a client is told about this server (the model-facing description).   |
+|------------------------------------------------------------------------|---------------------------------------------------------------------------|
+
+### Functions
+
+| [`main`](_autosummary/an.mcp.server.html.md#an.mcp.server.main)()                              | Serve over stdio (`python -m an.mcp`).                                                                                         |
+|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| [`mk_server`](_autosummary/an.mcp.server.html.md#an.mcp.server.mk_server)(\*[, name, instructions]) | The FastMCP server with one tool per [`an.mcp.TOOL_REFS`](_autosummary/an.mcp.html.md#an.mcp.TOOL_REFS) entry. |
+
+### Exceptions
+
+| [`MCPExtraMissingError`](_autosummary/an.mcp.server.html.md#an.mcp.server.MCPExtraMissingError)   | The MCP server needs the `an[mcp]` extra (`py2mcp`).   |
+|-------------------------------------------------------------------------|--------------------------------------------------------|
+
+### *exception* an.mcp.server.MCPExtraMissingError
+
+Bases: [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The MCP server needs the `an[mcp]` extra (`py2mcp`).
+
+### an.mcp.server.SERVER_INSTRUCTIONS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'Structured animation with \`an\`. Read the vocabulary (\`vocabulary\`) before writing any name into a scene: every action kind, preset, camera move, easing and method is registered and versioned, and a name outside it fails validation. Ask what a character can do (\`describe_character\`, \`applicable_methods\`, \`why_not_method\`) before requesting a method. Edit with \`apply_patch\` (dry-run first); render with \`start_render\` and poll \`job_status\`.'*
+
+What a client is told about this server (the model-facing description).
+
+### an.mcp.server.main()
+
+Serve over stdio (`python -m an.mcp`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.mcp.server.mk_server(, name='an', instructions='Structured animation with \`an\`. Read the vocabulary (\`vocabulary\`) before writing any name into a scene: every action kind, preset, camera move, easing and method is registered and versioned, and a name outside it fails validation. Ask what a character can do (\`describe_character\`, \`applicable_methods\`, \`why_not_method\`) before requesting a method. Edit with \`apply_patch\` (dry-run first); render with \`start_render\` and poll \`job_status\`.')
+
+The FastMCP server with one tool per [`an.mcp.TOOL_REFS`](_autosummary/an.mcp.html.md#an.mcp.TOOL_REFS) entry.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+
+# _autosummary/an.mcp.tools.html.md
+
+# an.mcp.tools
+
+The curated MCP tools: plain functions over the vocabulary, the capability registry and a project.
+
+ADR 0003 decision 6: the MCP surface is a curated list, not all of
+`_dispatch_funcs`. Each tool here is an ordinary function with simple,
+JSON-shaped arguments and results (so `py2mcp` can project it, and a test
+can call it without any MCP stack):
+
+- **queries** — [`vocabulary()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.vocabulary), [`vocabulary_entry()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.vocabulary_entry),
+  [`scene_schema()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.scene_schema), [`validate_scene()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.validate_scene), [`describe_character()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.describe_character),
+  [`applicable_methods()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.applicable_methods), [`why_not_method()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.why_not_method);
+- **edits** — [`apply_patch()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.apply_patch), a typed JSON-pointer patch (the `an
+  iterate` patch shape), validated before anything is written, `dry_run` by
+  default;
+- **long work as jobs** — [`start_render()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.start_render) returns a job id at once and
+  [`job_status()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.job_status) polls it; nothing blocks a client for minutes. The bench
+  > stays CLI-only.
+
+Every tool loads the installed genres first (explicit discovery, ADR 0001
+decision 3): their presets, methods and analysers are part of the answer.
+
+```pycon
+>>> any(e["id"] == "action.tween" for e in vocabulary(kind="action"))
+True
+```
+
+### Module Attributes
+
+| [`TOOLS`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.TOOLS)   | The curated surface, in the order a client lists it.   |
+|----------------------------------------------------------|--------------------------------------------------------|
+
+### Functions
+
+| [`applicable_methods`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.applicable_methods)(aspect, project_dir, name)   | The methods of `aspect` (`locomotion`, `speech`, …) that apply to the character.                                                            |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| [`apply_patch`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.apply_patch)(project_dir, patches[, dry_run])    | Apply typed JSON-pointer patches to the scene, validated before anything is written.                                                        |
+| [`describe_character`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.describe_character)(project_dir, name)           | What a character affords, and per aspect the default method, the applicable ones, and the missing capabilities (with remedies) of the rest. |
+| [`job_status`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.job_status)(job)                                 | A job's state: `running`, `done` (with its `result`) or `failed` (with its `error`).                                                        |
+| [`scene_schema`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.scene_schema)([document])                        | The JSON Schema of a document: `scene` (the scene IR) or `character` (a descriptor).                                                        |
+| [`start_render`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.start_render)(project_dir[, strict_assets, ...]) | Start rendering the project to an mp4; returns `{job}` at once — poll [`job_status()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.job_status).        |
+| [`validate_scene`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.validate_scene)(project_dir)                     | Validate the project's scene (schema and semantics): `{passed, findings}`.                                                                  |
+| [`vocabulary`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.vocabulary)([kind, owner])                       | Every registered vocabulary entry (presets, kinds, easings, camera moves, methods, IR fields).                                              |
+| [`vocabulary_entry`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.vocabulary_entry)(entry_id)                      | One vocabulary entry by id (`motion.walk`, `loco.legged_cycle`).                                                                            |
+| [`why_not_method`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.why_not_method)(method, project_dir, name)       | What the character lacks for `method` to apply, each with its remedy (empty: it applies).                                                   |
+
+### an.mcp.tools.TOOLS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)* *= (<function vocabulary>, <function vocabulary_entry>, <function scene_schema>, <function validate_scene>, <function describe_character>, <function applicable_methods>, <function why_not_method>, <function apply_patch>, <function start_render>, <function job_status>)*
+
+The curated surface, in the order a client lists it.
+
+### an.mcp.tools.applicable_methods(aspect, project_dir, name)
+
+The methods of `aspect` (`locomotion`, `speech`, …) that apply to the character.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.mcp.tools.apply_patch(project_dir, patches, dry_run=True)
+
+Apply typed JSON-pointer patches to the scene, validated before anything is written.
+
+`patches` are `{op: set|append|delete, path: "timeline/0/duration",
+value: …}` (the `an iterate` patch shape). The patched scene is validated
+(schema and semantics); with `dry_run=False` and a passing validation it
+is saved through the scenes store (`scene.md` and `ir/scene.json` stay
+in step) and the edit is recorded in the decisions log.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.mcp.tools.describe_character(project_dir, name)
+
+What a character affords, and per aspect the default method, the applicable
+ones, and the missing capabilities (with remedies) of the rest.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.mcp.tools.job_status(job)
+
+A job’s state: `running`, `done` (with its `result`) or `failed` (with its `error`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.mcp.tools.scene_schema(document='scene')
+
+The JSON Schema of a document: `scene` (the scene IR) or `character` (a descriptor).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.mcp.tools.start_render(project_dir, strict_assets=False, output_name='main')
+
+Start rendering the project to an mp4; returns `{job}` at once — poll [`job_status()`](_autosummary/an.mcp.tools.html.md#an.mcp.tools.job_status).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.mcp.tools.validate_scene(project_dir)
+
+Validate the project’s scene (schema and semantics): `{passed, findings}`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.mcp.tools.vocabulary(kind='', owner='')
+
+Every registered vocabulary entry (presets, kinds, easings, camera moves, methods, IR fields).
+
+Each entry: id, kind, name (how a document spells it), version, title,
+description, accepted spectrum levels, params (JSON Schema with defaults),
+examples, requires. `kind` filters (`motion_preset`, `method`, …),
+`owner` filters by who registered it (`an`, a genre).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.mcp.tools.vocabulary_entry(entry_id)
+
+One vocabulary entry by id (`motion.walk`, `loco.legged_cycle`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.mcp.tools.why_not_method(method, project_dir, name)
+
+What the character lacks for `method` to apply, each with its remedy (empty: it applies).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+
 # _autosummary/an.media.frames.html.md
 
 # an.media.frames
@@ -27727,7 +28873,7 @@ only with the `cutout` extra and the default lane did not install it.)
 Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 `pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
-`squash_stretch`, `waddle`, `turn` and `walk` each EXPAND to ordinary `tween`
+`squash_stretch`, `waddle`, `turn`, `walk` and `speech_pulse` each EXPAND to ordinary `tween`
 actions on transform properties (`turn` adds one swap `set`), composed with [`sequence()`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence) and
 [`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel). Called from Python, nothing downstream
 learns a preset exists: the flat timeline, `an validate`, the verifiers and
@@ -27835,7 +28981,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'speech_pulse': <function speech_pulse>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read.
@@ -29103,6 +30249,1031 @@ Returns the absolute path of the final output file (under `output/`).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
+# _autosummary/an.semantic.describe.html.md
+
+# an.semantic.describe
+
+Describe an asset: what it affords, and per aspect what applies and what is missing.
+
+ADR 0002’s first slice ends with `an character capabilities <name>`: the
+affordances (with the declared overrides the derivation used), and per aspect
+the method the default chain picks, the methods that apply, and the
+`why_not` of the rest with their remedies. [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset) is that
+answer as data (the MCP surface’s describe-an-asset query returns it);
+[`format_description()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.format_description) is its terminal form. Core code: it names no rig.
+
+```pycon
+>>> from an.semantic.entries import Aspect, Method
+>>> from an.semantic.registry import register_aspect, register_entry, drop_owner
+>>> _ = register_entry(Method("demo.fly", aspect="demo_travel", requires=("limbs.wings",)), owner="demo")
+>>> _ = register_entry(Method("demo.float", aspect="demo_travel"), owner="demo")
+>>> _ = register_aspect(Aspect("demo_travel", chain=("demo.fly", "demo.float")), owner="demo")
+>>> d = describe_profile({}, aspects=("demo_travel",))
+>>> d["aspects"]["demo_travel"]["default"], list(d["aspects"]["demo_travel"]["not_applicable"])
+('demo.float', ['demo.fly'])
+>>> drop_owner("demo")
+```
+
+### Functions
+
+| [`describe_asset`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset)(doc[, art, kind, aspects])   | [`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile) of an asset's derived profile, with the analyser and overrides.   |
+|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| [`describe_profile`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile)(profile, \*[, kind, ...])  | Per aspect: the method it resolves to, the applicable ones, and why not the rest.                                                     |
+| [`format_description`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.format_description)(d, \*[, name])           | The terminal form of [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset).                                               |
+
+### an.semantic.describe.describe_asset(doc, art=None, , kind='character', aspects=None)
+
+[`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile) of an asset’s derived profile, with the analyser and overrides.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.semantic.describe.describe_profile(profile, , kind=None, aspects=None, declared=None)
+
+Per aspect: the method it resolves to, the applicable ones, and why not the rest.
+
+`declared` is the asset document’s declared facts: an aspect’s request
+is read from the field it names (`Aspect.declared_by`: a character’s
+`gait`), so the answer is the method the compiler will use.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.semantic.describe.format_description(d, , name='')
+
+The terminal form of [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.semantic.digest.html.md
+
+# an.semantic.digest
+
+Which vocabulary entries a shot names, at which versions: the shot’s vocabulary digest.
+
+ADR 0003 decision 2: the versions of the entries a shot uses are folded into
+that shot’s compile key (ADR 0004), so changing what a name means re-renders
+the shots that say it — visibly, never silently. [`vocabulary_versions()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_versions)
+walks a shot and collects `{entry id: version}`; [`vocabulary_digest()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_digest)
+hashes it.
+
+**In the shot key.** The content-keyed shot cache (P6, an#242) adds key parts
+through `an.build.keys.register_shot_key_part(renderer, name, fn)`; this
+digest is the cut-out keyer’s `vocabulary` part
+([`register_vocabulary_key_part()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.register_vocabulary_key_part), called by `an.adapters.cutout`), so
+bumping an entry’s version re-renders the shots that use it.
+
+Over-inclusion is deliberate and safe: a `play` of a name that is a motion
+preset counts the preset even if the character’s descriptor shadows it, and a
+preset that resolves an aspect counts every method of that aspect — a version
+bump then re-renders a shot that may not have needed it, never the reverse.
+
+```pycon
+>>> from an.ir.schema import Shot, Camera
+>>> v = vocabulary_versions(Shot(id="s", camera=Camera(move="push_in")))
+>>> v["camera.push_in"]
+'1'
+```
+
+### Module Attributes
+
+| [`VOCABULARY_KEY_PART`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.VOCABULARY_KEY_PART)   | The name of the shot-key part this digest is folded in under.   |
+|------------------------------------------------------------------------|-----------------------------------------------------------------|
+
+### Functions
+
+| [`register_vocabulary_key_part`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.register_vocabulary_key_part)([renderer])   | Fold [`vocabulary_digest()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_digest) into `renderer`'s shot key, through P6's seam.   |
+|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`vocabulary_key_part`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_key_part)(shot[, ctx])           | The shot-key part (`an.build.keys.ShotKeyPart`): the shot's vocabulary digest.                                             |
+| [`vocabulary_digest`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_digest)(shot)                    | The sha256 of [`vocabulary_versions()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_versions) — one more part of a shot's key.      |
+| [`vocabulary_versions`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_versions)(shot)                  | `{entry id: version}` for every registered entry `shot` names, sorted.                                                     |
+
+### an.semantic.digest.VOCABULARY_KEY_PART *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'vocabulary'*
+
+The name of the shot-key part this digest is folded in under.
+
+### an.semantic.digest.register_vocabulary_key_part(renderer='cutout')
+
+Fold [`vocabulary_digest()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_digest) into `renderer`’s shot key, through P6’s seam.
+
+Idempotent, and tolerant of order: returns `False` (registering nothing)
+when `renderer` has no shot keyer yet, `True` once the part is in —
+called again, it leaves the registered part alone. The cut-out adapter
+calls it right after registering its keyer.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> import an.adapters  # registers the cut-out keyer, and this part with it
+>>> register_vocabulary_key_part(), register_vocabulary_key_part("no-such-renderer")
+(True, False)
+```
+
+### an.semantic.digest.vocabulary_digest(shot)
+
+The sha256 of [`vocabulary_versions()`](_autosummary/an.semantic.digest.html.md#an.semantic.digest.vocabulary_versions) — one more part of a shot’s key.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.semantic.digest.vocabulary_key_part(shot, ctx=None)
+
+The shot-key part (`an.build.keys.ShotKeyPart`): the shot’s vocabulary digest.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.semantic.digest.vocabulary_versions(shot)
+
+`{entry id: version}` for every registered entry `shot` names, sorted.
+
+Names the registry does not know (a descriptor animation, a parametrised
+easing) are not entries and add nothing; their effect is in the compiled
+document, which the shot key already covers.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+
+# _autosummary/an.semantic.docs.html.md
+
+# an.semantic.docs
+
+The vocabulary section of the downstream `an` skill, generated from the registry.
+
+ADR 0003 decision 6’s third generated surface. The skill keeps its prose; the
+table between the two markers is rendered here and checked by a test, so a
+preset, a method or a version cannot change without the skill saying so:
+
+```default
+python -m an.semantic.docs --write .claude/skills/an/SKILL.md
+```
+
+```pycon
+>>> "| `walk` |" in skill_vocabulary_section() or "| `tween` |" in skill_vocabulary_section()
+True
+```
+
+### Functions
+
+| [`replace_section`](_autosummary/an.semantic.docs.html.md#an.semantic.docs.replace_section)(text, section)   | `text` with the block between the markers replaced by `section`.                  |
+|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`skill_vocabulary_section`](_autosummary/an.semantic.docs.html.md#an.semantic.docs.skill_vocabulary_section)()       | The markdown between the markers: one table per kind, then the methods by aspect. |
+
+### an.semantic.docs.replace_section(text, section)
+
+`text` with the block between the markers replaced by `section`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> replace_section(f"a\n{BEGIN_MARKER}\nold\n{END_MARKER}\nb", "new").splitlines()[2]
+'new'
+```
+
+### an.semantic.docs.skill_vocabulary_section()
+
+The markdown between the markers: one table per kind, then the methods by aspect.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.semantic.html.md
+
+# an.semantic
+
+The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.
+
+ADR 0003 (the structured ↔ semantic spectrum) and ADR 0002 (capability-based
+applicability). Defined once, in the core, for every genre (design principle 3):
+
+- **the vocabulary** — every name a document may spell, as an [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+  (id, version, kind, title, description, params as JSON Schema with
+  defaults, examples, requires, accepted levels, expand): action and entity
+  kinds, easings, camera moves and IR fields from the core
+  ([`an.semantic.seeds`](_autosummary/an.semantic.seeds.html.md#module-an.semantic.seeds)); motion and expression presets, methods and
+  aspects from the genres ([`an.genres.Genre`](_autosummary/an.genres.html.md#an.genres.Genre)’s `vocabulary` and
+  `aspects`);
+- **methods and aspects** — a [`Method`](_autosummary/an.semantic.html.md#an.semantic.Method) is an entry of kind `method`
+  realising an [`Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect), whose default chain ends in a method that
+  requires nothing or in the recorded `NOOP`;
+- **the queries** — [`applicable()`](_autosummary/an.semantic.html.md#an.semantic.applicable), [`why_not()`](_autosummary/an.semantic.html.md#an.semantic.why_not) and [`resolve()`](_autosummary/an.semantic.html.md#an.semantic.resolve)
+  (with a [`Policy`](_autosummary/an.semantic.html.md#an.semantic.Policy)), all calls to the one matcher
+  [`an.capabilities.missing()`](_autosummary/an.capabilities.html.md#an.capabilities.missing);
+- **the generated surfaces** — the `an iterate` prompt
+  ([`an.semantic.prompt`](_autosummary/an.semantic.prompt.html.md#module-an.semantic.prompt)), the skill’s vocabulary section
+  ([`an.semantic.docs`](_autosummary/an.semantic.docs.html.md#module-an.semantic.docs)), the MCP surface ([`an.mcp`](_autosummary/an.mcp.html.md#module-an.mcp)), and the shot’s
+  vocabulary digest for the compile key ([`an.semantic.digest`](_autosummary/an.semantic.digest.html.md#module-an.semantic.digest)).
+
+Nothing here imports `an.ir` at module level, and nothing below the IR ever
+calls an LLM.
+
+```pycon
+>>> from an.semantic import entry, vocabulary
+>>> entry("action.tween").kind
+'action'
+>>> any(e["id"] == "easing.ease_in_out" for e in vocabulary())
+True
+```
+
+### Functions
+
+| [`applicable`](_autosummary/an.semantic.html.md#an.semantic.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.                                    |
+|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`aspect`](_autosummary/an.semantic.html.md#an.semantic.aspect)(name)                                     | The registered aspect `name`; [`UnknownEntryError`](_autosummary/an.semantic.html.md#an.semantic.UnknownEntryError) otherwise.                |
+| `aspect_names`(\*[, owner])                                                                       |                                                                                                                            |
+| `aspects`()                                                                                       |                                                                                                                            |
+| [`check_registry`](_autosummary/an.semantic.html.md#an.semantic.check_registry)(\*[, owner, capabilities])        | The problems with the registered aspects and methods (empty: sound).                                                       |
+| [`entries`](_autosummary/an.semantic.html.md#an.semantic.entries)(\*[, kind, owner])                       | Every entry (registered and viewed), filtered by `kind`/`owner`, in a stable order.                                        |
+| [`entry`](_autosummary/an.semantic.html.md#an.semantic.entry)(entry_id)                                  | The entry with this id; [`UnknownEntryError`](_autosummary/an.semantic.html.md#an.semantic.UnknownEntryError) naming the known ids otherwise. |
+| [`lookup`](_autosummary/an.semantic.html.md#an.semantic.lookup)(kind, name, \*[, aspect])                 | The entry of `kind` a document spells `name` (for methods, within `aspect`).                                               |
+| [`methods_of`](_autosummary/an.semantic.html.md#an.semantic.methods_of)(aspect_name)                          | Every registered method of an aspect: its chain first, in order, then the rest.                                            |
+| `owner_of`(entry_id)                                                                              |                                                                                                                            |
+| [`register_aspect`](_autosummary/an.semantic.html.md#an.semantic.register_aspect)(a, \*[, owner, replace])         | Register an aspect and its default chain.                                                                                  |
+| [`register_entry`](_autosummary/an.semantic.html.md#an.semantic.register_entry)(e, \*[, owner, replace])          | Register a vocabulary entry under `owner`: ONE entry per id, and per spelling.                                             |
+| [`resolve`](_autosummary/an.semantic.html.md#an.semantic.resolve)(aspect_name, subjects[, requested, ...]) | Choose the method that realises `aspect_name` on `subjects`.                                                               |
+| [`vocabulary`](_autosummary/an.semantic.html.md#an.semantic.vocabulary)(\*[, kind, owner])                    | Every entry as data (what the MCP surface returns), filtered by `kind`/`owner`.                                            |
+| [`why_not`](_autosummary/an.semantic.html.md#an.semantic.why_not)(method, subjects)                        | What `method` is missing on `subjects`, each with its remedy (empty: it applies).                                          |
+
+### Classes
+
+| [`Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect)(name, chain[, applies_to, ...])          | Something every asset of a kind gets (locomotion, speech, blink, …).                                                     |
+|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| [`Choice`](_autosummary/an.semantic.html.md#an.semantic.Choice)(method[, args, version])                 | One method choice in a policy or a request: `previz`'s `FormulaCall` plus a pin.                                         |
+| [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)(id, kind[, version, name, title, ...])    | One vocabulary entry: a named, versioned, described, parametrised recipe.                                                |
+| [`Method`](_autosummary/an.semantic.html.md#an.semantic.Method)(id[, kind, version, name, title, ...])   | A way of realising an aspect (ADR 0002): an entry of kind `method`.                                                      |
+| [`Missing`](_autosummary/an.semantic.html.md#an.semantic.Missing)(term, remedy)                           | One unmet requirement term and what would meet it.                                                                       |
+| [`Policy`](_autosummary/an.semantic.html.md#an.semantic.Policy)([order])                                 | Per-aspect method orders set by a style (study_the_masters §4).                                                          |
+| [`Resolution`](_autosummary/an.semantic.html.md#an.semantic.Resolution)(aspect, method[, args, source, ...]) | What [`resolve()`](_autosummary/an.semantic.html.md#an.semantic.resolve) chose: the method, its args, where the choice came from. |
+
+### Exceptions
+
+| [`UnknownEntryError`](_autosummary/an.semantic.html.md#an.semantic.UnknownEntryError)   | A name or id is not in the vocabulary; the message lists what is.                    |
+|----------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError)     | A vocabulary entry, aspect or policy is malformed or collides with a registered one. |
+
+### *class* an.semantic.Aspect(name, chain, applies_to=frozenset({}), description='', declared_by='', records_fallback=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Something every asset of a kind gets (locomotion, speech, blink, …).
+
+`chain` is the default order of method ids, first applicable wins; its
+last link requires nothing, or is `NOOP`. `applies_to` is the
+entity kinds it makes sense for (empty: all); for any other kind the
+aspect resolves to the recorded no-op.
+
+#### declared_by *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
+
+The asset-document field an asset declares its request in (a
+character’s `gait`, `speech`): a declared method choice, reported as
+such by `describe_asset` and honoured by the compiler.
+
+#### records_fallback *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+Record falling down the chain even when nothing was requested (reason
+`missing`, so `--strict-assets` sees it). For an aspect whose
+fallback is a behaviour the asset never had before — speech’s pulse on a
+baked face — rather than today’s long-standing default (a legless walk).
+
+### *class* an.semantic.Choice(method, args=<factory>, version=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One method choice in a policy or a request: `previz`’s `FormulaCall` plus a pin.
+
+```pycon
+>>> Choice.of({"method": "speech.mouth_flap", "args": {"shapes": 3}}).args
+{'shapes': 3}
+>>> Choice.of("loco.rock").method
+'loco.rock'
+```
+
+### *class* an.semantic.Entry(id, kind, version='1', name='', title='', description='', usage='', params=<factory>, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One vocabulary entry: a named, versioned, described, parametrised recipe.
+
+- `id` is the persisted identifier (dotted: `motion.walk`,
+  `loco.legged_cycle`); `name` is how a document spells it (`walk`;
+  defaults to `id`), looked up per `kind`.
+- `version` changes whenever the meaning changes for the same params; the
+  versions of the entries a shot uses fold into its compile key.
+- `params` is a JSON Schema object; `properties.*.default` are the
+  defaults (`{}` when the entry takes none).
+- `aspects` names the aspects that using this entry resolves (a `walk`
+  resolves `locomotion`), so the digest of a shot can include the methods
+  it may resolve to.
+- `usage` is the longer note the generated surfaces print under the
+  one-sentence `description` (how a document spells it, what bites).
+
+#### defaults()
+
+The params’ defaults (`properties.*.default`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### *classmethod* from_json(data, , expand=None)
+
+An entry from its JSON form (what [`to_json()`](_autosummary/an.semantic.html.md#an.semantic.Entry.to_json) writes, or another
+package exports — previz’s formulas): the explicit loader, a `method`
+kind giving a [`Method`](_autosummary/an.semantic.html.md#an.semantic.Method).
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+
+```pycon
+>>> e = Entry("camera.demo", "camera_move", name="demo", description="d")
+>>> Entry.from_json(e.to_json()) == e
+True
+```
+
+#### *property* term *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+How a document spells this entry.
+
+#### to_json()
+
+The entry as data (no `expand`): what the MCP surface and the docs list.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.semantic.Method(id, kind='method', version='1', name='', title='', description='', usage='', params=<factory>, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None, aspect='', remedies=<factory>)
+
+Bases: [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+
+A way of realising an aspect (ADR 0002): an entry of kind `method`.
+
+`remedies` overrides a capability’s own remedy per requirement term (a
+method can say “split the legs into two slots with hip pivots” where the
+capability only says “add legs”).
+
+```pycon
+>>> m = Method("loco.rock", aspect="locomotion", name="rock")
+>>> m.kind, m.aspect, m.requirement_free
+('method', 'locomotion', True)
+```
+
+#### *property* requirement_free *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether the method applies to anything (a legal last link of a chain).
+
+#### to_json()
+
+The entry as data (no `expand`): what the MCP surface and the docs list.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.semantic.Missing(term, remedy)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One unmet requirement term and what would meet it.
+
+### *class* an.semantic.Policy(order=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Per-aspect method orders set by a style (study_the_masters §4).
+
+The parsed form of a style document’s `policy:` block; precedence when
+resolving is the author’s request, then the shot, then the style, then the
+aspect’s chain ([`layered()`](_autosummary/an.semantic.html.md#an.semantic.Policy.layered)).
+
+```pycon
+>>> p = Policy.of({"locomotion": ["loco.bob", {"method": "loco.glide", "args": {"bob": 0}}]})
+>>> [c.method for c in p.choices("locomotion")], p.choices("speech")
+(['loco.bob', 'loco.glide'], ())
+```
+
+#### *static* layered(\*policies)
+
+Policies in precedence order (shot before style): the first that names an aspect wins it.
+
+* **Return type:**
+  [`Policy`](_autosummary/an.semantic.html.md#an.semantic.Policy)
+
+### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`resolve()`](_autosummary/an.semantic.html.md#an.semantic.resolve) chose: the method, its args, where the choice came from.
+
+`source` is `request`, `policy`, `chain` or `noop`;
+`substitution` is the record when the choice departs from what was asked
+(`None` when it did not); `considered` is the trail of methods tried
+before it, each with what it was missing.
+
+### *exception* an.semantic.UnknownEntryError
+
+Bases: [`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError), [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError)
+
+A name or id is not in the vocabulary; the message lists what is.
+
+### *exception* an.semantic.VocabularyError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A vocabulary entry, aspect or policy is malformed or collides with a registered one.
+
+### an.semantic.applicable(aspect_name, subjects)
+
+The methods of `aspect_name` that apply to `subjects`, the default chain’s order first.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](_autosummary/an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.aspect(name)
+
+The registered aspect `name`; [`UnknownEntryError`](_autosummary/an.semantic.html.md#an.semantic.UnknownEntryError) otherwise.
+
+* **Return type:**
+  [`Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect)
+
+### an.semantic.check_registry(, owner=None, capabilities=True)
+
+The problems with the registered aspects and methods (empty: sound).
+
+ADR 0002 decision 5 as a check: every aspect’s chain names methods of that
+aspect, and its last link requires nothing or is the recorded `NOOP`;
+one spelling is one entry; and (`capabilities`) every requirement names a
+registered capability. `owner` limits it to one genre’s aspects and
+entries. [`an.genres.register_genre()`](_autosummary/an.genres.html.md#an.genres.register_genre) runs the chain checks per genre;
+[`an.genres.load()`](_autosummary/an.genres.html.md#an.genres.load) runs the capability check once every genre is in, so
+a genre needing another’s capability does not depend on load order.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.semantic.entries(, kind=None, owner=None)
+
+Every entry (registered and viewed), filtered by `kind`/`owner`, in a stable order.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.entry(entry_id)
+
+The entry with this id; [`UnknownEntryError`](_autosummary/an.semantic.html.md#an.semantic.UnknownEntryError) naming the known ids otherwise.
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+
+### an.semantic.lookup(kind, name, , aspect=None)
+
+The entry of `kind` a document spells `name` (for methods, within `aspect`).
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.semantic.methods_of(aspect_name)
+
+Every registered method of an aspect: its chain first, in order, then the rest.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](_autosummary/an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.register_aspect(a, , owner='an', replace=False)
+
+Register an aspect and its default chain. Checked as a whole by
+[`an.semantic.check_registry()`](_autosummary/an.semantic.html.md#an.semantic.check_registry) (a chain may name methods registered
+after it, within the same genre).
+
+* **Return type:**
+  [`Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect)
+
+### an.semantic.register_entry(e, , owner='an', replace=False)
+
+Register a vocabulary entry under `owner`: ONE entry per id, and per spelling.
+
+A name means one thing everywhere (`push_in` is one entry, an#257): a
+second entry under a taken id — registered or provided by a view — or under
+a taken `(kind, name)` (within an aspect, for methods) raises, unless
+`replace=True` is passed explicitly, and then the replacement is recorded
+(`replacements()`). Re-registering the same entry is a no-op.
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+
+```pycon
+>>> from an.semantic.entries import Entry
+>>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
+Traceback (most recent call last):
+...
+an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
+```
+
+### an.semantic.resolve(aspect_name, subjects, requested=None, , policy=None, entity='', entity_kind=None)
+
+Choose the method that realises `aspect_name` on `subjects`.
+
+`requested` is the author’s explicit choice (a method id, its spelling
+in the aspect — `"hem"` for locomotion —, or `{method, args, version}`);
+`policy` the layered shot/style policy; `entity_kind` the asset’s kind,
+checked against the aspect’s `applies_to`. Never raises for a method that
+does not apply: it falls back and records why.
+
+* **Return type:**
+  [`Resolution`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Resolution)
+
+### an.semantic.vocabulary(, kind=None, owner=None)
+
+Every entry as data (what the MCP surface returns), filtered by `kind`/`owner`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.semantic.why_not(method, subjects)
+
+What `method` is missing on `subjects`, each with its remedy (empty: it applies).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Missing`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Missing), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### Modules
+
+| [`describe`](_autosummary/an.semantic.describe.html.md#module-an.semantic.describe)   | Describe an asset: what it affords, and per aspect what applies and what is missing.        |
+|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`digest`](_autosummary/an.semantic.digest.html.md#module-an.semantic.digest)       | Which vocabulary entries a shot names, at which versions: the shot's vocabulary digest.     |
+| [`docs`](_autosummary/an.semantic.docs.html.md#module-an.semantic.docs)           | The vocabulary section of the downstream `an` skill, generated from the registry.           |
+| [`matcher`](_autosummary/an.semantic.matcher.html.md#module-an.semantic.matcher)     | The three queries and the policy (ADR 0002 decision 4): `applicable`, `why_not`, `resolve`. |
+| [`prompt`](_autosummary/an.semantic.prompt.html.md#module-an.semantic.prompt)       | The `an iterate` system prompt, generated from the vocabulary registry.                     |
+| [`registry`](_autosummary/an.semantic.registry.html.md#module-an.semantic.registry)   | The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.           |
+| [`seeds`](_autosummary/an.semantic.seeds.html.md#module-an.semantic.seeds)         | The core's vocabulary: views over the kind and easing registries, camera moves, IR fields.  |
+| [`views`](_autosummary/an.semantic.views.html.md#module-an.semantic.views)         | View spaces: what a camera move moves through, defined once for every engine (an#257).      |
+
+
+# _autosummary/an.semantic.matcher.html.md
+
+# an.semantic.matcher
+
+The three queries and the policy (ADR 0002 decision 4): `applicable`, `why_not`, `resolve`.
+
+All three are calls to the one matcher, [`an.capabilities.missing()`](_autosummary/an.capabilities.html.md#an.capabilities.missing), over
+the methods the vocabulary registry holds for an aspect.
+
+- [`applicable()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.applicable) lists the methods of an aspect that apply to the subjects
+  (the default chain’s order first).
+- [`why_not()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.why_not) lists what a method is missing, each term with its remedy —
+  the method’s own, else the capability’s.
+- [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve) picks one: the author’s request if it applies; else the first
+  applicable choice of the policy (shot before style, `Policy.layered()`);
+  else the aspect’s default chain. Every departure from what was asked is a
+  [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) on the result: `missing` when what
+  > was asked does not apply, `policy` when a policy chose against the chain
+  > (information, never fatal), `noop` when the aspect does not apply at all.
+
+```pycon
+>>> from an.semantic.entries import Aspect, Method
+>>> from an.semantic.registry import register_aspect, register_entry, drop_owner
+>>> _ = register_entry(Method("demo.legs", aspect="demo_move", requires=("limbs.legs",)), owner="demo")
+>>> _ = register_entry(Method("demo.slide", aspect="demo_move"), owner="demo")
+>>> _ = register_aspect(Aspect("demo_move", chain=("demo.legs", "demo.slide")), owner="demo")
+>>> [m.id for m in applicable("demo_move", {})]
+['demo.slide']
+>>> [w.term for w in why_not("demo.legs", {})]
+['limbs.legs']
+>>> r = resolve("demo_move", {}, requested="demo.legs", entity="blob")
+>>> r.method.id, r.substitution.reason
+('demo.slide', 'missing')
+>>> drop_owner("demo")
+```
+
+### Functions
+
+| [`applicable`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.   |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`resolve`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve)(aspect_name, subjects[, requested, ...]) | Choose the method that realises `aspect_name` on `subjects`.                              |
+| [`why_not`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.why_not)(method, subjects)                        | What `method` is missing on `subjects`, each with its remedy (empty: it applies).         |
+
+### Classes
+
+| [`Missing`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Missing)(term, remedy)                           | One unmet requirement term and what would meet it.                                                                       |
+|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| [`Resolution`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Resolution)(aspect, method[, args, source, ...]) | What [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve) chose: the method, its args, where the choice came from. |
+
+### *class* an.semantic.matcher.Missing(term, remedy)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One unmet requirement term and what would meet it.
+
+### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve) chose: the method, its args, where the choice came from.
+
+`source` is `request`, `policy`, `chain` or `noop`;
+`substitution` is the record when the choice departs from what was asked
+(`None` when it did not); `considered` is the trail of methods tried
+before it, each with what it was missing.
+
+### an.semantic.matcher.applicable(aspect_name, subjects)
+
+The methods of `aspect_name` that apply to `subjects`, the default chain’s order first.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](_autosummary/an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , policy=None, entity='', entity_kind=None)
+
+Choose the method that realises `aspect_name` on `subjects`.
+
+`requested` is the author’s explicit choice (a method id, its spelling
+in the aspect — `"hem"` for locomotion —, or `{method, args, version}`);
+`policy` the layered shot/style policy; `entity_kind` the asset’s kind,
+checked against the aspect’s `applies_to`. Never raises for a method that
+does not apply: it falls back and records why.
+
+* **Return type:**
+  [`Resolution`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Resolution)
+
+### an.semantic.matcher.why_not(method, subjects)
+
+What `method` is missing on `subjects`, each with its remedy (empty: it applies).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Missing`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Missing), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+
+# _autosummary/an.semantic.prompt.html.md
+
+# an.semantic.prompt
+
+The `an iterate` system prompt, generated from the vocabulary registry.
+
+ADR 0003 decision 6: the prompt is one of the three surfaces generated from the
+registry, never written by hand. [`vocabulary_prompt()`](_autosummary/an.semantic.prompt.html.md#an.semantic.prompt.vocabulary_prompt) renders the IR’s
+fields and every registered name — action and entity kinds, motion and
+expression presets, camera moves, easings, methods by aspect — each with its
+one-sentence description and its params. The *protocol* around it (the patch
+operations, the path syntax, the editing rules) is `an iterate`’s own and is
+passed in as `preamble` and `postamble`.
+
+```pycon
+>>> text = vocabulary_prompt()
+>>> "push_in" in text and "tween" in text and "linear" in text
+True
+```
+
+### Functions
+
+| [`iterate_prompt`](_autosummary/an.semantic.prompt.html.md#an.semantic.prompt.iterate_prompt)(\*, preamble, postamble)   | `preamble` + the generated vocabulary + `postamble` (the `an iterate` protocol).   |
+|--------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`vocabulary_prompt`](_autosummary/an.semantic.prompt.html.md#an.semantic.prompt.vocabulary_prompt)(\*[, kinds])            | The IR fields and every registered name, as prompt text.                           |
+
+### an.semantic.prompt.iterate_prompt(, preamble, postamble)
+
+`preamble` + the generated vocabulary + `postamble` (the `an iterate` protocol).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.semantic.prompt.vocabulary_prompt(, kinds=(('action', "Action kinds (an action's \`kind\`)"), ('entity', "Entity kinds (an entity's \`kind\`)"), ('motion_preset', 'Motion presets (\`play\` by name; \`args\` are the parameters shown)'), ('expression_preset', "Expression presets (an \`expression\`'s \`preset\`, a dialogue line's \`emotion\`)"), ('camera_move', 'Camera moves (\`camera: {move: …}\`)'), ('easing', "Easings (a tween's \`easing\`)")))
+
+The IR fields and every registered name, as prompt text.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.semantic.registry.html.md
+
+# an.semantic.registry
+
+The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.
+
+Two kinds of source feed it:
+
+- **registered entries** ([`register_entry()`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.register_entry), [`register_aspect()`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.register_aspect)):
+  methods, motion and expression presets, camera moves, IR fields — each with
+  an owner (the core, or a genre, through [`an.genres.Genre`](_autosummary/an.genres.html.md#an.genres.Genre)’s
+  `vocabulary` and `aspects` fields, so a genre’s entries come out with it);
+- **views** ([`register_view()`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.register_view)): entries derived on every read from a
+  registry that already exists — the action and entity kinds of
+  [`an.genres.registry`](_autosummary/an.genres.registry.html.md#module-an.genres.registry), the easings of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing) — so a kind
+  > or an easing is defined once, where it lives, and never copied here (design
+  > principle 3).
+
+Like [`an.genres.registry`](_autosummary/an.genres.registry.html.md#module-an.genres.registry) this module imports nothing from `an.ir`: a
+view imports its source lazily, when it is read.
+
+```pycon
+>>> from an.semantic.entries import Entry
+>>> e = register_entry(Entry("demo.wiggle", "motion_preset", name="wiggle"), owner="demo")
+>>> lookup("motion_preset", "wiggle") is e, entry("demo.wiggle") is e
+(True, True)
+>>> drop_owner("demo"); lookup("motion_preset", "wiggle") is None
+True
+```
+
+### Functions
+
+| [`duplicates`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.duplicates)()                             | Spellings defined twice (a view and a registered entry disagreeing on an id count once: the registered one shadows).       |
+|-------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`aspect`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.aspect)(name)                             | The registered aspect `name`; [`UnknownEntryError`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.UnknownEntryError) otherwise.                |
+| `aspect_names`(\*[, owner])                                                               |                                                                                                                            |
+| `aspects`()                                                                               |                                                                                                                            |
+| [`drop_owner`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.drop_owner)(owner)                        | Remove every entry and aspect `owner` registered.                                                                          |
+| [`entries`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.entries)(\*[, kind, owner])               | Every entry (registered and viewed), filtered by `kind`/`owner`, in a stable order.                                        |
+| [`entry`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.entry)(entry_id)                          | The entry with this id; [`UnknownEntryError`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.UnknownEntryError) naming the known ids otherwise. |
+| [`lookup`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.lookup)(kind, name, \*[, aspect])         | The entry of `kind` a document spells `name` (for methods, within `aspect`).                                               |
+| [`methods_of`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.methods_of)(aspect_name)                  | Every registered method of an aspect: its chain first, in order, then the rest.                                            |
+| `owner_of`(entry_id)                                                                      |                                                                                                                            |
+| [`register_aspect`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.register_aspect)(a, \*[, owner, replace]) | Register an aspect and its default chain.                                                                                  |
+| [`register_entry`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.register_entry)(e, \*[, owner, replace])  | Register a vocabulary entry under `owner`: ONE entry per id, and per spelling.                                             |
+| [`register_view`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.register_view)(name, view)                | Register a read-time view (core only: the kinds and easing registries).                                                    |
+| [`replacements`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.replacements)()                           | Every deliberate replacement: `{id: (previous owner, new owner, previous version)}`.                                       |
+| `restore`(state)                                                                          |                                                                                                                            |
+| [`snapshot`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.snapshot)()                               | The state of the registered tables (views are code, not state).                                                            |
+
+### Exceptions
+
+| [`UnknownEntryError`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.UnknownEntryError)   | A name or id is not in the vocabulary; the message lists what is.   |
+|----------------------------------------------------------------------|---------------------------------------------------------------------|
+
+### *exception* an.semantic.registry.UnknownEntryError
+
+Bases: [`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError), [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError)
+
+A name or id is not in the vocabulary; the message lists what is.
+
+### an.semantic.registry.aspect(name)
+
+The registered aspect `name`; [`UnknownEntryError`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.UnknownEntryError) otherwise.
+
+* **Return type:**
+  [`Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect)
+
+### an.semantic.registry.drop_owner(owner)
+
+Remove every entry and aspect `owner` registered.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.semantic.registry.duplicates()
+
+Spellings defined twice (a view and a registered entry disagreeing on an id
+count once: the registered one shadows). Empty when one name is one thing.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.semantic.registry.entries(, kind=None, owner=None)
+
+Every entry (registered and viewed), filtered by `kind`/`owner`, in a stable order.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.registry.entry(entry_id)
+
+The entry with this id; [`UnknownEntryError`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.UnknownEntryError) naming the known ids otherwise.
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+
+### an.semantic.registry.lookup(kind, name, , aspect=None)
+
+The entry of `kind` a document spells `name` (for methods, within `aspect`).
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.semantic.registry.methods_of(aspect_name)
+
+Every registered method of an aspect: its chain first, in order, then the rest.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](_autosummary/an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.registry.register_aspect(a, , owner='an', replace=False)
+
+Register an aspect and its default chain. Checked as a whole by
+[`an.semantic.check_registry()`](_autosummary/an.semantic.html.md#an.semantic.check_registry) (a chain may name methods registered
+after it, within the same genre).
+
+* **Return type:**
+  [`Aspect`](_autosummary/an.semantic.html.md#an.semantic.Aspect)
+
+### an.semantic.registry.register_entry(e, , owner='an', replace=False)
+
+Register a vocabulary entry under `owner`: ONE entry per id, and per spelling.
+
+A name means one thing everywhere (`push_in` is one entry, an#257): a
+second entry under a taken id — registered or provided by a view — or under
+a taken `(kind, name)` (within an aspect, for methods) raises, unless
+`replace=True` is passed explicitly, and then the replacement is recorded
+([`replacements()`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.replacements)). Re-registering the same entry is a no-op.
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
+
+```pycon
+>>> from an.semantic.entries import Entry
+>>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
+Traceback (most recent call last):
+...
+an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
+```
+
+### an.semantic.registry.register_view(name, view)
+
+Register a read-time view (core only: the kinds and easing registries).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.semantic.registry.replacements()
+
+Every deliberate replacement: `{id: (previous owner, new owner, previous version)}`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.semantic.registry.snapshot()
+
+The state of the registered tables (views are code, not state).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)
+
+
+# _autosummary/an.semantic.seeds.html.md
+
+# an.semantic.seeds
+
+The core’s vocabulary: views over the kind and easing registries, camera moves, IR fields.
+
+ADR 0003’s first slice seeds the registry with today’s named vocabularies.
+The **core’s** share is here (a genre contributes the rest through
+[`an.genres.Genre`](_autosummary/an.genres.html.md#an.genres.Genre)):
+
+- **action kinds** and **entity kinds** — *views* over
+  [`an.genres.registry`](_autosummary/an.genres.registry.html.md#module-an.genres.registry), so a genre’s kinds appear as entries the moment it
+  > registers them, with their owner and [`version`](_autosummary/an.genres.html.md#an.genres.ActionKind.version);
+- **easings** — a view over [`an.timing.easing.easing_entries()`](_autosummary/an.timing.easing.html.md#an.timing.easing.easing_entries) (the
+  easing canon already carries a version per entry);
+- **camera moves** — a view over [`an.ir.camera.CAMERA_MOVES`](_autosummary/an.ir.camera.html.md#an.ir.camera.CAMERA_MOVES), versioned
+  in [`CAMERA_MOVE_VERSIONS`](_autosummary/an.semantic.seeds.html.md#an.semantic.seeds.CAMERA_MOVE_VERSIONS) (a test fails when a move has none); each is
+  a path through the `framing2d` **view space** and requires an engine that
+  lowers it (`space.framing2d`, [`an.semantic.views`](_autosummary/an.semantic.views.html.md#module-an.semantic.views), an#257);
+- **view spaces** — `framing2d` and `orbit3d` ([`an.semantic.views`](_autosummary/an.semantic.views.html.md#module-an.semantic.views));
+- **IR fields** (kind `field`) — what the scene document’s fields accept,
+  the notes the `an iterate` prompt used to hand-list. Each says which
+  spectrum levels it takes: a field that accepts only (a) says so, and no
+  resolver will invent a value for it (ADR 0003 decision 5).
+
+Nothing here imports `an.ir` at module level; the views import their sources
+when read.
+
+```pycon
+>>> from an.semantic.registry import lookup
+>>> lookup("action", "tween").version, lookup("easing", "linear").kind
+('1', 'easing')
+```
+
+### Module Attributes
+
+| [`CAMERA_MOVE_VERSIONS`](_autosummary/an.semantic.seeds.html.md#an.semantic.seeds.CAMERA_MOVE_VERSIONS)     | Version of each named camera move (ADR 0003).      |
+|---------------------------------------------------------------------------|----------------------------------------------------|
+| [`CAMERA_MOVE_DESCRIPTIONS`](_autosummary/an.semantic.seeds.html.md#an.semantic.seeds.CAMERA_MOVE_DESCRIPTIONS) | One sentence per camera move, in production terms. |
+| [`CORE_FIELDS`](_autosummary/an.semantic.seeds.html.md#an.semantic.seeds.CORE_FIELDS)              | the core).                                         |
+
+### Functions
+
+| [`schema_of_callable`](_autosummary/an.semantic.seeds.html.md#an.semantic.seeds.schema_of_callable)(fn, \*[, skip, positional])   | A JSON Schema object for `fn`'s keyword parameters, defaults included.   |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+
+### an.semantic.seeds.CAMERA_MOVE_DESCRIPTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'hold': 'a locked-off camera: no move', 'pan_left': 'truck the camera left across the frame (on a flat stage a pan and a truck look the same)', 'pan_right': 'truck the camera right across the frame', 'pull_out': 'a slow pull out: zoom 1.0 → 0.8 over the shot, eased', 'push_in': 'a slow push in: zoom 1.0 → 1.25 over the shot, eased', 'tilt_down': 'move the camera down across the frame', 'tilt_up': 'move the camera up across the frame (spans the frame height)', 'zoom_in': 'a stronger zoom in: 1.0 → 1.5 over the shot', 'zoom_out': 'a stronger zoom out: 1.0 → 0.7 over the shot'}*
+
+One sentence per camera move, in production terms.
+
+### an.semantic.seeds.CAMERA_MOVE_VERSIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'hold': '1', 'pan_left': '1', 'pan_right': '1', 'pull_out': '1', 'push_in': '1', 'tilt_down': '1', 'tilt_up': '1', 'zoom_in': '1', 'zoom_out': '1'}*
+
+Version of each named camera move (ADR 0003). Bump one when its keys change.
+
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, pivot_x, pivot_y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+
+the core).
+
+* **Type:**
+  The core’s IR-field entries, registered on import (owner
+
+### an.semantic.seeds.schema_of_callable(fn, , skip=(), positional=False)
+
+A JSON Schema object for `fn`’s keyword parameters, defaults included.
+
+Positional-only and `skip``ped parameters are left out (``target`,
+`rest`, `parts` are the compiler’s, not the author’s).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> def f(target, *, height: float = 30.0, label: str = "x", n: int | None = None): ...
+>>> schema_of_callable(f, skip=("target",))["properties"]["height"]
+{'type': 'number', 'default': 30.0}
+```
+
+
+# _autosummary/an.semantic.views.html.md
+
+# an.semantic.views
+
+View spaces: what a camera move moves through, defined once for every engine (an#257).
+
+A camera move (`push_in`, `pan_left`, an orbit) is not a crop, a zoom or a
+parameter tween: it is a **path through a view space**, which each engine
+lowers its own way —
+
+- a **crop engine** (`burns`, a still or a video) moves a rectangle over
+  fixed pixels, so pushing in loses resolution;
+- a **render engine** (the stage engine of `an`/`cutan`, vector art)
+  re-renders the scene into the rectangle, so pushing in loses nothing;
+- a **parameter engine** (`previz`) moves a vector of view parameters — an
+  orbit camera in 3D, a chart’s axis domain.
+
+So the vocabulary defines each move once, over an abstract space, and an engine
+affords the space it can lower (`space.framing2d` is an engine capability,
+[`an.capabilities.subjects`](_autosummary/an.capabilities.subjects.html.md#module-an.capabilities.subjects)). The core declares two spaces; a genre or a
+package declares more (an n-dimensional one) with [`view_space()`](_autosummary/an.semantic.views.html.md#an.semantic.views.view_space), and
+registers moves over them into the same `camera_move` table — so `push_in`
+means one thing everywhere, and `burns`’ moves and `previz`’s camera
+formulas join it instead of redefining it.
+
+```pycon
+>>> FRAMING_2D.entry.id, FRAMING_2D.capability.name, FRAMING_2D.entry.params["properties"]["zoom"]["scale"]
+('view.framing2d', 'space.framing2d', 'log')
+```
+
+### Module Attributes
+
+| [`FRAMING_2D`](_autosummary/an.semantic.views.html.md#an.semantic.views.FRAMING_2D)   | where the frame is, how close, how rolled.                 |
+|---------------------------------------------------------------|------------------------------------------------------------|
+| [`ORBIT_3D`](_autosummary/an.semantic.views.html.md#an.semantic.views.ORBIT_3D)     | a camera on a sphere around a target (previz's turntable). |
+
+### Functions
+
+| [`view_space`](_autosummary/an.semantic.views.html.md#an.semantic.views.view_space)(name, fields, \*, description[, ...])   | Declare a view space: an entry `view.<name>` and an engine capability `space.<name>`.   |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+
+### Classes
+
+| [`ViewField`](_autosummary/an.semantic.views.html.md#an.semantic.views.ViewField)(name, unit[, scale, rest, description])   | One axis of a view space: its name, unit, how it interpolates, its rest value.     |
+|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`ViewSpace`](_autosummary/an.semantic.views.html.md#an.semantic.views.ViewSpace)(entry, capability)                        | A declared view space: its vocabulary entry and the engine capability to lower it. |
+
+### an.semantic.views.FRAMING_2D *: [ViewSpace](_autosummary/an.semantic.views.html.md#an.semantic.views.ViewSpace)* *= ViewSpace(entry=Entry(id='view.framing2d', kind='view_space', version='1', name='framing2d', title='', description='a 2D framing of a flat picture: position, zoom (log), roll (angle)', usage='axes: x (frame widths, linear), y (frame heights, linear), zoom (ratio, log), rotation (rad, angle)', params={'type': 'object', 'properties': {'x': {'type': 'number', 'unit': 'frame widths', 'scale': 'linear', 'default': 0.0, 'description': '+x moves the view right'}, 'y': {'type': 'number', 'unit': 'frame heights', 'scale': 'linear', 'default': 0.0, 'description': '+y moves the view down'}, 'zoom': {'type': 'number', 'unit': 'ratio', 'scale': 'log', 'default': 1.0, 'description': 'on-screen magnification; > 1 is closer'}, 'rotation': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': "the view's roll"}}}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), capability=Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'))*
+
+where the frame is, how close, how rolled. Every
+engine that shows a flat picture lowers it — by cropping pixels (burns) or by
+re-rendering into the frame (the stage engine).
+
+* **Type:**
+  The 2D framing space
+
+### an.semantic.views.ORBIT_3D *: [ViewSpace](_autosummary/an.semantic.views.html.md#an.semantic.views.ViewSpace)* *= ViewSpace(entry=Entry(id='view.orbit3d', kind='view_space', version='1', name='orbit3d', title='', description='an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', usage='axes: azimuth (rad, angle), elevation (rad, angle), distance (scene units, log), target_x (scene units, linear), target_y (scene units, linear), target_z (scene units, linear)', params={'type': 'object', 'properties': {'azimuth': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': 'around the target'}, 'elevation': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': "above the target's horizon"}, 'distance': {'type': 'number', 'unit': 'scene units', 'scale': 'log', 'default': 1.0, 'description': 'from the target'}, 'target_x': {'type': 'number', 'unit': 'scene units', 'scale': 'linear', 'default': 0.0}, 'target_y': {'type': 'number', 'unit': 'scene units', 'scale': 'linear', 'default': 0.0}, 'target_z': {'type': 'number', 'unit': 'scene units', 'scale': 'linear', 'default': 0.0}}}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), capability=Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1'))*
+
+a camera on a sphere around a target (previz’s turntable).
+
+* **Type:**
+  The 3D orbit space
+
+### *class* an.semantic.views.ViewField(name, unit, scale='linear', rest=0.0, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One axis of a view space: its name, unit, how it interpolates, its rest value.
+
+### *class* an.semantic.views.ViewSpace(entry, capability)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A declared view space: its vocabulary entry and the engine capability to lower it.
+
+### an.semantic.views.view_space(name, fields, , description, version='1')
+
+Declare a view space: an entry `view.<name>` and an engine capability `space.<name>`.
+
+Register both through a [`an.genres.Genre`](_autosummary/an.genres.html.md#an.genres.Genre) (`vocabulary` and
+`capabilities`) or, for the core’s, directly.
+
+* **Return type:**
+  [`ViewSpace`](_autosummary/an.semantic.views.html.md#an.semantic.views.ViewSpace)
 
 
 # _autosummary/an.sounds.html.md
@@ -34152,7 +36323,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 16:24 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/bf42ae04cdb65a0a9394570e356f274a1a6d8b85"><code>bf42ae0</code></a> on branch <code>main</code>, for **an 0.1.138** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 16:46 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/966743472ecdc0e5e91a65312834f3e2c9362d76"><code>9667434</code></a> on branch <code>main</code>, for **an 0.1.139** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -34161,9 +36332,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/bf42ae04cdb65a0a9394570e356f274a1a6d8b85"><code>bf42ae04cdb65a0a9394570e356f274a1a6d8b85</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/966743472ecdc0e5e91a65312834f3e2c9362d76"><code>966743472ecdc0e5e91a65312834f3e2c9362d76</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.138</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.139</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -34172,9 +36343,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36890913290">36890913290</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36893696449">36893696449</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>f72ca0ba0081a990451eb8f569fc704eb344eee6</code> (in the history of the built commit) |
+| Event commit | <code>0ae1ac48f5a0d70c3f252c572eb2a3b5658707ba</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -34199,13 +36370,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.138/">0.1.138</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.139/">0.1.139</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout bf42ae04cdb65a0a9394570e356f274a1a6d8b85
+git checkout 966743472ecdc0e5e91a65312834f3e2c9362d76
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

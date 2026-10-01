@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="seeds.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.semantic.seeds &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../../_static/documentation_options.js?v=77e645f5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/semantic/seeds';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.139" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../semantic.html" class="nav-link">an.semantic</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.semantic.seeds</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.semantic.seeds</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The core's vocabulary: views over the kind and easing registries, camera moves, IR fields.</span>
+
+<span class="sd">ADR 0003's first slice seeds the registry with today's named vocabularies.</span>
+<span class="sd">The **core's** share is here (a genre contributes the rest through</span>
+<span class="sd">:class:`an.genres.Genre`):</span>
+
+<span class="sd">- **action kinds** and **entity kinds** — *views* over</span>
+<span class="sd">  :mod:`an.genres.registry`, so a genre's kinds appear as entries the moment it</span>
+<span class="sd">  registers them, with their owner and :attr:`~an.genres.ActionKind.version`;</span>
+<span class="sd">- **easings** — a view over :func:`an.timing.easing.easing_entries` (the</span>
+<span class="sd">  easing canon already carries a version per entry);</span>
+<span class="sd">- **camera moves** — a view over :data:`an.ir.camera.CAMERA_MOVES`, versioned</span>
+<span class="sd">  in :data:`CAMERA_MOVE_VERSIONS` (a test fails when a move has none); each is</span>
+<span class="sd">  a path through the ``framing2d`` **view space** and requires an engine that</span>
+<span class="sd">  lowers it (``space.framing2d``, :mod:`an.semantic.views`, an#257);</span>
+<span class="sd">- **view spaces** — ``framing2d`` and ``orbit3d`` (:mod:`an.semantic.views`);</span>
+<span class="sd">- **IR fields** (kind ``field``) — what the scene document's fields accept,</span>
+<span class="sd">  the notes the ``an iterate`` prompt used to hand-list. Each says which</span>
+<span class="sd">  spectrum levels it takes: a field that accepts only (a) says so, and no</span>
+<span class="sd">  resolver will invent a value for it (ADR 0003 decision 5).</span>
+
+<span class="sd">Nothing here imports ``an.ir`` at module level; the views import their sources</span>
+<span class="sd">when read.</span>
+
+<span class="sd">&gt;&gt;&gt; from an.semantic.registry import lookup</span>
+<span class="sd">&gt;&gt;&gt; lookup("action", "tween").version, lookup("easing", "linear").kind</span>
+<span class="sd">('1', 'easing')</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_OWNER</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">Entry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_entry</span><span class="p">,</span> <span class="n">register_view</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"CAMERA_MOVE_DESCRIPTIONS"</span><span class="p">,</span>
+    <span class="s2">"CAMERA_MOVE_VERSIONS"</span><span class="p">,</span>
+    <span class="s2">"CORE_FIELDS"</span><span class="p">,</span>
+    <span class="s2">"schema_of_callable"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: Version of each named camera move (ADR 0003). Bump one when its keys change.</span>
+<span class="n">CAMERA_MOVE_VERSIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"hold"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"push_in"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"pull_out"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"zoom_in"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"zoom_out"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"pan_left"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"pan_right"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"tilt_up"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"tilt_down"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1">#: One sentence per camera move, in production terms.</span>
+<span class="n">CAMERA_MOVE_DESCRIPTIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"hold"</span><span class="p">:</span> <span class="s2">"a locked-off camera: no move"</span><span class="p">,</span>
+    <span class="s2">"push_in"</span><span class="p">:</span> <span class="s2">"a slow push in: zoom 1.0 → 1.25 over the shot, eased"</span><span class="p">,</span>
+    <span class="s2">"pull_out"</span><span class="p">:</span> <span class="s2">"a slow pull out: zoom 1.0 → 0.8 over the shot, eased"</span><span class="p">,</span>
+    <span class="s2">"zoom_in"</span><span class="p">:</span> <span class="s2">"a stronger zoom in: 1.0 → 1.5 over the shot"</span><span class="p">,</span>
+    <span class="s2">"zoom_out"</span><span class="p">:</span> <span class="s2">"a stronger zoom out: 1.0 → 0.7 over the shot"</span><span class="p">,</span>
+    <span class="s2">"pan_left"</span><span class="p">:</span> <span class="s2">"truck the camera left across the frame (on a flat stage a pan and a truck look the same)"</span><span class="p">,</span>
+    <span class="s2">"pan_right"</span><span class="p">:</span> <span class="s2">"truck the camera right across the frame"</span><span class="p">,</span>
+    <span class="s2">"tilt_up"</span><span class="p">:</span> <span class="s2">"move the camera up across the frame (spans the frame height)"</span><span class="p">,</span>
+    <span class="s2">"tilt_down"</span><span class="p">:</span> <span class="s2">"move the camera down across the frame"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Params as JSON Schema</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="n">_JSON_TYPES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nb">bool</span><span class="p">:</span> <span class="s2">"boolean"</span><span class="p">,</span>
+    <span class="nb">int</span><span class="p">:</span> <span class="s2">"integer"</span><span class="p">,</span>
+    <span class="nb">float</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span>
+    <span class="nb">str</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_type</span><span class="p">(</span><span class="n">annotation</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">annotation</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="s2">"__name__"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">py</span><span class="p">,</span> <span class="n">js</span> <span class="ow">in</span> <span class="n">_JSON_TYPES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">text</span> <span class="o">==</span> <span class="n">py</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="ow">or</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">py</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">" "</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">text</span> <span class="ow">in</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">py</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> | None"</span><span class="p">,)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="n">js</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">text</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"Seconds"</span><span class="p">,):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"boolean"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="s2">"tuple"</span> <span class="ow">in</span> <span class="n">text</span> <span class="ow">or</span> <span class="s2">"list"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="schema_of_callable">
+<a class="viewcode-back" href="../../../_autosummary/an.semantic.seeds.html#an.semantic.seeds.schema_of_callable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">schema_of_callable</span><span class="p">(</span>
+    <span class="n">fn</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">positional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A JSON Schema object for ``fn``'s keyword parameters, defaults included.</span>
+
+<span class="sd">    Positional-only and ``skip``ped parameters are left out (``target``,</span>
+<span class="sd">    ``rest``, ``parts`` are the compiler's, not the author's).</span>
+
+<span class="sd">    &gt;&gt;&gt; def f(target, *, height: float = 30.0, label: str = "x", n: int | None = None): ...</span>
+<span class="sd">    &gt;&gt;&gt; schema_of_callable(f, skip=("target",))["properties"]["height"]</span>
+<span class="sd">    {'type': 'number', 'default': 30.0}</span>
+<span class="sd">    """</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">skip</span><span class="p">)</span>
+    <span class="n">props</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">skip</span> <span class="ow">or</span> <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">VAR_POSITIONAL</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">VAR_KEYWORD</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="n">p</span><span class="o">.</span><span class="n">POSITIONAL_ONLY</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="n">p</span><span class="o">.</span><span class="n">POSITIONAL_OR_KEYWORD</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">positional</span>
+            <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="n">p</span><span class="o">.</span><span class="n">empty</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="n">p</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">_json_type</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">spec</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">default</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">default</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span> <span class="s2">"properties"</span><span class="p">:</span> <span class="n">props</span><span class="p">}</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Views</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_schema_of</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The action model's JSON Schema (ADR 0003 decision 5), without its ``kind``."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a model pydantic cannot describe: its field names</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">"model_fields"</span><span class="p">,</span> <span class="p">{})},</span>
+        <span class="p">}</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"properties"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">props</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">schema</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
+    <span class="k">return</span> <span class="n">schema</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_action_kinds</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">registry</span> <span class="k">as</span> <span class="n">r</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">action_kind_names</span><span class="p">():</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">action_kind</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="p">(</span>
+            <span class="n">Entry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"action.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"action"</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="n">_schema_of</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">model</span><span class="p">),</span>
+                <span class="n">levels</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"a"</span><span class="p">}),</span>
+            <span class="p">),</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">action_kind_owner</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">CORE_OWNER</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_entity_kinds</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">registry</span> <span class="k">as</span> <span class="n">r</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">entity_kind_names</span><span class="p">():</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">entity_kind</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="p">(</span>
+            <span class="n">Entry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"entity.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"entity"</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="n">usage</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s2">"its nodes are </span><span class="si">{</span><span class="n">kind</span><span class="o">.</span><span class="n">space</span><span class="si">}</span><span class="s2"> nodes"</span> <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">space</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"; ref keys into the </span><span class="si">{</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="si">!r}</span><span class="s2"> store"</span> <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
+                <span class="n">levels</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"a"</span><span class="p">}),</span>
+            <span class="p">),</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">_ENTITY_KINDS</span><span class="o">.</span><span class="n">owners</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">CORE_OWNER</span><span class="p">),</span>
+        <span class="p">)</span>
+
+
+<span class="c1">#: The usage note of an easing a scene document may name today.</span>
+<span class="n">IR_EASING_USAGE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"a tween's `easing` may name it"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ir_easing_names</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The easings a scene document's tween may name today (what the evaluators draw).</span>
+
+<span class="sd">    The timing kernel registers more (the CSS and Manim families, P1); those</span>
+<span class="sd">    are vocabulary entries — versioned, digestible — but not yet values a tween</span>
+<span class="sd">    may take, so the generated prompt and skill list only these.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">VALUE_TYPED_EASINGS</span>
+
+    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">VALUE_TYPED_EASINGS</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_easings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">easing</span> <span class="k">as</span> <span class="n">ez</span>
+
+    <span class="n">in_ir</span> <span class="o">=</span> <span class="n">ir_easing_names</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ez</span><span class="o">.</span><span class="n">easing_entries</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="p">(</span>
+            <span class="n">Entry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing.</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"easing"</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">version</span><span class="p">),</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="n">usage</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">IR_EASING_USAGE</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">in_ir</span>
+                    <span class="k">else</span> <span class="sa">f</span><span class="s2">"the timing kernel's (</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">family</span><span class="si">}</span><span class="s2"> family); not yet a value a tween may name"</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">ez</span><span class="o">.</span><span class="n">_OWNERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">CORE_OWNER</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="c1">#: How the engines lower a framing move (an#257), said once for every move.</span>
+<span class="n">CAMERA_MOVE_USAGE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"spelled `camera: {move: &lt;name&gt;}` on a shot (sugar over `camera.keys`). A path "</span>
+    <span class="s2">"through the framing2d view space (`params.path`, time 0..1 over the shot; x/y "</span>
+    <span class="s2">"in frame widths/heights, zoom a ratio): the stage engine re-renders the scene "</span>
+    <span class="s2">"into the moving frame (no resolution loss); a crop engine moves a crop over "</span>
+    <span class="s2">"fixed pixels"</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">camera_move_path</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The move as keys in the framing2d view space, read off :data:`an.ir.camera.CAMERA_MOVES`.</span>
+
+<span class="sd">    Derived, never restated: the move's own key list at a unit duration, with</span>
+<span class="sd">    every axis the move changes (x/y in frame spans, as ``camera_keys`` scales</span>
+<span class="sd">    them); ``hold`` is the empty path.</span>
+
+<span class="sd">    &gt;&gt;&gt; camera_move_path("push_in"), camera_move_path("pan_left")</span>
+<span class="sd">    ([{'at': 0.0, 'zoom': 1.0}, {'at': 1.0, 'zoom': 1.25}], [{'at': 0.0, 'x': 0.0}, {'at': 1.0, 'x': -1.0}])</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">FRAMING_2D</span>
+
+    <span class="n">rest</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">CAMERA_MOVES</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">moved</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rest</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span> <span class="o">!=</span> <span class="n">r</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">"at"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="o">**</span><span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">moved</span><span class="p">}}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_camera_moves</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">FRAMING_2D</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">CAMERA_MOVES</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span>
+            <span class="n">Entry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"camera.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"camera_move"</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="n">CAMERA_MOVE_VERSIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">),</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">CAMERA_MOVE_DESCRIPTIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
+                <span class="n">usage</span><span class="o">=</span><span class="n">CAMERA_MOVE_USAGE</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+                    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"space"</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">"const"</span><span class="p">:</span> <span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">term</span><span class="p">,</span>
+                            <span class="s2">"default"</span><span class="p">:</span> <span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">term</span><span class="p">,</span>
+                        <span class="p">},</span>
+                        <span class="s2">"path"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span> <span class="s2">"default"</span><span class="p">:</span> <span class="n">camera_move_path</span><span class="p">(</span><span class="n">name</span><span class="p">)},</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
+                <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">requirement</span><span class="p">,),</span>
+            <span class="p">),</span>
+            <span class="n">CORE_OWNER</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="n">register_view</span><span class="p">(</span><span class="s2">"action_kinds"</span><span class="p">,</span> <span class="n">_action_kinds</span><span class="p">)</span>
+<span class="n">register_view</span><span class="p">(</span><span class="s2">"entity_kinds"</span><span class="p">,</span> <span class="n">_entity_kinds</span><span class="p">)</span>
+<span class="n">register_view</span><span class="p">(</span><span class="s2">"easings"</span><span class="p">,</span> <span class="n">_easings</span><span class="p">)</span>
+<span class="n">register_view</span><span class="p">(</span><span class="s2">"camera_moves"</span><span class="p">,</span> <span class="n">_camera_moves</span><span class="p">)</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The scene document's fields (core)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_quoted</span><span class="p">(</span><span class="n">names</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``"a" | "b"``: an enumeration as the scene document spells its values."""</span>
+    <span class="k">return</span> <span class="s2">" | "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">'"'</span> <span class="o">+</span> <span class="n">n</span> <span class="o">+</span> <span class="s1">'"'</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,),</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Entry</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">Entry</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"field.</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"field"</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span>
+        <span class="n">levels</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">levels</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">kw</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_fields</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">COLOUR_PROPERTY</span><span class="p">,</span>
+        <span class="n">SUPPORTED_RENDERERS</span><span class="p">,</span>
+        <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span>
+        <span class="n">TRANSITION_KINDS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">authored</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">TRANSFORM_PROPERTIES</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">COLOUR_PROPERTY</span> <span class="o">+</span> <span class="s2">"_"</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"meta"</span><span class="p">,</span>
+            <span class="s2">"meta: {title, author, duration, fps, resolution, default_renderer, "</span>
+            <span class="s2">"notes, default_easing, step_hz, style_pack, sounds, captions}"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"the film's header"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot"</span><span class="p">,</span>
+            <span class="s2">"timeline: a list of shots, each with id (string, unique), renderer "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">_quoted</span><span class="p">(</span><span class="n">SUPPORTED_RENDERERS</span><span class="p">)</span><span class="si">}</span><span class="s2">), duration "</span>
+            <span class="s2">"(seconds, float), camera, entities, actions, dialogue, narration, "</span>
+            <span class="s2">"transition, sounds"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"one shot of the timeline"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.camera"</span><span class="p">,</span>
+            <span class="s2">"camera: {move: &lt;a camera move&gt;, ...} or explicit {keys: [...]}"</span><span class="p">,</span>
+            <span class="n">levels</span><span class="o">=</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"b-name"</span><span class="p">),</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"the shot's camera"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.entities"</span><span class="p">,</span>
+            <span class="s2">"entities: list of {kind, id, store, ref, ...}; kind MUST be a "</span>
+            <span class="s2">"registered entity kind. A prop needs a PropDescriptor in the props "</span>
+            <span class="s2">"store; it has no placeholder rig, so an unknown ref raises rather "</span>
+            <span class="s2">"than drawing a person."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"who and what is on stage"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.actions"</span><span class="p">,</span>
+            <span class="s2">"actions: list of action dicts whose kind is a registered action kind "</span>
+            <span class="s2">"(the composites sequence, parallel, delay and loop hold children)."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"the shot's animation"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.actions.property"</span><span class="p">,</span>
+            <span class="s2">"A tween/set action's property is EITHER a transform: "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">authored</span><span class="p">)</span><span class="si">}</span><span class="s2"> — OR </span><span class="si">{</span><span class="n">COLOUR_PROPERTY</span><span class="si">!r}</span><span class="s2">, a per-node colour "</span>
+            <span class="s2">"MULTIPLY whose value is a '#rrggbb' string (the compiler expands it "</span>
+            <span class="s2">"into three numeric channels, so a tween between two colours "</span>
+            <span class="s2">"interpolates per channel; like 'alpha' it cascades to the target's "</span>
+            <span class="s2">"parts). 'alpha' is the fade primitive and cascades to a character's "</span>
+            <span class="s2">"parts. Any other property (opacity, visible, color, width, ...) is "</span>
+            <span class="s2">"refused at compile. A tween with no 'from' starts at the property's "</span>
+            <span class="s2">"rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, "</span>
+            <span class="s2">"0.0 for the rest. A tween with no 'easing' takes the scene's "</span>
+            <span class="s2">"meta.default_easing when set."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"what a set or tween animates"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.actions.easing"</span><span class="p">,</span>
+            <span class="s2">"A tween's easing is a registered easing name, a cubic-Bézier "</span>
+            <span class="s2">"4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as "</span>
+            <span class="s2">"'cubic-bezier(…)' or 'steps(n)'."</span><span class="p">,</span>
+            <span class="n">levels</span><span class="o">=</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"b-name"</span><span class="p">),</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"how a tween moves through time"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.dialogue"</span><span class="p">,</span>
+            <span class="s2">"dialogue: list of {speaker, text, emotion, voice_ref, pause, at, "</span>
+            <span class="s2">"direction, ...}. Lines play back to back from the shot start. "</span>
+            <span class="s2">"'pause' (seconds) is silence before a line, after the previous one "</span>
+            <span class="s2">"ends — a beat, a look, a hesitation belongs here, NOT in a new shot. "</span>
+            <span class="s2">"'at' (seconds) starts a line at that shot time instead; a line takes "</span>
+            <span class="s2">"one or the other, never both (to switch, delete the one you are "</span>
+            <span class="s2">"replacing in the same patch list). 'start' and 'duration' are "</span>
+            <span class="s2">"stamped by the audio pipeline from these on every render — never "</span>
+            <span class="s2">"patch them."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"who says what, and when"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.dialogue.direction"</span><span class="p">,</span>
+            <span class="s2">"direction (optional) is a list of delivery cues — ['excited'], "</span>
+            <span class="s2">"['sighs', 'annoyed'] — that an expressive TTS voice performs; it is "</span>
+            <span class="s2">"never spoken as text and never shown in captions."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"how a line is delivered"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.narration"</span><span class="p">,</span>
+            <span class="s2">"narration: list (same shape as dialogue, no speaker pin). NOT "</span>
+            <span class="s2">"IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with "</span>
+            <span class="s2">"narration RAISES. To add a narrator, emit a dialogue line whose "</span>
+            <span class="s2">"speaker is not an entity in the shot; it gets audio and no lip-sync."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"a narrator's lines (not implemented)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.transition"</span><span class="p">,</span>
+            <span class="s2">"transition (optional): how the shot is ENTERED — {kind: "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_quoted</span><span class="p">(</span><span class="n">TRANSITION_KINDS</span><span class="p">)</span><span class="si">}</span><span class="s2">, duration: seconds, "</span>
+            <span class="s2">"color: '#rrggbb'}. Omitted = a hard cut. 'fade' dips through color "</span>
+            <span class="s2">"(half out of the previous shot, half into this one; on the first "</span>
+            <span class="s2">"shot, a fade up). 'dissolve' overlaps the two shots by duration, so "</span>
+            <span class="s2">"the film gets that much shorter; never on the first shot. A shot "</span>
+            <span class="s2">"must be long enough to hold its own transition and the next shot's."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"how a shot is entered"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"shot.sounds"</span><span class="p">,</span>
+            <span class="s2">"sounds (optional): SFX cues in SHOT-local time — [{sound: &lt;key in "</span>
+            <span class="s2">"the sounds store&gt;, at, [duration], [gain_db], [loop], [fade_in], "</span>
+            <span class="s2">"[fade_out], [duck_db]}]. Never invent a sound key."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"sound effects on the shot's clock"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"meta.sounds"</span><span class="p">,</span>
+            <span class="s2">"meta.sounds (optional): the same cue shape in FILM time — a music "</span>
+            <span class="s2">"bed is {sound: &lt;key&gt;, loop: true, duck_db: -12, fade_in, fade_out}; "</span>
+            <span class="s2">"duck_db ducks it under every dialogue line."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"sounds on the film's clock (a music bed)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"meta.captions"</span><span class="p">,</span>
+            <span class="s2">"meta.captions (optional): captions built at render time from the "</span>
+            <span class="s2">"dialogue's word timings — </span><span class="si">{}</span><span class="s2"> for the defaults, or {highlight: "</span>
+            <span class="s2">"'#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, "</span>
+            <span class="s2">"strict}. Never add caption text entities by hand: they are derived "</span>
+            <span class="s2">"from the dialogue."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"captions derived from the dialogue"</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="c1">#: The core's IR-field entries, registered on import (owner: the core).</span>
+<span class="n">CORE_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">_core_fields</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_e</span> <span class="ow">in</span> <span class="n">CORE_FIELDS</span><span class="p">:</span>
+    <span class="n">register_entry</span><span class="p">(</span><span class="n">_e</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_register_view_spaces</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's view spaces (an#257): an entry each, and the engine capability to lower it."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_capability</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_VIEW_SPACES</span>
+
+    <span class="k">for</span> <span class="n">space</span> <span class="ow">in</span> <span class="n">CORE_VIEW_SPACES</span><span class="p">:</span>
+        <span class="n">register_entry</span><span class="p">(</span><span class="n">space</span><span class="o">.</span><span class="n">entry</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
+        <span class="n">register_capability</span><span class="p">(</span><span class="n">space</span><span class="o">.</span><span class="n">capability</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
+
+
+<span class="n">_register_view_spaces</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

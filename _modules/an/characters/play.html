@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -759,7 +759,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">&gt;&gt;&gt; play_problems(desc, "moonwalk")  # doctest: +NORMALIZE_WHITESPACE</span>
 <span class="sd">["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no</span>
 <span class="sd">  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',</span>
-<span class="sd">  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle', 'walk'])"]</span>
+<span class="sd">  'shake', 'slide_in', 'slide_out', 'speech_pulse', 'squash_stretch', 'turn',</span>
+<span class="sd">  'waddle', 'walk'])"]</span>
 <span class="sd">&gt;&gt;&gt; play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")</span>
 <span class="sd">('preset', 'preset', 'descriptor')</span>
 <span class="sd">"""</span>
@@ -1012,6 +1013,18 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">preset_args</span><span class="p">(</span><span class="n">animation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A preset play's args as its function takes them: a walk's ``gait`` given</span>
+<span class="sd">    as a locomotion method id or a ``{method, args, version}`` choice is spelled</span>
+<span class="sd">    out (an#248, :func:`an.characters.methods.normalise_gait_args`)."""</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">GAIT_ARG</span> <span class="ow">in</span> <span class="n">out</span> <span class="ow">and</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">GAIT_ARG</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalise_gait_args</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">normalise_gait_args</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_presets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]:</span>
     <span class="c1"># Lazy: `an.motion` imports the IR, and the IR's validator imports this.</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRESETS</span>
@@ -1116,9 +1129,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">VocabularyError</span>
+
     <span class="n">preset</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">]</span>
     <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">preset_args</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">VocabularyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"motion preset </span><span class="si">{</span><span class="n">animation</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">preset</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
     <span class="n">accepted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
         <span class="n">n</span>
@@ -1191,7 +1209,11 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SetAction</span>
 
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">](</span><span class="s2">"_"</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{}))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">preset_args</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># a malformed gait is preset_problems' to report, once</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">](</span><span class="s2">"_"</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
     <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
         <span class="n">leaf</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span>
@@ -1332,7 +1354,9 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">](</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{}))</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">](</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">preset_args</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">duration_of</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">speed</span><span class="p">)</span></div>
 
 
@@ -1435,7 +1459,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
 
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">preset_args</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">parts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">PARTS_ARG</span><span class="p">):</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="n">PARTS_ARG</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">}</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">](</span><span class="n">action_target</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1480,7 +1504,7 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">TweenAction</span>
 
     <span class="n">preset</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">]</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">preset_args</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">unbuilt</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlayResolutionError</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">PlayResolutionError</span><span class="p">(</span>

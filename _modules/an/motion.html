@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -713,7 +713,7 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="sd">"""Motion presets: a named vocabulary of cut-out moves, as authoring macros.</span>
 
 <span class="sd">``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,</span>
-<span class="sd">``squash_stretch``, ``waddle``, ``turn`` and ``walk`` each EXPAND to ordinary ``tween``</span>
+<span class="sd">``squash_stretch``, ``waddle``, ``turn``, ``walk`` and ``speech_pulse`` each EXPAND to ordinary ``tween``</span>
 <span class="sd">actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and</span>
 <span class="sd">:func:`~an.ir.compose.parallel`. Called from Python, nothing downstream</span>
 <span class="sd">learns a preset exists: the flat timeline, ``an validate``, the verifiers and</span>
@@ -861,6 +861,15 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Views whose legs SWING about the hip (the character seen from the side);</span>
 <span class="c1">#: every other view (``front``, ``back``, none) steps them up and down.</span>
 <span class="n">WALK_SWING_VIEWS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"side"</span><span class="p">,</span> <span class="s2">"three_quarter"</span><span class="p">})</span>
+<span class="c1">#: A speech pulse (ADR 0002's requirement-free speech, an#248): the part that</span>
+<span class="c1">#: pulses on each syllable — ``head`` lifts like a hinged jaw (the cut-out</span>
+<span class="c1">#: "head flap"); ``""`` pulses the whole body.</span>
+<span class="n">DFLT_PULSE_PART</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"head"</span>
+<span class="c1">#: How far the part stretches on a syllable, as a fraction of its rest</span>
+<span class="c1">#: ``scale_y``. Masters who mime set 0 (study_the_masters §4, Reiniger).</span>
+<span class="n">DFLT_PULSE_STRENGTH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.06</span>
+<span class="n">DFLT_PULSE_ATTACK_S</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.06</span>
+<span class="n">DFLT_PULSE_RELEASE_S</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.1</span>
 <span class="c1">#: The swap set a turn swaps: the factory's turnaround (an#197).</span>
 <span class="n">DFLT_TURN_SET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"view"</span>
 <span class="n">DFLT_TURN_TO</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"back"</span>
@@ -1670,6 +1679,75 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">speech_pulse</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">PathStr</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">beats</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Seconds</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,),</span>
+    <span class="n">strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_PULSE_STRENGTH</span><span class="p">,</span>
+    <span class="n">part</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_PULSE_PART</span><span class="p">,</span>
+    <span class="n">attack</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DFLT_PULSE_ATTACK_S</span><span class="p">,</span>
+    <span class="n">release</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DFLT_PULSE_RELEASE_S</span><span class="p">,</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">Rest</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Action</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Pulse a part on each syllable: speech carried without a mouth (an#248).</span>
+
+<span class="sd">    The requirement-free last link of the speech aspect (ADR 0002 decision 5,</span>
+<span class="sd">    method ``speech.pose_only``): a character whose face is baked into its art</span>
+<span class="sd">    (``face_overlay: false``) still reads as speaking. On each time in ``beats``</span>
+<span class="sd">    (seconds from the start) ``&lt;target&gt;/&lt;part&gt;`` stretches its ``scale_y`` by</span>
+<span class="sd">    ``strength`` over ``attack`` and settles over ``release``; ``part=""``</span>
+<span class="sd">    pulses the whole body. A beat that would start before the previous pulse</span>
+<span class="sd">    settles is skipped, so the pulse never stacks. ``strength=0`` is a mime.</span>
+<span class="sd">    ``rest`` is the PART's rest, as for :func:`nod`; it lands with a constant</span>
+<span class="sd">    tween rather than a settling ``set``, so played once per syllable (as the</span>
+<span class="sd">    speech aspect does) each pulse rides whatever the head is doing.</span>
+
+<span class="sd">    &gt;&gt;&gt; [(round(f.start, 2), f.action.to_value) for f in _tweens(speech_pulse("al", beats=(0.0, 0.3)))]</span>
+<span class="sd">    [(0.0, 1.06), (0.06, 1.0), (0.3, 1.06), (0.36, 1.0), (0.46, 1.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">_positive</span><span class="p">(</span><span class="n">attack</span><span class="o">=</span><span class="n">attack</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">beats</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"speech_pulse needs at least one beat"</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">part</span> <span class="k">else</span> <span class="n">target</span>
+    <span class="n">s0</span> <span class="o">=</span> <span class="n">_rest</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">)</span>
+    <span class="n">peak</span> <span class="o">=</span> <span class="n">s0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">strength</span><span class="p">)</span>
+    <span class="n">moves</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Action</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">beat</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">beats</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">beat</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">beat</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">:</span>
+            <span class="n">moves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="n">beat</span> <span class="o">-</span> <span class="n">t</span><span class="p">))</span>
+        <span class="n">moves</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">tween</span><span class="p">(</span>
+                <span class="n">path</span><span class="p">,</span>
+                <span class="s2">"scale_y"</span><span class="p">,</span>
+                <span class="n">to</span><span class="o">=</span><span class="n">peak</span><span class="p">,</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">attack</span><span class="p">,</span>
+                <span class="n">from_</span><span class="o">=</span><span class="n">s0</span><span class="p">,</span>
+                <span class="n">easing</span><span class="o">=</span><span class="n">DFLT_OUT_EASING</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">tween</span><span class="p">(</span>
+                <span class="n">path</span><span class="p">,</span>
+                <span class="s2">"scale_y"</span><span class="p">,</span>
+                <span class="n">to</span><span class="o">=</span><span class="n">s0</span><span class="p">,</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">release</span><span class="p">,</span>
+                <span class="n">from_</span><span class="o">=</span><span class="n">peak</span><span class="p">,</span>
+                <span class="n">easing</span><span class="o">=</span><span class="n">DFLT_IN_EASING</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">beat</span> <span class="o">+</span> <span class="n">attack</span> <span class="o">+</span> <span class="n">release</span>
+    <span class="c1"># Lands with a constant tween, not a settling `set` (as a walk's limbs do):</span>
+    <span class="c1"># a `set` would hold `s0` and freeze an authored head-scale tween running</span>
+    <span class="c1"># under the pulse; a tween ends, and the authored one carries on.</span>
+    <span class="n">moves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">tween</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">s0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">WALK_LANDING_S</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="n">s0</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequence</span><span class="p">(</span><span class="o">*</span><span class="n">moves</span><span class="p">)</span>
+
+
 <span class="c1">#: Every preset by name — the one list the skill, the demo and the ``play``</span>
 <span class="c1">#: fallback (:func:`an.characters.play.play_source`, an#166) read.</span>
 <span class="n">PRESETS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Action</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -1686,8 +1764,16 @@ window.runMermaid = runMermaid;</script>
         <span class="n">waddle</span><span class="p">,</span>
         <span class="n">turn</span><span class="p">,</span>
         <span class="n">walk</span><span class="p">,</span>
+        <span class="n">speech_pulse</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">}</span>
+
+<span class="c1">#: Each preset's vocabulary version (ADR 0003 decision 2): bump a preset's</span>
+<span class="c1">#: version in the SAME change that makes it expand differently for the same</span>
+<span class="c1">#: args, so every shot that plays it re-renders visibly instead of silently</span>
+<span class="c1">#: (:mod:`an.semantic` folds it into the shot's vocabulary digest). Versioning</span>
+<span class="c1">#: starts here (an#248); ``walk``'s earlier changes (an#214, an#220) predate it.</span>
+<span class="n">PRESET_VERSIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s2">"1"</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">PRESETS</span><span class="p">}</span>
 
 
 <span class="c1">#: Presets whose ``rest`` is the node's HOME — where an entrance LANDS — rather</span>

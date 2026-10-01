@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -725,8 +725,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">promising a side view whose drawing is missing does not afford one.</span>
 
 <span class="sd">It is genre code (cut-out characters). It lives here until the genre package</span>
-<span class="sd">exists (plan P8), registered under the ``character`` kind, and imports the</span>
-<span class="sd">cut-out modules lazily so ``import an.library`` stays free of them.</span>
+<span class="sd">exists (plan P8) and imports the cut-out modules lazily so ``import an.library``</span>
+<span class="sd">stays free of them. **Importing it registers nothing** (P7): the cut-out genre</span>
+<span class="sd">declares :data:`CHARACTER_CAPABILITIES` and :data:`CHARACTER_ANALYSER` in its</span>
+<span class="sd">``capabilities`` and ``analysers`` fields (:data:`an.genres.cutout.CUTOUT`), so</span>
+<span class="sd">they register with the genre, owned by it, and come out with it.</span>
 
 <span class="sd">=====================  ====================================================  ==========================</span>
 <span class="sd">capability             afforded when                                         ``keys``</span>
@@ -745,10 +748,12 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.affordances</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_analyser</span><span class="p">,</span> <span class="n">register_capability</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">Analyser</span><span class="p">,</span> <span class="n">Capability</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"CHARACTER_ANALYSER"</span><span class="p">,</span>
     <span class="s2">"CHARACTER_ANALYSER_VERSION"</span><span class="p">,</span>
+    <span class="s2">"CHARACTER_CAPABILITIES"</span><span class="p">,</span>
     <span class="s2">"MOUTH_CHART_RHUBARB"</span><span class="p">,</span>
     <span class="s2">"character_affordances"</span><span class="p">,</span>
     <span class="s2">"renders_as_placeholder"</span><span class="p">,</span>
@@ -761,7 +766,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The chart name of any other viseme set.</span>
 <span class="n">MOUTH_CHART_CUSTOM</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"custom"</span>
 
-<span class="n">LIMBS_LEGS</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span>
+<span class="n">LIMBS_LEGS</span> <span class="o">=</span> <span class="n">Capability</span><span class="p">(</span>
     <span class="s2">"limbs.legs"</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"a pair of leg slots with art that a legged walk swings"</span><span class="p">,</span>
     <span class="n">remedy</span><span class="o">=</span><span class="p">(</span>
@@ -769,7 +774,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"pivoted at the hip; `an character new` builds them (an-art-package skill)"</span>
     <span class="p">),</span>
 <span class="p">)</span>
-<span class="n">LIMBS_ARMS</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span>
+<span class="n">LIMBS_ARMS</span> <span class="o">=</span> <span class="n">Capability</span><span class="p">(</span>
     <span class="s2">"limbs.arms"</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"a pair of arm slots with art that a walk swings and gestures move"</span><span class="p">,</span>
     <span class="n">remedy</span><span class="o">=</span><span class="p">(</span>
@@ -777,7 +782,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"pivoted at the shoulder (an-art-package skill)"</span>
     <span class="p">),</span>
 <span class="p">)</span>
-<span class="n">SWAP_VIEW</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span>
+<span class="n">SWAP_VIEW</span> <span class="o">=</span> <span class="n">Capability</span><span class="p">(</span>
     <span class="s2">"swap.view"</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="p">(</span>
         <span class="s2">"the turnaround views the character can show (keys); swappable=true when a "</span>
@@ -787,8 +792,9 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"add turnaround art and list it in the `view` swap set: "</span>
         <span class="s2">"`an character add-views &lt;dir&gt;` for an offline character, else draw the views"</span>
     <span class="p">),</span>
+    <span class="n">command</span><span class="o">=</span><span class="s2">"an character add-views"</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">FACE_MOUTH</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span>
+<span class="n">FACE_MOUTH</span> <span class="o">=</span> <span class="n">Capability</span><span class="p">(</span>
     <span class="s2">"face.mouth"</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)"</span><span class="p">,</span>
     <span class="n">remedy</span><span class="o">=</span><span class="p">(</span>
@@ -796,6 +802,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"drawings (`an character mouths &lt;dir&gt;` writes the default nine) and "</span>
         <span class="s2">"face_overlay: true — a face baked into the head art cannot lip-sync"</span>
     <span class="p">),</span>
+    <span class="n">command</span><span class="o">=</span><span class="s2">"an character mouths"</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -881,7 +888,6 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="character_affordances">
 <a class="viewcode-back" href="../../../_autosummary/an.library.character.html#an.library.character.character_affordances">[docs]</a>
-<span class="nd">@register_analyser</span><span class="p">(</span><span class="s2">"character"</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">CHARACTER_ANALYSER_VERSION</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">character_affordances</span><span class="p">(</span>
     <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">art</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -968,6 +974,22 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">return</span> <span class="n">out</span></div>
 
+
+
+<span class="c1">#: The capabilities the character analyser derives (declared by the cut-out genre).</span>
+<span class="n">CHARACTER_CAPABILITIES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Capability</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LIMBS_LEGS</span><span class="p">,</span>
+    <span class="n">LIMBS_ARMS</span><span class="p">,</span>
+    <span class="n">SWAP_VIEW</span><span class="p">,</span>
+    <span class="n">FACE_MOUTH</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1">#: The character analyser (declared by the cut-out genre, registered with it).</span>
+<span class="n">CHARACTER_ANALYSER</span><span class="p">:</span> <span class="n">Analyser</span> <span class="o">=</span> <span class="n">Analyser</span><span class="p">(</span>
+    <span class="s2">"character"</span><span class="p">,</span>
+    <span class="n">CHARACTER_ANALYSER_VERSION</span><span class="p">,</span>
+    <span class="n">character_affordances</span><span class="p">,</span>
+    <span class="n">declares</span><span class="o">=</span><span class="p">(</span><span class="s2">"rest_view"</span><span class="p">,</span> <span class="s2">"face_overlay"</span><span class="p">,</span> <span class="s2">"gait"</span><span class="p">,</span> <span class="s2">"speech"</span><span class="p">),</span>
+<span class="p">)</span>
 </pre></div>
 
                 </article>

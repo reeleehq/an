@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -759,7 +759,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRIVATE_STUDY</span><span class="p">,</span> <span class="n">PUBLIC_DOMAIN</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">license_class</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_generated_source</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span><span class="p">,</span> <span class="n">omit_unset</span><span class="p">,</span> <span class="n">register_kind</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">character</span> <span class="k">as</span> <span class="n">_character</span>  <span class="c1"># noqa: F401 — registers the analyser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">character</span> <span class="k">as</span> <span class="n">_character</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.affordances</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CAPABILITIES</span><span class="p">,</span>
     <span class="n">KEY_SEP</span><span class="p">,</span>
@@ -1752,6 +1752,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">relicense</span><span class="o">=</span><span class="n">relicense</span><span class="p">,</span>
         <span class="n">unlabelled</span><span class="o">=</span><span class="n">unlabelled</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">_load_genres</span><span class="p">()</span>  <span class="c1"># the analysers are the genres' (P7): never an empty facet by accident</span>
     <span class="n">affordances</span><span class="p">,</span> <span class="n">analysers</span> <span class="o">=</span> <span class="n">analyse</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">file_refs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"character"</span> <span class="ow">and</span> <span class="n">_character</span><span class="o">.</span><span class="n">renders_as_placeholder</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -1992,6 +1993,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    :class:`LibraryIndexWarning` naming it, so one bad entry never blinds every</span>
 <span class="sd">    search.</span>
 <span class="sd">    """</span>
+    <span class="n">_load_genres</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">asset_id</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">record</span> <span class="o">=</span> <span class="n">_read_record</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">)</span>
@@ -2120,8 +2122,23 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_genres</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register the installed genres, whose analysers and capabilities the library reads.</span>
+
+<span class="sd">    Explicit discovery (ADR 0001 decision 3) at the library's entry points, as</span>
+<span class="sd">    ``an.load(project)`` and the CLI do: the character analyser is the cut-out</span>
+<span class="sd">    genre's (P7), so a library used from a plain script must load it, or every</span>
+<span class="sd">    facet would come back empty. Idempotent and cheap after the first call.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="n">load</span><span class="p">()</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_capability_terms</span><span class="p">(</span><span class="n">terms</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Refuse a capability name nobody registered: a typo must not read as "no asset"."""</span>
+    <span class="k">if</span> <span class="n">terms</span><span class="p">:</span>
+        <span class="n">_load_genres</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
         <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">capability_of</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CAPABILITIES</span><span class="p">:</span>
@@ -2274,6 +2291,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"count"</span><span class="p">:</span> <span class="n">caps_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cap</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">CAPABILITIES</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">cap</span><span class="o">.</span><span class="n">subject</span>
+            <span class="o">==</span> <span class="s2">"asset"</span>  <span class="c1"># an asset's facets; engine/env are not searchable</span>
         <span class="p">},</span>
         <span class="s2">"kinds"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ASSET_KINDS</span><span class="p">),</span>
         <span class="s2">"statuses"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">STATUSES</span><span class="p">),</span>

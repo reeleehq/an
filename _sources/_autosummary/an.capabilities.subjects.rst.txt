@@ -1,0 +1,21 @@
+an.capabilities.subjects
+========================
+
+.. automodule:: an.capabilities.subjects
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ENGINE_OPTIONAL_MEMBERS
+      ENV_TOOLS
+      ENV_KEYS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      engine_affordances
+      environment_affordances
+   

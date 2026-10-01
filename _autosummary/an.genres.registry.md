@@ -55,7 +55,7 @@ False
 | [`ActionKind`](#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
 |------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`DialogueSugar`](#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
-| [`EntityKind`](#an.genres.registry.EntityKind)(name[, space, store, description])       | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
+| [`EntityKind`](#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
 | [`SemanticCheck`](#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
 
 ### Exceptions
@@ -64,7 +64,7 @@ False
 |-----------------------------------------------------------------------------------------------|------------------------------------------------------------------|
 | [`UnregisteredKindError`](#an.genres.registry.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.              |
 
-### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='')
+### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -89,6 +89,15 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 #### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 Does `start:` in `scene.md` wrap this kind in `sequence(delay(start), …)`?
+
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+bump when what an action of
+this kind compiles to changes for the same fields, so the shots that use
+it re-render visibly ([`an.semantic`](an.semantic.md#module-an.semantic) folds it into the shot digest).
+
+* **Type:**
+  The kind’s vocabulary version (ADR 0003)
 
 ### an.genres.registry.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
 
@@ -133,7 +142,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='')
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -142,6 +151,10 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](an.timing.spaces.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](#an.genres.registry.ActionKind.version).
 
 ### *exception* an.genres.registry.RegistryError
 

@@ -53,6 +53,7 @@
    base
    bench
    build
+   capabilities
    captions
    characters
    conftest
@@ -70,6 +71,7 @@
    iterate
    library
    live_api
+   mcp
    media
    motion
    orchestrate
@@ -79,6 +81,7 @@
    props
    raster
    render
+   semantic
    sounds
    stores
    styles

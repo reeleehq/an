@@ -50,6 +50,7 @@ an.characters
    factory
    idle
    licenses
+   methods
    mouth_set
    play
    record
@@ -58,3 +59,4 @@ an.characters
    silhouette
    svg_utils
    validate
+   vocabulary

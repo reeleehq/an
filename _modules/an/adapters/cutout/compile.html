@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1545,6 +1545,9 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Node paths whose visual is a stroked path — the only nodes a</span>
     <span class="c1">#: `trim_start`/`trim_end` channel may target (an#160).</span>
     <span class="n">path_nodes</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
+    <span class="c1">#: entity id → its kind (`AssetRef.kind`): which entities resolve their</span>
+    <span class="c1">#: methods on the capability registry (characters, an#248).</span>
+    <span class="n">entity_kinds</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="c1">#: path node → {trim property: the value its document starts at}. A trim</span>
     <span class="c1">#: tween with no `from_value` starts HERE, not at the global rest value:</span>
     <span class="c1">#: a document with `trim_end: 0` authored as "tween trim_end to 1" is a</span>
@@ -1668,6 +1671,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">path_nodes</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">path_nodes</span><span class="p">),</span>
         <span class="n">path_trims</span><span class="o">=</span><span class="n">path_trims</span><span class="p">,</span>
         <span class="n">space_of</span><span class="o">=</span><span class="n">entity_space_resolver</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">),</span>
+        <span class="n">entity_kinds</span><span class="o">=</span><span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">},</span>
     <span class="p">)</span>
 
 
@@ -1819,8 +1823,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"runtime indexes both layers by path, so one would shadow the other"</span>
         <span class="p">)</span>
     <span class="n">entity_swaps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_EntitySwap</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># The speech aspect, resolved once per speaker (an#248): the pulses it adds</span>
+    <span class="c1"># here, and the speakers whose lip-sync it switched off for the viseme pass.</span>
+    <span class="n">speech</span> <span class="o">=</span> <span class="n">_speech_plan</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">resolutions</span><span class="p">)</span>
     <span class="n">animations</span><span class="p">,</span> <span class="n">tracks</span> <span class="o">=</span> <span class="n">_compile_actions</span><span class="p">(</span>
-        <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">,</span>
+        <span class="p">[</span><span class="o">*</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">,</span> <span class="o">*</span><span class="n">speech</span><span class="o">.</span><span class="n">actions</span><span class="p">],</span>
         <span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
         <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
         <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
@@ -1847,6 +1854,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
         <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span>
         <span class="n">view_spans</span><span class="o">=</span><span class="n">view_spans</span><span class="p">,</span>
+        <span class="n">no_lip_sync</span><span class="o">=</span><span class="n">speech</span><span class="o">.</span><span class="n">no_lip_sync</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># The face (an#98): blinks, expressions and the silent mouth form — one</span>
     <span class="c1"># channel per (node, property), ahead of everything authored. An entity</span>
@@ -3716,6 +3724,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
         <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
         <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># `expression` leaves (an#98) are the face solver's input, not clips of</span>
@@ -4547,6 +4556,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Replace each ``play`` of a motion preset with the flat tweens and sets</span>
 <span class="sd">    it expands to (an#166), and give every from-less tween its start (an#212);</span>
@@ -4649,7 +4659,12 @@ window.runMermaid = runMermaid;</script>
             <span class="n">parts_of</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">PARTS_ARG</span><span class="p">)</span> <span class="ow">and</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">action</span><span class="p">,</span> <span class="n">rest_of</span> <span class="o">=</span> <span class="n">_with_view_and_posed_parts</span><span class="p">(</span>
-                    <span class="n">action</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">rest_of</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="n">history</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span>
+                    <span class="n">action</span><span class="p">,</span>
+                    <span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                    <span class="n">rest_of</span><span class="p">,</span>
+                    <span class="n">history</span><span class="o">=</span><span class="n">history</span><span class="p">,</span>
+                    <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
+                    <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
                 <span class="p">)</span>
 
                 <span class="k">def</span><span class="w"> </span><span class="nf">parts_of</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -4699,6 +4714,89 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">[</span><span class="n">leaf</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flat_list</span><span class="p">))</span> <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_built_parts</span><span class="p">(</span><span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The part paths the builder built under ``entity``, relative to it."""</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="si">}</span><span class="s2">/"</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">node_transforms</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_speech_plan</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span><span class="p">,</span>
+    <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The speech aspect's plan for the shot (an#248): the pulses a speaker that</span>
+<span class="sd">    does not lip-sync gets, and who those speakers are. A shot whose speakers</span>
+<span class="sd">    all lip-sync on their mouth chart gets nothing — its document is unchanged."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">speech_plan</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">VocabularyError</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">speech_plan</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">is_character</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">_on_registry</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">vocab</span><span class="p">),</span>
+            <span class="n">profile_of</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">_character_profile</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">vocab</span><span class="p">),</span>
+            <span class="n">descriptor_of</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+            <span class="n">has_part</span><span class="o">=</span><span class="k">lambda</span> <span class="n">path</span><span class="p">:</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">node_transforms</span><span class="p">,</span>
+            <span class="n">record</span><span class="o">=</span><span class="k">lambda</span> <span class="n">sub</span><span class="p">:</span> <span class="n">_record_substitution</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">resolutions</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">VocabularyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: a character's declared `speech` cannot be honoured: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_on_registry</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``entity`` resolves its methods on the capability registry: a</span>
+<span class="sd">    character (the one entity kind with an analyser, an#248)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHARACTER_KIND</span>
+
+    <span class="k">return</span> <span class="n">vocab</span><span class="o">.</span><span class="n">entity_kinds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span> <span class="o">==</span> <span class="n">CHARACTER_KIND</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_character_profile</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What a character on stage affords: the character analyser, fed what compiled."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_profile</span>
+
+    <span class="k">return</span> <span class="n">compile_profile</span><span class="p">(</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="p">),</span>
+        <span class="n">built_parts</span><span class="o">=</span><span class="n">_built_parts</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">entity</span><span class="p">),</span>
+        <span class="n">art_exists</span><span class="o">=</span><span class="n">vocab</span><span class="o">.</span><span class="n">art_exists</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_record_substitution</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A method substitution, recorded beside the stand-in assets (ADR 0002 decision 6)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">substitution_record</span>
+
+    <span class="k">if</span> <span class="n">resolutions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AssetResolutionJSON</span><span class="p">(</span><span class="o">**</span><span class="n">substitution_record</span><span class="p">(</span><span class="n">sub</span><span class="p">)))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_locomotion_args</span><span class="p">(</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span><span class="p">,</span>
+    <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The walk's args with its gait the locomotion method the registry resolves</span>
+<span class="sd">    (an#248): a method id or a pinned choice in ``gait`` is spelled out first,</span>
+<span class="sd">    its args joining the walk's."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalise_gait_args</span><span class="p">,</span> <span class="n">resolve_walk_gait</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">normalise_gait_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">gait</span><span class="p">,</span> <span class="n">resolution</span> <span class="o">=</span> <span class="n">resolve_walk_gait</span><span class="p">(</span>
+        <span class="n">entity</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">descriptor</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+        <span class="n">profile</span><span class="o">=</span><span class="n">_character_profile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">vocab</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resolution</span><span class="o">.</span><span class="n">substitution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_record_substitution</span><span class="p">(</span><span class="n">resolution</span><span class="o">.</span><span class="n">substitution</span><span class="p">,</span> <span class="n">resolutions</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">args</span><span class="p">,</span> <span class="n">GAIT_ARG</span><span class="p">:</span> <span class="n">gait</span><span class="p">}</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_with_view_and_posed_parts</span><span class="p">(</span>
     <span class="n">action</span><span class="p">:</span> <span class="n">PlayAction</span><span class="p">,</span>
     <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -4706,11 +4804,15 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">history</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">FlatAction</span><span class="p">]]],</span>
     <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span><span class="p">,</span>
+    <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">PlayAction</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""For a preset that moves an entity's parts (``walk``, an#214): fill its</span>
 <span class="sd">    ``view`` from the timeline when the author did not (else from the</span>
-<span class="sd">    descriptor's ``rest_view``, and its ``gait`` from the descriptor's, an#220),</span>
-<span class="sd">    and read a part the</span>
+<span class="sd">    descriptor's ``rest_view``, an#220), its ``gait`` from the locomotion</span>
+<span class="sd">    method the capability registry resolves (an#248: the author's ``gait``,</span>
+<span class="sd">    else the descriptor's, else the default chain; a requested gait the rig</span>
+<span class="sd">    cannot honour is a recorded substitution in ``resolutions``), and read a</span>
+<span class="sd">    part the</span>
 <span class="sd">    view POSES at its posed value — a side view splays the legs (an#203), so a</span>
 <span class="sd">    walk swings them about the splay, not about the front-view rest, and ends</span>
 <span class="sd">    where the view's pose takes them back.</span>
@@ -4744,14 +4846,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">args</span><span class="p">[</span><span class="n">VIEW_ARG</span><span class="p">]</span> <span class="o">=</span> <span class="n">view</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"args"</span><span class="p">:</span> <span class="n">args</span><span class="p">})</span>
-    <span class="n">gait</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"gait"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span>
-        <span class="n">gait</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="ow">and</span> <span class="n">GAIT_ARG</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">args</span>
-        <span class="ow">and</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">GAIT_ARG</span><span class="p">)</span>
-    <span class="p">):</span>
-        <span class="n">args</span><span class="p">[</span><span class="n">GAIT_ARG</span><span class="p">]</span> <span class="o">=</span> <span class="n">gait</span>  <span class="c1"># the character's own gait (an#220); an arg wins</span>
-        <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"args"</span><span class="p">:</span> <span class="n">args</span><span class="p">})</span>
+    <span class="k">if</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">GAIT_ARG</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_on_registry</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+        <span class="n">resolved</span> <span class="o">=</span> <span class="n">_locomotion_args</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">resolutions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resolved</span> <span class="o">!=</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">resolved</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"args"</span><span class="p">:</span> <span class="n">args</span><span class="p">})</span>
     <span class="n">posed</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_StepCurve</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">posed_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="p">:</span>
         <span class="n">posed</span> <span class="o">=</span> <span class="n">_swap_pose_layer</span><span class="p">(</span>
@@ -5267,9 +5366,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
     <span class="n">provider</span><span class="p">:</span> <span class="n">ExpressionProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">view_spans</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">_ViewSpan</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">no_lip_sync</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""For each dialogue line with a viseme_track, emit a step swap channel on</span>
 <span class="sd">    every node of the speaker that can apply the line's mouth set.</span>
+
+<span class="sd">    ``no_lip_sync`` are the speakers whose speech aspect did not resolve to</span>
+<span class="sd">    the mouth chart (an#248: one decision, the capability registry's); they</span>
+<span class="sd">    get no viseme channel.</span>
 
 <span class="sd">    **The view picks first** (an#220): a line that starts while the speaker</span>
 <span class="sd">    is in a view it declares a mouth for (``viseme@side``, per</span>
@@ -5345,7 +5449,7 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># No timing assigned (audio pipeline didn't run); skip silently.</span>
             <span class="k">continue</span>
         <span class="n">speaker</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span>
-        <span class="k">if</span> <span class="n">speaker</span> <span class="ow">in</span> <span class="n">face_baked</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">speaker</span> <span class="ow">in</span> <span class="n">face_baked</span> <span class="ow">or</span> <span class="n">speaker</span> <span class="ow">in</span> <span class="n">no_lip_sync</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">set_name</span> <span class="o">=</span> <span class="n">VISEME_CHANNEL</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">speaker</span><span class="p">)</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>

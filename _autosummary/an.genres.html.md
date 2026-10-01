@@ -14,7 +14,12 @@ one file”) — listing what it registers:
   nodes live in, plus any new **property spaces** and **field kinds** for the
   timing kernel ([`an.timing`](an.timing.html.md#module-an.timing));
 - **semantic checks** ([`SemanticCheck`](#an.genres.SemanticCheck)) that `an validate` runs;
-- **md sugar** ([`DialogueSugar`](#an.genres.DialogueSugar)) on `scene.md` dialogue lines.
+- **md sugar** ([`DialogueSugar`](#an.genres.DialogueSugar)) on `scene.md` dialogue lines;
+- **capabilities** and **analysers** ([`an.capabilities`](an.capabilities.html.md#module-an.capabilities), ADR 0002): the
+  capability names its methods require and the derivation of what its assets
+  afford;
+- **vocabulary** entries — presets, methods, IR-field notes — and **aspects**
+  with their default chains ([`an.semantic`](an.semantic.html.md#module-an.semantic), ADR 0003).
 
 Because the object is plain data, a genre is \*\*inspectable before it is
 loaded\*\*: [`available()`](#an.genres.available) reads every installed genre’s declaration without
@@ -69,7 +74,7 @@ genre defined in the same process).
 | `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
 | [`load`](#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
 | [`providers_of`](#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](#an.genres.Genre.provides)).                                                                    |
-| [`register_genre`](#an.genres.register_genre)(genre, \*[, replace])             | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
+| [`register_genre`](#an.genres.register_genre)(genre, \*[, replace, ...])        | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
 | [`without_genres`](#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                    |
 
 ### Classes
@@ -77,7 +82,7 @@ genre defined in the same process).
 | [`ActionKind`](#an.genres.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
 |------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`DialogueSugar`](#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
-| [`EntityKind`](#an.genres.EntityKind)(name[, space, store, description])       | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
+| [`EntityKind`](#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
 | [`Genre`](#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                |
 | [`SemanticCheck`](#an.genres.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
 
@@ -88,7 +93,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.           |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                      |
 
-### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='')
+### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -114,6 +119,15 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 
 Does `start:` in `scene.md` wrap this kind in `sequence(delay(start), …)`?
 
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+bump when what an action of
+this kind compiles to changes for the same fields, so the shots that use
+it re-render visibly ([`an.semantic`](an.semantic.html.md#module-an.semantic) folds it into the shot digest).
+
+* **Type:**
+  The kind’s vocabulary version (ADR 0003)
+
 ### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -129,7 +143,7 @@ the line carries none). The cut-out genre’s `[emotion]` is one.
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='')
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -139,7 +153,11 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
+#### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](#an.genres.ActionKind.version).
+
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -153,7 +171,13 @@ touching any genre that does not use it.
 
 `spaces` are [`an.timing.spaces.PropertySpace`](an.timing.spaces.html.md#an.timing.spaces.PropertySpace) objects and
 `field_kinds` are `(name, factory)` pairs for
-[`an.timing.kinds.register_kind()`](an.timing.kinds.html.md#an.timing.kinds.register_kind).
+[`an.timing.kinds.register_kind()`](an.timing.kinds.html.md#an.timing.kinds.register_kind). `capabilities` are
+[`an.capabilities.Capability`](an.capabilities.html.md#an.capabilities.Capability) objects, `analysers`
+[`an.capabilities.Analyser`](an.capabilities.html.md#an.capabilities.Analyser) objects, `vocabulary`
+[`an.semantic.Entry`](an.semantic.html.md#an.semantic.Entry) objects (methods included) and `aspects`
+[`an.semantic.Aspect`](an.semantic.html.md#an.semantic.Aspect) objects; registering the genre checks the whole
+([`an.semantic.check_registry()`](an.semantic.html.md#an.semantic.check_registry)): every aspect’s chain ends in a method
+that requires nothing, and every requirement names a registered capability.
 
 `library` names the package whose data root holds the genre’s asset
 library and its projects (`~/.local/share/<library>`, ADR 0005, plan §1
@@ -343,7 +367,7 @@ The installed genres (loaded or not) that declare `kind` in `registry`
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-### an.genres.register_genre(genre, , replace=False)
+### an.genres.register_genre(genre, , replace=False, check_capabilities=True)
 
 Register everything `genre` declares, owned by `genre.name`.
 
@@ -351,6 +375,9 @@ Idempotent for the same object: registering a genre that is already
 installed is a no-op, so [`load()`](#an.genres.load) can be called from every entry point.
 A different object under an installed name raises unless `replace`.
 All or nothing: a registration that fails part-way leaves no trace.
+`check_capabilities=False` defers the “every requirement names a
+registered capability” check to the caller ([`load()`](#an.genres.load) runs it once all
+genres are in, so a genre extending another loads in any order).
 
 * **Return type:**
   [`Genre`](#an.genres.Genre)

@@ -1,0 +1,33 @@
+an.semantic.registry
+====================
+
+.. automodule:: an.semantic.registry
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      duplicates
+      aspect
+      aspect_names
+      aspects
+      drop_owner
+      entries
+      entry
+      lookup
+      methods_of
+      owner_of
+      register_aspect
+      register_entry
+      register_view
+      replacements
+      restore
+      snapshot
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnknownEntryError
+   

@@ -15,8 +15,11 @@ when an attachment it names has its file among the asset’s files — a descrip
 promising a side view whose drawing is missing does not afford one.
 
 It is genre code (cut-out characters). It lives here until the genre package
-exists (plan P8), registered under the `character` kind, and imports the
-cut-out modules lazily so `import an.library` stays free of them.
+exists (plan P8) and imports the cut-out modules lazily so `import an.library`
+stays free of them. **Importing it registers nothing** (P7): the cut-out genre
+declares [`CHARACTER_CAPABILITIES`](#an.library.character.CHARACTER_CAPABILITIES) and [`CHARACTER_ANALYSER`](#an.library.character.CHARACTER_ANALYSER) in its
+`capabilities` and `analysers` fields (`an.genres.cutout.CUTOUT`), so
+they register with the genre, owned by it, and come out with it.
 
 | capability   | afforded when                                                                                       | `keys`                                 |
 |--------------|-----------------------------------------------------------------------------------------------------|----------------------------------------|
@@ -27,9 +30,11 @@ cut-out modules lazily so `import an.library` stays free of them.
 
 ### Module Attributes
 
-| [`CHARACTER_ANALYSER_VERSION`](#an.library.character.CHARACTER_ANALYSER_VERSION)   | Bump when the derivation can answer differently for the same input.        |
-|-------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`MOUTH_CHART_RHUBARB`](#an.library.character.MOUTH_CHART_RHUBARB)          | The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`'s default. |
+| [`CHARACTER_ANALYSER_VERSION`](#an.library.character.CHARACTER_ANALYSER_VERSION)   | Bump when the derivation can answer differently for the same input.              |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`MOUTH_CHART_RHUBARB`](#an.library.character.MOUTH_CHART_RHUBARB)          | The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`'s default.       |
+| [`CHARACTER_CAPABILITIES`](#an.library.character.CHARACTER_CAPABILITIES)       | The capabilities the character analyser derives (declared by the cut-out genre). |
+| [`CHARACTER_ANALYSER`](#an.library.character.CHARACTER_ANALYSER)           | The character analyser (declared by the cut-out genre, registered with it).      |
 
 ### Functions
 
@@ -37,9 +42,17 @@ cut-out modules lazily so `import an.library` stays free of them.
 |------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`renders_as_placeholder`](#an.library.character.renders_as_placeholder)(doc)       | Whether the compiler would draw this character only as its placeholder stand-in. |
 
+### an.library.character.CHARACTER_ANALYSER *: [Analyser](an.capabilities.md#an.capabilities.Analyser)* *= Analyser(kind='character', version='0.1.0', subject='asset', declares=('rest_view', 'face_overlay', 'gait', 'speech'))*
+
+The character analyser (declared by the cut-out genre, registered with it).
+
 ### an.library.character.CHARACTER_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
 
 Bump when the derivation can answer differently for the same input.
+
+### an.library.character.CHARACTER_CAPABILITIES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Capability](an.capabilities.md#an.capabilities.Capability), ...]* *= (Capability(name='limbs.legs', description='a pair of leg slots with art that a legged walk swings', remedy='add two leg slots named leg_l/leg_r (or left_leg/right_leg) with their art, pivoted at the hip; \`an character new\` builds them (an-art-package skill)', subject='asset', command=None, version='1'), Capability(name='limbs.arms', description='a pair of arm slots with art that a walk swings and gestures move', remedy='add two arm slots named arm_l/arm_r (or left_arm/right_arm) with their art, pivoted at the shoulder (an-art-package skill)', subject='asset', command=None, version='1'), Capability(name='swap.view', description='the turnaround views the character can show (keys); swappable=true when a \`view\` swap set lets it turn', remedy='add turnaround art and list it in the \`view\` swap set: \`an character add-views <dir>\` for an offline character, else draw the views', subject='asset', command='an character add-views', version='1'), Capability(name='face.mouth', description='an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)', remedy="give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\` writes the default nine) and face_overlay: true — a face baked into the head art cannot lip-sync", subject='asset', command='an character mouths', version='1'))*
+
+The capabilities the character analyser derives (declared by the cut-out genre).
 
 ### an.library.character.MOUTH_CHART_RHUBARB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rhubarb9'*
 

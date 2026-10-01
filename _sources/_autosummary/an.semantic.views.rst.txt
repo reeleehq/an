@@ -1,0 +1,26 @@
+an.semantic.views
+=================
+
+.. automodule:: an.semantic.views
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      FRAMING_2D
+      ORBIT_3D
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      view_space
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ViewField
+      ViewSpace
+   

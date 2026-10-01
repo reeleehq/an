@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=d39ec1ec"></script>
+    <script src="../../_static/documentation_options.js?v=77e645f5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.138" />
+  <meta name="docsearch:version" content="0.1.139" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -843,99 +843,25 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
-<span class="c1"># System prompt — stable, cacheable.</span>
+<span class="c1"># System prompt — generated from the vocabulary registry (ADR 0003 decision 6).</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
-
-<span class="n">_SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">"""You are an animation director's assistant. The user is iterating</span>
+<span class="c1">#: What ``an iterate`` is, before the vocabulary.</span>
+<span class="n">_PROMPT_PREAMBLE</span> <span class="o">=</span> <span class="s2">"""You are an animation director's assistant. The user is iterating</span>
 <span class="s2">on a scene; you receive the scene's current state (a JSON-shaped IR) and a free-text</span>
-<span class="s2">instruction, and you reply with a structured patch on that JSON tree.</span>
+<span class="s2">instruction, and you reply with a structured patch on that JSON tree."""</span>
 
-<span class="s2">The IR shape (relevant fields):</span>
-
-<span class="s2">  - meta: {title, author, duration, fps, resolution, default_renderer, notes}</span>
-<span class="s2">  - timeline: a list of shots, each with:</span>
-<span class="s2">      - id (string, unique)</span>
-<span class="s2">      - renderer ("cutout" | "manim" | "motion_graphics" | "whiteboard")</span>
-<span class="s2">      - duration (seconds, float)</span>
-<span class="s2">      - camera: {move: "hold"|"push_in"|"pull_out"|"zoom_in"|"zoom_out", ...}</span>
-<span class="s2">      - entities: list of {kind, id, store, ref, ...}</span>
-<span class="s2">        "kind" MUST be one of: character, environment, voice, prop.</span>
-<span class="s2">        A "prop" needs a PropDescriptor in the props store; it has no</span>
-<span class="s2">        placeholder rig, so an unknown ref raises rather than drawing a person.</span>
-<span class="s2">      - actions: list of action dicts (kind ∈ {tween, set, play, expression, sequence, parallel, delay, loop})</span>
-<span class="s2">        A tween/set action's "property" is EITHER a transform:</span>
-<span class="s2">          x, y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y,</span>
-<span class="s2">          pivot_x, pivot_y, alpha</span>
-<span class="s2">        OR "tint", a per-node colour MULTIPLY whose value is a "#rrggbb"</span>
-<span class="s2">        string (an#62) — the compiler expands it into three numeric channels,</span>
-<span class="s2">        so a tween between two colours interpolates per channel. Like "alpha"</span>
-<span class="s2">        it cascades to the target's parts.</span>
-<span class="s2">        OR the name of a swap set the target character's descriptor declares</span>
-<span class="s2">        in asset_sets (e.g. "viseme", "eyelid", "hands"), used with a "set"</span>
-<span class="s2">        action whose "value" is one of that set's declared KEYS. Any other</span>
-<span class="s2">        property (opacity, visible, color, width, ...) is refused at</span>
-<span class="s2">        compile with the declared sets listed. Never invent a set or a key.</span>
-<span class="s2">        "alpha" is the fade primitive and cascades to a character's parts.</span>
-<span class="s2">        A tween with no "from" starts at the property's rest value: 1.0 for</span>
-<span class="s2">        scale_x / scale_y / alpha, "#ffffff" for tint, 0.0 for the rest.</span>
-<span class="s2">        A "play" action ({kind: play, target: &lt;entity&gt;, animation: &lt;name&gt;,</span>
-<span class="s2">        [duration], [speed], [loop], [args]}) plays one of the target character's</span>
-<span class="s2">        descriptor animations ("idle_breath", "blink", or any it declares) or,</span>
-<span class="s2">        for a name the descriptor does not declare, a motion preset — pop_in,</span>
-<span class="s2">        hop, shake, nod, point (target the arm node), slide_in, slide_out,</span>
-<span class="s2">        squash_stretch, waddle — with "args" as its parameters (e.g.</span>
-<span class="s2">        {"height": 30}); a name in neither fails validation — never invent one.</span>
-<span class="s2">        A tween with no "easing" takes the scene's meta.default_easing when set.</span>
-<span class="s2">        An "expression" action ({kind: expression, target: &lt;entity&gt;, preset: &lt;name&gt;,</span>
-<span class="s2">        [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial</span>
-<span class="s2">        expression on a character: brows, eyelids, and the mouth's set for any</span>
-<span class="s2">        dialogue under it. Presets: neutral, happy, sad, angry, surprised, afraid,</span>
-<span class="s2">        disgusted, thinking, skeptical, amused — an unknown preset fails validation.</span>
-<span class="s2">        Axes (offsets in [-1, 1]; lids in [-1, 0.5]): brow_height_l/r, brow_angle_l/r,</span>
-<span class="s2">        lid_open_l/r, gaze_x, gaze_y. "duration" omitted = to the shot end. A</span>
-<span class="s2">        character whose descriptor says face_overlay: false cannot take one.</span>
-<span class="s2">      - dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}.</span>
-<span class="s2">        "direction" (optional) is a list of delivery cues — ["excited"],</span>
-<span class="s2">        ["sighs", "annoyed"] — that an expressive TTS voice performs; it is</span>
-<span class="s2">        never spoken as text and never shown in captions.</span>
-<span class="s2">        Lines play back to back from the shot start. "pause" (seconds) is</span>
-<span class="s2">        silence before a line, after the previous one ends — a beat, a look, a</span>
-<span class="s2">        hesitation belongs here, NOT in a new shot. "at" (seconds) starts a line</span>
-<span class="s2">        at that shot time instead; a line takes one or the other, never both</span>
-<span class="s2">        (to switch, delete the one you are replacing in the same patch list).</span>
-<span class="s2">        "start" and "duration" are stamped by the audio pipeline from these on</span>
-<span class="s2">        every render — never patch them.</span>
-<span class="s2">      - narration: list (same shape as dialogue, no speaker pin).</span>
-<span class="s2">        NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with</span>
-<span class="s2">        narration now RAISES. To add a narrator, emit a dialogue line whose</span>
-<span class="s2">        speaker is not an entity in the shot; it gets audio and no lip-sync.</span>
-<span class="s2">      - transition (optional): how the shot is ENTERED —</span>
-<span class="s2">        {kind: "cut"|"fade"|"dissolve", duration: seconds, color: "#rrggbb"}.</span>
-<span class="s2">        Omitted = a hard cut. "fade" dips through color (half out of the</span>
-<span class="s2">        previous shot, half into this one; on the first shot, a fade up).</span>
-<span class="s2">        "dissolve" overlaps the two shots by duration, so the film gets that</span>
-<span class="s2">        much shorter; never on the first shot. A shot must be long enough to</span>
-<span class="s2">        hold its own transition and the next shot's.</span>
-<span class="s2">      - sounds (optional): SFX cues in SHOT-local time —</span>
-<span class="s2">        [{sound: &lt;key in the sounds store&gt;, at, [duration], [gain_db], [loop],</span>
-<span class="s2">        [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.</span>
-<span class="s2">  - meta.sounds (optional): the same cue shape in FILM time — a music bed is</span>
-<span class="s2">    {sound: &lt;key&gt;, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks</span>
-<span class="s2">    it under every dialogue line.</span>
-<span class="s2">  - meta.captions (optional): captions built at render time from the dialogue's</span>
-<span class="s2">    word timings — </span><span class="si">{}</span><span class="s2"> for the defaults, or {highlight: "#rrggbb", color,</span>
-<span class="s2">    size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add</span>
-<span class="s2">    caption text entities by hand: they are derived from the dialogue.</span>
-
-<span class="s2">Path syntax for patches: slash-delimited, list indices are integers. Examples:</span>
+<span class="c1">#: The patch protocol and the editing rules, after the vocabulary. The</span>
+<span class="c1">#: vocabulary itself (fields, kinds, presets, moves, easings, methods) is</span>
+<span class="c1">#: generated from :mod:`an.semantic` and never written here: a list in prose</span>
+<span class="c1">#: is a second source of truth that drifts (it did — ``walk`` and ``turn``</span>
+<span class="c1">#: were missing from the hand-written one this replaced, an#248).</span>
+<span class="n">_PROMPT_POSTAMBLE</span> <span class="o">=</span> <span class="s2">"""Path syntax for patches: slash-delimited, list indices are integers. Examples:</span>
 
 <span class="s2">  "meta/title"                              → top-level meta field</span>
 <span class="s2">  "timeline/0/duration"                     → first shot's duration</span>
 <span class="s2">  "timeline/1/dialogue/0/text"              → second shot, first dialogue line, text</span>
-<span class="s2">  "timeline/1/dialogue/0/emotion"           → set the emotion (a preset name: "happy" | "sad"</span>
-<span class="s2">                                              | "angry" | "surprised" | "afraid" | "disgusted"</span>
-<span class="s2">                                              | "skeptical" | "amused" | "thinking" | "neutral")</span>
+<span class="s2">  "timeline/1/dialogue/0/emotion"           → set the emotion (an expression preset name)</span>
 <span class="s2">  "timeline/1/dialogue/1/pause"             → seconds of silence before that line</span>
 <span class="s2">  "timeline/1/dialogue/1/direction"         → delivery cues, e.g. ["whispers"]</span>
 
@@ -955,8 +881,38 @@ window.runMermaid = runMermaid;</script>
 <span class="s2">     extend the parent shot's duration (set timeline/N/duration) so the line fits.</span>
 <span class="s2">  5. Populate affected_shots with the ids of every shot whose render needs to be</span>
 <span class="s2">     redone (i.e. any shot you patched).</span>
-<span class="s2">  6. Do not invent new fields. Keep emotion values inside the allowed set.</span>
+<span class="s2">  6. Do not invent new fields or names. Keep every name inside the vocabulary</span>
+<span class="s2">     above (an emotion is an expression preset).</span>
 <span class="s2">  7. Keep the summary short — one sentence."""</span>
+
+
+<div class="viewcode-block" id="system_prompt">
+<a class="viewcode-back" href="../../_autosummary/an.iterate.html#an.iterate.system_prompt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">system_prompt</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``an iterate`` system prompt: the protocol around the generated vocabulary.</span>
+
+<span class="sd">    Loads the installed genres first (their presets and methods are part of</span>
+<span class="sd">    the vocabulary). Stable for a given registry, so it caches as well as the</span>
+<span class="sd">    hand-written one did.</span>
+
+<span class="sd">    &gt;&gt;&gt; text = system_prompt()</span>
+<span class="sd">    &gt;&gt;&gt; "walk" in text and "Rules:" in text</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.prompt</span><span class="w"> </span><span class="kn">import</span> <span class="n">iterate_prompt</span>
+
+    <span class="n">load</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">iterate_prompt</span><span class="p">(</span><span class="n">preamble</span><span class="o">=</span><span class="n">_PROMPT_PREAMBLE</span><span class="p">,</span> <span class="n">postamble</span><span class="o">=</span><span class="n">_PROMPT_POSTAMBLE</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># `_SYSTEM_PROMPT` was a hand-written constant until an#248; the name still</span>
+    <span class="c1"># reads (tests and callers that inspect the prompt), now generated.</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"_SYSTEM_PROMPT"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">system_prompt</span><span class="p">()</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1206,7 +1162,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
             <span class="n">max_tokens</span><span class="o">=</span><span class="n">max_tokens</span><span class="p">,</span>
             <span class="n">thinking</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"adaptive"</span><span class="p">},</span>
-            <span class="n">system</span><span class="o">=</span><span class="n">_SYSTEM_PROMPT</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system_prompt</span><span class="p">(),</span>
             <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">"role"</span><span class="p">:</span> <span class="s2">"user"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="n">user_content</span><span class="p">}],</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="n">anthropic</span><span class="o">.</span><span class="n">APIStatusError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>

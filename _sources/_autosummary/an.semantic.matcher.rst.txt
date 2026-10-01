@@ -1,0 +1,21 @@
+an.semantic.matcher
+===================
+
+.. automodule:: an.semantic.matcher
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      applicable
+      resolve
+      why_not
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Missing
+      Resolution
+   

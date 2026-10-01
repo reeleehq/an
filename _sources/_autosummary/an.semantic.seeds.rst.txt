@@ -1,0 +1,20 @@
+an.semantic.seeds
+=================
+
+.. automodule:: an.semantic.seeds
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CAMERA_MOVE_VERSIONS
+      CAMERA_MOVE_DESCRIPTIONS
+      CORE_FIELDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      schema_of_callable
+   

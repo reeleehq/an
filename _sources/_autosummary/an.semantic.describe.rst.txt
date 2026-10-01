@@ -1,0 +1,14 @@
+an.semantic.describe
+====================
+
+.. automodule:: an.semantic.describe
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      describe_asset
+      describe_profile
+      format_description
+   

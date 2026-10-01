@@ -1,0 +1,13 @@
+an.semantic.prompt
+==================
+
+.. automodule:: an.semantic.prompt
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      iterate_prompt
+      vocabulary_prompt
+   

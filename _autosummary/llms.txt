@@ -68,6 +68,8 @@
 - [an.build](an.build.html.md): Incremental re-processing: content-addressed build stages (ADR 0004).
 - [an.build.keys](an.build.keys.html.md): Cache keys for build stages: canonical digests, the project fallback, keyers.
 - [an.build.shot_cache](an.build.shot_cache.html.md): The content-keyed shot cache: ADR 0004’s first slice, behind the &#96;incremental=&#96; seam.
+- [an.capabilities](an.capabilities.html.md): Capabilities: what an asset, an engine or the environment affords, and the one matcher.
+- [an.capabilities.subjects](an.capabilities.subjects.html.md): The core’s two non-asset subjects: the engine (a renderer) and the environment.
 - [an.captions](an.captions.html.md): Captions from the word timings the audio pipeline already computes (an#175).
 - [an.characters](an.characters.html.md): Character art system: Spine-shaped descriptor + SVG sidecars.
 - [an.characters.cli](an.characters.cli.html.md): User-facing character CLI subcommands.
@@ -76,6 +78,7 @@
 - [an.characters.factory](an.characters.factory.html.md): High-level entry points: build and inspect a character.
 - [an.characters.idle](an.characters.idle.html.md): Idle animation factories: breath, blink, weight-shift.
 - [an.characters.licenses](an.characters.licenses.html.md): DiceBear per-style licences, as data.
+- [an.characters.methods](an.characters.methods.html.md): The cut-out genre’s methods and aspects, and their compile-time resolution (ADR 0002).
 - [an.characters.mouth_set](an.characters.mouth_set.html.md): Generate the 9-shape default mouth set as parametric SVGs.
 - [an.characters.play](an.characters.play.html.md): Resolve a &#96;play&#96; against a character descriptor — the renderer-free half (an#7).
 - [an.characters.record](an.characters.record.html.md): Record a character’s preview HTML to an mp4.
@@ -84,6 +87,7 @@
 - [an.characters.silhouette](an.characters.silhouette.html.md): Silhouette rendering and comparison for the silhouette test.
 - [an.characters.svg_utils](an.characters.svg_utils.html.md): SVG manipulation: namespace-aware DOM helpers using stdlib &#96;xml.etree&#96;.
 - [an.characters.validate](an.characters.validate.html.md): Whether an art package is one the compiler can actually render.
+- [an.characters.vocabulary](an.characters.vocabulary.html.md): The cut-out genre’s vocabulary entries: motion presets, expression presets, IR-field notes.
 - [an.conftest](an.conftest.html.md): Collection rules for the package’s own doctests.
 - [an.credits](an.credits.html.md): What a rendered video owes, and to whom.
 - [an.data](an.data.html.md): Bundled non-Python resources (cutout JS runtime, etc.).
@@ -120,7 +124,7 @@
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.library](an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
-- [an.library.affordances](an.library.affordances.html.md): Affordances: what an asset can do, derived from its descriptor and the art present.
+- [an.library.affordances](an.library.affordances.html.md): Affordances for the library: the capability registry, re-exported from &#96;an.capabilities&#96;.
 - [an.library.api](an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;.
 - [an.library.character](an.library.character.html.md): The character analyser: legs, arms, views and mouth chart, derived from the rig.
 - [an.library.cli](an.library.cli.html.md): &#96;an library …&#96; — the asset library from the shell, over the same functions as Python.
@@ -134,6 +138,9 @@
 - [an.library.root](an.library.root.html.md): Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
 - [an.library.stores](an.library.stores.html.md): The library mall: &#96;records&#96;, &#96;versions&#96; and &#96;blobs&#96;, each an injected &#96;MutableMapping&#96;.
 - [an.live_api](an.live_api.html.md): The one switch that says “yes, this run may spend money”.
+- [an.mcp](an.mcp.html.md): The &#96;an&#96; MCP server: a curated, generated surface over the vocabulary and the capability registry.
+- [an.mcp.server](an.mcp.server.html.md): Build and serve the &#96;an&#96; MCP server with &#96;py2mcp&#96; (the &#96;an&#91;mcp&#93;&#96; extra).
+- [an.mcp.tools](an.mcp.tools.html.md): The curated MCP tools: plain functions over the vocabulary, the capability registry and a project.
 - [an.media](an.media.html.md): Frames to deliverables, engine-independent: the frame stage’s resolves and the sinks.
 - [an.media.frames](an.media.frames.html.md): The frame directory every engine writes and every sink reads.
 - [an.media.gif](an.media.gif.html.md): The GIF sink: ONE palette recipe, for flat 2D art.
@@ -149,6 +156,15 @@
 - [an.props](an.props.html.md): Props: a rig whose art is not a person.
 - [an.raster](an.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 - [an.render](an.render.html.md): Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.
+- [an.semantic](an.semantic.html.md): The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.
+- [an.semantic.describe](an.semantic.describe.html.md): Describe an asset: what it affords, and per aspect what applies and what is missing.
+- [an.semantic.digest](an.semantic.digest.html.md): Which vocabulary entries a shot names, at which versions: the shot’s vocabulary digest.
+- [an.semantic.docs](an.semantic.docs.html.md): The vocabulary section of the downstream &#96;an&#96; skill, generated from the registry.
+- [an.semantic.matcher](an.semantic.matcher.html.md): The three queries and the policy (ADR 0002 decision 4): &#96;applicable&#96;, &#96;why_not&#96;, &#96;resolve&#96;.
+- [an.semantic.prompt](an.semantic.prompt.html.md): The &#96;an iterate&#96; system prompt, generated from the vocabulary registry.
+- [an.semantic.registry](an.semantic.registry.html.md): The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.
+- [an.semantic.seeds](an.semantic.seeds.html.md): The core’s vocabulary: views over the kind and easing registries, camera moves, IR fields.
+- [an.semantic.views](an.semantic.views.html.md): View spaces: what a camera move moves through, defined once for every engine (an#257).
 - [an.sounds](an.sounds.html.md): Sound assets: what the sound layer plays, where it came from, and a synthesizer.
 - [an.stores](an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
 - [an.stores.artifacts](an.stores.artifacts.html.md): Artifact stores — derived, regeneratable products of the pipeline.
