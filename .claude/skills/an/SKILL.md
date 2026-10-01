@@ -427,6 +427,8 @@ Then `an validate my_film` and `an render my_film --strict-assets`. `tests/test_
 
 Whenever you make a non-trivial design decision the user hasn't blessed (asset choice, default style, durations, voice pick), append a decision entry via `mall["decisions"].append(kind=..., body=...)` and surface it in your next reply.
 
+This is principle 1 of `an`'s design principles (`misc/docs/design_principles.md` in the repo) applied to you: when you turn the director's words ("she walks in nervously") into typed values (a `walk` with a shorter stride), record the words, the values you chose and why, so a re-render never has to re-interpret them. The same principles say every aspect has a default that applies to any character: when the director asks for something a character's rig cannot do (a legged walk on a robe figure, lip sync on a baked face), say what structure is missing and how to add it (`an character add-views`, separate leg parts, a hand-rigged face), and meanwhile use what does apply (the `walk` preset falls back to a rock on a legless figure; a baked face has no speech default yet, so tell the director the mouth will not move) — never let an aspect drop out silently.
+
 ## What to never do
 
 - Never write directly to `ir/scene.json` — edit `scene.md` and run `sync`, OR use `mall["scenes"]["main"] = scene_ir` (which writes both files and equalizes mtimes).

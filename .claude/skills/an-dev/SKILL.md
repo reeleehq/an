@@ -11,6 +11,8 @@ This skill orients you for engineering work *on* an. If you're using an from a p
 
 **Always start with `misc/docs/architecture_as_built.md`** — the canonical, current-state map of the system (modules, control flows, invariants, caching strategy). Read it before any non-trivial change.
 
+**Then check the design against `misc/docs/design_principles.md`** — for every new field or behaviour: which specification levels it accepts (structured / named / described / goal) and how the loose ones resolve; what it requires of an asset and what its requirement-free default is; whether a data-viz or math-viz genre would need it (then it is core, and names no rig, face or mouth); and the domain term for it. The proposed decisions (core/genre split, capability registry, semantic layer, incremental re-rendering) are in `misc/docs/adr/`; the review behind them is `misc/docs/framework_review_2026-10.md` and `misc/docs/cutout_framework_review_2026-10.md`.
+
 `misc/docs/wave1_verification.md` is the **verification record** for Wave 1 of epic #9:
 the vendored engine's licence and provenance, the DiceBear per-style licence table, the
 network-guard design, and the silent-discard inventory.
