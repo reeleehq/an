@@ -11,15 +11,17 @@ wired into the core. `CUTOUT` lists:
   `expression` ([`an.expression.registration`](an.expression.registration.md#module-an.expression.registration));
 - **entity kind** `character`, whose nodes are stage nodes (`stage.node`);
 - the **\`\`[emotion]\`\`** dialogue sugar;
-- its **semantic checks**: `play` and `expression` resolution, the turn
+- its **semantic checks**: `play` and `expression` resolution, brow
+  acting on a character whose brows cannot act (an#252), the turn
   checks (contradicted `from_direction`, a mouth hidden while speaking) and
   view continuity across a cut, placed in the report where they always were;
 - its **capabilities** and the **character analyser** (ADR 0002:
   [`an.library.character`](an.library.character.md#module-an.library.character)), its **vocabulary** (motion and expression
   > presets, IR-field notes: [`an.characters.vocabulary`](an.characters.vocabulary.md#module-an.characters.vocabulary); the methods:
 
-  [`an.characters.methods`](an.characters.methods.md#module-an.characters.methods)) and its **aspects**, `locomotion` and
-  : `speech`, each with a default chain that ends in a method requiring nothing.
+  [`an.characters.methods`](an.characters.methods.md#module-an.characters.methods)) and its **aspects**, `locomotion`,
+  : `speech` and `expression`, each with a default chain that ends in a
+    method requiring nothing.
 
 Its `name` is the persisted genre slug `cutout_animation`, the one
 `an.genre` declares to `nw` (ADR 0001 decision 9: persisted

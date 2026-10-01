@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8693cb0d"></script>
+    <script src="../_static/documentation_options.js?v=22eb4f14"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.genres" href="an.genres.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.142" />
+  <meta name="docsearch:version" content="0.1.143" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.brows.html">an.characters.brows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
@@ -612,7 +613,8 @@ wired into the core. <code class="xref py py-data docutils literal notranslate">
 <code class="docutils literal notranslate"><span class="pre">expression</span></code> (<a class="reference internal" href="an.expression.registration.html#module-an.expression.registration" title="an.expression.registration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.expression.registration</span></code></a>);</p></li>
 <li><p><strong>entity kind</strong> <code class="docutils literal notranslate"><span class="pre">character</span></code>, whose nodes are stage nodes (<code class="docutils literal notranslate"><span class="pre">stage.node</span></code>);</p></li>
 <li><p>the <strong>``[emotion]``</strong> dialogue sugar;</p></li>
-<li><p>its <strong>semantic checks</strong>: <code class="docutils literal notranslate"><span class="pre">play</span></code> and <code class="docutils literal notranslate"><span class="pre">expression</span></code> resolution, the turn
+<li><p>its <strong>semantic checks</strong>: <code class="docutils literal notranslate"><span class="pre">play</span></code> and <code class="docutils literal notranslate"><span class="pre">expression</span></code> resolution, brow
+acting on a character whose brows cannot act (an#252), the turn
 checks (contradicted <code class="docutils literal notranslate"><span class="pre">from_direction</span></code>, a mouth hidden while speaking) and
 view continuity across a cut, placed in the report where they always were;</p></li>
 <li><p>its <strong>capabilities</strong> and the <strong>character analyser</strong> (ADR 0002:
@@ -621,7 +623,8 @@ view continuity across a cut, placed in the report where they always were;</p></
 <div><p>presets, IR-field notes: <a class="reference internal" href="an.characters.vocabulary.html#module-an.characters.vocabulary" title="an.characters.vocabulary"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.vocabulary</span></code></a>; the methods:</p>
 </div></blockquote>
 <dl class="simple">
-<dt><a class="reference internal" href="an.characters.methods.html#module-an.characters.methods" title="an.characters.methods"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.methods</span></code></a>) and its <strong>aspects</strong>, <code class="docutils literal notranslate"><span class="pre">locomotion</span></code> and</dt><dd><p><code class="docutils literal notranslate"><span class="pre">speech</span></code>, each with a default chain that ends in a method requiring nothing.</p>
+<dt><a class="reference internal" href="an.characters.methods.html#module-an.characters.methods" title="an.characters.methods"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.methods</span></code></a>) and its <strong>aspects</strong>, <code class="docutils literal notranslate"><span class="pre">locomotion</span></code>,</dt><dd><p><code class="docutils literal notranslate"><span class="pre">speech</span></code> and <code class="docutils literal notranslate"><span class="pre">expression</span></code>, each with a default chain that ends in a
+method requiring nothing.</p>
 </dd>
 </dl>
 </li>

@@ -314,6 +314,20 @@ This is useful if you want to do some validation that requires the entire model 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+#### occluded *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+The face features another drawing of this character covers, and what
+covers them — `{feature: what}`, e.g. `{"brows": "the cap hat at
+head_scale 0.3"}` (an#252). A **declared fact**, written by whoever
+knows the geometry: the factory measures its hat against the brows’
+acting range and records an overlap it could not seat away; an
+illustrator declares a helmet over the brows. Read by the character
+analyser: a covered feature is not afforded (`brows` →
+`face.brows`), so the methods needing it fall to their default, said
+by `an character capabilities`. Keys are
+`OCCLUDABLE_FEATURES`. Omitted from the
+stored document when empty.
+
 #### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The view the DEFAULT art is drawn in (an#220) — a declared fact about

@@ -1,0 +1,34 @@
+an.characters.brows
+===================
+
+.. automodule:: an.characters.brows
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      HEAD_ART_SIZE
+      BROW_CANVAS
+      BROWS_FEATURE
+      HAT_BROW_CLEARANCE
+      HAT_CROWN_MIN_Y
+      HAT_MIN_FLATTEN
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      brow_affordance
+      brow_slots
+      brow_path_d
+      brow_range
+      ink_columns
+      seat_above_brows
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Seat
+   

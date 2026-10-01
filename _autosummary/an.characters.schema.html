@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8693cb0d"></script>
+    <script src="../_static/documentation_options.js?v=22eb4f14"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.registration" href="an.characters.registration.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.142" />
+  <meta name="docsearch:version" content="0.1.143" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.characters.brows.html">an.characters.brows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
@@ -1019,6 +1020,22 @@ This is useful if you want to do some validation that requires the entire model 
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.occluded">
+<span class="sig-name descname"><span class="pre">occluded</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.occluded" title="Link to this definition">#</a></dt>
+<dd><p>The face features another drawing of this character covers, and what
+covers them — <code class="docutils literal notranslate"><span class="pre">{feature:</span> <span class="pre">what}</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">{&quot;brows&quot;:</span> <span class="pre">&quot;the</span> <span class="pre">cap</span> <span class="pre">hat</span> <span class="pre">at</span>
+<span class="pre">head_scale</span> <span class="pre">0.3&quot;}</span></code> (an#252). A <strong>declared fact</strong>, written by whoever
+knows the geometry: the factory measures its hat against the brows’
+acting range and records an overlap it could not seat away; an
+illustrator declares a helmet over the brows. Read by the character
+analyser: a covered feature is not afforded (<code class="docutils literal notranslate"><span class="pre">brows</span></code> →
+<code class="docutils literal notranslate"><span class="pre">face.brows</span></code>), so the methods needing it fall to their default, said
+by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">capabilities</span></code>. Keys are
+<code class="xref py py-data docutils literal notranslate"><span class="pre">OCCLUDABLE_FEATURES</span></code>. Omitted from the
+stored document when empty.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.rest_view">
 <span class="sig-name descname"><span class="pre">rest_view</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.rest_view" title="Link to this definition">#</a></dt>
 <dd><p>The view the DEFAULT art is drawn in (an#220) — a declared fact about
@@ -1545,6 +1562,7 @@ so the expression variants (an#98) and the view variants never collide.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.metadata"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.metadata</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_config"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_post_init"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_post_init()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.occluded"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.occluded</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.rest_view"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.rest_view</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source_svg"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source_svg</span></code></a></li>

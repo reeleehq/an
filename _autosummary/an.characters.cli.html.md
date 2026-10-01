@@ -106,7 +106,7 @@ variants: comma-separated mouth forms (see `an character new`); “” = none
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True)
+### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True, hair_style='peak', hair_length='short')
 
 Create a new character at `out_dir`/`name`.
 
@@ -137,7 +137,15 @@ build: body proportions — regular, squat (round body, short legs), tall,
 head_scale: the head and its whole face scaled together (1.0 = regular)
 hat: none, cap, beanie, bowler or bicorne (offline head only), in the
 
-> accessory colour
+> accessory colour, worn above the brows so expressions read (a hat that
+> cannot clear them on a very small head is recorded, and
+> `an character capabilities` says the brows cannot act)
+
+hair_style: peak (the default), bald, bun or curly (offline head only),
+: in the hair colour
+
+hair_length: short (the default), medium (to the jaw) or long (past the
+: chin) (offline head only); bald takes short
 
 sash: a diagonal band across the torso, in the accessory colour
 views: draw the turnaround — back, side (a profile facing right) and

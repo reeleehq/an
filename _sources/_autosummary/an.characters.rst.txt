@@ -44,6 +44,7 @@ an.characters
    :toctree:
    :recursive:
 
+   brows
    cli
    colour_roles
    dicebear

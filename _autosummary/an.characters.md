@@ -278,6 +278,20 @@ This is useful if you want to do some validation that requires the entire model 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+#### occluded *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+The face features another drawing of this character covers, and what
+covers them — `{feature: what}`, e.g. `{"brows": "the cap hat at
+head_scale 0.3"}` (an#252). A **declared fact**, written by whoever
+knows the geometry: the factory measures its hat against the brows’
+acting range and records an overlap it could not seat away; an
+illustrator declares a helmet over the brows. Read by the character
+analyser: a covered feature is not afforded (`brows` →
+`face.brows`), so the methods needing it fall to their default, said
+by `an character capabilities`. Keys are
+`OCCLUDABLE_FEATURES`. Omitted from the
+stored document when empty.
+
 #### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The view the DEFAULT art is drawn in (an#220) — a declared fact about
@@ -520,7 +534,7 @@ True
 ['mouth_a_happy']
 ```
 
-### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True)
+### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True, hair_style='peak', hair_length='short')
 
 Build a complete character on disk.
 
@@ -536,7 +550,16 @@ byte, which a golden test holds):
   short legs), `tall`, `stick` (small blocky body, stick limbs).
 - `head_scale` — the head and its whole face (eyes, brows, mouths, their
   offsets, the pupil travel) scaled together, so a big head keeps its face.
-- `hat` — a key of `HATS` (offline head only), in `accessory`.
+- `hat` — a key of `HATS` (offline head only), in `accessory`,
+  worn above the brows’ acting range at this head scale (an#252): lifted,
+  and flattened toward its crown when lifting is not enough. A hat that
+  still covers the brows (a very small head) is recorded in the
+  descriptor’s `occluded`, so the character does not afford
+  `face.brows` and expressions fall to the lids, gaze and mouth.
+- `hair_style` — `HAIR_STYLES`: `peak` (the default), `bald`,
+  `bun`, `curly`; `hair_length` — `HAIR_LENGTHS`: `short`
+  (the default), `medium`, `long` (offline head only). Drawn in the
+  `hair` role (the palette’s `hair` colours them), in every view.
 - `sash` — a diagonal band across the torso, in `accessory`.
 - `views` (an#197) — draw the turnaround: `back`, `side` (a profile
   facing the viewer’s right) and `three_quarter` beside the front, as a
@@ -721,20 +744,21 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`cli`](an.characters.cli.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                                      |
-|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| [`colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…                   |
-| [`dicebear`](an.characters.dicebear.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                                     |
-| [`factory`](an.characters.factory.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                                     |
-| [`idle`](an.characters.idle.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                                      |
-| [`licenses`](an.characters.licenses.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                                       |
-| [`methods`](an.characters.methods.md#module-an.characters.methods)           | The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).      |
-| [`mouth_set`](an.characters.mouth_set.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                                  |
-| [`play`](an.characters.play.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).            |
-| [`record`](an.characters.record.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                                |
-| [`registration`](an.characters.registration.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`.           |
-| [`schema`](an.characters.schema.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                                    |
-| [`silhouette`](an.characters.silhouette.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                                |
-| [`svg_utils`](an.characters.svg_utils.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.                     |
-| [`validate`](an.characters.validate.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                             |
-| [`vocabulary`](an.characters.vocabulary.md#module-an.characters.vocabulary)     | The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes. |
+| [`brows`](an.characters.brows.md#module-an.characters.brows)               | Brow acting: where the brows can go, what may not draw there, and the `face.brows` capability.   |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| [`cli`](an.characters.cli.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                                           |
+| [`colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…                        |
+| [`dicebear`](an.characters.dicebear.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                                          |
+| [`factory`](an.characters.factory.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                                          |
+| [`idle`](an.characters.idle.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                                           |
+| [`licenses`](an.characters.licenses.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                                            |
+| [`methods`](an.characters.methods.md#module-an.characters.methods)           | The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).           |
+| [`mouth_set`](an.characters.mouth_set.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                                       |
+| [`play`](an.characters.play.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).                 |
+| [`record`](an.characters.record.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                                     |
+| [`registration`](an.characters.registration.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`.                |
+| [`schema`](an.characters.schema.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                                         |
+| [`silhouette`](an.characters.silhouette.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                                     |
+| [`svg_utils`](an.characters.svg_utils.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.                          |
+| [`validate`](an.characters.validate.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                                  |
+| [`vocabulary`](an.characters.vocabulary.md#module-an.characters.vocabulary)     | The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes.      |

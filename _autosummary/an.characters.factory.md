@@ -28,6 +28,8 @@ problem routes the way every other verifier’s does (an#78).
 | [`PUPIL_COLOUR`](#an.characters.factory.PUPIL_COLOUR)             | The pupil, in its own part (or the pre-gaze open eye).                                                                                                                                                                                                                                                                                                      |
 | [`DFLT_HAND_COLOUR`](#an.characters.factory.DFLT_HAND_COLOUR)         | Default hand, trouser and brow colours — the literals the factory always drew.                                                                                                                                                                                                                                                                              |
 | [`HATS`](#an.characters.factory.HATS)                     | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                                                                                                                                                                                                                                         |
+| [`HAIR_STYLES`](#an.characters.factory.HAIR_STYLES)              | `peak` (the factory's original hair, a widow's peak — the default), `bald`, `bun` (the hair gathered in a bun on the crown) and `curly` (a halo of curls around the crown).                                                                                                                                                                                 |
+| [`HAIR_LENGTHS`](#an.characters.factory.HAIR_LENGTHS)             | `short` (nothing below the crown — the default), `medium` (falling beside the face to the jaw) and `long` (past the chin, in locks that keep clear of the neck and the collar).                                                                                                                                                                             |
 | [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                                                                                                                                                                                                              |
 | [`BUILDS`](#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
 | [`FACTORY_PROVIDER`](#an.characters.factory.FACTORY_PROVIDER)         | The provider of every per-part source the factory stamps on what it draws.                                                                                                                                                                                                                                                                                  |
@@ -51,6 +53,7 @@ problem routes the way every other verifier’s does (an#78).
 | [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
 | [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
 | [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
+| [`stage_extent`](#an.characters.factory.stage_extent)(desc)                               | How far a character's art reaches above and below its stage point, in scene pixels at `stage.scale: 1`: `{"top", "feet", "height"}`.                                                                                                                                                                                                                                                            |
 | [`stamp_factory_descriptor`](#an.characters.factory.stamp_factory_descriptor)(char_dir)               | Record the factory as the source of the character it just drew at `char_dir`.                                                                                                                                                                                                                                                                                                                   |
 | [`stamp_factory_parts`](#an.characters.factory.stamp_factory_parts)(char_dir, paths, \*[, skip]) | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
 | [`stamp_generated_head`](#an.characters.factory.stamp_generated_head)(char_dir, source)           | Pin a generator's `source` (DiceBear's) to the bytes it produced at `char_dir`.                                                                                                                                                                                                                                                                                                                 |
@@ -138,6 +141,26 @@ The parts a rig gains with `an character add-gaze`. Optional — never in
 `REQUIRED_PARTS`: a pre-Wave-6 rig without them still renders, and gaze is
 a no-op on it.
 
+### an.characters.factory.HAIR_LENGTHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('short', 'medium', 'long')*
+
+`short` (nothing below the crown — the default), `medium`
+(falling beside the face to the jaw) and `long` (past the chin, in locks
+that keep clear of the neck and the collar).
+
+* **Type:**
+  Hair lengths
+
+### an.characters.factory.HAIR_STYLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('peak', 'bald', 'bun', 'curly')*
+
+`peak` (the factory’s original hair, a widow’s peak — the
+default), `bald`, `bun` (the hair gathered in a bun on the crown) and
+`curly` (a halo of curls around the crown). Every style keeps the default
+hairline over the forehead — none draws lower over the brows (tests) — so a
+hair style never costs brow acting.
+
+* **Type:**
+  Hair styles
+
 ### an.characters.factory.HATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('none', 'cap', 'beanie', 'bowler', 'bicorne')*
 
 The hats [`new_character()`](#an.characters.factory.new_character) can draw.
@@ -192,7 +215,10 @@ little back, overlapping at the hip — each hip sits `SIDE_LEG_OFFSET` leg
 widths off the centre line — and splayed so the FEET part: the shoe centres
 land `SIDE_FOOT_SPREAD` leg widths apart, on every build (a stubby leg
 splays more). Both legs show, even as one silhouette, and a walk in profile
-has two legs to alternate (an#203).
+has two legs to alternate (an#203). A stick leg is thinner than its shoe,
+so leg widths alone would leave the two shoes on top of each other — a
+one-legged stand; the shoes part by at least `SIDE_FOOT_MIN_SHOES` shoe
+lengths (a floor every other build already clears, so they are unchanged).
 
 * **Type:**
   Profile legs (facing right)
@@ -240,7 +266,7 @@ projected onto those two slots, and a pose per view (`swap_poses`) — so
 descriptor path.
 
 The views are REDRAWN from the recorded knobs (seed, palette, build, hat,
-sash, head scale), so it refuses a rig whose head is not this factory’s
+hair style and length, sash, head scale), so it refuses a rig whose head is not this factory’s
 drawing for them — a DiceBear head (its face is baked, and there is no
 back of it to draw), a promoted hand rig, or an edited head: its views are
 an illustrator’s to draw, declared the same way (a `view` set whose keys
@@ -310,7 +336,7 @@ inside the white at every angle without a runtime mask.
 {'x': 9.0, 'y': 5.0}
 ```
 
-### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True)
+### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True, hair_style='peak', hair_length='short')
 
 Build a complete character on disk.
 
@@ -326,7 +352,16 @@ byte, which a golden test holds):
   short legs), `tall`, `stick` (small blocky body, stick limbs).
 - `head_scale` — the head and its whole face (eyes, brows, mouths, their
   offsets, the pupil travel) scaled together, so a big head keeps its face.
-- `hat` — a key of [`HATS`](#an.characters.factory.HATS) (offline head only), in `accessory`.
+- `hat` — a key of [`HATS`](#an.characters.factory.HATS) (offline head only), in `accessory`,
+  worn above the brows’ acting range at this head scale (an#252): lifted,
+  and flattened toward its crown when lifting is not enough. A hat that
+  still covers the brows (a very small head) is recorded in the
+  descriptor’s `occluded`, so the character does not afford
+  `face.brows` and expressions fall to the lids, gaze and mouth.
+- `hair_style` — [`HAIR_STYLES`](#an.characters.factory.HAIR_STYLES): `peak` (the default), `bald`,
+  `bun`, `curly`; `hair_length` — [`HAIR_LENGTHS`](#an.characters.factory.HAIR_LENGTHS): `short`
+  (the default), `medium`, `long` (offline head only). Drawn in the
+  `hair` role (the palette’s `hair` colours them), in every view.
 - `sash` — a diagonal band across the torso, in `accessory`.
 - `views` (an#197) — draw the turnaround: `back`, `side` (a profile
   facing the viewer’s right) and `three_quarter` beside the front, as a
@@ -380,6 +415,29 @@ screen. Missing files are skipped.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.factory.stage_extent(desc)
+
+How far a character’s art reaches above and below its stage point, in
+scene pixels at `stage.scale: 1`: `{"top", "feet", "height"}`.
+
+The stage point (`stage.at`) is not the feet: the compiler places a rig
+by the middle of its bones’ extent, between the neck and the feet, so
+where the feet land depends on the build and the head scale (a squat
+figure’s feet sit about half as far below the point as a tall one’s).
+Read from the compiler’s own placement rule and the head’s art, so this is
+what the compiled scene does, not a second guess at it. Multiply by
+`stage.scale`. The head reaches its drawing’s top edge (a hat stays
+inside it).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> e = stage_extent(CharacterDescriptor(name="c"))
+>>> round(e["top"]), round(e["feet"])
+(169, 94)
+```
 
 ### an.characters.factory.stamp_factory_descriptor(char_dir)
 

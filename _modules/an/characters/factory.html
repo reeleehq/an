@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8693cb0d"></script>
+    <script src="../../../_static/documentation_options.js?v=22eb4f14"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.142" />
+  <meta name="docsearch:version" content="0.1.143" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -768,6 +768,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mouth_attachment_name</span><span class="p">,</span>
     <span class="n">write_default_mouths</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.brows</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BROW_CANVAS</span><span class="p">,</span>
+    <span class="n">BROW_STROKE</span><span class="p">,</span>
+    <span class="n">BROWS_FEATURE</span><span class="p">,</span>
+    <span class="n">Seat</span><span class="p">,</span>
+    <span class="n">brow_path_d</span><span class="p">,</span>
+    <span class="n">seat_above_brows</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.colour_roles</span><span class="w"> </span><span class="kn">import</span> <span class="n">distinct_literal</span><span class="p">,</span> <span class="n">normalise_hex</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Bone</span><span class="p">,</span>
@@ -829,10 +837,12 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"#34495e"</span><span class="p">,</span>  <span class="c1"># slate</span>
 <span class="p">)</span>
 
-<span class="c1">#: Hats, drawn inside the offline head's 80x80 drawing, ABOVE the brow line</span>
-<span class="c1">#: (the brows sit at y~25 and the eyes at y~35 of it): the face parts are</span>
-<span class="c1">#: overlays drawn over the head, so a hat reaching lower would wear the eyes on</span>
-<span class="c1">#: its brim. ``{acc}`` is the accessory colour, ``{ink}`` the outline.</span>
+<span class="c1">#: Hats, drawn inside the offline head's 80x80 drawing. These are the hats as</span>
+<span class="c1">#: DRAWN; where one is WORN is :func:`_hat_seat`'s: lifted (and, if need be,</span>
+<span class="c1">#: flattened toward its crown) above the brows' acting range at the character's</span>
+<span class="c1">#: head scale, so a raised brow never lands on a brim (an#252). The face parts</span>
+<span class="c1">#: are overlays drawn over the head, so a hat reaching lower would wear the</span>
+<span class="c1">#: brows on its brim. ``{acc}`` is the accessory colour, ``{ink}`` the outline.</span>
 <span class="n">_HAT_SVG</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"none"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
     <span class="s2">"cap"</span><span class="p">:</span> <span class="p">(</span>
@@ -857,6 +867,180 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The hats :func:`new_character` can draw.</span>
 <span class="n">HATS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_HAT_SVG</span><span class="p">)</span>
 <span class="n">DFLT_HAT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span>
+<span class="c1">#: The views a hat is measured on against the brows (the back shows none).</span>
+<span class="n">_BROW_VIEWS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"front"</span><span class="p">,</span> <span class="s2">"three_quarter"</span><span class="p">,</span> <span class="s2">"side"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hat_fragment</span><span class="p">(</span>
+    <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The hat seen from ``view``, in the head's drawing, worn at ``seat`` (a</span>
+<span class="sd">    transform; ``None``: where it is drawn). Empty for no hat."""</span>
+    <span class="k">if</span> <span class="n">hat</span> <span class="o">==</span> <span class="n">DFLT_HAT</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_HAT_VIEW_SVG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hat</span><span class="p">,</span> <span class="n">_HAT_SVG</span><span class="p">[</span><span class="n">hat</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">acc</span><span class="o">=</span><span class="n">accessory</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">OUTLINE_COLOUR</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s1">'&lt;g transform="</span><span class="si">{</span><span class="n">seat</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">svg</span><span class="si">}</span><span class="s1">&lt;/g&gt;'</span> <span class="k">if</span> <span class="n">seat</span> <span class="k">else</span> <span class="n">svg</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hat_seat</span><span class="p">(</span><span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">head_scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seat</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where ``hat`` is worn on a head drawn at ``head_scale``: above the</span>
+<span class="sd">    brows' acting range in every view that shows a brow</span>
+<span class="sd">    (:func:`~an.characters.brows.seat_above_brows`), or as near as it gets —</span>
+<span class="sd">    ``covers`` then says the brows are hidden, and the factory records it.</span>
+
+<span class="sd">    Computed from the live expression vocabulary and view poses, so it is</span>
+<span class="sd">    recorded on the character (``metadata.hat_seat``) and every redraw reads</span>
+<span class="sd">    the recorded seat, never a recomputed one (a new preset must not change</span>
+<span class="sd">    where an existing character's hat sits)."""</span>
+    <span class="k">if</span> <span class="n">hat</span> <span class="o">==</span> <span class="n">DFLT_HAT</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Seat</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">seat_above_brows</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">_hat_fragment</span><span class="p">(</span><span class="n">hat</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">accessory</span><span class="o">=</span><span class="s2">"#000000"</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_BROW_VIEWS</span><span class="p">},</span>
+        <span class="n">head_scale</span><span class="o">=</span><span class="n">head_scale</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Hair: a style (how it sits on the head) and a length (how far it falls)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="c1">#: The four-arc circle approximation's handle length, for a unit radius.</span>
+<span class="n">_KAPPA</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5523</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_disc_d</span><span class="p">(</span><span class="n">cx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A circle as a closed path of four cubic arcs (no ``&lt;circle&gt;``: the head's</span>
+<span class="sd">    first circle is its skin, which `add_gaze` reads the lid's tone off)."""</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">r</span> <span class="o">*</span> <span class="n">_KAPPA</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"M </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"C </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"C </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"C </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"C </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Z"</span>
+    <span class="p">)</span>
+
+
+<span class="c1">#: Hair styles: ``peak`` (the factory's original hair, a widow's peak — the</span>
+<span class="c1">#: default), ``bald``, ``bun`` (the hair gathered in a bun on the crown) and</span>
+<span class="c1">#: ``curly`` (a halo of curls around the crown). Every style keeps the default</span>
+<span class="c1">#: hairline over the forehead — none draws lower over the brows (tests) — so a</span>
+<span class="c1">#: hair style never costs brow acting.</span>
+<span class="n">HAIR_STYLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"peak"</span><span class="p">,</span> <span class="s2">"bald"</span><span class="p">,</span> <span class="s2">"bun"</span><span class="p">,</span> <span class="s2">"curly"</span><span class="p">)</span>
+<span class="n">DFLT_HAIR_STYLE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"peak"</span>
+<span class="c1">#: Hair lengths: ``short`` (nothing below the crown — the default), ``medium``</span>
+<span class="c1">#: (falling beside the face to the jaw) and ``long`` (past the chin, in locks</span>
+<span class="c1">#: that keep clear of the neck and the collar).</span>
+<span class="n">HAIR_LENGTHS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"short"</span><span class="p">,</span> <span class="s2">"medium"</span><span class="p">,</span> <span class="s2">"long"</span><span class="p">)</span>
+<span class="n">DFLT_HAIR_LENGTH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"short"</span>
+
+<span class="c1">#: The volume a style draws BEHIND the head (only what clears the skull shows):</span>
+<span class="c1">#: ``{style: {view: [(cx, cy, r), ...]}}``, in the head's 80x80 drawing. The</span>
+<span class="c1">#: back view mirrors the front; a profile (facing right) carries it to the back.</span>
+<span class="n">_HAIR_VOLUME</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"bun"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"front"</span><span class="p">:</span> <span class="p">((</span><span class="mi">40</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">8</span><span class="p">),),</span>
+        <span class="s2">"back"</span><span class="p">:</span> <span class="p">((</span><span class="mi">40</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">8</span><span class="p">),),</span>
+        <span class="s2">"side"</span><span class="p">:</span> <span class="p">((</span><span class="mi">24</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">),),</span>
+        <span class="s2">"three_quarter"</span><span class="p">:</span> <span class="p">((</span><span class="mi">30</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">),),</span>
+    <span class="p">},</span>
+    <span class="s2">"curly"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"front"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">27</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">53</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">62</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">66</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="s2">"back"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">27</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">53</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">62</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">66</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="s2">"side"</span><span class="p">:</span> <span class="p">((</span><span class="mi">13</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">35</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">7</span><span class="p">)),</span>
+        <span class="s2">"three_quarter"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">38</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">37</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+<span class="c1">#: Hair below the crown, ``{length: {view: (path, where)}}``: ``behind`` the</span>
+<span class="c1">#: head (the front, where it shows beside the face) or ``over`` it (the back of</span>
+<span class="c1">#: the skull, seen from behind or turned away). Locks stop at the head's</span>
+<span class="c1">#: drawing edge and keep off the middle below the chin, where the collar is.</span>
+<span class="n">_HAIR_FALL</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"medium"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"front"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"M 9 44 C 8 20 20 13 40 13 C 60 13 72 20 71 44 L 71 62 Q 67 66 62 61 "</span>
+            <span class="s2">"L 18 61 Q 13 66 9 62 Z"</span><span class="p">,</span>
+            <span class="s2">"behind"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">"back"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"M 12 42 Q 12 14 40 14 Q 68 14 68 42 L 70 64 Q 40 70 10 64 Z"</span><span class="p">,</span> <span class="s2">"over"</span><span class="p">),</span>
+        <span class="s2">"side"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"M 13 44 Q 10 56 14 64 Q 22 68 30 62 Q 30 54 32 48 Z"</span><span class="p">,</span> <span class="s2">"over"</span><span class="p">),</span>
+        <span class="s2">"three_quarter"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"M 12 38 Q 8 52 11 63 Q 17 67 22 61 Q 18 50 20 38 Z"</span><span class="p">,</span> <span class="s2">"over"</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">"long"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"front"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"M 8 44 C 7 20 20 13 40 13 C 60 13 73 20 72 44 L 75 76 Q 70 80 64 76 "</span>
+            <span class="s2">"L 60 62 L 20 62 L 16 76 Q 10 80 5 76 Z"</span><span class="p">,</span>
+            <span class="s2">"behind"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">"back"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"M 12 42 Q 12 14 40 14 Q 68 14 68 42 L 73 76 Q 40 80 7 76 Z"</span><span class="p">,</span> <span class="s2">"over"</span><span class="p">),</span>
+        <span class="s2">"side"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"M 13 44 Q 9 62 12 78 L 28 78 Q 26 62 32 48 Z"</span><span class="p">,</span> <span class="s2">"over"</span><span class="p">),</span>
+        <span class="s2">"three_quarter"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"M 12 38 Q 7 58 9 78 L 22 78 Q 18 58 20 38 Z"</span><span class="p">,</span> <span class="s2">"over"</span><span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_hair</span><span class="p">(</span><span class="n">hair_style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hair_length</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">hair_style</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HAIR_STYLES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown hair style </span><span class="si">{</span><span class="n">hair_style</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HAIR_STYLES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">hair_length</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HAIR_LENGTHS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown hair length </span><span class="si">{</span><span class="n">hair_length</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HAIR_LENGTHS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">hair_style</span> <span class="o">==</span> <span class="s2">"bald"</span> <span class="ow">and</span> <span class="n">hair_length</span> <span class="o">!=</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"a bald head has no hair to grow </span><span class="si">{</span><span class="n">hair_length</span><span class="si">}</span><span class="s2">: pass hair_length="</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DFLT_HAIR_LENGTH</span><span class="si">!r}</span><span class="s2"> with hair_style='bald', or another style"</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hair_layers</span><span class="p">(</span>
+    <span class="n">view</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hair</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hair_style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hair_length</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(behind, over)``: the hair a style and a length add to ``view``'s head,</span>
+<span class="sd">    drawn behind the skull and over it (after the crown hair). Both empty for</span>
+<span class="sd">    the defaults, which is what keeps a default head byte-identical."""</span>
+    <span class="n">behind</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">over</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fall</span> <span class="o">=</span> <span class="n">_HAIR_FALL</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hair_length</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">where</span> <span class="o">=</span> <span class="n">fall</span>
+        <span class="p">(</span><span class="n">behind</span> <span class="k">if</span> <span class="n">where</span> <span class="o">==</span> <span class="s2">"behind"</span> <span class="k">else</span> <span class="n">over</span><span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;path d="</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">hair</span><span class="si">}</span><span class="s1">"/&gt;'</span><span class="p">)</span>
+    <span class="n">discs</span> <span class="o">=</span> <span class="n">_HAIR_VOLUME</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hair_style</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="p">())</span>
+    <span class="k">if</span> <span class="n">discs</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_disc_d</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">discs</span><span class="p">)</span>
+        <span class="n">behind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;path d="</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">hair</span><span class="si">}</span><span class="s1">"/&gt;'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">behind</span><span class="p">),</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">over</span><span class="p">)</span>
+
 
 <span class="c1">#: The largest head scale accepted — past it the head no longer fits the</span>
 <span class="c1">#: 1024-unit view box above a regular body.</span>
@@ -1023,7 +1207,15 @@ window.runMermaid = runMermaid;</script>
     <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_looks</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">palette</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Looks</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_looks</span><span class="p">(</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">palette</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">hat_seat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hair_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_STYLE</span><span class="p">,</span>
+    <span class="n">hair_length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Looks</span><span class="p">:</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">_stable_hash</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">ink</span> <span class="o">=</span> <span class="n">OUTLINE_COLOUR</span>
     <span class="c1"># The head keeps its own two tables (see `_fallback_face_svg`); the body</span>
@@ -1049,7 +1241,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">hand</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skin"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_HAND_COLOUR</span><span class="p">,</span> <span class="p">{</span><span class="n">clothing</span><span class="p">,</span> <span class="n">ink</span><span class="p">})</span>
     <span class="k">return</span> <span class="n">_Looks</span><span class="p">(</span>
         <span class="n">head_svg</span><span class="o">=</span><span class="n">_fallback_face_svg</span><span class="p">(</span>
-            <span class="n">seed</span><span class="p">,</span> <span class="n">skin</span><span class="o">=</span><span class="n">head_skin</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">head_hair</span><span class="p">,</span> <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span> <span class="n">accessory</span><span class="o">=</span><span class="n">head_acc</span>
+            <span class="n">seed</span><span class="p">,</span>
+            <span class="n">skin</span><span class="o">=</span><span class="n">head_skin</span><span class="p">,</span>
+            <span class="n">hair</span><span class="o">=</span><span class="n">head_hair</span><span class="p">,</span>
+            <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span>
+            <span class="n">accessory</span><span class="o">=</span><span class="n">head_acc</span><span class="p">,</span>
+            <span class="n">hat_seat</span><span class="o">=</span><span class="n">hat_seat</span><span class="p">,</span>
+            <span class="n">hair_style</span><span class="o">=</span><span class="n">hair_style</span><span class="p">,</span>
+            <span class="n">hair_length</span><span class="o">=</span><span class="n">hair_length</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">head_roles</span><span class="o">=</span><span class="n">head_roles</span><span class="p">,</span>
         <span class="n">clothing</span><span class="o">=</span><span class="n">clothing</span><span class="p">,</span>
@@ -1110,6 +1309,47 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="stage_extent">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.stage_extent">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stage_extent</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">CharacterDescriptor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""How far a character's art reaches above and below its stage point, in</span>
+<span class="sd">    scene pixels at ``stage.scale: 1``: ``{"top", "feet", "height"}``.</span>
+
+<span class="sd">    The stage point (``stage.at``) is not the feet: the compiler places a rig</span>
+<span class="sd">    by the middle of its bones' extent, between the neck and the feet, so</span>
+<span class="sd">    where the feet land depends on the build and the head scale (a squat</span>
+<span class="sd">    figure's feet sit about half as far below the point as a tall one's).</span>
+<span class="sd">    Read from the compiler's own placement rule and the head's art, so this is</span>
+<span class="sd">    what the compiled scene does, not a second guess at it. Multiply by</span>
+<span class="sd">    ``stage.scale``. The head reaches its drawing's top edge (a hat stays</span>
+<span class="sd">    inside it).</span>
+
+<span class="sd">    &gt;&gt;&gt; e = stage_extent(CharacterDescriptor(name="c"))</span>
+<span class="sd">    &gt;&gt;&gt; round(e["top"]), round(e["feet"])</span>
+<span class="sd">    (169, 94)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">SCENE_PX_PER_VIEW_BOX</span><span class="p">,</span>
+        <span class="n">_bone_positions</span><span class="p">,</span>
+        <span class="n">_rig_origin</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">bones</span> <span class="o">=</span> <span class="n">_bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">origin_y</span> <span class="o">=</span> <span class="n">_rig_origin</span><span class="p">(</span><span class="n">bones</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">SCENE_PX_PER_VIEW_BOX</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">view_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">head_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"head_scale"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="s2">"head"</span><span class="p">]</span>
+    <span class="n">anchor_y</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="n">bones</span><span class="p">[</span><span class="s2">"head"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">anchor_y</span> <span class="o">*</span> <span class="n">REFERENCE_HEAD_HEIGHT</span> <span class="o">*</span> <span class="n">head_scale</span>
+    <span class="n">feet</span> <span class="o">=</span> <span class="n">bones</span><span class="p">[</span><span class="s2">"root"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"top"</span><span class="p">:</span> <span class="nb">round</span><span class="p">((</span><span class="n">origin_y</span> <span class="o">-</span> <span class="n">top</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s2">"feet"</span><span class="p">:</span> <span class="nb">round</span><span class="p">((</span><span class="n">feet</span> <span class="o">-</span> <span class="n">origin_y</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s2">"height"</span><span class="p">:</span> <span class="nb">round</span><span class="p">((</span><span class="n">feet</span> <span class="o">-</span> <span class="n">top</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_style_is_usable</span><span class="p">(</span><span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">acknowledge_attribution</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Refuse a style whose licence puts a duty on the user, unless acknowledged.</span>
 
@@ -1156,6 +1396,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAT</span><span class="p">,</span>
     <span class="n">sash</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">views</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">hair_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_STYLE</span><span class="p">,</span>
+    <span class="n">hair_length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build a complete character on disk.</span>
 
@@ -1171,7 +1413,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">      short legs), ``tall``, ``stick`` (small blocky body, stick limbs).</span>
 <span class="sd">    - ``head_scale`` — the head and its whole face (eyes, brows, mouths, their</span>
 <span class="sd">      offsets, the pupil travel) scaled together, so a big head keeps its face.</span>
-<span class="sd">    - ``hat`` — a key of :data:`HATS` (offline head only), in ``accessory``.</span>
+<span class="sd">    - ``hat`` — a key of :data:`HATS` (offline head only), in ``accessory``,</span>
+<span class="sd">      worn above the brows' acting range at this head scale (an#252): lifted,</span>
+<span class="sd">      and flattened toward its crown when lifting is not enough. A hat that</span>
+<span class="sd">      still covers the brows (a very small head) is recorded in the</span>
+<span class="sd">      descriptor's ``occluded``, so the character does not afford</span>
+<span class="sd">      ``face.brows`` and expressions fall to the lids, gaze and mouth.</span>
+<span class="sd">    - ``hair_style`` — :data:`HAIR_STYLES`: ``peak`` (the default), ``bald``,</span>
+<span class="sd">      ``bun``, ``curly``; ``hair_length`` — :data:`HAIR_LENGTHS`: ``short``</span>
+<span class="sd">      (the default), ``medium``, ``long`` (offline head only). Drawn in the</span>
+<span class="sd">      ``hair`` role (the palette's ``hair`` colours them), in every view.</span>
 <span class="sd">    - ``sash`` — a diagonal band across the torso, in ``accessory``.</span>
 <span class="sd">    - ``views`` (an#197) — draw the turnaround: ``back``, ``side`` (a profile</span>
 <span class="sd">      facing the viewer's right) and ``three_quarter`` beside the front, as a</span>
@@ -1221,10 +1472,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">hat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HATS</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown hat </span><span class="si">{</span><span class="n">hat</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HATS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">hat</span> <span class="o">!=</span> <span class="n">DFLT_HAT</span> <span class="ow">and</span> <span class="n">use_dicebear</span><span class="p">:</span>
+    <span class="n">_check_hair</span><span class="p">(</span><span class="n">hair_style</span><span class="p">,</span> <span class="n">hair_length</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_dicebear</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="n">hat</span> <span class="o">!=</span> <span class="n">DFLT_HAT</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="n">hair_style</span><span class="p">,</span> <span class="n">hair_length</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">DFLT_HAIR_STYLE</span><span class="p">,</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">)</span>
+    <span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"hats are drawn for the offline head (its geometry is known); a DiceBear "</span>
-            <span class="s2">"avatar's is not. Pass use_dicebear=False (`--offline`)."</span>
+            <span class="s2">"hats and hair are drawn for the offline head (its geometry is known); "</span>
+            <span class="s2">"a DiceBear avatar's is not. Pass use_dicebear=False (`--offline`)."</span>
         <span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
     <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -1239,7 +1494,15 @@ window.runMermaid = runMermaid;</script>
 
     <span class="c1"># Step 1 &amp; 2: source art</span>
     <span class="n">seed_used</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">or</span> <span class="n">name</span>
-    <span class="n">looks</span> <span class="o">=</span> <span class="n">_resolve_looks</span><span class="p">(</span><span class="n">seed_used</span><span class="p">,</span> <span class="n">palette_</span><span class="p">,</span> <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">)</span>
+    <span class="n">seat</span> <span class="o">=</span> <span class="n">_hat_seat</span><span class="p">(</span><span class="n">hat</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">head_scale</span><span class="p">))</span>
+    <span class="n">looks</span> <span class="o">=</span> <span class="n">_resolve_looks</span><span class="p">(</span>
+        <span class="n">seed_used</span><span class="p">,</span>
+        <span class="n">palette_</span><span class="p">,</span>
+        <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span>
+        <span class="n">hat_seat</span><span class="o">=</span><span class="n">seat</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
+        <span class="n">hair_style</span><span class="o">=</span><span class="n">hair_style</span><span class="p">,</span>
+        <span class="n">hair_length</span><span class="o">=</span><span class="n">hair_length</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"art_provenance"</span><span class="p">:</span> <span class="s2">"fallback_geometric"</span><span class="p">}</span>
     <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">use_dicebear</span><span class="p">:</span>
@@ -1343,6 +1606,13 @@ window.runMermaid = runMermaid;</script>
             <span class="k">else</span> <span class="p">{</span><span class="s2">"bones"</span><span class="p">:</span> <span class="n">_bones_for</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">head_scale</span><span class="o">=</span><span class="n">head_scale</span><span class="p">)}</span>
         <span class="p">),</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">seat</span><span class="o">.</span><span class="n">covers</span> <span class="ow">and</span> <span class="n">head_is_ours</span><span class="p">:</span>
+        <span class="c1"># Measured, not guessed: even worn as high and as flat as it goes, the</span>
+        <span class="c1"># hat overlaps the brows' acting range — said where the capability</span>
+        <span class="c1"># analyser reads it (`face.brows`), never left to a render to show.</span>
+        <span class="n">descriptor</span><span class="o">.</span><span class="n">occluded</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">BROWS_FEATURE</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">hat</span><span class="si">}</span><span class="s2"> hat at head_scale </span><span class="si">{</span><span class="n">head_scale</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">}</span>
     <span class="n">declare_mouth_variants</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">variants</span><span class="p">)</span>
     <span class="n">descriptor</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed_used</span>
     <span class="c1"># The knobs, recorded only when set — so a default character's descriptor</span>
@@ -1350,6 +1620,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="p">(</span>
         <span class="p">(</span><span class="s2">"build"</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">DFLT_BUILD</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">"hat"</span><span class="p">,</span> <span class="n">hat</span><span class="p">,</span> <span class="n">DFLT_HAT</span><span class="p">),</span>
+        <span class="c1"># Where the hat was worn, as drawn: a redraw reads this, never a</span>
+        <span class="c1"># recomputation that a later preset or pose could move (review-278 M2).</span>
+        <span class="p">(</span><span class="s2">"hat_seat"</span><span class="p">,</span> <span class="n">seat</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"hair_style"</span><span class="p">,</span> <span class="n">hair_style</span><span class="p">,</span> <span class="n">DFLT_HAIR_STYLE</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"hair_length"</span><span class="p">,</span> <span class="n">hair_length</span><span class="p">,</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">"sash"</span><span class="p">,</span> <span class="n">sash</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">"palette"</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">palette_</span><span class="p">),</span> <span class="p">{}),</span>
     <span class="p">):</span>
@@ -1637,6 +1912,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">hair</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span><span class="p">,</span>
     <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hat_seat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hair_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_STYLE</span><span class="p">,</span>
+    <span class="n">hair_length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Tiny fallback face SVG used when DiceBear is unavailable.</span>
 
@@ -1645,22 +1923,40 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    brows / mouth baked in — those are added by the overlay slots so</span>
 <span class="sd">    they can blink and lip-sync. Phase 11d fix for the "four eyes" bug.</span>
 
-<span class="sd">    ``hat`` (a key of :data:`HATS`) is drawn over the hair in ``accessory``.</span>
+<span class="sd">    ``hat`` (a key of :data:`HATS`) is drawn over the hair in ``accessory``,</span>
+<span class="sd">    worn at ``hat_seat`` (:func:`_hat_seat`); ``hair_style`` and</span>
+<span class="sd">    ``hair_length`` (:data:`HAIR_STYLES`, :data:`HAIR_LENGTHS`) shape the hair.</span>
+<span class="sd">    The defaults draw exactly the original head.</span>
 <span class="sd">    """</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">_stable_hash</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">skin</span> <span class="o">=</span> <span class="n">skin</span> <span class="ow">or</span> <span class="n">_SKIN_TONES</span><span class="p">[</span><span class="n">h</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_SKIN_TONES</span><span class="p">)]</span>
     <span class="n">hair</span> <span class="o">=</span> <span class="n">hair</span> <span class="ow">or</span> <span class="n">_HAIR_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_HAIR_TONES</span><span class="p">)]</span>
-    <span class="n">hat_svg</span> <span class="o">=</span> <span class="n">_HAT_SVG</span><span class="p">[</span><span class="n">hat</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">acc</span><span class="o">=</span><span class="n">accessory</span> <span class="ow">or</span> <span class="n">_ACCESSORY_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_ACCESSORY_TONES</span><span class="p">)],</span>
-        <span class="n">ink</span><span class="o">=</span><span class="n">OUTLINE_COLOUR</span><span class="p">,</span>
+    <span class="n">hat_svg</span> <span class="o">=</span> <span class="n">_hat_fragment</span><span class="p">(</span>
+        <span class="n">hat</span><span class="p">,</span>
+        <span class="s2">"front"</span><span class="p">,</span>
+        <span class="n">accessory</span><span class="o">=</span><span class="n">accessory</span> <span class="ow">or</span> <span class="n">_ACCESSORY_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_ACCESSORY_TONES</span><span class="p">)],</span>
+        <span class="n">seat</span><span class="o">=</span><span class="n">hat_seat</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">hat_line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">          </span><span class="si">{</span><span class="n">hat_svg</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">hat_svg</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">behind</span><span class="p">,</span> <span class="n">over</span> <span class="o">=</span> <span class="n">_hair_layers</span><span class="p">(</span>
+        <span class="s2">"front"</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">hair</span><span class="p">,</span> <span class="n">hair_style</span><span class="o">=</span><span class="n">hair_style</span><span class="p">,</span> <span class="n">hair_length</span><span class="o">=</span><span class="n">hair_length</span>
+    <span class="p">)</span>
+    <span class="n">behind_line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">          </span><span class="si">{</span><span class="n">behind</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">behind</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">crown_line</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">""</span>
+        <span class="k">if</span> <span class="n">hair_style</span> <span class="o">==</span> <span class="s2">"bald"</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s1">'</span><span class="se">\n</span><span class="s1">          &lt;path d="</span><span class="si">{</span><span class="n">_CROWN_HAIR_D</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">hair</span><span class="si">}</span><span class="s1">"/&gt;'</span>
+    <span class="p">)</span>
+    <span class="n">over_line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">          </span><span class="si">{</span><span class="n">over</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">over</span> <span class="k">else</span> <span class="s2">""</span>
     <span class="k">return</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"""&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"&gt;</span>
-<span class="s2">          &lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{</span><span class="n">skin</span><span class="si">}</span><span class="s2">"/&gt;</span>
-<span class="s2">          &lt;path d="M 12 36 Q 40 4 68 36 L 60 24 L 40 14 L 20 24 Z" fill="</span><span class="si">{</span><span class="n">hair</span><span class="si">}</span><span class="s2">"/&gt;</span><span class="si">{</span><span class="n">hat_line</span><span class="si">}</span>
+        <span class="sa">f</span><span class="s2">"""&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"&gt;</span><span class="si">{</span><span class="n">behind_line</span><span class="si">}</span>
+<span class="s2">          &lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{</span><span class="n">skin</span><span class="si">}</span><span class="s2">"/&gt;</span><span class="si">{</span><span class="n">crown_line</span><span class="si">}{</span><span class="n">over_line</span><span class="si">}{</span><span class="n">hat_line</span><span class="si">}</span>
 <span class="s2">        &lt;/svg&gt;"""</span>
     <span class="p">)</span>
+
+
+<span class="c1">#: The crown hair of the front head (every style but ``bald``): the hairline.</span>
+<span class="n">_CROWN_HAIR_D</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"M 12 36 Q 40 4 68 36 L 60 24 L 40 14 L 20 24 Z"</span>
 
 
 <span class="c1">#: The eye's geometry in its 64x32 canvas, shared by the four synthesizers so</span>
@@ -2129,13 +2425,15 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_brow</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_BROW_COLOUR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-    <span class="n">tilt</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">"l"</span> <span class="k">else</span> <span class="o">-</span><span class="mi">4</span>
+<span class="w">    </span><span class="sd">"""The brow: one stroke (:func:`~an.characters.brows.brow_path_d`), the</span>
+<span class="sd">    drawing :func:`~an.characters.brows.brow_range` measures."""</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">BROW_CANVAS</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
-        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 80 24" width="80" height="24"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">" width="</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="brow_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s1">"&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;path d="M 8 </span><span class="si">{</span><span class="mi">12</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tilt</span><span class="si">}</span><span class="s1"> Q 40 4 72 </span><span class="si">{</span><span class="mi">12</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tilt</span><span class="si">}</span><span class="s1">" '</span>
-        <span class="sa">f</span><span class="s1">'stroke="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" stroke-width="6" fill="none" stroke-linecap="round"/&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;path d="</span><span class="si">{</span><span class="n">brow_path_d</span><span class="p">(</span><span class="n">side</span><span class="p">)</span><span class="si">}</span><span class="s1">" '</span>
+        <span class="sa">f</span><span class="s1">'stroke="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" stroke-width="</span><span class="si">{</span><span class="n">BROW_STROKE</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" fill="none" stroke-linecap="round"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
@@ -2184,47 +2482,65 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: drawing — the SAME canvas as the front, so a turn swaps texture only and</span>
 <span class="c1">#: emits no per-key geometry (an#87; a key on another canvas would carry its</span>
 <span class="c1">#: own box since an#211, but one canvas keeps the document unchanged). ``{skin}``/``{hair}``/``{ink}``.</span>
-<span class="c1">#: The ear is outlined in ink: skin on skin would not show.</span>
-<span class="n">_VIEW_HEAD_SVG</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="c1">#: The ear is outlined in ink: skin on skin would not show. Each view is</span>
+<span class="c1">#: ``(under, crown hair, over)`` — the crown hair is what a ``bald`` head drops,</span>
+<span class="c1">#: and a hair style's volume goes before ``under``, a fall after the crown hair.</span>
+<span class="n">_VIEW_HEAD_PARTS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1"># From behind: the hair covers the head down to the nape; the ears show.</span>
     <span class="s2">"back"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s1">'&lt;ellipse cx="12.5" cy="46" rx="3.5" ry="6" fill="</span><span class="si">{skin}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1"/&gt;'</span>
         <span class="s1">'&lt;ellipse cx="67.5" cy="46" rx="3.5" ry="6" fill="</span><span class="si">{skin}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1"/&gt;'</span>
-        <span class="s1">'&lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span>
-        <span class="s1">'&lt;path d="M 12 42 Q 12 14 40 14 Q 68 14 68 42 Q 68 58 58 64 Q 40 60 22 64 Q 12 58 12 42 Z" fill="</span><span class="si">{hair}</span><span class="s1">"/&gt;'</span>
+        <span class="s1">'&lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span><span class="p">,</span>
+        <span class="s1">'&lt;path d="M 12 42 Q 12 14 40 14 Q 68 14 68 42 Q 68 58 58 64 Q 40 60 22 64 Q 12 58 12 42 Z" fill="</span><span class="si">{hair}</span><span class="s1">"/&gt;'</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="c1"># A profile facing right: the nose past the edge, the ear mid-head, the</span>
     <span class="c1"># hair over the crown and down the back of the skull.</span>
     <span class="s2">"side"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s1">'&lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span>
-        <span class="s1">'&lt;path d="M 66 38 Q 75 44 66.5 49 Z" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span>
-        <span class="s1">'&lt;path d="M 13 50 Q 9 18 40 15 Q 62 14 68 34 L 58 25 Q 46 21 38 27 Q 31 36 32 52 Q 22 60 13 50 Z" fill="</span><span class="si">{hair}</span><span class="s1">"/&gt;'</span>
-        <span class="s1">'&lt;ellipse cx="36" cy="47" rx="4" ry="6" fill="</span><span class="si">{skin}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1"/&gt;'</span>
+        <span class="s1">'&lt;path d="M 66 38 Q 75 44 66.5 49 Z" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span><span class="p">,</span>
+        <span class="s1">'&lt;path d="M 13 50 Q 9 18 40 15 Q 62 14 68 34 L 58 25 Q 46 21 38 27 Q 31 36 32 52 Q 22 60 13 50 Z" fill="</span><span class="si">{hair}</span><span class="s1">"/&gt;'</span><span class="p">,</span>
+        <span class="s1">'&lt;ellipse cx="36" cy="47" rx="4" ry="6" fill="</span><span class="si">{skin}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1"/&gt;'</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="c1"># Turned partway right: the part of the hair and one ear swing left.</span>
     <span class="s2">"three_quarter"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s1">'&lt;ellipse cx="13" cy="46" rx="3.5" ry="6" fill="</span><span class="si">{skin}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1"/&gt;'</span>
-        <span class="s1">'&lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span>
-        <span class="s1">'&lt;path d="M 12 40 Q 22 6 56 16 Q 66 22 68 34 L 58 24 L 42 17 L 24 26 Q 16 32 15 44 Z" fill="</span><span class="si">{hair}</span><span class="s1">"/&gt;'</span>
+        <span class="s1">'&lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{skin}</span><span class="s1">"/&gt;'</span><span class="p">,</span>
+        <span class="s1">'&lt;path d="M 12 40 Q 22 6 56 16 Q 66 22 68 34 L 58 24 L 42 17 L 24 26 Q 16 32 15 44 Z" fill="</span><span class="si">{hair}</span><span class="s1">"/&gt;'</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_view_head_svg</span><span class="p">(</span><span class="n">view</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">skin</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hair</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_view_head_svg</span><span class="p">(</span>
+    <span class="n">view</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">skin</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">hair</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">hat_seat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hair_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_STYLE</span><span class="p">,</span>
+    <span class="n">hair_length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The offline head of ``view`` (not ``front``, which is</span>
-<span class="sd">    :func:`_fallback_face_svg`), with its hat seen from that side."""</span>
-    <span class="n">hat_svg</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">_HAT_VIEW_SVG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hat</span><span class="p">,</span> <span class="n">_HAT_SVG</span><span class="p">[</span><span class="n">hat</span><span class="p">])</span>
-        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">acc</span><span class="o">=</span><span class="n">accessory</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">OUTLINE_COLOUR</span><span class="p">)</span>
-    <span class="p">)</span>
+<span class="sd">    :func:`_fallback_face_svg`), with its hat seen from that side, worn at</span>
+<span class="sd">    ``hat_seat``, and the hair's style and length seen from that side."""</span>
+    <span class="n">hat_svg</span> <span class="o">=</span> <span class="n">_hat_fragment</span><span class="p">(</span><span class="n">hat</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">accessory</span><span class="o">=</span><span class="n">accessory</span><span class="p">,</span> <span class="n">seat</span><span class="o">=</span><span class="n">hat_seat</span><span class="p">)</span>
     <span class="c1"># The ear's outline is the drawing's ink — unless the skin or hair IS that</span>
     <span class="c1"># literal, when a pack recolouring the role would repaint the outline too.</span>
     <span class="n">ink</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">OUTLINE_COLOUR</span><span class="p">,</span> <span class="p">{</span><span class="n">skin</span><span class="p">,</span> <span class="n">hair</span><span class="p">})</span>
-    <span class="n">body</span> <span class="o">=</span> <span class="n">_VIEW_HEAD_SVG</span><span class="p">[</span><span class="n">view</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">skin</span><span class="o">=</span><span class="n">skin</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">hair</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">ink</span><span class="p">)</span>
+    <span class="n">under</span><span class="p">,</span> <span class="n">crown</span><span class="p">,</span> <span class="n">over</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">part</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">skin</span><span class="o">=</span><span class="n">skin</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">hair</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">ink</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">_VIEW_HEAD_PARTS</span><span class="p">[</span><span class="n">view</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">behind</span><span class="p">,</span> <span class="n">fall</span> <span class="o">=</span> <span class="n">_hair_layers</span><span class="p">(</span>
+        <span class="n">view</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">hair</span><span class="p">,</span> <span class="n">hair_style</span><span class="o">=</span><span class="n">hair_style</span><span class="p">,</span> <span class="n">hair_length</span><span class="o">=</span><span class="n">hair_length</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">hair_style</span> <span class="o">==</span> <span class="s2">"bald"</span><span class="p">:</span>
+        <span class="n">crown</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="s1">'&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"&gt;'</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">body</span><span class="si">}{</span><span class="n">hat_svg</span><span class="si">}</span><span class="s2">&lt;/svg&gt;"</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">behind</span><span class="si">}{</span><span class="n">under</span><span class="si">}{</span><span class="n">crown</span><span class="si">}{</span><span class="n">fall</span><span class="si">}{</span><span class="n">over</span><span class="si">}{</span><span class="n">hat_svg</span><span class="si">}</span><span class="s2">&lt;/svg&gt;"</span>
     <span class="p">)</span>
 
 
@@ -2330,9 +2646,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: widths off the centre line — and splayed so the FEET part: the shoe centres</span>
 <span class="c1">#: land ``SIDE_FOOT_SPREAD`` leg widths apart, on every build (a stubby leg</span>
 <span class="c1">#: splays more). Both legs show, even as one silhouette, and a walk in profile</span>
-<span class="c1">#: has two legs to alternate (an#203).</span>
+<span class="c1">#: has two legs to alternate (an#203). A stick leg is thinner than its shoe,</span>
+<span class="c1">#: so leg widths alone would leave the two shoes on top of each other — a</span>
+<span class="c1">#: one-legged stand; the shoes part by at least ``SIDE_FOOT_MIN_SHOES`` shoe</span>
+<span class="c1">#: lengths (a floor every other build already clears, so they are unchanged).</span>
 <span class="n">SIDE_LEG_OFFSET</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>
 <span class="n">SIDE_FOOT_SPREAD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.8</span>
+<span class="n">SIDE_FOOT_MIN_SHOES</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
 <span class="c1">#: Three-quarter (facing right): the whole face slides toward the facing side,</span>
 <span class="c1">#: the far eye narrows, the far arm tucks in toward the body and the legs in.</span>
 <span class="n">THREE_QUARTER_FACE_SHIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
@@ -2346,7 +2666,7 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""The far (``leg_l``) and near (``leg_r``) leg of a right-facing profile:</span>
 <span class="sd">    hips :data:`SIDE_LEG_OFFSET` leg widths either side of the centre line, and</span>
 <span class="sd">    each leg turned about its hip so the feet are :data:`SIDE_FOOT_SPREAD` leg</span>
-<span class="sd">    widths apart. The near leg reaches FORWARD (toward +x): a PixiJS rotation</span>
+<span class="sd">    widths apart (and at least :data:`SIDE_FOOT_MIN_SHOES` shoe lengths). The near leg reaches FORWARD (toward +x): a PixiJS rotation</span>
 <span class="sd">    is clockwise, which swings a hanging foot toward -x, so its angle is</span>
 <span class="sd">    negative.</span>
 
@@ -2357,7 +2677,10 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlotPose</span>
 
     <span class="n">hip</span> <span class="o">=</span> <span class="n">SIDE_LEG_OFFSET</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_width</span>
-    <span class="n">reach</span> <span class="o">=</span> <span class="p">(</span><span class="n">SIDE_FOOT_SPREAD</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_width</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">hip</span><span class="p">)</span> <span class="o">/</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_length</span>
+    <span class="n">spread</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="n">SIDE_FOOT_SPREAD</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_width</span><span class="p">,</span> <span class="n">SIDE_FOOT_MIN_SHOES</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">shoe_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="p">(</span><span class="n">spread</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">hip</span><span class="p">)</span> <span class="o">/</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_length</span>
     <span class="n">angle</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">reach</span><span class="p">)))</span>
     <span class="n">far</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">hip_x</span> <span class="o">-</span> <span class="n">hip</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span>
     <span class="n">near</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=-</span><span class="n">body</span><span class="o">.</span><span class="n">hip_x</span> <span class="o">+</span> <span class="n">hip</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=-</span><span class="n">angle</span><span class="p">)</span>
@@ -2430,7 +2753,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    descriptor path.</span>
 
 <span class="sd">    The views are REDRAWN from the recorded knobs (seed, palette, build, hat,</span>
-<span class="sd">    sash, head scale), so it refuses a rig whose head is not this factory's</span>
+<span class="sd">    hair style and length, sash, head scale), so it refuses a rig whose head is not this factory's</span>
 <span class="sd">    drawing for them — a DiceBear head (its face is baked, and there is no</span>
 <span class="sd">    back of it to draw), a promoted hand rig, or an edited head: its views are</span>
 <span class="sd">    an illustrator's to draw, declared the same way (a ``view`` set whose keys</span>
@@ -2463,18 +2786,35 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"character with `an character new --offline`."</span>
         <span class="p">)</span>
     <span class="n">hat</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hat"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_HAT</span><span class="p">)</span>
+    <span class="n">hair_style</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hair_style"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_HAIR_STYLE</span><span class="p">)</span>
+    <span class="n">hair_length</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hair_length"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_HAIR_LENGTH</span><span class="p">)</span>
+    <span class="n">_check_hair</span><span class="p">(</span><span class="n">hair_style</span><span class="p">,</span> <span class="n">hair_length</span><span class="p">)</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">_check_build</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"build"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_BUILD</span><span class="p">))</span>
     <span class="n">head_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"head_scale"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
-    <span class="n">looks</span> <span class="o">=</span> <span class="n">_resolve_looks</span><span class="p">(</span>
-        <span class="nb">str</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-        <span class="n">_check_palette</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"palette"</span><span class="p">)),</span>
-        <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span>
-    <span class="p">)</span>
     <span class="n">height</span> <span class="o">=</span> <span class="n">REFERENCE_HEAD_HEIGHT</span> <span class="o">*</span> <span class="n">head_scale</span>
     <span class="n">head_path</span> <span class="o">=</span> <span class="n">parts</span> <span class="o">/</span> <span class="s2">"head.svg"</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">head_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">head_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span>
-        <span class="n">_head_part_text</span><span class="p">(</span><span class="n">looks</span><span class="o">.</span><span class="n">head_svg</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
-    <span class="p">):</span>
+    <span class="n">head_text</span> <span class="o">=</span> <span class="n">head_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">if</span> <span class="n">head_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="c1"># The hat as this factory wears it now, else where it was drawn before</span>
+    <span class="c1"># hats were seated above the brows (an#252): a character made then keeps</span>
+    <span class="c1"># its hat where its front has it, in every view.</span>
+    <span class="n">looks</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># The seat recorded when the character was made; a character made before</span>
+    <span class="c1"># seats were recorded (an#252) is tried at the current seat and unseated.</span>
+    <span class="n">recorded</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hat_seat"</span><span class="p">)</span>
+    <span class="n">seats</span> <span class="o">=</span> <span class="p">(</span><span class="n">recorded</span><span class="p">,)</span> <span class="k">if</span> <span class="n">recorded</span> <span class="k">else</span> <span class="p">(</span><span class="n">_hat_seat</span><span class="p">(</span><span class="n">hat</span><span class="p">,</span> <span class="n">head_scale</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">hat_seat</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">seats</span><span class="p">):</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">_resolve_looks</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">_check_palette</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"palette"</span><span class="p">)),</span>
+            <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span>
+            <span class="n">hat_seat</span><span class="o">=</span><span class="n">hat_seat</span><span class="p">,</span>
+            <span class="n">hair_style</span><span class="o">=</span><span class="n">hair_style</span><span class="p">,</span>
+            <span class="n">hair_length</span><span class="o">=</span><span class="n">hair_length</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">head_text</span> <span class="o">==</span> <span class="n">_head_part_text</span><span class="p">(</span><span class="n">candidate</span><span class="o">.</span><span class="n">head_svg</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">):</span>
+            <span class="n">looks</span> <span class="o">=</span> <span class="n">candidate</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="n">looks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">'s head art is not the factory's drawing for its recorded "</span>
             <span class="s2">"seed and knobs (edited by hand?), so views drawn from them would not "</span>
@@ -2500,7 +2840,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">(</span><span class="n">char_dir</span> <span class="o">/</span> <span class="n">head_rel</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
             <span class="n">_head_part_text</span><span class="p">(</span>
                 <span class="n">_view_head_svg</span><span class="p">(</span>
-                    <span class="n">view</span><span class="p">,</span> <span class="n">skin</span><span class="o">=</span><span class="n">head_skin</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">head_hair</span><span class="p">,</span> <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span> <span class="n">accessory</span><span class="o">=</span><span class="n">head_acc</span>
+                    <span class="n">view</span><span class="p">,</span>
+                    <span class="n">skin</span><span class="o">=</span><span class="n">head_skin</span><span class="p">,</span>
+                    <span class="n">hair</span><span class="o">=</span><span class="n">head_hair</span><span class="p">,</span>
+                    <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span>
+                    <span class="n">accessory</span><span class="o">=</span><span class="n">head_acc</span><span class="p">,</span>
+                    <span class="n">hat_seat</span><span class="o">=</span><span class="n">hat_seat</span><span class="p">,</span>
+                    <span class="n">hair_style</span><span class="o">=</span><span class="n">hair_style</span><span class="p">,</span>
+                    <span class="n">hair_length</span><span class="o">=</span><span class="n">hair_length</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
             <span class="p">),</span>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8693cb0d"></script>
+    <script src="../../../_static/documentation_options.js?v=22eb4f14"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.142" />
+  <meta name="docsearch:version" content="0.1.143" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -722,6 +722,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">locomotion     ``loco.rock`` (``rock``)                        nothing                last link</span>
 <span class="sd">speech         ``speech.mouth_chart`` (``mouth_chart``)        ``face.mouth``         1st</span>
 <span class="sd">speech         ``speech.pose_only`` (``pulse``)                nothing                last link</span>
+<span class="sd">expression     ``expr.full_face`` (``full_face``)              ``face.brows``         1st</span>
+<span class="sd">expression     ``expr.without_brows`` (``without_brows``)      nothing                last link</span>
 <span class="sd">=============  ==============================================  =====================  ==========</span>
 
 <span class="sd">**Locomotion is today's walk/gait chain, moved, not changed** (ADR 0002</span>
@@ -737,6 +739,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">into its art (``face_overlay: false``) used to speak with a frozen mouth; it now</span>
 <span class="sd">pulses its head on each syllable (:func:`an.motion.speech_pulse`, parametrised:</span>
 <span class="sd">``strength``, ``part``, ``attack``, ``release``; ``strength: 0`` is a mime).</span>
+
+<span class="sd">**Expression names what reads when the brows cannot** (an#252). A hat the</span>
+<span class="sd">factory could not seat above the brows (recorded in ``occluded``), or brow</span>
+<span class="sd">slots without art, leave ``face.brows`` unafforded: the face then acts with</span>
+<span class="sd">the lids, the gaze and the mouth form (``expr.without_brows``), recorded. Both</span>
+<span class="sd">methods compile to the same face channels — the solver drives whatever the</span>
+<span class="sd">rig binds — so the aspect is not consulted by the compiler; ``an validate``</span>
+<span class="sd">reports the fall (:func:`check_brow_acting`) and ``an character</span>
+<span class="sd">capabilities`` shows it with the remedy.</span>
 
 <span class="sd">The asset profile the compiler resolves against is the character analyser's</span>
 <span class="sd">(``an.capabilities.affordances``), fed what the compiler actually has: the</span>
@@ -760,8 +771,10 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CUTOUT_ASPECTS"</span><span class="p">,</span>
     <span class="s2">"CUTOUT_METHODS"</span><span class="p">,</span>
+    <span class="s2">"EXPRESSION"</span><span class="p">,</span>
     <span class="s2">"LOCOMOTION"</span><span class="p">,</span>
     <span class="s2">"SPEECH"</span><span class="p">,</span>
+    <span class="s2">"check_brow_acting"</span><span class="p">,</span>
     <span class="s2">"check_declared_speech"</span><span class="p">,</span>
     <span class="s2">"compile_profile"</span><span class="p">,</span>
     <span class="s2">"speech_problems"</span><span class="p">,</span>
@@ -776,6 +789,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The aspect names (persisted in substitution records).</span>
 <span class="n">LOCOMOTION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"locomotion"</span>
 <span class="n">SPEECH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"speech"</span>
+<span class="n">EXPRESSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"expression"</span>
 
 <span class="c1">#: The entity kind whose assets have an analyser, and so resolve on the registry.</span>
 <span class="n">CHARACTER_KIND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"character"</span>
@@ -922,6 +936,40 @@ window.runMermaid = runMermaid;</script>
     <span class="n">expand</span><span class="o">=</span><span class="n">_pulse_expand</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="n">EXPR_FULL_FACE</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span>
+    <span class="s2">"expr.full_face"</span><span class="p">,</span>
+    <span class="n">aspect</span><span class="o">=</span><span class="n">EXPRESSION</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"full_face"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"full-face expression"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"the expression acts with the whole face: the brows rise, knit and "</span>
+        <span class="s2">"tilt, the lids open and close, the pupils move and the mouth takes "</span>
+        <span class="s2">"the preset's form"</span>
+    <span class="p">),</span>
+    <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="s2">"face.brows"</span><span class="p">,),</span>
+    <span class="n">remedies</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"face.brows"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"keep the brows clear: `an character new` seats a hat above them at "</span>
+            <span class="s2">"most head scales — at this one it could not, so use a larger "</span>
+            <span class="s2">"--head-scale, another --hat or --hat none; for drawn art, redraw "</span>
+            <span class="s2">"what covers the brows and remove the descriptor's `occluded` "</span>
+            <span class="s2">"entry, or give the face brow slots (left_brow/right_brow) with art"</span>
+        <span class="p">)</span>
+    <span class="p">},</span>
+    <span class="n">examples</span><span class="o">=</span><span class="p">({</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"expression"</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">:</span> <span class="s2">"ned"</span><span class="p">,</span> <span class="s2">"preset"</span><span class="p">:</span> <span class="s2">"surprised"</span><span class="p">},),</span>
+<span class="p">)</span>
+<span class="n">EXPR_WITHOUT_BROWS</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span>
+    <span class="s2">"expr.without_brows"</span><span class="p">,</span>
+    <span class="n">aspect</span><span class="o">=</span><span class="n">EXPRESSION</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"without_brows"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"expression without brows"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"the brows cannot be seen acting (covered, or not drawn): the lids, the "</span>
+        <span class="s2">"gaze and the mouth form carry the expression"</span>
+    <span class="p">),</span>
+    <span class="n">examples</span><span class="o">=</span><span class="p">(</span><span class="s2">"a character whose hat covers its brows takes [surprised]"</span><span class="p">,),</span>
+<span class="p">)</span>
+
 <span class="c1">#: The genre's methods, as vocabulary entries (kind ``method``).</span>
 <span class="n">CUTOUT_METHODS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Method</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LOCO_LEGGED</span><span class="p">,</span>
@@ -929,6 +977,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">LOCO_ROCK</span><span class="p">,</span>
     <span class="n">SPEECH_CHART</span><span class="p">,</span>
     <span class="n">SPEECH_PULSE</span><span class="p">,</span>
+    <span class="n">EXPR_FULL_FACE</span><span class="p">,</span>
+    <span class="n">EXPR_WITHOUT_BROWS</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="c1">#: The genre's aspects: each chain ends in a method that requires nothing.</span>
 <span class="n">CUTOUT_ASPECTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Aspect</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -947,6 +997,15 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># character that falls to it without declaring it is recorded, so</span>
         <span class="c1"># `--strict-assets` sees it (review-256 S1). Declare `speech: pulse`</span>
         <span class="c1"># to make it the request.</span>
+        <span class="n">records_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">Aspect</span><span class="p">(</span>
+        <span class="n">EXPRESSION</span><span class="p">,</span>
+        <span class="n">chain</span><span class="o">=</span><span class="p">(</span><span class="n">EXPR_FULL_FACE</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">EXPR_WITHOUT_BROWS</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"how a character's face shows an emotion."</span><span class="p">,</span>
+        <span class="n">applies_to</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="n">CHARACTER_KIND</span><span class="p">}),</span>
+        <span class="c1"># Brows that cannot act are a loss the author did not choose: said,</span>
+        <span class="c1"># every time (an#252).</span>
         <span class="n">records_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">)</span>
@@ -1102,6 +1161,103 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">speech_problems</span><span class="p">(</span><span class="n">declared</span><span class="p">):</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                 <span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_brow_moves</span><span class="p">(</span><span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">axes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether an expression (a preset, with axis overrides) moves a brow."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">BROW_AXES</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.presets</span><span class="w"> </span><span class="kn">import</span> <span class="n">preset_axes</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">moved</span> <span class="o">=</span> <span class="n">preset_axes</span><span class="p">(</span><span class="n">preset</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># an unknown preset or axis is `cutout.expression`'s error</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">moved</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">BROW_AXES</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">brow_acting_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why ``entity``'s brows cannot act (its expression falls to</span>
+<span class="sd">    ``expr.without_brows``), with the remedy — or ``None`` when they can, or when</span>
+<span class="sd">    the character has no brow slots at all (nothing it ever had is lost).</span>
+
+<span class="sd">    ``doc`` is the character's stored document; a procedural rig (no</span>
+<span class="sd">    descriptor) has no brows to lose.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.brows</span><span class="w"> </span><span class="kn">import</span> <span class="n">brow_slots</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"CharacterDescriptor"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
+        <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"CharacterDescriptor"</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">desc</span><span class="o">.</span><span class="n">face_overlay</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">brow_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># a face whose binding moves no brow has nothing to lose</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">resolve</span><span class="p">(</span>
+        <span class="n">EXPRESSION</span><span class="p">,</span> <span class="n">compile_profile</span><span class="p">(</span><span class="n">desc</span><span class="p">),</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">,</span> <span class="n">entity_kind</span><span class="o">=</span><span class="n">CHARACTER_KIND</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">substitution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.brows</span><span class="w"> </span><span class="kn">import</span> <span class="n">BROWS_FEATURE</span>
+
+    <span class="n">cover</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">occluded</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">BROWS_FEATURE</span><span class="p">)</span>
+    <span class="n">why</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cover</span><span class="si">}</span><span class="s2"> covers its brows"</span> <span class="k">if</span> <span class="n">cover</span> <span class="k">else</span> <span class="s2">"its brow slots have no art"</span>
+    <span class="n">remedy</span> <span class="o">=</span> <span class="n">EXPR_FULL_FACE</span><span class="o">.</span><span class="n">remedies</span><span class="p">[</span><span class="s2">"face.brows"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">, so the brows cannot be seen acting: the expression reads through "</span>
+        <span class="sa">f</span><span class="s2">"the lids, the gaze and the mouth only (</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">). To act with the "</span>
+        <span class="sa">f</span><span class="s2">"brows: </span><span class="si">{</span><span class="n">remedy</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="check_brow_acting">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.methods.html#an.characters.methods.check_brow_acting">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_brow_acting</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's semantic check: an expression that moves the brows of</span>
+<span class="sd">    a character whose brows cannot act is reported (a warning) — the expression</span>
+<span class="sd">    aspect's recorded fall to ``expr.without_brows`` (an#252)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
+
+    <span class="n">store</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">refs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">ref</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">CHARACTER_KIND</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">ref</span> <span class="ow">in</span> <span class="n">store</span>
+    <span class="p">}</span>
+    <span class="n">problems</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">problem</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">refs</span><span class="p">[</span><span class="n">entity</span><span class="p">]]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">problems</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span> <span class="o">=</span> <span class="n">brow_acting_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">problems</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span> <span class="ow">or</span> <span class="p">()):</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
+            <span class="n">leaf</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"expression"</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">entity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">refs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_brow_moves</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">preset</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">axes</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">:=</span> <span class="n">problem</span><span class="p">(</span><span class="n">entity</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span> <span class="ow">or</span> <span class="p">()):</span>
+        <span class="n">emotion</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">emotion</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">emotion</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">refs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_brow_moves</span><span class="p">(</span><span class="n">emotion</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">:=</span> <span class="n">problem</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/emotion"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span></div>
 
 

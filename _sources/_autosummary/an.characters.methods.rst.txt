@@ -16,6 +16,7 @@ an.characters.methods
 
    .. autosummary::
    
+      check_brow_acting
       check_declared_speech
       compile_profile
       speech_problems
