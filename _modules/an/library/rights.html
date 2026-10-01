@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
+    <script src="../../../_static/documentation_options.js?v=3680f671"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.147" />
+  <meta name="docsearch:version" content="0.1.148" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -928,7 +928,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">own</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">source</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="o">==</span> <span class="n">prefix</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">):</span>
         <span class="n">own</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"source"</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">covering</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">own</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gives_way_to_a_label</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))):</span>
+    <span class="k">if</span> <span class="n">covering</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="n">own</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gives_way_to_a_label</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span>
+    <span class="p">):</span>
         <span class="c1"># What the checked-out copy will hold (an.library.checkout): the</span>
         <span class="c1"># asset-level source written in as the descriptor's — in place of</span>
         <span class="c1"># nothing, or of a generator's own source that owes nothing (the</span>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=de9a55b3"></script>
+    <script src="../../../_static/documentation_options.js?v=3680f671"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.147" />
+  <meta name="docsearch:version" content="0.1.148" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -976,8 +976,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mall</span> <span class="o">=</span> <span class="n">mall</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">]</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">_project_lock</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">)</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">_unedited_copy</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-        <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">key</span>
+        <span class="ow">or</span> <span class="n">_unedited_copy</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
     <span class="p">)</span>
     <span class="n">entry_key</span> <span class="o">=</span> <span class="n">lock_key</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
@@ -1100,7 +1102,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_unedited_copy</span><span class="p">(</span>
-    <span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pinned</span><span class="p">:</span> <span class="n">LibraryRef</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pinned</span><span class="p">:</span> <span class="n">LibraryRef</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The key of a project entry that already IS ``version``, byte for byte, if any.</span>
 
