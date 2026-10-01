@@ -370,7 +370,7 @@ def render(
         _echo(caught, all_of_them=echo_warnings or not ok)
     findings = [*findings, *_warning_findings(caught, report_scene)]
     findings += _post_synthesis(project, report_scene, fps=fps_used)
-    _write_render_report(project.mall, output_name, findings)
+    _write_render_report(project.mall, output_name, findings, root=project.root)
     # Last, so it is the last word about the file (an#211): a render that used
     # all-rights-reserved, private-study material must not read as shippable.
     import warnings
@@ -592,22 +592,66 @@ def _render_film(
     return output_path, scene, findings, effective_fps
 
 
-def _write_render_report(mall, output_name: str, findings) -> None:
+def _write_render_report(mall, output_name: str, findings, *, root=None) -> None:
     """``render_reports/<output_name>.json``: what this render found, for
     ``orchestrate``, MCP and ``an render``'s summary to read (an#279, an#254).
     ``findings`` are ``(kind, Finding)`` pairs; each record is the ``Finding``'s
-    fields plus its ``kind``. Always written — an empty report replaces a stale
-    one — when the mall has the store."""
+    fields plus its ``kind``, every text field made portable
+    (:func:`portable_text`: no machine's absolute paths in a file a project
+    may share). Always written — an empty report replaces a stale one — when
+    the mall has the store."""
     import json
     from dataclasses import asdict
 
     store = mall.get("render_reports")
     if store is None:
         return
-    records = [{**asdict(f), "kind": kind} for kind, f in findings]
+    records = [
+        {
+            **{
+                k: portable_text(v, root=root) if isinstance(v, str) else v
+                for k, v in asdict(f).items()
+            },
+            "kind": kind,
+        }
+        for kind, f in findings
+    ]
     store[output_name] = json.dumps(
         {"findings": records}, indent=2, sort_keys=True
     ).encode("utf-8")
+
+
+def portable_text(text: str, *, root=None, home=None) -> str:
+    """``text`` with this machine's absolute paths taken out: a path under the
+    project ``root`` becomes project-relative, the root itself ``.``, and the
+    home directory ``~`` — so a render report (which a project may commit or
+    share, and an agent may pass on) names no user, host folder or temp dir.
+
+    >>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
+    ...               root="/u/me/p", home="/u/me")
+    'missing at assets/a.png; see ~/x.log'
+    >>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")
+    'rendered in .'
+    """
+    homes = [home] if home is not None else [str(Path.home())]
+    roots: list[str] = []
+    if root is not None:
+        roots.append(str(root))
+        if home is None:
+            try:
+                roots.append(str(Path(root).resolve()))
+            except OSError:
+                pass
+        # macOS spells its temp and var folders both ways (/private/var = /var).
+        roots += [r[len("/private") :] for r in list(roots) if r.startswith("/private/")]
+    for r in sorted({r.rstrip("/\\") for r in roots if r}, key=len, reverse=True):
+        for sep in ("/", "\\"):
+            text = text.replace(r + sep, "")
+        text = text.replace(r, ".")
+    for h in sorted({h.rstrip("/\\") for h in homes if h}, key=len, reverse=True):
+        if len(h) > 1:
+            text = text.replace(h, "~")
+    return text
 
 
 #: How ``an render``'s summary heads each ``kind`` of finding, in this order; a
@@ -736,11 +780,14 @@ def _post_synthesis(project: Project, scene, *, fps) -> list[tuple[str, object]]
     from an.verify._base import Finding
 
     try:
+        mall = project.mall
         found = post_synthesis_findings(
             scene,
             fps=fps,
-            available_voices=project.mall.get("voices"),
-            available_characters=project.mall.get("characters"),
+            available_voices=mall.get("voices"),
+            available_characters=mall.get("characters"),
+            available_props=mall.get("props"),
+            available_environments=mall.get("environments"),
         )
     except Exception as e:  # noqa: BLE001 — the film is made; say what is unknown
         return [

@@ -300,3 +300,86 @@ def test_the_summary_is_short(tmp_path):
     assert lines[1] == "  stand-ins, substitutions and compile notes (8):"
     assert lines[-1] == "    ... and 5 more" and len(lines) == 6
     assert not any("fyi" in l for l in lines)  # info is in the report, not the summary
+
+
+# -----------------------------------------------------------------------------
+# What the report may say: no machine's paths (an#254 review M2)
+# -----------------------------------------------------------------------------
+
+
+def test_the_report_names_no_absolute_path(tmp_path, fake_render, monkeypatch):
+    import an.render as render_mod
+    from an.adapters.cutout.render import CutoutRenderer
+    from an.build.shot_cache import ShotCacheWarning
+
+    real = CutoutRenderer.render  # the fake's
+
+    def render(self, shot, ctx):
+        root = load(tmp_path / "p").root
+        warnings.warn(
+            f"shot {shot.id!r}: art was not found at {root}/assets/characters/bob/x.png "
+            f"(log in {Path.home()}/an.log)",
+            ShotCacheWarning,
+        )
+        return real(self, shot, ctx)
+
+    monkeypatch.setattr(CutoutRenderer, "render", render)
+    root = _project(tmp_path, _hi_shot(duration=3.0, entities=[_BOB]), characters=("bob",))
+    render_mod.render_project(root, tts=_LongTTS(1.0), incremental=False, echo_warnings=False)
+    raw = load(root).mall["render_reports"]["main"].decode()
+    assert str(root) not in raw and str(Path.home()) not in raw
+    assert "assets/characters/bob/x.png" in raw and "~/an.log" in raw
+
+
+def test_an_init_keeps_render_reports_out_of_git(tmp_path):
+    from an.project import PROJECT_GITIGNORE
+
+    root = init(tmp_path / "p")
+    lines = (root / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "artifacts/render_reports/" in lines
+    # Idempotent, and a project's own lines are kept.
+    (root / ".gitignore").write_text("output/\n" + "\n".join(lines) + "\n", encoding="utf-8")
+    init(root, force=True)
+    assert (root / ".gitignore").read_text(encoding="utf-8").splitlines() == [
+        "output/",
+        *PROJECT_GITIGNORE,
+    ]
+
+
+# -----------------------------------------------------------------------------
+# Which checks run again after synthesis
+# -----------------------------------------------------------------------------
+
+
+def test_every_post_synthesis_check_is_a_registered_check():
+    """The render runs them BY NAME through validate's registry, so a name that
+    registers nothing would silently drop a check."""
+    from an.genres import load as load_genres
+    from an.genres.registry import check_names
+    from an.ir.validate import POST_SYNTHESIS_CHECKS
+
+    load_genres()
+    assert set(POST_SYNTHESIS_CHECKS) <= set(check_names())
+
+
+def test_a_line_spoken_while_a_view_hides_the_mouth_is_rerun_after_synthesis(monkeypatch):
+    """`cutout.hidden_mouth_while_speaking` reads the line's real span: run after
+    synthesis, it is reported under its own kind."""
+    import an.ir.validate as v
+    from an.genres import load as load_genres
+
+    load_genres()
+    calls = []
+    monkeypatch.setattr(
+        v,
+        "_check_hidden_mouth_while_speaking",
+        lambda shot, path, report, resolved, stores: (
+            calls.append(path),
+            report.add("warning", f"{path}/dialogue/0", "hidden"),
+        ),
+    )
+    scene = SceneIR(meta=Meta(fps=12), timeline=[_hi_shot(duration=2.0)])
+    found = v.post_synthesis_findings(scene)
+    assert ("cutout.hidden_mouth_while_speaking", "timeline/0/dialogue/0") in [
+        (k, f.ir_path) for k, f in found
+    ]

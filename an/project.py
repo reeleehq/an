@@ -86,13 +86,34 @@ def _age_the_seed(*paths: Path) -> None:
         os.utime(p, (then, then))
 
 
+#: What a project's ``.gitignore`` keeps out of version control (``an init``
+#: adds each line a ``.gitignore`` lacks, never removing one). A render report
+#: records what a render on THIS machine found — warnings, exception text — so it
+#: is per-machine output, not project source (an#254).
+PROJECT_GITIGNORE: tuple[str, ...] = ("artifacts/render_reports/",)
+
+
+def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:
+    """Append to ``pdir/.gitignore`` each of ``lines`` it does not already hold."""
+    path = pdir / ".gitignore"
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    present = {line.strip() for line in text.splitlines()}
+    missing = [line for line in lines if line not in present]
+    if not missing:
+        return
+    if text and not text.endswith("\n"):
+        text += "\n"
+    path.write_text(text + "".join(f"{line}\n" for line in missing), encoding="utf-8")
+
+
 def init(
     project_dir: str | Path, *, name: str | None = None, force: bool = False
 ) -> Path:
     """Create a fresh an project at ``project_dir``.
 
     Idempotent unless the directory already contains a non-empty ``scene.md``;
-    pass ``force=True`` to overwrite. Returns the absolute project root.
+    pass ``force=True`` to overwrite. Returns the absolute project root. The
+    project's ``.gitignore`` gains :data:`PROJECT_GITIGNORE` (lines it lacks).
     """
     pdir = Path(project_dir).expanduser().resolve()
     proj_name = name or pdir.name
@@ -134,6 +155,8 @@ def init(
             ),
             encoding="utf-8",
         )
+
+    _ensure_gitignored(pdir, PROJECT_GITIGNORE)
 
     # Touch the agent-memory file so it's discoverable.
     memory_path = pdir / ".an" / "memory.md"

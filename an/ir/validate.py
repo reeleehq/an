@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Literal, Mapping
+from typing import Any, Collection, Literal, Mapping
 
 from pydantic import ValidationError
 
@@ -1686,6 +1686,8 @@ def validate_semantic(
     available_environments: Mapping[str, Any] | None = None,
     available_sounds: Mapping[str, Any] | None = None,
     available_library_lock: Mapping[str, Any] | None = None,
+    only: "Collection[str] | None" = None,
+    fps: float | None = None,
 ) -> ValidationReport:
     """Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -1714,36 +1716,44 @@ def validate_semantic(
     its ``order``. An action or entity kind no loaded genre registered is one
     error naming the genre that provides it; checks that would trip over it
     skip that shot rather than crash.
+
+    ``only`` runs just the registered checks of those names (what ``an render``
+    does after synthesis, :func:`post_synthesis_findings`); ``fps`` is the one
+    the film is assembled at when it is not the scene's (``an render --fps``),
+    which decides how long a dissolve's overlap is.
     """
-    report = ValidationReport()
-    stores = {
-        name: store
-        for name, store in (
-            ("characters", available_characters),
-            ("props", available_props),
-            ("environments", available_environments),
-        )
-        if store is not None
-    }
     ctx = ValidationContext(
         scene=scene,
-        report=report,
-        stores=stores,
+        report=ValidationReport(),
+        stores={
+            name: store
+            for name, store in (
+                ("characters", available_characters),
+                ("props", available_props),
+                ("environments", available_environments),
+            )
+            if store is not None
+        },
         voices=available_voices,
         characters=available_characters,
         sounds=available_sounds,
         library_lock=available_library_lock,
+        memo={_RENDER_FPS: fps} if fps is not None else {},
     )
-    for check in registered_checks("scene"):
+
+    def selected(stage: str):
+        return [c for c in registered_checks(stage) if only is None or c.name in only]
+
+    for check in selected("scene"):
         _run_check(check, ctx)
     for i, shot in enumerate(scene.timeline):
         ctx.shot, ctx.index = shot, i
-        for check in registered_checks("shot"):
+        for check in selected("shot"):
             _run_check(check, ctx)
     ctx.shot = ctx.index = None
-    for check in registered_checks("finish"):
+    for check in selected("finish"):
         _run_check(check, ctx)
-    return report
+    return ctx.report
 
 
 def _run_check(check: Any, ctx: ValidationContext) -> None:
@@ -2195,12 +2205,20 @@ def _tempo_of(effects_of):
 
 
 def _core_assembly(ctx: ValidationContext) -> None:
-    _check_assembly(
+    _check_assembly(ctx.scene, ctx.report, sounds=ctx.sounds)
+
+
+def _core_dialogue_in_dissolve(ctx: ValidationContext) -> None:
+    _check_dialogue_in_dissolves(
         ctx.scene,
         ctx.report,
-        sounds=ctx.sounds,
+        fps=ctx.memo.get(_RENDER_FPS),
         effects_of_shot=lambda shot: _voice_effects_of(shot, ctx.voices, ctx.characters),
     )
+
+
+#: A memo key: the fps a render uses, when it is not the scene's (``--fps``).
+_RENDER_FPS = "render fps"
 
 
 def _add_findings(report: ValidationReport, findings: Any) -> None:
@@ -2335,6 +2353,13 @@ def _register_core_checks() -> None:
         SemanticCheck("dialogue_lines", _core_dialogue_lines, order=120),
         SemanticCheck("dialogue_fits", _core_dialogue_fits, order=130),
         SemanticCheck("assembly", _core_assembly, stage="finish", order=20),
+        SemanticCheck(
+            "dialogue_in_dissolve",
+            _core_dialogue_in_dissolve,
+            stage="finish",
+            order=21,
+            description="no line is heard during a dissolve (over the other shot's picture)",
+        ),
         SemanticCheck(
             "library_pins",
             _core_library_pins,
@@ -2487,45 +2512,42 @@ def shot_dialogue_overruns(
     return out
 
 
-#: The checks whose answer depends on what synthesis produced — a line's real
-#: length — and that ``an render`` therefore runs again AFTER the audio
-#: pipeline, on the timing it will mux (:func:`post_synthesis_findings`).
-POST_SYNTHESIS_CHECKS: tuple[str, ...] = ("dialogue_fits", "dialogue_in_dissolve")
+#: The registered checks whose answer depends on what synthesis produced — a
+#: line's real length, hence where it starts and ends — and that ``an render``
+#: therefore runs again AFTER the audio pipeline, on the timing it will mux
+#: (:func:`post_synthesis_findings` runs exactly these, by name, through the
+#: registry). A check added later that reads ``Dialogue.duration`` or ``start``
+#: belongs here; ``tests/test_render_findings.py`` lists the ones that do.
+POST_SYNTHESIS_CHECKS: tuple[str, ...] = (
+    "dialogue_fits",
+    "dialogue_in_dissolve",
+    "cutout.hidden_mouth_while_speaking",
+)
 
 
 def post_synthesis_findings(
     scene: SceneIR,
     *,
     fps: float | None = None,
-    available_voices: Mapping[str, Any] | None = None,
-    available_characters: Mapping[str, Any] | None = None,
+    checks: tuple[str, ...] = POST_SYNTHESIS_CHECKS,
+    **stores: Mapping[str, Any] | None,
 ) -> list[tuple[str, ValidationFinding]]:
-    """``(check, finding)`` for each warning the synthesized timing gives.
+    """``(check, finding)`` for each finding the synthesized timing gives.
 
-    The SAME functions ``an validate`` runs (:data:`POST_SYNTHESIS_CHECKS`):
-    dialogue past its shot's end, a speaker overlapping themself, a line heard
-    during a dissolve. ``an render`` calls this once the audio pipeline has
-    stamped every line's real ``duration``, so what ``an validate`` could only
-    estimate is reported exactly, at the moment it becomes known (an#254).
-    ``fps`` is the render's (it decides the dissolve overlaps); default the
-    scene's.
+    The SAME registered checks ``an validate`` runs, selected by name
+    (:data:`POST_SYNTHESIS_CHECKS`): dialogue past its shot's end, a speaker
+    overlapping themself, a line heard during a dissolve, a line spoken while
+    the speaker's view hides its mouth. ``an render`` calls this once the audio
+    pipeline has stamped every line's real ``duration``, so what ``an validate``
+    could only estimate is reported exactly, at the moment it becomes known
+    (an#254). ``fps`` is the render's (it decides the dissolve overlaps);
+    default the scene's. ``stores`` are :func:`validate_semantic`'s
+    ``available_*`` keywords. A check no loaded genre registered is skipped.
     """
     out: list[tuple[str, ValidationFinding]] = []
-    report = ValidationReport()
-    for i, shot in enumerate(scene.timeline):
-        effects_of = _voice_effects_of(shot, available_voices, available_characters)
-        _check_dialogue_fits(shot, f"timeline/{i}", report, effects_of=effects_of)
-    out += [("dialogue_fits", f) for f in report.findings]
-    report = ValidationReport()
-    _check_dialogue_in_dissolves(
-        scene,
-        report,
-        fps=fps,
-        effects_of_shot=lambda shot: _voice_effects_of(
-            shot, available_voices, available_characters
-        ),
-    )
-    out += [("dialogue_in_dissolve", f) for f in report.findings]
+    for name in checks:
+        report = validate_semantic(scene, only=(name,), fps=fps, **stores)
+        out += [(name, f) for f in report.findings]
     return out
 
 
@@ -2591,7 +2613,6 @@ def _check_assembly(
     report: "ValidationReport",
     *,
     sounds: Mapping[str, Any] | None,
-    effects_of_shot=None,
 ) -> None:
     """Transitions and the sound layer (`an.assemble`): what assembling the film
     would refuse is an error here, from the SAME list the assembler raises on."""
@@ -2603,10 +2624,6 @@ def _check_assembly(
     problems = transition_problems(scene.timeline, fps)
     for i, message in problems:
         report.add("error", f"timeline/{i}/transition", message)
-    if not problems:
-        _check_dialogue_in_dissolves(
-            scene, report, fps=fps, effects_of_shot=effects_of_shot
-        )
 
     cues = [("meta/sounds", j, c) for j, c in enumerate(scene.meta.sounds)]
     if not problems:

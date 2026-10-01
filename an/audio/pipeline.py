@@ -34,6 +34,7 @@ from an.audio.takes import (
     TAKES_RECORD_VERSION,
     TAKES_STORE,
     TakeLostError,
+    TakesRecordError,
     TakeScorer,
     TakesSpec,
     audio_digest,
@@ -307,6 +308,7 @@ def produce_audio_for_scene(
             [(line.text, req) for line, _, req in pending], tts, audio_store
         ),
         _older_scorer_message(resolved),
+        _carried_message(resolved),
     ]
     if announce is not None:
         for message in filter(None, messages):
@@ -675,6 +677,9 @@ class _LineRequest:
     restore: bool = False  # the kept audio is gone, the chosen raw take is cached
     hand_edit: bool = False  # the record's `chosen` was edited by hand
     older_scorer: str | None = None  # the version that chose, when not the current one
+    #: the choice key of the record whose take this line KEEPS although the
+    #: voice's effects changed since it was chosen (an#254), else ``None``
+    carried_from: str | None = None
     #: the kept audio was produced (not read back) in this call
     fresh_audio: bool = False
     #: the kept audio's bytes are not the record's heard digest
@@ -688,8 +693,11 @@ class _LineRequest:
     @property
     def needs_work(self) -> bool:
         """A recorded take that must be restored, or a hand edit to honour, or
-        whose kept audio is not the audio its record names."""
-        return self.restore or self.hand_edit or self.replaced
+        whose kept audio is not the audio its record names, or one carried over
+        from other effects whose record is still to write."""
+        return (
+            self.restore or self.hand_edit or self.replaced or self.carried_from is not None
+        )
 
     def take_key(self, take: int, *, heard: bool) -> str:
         """The key of candidate ``take`` of this roll: its raw audio, or (``heard``)
@@ -787,6 +795,10 @@ def _line_request(
     record = read_takes_record(
         mall.get(TAKES_STORE) if mall is not None else None, req.choice_key
     )
+    if record is None:
+        # The effects changed (a tempo, a trim): never re-choose an approved
+        # take for that — keep it, re-processed from its raw audio (an#254).
+        record = _carried_record(req, mall, strict=strict)
     req.record = record
     chosen = record.get("chosen") if record is not None else None
     if chosen is None:  # never chosen, or a rescore / reroll pending
@@ -995,9 +1007,143 @@ def _restore_recorded_take(
             TakeDigestWarning,
             stacklevel=4,
         )
+    if req.carried_from is not None:
+        _record_carried_take(mall, req, kept)
     if req.hand_edit:
         _honour_hand_edit(mall, req)
     return _kept_clip(kept, req)
+
+
+def _carried_record(
+    req: _LineRequest, mall: Mapping[str, MutableMapping] | None, *, strict: bool
+) -> dict[str, Any] | None:
+    """The record a best-of-N line KEEPS when only its voice's effects changed.
+
+    The choice key includes the effects, so a new ``tempo`` or ``trim_silence``
+    finds no record under it — and re-choosing then would silently replace a
+    take someone approved (an#254 review M1). A take record of the SAME request
+    under other effects — same text, voice, provider, scorer and ``n``, and
+    takes whose raw keys are this request's, which names the options too — is
+    carried over instead: its chosen take, re-processed from its raw audio with
+    the new effects (``_restore_recorded_take``), never re-scored. Several such
+    records that chose differently (a rescore under one of them) are a choice
+    only a person makes: refused under ``strict`` with the command that makes
+    it (``an voices rescore``); otherwise the first, by key.
+    """
+    store = mall.get(TAKES_STORE) if mall is not None else None
+    if store is None or req.spec is None:
+        return None
+    siblings: list[tuple[str, dict[str, Any]]] = []
+    for key in sorted(store):
+        if key == req.choice_key:
+            continue
+        try:
+            rec = read_takes_record(store, key)
+        except TakesRecordError:
+            continue
+        if rec is not None and _same_takes_request(rec, req):
+            siblings.append((key, rec))
+    if not siblings:
+        return None
+    latest = max(len(rec.get("history", [])) for _, rec in siblings)
+    leaves = [(k, r) for k, r in siblings if len(r.get("history", [])) == latest]
+    choices = sorted({int(r["chosen"]) for _, r in leaves})
+    if strict and len(choices) > 1:
+        raise TakesRecordError(
+            f"the voice's effects changed for {req.text!r}, and its takes were chosen "
+            f"differently under earlier effects (takes {choices}, in records "
+            f"{[k[:12] for k, _ in leaves]}); which one to keep is yours to say: "
+            "`an voices rescore <project> <words of the line>` re-chooses from the "
+            "cached takes (nothing billed)"
+        )
+    key, old = leaves[0]
+    chosen, roll = int(old["chosen"]), int(old.get("roll", 0))
+    req.roll = roll
+    record = {k: v for k, v in old.items() if k != "superseded_by"}
+    record.update(
+        choice_key=req.choice_key,
+        digest=None,
+        audio_key=req.take_key(chosen, heard=True),
+        carried_from=key,
+        takes=[
+            {**t, "heard_key": req.take_key(int(t["take"]), heard=True), "heard_digest": None}
+            for t in old["takes"]
+        ],
+        history=[
+            *old.get("history", []),
+            {
+                "chosen": chosen,
+                "digest": old.get("digest"),
+                "roll": roll,
+                "scorer": old.get("scorer"),
+                "reason": "the voice's effects changed: the recorded take is kept, "
+                "re-processed from its raw audio, not re-scored",
+            },
+        ],
+    )
+    req.carried_from = key
+    return record
+
+
+def _same_takes_request(record: Mapping[str, Any], req: _LineRequest) -> bool:
+    """Whether ``record`` chose among the takes of ``req``'s own request (any effects)."""
+    scorer = record.get("scorer") or {}
+    takes = record.get("takes") or []
+    if (
+        record.get("chosen") is None
+        or record.get("pending")
+        or record.get("text") != req.text
+        or record.get("voice") != req.voice_id
+        or record.get("tts") != req.tts.name
+        or scorer.get("name") != req.scorer.name
+        or dict(scorer.get("config") or {}) != dict(req.scorer.config)
+        or len(takes) != req.spec.n
+    ):
+        return False
+    roll = int(record.get("roll", 0))
+    return all(
+        t.get("audio_key")
+        == audio_key(
+            req.text,
+            req.voice_id,
+            req.tts.name,
+            provider_voice=req.named,
+            options=_take_options(req.tts, req.options, int(t["take"])),
+            take=int(t["take"]),
+            roll=roll,
+        )
+        for t in takes
+    )
+
+
+def _record_carried_take(
+    mall: Mapping[str, MutableMapping], req: _LineRequest, kept: bytes
+) -> None:
+    """Write the carried record under the line's new choice key, naming the
+    audio it now keeps — written only once that audio exists."""
+    record = dict(req.record)
+    chosen = record["chosen"]
+    digest = audio_digest(kept)
+    record["takes"] = [dict(t) for t in record["takes"]]
+    record["takes"][chosen]["heard_digest"] = digest
+    record["digest"] = digest
+    write_takes_record(mall.get(TAKES_STORE), req.choice_key, record)
+    req.record = record
+
+
+def _carried_message(reqs: list["_LineRequest"]) -> str:
+    """Which lines keep their recorded take under their voice's new effects."""
+    carried = [r for r in reqs if r.carried_from is not None]
+    if not carried:
+        return ""
+    texts = ", ".join(repr(r.text[:40]) for r in carried[:5]) + (
+        " …" if len(carried) > 5 else ""
+    )
+    return (
+        f"{len(carried)} line(s) keep their recorded take under their voice's new "
+        f"effects (re-processed from the raw take, not re-scored): {texts}. "
+        "Re-choose one with `an voices rescore <project> <words of the line>`"
+    )
 
 
 def _honour_hand_edit(mall: Mapping[str, MutableMapping], req: _LineRequest) -> None:
