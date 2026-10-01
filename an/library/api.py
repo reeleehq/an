@@ -45,7 +45,14 @@ from typing import Any
 from dol.content import ContentRef, content_hash
 
 from an.ir.assets import PRIVATE_STUDY, PUBLIC_DOMAIN, AssetSource, license_class
-from an.credits import is_generated_source
+from an.credits import (
+    factory_recorded,
+    is_factory_stamp,
+    is_clutter,
+    is_generated_source,
+    referenced_paths,
+    same_source,
+)
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 from an.library import character as _character
 from an.library.affordances import (
@@ -98,7 +105,6 @@ from an.library.rights import (
 )
 from an.library.root import CORE_PACKAGE
 from an.library.stores import VersionExistsError, canonical_json, version_key
-from an.stores._common import is_os_junk
 
 __all__ = [
     "CheckoutError",
@@ -427,7 +433,7 @@ def pop_origin(doc: dict[str, Any]) -> Mapping[str, Any] | None:
         if origin.get(METADATA_ADDED_FLAG) and not meta:
             del doc["metadata"]
         added = origin.get(SOURCE_ADDED_KEY)
-        if isinstance(added, Mapping) and doc.get("source") == added.get("source"):
+        if isinstance(added, Mapping) and same_source(doc.get("source"), added.get("source")):
             if added.get("had_key"):
                 doc["source"] = added.get("previous")
             else:
@@ -475,7 +481,10 @@ def itemising_source(
 
     It itemises only if it pins the same digest: a per-part source left on a
     file whose bytes have since changed (a factory stamp on a re-carved part)
-    describes other bytes and speaks for nothing. The descriptor's ``source_svg``
+    describes other bytes and speaks for nothing. A factory stamp itemises only
+    if the factory's own record confirms it drew those bytes
+    (:func:`an.credits.factory_recorded`): a stamp in a descriptor, typed or
+    written by the public stamping functions, proves nothing (review-288 B1). The descriptor's ``source_svg``
     is itemised by a generator's descriptor-level stamp pinning its digest.
     """
     doc = version.get("doc") or {}
@@ -487,7 +496,11 @@ def itemising_source(
             claim = AssetSource.model_validate(dict(own))
         except ValueError:
             claim = None
-        if claim is not None and _digest_of(claim) == digest:
+        if (
+            claim is not None
+            and _digest_of(claim) == digest
+            and (not is_factory_stamp(own) or factory_recorded(digest))
+        ):
             return claim
     for skin in (doc.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
@@ -506,6 +519,10 @@ def itemising_source(
                 except ValueError:
                     continue
                 if _digest_of(source) == digest:
+                    if is_factory_stamp(raw) and not factory_recorded(digest):
+                        # A factory stamp the factory's record does not
+                        # confirm labels nothing (review-288 B1).
+                        continue
                     return source
     return None
 
@@ -1215,13 +1232,17 @@ def publish(
         # The carried source was a statement about the bytes it was declared
         # on. A file changed or added since is bytes nobody has labelled: it
         # stays `unknown` (in the floor, in the rights, in the credits of a
-        # check-out) until a publish passes `source=` again.
+        # check-out) until a publish passes `source=` again — unless the
+        # descriptor itself labels those very bytes, a per-part source pinned
+        # to their digest (the factory re-stamping the mouths it redrew:
+        # an#281), which then speaks for them as it would on any publish.
         before = _file_hashes(head_version.get("files") or {})
         still = set(head_version.get(UNLABELLED_FIELD) or [])
         unlabelled = sorted(
             path
             for path, digest in hashes.items()
-            if before.get(path) != digest or path in still
+            if (before.get(path) != digest or path in still)
+            and itemising_source({"doc": doc}, path, digest) is None
         )
     pending: dict[str, Any] = {
         "doc_kind": kind.name,
@@ -1390,11 +1411,13 @@ def _write_version(library: Library, asset_id: str, version: dict[str, Any]) -> 
     )
 
 
-def _read_folder(folder: Path, *, skip: str | None) -> dict[str, bytes]:
+def _read_folder(
+    folder: Path, *, skip: str | None, named: frozenset[str] = frozenset()
+) -> dict[str, bytes]:
     out: dict[str, bytes] = {}
     for path in sorted(folder.rglob("*")):
         rel = path.relative_to(folder).as_posix()
-        if not path.is_file() or rel == skip or is_os_junk(rel):
+        if not path.is_file() or rel == skip or is_clutter(rel, named):
             continue
         out[rel] = path.read_bytes()
     return out
@@ -1408,7 +1431,9 @@ def publish_dir(
     The descriptor is the kind's descriptor file (``character.json``); every other
     file under the folder is published as one of the asset's files, so a
     check-out reproduces the folder — except operating-system clutter
-    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`). Keyword arguments go to :func:`publish`.
+    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`)
+    that the descriptor does not name — a part it names is published whatever
+    its file is called (review-288 S2). Keyword arguments go to :func:`publish`.
     """
     folder = Path(folder)
     kind = asset_kind_info(asset_kind(check_asset_id(asset_id)))
@@ -1423,7 +1448,11 @@ def publish_dir(
         )
     doc = json.loads(descriptor.read_text(encoding="utf-8"))
     return publish(
-        library, asset_id, doc, _read_folder(folder, skip=kind.descriptor), **kwargs
+        library,
+        asset_id,
+        doc,
+        _read_folder(folder, skip=kind.descriptor, named=referenced_paths(doc)),
+        **kwargs,
     )
 
 
@@ -1633,6 +1662,21 @@ def _counts(entries: Iterable[IndexEntry]) -> dict[str, dict[str, int]]:
     return {facet: dict(sorted(c.items())) for facet, c in sorted(counters.items())}
 
 
+#: How a style mismatch is named among a near miss's ``missing`` terms.
+STYLE_GAP_PREFIX: str = "style:"
+
+
+def _restyle_remedy(wanted: Iterable[str], has: Iterable[str]) -> str:
+    want = " or ".join(wanted)
+    now = ", ".join(sorted(has)) or "no style"
+    return (
+        f"restyle it to {want} (it is curated as {now}): apply the {want} style's "
+        "policy over its art — a tint, a palette, the style's speech and view "
+        "rules (the an-style skill) — and publish the result as a sibling id in "
+        "the same --family, with --style " + want
+    )
+
+
 def find(
     libraries: Libraries,
     *,
@@ -1658,7 +1702,9 @@ def find(
         (``free`` + ``attribution``), or licence classes. Rights are recomputed
         from each version's sources and lineage, not read from its cache
     near: also return assets that pass every other facet but miss some
-        capabilities, each with what is missing and the remedy that would add it
+        capabilities, or are curated for another style than asked, each with
+        what is missing and the remedy that would add it (a style mismatch is
+        listed as ``style:<wanted>``, remedied by restyling: an#271)
     index: the index to read (default: a scan of the stores)
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -1695,19 +1741,29 @@ def find(
                 )
                 entry = replace(entry, rights=_stricter(entry.rights, recomputed))
             values = entry.facet_values()
-            if any(
-                want is not None and not (values[f] & set(want))
+            failed = {
+                f
                 for f, want in asked.items()
-            ):
+                if want is not None and not (values[f] & set(want))
+            }
+            # Only the style differs: with near=True, a restyle away (an#271).
+            restyle = near and failed == {"style"}
+            if failed and not restyle:
                 continue
             if license_classes is not None and not (
                 values["license_class"] & license_classes
             ):
                 continue
             gaps = missing(entry.affordances, wanted)
+            remedies = {g: remedy_for(g) for g in gaps}
+            if restyle:
+                term = STYLE_GAP_PREFIX + "|".join(asked["style"] or [])
+                gaps = [term, *gaps]
+                remedies[term] = _restyle_remedy(asked["style"] or [], values["style"])
             if gaps and not near:
                 continue
-            score = (len(wanted) - len(gaps)) / len(wanted) if wanted else 1.0
+            asks = len(wanted) + (1 if asked["style"] else 0)
+            score = (asks - len(gaps)) / asks if asks else 1.0
             hit = Hit(
                 entry.library,
                 entry.asset_id,
@@ -1716,7 +1772,7 @@ def find(
                 title=entry.record.get("title"),
                 license_class=entry.rights.license_class,
                 missing=gaps,
-                remedies={g: remedy_for(g) for g in gaps},
+                remedies=remedies,
                 federated=federated,
             )
             if gaps:

@@ -301,6 +301,23 @@ def vocabulary(package: str = CORE_PACKAGE, root: str = "", extra: str = "") -> 
     )
 
 
+def _file_count(record: dict, version: dict) -> str:
+    """The files a check-out writes, as a reader counts them on disk (an#271):
+    the descriptor file too, which a version holds as its ``doc``.
+
+    >>> _file_count({"kind": "environment"}, {"files": {"plates/a.svg": {}, "plates/b.svg": {}}})
+    '3 (meta.json + 2)'
+    """
+    from an.library.kinds import asset_kind_info
+
+    n = len(version.get("files") or {})
+    try:
+        descriptor = asset_kind_info(record.get("kind") or "").descriptor
+    except Exception:  # noqa: BLE001 — an unknown kind: count the files alone
+        descriptor = None
+    return f"{n + 1} ({descriptor} + {n})" if descriptor else str(n)
+
+
 @_refusing
 def show(
     ref: str,
@@ -334,7 +351,7 @@ def show(
             if info["rights"]["reasons"]
             else ""
         ),
-        f"  files: {len(version.get('files') or {})}  art: {version.get('art')}  "
+        f"  files: {_file_count(record, version)}  art: {version.get('art')}  "
         f"manifest: {version['manifest_sha256'][:16]}",
         f"  derived_from: {', '.join(version.get('derived_from') or []) or '-'}",
         "  affords:",

@@ -181,7 +181,7 @@ def _descriptor_sources(
         library and the project's credits see the same document — but it is
         reported under its own label, never as the descriptor's.
     """
-    from an.credits import collect_credits, is_factory_stamp
+    from an.credits import collect_credits, gives_way_to_a_label
 
     key = "_"
     prefix = f"{store}/{key}"
@@ -195,12 +195,12 @@ def _descriptor_sources(
     own = next((e.source for e in entries if e.asset == prefix), None)
     if own is None and isinstance(doc.get("source"), Mapping):
         own = AssetSource.model_validate(doc["source"])
-    if covering is not None and (own is None or is_factory_stamp(doc.get("source"))):
+    if covering is not None and (own is None or gives_way_to_a_label(doc.get("source"))):
         # What the checked-out copy will hold (an.library.checkout): the
         # asset-level source written in as the descriptor's — in place of
-        # nothing, or of the factory's own stamp, which speaks only for the
-        # bytes its part stamps already pin — speaking for every part nothing
-        # itemises.
+        # nothing, or of a generator's own source that owes nothing (the
+        # factory's stamp, a free DiceBear style: an#281), which speaks only for the bytes its part stamps
+        # already pin — speaking for every part nothing itemises.
         walked = {
             **doc,
             "source": covering.model_dump(mode="json", exclude_defaults=True),

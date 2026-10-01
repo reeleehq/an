@@ -190,10 +190,25 @@ def mouths(
         variant_map = _parse_variants(variants)
     except ValueError as e:
         return str(e)
-    written = write_default_mouths(target, palette=palette_dict, variants=variant_map)
+    from an.characters.factory import recording_drawn
+
+    with recording_drawn(char_dir):
+        written = write_default_mouths(target, palette=palette_dict, variants=variant_map)
+        _stamp_mouths(char_dir, written, variant_map)
+    return f"wrote {len(written)} mouth shapes to {target}"
+
+
+def _stamp_mouths(char_dir: Path, written: list, variant_map) -> None:
+    """Size, declare and stamp the mouths just drawn for the character at ``char_dir``."""
     desc_path = char_dir / "character.json"
     if desc_path.is_file():
-        from an.characters.factory import stamp_factory_parts
+        from an.characters.factory import (
+            declare_mouth_variants,
+            scale_part_files,
+            stamp_factory_parts,
+        )
+        from an.characters.schema import CharacterDescriptor
+        from an.ir.migrate import migrate
 
         raw = json.loads(desc_path.read_text(encoding="utf-8"))
         desc = CharacterDescriptor.model_validate(
@@ -209,7 +224,6 @@ def mouths(
         stamp_factory_parts(
             char_dir, {Path(w).relative_to(char_dir).as_posix() for w in written}
         )
-    return f"wrote {len(written)} mouth shapes to {target}"
 
 
 def add_gaze(name: str, out_dir: str = "", overwrite_eyes: bool = False) -> str:
