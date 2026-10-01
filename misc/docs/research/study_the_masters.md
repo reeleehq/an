@@ -88,7 +88,7 @@ Chosen to cover the method space, not the look space. Each family adds methods t
 
 ## 2. Method × source matrix
 
-● = a signature method of the source (named in its analysis); ○ = also used. `n` = number of sources using the method. Source codes are in §1. Generated from one data table together with §3, so the two cannot disagree.
+● = a signature method of the source (named in its analysis); ○ = also used. `n` = number of sources using the method. Source codes are in §1. Generated together with §3 from one data table, kept with the cutan lead's working notes (not in the repository), so the two agree.
 
 | Method | RE | OC | OF | WG | WK | NO | FP | SF | PW | GI | HS | VB | BL | FM | UP | HB | ZG | MP | CC | SQ | SP | BC | PP | CL | AR | HI | CA | OS | KG | RS | SB | CG | DM | LK | MM | CS | TR | VR | n |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -538,7 +538,7 @@ Capabilities and defaults follow ADR 0002: requirements are data on the method, 
 - **Per-part cadence is inferred, not measured,** for South Park and Hanna-Barbera. A per-region measurement (mouth versus body) on a public-domain clip would settle it; *Clutch Cargo* is the obvious test, since only its mouth moves.
 - **Peppa Pig's turn and walk methods** come from observation. No production source documents its CelAction rigs.
 - **Head-view counts** are unknown for Hilda and Archer. Harmony's documented baseline is 4–5 views, with TV mostly using front to three-quarter [10].
-- **Some ○ marks are judgment calls** from the cited sources. A second reader should challenge the matrix before it seeds the registry. The data table that generates §2–§3 makes that edit cheap.
+- **Some ○ marks are judgment calls** from the cited sources. A second reader should challenge the matrix before it seeds the registry. Edit the generating table, not the rendered tables, so §2 and §3 stay in step.
 - **Copyright statuses are hints, not legal determinations.** Every candidate in §5 needs the legal check before carving.
 
 ## REFERENCES
