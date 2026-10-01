@@ -27,8 +27,14 @@ __all__ = ["iterate_prompt", "vocabulary_prompt"]
 KIND_HEADINGS: tuple[tuple[str, str], ...] = (
     ("action", "Action kinds (an action's `kind`)"),
     ("entity", "Entity kinds (an entity's `kind`)"),
-    ("motion_preset", "Motion presets (`play` by name; `args` are the parameters shown)"),
-    ("expression_preset", "Expression presets (an `expression`'s `preset`, a dialogue line's `emotion`)"),
+    (
+        "motion_preset",
+        "Motion presets (`play` by name; `args` are the parameters shown)",
+    ),
+    (
+        "expression_preset",
+        "Expression presets (an `expression`'s `preset`, a dialogue line's `emotion`)",
+    ),
     ("camera_move", "Camera moves (`camera: {move: …}`)"),
     ("easing", "Easings (a tween's `easing`)"),
 )
@@ -119,4 +125,6 @@ def vocabulary_prompt(*, kinds: Iterable[tuple[str, str]] = KIND_HEADINGS) -> st
 
 def iterate_prompt(*, preamble: str, postamble: str) -> str:
     """``preamble`` + the generated vocabulary + ``postamble`` (the ``an iterate`` protocol)."""
-    return "\n\n".join(p.strip("\n") for p in (preamble, vocabulary_prompt(), postamble))
+    return "\n\n".join(
+        p.strip("\n") for p in (preamble, vocabulary_prompt(), postamble)
+    )

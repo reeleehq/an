@@ -127,7 +127,14 @@ LOCO_LEGGED = Method(
     params=_walk_params(_LEGGED_PARAMS),
     requires=("limbs.legs",),
     remedies={"limbs.legs": _LEGS_REMEDY},
-    examples=({"kind": "play", "target": "ned", "animation": "walk", "args": {"gait": "legs"}},),
+    examples=(
+        {
+            "kind": "play",
+            "target": "ned",
+            "animation": "walk",
+            "args": {"gait": "legs"},
+        },
+    ),
     expand=_walk_expand("legs"),
 )
 LOCO_HEM = Method(
@@ -147,7 +154,9 @@ LOCO_HEM = Method(
             "the hip, and declare `gait: hem` in character.json"
         )
     },
-    examples=({"kind": "play", "target": "ned", "animation": "walk", "args": {"gait": "hem"}},),
+    examples=(
+        {"kind": "play", "target": "ned", "animation": "walk", "args": {"gait": "hem"}},
+    ),
     expand=_walk_expand("hem"),
 )
 LOCO_ROCK = Method(
@@ -160,7 +169,14 @@ LOCO_ROCK = Method(
         "it travels (a blob, a sack, anything drawable)"
     ),
     params=_walk_params(_ROCK_PARAMS),
-    examples=({"kind": "play", "target": "ned", "animation": "walk", "args": {"gait": "rock"}},),
+    examples=(
+        {
+            "kind": "play",
+            "target": "ned",
+            "animation": "walk",
+            "args": {"gait": "rock"},
+        },
+    ),
     expand=_walk_expand("rock"),
 )
 SPEECH_CHART = Method(
@@ -358,7 +374,9 @@ def check_declared_speech(ctx) -> None:
             continue
         declared = doc.get("speech") if isinstance(doc, Mapping) else None
         for problem in speech_problems(declared):
-            ctx.report.add("error", f"{ctx.path}/entities/{j}", f"{entity.ref}: {problem}")
+            ctx.report.add(
+                "error", f"{ctx.path}/entities/{j}", f"{entity.ref}: {problem}"
+            )
 
 
 def substitution_record(sub, *, entity_ref: str | None = None) -> dict[str, Any]:
@@ -435,7 +453,10 @@ def _authored_pulse_speakers(shot) -> set[str]:
         stack.extend(getattr(a, "children", None) or ())
         if getattr(a, "child", None) is not None:
             stack.append(a.child)
-        if getattr(a, "kind", None) == "play" and getattr(a, "animation", None) == PULSE_PRESET:
+        if (
+            getattr(a, "kind", None) == "play"
+            and getattr(a, "animation", None) == PULSE_PRESET
+        ):
             out.add(str(a.target).split("/", 1)[0])
     return out
 
@@ -490,7 +511,13 @@ def speech_plan(
             continue
         if speaker not in resolved:
             requested = getattr(descriptor_of(speaker), "speech", None)
-            r = resolve(SPEECH, profile_of(speaker), requested=requested, policy=policy, entity=speaker)
+            r = resolve(
+                SPEECH,
+                profile_of(speaker),
+                requested=requested,
+                policy=policy,
+                entity=speaker,
+            )
             resolved[speaker] = r
             if r.substitution is not None and record is not None:
                 record(r.substitution)
@@ -506,7 +533,11 @@ def speech_plan(
         args = {k: v for k, v in r.args.items() if k not in ("part", "beats")}
         part = r.args.get("part", "head")
         args["part"] = part if part and has_part(f"{speaker}/{part}") else ""
-        length = float(args.get("attack", 0.0)) + float(args.get("release", 0.0)) + WALK_LANDING_S
+        length = (
+            float(args.get("attack", 0.0))
+            + float(args.get("release", 0.0))
+            + WALK_LANDING_S
+        )
         for beat in syllable_beats(line):
             at = float(line.start) + beat
             # A beat inside a pulse still running (long args, overlapping lines)

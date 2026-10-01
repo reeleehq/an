@@ -84,7 +84,10 @@ def skill_vocabulary_section() -> str:
             "### Methods, by aspect",
             "",
             "Default chains: "
-            + "; ".join(f"**{a.name}** " + " → ".join(f"`{c}`" for c in a.chain) for a in aspects())
+            + "; ".join(
+                f"**{a.name}** " + " → ".join(f"`{c}`" for c in a.chain)
+                for a in aspects()
+            )
             + ". `an character capabilities <name>` says which apply to a character and what is missing for the rest.",
             "",
             "| Aspect | Method | Spelled | Version | Requires | What it is |",

@@ -103,7 +103,9 @@ class Entry:
 
     def __post_init__(self) -> None:
         if not self.id or not self.kind:
-            raise VocabularyError(f"an entry needs an id and a kind, got {self.id!r}/{self.kind!r}")
+            raise VocabularyError(
+                f"an entry needs an id and a kind, got {self.id!r}/{self.kind!r}"
+            )
         object.__setattr__(self, "version", str(self.version))
         if not self.version:
             raise VocabularyError(f"entry {self.id!r}: every entry carries a version")
@@ -134,7 +136,9 @@ class Entry:
         }
 
     @classmethod
-    def from_json(cls, data: Mapping[str, Any], *, expand: Expand | None = None) -> "Entry":
+    def from_json(
+        cls, data: Mapping[str, Any], *, expand: Expand | None = None
+    ) -> "Entry":
         """An entry from its JSON form (what :meth:`to_json` writes, or another
         package exports — previz's formulas): the explicit loader, a ``method``
         kind giving a :class:`Method`.
@@ -145,7 +149,11 @@ class Entry:
         """
         d = dict(data)
         kind = d.get("kind")
-        fields = {k: v for k, v in d.items() if k in cls.__dataclass_fields__ or k in Method.__dataclass_fields__}
+        fields = {
+            k: v
+            for k, v in d.items()
+            if k in cls.__dataclass_fields__ or k in Method.__dataclass_fields__
+        }
         if "levels" in fields:
             fields["levels"] = frozenset(fields["levels"])
         for key in ("examples", "requires", "aspects"):
@@ -260,7 +268,9 @@ class Aspect:
 
     def __post_init__(self) -> None:
         if not self.name or not self.chain:
-            raise VocabularyError(f"aspect {self.name!r} needs a name and a non-empty chain")
+            raise VocabularyError(
+                f"aspect {self.name!r} needs a name and a non-empty chain"
+            )
         object.__setattr__(self, "chain", tuple(self.chain))
         object.__setattr__(self, "applies_to", frozenset(self.applies_to))
 

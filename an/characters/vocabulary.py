@@ -113,9 +113,7 @@ def _expression_preset_entries() -> tuple[Entry, ...]:
 def _cutout_fields() -> tuple[Entry, ...]:
     from an.expression.axes import AXES
 
-    axes = ", ".join(
-        f"{n} [{a.lo:g}, {a.hi:g}]" for n, a in AXES.items()
-    )
+    axes = ", ".join(f"{n} [{a.lo:g}, {a.hi:g}]" for n, a in AXES.items())
     return (
         Entry(
             "field.shot.actions.swap_set",

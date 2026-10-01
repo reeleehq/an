@@ -57,7 +57,12 @@ ENVIRONMENT_ANALYSER_VERSION: str = "1"
 
 #: Optional engine members a renderer may implement, each afforded as
 #: ``engine.<member>`` when it is a callable attribute of the renderer.
-ENGINE_OPTIONAL_MEMBERS: tuple[str, ...] = ("compile", "preview", "render_frames", "seek")
+ENGINE_OPTIONAL_MEMBERS: tuple[str, ...] = (
+    "compile",
+    "preview",
+    "render_frames",
+    "seek",
+)
 
 #: ``capability: (executables, remedy)`` — afforded when any executable is on PATH.
 ENV_TOOLS: dict[str, tuple[tuple[str, ...], str]] = {
@@ -187,14 +192,21 @@ def _derive_engine(renderer: Any, art: Mapping[str, Any]) -> dict[str, dict[str,
 
 
 register_analyser(
-    Analyser("environment", ENVIRONMENT_ANALYSER_VERSION, _derive_environment, subject="environment")
+    Analyser(
+        "environment",
+        ENVIRONMENT_ANALYSER_VERSION,
+        _derive_environment,
+        subject="environment",
+    )
 )
 register_analyser(
     Analyser("engine", ENGINE_ANALYSER_VERSION, _derive_engine, subject="engine")
 )
 
 
-def environment_affordances(*, probe: Mapping[str, Any] | None = None) -> dict[str, dict[str, Any]]:
+def environment_affordances(
+    *, probe: Mapping[str, Any] | None = None
+) -> dict[str, dict[str, Any]]:
     """What this machine affords: tools on PATH, a browser, API keys set.
 
     ``probe`` injects the evidence (``which``, ``env``, ``modules``,

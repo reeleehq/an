@@ -9,7 +9,13 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["MCPExtraMissingError", "SERVER_INSTRUCTIONS", "SERVER_NAME", "main", "mk_server"]
+__all__ = [
+    "MCPExtraMissingError",
+    "SERVER_INSTRUCTIONS",
+    "SERVER_NAME",
+    "main",
+    "mk_server",
+]
 
 SERVER_NAME: str = "an"
 
@@ -29,7 +35,9 @@ class MCPExtraMissingError(ImportError):
     """The MCP server needs the ``an[mcp]`` extra (``py2mcp``)."""
 
 
-def mk_server(*, name: str = SERVER_NAME, instructions: str = SERVER_INSTRUCTIONS) -> Any:
+def mk_server(
+    *, name: str = SERVER_NAME, instructions: str = SERVER_INSTRUCTIONS
+) -> Any:
     """The FastMCP server with one tool per :data:`an.mcp.TOOL_REFS` entry."""
     try:
         from py2mcp import mk_mcp_from_refs

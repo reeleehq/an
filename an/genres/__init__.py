@@ -177,7 +177,11 @@ def register_genre(
             f"a different genre named {genre.name!r} is already registered; "
             "pass replace=True to replace it"
         )
-    state, timing_state, sem_state = snapshot(), _timing_snapshot(), _semantic_snapshot()
+    state, timing_state, sem_state = (
+        snapshot(),
+        _timing_snapshot(),
+        _semantic_snapshot(),
+    )
     try:
         if current is not None:
             _uninstall(genre.name)
@@ -453,7 +457,8 @@ def _check_capabilities_of(names: Iterable[str]) -> None:
     problems = [p for name in names for p in sem.check_registry(owner=name)]
     if problems:
         raise GenreError(
-            "the loaded genres register an unsound vocabulary:\n  - " + "\n  - ".join(problems)
+            "the loaded genres register an unsound vocabulary:\n  - "
+            + "\n  - ".join(problems)
         )
 
 

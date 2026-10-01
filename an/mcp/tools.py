@@ -95,7 +95,9 @@ def scene_schema(document: str = "scene") -> dict[str, Any]:
 
     _loaded()
     if document not in _SCHEMAS:
-        raise ValueError(f"document must be one of {sorted(_SCHEMAS)}, got {document!r}")
+        raise ValueError(
+            f"document must be one of {sorted(_SCHEMAS)}, got {document!r}"
+        )
     module, name = _SCHEMAS[document]
     return getattr(import_module(module), name).model_json_schema()
 
@@ -275,13 +277,20 @@ def job_status(job: str) -> dict[str, Any]:
         return {"job": job, "kind": kind, "status": "running"}
     error = future.exception()
     if error is not None:
-        return {"job": job, "kind": kind, "status": "failed", "error": f"{type(error).__name__}: {error}"}
+        return {
+            "job": job,
+            "kind": kind,
+            "status": "failed",
+            "error": f"{type(error).__name__}: {error}",
+        }
     result = future.result()
     return {
         "job": job,
         "kind": kind,
         "status": "done",
-        "result": str(result) if isinstance(result, Path) else json.loads(json.dumps(result, default=str)),
+        "result": str(result)
+        if isinstance(result, Path)
+        else json.loads(json.dumps(result, default=str)),
     }
 
 

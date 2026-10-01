@@ -4020,9 +4020,7 @@ def _character_profile(entity: str, vocab: _SwapVocabulary) -> dict[str, dict]:
     )
 
 
-def _record_substitution(
-    sub, resolutions: list[AssetResolutionJSON] | None
-) -> None:
+def _record_substitution(sub, resolutions: list[AssetResolutionJSON] | None) -> None:
     """A method substitution, recorded beside the stand-in assets (ADR 0002 decision 6)."""
     from an.characters.methods import substitution_record
 

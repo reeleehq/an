@@ -300,9 +300,7 @@ def register_analyser(
         return kind
 
     def deco(derive: Derivation) -> Derivation:
-        _install_analyser(
-            Analyser(kind, version, derive, subject=subject), owner=owner
-        )
+        _install_analyser(Analyser(kind, version, derive, subject=subject), owner=owner)
         return derive
 
     return deco
@@ -513,9 +511,11 @@ class Subjects:
         return cls(asset=dict(x or {}))
 
     def profile(self, subject: str) -> Profile:
-        return {"asset": self.asset, "engine": self.engine, "environment": self.environment}[
-            subject
-        ]
+        return {
+            "asset": self.asset,
+            "engine": self.engine,
+            "environment": self.environment,
+        }[subject]
 
 
 ProfileLike = Union[Subjects, Mapping[str, Mapping[str, Any]], None]
@@ -544,9 +544,7 @@ def matches(profile: ProfileLike, term: str | Requirement) -> bool:
     return _meets(subjects.profile(subject_of(req)), req)
 
 
-def missing(
-    profile: ProfileLike, requires: Iterable[str | Requirement]
-) -> list[str]:
+def missing(profile: ProfileLike, requires: Iterable[str | Requirement]) -> list[str]:
     """The requirement terms ``profile`` does not meet, spelled, in the order asked.
 
     THE matcher (ADR 0002 decision 4): ``why_not``, ``applicable``,
@@ -625,7 +623,9 @@ class Substitution:
         """One human sentence saying what happened."""
         who = f"{self.entity}: " if self.entity else ""
         if self.reason == "noop":
-            return f"{who}{self.aspect} does not apply; nothing was done (recorded no-op)"
+            return (
+                f"{who}{self.aspect} does not apply; nothing was done (recorded no-op)"
+            )
         if self.reason == "policy":
             return f"{who}{self.aspect}: the policy chose {self.chosen!r}" + (
                 f" over {self.requested!r}" if self.requested else ""

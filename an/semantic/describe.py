@@ -87,7 +87,9 @@ def describe_asset(
     analyser = ANALYSERS.get(kind)
     raw = doc.model_dump(mode="json") if hasattr(doc, "model_dump") else dict(doc)
     declared = {
-        f: raw[f] for f in (analyser.declares if analyser else ()) if raw.get(f) is not None
+        f: raw[f]
+        for f in (analyser.declares if analyser else ())
+        if raw.get(f) is not None
     }
     out = {
         "kind": kind,
@@ -96,7 +98,11 @@ def describe_asset(
         **describe_profile(profile, kind=kind, aspects=aspects, declared=declared),
     }
     out["overrides"] = sorted(
-        {o for params in profile.values() for o in (params or {}).get(OVERRIDES_PARAM, ())}
+        {
+            o
+            for params in profile.values()
+            for o in (params or {}).get(OVERRIDES_PARAM, ())
+        }
     )
     return out
 
@@ -119,7 +125,8 @@ def format_description(d: Mapping[str, Any], *, name: str = "") -> str:
         lines.append(f"  declared overrides used: {', '.join(d['overrides'])}")
     if d.get("declared"):
         lines.append(
-            "  declared: " + ", ".join(f"{k}={v}" for k, v in sorted(d["declared"].items()))
+            "  declared: "
+            + ", ".join(f"{k}={v}" for k, v in sorted(d["declared"].items()))
         )
     for aspect, info in d["aspects"].items():
         lines.append("")
@@ -128,11 +135,15 @@ def format_description(d: Mapping[str, Any], *, name: str = "") -> str:
             head += f" (declared: {info['declared']})"
         lines.append(head)
         if "substitution" in info:
-            lines.append(f"  recorded: {info['substitution']['reason']} — {info['substitution']['requested']} → {info['substitution']['chosen']}")
+            lines.append(
+                f"  recorded: {info['substitution']['reason']} — {info['substitution']['requested']} → {info['substitution']['chosen']}"
+            )
         if info["applicable"]:
             lines.append(f"  applies: {', '.join(info['applicable'])}")
         for method, gaps in info["not_applicable"].items():
-            lines.append(f"  not {method}: missing {', '.join(g['term'] for g in gaps)}")
+            lines.append(
+                f"  not {method}: missing {', '.join(g['term'] for g in gaps)}"
+            )
             for g in gaps:
                 lines.append(f"    to add {g['term']}: {g['remedy']}")
     return "\n".join(lines)

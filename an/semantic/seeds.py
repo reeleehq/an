@@ -85,10 +85,16 @@ _JSON_TYPES: dict[type, str] = {
 
 
 def _json_type(annotation: Any, default: Any) -> dict[str, Any]:
-    text = annotation if isinstance(annotation, str) else getattr(annotation, "__name__", "")
+    text = (
+        annotation
+        if isinstance(annotation, str)
+        else getattr(annotation, "__name__", "")
+    )
     for py, js in _JSON_TYPES.items():
-        if text == py.__name__ or text.startswith(py.__name__ + " ") or text in (
-            f"{py.__name__} | None",
+        if (
+            text == py.__name__
+            or text.startswith(py.__name__ + " ")
+            or text in (f"{py.__name__} | None",)
         ):
             return {"type": js}
     if text in ("Seconds",):
@@ -121,7 +127,11 @@ def schema_of_callable(
     for name, p in inspect.signature(fn).parameters.items():
         if name in skip or p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD):
             continue
-        if p.kind is p.POSITIONAL_ONLY or (p.kind is p.POSITIONAL_OR_KEYWORD and not positional and p.default is p.empty):
+        if p.kind is p.POSITIONAL_ONLY or (
+            p.kind is p.POSITIONAL_OR_KEYWORD
+            and not positional
+            and p.default is p.empty
+        ):
             continue
         default = None if p.default is p.empty else p.default
         spec = _json_type(p.annotation, default)
@@ -142,7 +152,10 @@ def _schema_of(model: type) -> dict[str, Any]:
     try:
         schema = dict(model.model_json_schema())
     except Exception:  # noqa: BLE001 — a model pydantic cannot describe: its field names
-        schema = {"type": "object", "properties": {f: {} for f in getattr(model, "model_fields", {})}}
+        schema = {
+            "type": "object",
+            "properties": {f: {} for f in getattr(model, "model_fields", {})},
+        }
     props = dict(schema.get("properties") or {})
     props.pop("kind", None)
     schema["properties"] = props
@@ -251,7 +264,9 @@ def camera_move_path(name: str) -> list[dict[str, Any]]:
 
     rest = {k: v["default"] for k, v in FRAMING_2D.entry.params["properties"].items()}
     keys = CAMERA_MOVES[name](1.0)
-    moved = [a for a, r in rest.items() if any(float(getattr(k, a, r)) != r for k in keys)]
+    moved = [
+        a for a, r in rest.items() if any(float(getattr(k, a, r)) != r for k in keys)
+    ]
     return [
         {"at": float(k.at), **{a: float(getattr(k, a, rest[a])) for a in moved}}
         for k in keys
@@ -274,7 +289,10 @@ def _camera_moves() -> Iterable[tuple[Entry, str]]:
                 params={
                     "type": "object",
                     "properties": {
-                        "space": {"const": FRAMING_2D.entry.term, "default": FRAMING_2D.entry.term},
+                        "space": {
+                            "const": FRAMING_2D.entry.term,
+                            "default": FRAMING_2D.entry.term,
+                        },
                         "path": {"type": "array", "default": camera_move_path(name)},
                     },
                 },
@@ -300,7 +318,9 @@ def _quoted(names: Iterable[str]) -> str:
     return " | ".join('"' + n + '"' for n in names)
 
 
-def _field(path: str, usage: str, *, levels=("a",), description: str = "", **kw) -> Entry:
+def _field(
+    path: str, usage: str, *, levels=("a",), description: str = "", **kw
+) -> Entry:
     return Entry(
         f"field.{path}",
         "field",

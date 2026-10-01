@@ -42,7 +42,14 @@ from an.capabilities import (
     missing,
     remedy_for,
 )
-from an.semantic.entries import ANY_ASPECT, NOOP, Choice, Method, Policy, VocabularyError
+from an.semantic.entries import (
+    ANY_ASPECT,
+    NOOP,
+    Choice,
+    Method,
+    Policy,
+    VocabularyError,
+)
 from an.semantic.registry import aspect as _aspect
 from an.semantic.registry import entry as _entry
 from an.semantic.registry import lookup, methods_of
@@ -131,7 +138,9 @@ def _method(x: Method | Choice | str, aspect_name: str | None = None) -> Method:
     return found
 
 
-def why_not(method: Method | Choice | str, subjects: ProfileLike) -> tuple[Missing, ...]:
+def why_not(
+    method: Method | Choice | str, subjects: ProfileLike
+) -> tuple[Missing, ...]:
     """What ``method`` is missing on ``subjects``, each with its remedy (empty: it applies)."""
     m = _method(method)
     return tuple(
@@ -196,8 +205,12 @@ def resolve(
         sub = None
         if m is NOOP:
             sub = Substitution(
-                aspect_name, entity, effective.method if effective else None,
-                NOOP.id, "noop", chosen_version=NOOP.version,
+                aspect_name,
+                entity,
+                effective.method if effective else None,
+                NOOP.id,
+                "noop",
+                chosen_version=NOOP.version,
             )
         elif effective is not None and _method(effective, aspect_name).id != m.id:
             wanted = _method(effective, aspect_name)
@@ -213,11 +226,7 @@ def resolve(
                 missing=gaps,
                 remedies={t: wanted.remedies.get(t) or remedy_for(t) for t in gaps},
             )
-        elif (
-            effective is None
-            and asp.records_fallback
-            and m.id != asp.chain[0]
-        ):
+        elif effective is None and asp.records_fallback and m.id != asp.chain[0]:
             head = _method(asp.chain[0], aspect_name)
             gaps = next((g for mid, g in considered if mid == head.id), ())
             sub = Substitution(
@@ -231,10 +240,17 @@ def resolve(
                 missing=gaps,
                 remedies={t: head.remedies.get(t) or remedy_for(t) for t in gaps},
             )
-        elif source == "policy" and chain_choice is not None and chain_choice.id != m.id:
+        elif (
+            source == "policy" and chain_choice is not None and chain_choice.id != m.id
+        ):
             sub = Substitution(
-                aspect_name, entity, chain_choice.id, m.id, "policy",
-                requested_version=chain_choice.version, chosen_version=m.version,
+                aspect_name,
+                entity,
+                chain_choice.id,
+                m.id,
+                "policy",
+                requested_version=chain_choice.version,
+                chosen_version=m.version,
             )
         return Resolution(aspect_name, m, args, source, sub, tuple(considered))
 

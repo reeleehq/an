@@ -971,15 +971,31 @@ def speech_pulse(
         if beat > t:
             moves.append(delay(beat - t))
         moves += [
-            tween(path, "scale_y", to=peak, duration=attack, from_=s0, easing=DFLT_OUT_EASING),
-            tween(path, "scale_y", to=s0, duration=release, from_=peak, easing=DFLT_IN_EASING),
+            tween(
+                path,
+                "scale_y",
+                to=peak,
+                duration=attack,
+                from_=s0,
+                easing=DFLT_OUT_EASING,
+            ),
+            tween(
+                path,
+                "scale_y",
+                to=s0,
+                duration=release,
+                from_=peak,
+                easing=DFLT_IN_EASING,
+            ),
         ]
         t = beat + attack + release
     # Lands with a constant tween, not a settling `set` (as a walk's limbs do):
     # a `set` would hold `s0` and freeze an authored head-scale tween running
     # under the pulse; a tween ends, and the authored one carries on.
     moves.append(
-        tween(path, "scale_y", to=s0, duration=WALK_LANDING_S, from_=s0, easing="linear")
+        tween(
+            path, "scale_y", to=s0, duration=WALK_LANDING_S, from_=s0, easing="linear"
+        )
     )
     return sequence(*moves)
 

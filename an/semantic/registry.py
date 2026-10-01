@@ -203,14 +203,14 @@ def duplicates() -> list[str]:
     for e, _ in _all():
         key = (e.kind, e.term, getattr(e, "aspect", None))
         if key in seen and seen[key] != e.id:
-            out.append(f"{e.kind} {e.term!r} is defined by both {seen[key]!r} and {e.id!r}")
+            out.append(
+                f"{e.kind} {e.term!r} is defined by both {seen[key]!r} and {e.id!r}"
+            )
         seen.setdefault(key, e.id)
     return out
 
 
-def entries(
-    *, kind: str | None = None, owner: str | None = None
-) -> tuple[Entry, ...]:
+def entries(*, kind: str | None = None, owner: str | None = None) -> tuple[Entry, ...]:
     """Every entry (registered and viewed), filtered by ``kind``/``owner``, in a stable order."""
     seen: dict[str, Entry] = {}
     for e, o in _all():
@@ -241,7 +241,10 @@ def lookup(kind: str, name: str, *, aspect: str | None = None) -> Entry | None:
     for e, _ in _all():
         if e.kind != kind or e.term != name:
             continue
-        if aspect is not None and getattr(e, "aspect", None) not in (aspect, ANY_ASPECT):
+        if aspect is not None and getattr(e, "aspect", None) not in (
+            aspect,
+            ANY_ASPECT,
+        ):
             continue
         return e
     return None
@@ -263,9 +266,7 @@ def aspects() -> tuple[Aspect, ...]:
 
 
 def aspect_names(*, owner: str | None = None) -> tuple[str, ...]:
-    return tuple(
-        n for n in _T.aspects if owner is None or _T.aspect_owners[n] == owner
-    )
+    return tuple(n for n in _T.aspects if owner is None or _T.aspect_owners[n] == owner)
 
 
 def methods_of(aspect_name: str) -> tuple[Method, ...]:
@@ -309,13 +310,28 @@ def snapshot() -> tuple:
     """The state of the registered tables (views are code, not state)."""
     return tuple(
         dict(t)
-        for t in (_T.entries, _T.entry_owners, _T.aspects, _T.aspect_owners, _T.replaced, _T.shadowed)
+        for t in (
+            _T.entries,
+            _T.entry_owners,
+            _T.aspects,
+            _T.aspect_owners,
+            _T.replaced,
+            _T.shadowed,
+        )
     )
 
 
 def restore(state: tuple) -> None:
     for table, saved in zip(
-        (_T.entries, _T.entry_owners, _T.aspects, _T.aspect_owners, _T.replaced, _T.shadowed), state
+        (
+            _T.entries,
+            _T.entry_owners,
+            _T.aspects,
+            _T.aspect_owners,
+            _T.replaced,
+            _T.shadowed,
+        ),
+        state,
     ):
         table.clear()
         table.update(saved)

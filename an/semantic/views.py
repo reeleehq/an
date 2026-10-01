@@ -60,7 +60,12 @@ class ViewField:
             raise ValueError(f"view field {self.name!r}: scale must be one of {SCALES}")
 
     def schema(self) -> dict[str, Any]:
-        out = {"type": "number", "unit": self.unit, "scale": self.scale, "default": self.rest}
+        out = {
+            "type": "number",
+            "unit": self.unit,
+            "scale": self.scale,
+            "default": self.rest,
+        }
         if self.description:
             out["description"] = self.description
         return out
@@ -118,7 +123,9 @@ FRAMING_2D: ViewSpace = view_space(
     (
         ViewField("x", "frame widths", description="+x moves the view right"),
         ViewField("y", "frame heights", description="+y moves the view down"),
-        ViewField("zoom", "ratio", "log", 1.0, "on-screen magnification; > 1 is closer"),
+        ViewField(
+            "zoom", "ratio", "log", 1.0, "on-screen magnification; > 1 is closer"
+        ),
         ViewField("rotation", "rad", "angle", description="the view's roll"),
     ),
     description="a 2D framing of a flat picture: position, zoom (log), roll (angle)",
@@ -129,7 +136,9 @@ ORBIT_3D: ViewSpace = view_space(
     "orbit3d",
     (
         ViewField("azimuth", "rad", "angle", description="around the target"),
-        ViewField("elevation", "rad", "angle", description="above the target's horizon"),
+        ViewField(
+            "elevation", "rad", "angle", description="above the target's horizon"
+        ),
         ViewField("distance", "scene units", "log", 1.0, "from the target"),
         ViewField("target_x", "scene units"),
         ViewField("target_y", "scene units"),

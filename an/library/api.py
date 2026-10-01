@@ -1517,7 +1517,8 @@ def vocabulary(libraries: Libraries, *, index: Index = scan_index) -> dict[str, 
                 "count": caps_count.get(name, 0),
             }
             for name, cap in sorted(CAPABILITIES.items())
-            if cap.subject == "asset"  # an asset's facets; engine/env are not searchable
+            if cap.subject
+            == "asset"  # an asset's facets; engine/env are not searchable
         },
         "kinds": sorted(ASSET_KINDS),
         "statuses": list(STATUSES),

@@ -96,7 +96,9 @@ __all__ = [
 ]
 
 
-def vocabulary(*, kind: str | None = None, owner: str | None = None) -> list[dict[str, Any]]:
+def vocabulary(
+    *, kind: str | None = None, owner: str | None = None
+) -> list[dict[str, Any]]:
     """Every entry as data (what the MCP surface returns), filtered by ``kind``/``owner``."""
     return [e.to_json() for e in entries(kind=kind, owner=owner)]
 
@@ -124,7 +126,9 @@ def check_registry(*, owner: str | None = None, capabilities: bool = True) -> li
             try:
                 m = entry(mid)
             except UnknownEntryError:
-                problems.append(f"aspect {a.name!r}: chain names {mid!r}, which is not registered")
+                problems.append(
+                    f"aspect {a.name!r}: chain names {mid!r}, which is not registered"
+                )
                 continue
             if not isinstance(m, Method) or m.aspect not in (a.name, ANY_ASPECT):
                 problems.append(f"aspect {a.name!r}: {mid!r} is not a method of it")
