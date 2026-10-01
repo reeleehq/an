@@ -36,6 +36,7 @@ one whose attribute access forwards them to the new module, so
 
 from __future__ import annotations
 
+import ast
 import importlib
 import importlib.abc
 import importlib.util
@@ -43,16 +44,22 @@ import sys
 import types
 import warnings
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
+from pathlib import Path
 
 __all__ = [
     "GenreNotInstalledError",
+    "GenrePackageTooOldError",
+    "MOVED_CALL",
     "MovedModuleWarning",
     "alias_module",
     "aliased_to",
     "forward_module_attributes",
     "forwarded_names",
+    "declared_moves",
     "moved_to_package",
     "moved_targets",
+    "resolve_moved",
 ]
 
 #: Attribute on a shimmed module holding ``{old name: (target module, new name)}``.
@@ -193,13 +200,19 @@ def aliased_to(module: types.ModuleType) -> str | None:
 DFLT_MOVED_DISTRIBUTION: str = "cutan"
 DFLT_MOVED_EXTRA: str = "cutout"
 
+#: The call a moved module's old file consists of; read STATICALLY by
+#: :func:`declared_moves` (the shot-cache walk, the old-path guard, doctest
+#: collection), so it is spelled once.
+MOVED_CALL: str = "moved_to_package"
+
 
 class MovedModuleWarning(DeprecationWarning):
     """An old ``an`` import path of a module that moved to a genre package.
 
     Its own class, so a test configuration can turn exactly this into an error
-    (``an``'s own code must never import through an old path) without touching
-    any other deprecation.
+    without touching any other deprecation. Attributed to the first frame
+    outside ``an`` and the import system -- the importer's own line -- so the
+    default filters show it where the old path is written.
     """
 
 
@@ -211,67 +224,162 @@ class GenreNotInstalledError(ModuleNotFoundError):
     """
 
 
+class GenrePackageTooOldError(GenreNotInstalledError):
+    """The genre package is installed, but older than the move this ``an`` declares.
+
+    The realistic failure after a move: ``pip install -U an`` upgrades ``an``
+    and leaves an older genre package that does not have the module yet.
+    """
+
+
+@dataclass(frozen=True)
+class _Move:
+    target: str
+    distribution: str
+    extra: str
+
+
 class _MovedFinder(importlib.abc.MetaPathFinder):
-    """Maps every ``<old>.<sub>`` import to ``<new>.<sub>``, for each registered move."""
+    """Maps a moved name, and every submodule of a moved package, to its new home.
+
+    The LONGEST registered old prefix wins, so a package moved as a whole can
+    still send one submodule elsewhere (``moved_to_package(..., submodules=)``).
+    """
 
     def __init__(self) -> None:
-        self.moves: dict[str, tuple[str, str, str]] = {}
+        self.moves: dict[str, _Move] = {}
+
+    def route(self, fullname: str) -> tuple[str, str, _Move] | None:
+        """``(old prefix, new name, move)`` for ``fullname``, or ``None``."""
+        hits = [
+            old
+            for old in self.moves
+            if fullname == old or fullname.startswith(old + ".")
+        ]
+        if not hits:
+            return None
+        old = max(hits, key=len)
+        move = self.moves[old]
+        return old, move.target + fullname[len(old) :], move
 
     def find_spec(self, fullname, path=None, target=None):
-        for old, (new, distribution, extra) in self.moves.items():
-            if fullname.startswith(old + "."):
-                loader = _MovedLoader(
-                    fullname,
-                    new + fullname[len(old) :],
-                    distribution=distribution,
-                    extra=extra,
-                )
-                return importlib.util.spec_from_loader(fullname, loader)
-        return None
+        routed = self.route(fullname)
+        if routed is None:
+            return None
+        old, new, move = routed
+        loader = _MovedLoader(fullname, new, move=move, declared=fullname == old)
+        return importlib.util.spec_from_loader(fullname, loader)
 
 
 class _MovedLoader(importlib.abc.Loader):
     """Loads an old name as the NEW module object itself (no second copy)."""
 
-    def __init__(self, old: str, new: str, *, distribution: str, extra: str) -> None:
-        self.old, self.new = old, new
-        self.distribution, self.extra = distribution, extra
+    def __init__(self, old: str, new: str, *, move: _Move, declared: bool) -> None:
+        self.old, self.new, self.move, self.declared = old, new, move, declared
+        self._own_spec = None
 
     def create_module(self, spec):
-        return _import_moved(
-            self.old, self.new, distribution=self.distribution, extra=self.extra
+        module = _import_moved(
+            self.old, self.new, move=self.move, declared=self.declared
         )
+        self._own_spec = module.__spec__
+        return module
 
     def exec_module(self, module) -> None:
-        """Nothing to run: the module was imported under its new name."""
+        """Run nothing; give the module its own spec back.
+
+        The import system's ``module_from_spec`` overwrote ``__spec__`` with the
+        OLD name's spec (no origin, no search locations), which would break
+        ``importlib.resources.files(new)``, make ``find_spec(new).origin`` empty
+        and so drop the module from the shot-cache code walk, and make
+        ``reload`` rename it (review of an#298, S1).
+        """
+        module.__spec__ = self._own_spec
 
 
 _FINDER = _MovedFinder()
 
 
-def _import_moved(
-    old: str, new: str, *, distribution: str, extra: str
-) -> types.ModuleType:
-    top = new.split(".", 1)[0]
-    try:
-        module = importlib.import_module(new)
-    except ModuleNotFoundError as e:
-        # Only the ABSENT DISTRIBUTION gets the install hint; a missing module
-        # inside an installed one is a real error and propagates as it is.
-        if e.name == top and importlib.util.find_spec(top) is None:
-            raise GenreNotInstalledError(
-                f"`{old}` moved to `{new}`, in the `{distribution}` package, "
-                f'which is not installed. Install it: pip install "an[{extra}]" '
-                f"(or pip install {distribution}).",
-                name=old,
-            ) from e
-        raise
+def _is_internal_frame(frame, old: str) -> bool:
+    """A frame of ``an``, of the import system, or of a moved module's shim."""
+    name = frame.f_globals.get("__name__", "") or ""
+    filename = frame.f_code.co_filename
+    return (
+        filename.startswith("<frozen importlib")
+        or name == "importlib"
+        or name.startswith("importlib.")
+        or name == "an"
+        or name.startswith("an.")
+        or name == old
+        or name.startswith(old + ".")
+        or _FINDER.route(name) is not None
+    )
+
+
+def _is_bootstrap_frame(frame) -> bool:
+    """A frame ``warnings`` does not count in ``stacklevel`` (CPython's rule)."""
+    filename = frame.f_code.co_filename
+    return "importlib" in filename and "_bootstrap" in filename
+
+
+def _warn_moved(old: str, new: str, distribution: str) -> None:
+    """Warn at the importer's line: the first frame outside ``an`` and importlib."""
+    level, frame = 2, sys._getframe(1)
+    while frame is not None and _is_internal_frame(frame, old):
+        frame = frame.f_back
+        # `warnings` itself skips the import system's bootstrap frames when it
+        # walks `stacklevel`, so they are not counted here either.
+        if frame is not None and not _is_bootstrap_frame(frame):
+            level += 1
     warnings.warn(
         f"`{old}` moved to `{new}` (the `{distribution}` package); import it from "
         "there. The old path is a live alias, removed once nothing imports it.",
         MovedModuleWarning,
-        stacklevel=3,
+        stacklevel=level,
     )
+
+
+def _installed_version(distribution: str) -> str:
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version(distribution)
+    except PackageNotFoundError:
+        return "version unknown"
+
+
+def _import_moved(
+    old: str, new: str, *, move: _Move, declared: bool
+) -> types.ModuleType:
+    """Import ``new`` for ``old``; typed, actionable errors when it cannot be found.
+
+    ``declared``: ``new`` is a move target named in a shim (not a submodule
+    derived from a package move), so its absence from an INSTALLED genre package
+    means that package is too old. A derived submodule that does not exist is an
+    ordinary missing module (a typo) and propagates as it is.
+    """
+    top = new.split(".", 1)[0]
+    try:
+        module = importlib.import_module(new)
+    except ModuleNotFoundError as e:
+        missing = e.name or ""
+        if missing == top and importlib.util.find_spec(top) is None:
+            raise GenreNotInstalledError(
+                f"`{old}` moved to `{new}`, in the `{move.distribution}` package, "
+                f'which is not installed. Install it: pip install "an[{move.extra}]" '
+                f"(or pip install {move.distribution}).",
+                name=old,
+            ) from e
+        if declared and (missing == new or new.startswith(missing + ".")):
+            raise GenrePackageTooOldError(
+                f"`{old}` moved to `{new}`, but the installed `{move.distribution}` "
+                f"({_installed_version(move.distribution)}) has no `{missing}`: it "
+                f"is older than this `an` expects. Upgrade it: "
+                f"pip install -U {move.distribution}",
+                name=old,
+            ) from e
+        raise
+    _warn_moved(old, new, move.distribution)
     return module
 
 
@@ -281,23 +389,27 @@ def moved_to_package(
     *,
     distribution: str = DFLT_MOVED_DISTRIBUTION,
     extra: str = DFLT_MOVED_EXTRA,
+    submodules: Mapping[str, str] | None = None,
 ) -> None:
     """Make ``module_name`` -- and, for a package, every submodule of it -- the
     module ``target`` that now lives in another distribution.
 
     Call it as the ONLY statement of the old module (or the old package's
-    ``__init__``), with ``__name__``. After it:
+    ``__init__``), with ``__name__`` and string literals: the call is also read
+    statically (:func:`declared_moves`). After it:
 
     - ``import old`` and ``import old.sub`` return the NEW module objects
-      themselves (``old.sub is new.sub``): one copy, so no class, registry or
-      document kind is ever defined twice, and rebinding a name (a lever,
-      ``monkeypatch``) rebinds it where the code runs;
-    - each old name warns once, with :class:`MovedModuleWarning`;
-    - if ``distribution`` is not installed, the import raises
-      :class:`GenreNotInstalledError` naming ``pip install "an[<extra>]"``.
+      themselves (``old.sub is new.sub``), each with its own ``__spec__``: one
+      copy, so no class, registry or document kind is ever defined twice, and
+      rebinding a name (a lever, ``monkeypatch``) rebinds it where the code runs;
+    - each old name warns once, with :class:`MovedModuleWarning`, at the
+      importer's line;
+    - an absent ``distribution`` raises :class:`GenreNotInstalledError` naming
+      ``pip install "an[<extra>]"``; an installed one that lacks ``target``
+      raises :class:`GenrePackageTooOldError` naming the upgrade.
 
-    Unlike :func:`alias_module` the old file holds no code at all, which is
-    what lets the code leave this distribution.
+    ``submodules`` sends ``{name: new module}`` elsewhere than ``target.<name>``
+    (a package whose parts land in different places).
 
     >>> import sys, types, warnings
     >>> new = types.ModuleType("_moved_demo_new"); new.KNOB = 1
@@ -313,8 +425,11 @@ def moved_to_package(
     >>> _forget_move("_moved_demo_old")
     >>> del sys.modules["_moved_demo_new"], sys.modules["_moved_demo_old"]
     """
-    module = _import_moved(module_name, target, distribution=distribution, extra=extra)
-    _FINDER.moves[module_name] = (target, distribution, extra)
+    move = _Move(target, distribution, extra)
+    module = _import_moved(module_name, target, move=move, declared=True)
+    _FINDER.moves[module_name] = move
+    for name, sub_target in (submodules or {}).items():
+        _FINDER.moves[f"{module_name}.{name}"] = _Move(sub_target, distribution, extra)
     if _FINDER not in sys.meta_path:
         sys.meta_path.insert(0, _FINDER)
     # The import system re-reads `sys.modules[name]` after running the old
@@ -324,9 +439,88 @@ def moved_to_package(
 
 def moved_targets() -> dict[str, str]:
     """``{old module: new module}`` for every move registered in this process."""
-    return {old: new for old, (new, _d, _e) in _FINDER.moves.items()}
+    return {old: move.target for old, move in _FINDER.moves.items()}
 
 
 def _forget_move(module_name: str) -> None:
-    """Drop a registered move (tests and doctests only)."""
-    _FINDER.moves.pop(module_name, None)
+    """Drop a registered move and its submodule overrides (tests and doctests only)."""
+    for old in [
+        o for o in _FINDER.moves if o == module_name or o.startswith(module_name + ".")
+    ]:
+        del _FINDER.moves[old]
+
+
+def _module_name_of(path: Path, package_dir: Path) -> str:
+    parts = list(path.relative_to(package_dir.parent).with_suffix("").parts)
+    if parts[-1] == "__init__":
+        parts = parts[:-1]
+    return ".".join(parts)
+
+
+def _declared_move(node: ast.stmt) -> tuple[str, dict[str, str]] | None:
+    """``(target, submodules)`` of a top-level ``moved_to_package(__name__, "t", ...)``."""
+    call = node.value if isinstance(node, ast.Expr) else None
+    if not isinstance(call, ast.Call) or len(call.args) < 2:
+        return None
+    func = call.func
+    name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+    first, second = call.args[0], call.args[1]
+    if not (
+        name == MOVED_CALL
+        and isinstance(first, ast.Name)
+        and first.id == "__name__"
+        and isinstance(second, ast.Constant)
+        and isinstance(second.value, str)
+    ):
+        return None
+    subs: dict[str, str] = {}
+    for kw in call.keywords:
+        if kw.arg == "submodules" and isinstance(kw.value, ast.Dict):
+            for k, v in zip(kw.value.keys, kw.value.values):
+                if isinstance(k, ast.Constant) and isinstance(v, ast.Constant):
+                    subs[str(k.value)] = str(v.value)
+    return second.value, subs
+
+
+def declared_moves(package_dir: str | Path | None = None) -> dict[str, str]:
+    """``{old module: new module}`` for every move declared under ``package_dir``,
+    read from the SOURCE (a top-level ``moved_to_package(__name__, "...")``),
+    never by importing it: importing an old path warns, needs the genre package,
+    and -- under this repository's warnings-as-errors filter -- raises.
+
+    ``package_dir`` defaults to the ``an`` package. Used by the shot-cache code
+    walk, the old-path guard and doctest collection.
+
+    >>> isinstance(declared_moves(), dict)
+    True
+    """
+    root = Path(package_dir) if package_dir is not None else Path(__file__).parent
+    out: dict[str, str] = {}
+    for path in sorted(root.rglob("*.py")):
+        data = path.read_bytes()
+        if MOVED_CALL.encode() not in data:
+            continue
+        tree = ast.parse(data)
+        module = _module_name_of(path, root)
+        for node in tree.body:
+            declared = _declared_move(node)
+            if declared is not None:
+                target, subs = declared
+                out[module] = target
+                out.update({f"{module}.{k}": v for k, v in subs.items()})
+    return dict(sorted(out.items()))
+
+
+def resolve_moved(name: str, moves: Mapping[str, str]) -> str:
+    """``name`` with its longest moved prefix replaced by the new home (``name`` if none).
+
+    >>> resolve_moved("an.characters.schema", {"an.characters": "cutan.characters"})
+    'cutan.characters.schema'
+    >>> resolve_moved("an.ir", {"an.characters": "cutan.characters"})
+    'an.ir'
+    """
+    hits = [old for old in moves if name == old or name.startswith(old + ".")]
+    if not hits:
+        return name
+    old = max(hits, key=len)
+    return moves[old] + name[len(old) :]

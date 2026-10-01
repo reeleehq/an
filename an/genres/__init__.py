@@ -95,8 +95,13 @@ class GenreError(RegistryError):
 #: it supports" (ADR 0001 decision 8) is said without a version pin: ``an``'s
 #: version is assigned by CI at merge, so no PR can name the release it ships in.
 #:
-#: Levels: 1 = moved-module shims (``an._shims.moved_to_package``) and this
-#: check (an#296, P8 B0a).
+#: A genre package must also run against an ``an`` older than this constant:
+#: it reads ``getattr(an.genres, "API_LEVEL", 0)`` before calling
+#: :func:`require_api_level`, and raises its own typed error when it is missing.
+#:
+#: Levels (one line each; ``tests/test_genre_gate.py`` holds the list complete):
+#:
+#: 1 = moved-module shims (``an._shims.moved_to_package``) and this check (an#296, P8 B0a).
 API_LEVEL: int = 1
 
 

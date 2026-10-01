@@ -30,6 +30,7 @@ and ``pytest -q -m "not live_api"`` is always safe.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -93,8 +94,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "genre(name, ...): needs the named genre(s) installed (P8, an#225: the "
-        "cut-out genre moves to `cutan`); skipped AND COUNTED when one is absent, "
-        f"an error when {GENRE_ENV_VAR} is truthy",
+        "cut-out genre moves to `cutan`); skipped AND COUNTED when declared or known "
+        f"absent, an error under {GENRE_ENV_VAR}=1, in CI without {GENRE_ENV_VAR}, "
+        "and for an unknown or broken genre",
     )
     config.addinivalue_line(
         "markers",
@@ -512,64 +514,229 @@ def requirement_verdict(name, *, opt_in, available, ci, install_hint):
 _GATE_REPORT: dict = {}
 
 
-#: Set truthy in a lane that INSTALLS the genre packages (the genre lane of
-#: P8, an#225), so a genre test that cannot run there is an error, not a skip.
+#: The genre test gate (P8, an#225). Tri-state, like the browser gate:
+#: ``1`` in a lane that INSTALLS the genre packages (a genre test that cannot
+#: run there is an error), ``0`` in a lane that declares them ABSENT (genre tests
+#: skip, counted). Unset: skip locally, but an ERROR in CI -- a CI lane must say
+#: which one it is, or an unimportable genre would turn every genre test into a
+#: green skip (review of an#298, M4).
 GENRE_ENV_VAR = "AN_GENRE_TESTS"
+
+#: The genre names a ``genre`` marker may use. A marker naming anything else is
+#: an error, never a skip: a misspelled name would otherwise read as "that genre
+#: is not installed" forever (review of an#298, M4). Add a genre here when its
+#: first test is marked.
+KNOWN_GENRES: frozenset[str] = frozenset({"cutout_animation"})
 
 #: How to get the genres, quoted in the skip reason.
 _GENRE_INSTALL_HINT = "pip install -e '.[cutout]' (the cut-out genre, an#225)"
 
 
-def genre_verdict(names, *, available, opt_in):
+def genre_verdict(names, *, available, broken=None, opt_in=None, ci=False, known=KNOWN_GENRES):
     """``(action, message)`` for a test marked ``@pytest.mark.genre(*names)``.
 
     The P8 move (an#225) puts the cut-out genre in another distribution, so
     `an`'s own tests that need it can only run where it is installed. Those
-    tests are marked, and SKIPPED-AND-COUNTED elsewhere (the summary line says
-    how many did not run, and why) -- never `importorskip`ped from a body,
-    which is the silent hole of an#22. Pure, so the matrix is testable.
+    tests are marked, and SKIPPED-AND-COUNTED where the genre is declared or
+    known absent -- never `importorskip`ped from a body, which is the silent
+    hole of an#22. ``broken`` maps a genre that is installed but does not load
+    to its error. Pure, so the whole matrix is testable.
 
-    >>> genre_verdict(["cutout_animation"], available={"cutout_animation"}, opt_in=None)
+    >>> genre_verdict(["cutout_animation"], available={"cutout_animation"})
     ('run', '')
-    >>> genre_verdict(["cutout_animation"], available=set(), opt_in=None)[0]
+    >>> genre_verdict(["cutout_animation"], available=set())[0]
+    'skip'
+    >>> genre_verdict(["cutout_animation"], available=set(), ci=True)[0]
+    'error'
+    >>> genre_verdict(["cutout_animation"], available=set(), ci=True, opt_in=False)[0]
     'skip'
     >>> genre_verdict(["cutout_animation"], available=set(), opt_in=True)[0]
     'error'
+    >>> genre_verdict(["cutout"], available={"cutout_animation"})[0]
+    'error'
+    >>> genre_verdict(["cutout_animation"], available=set(), broken={"cutout_animation": "boom"}, opt_in=False)[0]
+    'error'
     """
+    broken = broken or {}
+    names = tuple(names)
+    if not names:
+        return "error", "a `genre` marker names no genre: write @pytest.mark.genre(\"<name>\")"
+    unknown = sorted(set(names) - set(known) - set(available) - set(broken))
+    if unknown:
+        return (
+            "error",
+            f"`genre` marker names unknown genre(s) {unknown}; known: {sorted(known)}. "
+            "A typo must fail, not skip: add a new genre to KNOWN_GENRES in tests/conftest.py.",
+        )
+    failing = {n: broken[n] for n in names if n in broken}
+    if failing:
+        return (
+            "error",
+            "installed genre(s) do not load, so their tests cannot run: "
+            + "; ".join(f"{n}: {err}" for n, err in sorted(failing.items())),
+        )
     missing = sorted(set(names) - set(available))
     if not missing:
         return "run", ""
-    if opt_in:
+    if opt_in is True:
         return (
             "error",
-            f"{GENRE_ENV_VAR} says the genres are installed, but {missing} is not "
-            f"discoverable (an.genres.available()). Install it ({_GENRE_INSTALL_HINT}) "
-            f"or unset {GENRE_ENV_VAR}.",
+            f"{GENRE_ENV_VAR}=1 says the genres are installed, but {missing} is not "
+            f"discoverable. Install it ({_GENRE_INSTALL_HINT}) or set {GENRE_ENV_VAR}=0.",
+        )
+    if opt_in is False:
+        return "skip", f"genre {', '.join(missing)} declared absent ({GENRE_ENV_VAR}=0)"
+    if ci:
+        return (
+            "error",
+            f"genre {', '.join(missing)} is not installed and this CI lane does not say "
+            f"whether it should be: set {GENRE_ENV_VAR}=1 where the genres are installed, "
+            f"{GENRE_ENV_VAR}=0 where they are deliberately absent.",
         )
     return "skip", f"genre {', '.join(missing)} not installed: {_GENRE_INSTALL_HINT}"
 
 
-def _genre_gate(items, env=None):
+def _genre_status():
+    """``(available names, {name: load error})`` over every discoverable genre.
+
+    Side effect, stated: resolving a genre imports its declaring module (today
+    `an.genres.cutout`, and through it `an.characters`), at collection, in any
+    run that selects a genre-marked test. `an.genres.available()` is not used
+    because it swallows a genre that fails to import -- which is exactly the
+    failure this gate must report.
+    """
+    from an.genres import GenreError, _resolve, discovered_entry_points
+
+    available, broken = set(), {}
+    for ep in discovered_entry_points():
+        try:
+            available.add(_resolve(ep).name)
+        except GenreError as e:
+            broken[ep.name] = str(e)
+    return available, broken
+
+
+def _genre_gate(items, env=None, *, status=None):
     """Apply :func:`genre_verdict` to every ``genre``-marked item; its report row."""
     marked = [(i, m) for i in items if (m := i.get_closest_marker("genre")) is not None]
     report = {"total": 0, "skipped": 0, "reason": ""}
     if not marked:
         return report
-    from an.genres import available
-
     env = os.environ if env is None else env
-    names = set(available())
+    available, broken = _genre_status() if status is None else status
     opt_in = _env_flag(env, GENRE_ENV_VAR)
+    ci = _is_ci(env)
     for item, marker in marked:
-        action, message = genre_verdict(marker.args, available=names, opt_in=opt_in)
+        if marker.kwargs:
+            raise pytest.UsageError(
+                f"{item.nodeid}: the `genre` marker takes genre names positionally, "
+                f"not {sorted(marker.kwargs)}"
+            )
+        action, message = genre_verdict(
+            marker.args, available=available, broken=broken, opt_in=opt_in, ci=ci
+        )
         if action == "error":
-            raise pytest.UsageError(message)
+            raise pytest.UsageError(f"{item.nodeid}: {message}")
         report["total"] += 1
         if action == "skip":
             report["skipped"] += 1
             report["reason"] = report["reason"] or message
             item.add_marker(pytest.mark.skip(reason=message))
     return report
+
+
+# -- The count guard (P8 manifest §5; review of an#298, M4) --------------------
+#
+# A genre test can also vanish WITHOUT the gate: a module-level
+# `pytest.importorskip("cutan")`, or an import of the genre package at the top
+# of a test file, takes the whole file out of collection, and the summary line
+# above never sees it. So the marked tests are also counted STATICALLY, from
+# source, and every one of them in a file this run was asked to collect must
+# have been collected.
+
+
+def static_genre_marked(paths):
+    """``{(file, test function)}`` carrying a ``genre`` marker, read by AST.
+
+    A function decorated ``@pytest.mark.genre(...)``, or every ``test_*``
+    function of a module (or class) whose ``pytestmark`` names ``genre``.
+    """
+    import ast
+
+    def names_genre(node):
+        return any(
+            isinstance(n, ast.Attribute) and n.attr == "genre" for n in ast.walk(node)
+        )
+
+    out = set()
+    for path in paths:
+        tree = ast.parse(Path(path).read_text(encoding="utf-8"))
+
+        def visit(body, inherited):
+            marked_here = inherited or any(
+                isinstance(n, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in n.targets)
+                and names_genre(n.value)
+                for n in body
+            )
+            for n in body:
+                if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test"):
+                    if marked_here or any(names_genre(d) for d in n.decorator_list):
+                        out.add((str(path), n.name))
+                elif isinstance(n, ast.ClassDef):
+                    visit(n.body, marked_here or any(names_genre(d) for d in n.decorator_list))
+
+        visit(tree.body, False)
+    return out
+
+
+def genre_count_gaps(static, collected):
+    """The statically marked tests a run was asked for and did not collect.
+
+    >>> genre_count_gaps({("t.py", "test_a"), ("t.py", "test_b")}, {("t.py", "test_a")})
+    [('t.py', 'test_b')]
+    """
+    return sorted(set(static) - set(collected))
+
+
+#: Filled at collection: the genre-marked tests the session collected.
+_GENRE_COLLECTED: set = set()
+
+
+def _genre_guard_scope(config):
+    """The test files this run asked for, or ``None`` when the run is filtered
+    (``-k``, ``-m``, a node id, ``--lf``) and so may legitimately omit tests."""
+    opt = config.option
+    if getattr(opt, "keyword", "") or getattr(opt, "markexpr", "") or getattr(opt, "lf", False):
+        return None
+    if any("::" in str(a) for a in config.args):
+        return None
+    ignored = [Path(str(i)).resolve() for i in (config.getoption("ignore") or [])]
+    files = set()
+    for arg in config.args:
+        path = Path(str(arg)).resolve()
+        if path.is_dir():
+            files.update(p for p in path.rglob("test_*.py") if ".claude" not in p.parts)
+        elif path.is_file() and path.name.startswith("test_"):
+            files.add(path)
+    return {f for f in files if not any(f == i or i in f.parents for i in ignored)}
+
+
+def pytest_sessionfinish(session, exitstatus):
+    scope = _genre_guard_scope(session.config)
+    if not scope:
+        return
+    gaps = genre_count_gaps(static_genre_marked(sorted(scope)), _GENRE_COLLECTED)
+    if gaps:
+        reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+        lines = "\n  ".join(f"{f}::{n}" for f, n in gaps)
+        message = (
+            f"genre-marked tests that were never collected (a module-level skip or "
+            f"import took them out, so no gate counted them):\n  {lines}"
+        )
+        if reporter is not None:
+            reporter.write_line(message, red=True)
+        session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
 
 def _gate_verdicts(env=None):
@@ -640,6 +807,12 @@ def pytest_collection_modifyitems(config, items):
         }
     )
     _GATE_REPORT["genre"] = _genre_gate(items)
+    _GENRE_COLLECTED.clear()
+    _GENRE_COLLECTED.update(
+        (str(Path(str(item.fspath)).resolve()), getattr(item, "originalname", item.name))
+        for item in items
+        if item.get_closest_marker("genre") is not None
+    )
     _RAN_COUNTS.clear()
     # An explicit opt-in that cannot be honoured is an error — but only for a
     # requirement that gates something this invocation actually selected.
