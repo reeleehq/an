@@ -1,0 +1,31 @@
+{
+  "name": "@thorwhalen/an-contract",
+  "version": "1.0.0",
+  "description": "The shared structured-animation contract of `an`: timing kernel golden vectors, JSON Schemas, easing and field-kind tables, and the code-free vocabulary. Generated data only.",
+  "license": "MIT",
+  "author": "Thor Whalen",
+  "homepage": "https://github.com/thorwhalen/an/tree/main/contract",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thorwhalen/an.git",
+    "directory": "contract"
+  },
+  "bugs": "https://github.com/thorwhalen/an/issues",
+  "keywords": [
+    "animation",
+    "timeline",
+    "easing",
+    "json-schema",
+    "contract",
+    "an"
+  ],
+  "sideEffects": false,
+  "files": [
+    "*.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

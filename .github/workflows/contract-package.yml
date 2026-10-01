@@ -1,0 +1,111 @@
+# Build the data-only contract package and publish it to npm (ADR 0006, an#261).
+#
+# WHAT IT DOES
+#
+#   The contract files `an` generates from its registries (an/data/timing/*.json)
+#   are staged by `contract/build.py` into `contract/dist/` and, on a push to the
+#   default branch, published to npm as `@thorwhalen/an-contract` (a working
+#   name: the maintainer may rename it in contract/package.json before the first
+#   publish).
+#
+# WHEN IT PUBLISHES
+#
+#   Only when ALL of these hold: the run is a push to the default branch (a PR
+#   builds and stops), the `NPM_TOKEN` secret exists, and the version in
+#   contract/package.json is not on npm yet. The version changes only when a
+#   contract file changes (`python contract/build.py check` fails otherwise, here
+#   and in `an`'s tests), so a release of `an` that leaves the contract alone
+#   publishes nothing: "contract file changed" is decided by that version, not by
+#   a diff that a squash merge or a re-run could blur.
+#
+# WHAT IT NEVER DOES
+#
+#   Fail for lack of the token: without `NPM_TOKEN` it builds, packs, logs one
+#   clear notice and skips the publish. It is a separate workflow from ci.yml, so
+#   it cannot hold up (or break) the PyPI release; a bump commit by that workflow
+#   carries `[skip ci]` and does not trigger it.
+#
+# The contract-vs-registry drift test (the files equal what the registries
+# generate) runs in `an`'s own CI; this workflow trusts the committed files and
+# checks that the recorded version matches them.
+name: Contract package (npm)
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "an/data/timing/**"
+      - "contract/**"
+      - ".github/workflows/contract-package.yml"
+  pull_request:
+    paths:
+      - "an/data/timing/**"
+      - "contract/**"
+      - ".github/workflows/contract-package.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-package:
+    name: Build and publish
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    env:
+      # Read through the environment: a secret cannot be tested in an `if:`.
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PACKAGE_DIR: contract/dist
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+
+      - name: Check the recorded version matches the contract files
+        run: python contract/build.py check
+
+      - name: Stage the package
+        run: python contract/build.py build --out "$PACKAGE_DIR"
+
+      - name: Pack (dry run)
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: npm pack --dry-run
+
+      - name: Decide whether to publish
+        id: decide
+        env:
+          # So `npm view` below is not sent setup-node's placeholder token.
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+        run: |
+          name=$(node -p "require('./$PACKAGE_DIR/package.json').name")
+          version=$(node -p "require('./$PACKAGE_DIR/package.json').version")
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          default_branch="${{ github.event.repository.default_branch }}"
+          if [ "${{ github.event_name }}" != "push" ] || [ "${{ github.ref_name }}" != "$default_branch" ]; then
+            echo "::notice::Built $name@$version. Not publishing: only a push to $default_branch publishes."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ -z "$NPM_TOKEN" ]; then
+            echo "::notice::Built $name@$version. SKIPPING the npm publish: the NPM_TOKEN secret is not set. Add it (see the manual-task issue on the an repository) and re-run this workflow; nothing else fails."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ -n "$(npm view "$name@$version" version 2>/dev/null)" ]; then
+            echo "::notice::$name@$version is already on npm: the contract did not change since it was published, nothing to do."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.decide.outputs.publish == 'true'
+        working-directory: ${{ env.PACKAGE_DIR }}
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+        run: npm publish --access public
