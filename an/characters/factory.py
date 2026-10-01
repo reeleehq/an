@@ -651,9 +651,12 @@ def new_character(
     )
     if source is None:
         # The descriptor says who made the character (an#251): the factory,
-        # pinned to the drawing the parts were cut from. A DiceBear head keeps
-        # DiceBear's source, which already speaks for the whole descriptor.
+        # pinned to the drawing the parts were cut from.
         stamp_factory_descriptor(out)
+    else:
+        # DiceBear's source speaks only for DiceBear's bytes (review-259 S1):
+        # pinned on the head it drew and on the drawing wrapping it.
+        stamp_generated_head(out, source)
     return desc_path
 
 
@@ -720,6 +723,41 @@ def stamp_factory_descriptor(char_dir: str | Path) -> Path:
     if desc.source is not None or not desc.source_svg or not drawing.is_file():
         return desc_path
     desc.source = factory_descriptor_source(drawing.read_bytes())
+    desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+    return desc_path
+
+
+def stamp_generated_head(char_dir: str | Path, source: AssetSource) -> Path:
+    """Pin a generator's ``source`` (DiceBear's) to the bytes it produced at ``char_dir``.
+
+    The head part(s) the generator drew (``parts/head.svg``) carry the source
+    with their own digest, and the descriptor carries it with the digest of its
+    ``source_svg``. Like the factory's stamps, it then speaks only for those
+    bytes: a part re-carved since, or a file added, is UNVERIFIED in ``an
+    credits`` and ``unknown`` in the asset library. Called by
+    :func:`new_character` on what it has just written.
+    """
+    from an.characters.schema import CharacterDescriptor
+    from an.ir.migrate import migrate
+
+    char_dir = Path(char_dir)
+    desc_path = char_dir / "character.json"
+    raw = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
+
+    def pinned(path: Path) -> AssetSource:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        return source.model_copy(update={"sha256": digest})
+
+    for skin in desc.skins.values():
+        for attachments in skin.slots.values():
+            for att in attachments.values():
+                file = char_dir / att.path
+                if att.path == "parts/head.svg" and att.source is None and file.is_file():
+                    att.source = pinned(file)
+    drawing = char_dir / (desc.source_svg or "")
+    if desc.source_svg and drawing.is_file():
+        desc.source = pinned(drawing)
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
     return desc_path
 

@@ -12,11 +12,14 @@ asset, keyed ``<store>/<key>`` (``characters/alice``) — the address the scene'
 
 **The lockfile is the single source of truth for a pin** (an#240). It is written
 by the check-out that put the files there, beside the manifest it verified, so
-it says what the project actually holds. A scene's ``AssetRef.library`` is an
-optional restatement of it for the reader (and the pin a later "reference"
-resolution will read); ``an validate`` reports every scene ``library:`` that
-disagrees with the lockfile, or names an entry the lockfile does not pin
-(:func:`an.library.checkout.check_pins`).
+it says what the project actually holds. A scene's ``AssetRef.library`` is the
+declared intent, an optional restatement of it for the reader; a later
+"reference" resolution resolves through the lockfile entry ``<store>/<ref>``
+too, and treats ``library:`` as the intent it must match — never as a second
+pin. ``an validate`` (and ``an render``, fatally under ``--strict-assets``)
+reports every scene ``library:`` that disagrees with the lockfile, or names an
+entry the lockfile does not pin (:func:`an.library.checkout.check_pins`). The
+lockfile records no library root: it is committed, and a path would leak.
 
 The pin records **provenance**: where each checked-out copy came from, so a
 project can be rebuilt from the library. It is not a content key — the copy in

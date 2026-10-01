@@ -218,7 +218,19 @@ def test_a_declared_source_carries_forward_to_later_versions(alice_dir):
         "<svg>changed</svg>", encoding="utf-8"
     )
     later = publish_dir(lib, alice_dir, "character.alice")
-    assert later.created and later.rights.license_class == "free"
+    # The carried MIT speaks for the bytes it was declared on, not for the
+    # re-drawn torso (review-259 S1): that one is unlabelled until relabelled.
+    assert later.created and later.rights.license_class == "unknown"
+    assert any("parts/torso.svg" in r for r in later.rights.reasons)
+    (alice_dir / "parts" / "arm_l.svg").write_text("<svg>also</svg>", encoding="utf-8")
+    third = publish_dir(lib, alice_dir, "character.alice")
+    assert third.rights.license_class == "unknown"  # still unlabelled, carried on
+    # like any inherited restriction, it is lifted only by a recorded relicence
+    relabelled = publish_dir(
+        lib, alice_dir, "character.alice", source=MIT,
+        relicense={"by": "tests", "reason": "re-drew the torso and arm myself"},
+    )
+    assert relabelled.rights.license_class == "free"
 
 
 def test_re_tagging_is_curation_and_makes_no_version():

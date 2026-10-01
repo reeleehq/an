@@ -301,6 +301,7 @@ def iterate(
         available_props=project.mall.get("props"),
         available_environments=project.mall.get("environments"),
         available_sounds=project.mall.get("sounds"),
+        available_library_lock=project.mall.get("library_lock"),
     )
     full_report = schema_report.merge(semantic_report)
 

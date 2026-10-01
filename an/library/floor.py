@@ -31,7 +31,10 @@ this machine the floor can find:
   library, at a path that depends on nothing in the environment. A library at a
   custom ``--root``, or under a ``<PKG>_HOME`` / ``XDG_DATA_HOME`` that has since
   changed, is therefore still read. A registered root that no longer exists (or
-  holds no library) is skipped.
+  holds no library) is skipped;
+- the machine's **memory of statements** (same place): every statement any
+  on-disk library made at publish, so a library moved, renamed or deleted
+  since relaxes nothing — the floor keeps its last-known statements.
 
 A library written by an older ``an`` at a custom root, before the registry
 existed, is registered by its next write or by :func:`an.library.api.reindex`.
@@ -41,17 +44,31 @@ from __future__ import annotations
 
 import os
 import sys
+import warnings
 from collections.abc import Iterable, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any
 
 from an.library.federation import Libraries, Library, as_libraries, open_library
 from an.library.ids import AssetIdError, check_namespace
-from an.library.registry import register_root, registered_roots
+from an.library.registry import (
+    RegistryWarning,
+    machine_registry_path,
+    register_root,
+    registered_roots,
+    remember_statements,
+    remembered_statements,
+)
 from an.library.root import HOME_ENV_SUFFIX, LIBRARY_DIRNAME, _platform_data_dir
 from an.library.rights import LICENSE_CLASS_ORDER
 
-__all__ = ["BlobFloor", "machine_libraries", "record_statement", "register_library"]
+__all__ = [
+    "BlobFloor",
+    "machine_libraries",
+    "record_statement",
+    "register_library",
+    "remember",
+]
 
 #: The sub-folders that mark a directory as a library's (any one suffices).
 _LIBRARY_MARKERS: tuple[str, ...] = ("versions", "records", "blob_rights")
@@ -88,10 +105,41 @@ def register_library(library: Library) -> None:
 
     An in-memory library (no root) has nothing to register. Raises
     :class:`an.library.registry.RegistryError` when the registry cannot be
-    written: the write is refused rather than made invisible to the floor.
+    read or written: the write is refused rather than made invisible to the floor.
+
+    A registry that does not exist yet while libraries already sit on disk
+    means either the first use since the registry exists, or a registry that
+    was lost: every library discoverable now is registered with this one, and a
+    :class:`an.library.registry.RegistryWarning` says that libraries kept at
+    custom roots are known again only once written to or reindexed.
     """
+    if library.root is None:
+        return
+    if not machine_registry_path().exists():
+        discovered = [
+            (package, root)
+            for package, root in _discovered_roots(os.environ, sys.platform)
+            if root.resolve() != library.root.resolve()
+        ]
+        for package, root in discovered:
+            register_root(package, root)
+        if discovered:
+            warnings.warn(
+                f"the registry of library roots ({machine_registry_path()}) did not "
+                f"exist, though {len(discovered)} library root(s) do: registered "
+                "every library discoverable now. A library kept at a custom root is "
+                "known to the rights checks again once it is written to or reindexed "
+                "(an.library.api.reindex).",
+                RegistryWarning,
+                stacklevel=3,
+            )
+    register_root(library.name, library.root)
+
+
+def remember(library: Library, statements) -> None:
+    """Remember an on-disk library's statements in the machine memory (none for an in-memory one)."""
     if library.root is not None:
-        register_root(library.name, library.root)
+        remember_statements(library.root, statements)
 
 
 def machine_libraries(
@@ -166,11 +214,14 @@ class BlobFloor:
     def __init__(
         self, libraries: Libraries | None = None, *, discover: bool = True
     ) -> None:
+        """libraries: the search path; discover: also read every other library
+        on the machine and the machine's memory of statements (default)."""
         self.libraries = (
             machine_libraries(libraries)
             if discover
             else (as_libraries(libraries) if libraries else [])
         )
+        self.remembered = discover
         self._memo: dict[str, dict[str, dict[str, Any]]] = {}
 
     def statements(self, digest: str) -> dict[str, dict[str, Any]]:
@@ -187,6 +238,14 @@ class BlobFloor:
                     held = merged.get(key)
                     if held is None or _outranks(statement, held):
                         merged[key] = dict(statement)
+            # What any library on this machine ever said, even one since moved,
+            # renamed or deleted: a missing root relaxes nothing.
+            for key, statement in (
+                remembered_statements(digest) if self.remembered else []
+            ):
+                held = merged.get(key)
+                if held is None or _outranks(statement, held):
+                    merged[key] = dict(statement)
             self._memo[digest] = merged
         return self._memo[digest]
 

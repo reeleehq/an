@@ -96,7 +96,21 @@ def _namespaces(refs: Iterable[str]) -> list[str]:
 def _libraries(
     package: str, root: str, extra: str, *, refs: Iterable[str] = ()
 ) -> list[Library]:
-    """``package``'s search path, plus ``--extra`` and every library a reference names."""
+    """``package``'s search path, plus ``--extra`` and every library a reference names.
+
+    With no ``package``, the library a namespaced reference names is the one
+    read first — and the one ``--root`` locates (``cutan:character.x --root
+    study`` opens ``cutan`` at ``study``, never ``an``); ``--root`` with
+    references into several libraries needs ``--package`` to say which.
+    """
+    if not package:
+        named = _namespaces(refs)
+        if root and len(named) > 1:
+            raise SystemExit(
+                f"an library: --root is ambiguous for references into {named}; "
+                "say which library it locates with --package"
+            )
+        package = named[0] if named else CORE_PACKAGE
     roots = {package: root} if root else {}
     names = _split(extra) or []
     names += [n for n in _namespaces(refs) if n not in names]
@@ -274,7 +288,7 @@ def vocabulary(package: str = CORE_PACKAGE, root: str = "", extra: str = "") -> 
 @_refusing
 def show(
     ref: str,
-    package: str = CORE_PACKAGE,
+    package: str = "",
     root: str = "",
     extra: str = "",
     json_out: bool = False,
@@ -282,8 +296,8 @@ def show(
     """Show one asset: its record, the resolved version, and its other versions.
 
     ref: [<library>:]<asset_id>[@<version>] (latest by default); a <library>: prefix reads that library
-    package: the library to read first (then the core an library)
-    root: that library's root
+    package: the library to read first, then the core an library (default: the reference's <library>: prefix, else an)
+    root: that library's root (with no --package, the root of the library the reference names)
     extra: further libraries, by package name, comma-separated
     json_out: print the full record and version as JSON
     """
@@ -321,7 +335,7 @@ def checkout(
     ref: str,
     key: str = "",
     overwrite: bool = False,
-    package: str = CORE_PACKAGE,
+    package: str = "",
     root: str = "",
     extra: str = "",
 ) -> str:
@@ -331,8 +345,8 @@ def checkout(
     ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no --package needed
     key: the key in the project store (default: the asset's slug)
     overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
-    package: the library to read first (then the core an library)
-    root: that library's root
+    package: the library to read first, then the core an library (default: the reference's <library>: prefix, else an)
+    root: that library's root (with no --package, the root of the library the reference names)
     extra: further libraries, by package name, comma-separated
     """
     result = _checkout(

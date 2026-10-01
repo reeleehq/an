@@ -67,10 +67,14 @@ from an.library.rights import (
     sources_in,
 )
 from an.credits import is_factory_stamp
+from an.stores._common import is_os_junk
 from an.library.root import LibraryLocationWarning, git_worktree_of
 
 __all__ = [
     "CheckoutResult",
+    "LibraryPinError",
+    "LibraryPinWarning",
+    "check_pins_before_render",
     "check_pins",
     "checkout",
     "drift_findings",
@@ -129,7 +133,8 @@ def drift(store: Any, key: str, version: Mapping[str, Any]) -> list[str]:
     """How the project's ``store[key]`` differs from ``version`` — empty when it is that version.
 
     The descriptor is compared with the check-out's additions removed; every
-    file is compared by hash, and files the version does not have count too.
+    file is compared by hash, and files the version does not have count too —
+    except operating-system clutter (``.DS_Store``…), which publish skips too.
     """
     if key not in store:
         return ["missing from the project"]
@@ -144,9 +149,11 @@ def drift(store: Any, key: str, version: Mapping[str, Any]) -> list[str]:
         return out + (["files expected, but the store keeps none"] if files else [])
     meta = getattr(store, "META_NAME", "")
     on_disk = {
-        p.relative_to(entry).as_posix()
+        rel
         for p in entry.rglob("*")
-        if p.is_file() and p.relative_to(entry).as_posix() != meta
+        if p.is_file()
+        and (rel := p.relative_to(entry).as_posix()) != meta
+        and not is_os_junk(rel)
     }
     for path, raw in sorted(files.items()):
         target = entry.joinpath(*path.split("/"))
@@ -380,6 +387,39 @@ def pinned_libraries(lock: Mapping[str, Any]) -> list[Library]:
     return [open_library(name) for name in names]
 
 
+class _Unverifiable(Exception):
+    """The pinned version cannot be found where this machine looks for it."""
+
+
+def _pinned_version(
+    libraries: Libraries, pin: Mapping[str, Any]
+) -> Mapping[str, Any]:
+    """The version a lockfile pin names — the SAME version, or :class:`_Unverifiable`.
+
+    The lockfile records no root (it is committed; a path would leak), so a
+    version found by name may be another library's asset under the same name
+    (a study library at a custom root and the default ``cutan`` can both hold
+    ``character.x@v001``). The pin's manifest settles it: a different manifest
+    is a different asset, never an edit.
+    """
+    try:
+        _, _, version = resolve(libraries, pin["library"])
+    except Exception as e:  # noqa: BLE001 — every failure is "cannot verify"
+        raise _Unverifiable(f"the pinned version is not found ({e})") from None
+    expected = pin.get("manifest_sha256")
+    if expected and version.get("manifest_sha256") != expected:
+        raise _Unverifiable(
+            "the library found under that name holds a different version (its "
+            "manifest is not the pinned one): the pinned library is not where this "
+            "machine looks (a custom root?)"
+        )
+    return version
+
+
+#: The prefix :func:`verify_checkout` gives an entry it could not compare.
+CANNOT_VERIFY: str = "cannot verify: "
+
+
 def verify_checkout(
     libraries: Libraries | None,
     project_dir: str | os.PathLike | None,
@@ -393,7 +433,10 @@ def verify_checkout(
         pin names, at its default root — :func:`pinned_libraries`)
 
     What makes a pin usable as more than provenance: an entry with no
-    differences is byte-for-byte the version its pin names.
+    differences is byte-for-byte the version its pin names. An entry whose
+    pinned version cannot be found, or is found with another manifest (a
+    same-named asset in another library), reads ``["cannot verify: …"]`` —
+    never as an edit.
     """
     from an.stores import build_project_mall
 
@@ -405,12 +448,12 @@ def verify_checkout(
     for entry_key in lock:
         store_name, _, key = entry_key.partition("/")
         try:
-            _, _, version = resolve(libraries, lock[entry_key]["library"])
-        except Exception as e:  # noqa: BLE001 — reported per entry
-            out[entry_key] = [f"pinned version unavailable: {e}"]
+            version = _pinned_version(libraries, lock[entry_key])
+        except _Unverifiable as e:
+            out[entry_key] = [f"{CANNOT_VERIFY}{e}"]
             continue
         if store_name not in mall:
-            out[entry_key] = [f"the project has no {store_name!r} store"]
+            out[entry_key] = [f"{CANNOT_VERIFY}the project has no {store_name!r} store"]
             continue
         out[entry_key] = drift(mall[store_name], key, version)
     return out
@@ -423,12 +466,15 @@ def drift_findings(
     lock: Any | None = None,
     libraries: Libraries | None = None,
 ) -> list[Any]:
-    """One ``info`` Finding per checked-out entry that is no longer its pinned version.
+    """One ``info`` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.
 
     An edited check-out is a fork, not a mistake — hence ``info``: it says the
     pin now records where the copy CAME FROM, not what it IS, so nothing may
     treat the pin as standing for the content (an#240), and publishing the
-    folder would make a new version.
+    folder would make a new version. A pin this machine cannot check (its
+    library is at a custom root, or elsewhere) is its own ``info``, with no
+    advice to check anything out again — that could swap the asset for a
+    same-named other one.
 
     project_dir: the project (not needed when both ``mall`` and ``lock`` are given)
     """
@@ -443,12 +489,27 @@ def drift_findings(
     ):
         if not differences:
             continue
+        pinned = (lock[entry_key] or {}).get("library")
+        where = f"assets.lock.json/{entry_key}"
+        if differences[0].startswith(CANNOT_VERIFY):
+            out.append(
+                Finding(
+                    "info",
+                    where,
+                    f"{entry_key} (pinned to {pinned}): "
+                    f"{differences[0][len(CANNOT_VERIFY):]}; whether the copy is "
+                    "still that version was not checked",
+                    "nothing to do if the library lives at a custom root; otherwise "
+                    "make the library that holds the pinned version available",
+                )
+            )
+            continue
         out.append(
             Finding(
                 "info",
-                f"assets.lock.json/{entry_key}",
+                where,
                 f"{entry_key} is no longer the version it is pinned to "
-                f"({(lock[entry_key] or {}).get('library')}): {'; '.join(differences)}",
+                f"({pinned}): {'; '.join(differences)}",
                 "publish the folder as a new version (an library publish), or check the "
                 "pinned version out again with --overwrite to drop the edits",
             )
@@ -524,3 +585,43 @@ def check_pins(scene: Any, lock: Mapping[str, Any]) -> list[Any]:
                     )
                 )
     return out
+
+
+class LibraryPinWarning(UserWarning):
+    """A scene's ``library:`` pin disagrees with the project lockfile (an#240)."""
+
+
+class LibraryPinError(CheckoutError):
+    """Under ``strict_assets``, a render refuses a scene whose ``library:`` pins disagree with the lockfile."""
+
+
+def check_pins_before_render(
+    scene: Any, lock: Mapping[str, Any] | None, *, strict: bool = False
+) -> list[Any]:
+    """The pin check ``an render`` runs: warn per disagreement, or refuse under ``strict``.
+
+    The same findings ``an validate`` reports (:func:`check_pins`), so the
+    e2e's costly miss — a scene pinned to ``v001`` rendering ``v002``'s files
+    in silence — cannot happen to someone who renders without validating
+    first. ``strict`` is ``--strict-assets``: an asset that is not what the
+    scene says it is, is as fatal as an asset that is missing.
+    """
+    if lock is None or not any(
+        e.library for shot in getattr(scene, "timeline", None) or [] for e in shot.entities
+    ):
+        return []
+    findings = check_pins(scene, {k: lock[k] for k in lock})
+    if findings and strict:
+        raise LibraryPinError(
+            "the scene's library pins disagree with assets.lock.json (strict_assets): "
+            + "; ".join(f"{f.ir_path}: {f.description}" for f in findings)
+            + ". Fix: "
+            + "; ".join(f.suggested_fix or "" for f in findings)
+        )
+    for f in findings:
+        warnings.warn(
+            f"{f.ir_path}: {f.description}. Fix: {f.suggested_fix}",
+            LibraryPinWarning,
+            stacklevel=2,
+        )
+    return findings

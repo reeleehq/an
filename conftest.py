@@ -29,16 +29,19 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolated_library_registry(tmp_path_factory, monkeypatch):
-    """Point the machine's registry of library roots into a fresh temp folder.
+    """Point the machine's library registry and statement memory into a fresh temp folder.
 
-    The registry (:mod:`an.library.registry`, an#249) lives at a path that
-    deliberately ignores every environment variable, so the ``AN_HOME`` /
-    ``XDG_DATA_HOME`` redirection the library tests use cannot move it. Every
-    test and doctest that publishes would otherwise append its temp root to the
-    developer's real registry — and one test's private bytes would sit in the
-    next test's rights floor. Fresh per test, for both reasons.
+    The registry (:mod:`an.library.registry`, an#249) lives under the account's
+    home as the OS records it, deliberately ignoring every environment variable,
+    so the ``AN_HOME`` / ``XDG_DATA_HOME`` redirection the library tests use
+    cannot move it. Every test and doctest that publishes would otherwise
+    append to the developer's real registry — and one test's private bytes
+    would sit in the next test's rights floor. Fresh per test, for both
+    reasons. The account home is what is replaced, so the real path logic
+    (``machine_registry_path``) still runs, and a test can hold it to its
+    independence from the environment.
     """
     from an.library import registry
 
-    path = tmp_path_factory.mktemp("library-registry") / registry.REGISTRY_FILENAME
-    monkeypatch.setattr(registry, "machine_registry_path", lambda: path)
+    home = tmp_path_factory.mktemp("account-home")
+    monkeypatch.setattr(registry, "_account_home", lambda: home)

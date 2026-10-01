@@ -38,10 +38,12 @@ from pathlib import Path
 from typing import Any
 
 from an.ir.assets import AssetSource, LicenseClass, license_class, requires_attribution
+from an.stores._common import is_os_junk
 
 __all__ = [
     "CreditsReport",
     "is_factory_stamp",
+    "is_generated_source",
     "PrivateStudyWarning",
     "collect_credits",
     "credits_for_project",
@@ -279,14 +281,13 @@ def collect_credits(
             if store_name == "environments":
                 found.extend(_plane_credits(key, descriptor))
             if store_name in ("characters", "props"):
-                found.extend(
-                    _part_credits(
-                        store_name,
-                        key,
-                        descriptor,
-                        digests=_digests_of(store, key),
-                    )
+                parts = _part_credits(
+                    store_name, key, descriptor, digests=_digests_of(store, key)
                 )
+                # A part stamped with the descriptor's own source (DiceBear's
+                # head) owes what the descriptor owes: one credit, not two.
+                said = {_source_identity(source)} if source is not None else set()
+                found.extend(e for e in parts if _source_identity(e.source) not in said)
             # A check-out's recorded contributors that say exactly what this
             # entry already says (the same source restated by the version it
             # follows) are one statement, not two credits.
@@ -301,7 +302,8 @@ def collect_credits(
 
 
 def _source_identity(source: AssetSource) -> str:
-    return source.model_dump_json(exclude_defaults=True)
+    """What a source says, whichever bytes it pins (its ``sha256`` left out)."""
+    return source.model_dump_json(exclude_defaults=True, exclude={"sha256"})
 
 
 def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
@@ -312,7 +314,8 @@ def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
     provide them itself (``file_digests(key)`` — the asset library does, for a
     version that is not on disk); a folder store is hashed from its sidecars;
     anything else gives ``None``: unknowable, so stamps are taken as written.
-    Hidden files are not assets (a publish skips them too).
+    Operating-system clutter is not an asset (:func:`an.stores._common.is_os_junk`,
+    the rule a publish and a check-out apply too).
     """
     memo: list[Mapping[str, str] | None] = []
 
@@ -331,11 +334,7 @@ def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
             out: dict[str, str] = {}
             for path in sorted(entry.rglob("*")):
                 rel = path.relative_to(entry).as_posix()
-                if (
-                    not path.is_file()
-                    or rel == meta
-                    or any(part.startswith(".") for part in rel.split("/"))
-                ):
+                if not path.is_file() or rel == meta or is_os_junk(rel):
                     continue
                 out[rel] = hashlib.sha256(path.read_bytes()).hexdigest()
             return out
@@ -457,19 +456,21 @@ def _part_credits(
     PATH, once, whichever slots or skins name it: the credit is for the art,
     and one file used by two attachments is one piece of work.
 
-    **The factory's own stamps are true only of the bytes they pin** (an#249,
-    an#251). The character factory stamps each part it draws, and the descriptor
-    itself, as its own ``cc0`` work, each pinned to a SHA-256 (the descriptor's
+    **A stamp is true only of the bytes it pins** (an#249, an#251, review-259).
+    The character factory stamps each part it draws, and the descriptor, as its
+    own ``cc0`` work; a DiceBear head and the drawing wrapping it carry
+    DiceBear's source the same way; each pinned to a SHA-256 (a descriptor's
     stamp pins its ``source_svg``). With the files' ``digests`` known:
 
-    - a part stamp that still matches its file is the factory's work: not
-      listed (it is not third-party, and nothing is owed);
-    - a part stamp that no longer matches (the part was re-drawn or re-carved
-      since) speaks for nothing: the part is UNVERIFIED, unless the descriptor
-      declares a source of its own (not the factory's), which then speaks for it;
-    - under the factory's descriptor stamp, every file that no stamp pins is
-      UNVERIFIED — "the factory made this character" is not a claim about bytes
-      the factory never drew.
+    - a part whose pinned digest matches its file is itemised by that source
+      (the factory's own is not listed: not third-party, nothing owed);
+    - a part whose pinned digest no longer matches (re-drawn or re-carved since)
+      speaks for nothing: it is UNVERIFIED, unless the descriptor declares a
+      source a PERSON wrote, which then speaks for it. A stale claim that is
+      ``private`` is still listed as such — stricter never gives way;
+    - under a generator's descriptor-level source (the factory's, DiceBear's)
+      that pins a digest, every file no stamp pins is UNVERIFIED: a generator
+      made claims only about the bytes it produced.
 
     The asset library reads the same walk (:mod:`an.library.rights`), so the
     library and ``an credits`` agree about which bytes are the factory's.
@@ -485,8 +486,10 @@ def _part_credits(
         raw = descriptor.model_dump(mode="json")
     raw = raw or {}
     own = raw.get("source")
-    claim = _is_factory_stamp(own)
-    covered = isinstance(own, Mapping) and not claim
+    generated = is_generated_source(own)
+    # Only a source a person wrote speaks for parts nothing itemises; a source a
+    # machine wrote (the factory's, DiceBear's) speaks for what it pins.
+    covered = isinstance(own, Mapping) and not generated
 
     def known() -> Mapping[str, str] | None:  # hashed only if a stamp needs it
         return digests() if digests is not None else None
@@ -504,22 +507,26 @@ def _part_credits(
                 if not isinstance(att, Mapping) or att.get("source") is None:
                     continue  # an empty `{}` is still a claim: reported UNKNOWN
                 path = str(att.get("path", "?"))
-                if _is_factory_stamp(att["source"]):
+                source = att["source"]
+                sha = _stamp_digest(source) if isinstance(source, Mapping) else None
+                if sha is not None:
                     files = known()
-                    if files is None or _stamp_digest(att["source"]) == files.get(path):
-                        pinned.add(path)  # this package drew these bytes
+                    if files is None or sha == files.get(path):
+                        pinned.add(path)
                     else:
-                        stale.add(path)
-                    continue
-                pinned.add(path)
+                        stale.add(path)  # a claim about other bytes
+                else:
+                    pinned.add(path)
+                if is_factory_stamp(source):
+                    continue  # this package drew it: nothing owed, not third-party
                 asset = f"{store_name}/{key}/{path}"
                 if asset not in out:
                     out[asset] = CreditEntry(
-                        asset=asset, source=_source_or_unknown(att["source"], asset)
+                        asset=asset, source=_source_or_unknown(source, asset)
                     )
     if not covered:
         unpinned = set(stale - pinned)
-        files = known() if claim else None
+        files = known() if generated and _stamp_digest(own) else None
         if files is not None:
             svg = raw.get("source_svg")
             unpinned |= {
@@ -530,25 +537,46 @@ def _part_credits(
             }
         for path in sorted(unpinned):
             asset = f"{store_name}/{key}/{path}"
-            out.setdefault(
-                asset,
+            if asset in out and out[asset].license_class == "private":
+                continue  # a stale claim stricter than unknown still binds
+            # Otherwise it replaces a stale claim's entry: that speaks for other bytes.
+            out[asset] = (
                 CreditEntry(
                     asset=asset,
                     source=AssetSource(
                         provider="unknown",
                         extra={
                             "reason": (
-                                "the factory's stamp on this part no longer matches "
-                                "its bytes (re-drawn or re-carved)"
+                                "the stamp on this part no longer matches its bytes "
+                                "(re-drawn or re-carved)"
                                 if path in stale
-                                else "not drawn by the character factory: no stamp "
-                                "pins these bytes"
+                                else "no stamp pins these bytes, and the descriptor's "
+                                "source was written by a generator, not a person"
                             )
                         },
                     ),
-                ),
+                )
             )
     return [out[a] for a in sorted(out)]
+
+
+#: Providers whose descriptor-level source a GENERATOR writes (the character
+#: factory, DiceBear through the factory): such a source speaks only for the
+#: bytes a stamp pins, never for a part re-carved or added since.
+GENERATED_PROVIDERS: frozenset[str] = frozenset({"dicebear"})
+
+
+def is_generated_source(raw: Any) -> bool:
+    """Whether a descriptor's source was written by a generator rather than a person.
+
+    >>> is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})
+    True
+    >>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
+    False
+    """
+    return is_factory_stamp(raw) or (
+        isinstance(raw, Mapping) and raw.get("provider") in GENERATED_PROVIDERS
+    )
 
 
 def _stamp_digest(raw: Any) -> str | None:
