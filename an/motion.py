@@ -59,7 +59,8 @@ stretches the move and ``speed`` divides it; ``loop`` is refused. In a
 ``sequence`` a ``play`` without a ``duration`` occupies the preset's own
 length divided by ``speed``, so two in a row run one after the other.
 :func:`as_leaves` remains for a preset composed in Python and written into
-``scene.md`` as plain tweens (a composition tree does not round-trip).
+``scene.md`` as plain, hand-editable tweens (a composition tree round-trips
+too since an#241, but verbatim, as its JSON form).
 """
 
 from __future__ import annotations
@@ -1034,10 +1035,11 @@ def stage_poses(
 def as_leaves(action: Action, *, start: Seconds = 0.0) -> list[Action]:
     """``action`` as top-level leaves that ``scene.md`` can round-trip.
 
-    The markdown writer keeps a leaf and the ``sequence(delay(start), leaf)``
-    wrapper the parser produces for a ``start:`` key, and drops composition
-    trees from ``scene.md``. This flattens a preset (or any tree) into exactly
-    those, with the same absolute times.
+    The markdown writer spells a leaf and the ``sequence(delay(start), leaf)``
+    wrapper the parser produces for a ``start:`` key in their short form, and
+    writes any other composition tree verbatim (its JSON form, an#241). This
+    flattens a preset (or any tree) into the short form, with the same
+    absolute times, which is what a person editing ``scene.md`` wants.
 
     A ``set`` keeps its absolute time in ``at`` instead of a wrapper.
 
