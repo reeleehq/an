@@ -58,6 +58,8 @@ __all__ = [
     "PRIVATE_STUDY",
     "PUBLIC_DOMAIN",
     "PROVIDER_TERMS",
+    "PROVIDER_TERMS_RESTRICTIONS",
+    "provider_terms_restriction",
     "license_class",
     "normalise_license",
     "requires_attribution",
@@ -92,15 +94,42 @@ LicenseClass = Literal["attribution", "free", "private", "unknown"]
 #: which ``an`` cannot see: declaring it is the user's statement.
 #:
 #: - ElevenLabs: on a paid plan the output may be used commercially with no
-#:   credit (``free``); on the free plan it must credit ElevenLabs
-#:   (``attribution``, e.g. ``"attribution": "Voice: elevenlabs.io"``) and is
-#:   for non-commercial use only — check the current terms before shipping.
+#:   credit (``free``). On the free plan it must credit ElevenLabs AND is for
+#:   non-commercial use only: no class here says "publishable, but not
+#:   commercially", and ``attribution`` would read as shippable, so it is
+#:   ``unknown`` — not publishable — with its restriction named
+#:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).
+#:   Check the current terms before shipping.
 PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "elevenlabs": {
         "elevenlabs-paid-plan": "free",
-        "elevenlabs-free-plan": "attribution",
+        "elevenlabs-free-plan": "unknown",
     },
 }
+#: What a provider-terms code restricts beyond its class, by code: the words a
+#: credits report prints beside it.
+PROVIDER_TERMS_RESTRICTIONS: dict[str, str] = {
+    "elevenlabs-free-plan": "ElevenLabs free plan: non-commercial use only, and "
+    "the video must credit ElevenLabs (elevenlabs.io); not publishable as is",
+}
+
+
+def provider_terms_restriction(source: AssetSource) -> str | None:
+    """The restriction a provider-terms licence carries beyond its class, if any.
+
+    >>> provider_terms_restriction(AssetSource(provider="elevenlabs", license="elevenlabs-free-plan"))[:21]
+    'ElevenLabs free plan:'
+    >>> provider_terms_restriction(AssetSource(provider="openai", license="elevenlabs-free-plan")) is None
+    True
+    """
+    code = normalise_license(source.license or "")
+    terms = PROVIDER_TERMS.get((source.provider or "").strip().lower(), {})
+    for term in terms:
+        if (code == term or code.startswith(term + "-")) and (
+            term in PROVIDER_TERMS_RESTRICTIONS
+        ):
+            return PROVIDER_TERMS_RESTRICTIONS[term]
+    return None
 
 #: Normalised phrases that mean "all rights reserved" ANYWHERE in the code —
 #: "(c) Studio. All rights reserved" is the usual way it is written.

@@ -372,13 +372,26 @@ def _speech(declared: dict | None, provider: str = "elevenlabs"):
     [
         ("elevenlabs-paid-plan", "free"),
         ("elevenlabs-paid-plan-commercial", "free"),  # the e2e's own spelling
-        ("elevenlabs-free-plan", "attribution"),
+        ("elevenlabs-free-plan", "unknown"),  # non-commercial only: not publishable
         ("elevenlabs-whatever", "unknown"),
     ],
 )
 def test_speech_under_the_providers_terms_counts(license, cls):
     entry = _speech({"provider": "elevenlabs", "license": license})
     assert entry.license_class == cls
+
+
+def test_free_plan_speech_is_not_publishable_and_says_why():
+    """review-308 S1: the free plan is non-commercial only, so it must not read
+    as shippable with a credit line."""
+    from an.credits import CreditsReport
+    from an.library.rights import roll_up
+
+    entry = _speech({"provider": "elevenlabs", "license": "elevenlabs-free-plan"})
+    assert entry.license_class == "unknown"
+    assert not roll_up([("speech", entry.source)]).publishable
+    report = CreditsReport(entries=[entry]).format()
+    assert "non-commercial" in report and "UNVERIFIED" in report and "MUST BE DISPLAYED" not in report
 
 
 def test_another_providers_terms_do_not_count():

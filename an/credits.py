@@ -38,7 +38,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from an.ir.assets import AssetSource, LicenseClass, license_class, requires_attribution
+from an.ir.assets import (
+    AssetSource,
+    LicenseClass,
+    license_class,
+    provider_terms_restriction,
+    requires_attribution,
+)
 from an.stores._common import is_os_junk
 
 __all__ = [
@@ -213,6 +219,8 @@ def _detail(e: CreditEntry) -> str:
             bits.append(f"model {extra[SPEECH_EXTRA_MODEL]}")
         if extra.get("lines"):
             bits.append(f"{extra['lines']} line(s)")
+        if extra.get(SPEECH_EXTRA_TERMS):
+            bits.append(str(extra[SPEECH_EXTRA_TERMS]))
         out += " (" + ", ".join(b for b in bits if b) + ")"
     if e.covers:
         out += f" — covers {', '.join(e.covers)}"
@@ -911,6 +919,8 @@ _is_factory_stamp = is_factory_stamp
 SPEECH_PREFIX: str = "speech/"
 #: The ``extra`` key of a speech entry naming the provider's model.
 SPEECH_EXTRA_MODEL: str = "model"
+#: The ``extra`` key of a speech entry naming what its provider's terms restrict.
+SPEECH_EXTRA_TERMS: str = "terms"
 #: Providers whose speech is ``an``'s own (silence, for tests and drafts).
 OWN_SPEECH_PROVIDERS: frozenset[str] = frozenset({"offline"})
 
@@ -927,8 +937,10 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
     licence the user holds); otherwise the speech is listed UNVERIFIED — the
     provider's terms decide what is owed, and nobody recorded them. The licence
     that counts for synthesized speech is a provider-terms code
-    (:data:`an.ir.assets.PROVIDER_TERMS`: ``elevenlabs-paid-plan`` is ``free``,
-    ``elevenlabs-free-plan`` owes a credit), or any licence ``an`` recognises;
+    (:data:`an.ir.assets.PROVIDER_TERMS`: ``elevenlabs-paid-plan`` is ``free``;
+    ``elevenlabs-free-plan`` is non-commercial only and owes a credit, so it is
+    not publishable and is listed with that restriction), or any licence ``an``
+    recognises;
     it is read as the voice's provider's, so another provider's terms count for
     nothing (an#307). A voice
     whose document names no provider (the offline default) is not listed:
@@ -989,6 +1001,11 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
                     "reason": "synthesized speech: the provider's terms decide what "
                     "is owed; declare them as the voice's `source`",
                 },
+            )
+        restriction = provider_terms_restriction(source)
+        if restriction:
+            source = source.model_copy(
+                update={"extra": {**source.extra, SPEECH_EXTRA_TERMS: restriction}}
             )
         out.append(CreditEntry(asset=f"{SPEECH_PREFIX}{voice}", source=source))
     return out
