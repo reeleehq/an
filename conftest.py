@@ -126,20 +126,30 @@ def pytest_sessionfinish(session, exitstatus):  # noqa: D103 — a pytest hook
     if _REAL_HOME_WRITES:
         say(
             f"REAL-HOME GUARD: {len(_REAL_HOME_WRITES)} write(s) or registry access(es) "
-            "reached the real data folder from this test process; first one:\n" + _REAL_HOME_WRITES[0]
+            "reached the real data folder from this test process; first one:\n"
+            + _REAL_HOME_WRITES[0]
         )
         session.exitstatus = 1
     if "before" in _REAL_DATA_SNAPSHOT:
         after = _snapshot(_REAL_DATA_SNAPSHOT["dirs"])
         before = _REAL_DATA_SNAPSHOT["before"]
-        changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+        changed = sorted(
+            k for k in set(before) | set(after) if before.get(k) != after.get(k)
+        )
         if changed:
-            strict = os.environ.get("CI") or os.environ.get("AN_TEST_HOME_GUARD") == "strict"
+            strict = (
+                os.environ.get("CI") or os.environ.get("AN_TEST_HOME_GUARD") == "strict"
+            )
             say(
                 f"REAL-HOME GUARD: {len(changed)} path(s) under the real data folder "
                 "changed during the session"
-                + ("" if strict else " (another process? set AN_TEST_HOME_GUARD=strict to fail on it)")
-                + ":\n  " + "\n  ".join(changed[:20])
+                + (
+                    ""
+                    if strict
+                    else " (another process? set AN_TEST_HOME_GUARD=strict to fail on it)"
+                )
+                + ":\n  "
+                + "\n  ".join(changed[:20])
             )
             if strict:
                 session.exitstatus = 1

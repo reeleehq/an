@@ -1625,7 +1625,9 @@ def _write_head_part(
     762×762 one nearly three times it (an#168). Only the root's
     ``width``/``height`` change; the drawing and its viewBox are untouched.
     """
-    _drawn.write_text(path, _head_part_text(avatar_svg, height=height), encoding="utf-8")
+    _drawn.write_text(
+        path, _head_part_text(avatar_svg, height=height), encoding="utf-8"
+    )
     return path
 
 
@@ -2160,7 +2162,9 @@ def add_views(char_dir: str | Path) -> Path:
                     hair_length=hair_length,
                 ),
                 height=height,
-            ), encoding="utf-8")
+            ),
+            encoding="utf-8",
+        )
         roles[head_rel] = dict(looks.head_roles)
         torso_rel = f"parts/torso_{view}.svg"
         roles[torso_rel] = _write_view_torso_part(

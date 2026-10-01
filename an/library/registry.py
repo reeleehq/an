@@ -392,7 +392,9 @@ def generated_by(digest: str) -> frozenset[str]:
     the stamp it would verify is not verified (the stricter reading).
     """
     try:
-        names = sorted(p for p in _generated_dir(digest).iterdir() if p.suffix == ".json")
+        names = sorted(
+            p for p in _generated_dir(digest).iterdir() if p.suffix == ".json"
+        )
     except OSError:
         return frozenset()
     out: set[str] = set()

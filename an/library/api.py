@@ -570,7 +570,11 @@ def _resolve_lineage(
             continue
         version = library.versions[key]
         if version.get("manifest_sha256") == pin:
-            return library, LibraryRef(wanted.asset_id, wanted.version, library.name), version
+            return (
+                library,
+                LibraryRef(wanted.asset_id, wanted.version, library.name),
+                version,
+            )
     raise AssetNotFoundError(
         f"{ref} as pinned (manifest {pin[:12]}…) is in no library on the path"
     )
@@ -718,7 +722,9 @@ def version_sources(
                 links_ok = links_ok and link_ok
                 continue
             seen.add(str(pinned))
-            parent_ok = walk(parent_version, parent_holder, f"{prefix}{label} > ", answer)
+            parent_ok = walk(
+                parent_version, parent_holder, f"{prefix}{label} > ", answer
+            )
             links_ok = links_ok and link_ok and parent_ok
         return _verify(version, holder, links_ok)
 
@@ -758,7 +764,9 @@ def version_sources(
             if any(st.get("class") == "unknown" for st in bound.values()) and (
                 factory_drew(walked, path, digest)
             ):
-                bound = {k: st for k, st in bound.items() if st.get("class") != "unknown"}
+                bound = {
+                    k: st for k, st in bound.items() if st.get("class") != "unknown"
+                }
             for asset_key, statement in sorted(bound.items()):
                 ref = f"{asset_key}@{statement.get('version')}"
                 out.append(

@@ -596,7 +596,9 @@ def _part_credits(
         if files is not None and since is not None:
             # As the library reads a carried label: every file changed or
             # added since, whatever stamp it carries (an.library.api.publish).
-            changed = {path for path, digest in files.items() if since.get(path) != digest}
+            changed = {
+                path for path, digest in files.items() if since.get(path) != digest
+            }
             unpinned |= changed
         elif files is not None:
             svg = raw.get("source_svg")
