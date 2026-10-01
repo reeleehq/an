@@ -661,3 +661,17 @@ def test_an_edited_digest_list_makes_credits_stricter_not_cleaner(checked_out):
     unverified = _unverified(project)
     assert "characters/h/parts/head.svg" in unverified
     assert len(unverified) > 1  # every file, not only the carved one
+
+
+def test_a_label_answers_a_gap_behind_a_verified_derived_from(tmp_path):
+    """The pins are also what lets a chain be verified: an ancestor that
+    derives from another asset (pinned, and still that version) can have its
+    gap answered by a later label."""
+    lib = _memory()
+    publish(lib, "prop.p", {"name": "p"}, {"parts/p.svg": b"<svg>p</svg>"}, source=CC0)
+    files = {"parts/c.svg": b"<svg>c</svg>"}
+    publish(lib, "prop.c", {"name": "c"}, files, source=CC0, derived_from=["prop.p@v001"])
+    files = {"parts/c.svg": b"<svg>c, re-carved</svg>"}
+    assert publish(lib, "prop.c", {"name": "c"}, files).rights.license_class == "unknown"
+    assert publish(lib, "prop.c", {"name": "c"}, files, source=CC0,
+                   relabel=LABEL).rights.license_class == "free"
