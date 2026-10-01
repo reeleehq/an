@@ -1,0 +1,41 @@
+an.verify.prosody
+=================
+
+.. automodule:: an.verify.prosody
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      METRICS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      measure_prosody
+      measure_prosody_file
+      measure_lines
+      median_stats
+      pitch_track
+      count_syllables
+      join_speech
+      decode_audio
+      check_prosody
+      validate_targets
+      prosody_lint
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ProsodyStats
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ProsodyTargetError
+      ProsodyDecodeError
+   

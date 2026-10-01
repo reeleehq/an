@@ -86,5 +86,6 @@ object, differing only in what the store returns.
 | [`layout`](an.verify.layout.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                              |
 | [`media`](an.verify.media.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                         |
 | [`media_quality`](an.verify.media_quality.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                                 |
+| [`prosody`](an.verify.prosody.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.         |
 | [`style`](an.verify.style.md#module-an.verify.style)                 | Style lint: measure a render's cadence, cut rate and palette, and compare them to a style's targets. |
 | [`vision`](an.verify.vision.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                         |
