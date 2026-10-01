@@ -170,7 +170,7 @@ def _produce_line(
             audio_clip = _clip_from_bytes(
                 audio_store[req.cache_key], req.handed_voice, req.text
             )
-            audio_clip.sample_rate = EFFECT_SAMPLE_RATE
+            audio_clip.sample_rate = _wav_rate(audio_clip.bytes_)
             fresh = False
         else:
             fresh = not cached(req.raw_key) or not cached(req.cache_key)
@@ -204,6 +204,7 @@ def produce_audio_for_scene(
     lipsync: LipSyncProvider | None = None,
     take_scorer: TakeScorerFactory = make_take_scorer,
     announce: Callable[[str], None] | None = _announce_to_stderr,
+    overruns: bool = True,
 ) -> SceneIR:
     """Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -228,7 +229,9 @@ def produce_audio_for_scene(
     and the provider's characters) and which recorded takes were chosen by an
     older scorer version than the current one (they are kept). After synthesis,
     a line that ends past its shot's end (:func:`dialogue_overruns`) is
-    announced too — or, with ``announce=None``, a ``DialogueOverrunWarning``.
+    announced too — or, with ``announce=None``, a ``DialogueOverrunWarning`` —
+    unless ``overruns=False``: ``an render`` passes that, because it reports
+    every post-synthesis finding together in its summary (an#254).
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
@@ -319,7 +322,7 @@ def produce_audio_for_scene(
         line.audio_ref = req.cache_key
         line.viseme_ref = viseme_key(req.cache_key, lipsync.name, line.text)
     retime_dialogue(scene)
-    for message in dialogue_overruns(scene):
+    for message in dialogue_overruns(scene, mall=mall) if overruns else ():
         if announce is not None:
             announce(message)
         else:
@@ -337,36 +340,41 @@ OVERRUN_TOLERANCE_S: float = 1 / 60
 
 
 def dialogue_overruns(
-    scene: SceneIR, *, tolerance_s: float = OVERRUN_TOLERANCE_S
+    scene: SceneIR,
+    *,
+    tolerance_s: float = OVERRUN_TOLERANCE_S,
+    mall: Mapping[str, MutableMapping] | None = None,
 ) -> list[str]:
     """One message per synthesized line that ends past its shot's end.
 
     ``an validate`` warns before synthesis from an estimate; this is the exact
-    check AFTER it — a voice's ``tempo`` (or a real voice's own pace) can make a
-    line longer than estimated, and the render cuts the shot's audio at the
-    shot's end, so the tail would otherwise be lost silently.
+    check AFTER it — a voice's ``tempo`` (or a real voice's own pace, or the
+    silence it pads a line with) can make a line longer than estimated, and the
+    render cuts the shot's audio at the shot's end, so the tail would otherwise
+    be lost silently. It is ``an validate``'s own check
+    (:func:`an.ir.validate.shot_dialogue_overruns`), over the synthesized lines;
+    ``mall`` lets its fix name the voice's ``trim_silence``.
 
     >>> from an.ir.schema import Dialogue, SceneIR, Shot
     >>> shot = Shot(id="s", duration=1.0, dialogue=[
     ...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])
     >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
-    "shot 's': line 0 (a) ends at 1.50s, past the s"
+    "shot 's': line 0 (a) ends at 1.30s as synthesi"
     """
-    out = []
-    for shot in scene.timeline:
-        for k, line in enumerate(shot.dialogue):
-            if line.start is None or line.duration is None:
-                continue
-            end = float(line.start) + float(line.duration)
-            if end > float(shot.duration) + tolerance_s:
-                out.append(
-                    f"shot {shot.id!r}: line {k} ({line.speaker}) ends at {end:.2f}s, "
-                    f"past the shot's {float(shot.duration):g}s end, so its last "
-                    f"{end - float(shot.duration):.2f}s are cut off. Lengthen the shot "
-                    f"to at least {end:.2f}s, shorten the line, or lower the voice's "
-                    "`tempo` slowdown"
-                )
-    return out
+    from an.ir.validate import _voice_effects_of, shot_dialogue_overruns
+
+    voices = mall.get("voices") if mall is not None else None
+    characters = mall.get("characters") if mall is not None else None
+    return [
+        f"shot {shot.id!r}: {message}"
+        for shot in scene.timeline
+        for _k, message in shot_dialogue_overruns(
+            shot,
+            effects_of=_voice_effects_of(shot, voices, characters),
+            synthesized_only=True,
+            tolerance_s=tolerance_s,
+        )
+    ]
 
 
 def retime_dialogue(scene: SceneIR, *, timed_shots_only: bool = False) -> SceneIR:
@@ -1042,7 +1050,7 @@ def _kept_clip(kept: bytes, req: _LineRequest) -> AudioClip:
     """The clip of the kept audio (a WAV at the effect rate when effects ran)."""
     clip = _clip_from_bytes(kept, req.voice_id, req.text)
     if req.effects:
-        clip.sample_rate = EFFECT_SAMPLE_RATE
+        clip.sample_rate = _wav_rate(kept)
     return clip
 
 
@@ -1164,7 +1172,7 @@ def _load_or_apply_effects(
     return AudioClip(
         bytes_=wav,
         duration=_wav_duration(wav),
-        sample_rate=EFFECT_SAMPLE_RATE,
+        sample_rate=_wav_rate(wav),
         channels=raw.channels,
         voice_id=raw.voice_id,
         transcript=raw.transcript,
@@ -1429,6 +1437,20 @@ def _wav_duration(wav_bytes: bytes) -> float:
             return n / rate if rate else 0.0
     except wave.Error:
         return _ffprobe_duration(wav_bytes)
+
+
+def _wav_rate(wav_bytes: bytes, default: int = EFFECT_SAMPLE_RATE) -> int:
+    """The sample rate in a WAV's header — an effect chain writes
+    :data:`~an.audio.effects.EFFECT_SAMPLE_RATE`, a trim alone keeps the
+    synthesized rate — or ``default`` for bytes that are not a WAV."""
+    import io
+    import wave
+
+    try:
+        with wave.open(io.BytesIO(wav_bytes), "rb") as wf:
+            return wf.getframerate()
+    except (wave.Error, EOFError):
+        return default
 
 
 def _ffprobe_duration(audio_bytes: bytes) -> float:

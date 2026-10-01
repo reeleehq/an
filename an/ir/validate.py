@@ -36,7 +36,7 @@ from an.characters.play import (
     swap_art_missing,
     swap_slots,
 )
-from an.audio.effects import VoiceEffectError, voice_effects
+from an.audio.effects import TRIM_SILENCE, VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
 from an.characters.schema import DFLT_VIEW, VIEW_CHANNEL, CharacterDescriptor
 from an.expression.binding import expression_problems
@@ -2160,37 +2160,47 @@ def _core_dialogue_lines(ctx: ValidationContext) -> None:
 
 
 def _core_dialogue_fits(ctx: ValidationContext) -> None:
-    _check_dialogue_fits(
-        ctx.shot, ctx.path, ctx.report, tempo_of=_voice_tempo(ctx.shot, ctx)
-    )
+    effects_of = _voice_effects_of(ctx.shot, ctx.voices, ctx.characters)
+    _check_dialogue_fits(ctx.shot, ctx.path, ctx.report, effects_of=effects_of)
 
 
-def _voice_tempo(shot: Any, ctx: ValidationContext):
-    """``line -> tempo`` of the voice each line of ``shot`` is spoken with (an#265).
+def _voice_effects_of(shot: Any, voices: Any, characters: Any):
+    """``line -> effects`` of the voice each line of ``shot`` is spoken with.
 
-    A voice's ``effects.tempo`` re-times every render, offline included, so the
-    pre-synthesis estimate is divided by it. ``1.0`` when no voices are known or
-    the voice's effects are malformed (that is its own error)."""
-    voices = ctx.voices
+    A voice's ``effects`` re-time every render, offline included (``tempo``,
+    an#265; ``trim_silence``, an#254). ``{}`` when no voices are known or the
+    voice's effects are malformed (that is its own error)."""
     if not voices:
-        return lambda line: 1.0
+        return lambda line: {}
 
-    def tempo_of(line: Any) -> float:
+    def effects_of(line: Any) -> dict:
         ref = line.voice_ref or speaker_voice_ref(
-            line.speaker, shot, {"characters": ctx.characters}
+            line.speaker, shot, {"characters": characters}
         )
         if ref is None:
             ref = "default"
         try:
-            return float(voice_effects({"voices": voices}, ref).get("tempo", 1.0))
+            return voice_effects({"voices": voices}, ref)
         except VoiceEffectError:
-            return 1.0
+            return {}
 
-    return tempo_of
+    return effects_of
+
+
+def _tempo_of(effects_of):
+    """``line -> tempo`` from ``line -> effects`` (``1.0`` when undeclared)."""
+    if effects_of is None:
+        return None
+    return lambda line: float(effects_of(line).get("tempo", 1.0))
 
 
 def _core_assembly(ctx: ValidationContext) -> None:
-    _check_assembly(ctx.scene, ctx.report, sounds=ctx.sounds)
+    _check_assembly(
+        ctx.scene,
+        ctx.report,
+        sounds=ctx.sounds,
+        effects_of_shot=lambda shot: _voice_effects_of(shot, ctx.voices, ctx.characters),
+    )
 
 
 def _add_findings(report: ValidationReport, findings: Any) -> None:
@@ -2375,9 +2385,47 @@ def _dialogue_layout(shot: Any, *, tempo_of=None):
 
 
 def _check_dialogue_fits(
-    shot: Any, path: str, report: "ValidationReport", *, tempo_of=None
+    shot: Any, path: str, report: "ValidationReport", *, effects_of=None
 ) -> None:
-    """Warn when a shot's dialogue runs past the shot's end.
+    """Warn when a shot's dialogue runs past the shot's end
+    (:func:`shot_dialogue_overruns`).
+
+    Also warns when a speaker's line starts before that speaker's previous
+    line ends: one mouth cannot say two lines (an ``at`` can do that; a
+    ``pause`` cannot). Two speakers talking over each other is legal.
+    """
+    speaking_until: dict[str, tuple[int, float]] = {}
+    for k, line, start, end, estimated in _dialogue_layout(
+        shot, tempo_of=_tempo_of(effects_of)
+    ):
+        previous = speaking_until.get(line.speaker)
+        if previous is not None and start < previous[1] - DIALOGUE_OVERRUN_TOLERANCE_S:
+            report.add(
+                "warning",
+                f"{path}/dialogue/{k}",
+                f"line {k} ({line.speaker}) starts at {start:.2f}s, before the "
+                f"same speaker's line {previous[0]} ends at {previous[1]:.2f}s"
+                + (" (at the offline voice's rate)" if estimated else "")
+                + ": one mouth cannot say both. Start it later (its `at`) or "
+                "give it a `pause` instead",
+            )
+        speaking_until[line.speaker] = (k, end)
+    for k, message in shot_dialogue_overruns(shot, effects_of=effects_of):
+        report.add("warning", f"{path}/dialogue/{k}", message)
+
+
+def shot_dialogue_overruns(
+    shot: Any,
+    *,
+    effects_of=None,
+    synthesized_only: bool = False,
+    tolerance_s: float = DIALOGUE_OVERRUN_TOLERANCE_S,
+) -> list[tuple[int, str]]:
+    """``(k, message)`` for each line of ``shot`` that ends past the shot's end.
+
+    The ONE overrun check: ``an validate`` runs it, the audio pipeline runs it
+    after synthesis (:func:`an.audio.pipeline.dialogue_overruns`), and ``an
+    render`` reports it from the rendered timing (:func:`post_synthesis_findings`).
 
     The audio is cut at the shot end (each shot's mix is trimmed to its
     duration), and the lines play back to back, so a shot shortened below its
@@ -2394,27 +2442,20 @@ def _check_dialogue_fits(
     :meth:`an.ir.schema.Dialogue.planned_start` — back to back from the shot
     start, shifted by each line's ``pause`` or pinned by its ``at`` (an#187) —
     so a pause edited after synthesis is judged where it will play, not where
-    the stale stamp says.
+    the stale stamp says. ``effects_of`` (``line -> `` its voice's normalised
+    effects) supplies the tempo, and — for a synthesized line whose voice does
+    not trim — the fix of trimming the silence a real voice pads a line with.
 
-    Also warns when a speaker's line starts before that speaker's previous
-    line ends: one mouth cannot say two lines (an ``at`` can do that; a
-    ``pause`` cannot). Two speakers talking over each other is legal.
+    >>> from an.ir.schema import Dialogue, Shot
+    >>> shot = Shot(id="s", duration=1.0, dialogue=[
+    ...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])
+    >>> [(k, m[:44]) for k, m in shot_dialogue_overruns(shot)]
+    [(0, 'line 0 (a) ends at 1.30s as synthesized, pas')]
     """
-    speaking_until: dict[str, tuple[int, float]] = {}
-    for k, line, start, end, estimated in _dialogue_layout(shot, tempo_of=tempo_of):
-        previous = speaking_until.get(line.speaker)
-        if previous is not None and start < previous[1] - DIALOGUE_OVERRUN_TOLERANCE_S:
-            report.add(
-                "warning",
-                f"{path}/dialogue/{k}",
-                f"line {k} ({line.speaker}) starts at {start:.2f}s, before the "
-                f"same speaker's line {previous[0]} ends at {previous[1]:.2f}s"
-                + (" (at the offline voice's rate)" if estimated else "")
-                + ": one mouth cannot say both. Start it later (its `at`) or "
-                "give it a `pause` instead",
-            )
-        speaking_until[line.speaker] = (k, end)
-        if end <= shot.duration + DIALOGUE_OVERRUN_TOLERANCE_S:
+    out = []
+    tempo_of = _tempo_of(effects_of)
+    for k, line, _start, end, estimated in _dialogue_layout(shot, tempo_of=tempo_of):
+        if end <= shot.duration + tolerance_s or (synthesized_only and estimated):
             continue
         tempo = tempo_of(line) if (tempo_of and estimated) else 1.0
         how = (
@@ -2424,23 +2465,137 @@ def _check_dialogue_fits(
             if estimated
             else "as synthesized"
         )
-        report.add(
-            "warning",
-            f"{path}/dialogue/{k}",
-            f"line {k} ({line.speaker}) ends at {end:.2f}s {how}, past the shot's "
-            f"{shot.duration:g}s end, so its last {end - shot.duration:.2f}s are "
-            "cut off: the shot's audio stops where the shot does. Lengthen the "
-            f"shot to at least {end:.2f}s, shorten the line, or move it to the "
-            "next shot",
+        trims = TRIM_SILENCE in (effects_of(line) if effects_of else {})
+        fix = (
+            f"Lengthen the shot to at least {end:.2f}s, shorten the line, or move "
+            "it to the next shot"
+            + (
+                ""
+                if estimated or trims
+                else ", or trim the silence a voice pads a line with (`effects: "
+                "{trim_silence: true}` on its voice document)"
+            )
         )
+        out.append(
+            (
+                k,
+                f"line {k} ({line.speaker}) ends at {end:.2f}s {how}, past the shot's "
+                f"{shot.duration:g}s end, so its last {end - shot.duration:.2f}s are "
+                f"cut off: the shot's audio stops where the shot does. {fix}",
+            )
+        )
+    return out
+
+
+#: The checks whose answer depends on what synthesis produced — a line's real
+#: length — and that ``an render`` therefore runs again AFTER the audio
+#: pipeline, on the timing it will mux (:func:`post_synthesis_findings`).
+POST_SYNTHESIS_CHECKS: tuple[str, ...] = ("dialogue_fits", "dialogue_in_dissolve")
+
+
+def post_synthesis_findings(
+    scene: SceneIR,
+    *,
+    fps: float | None = None,
+    available_voices: Mapping[str, Any] | None = None,
+    available_characters: Mapping[str, Any] | None = None,
+) -> list[tuple[str, ValidationFinding]]:
+    """``(check, finding)`` for each warning the synthesized timing gives.
+
+    The SAME functions ``an validate`` runs (:data:`POST_SYNTHESIS_CHECKS`):
+    dialogue past its shot's end, a speaker overlapping themself, a line heard
+    during a dissolve. ``an render`` calls this once the audio pipeline has
+    stamped every line's real ``duration``, so what ``an validate`` could only
+    estimate is reported exactly, at the moment it becomes known (an#254).
+    ``fps`` is the render's (it decides the dissolve overlaps); default the
+    scene's.
+    """
+    out: list[tuple[str, ValidationFinding]] = []
+    report = ValidationReport()
+    for i, shot in enumerate(scene.timeline):
+        effects_of = _voice_effects_of(shot, available_voices, available_characters)
+        _check_dialogue_fits(shot, f"timeline/{i}", report, effects_of=effects_of)
+    out += [("dialogue_fits", f) for f in report.findings]
+    report = ValidationReport()
+    _check_dialogue_in_dissolves(
+        scene,
+        report,
+        fps=fps,
+        effects_of_shot=lambda shot: _voice_effects_of(
+            shot, available_voices, available_characters
+        ),
+    )
+    out += [("dialogue_in_dissolve", f) for f in report.findings]
+    return out
+
+
+def _check_dialogue_in_dissolves(
+    scene: SceneIR,
+    report: "ValidationReport",
+    *,
+    fps: float | None = None,
+    effects_of_shot=None,
+) -> None:
+    """A dissolve plays both shots' audio in the overlap: a line there is heard
+    over the other shot's picture. Legal, and worth a word — with where the line
+    plays and where the overlap is, laid out like :func:`shot_dialogue_overruns`
+    (real durations once synthesized, the offline estimate over the voice's
+    ``tempo`` before). Silent when the transitions themselves are refused."""
+    from an.assemble import film_timeline, transition_problems
+
+    fps = fps if fps is not None else scene.meta.fps
+    if not fps or fps <= 0 or transition_problems(scene.timeline, fps):
+        return
+    timeline = film_timeline(scene.timeline, fps=fps)
+    n = len(scene.timeline)
+    for i, shot in enumerate(scene.timeline):
+        overlap_out = timeline.dissolve_in[i + 1] / fps if i + 1 < n else 0.0
+        overlap_in = timeline.dissolve_in[i] / fps
+        effects_of = effects_of_shot(shot) if effects_of_shot else None
+        layout = _dialogue_layout(shot, tempo_of=_tempo_of(effects_of))
+        for k, line, start, end, estimated in layout:
+            where = []
+            if overlap_in and start < overlap_in:
+                where.append(
+                    f"the dissolve from shot {scene.timeline[i - 1].id!r} "
+                    f"(0-{overlap_in:.2f}s)"
+                )
+            if overlap_out and end > shot.duration - overlap_out:
+                where.append(
+                    f"the dissolve into shot {scene.timeline[i + 1].id!r} "
+                    f"({shot.duration - overlap_out:.2f}-{shot.duration:g}s)"
+                )
+            if not where:
+                continue
+            trims = TRIM_SILENCE in (effects_of(line) if effects_of else {})
+            report.add(
+                "warning",
+                f"timeline/{i}/dialogue/{k}",
+                f"this line plays during a dissolve: line {k} ({line.speaker}) "
+                f"plays {start:.2f}-{end:.2f}s"
+                + (" (at the offline voice's rate)" if estimated else "")
+                + f", inside {' and '.join(where)}, so it is heard over the "
+                "neighbouring shot's picture too; move it clear of the overlap or "
+                "shorten the dissolve"
+                + (
+                    ""
+                    if estimated or trims
+                    else ", or trim the silence its voice pads it with (`effects: "
+                    "{trim_silence: true}`)"
+                ),
+            )
 
 
 def _check_assembly(
-    scene: SceneIR, report: "ValidationReport", *, sounds: Mapping[str, Any] | None
+    scene: SceneIR,
+    report: "ValidationReport",
+    *,
+    sounds: Mapping[str, Any] | None,
+    effects_of_shot=None,
 ) -> None:
     """Transitions and the sound layer (`an.assemble`): what assembling the film
     would refuse is an error here, from the SAME list the assembler raises on."""
-    from an.assemble import film_timeline, transition_problems
+    from an.assemble import transition_problems
 
     fps = scene.meta.fps
     if fps <= 0:
@@ -2449,27 +2604,9 @@ def _check_assembly(
     for i, message in problems:
         report.add("error", f"timeline/{i}/transition", message)
     if not problems:
-        timeline = film_timeline(scene.timeline, fps=fps)
-        for i, shot in enumerate(scene.timeline):
-            # A dissolve plays both shots' audio in the overlap: a line there
-            # is heard over the other shot's picture. Legal, and worth a word.
-            overlap_out = (
-                timeline.dissolve_in[i + 1] / fps
-                if i + 1 < len(scene.timeline)
-                else 0.0
-            )
-            overlap_in = timeline.dissolve_in[i] / fps
-            for k, _line, start, end, _estimated in _dialogue_layout(shot):
-                if (overlap_in and start < overlap_in) or (
-                    overlap_out and end > shot.duration - overlap_out
-                ):
-                    report.add(
-                        "warning",
-                        f"timeline/{i}/dialogue/{k}",
-                        "this line plays during a dissolve, so it is heard over "
-                        "the neighbouring shot's picture too; move it clear of "
-                        "the overlap or shorten the dissolve",
-                    )
+        _check_dialogue_in_dissolves(
+            scene, report, fps=fps, effects_of_shot=effects_of_shot
+        )
 
     cues = [("meta/sounds", j, c) for j, c in enumerate(scene.meta.sounds)]
     if not problems:

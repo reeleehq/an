@@ -33,6 +33,8 @@ def test_every_cli_render_flag_reaches_the_leaf_renderer(monkeypatch):
         "output_name": "main", "tts": "mac_say", "lipsync": "rhubarb", "parallel": "auto",
         "strict_assets": True, "supersample": 2, "pix_fmt": "yuv444p", "step_hz": 12.0, "language": "fr",
         "capture": "canvas", "force_render": False,
+        # The CLI prints the render's findings grouped, after it (an#254).
+        "echo_warnings": False,
     }
     seen.clear()
     tools.render("proj", force_render=True, no_cache=True)

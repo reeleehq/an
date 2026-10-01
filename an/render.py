@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import shutil
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
@@ -149,6 +151,7 @@ def render_project(
     language: str = "en",
     incremental: bool | IncrementalEngine = True,
     force_render: bool = False,
+    echo_warnings: bool = True,
 ) -> Path:
     """Render every shot in ``project_dir``'s scene and concatenate to one mp4.
 
@@ -202,6 +205,10 @@ def render_project(
     ``assets.lock.json`` renders with a ``LibraryPinWarning`` per pin, and is
     refused under ``strict_assets`` (:func:`an.library.checkout.check_pins_before_render`).
 
+    **What the render learned is reported** (an#254): see :func:`render` — every
+    finding is in ``render_reports/<output_name>.json``, read back as
+    ``Finding`` s by :func:`render_findings`, and summarised by ``an render``.
+
     Returns the absolute path of the final output file (under ``output/``).
     """
     project: Project = load(project_dir)
@@ -211,9 +218,14 @@ def render_project(
         # --strict-assets. Imported only for a scene that pins anything.
         from an.library.checkout import check_pins_before_render
 
-        check_pins_before_render(
-            project.scene, project.mall.get("library_lock"), strict=strict_assets
-        )
+        caught: list = []
+        with _recording_warnings(caught):
+            check_pins_before_render(
+                project.scene, project.mall.get("library_lock"), strict=strict_assets
+            )
+        # The render's report holds them too (`_pin_findings`): `an render`
+        # lists them in its summary instead of as they happen.
+        _echo(caught, all_of_them=echo_warnings)
     return render(
         project,
         output_name=output_name,
@@ -230,6 +242,7 @@ def render_project(
         language=language,
         incremental=incremental,
         force_render=force_render,
+        echo_warnings=echo_warnings,
     )
 
 
@@ -251,6 +264,7 @@ def render(
     language: str = "en",
     incremental: bool | IncrementalEngine = False,
     force_render: bool = False,
+    echo_warnings: bool = True,
 ) -> Path:
     """Lower-level: render a loaded ``Project`` to mp4.
 
@@ -307,10 +321,100 @@ def render(
     descriptor, the default backdrop for an unknown environment ref. Use it for
     anything that measures pixels: a stand-in renders happily and is a
     different picture (an#33).
+
+    **What the render learns, it reports** (an#254). Render is when a line's
+    real length becomes known, so after synthesis the checks ``an validate``
+    could only estimate run again on the timing the film will mux — the SAME
+    functions (:func:`an.ir.validate.post_synthesis_findings`): a line past its
+    shot's end, a speaker overlapping themself, a line heard during a dissolve.
+    With them go the clock-owning renderers' findings (an#279), the scene's
+    library pins that disagree with ``assets.lock.json``, and every warning
+    raised while the film was made — a stand-in or a recorded substitution, a
+    take whose audio is not the one recorded, a caption without word timings —
+    each addressed to its shot when its message names one. All of it is written
+    to ``render_reports/<output_name>.json`` (``kind`` says which check),
+    readable as ``Finding`` s with :func:`render_findings`;
+    :func:`format_render_findings` is ``an render``'s grouped summary of it.
+    The warnings are still warned, after the render (``echo_warnings=False``:
+    only reported — what ``an render`` passes, since it prints the summary; a
+    render that fails echoes them anyway). What ``strict_assets`` refuses is
+    refused where it is found, before a frame is drawn; nothing here is fatal.
     """
     scene = project.scene
     if not scene.timeline:
         raise RenderError("scene has no shots to render")
+    caught: list = []
+    ok = False
+    try:
+        with _recording_warnings(caught):
+            output_path, report_scene, findings, fps_used = _render_film(
+                project,
+                output_name=output_name,
+                fps=fps,
+                resolution=resolution,
+                auto_audio=auto_audio,
+                tts=tts,
+                lipsync=lipsync,
+                parallel=parallel,
+                strict_assets=strict_assets,
+                supersample=supersample,
+                pix_fmt=pix_fmt,
+                capture=capture,
+                step_hz=step_hz,
+                language=language,
+                incremental=incremental,
+                force_render=force_render,
+            )
+            ok = True
+    finally:
+        _echo(caught, all_of_them=echo_warnings or not ok)
+    findings = [*findings, *_warning_findings(caught, report_scene)]
+    findings += _post_synthesis(project, report_scene, fps=fps_used)
+    _write_render_report(project.mall, output_name, findings)
+    # Last, so it is the last word about the file (an#211): a render that used
+    # all-rights-reserved, private-study material must not read as shippable.
+    import warnings
+
+    from an.credits import CreditsWarning, credits_for_scene, warn_if_private_study
+
+    try:
+        report = credits_for_scene(project.mall, report_scene)
+    except Exception as e:  # noqa: BLE001 — never fail a finished render
+        warnings.warn(
+            f"{output_path} was rendered, but its credits could not be checked "
+            f"({type(e).__name__}: {e}); run `an credits` before sharing it.",
+            CreditsWarning,
+            stacklevel=2,
+        )
+    else:
+        warn_if_private_study(report, output=output_path)
+    return output_path
+
+
+def _render_film(
+    project: Project,
+    *,
+    output_name: str,
+    fps,
+    resolution,
+    auto_audio: bool,
+    tts,
+    lipsync,
+    parallel,
+    strict_assets: bool,
+    supersample: int,
+    pix_fmt,
+    capture,
+    step_hz,
+    language: str,
+    incremental,
+    force_render: bool,
+):
+    """:func:`render`'s work: ``(output_path, settled scene, findings, fps)``,
+    the findings being the ones that arrive as ``Finding`` s (measurements and
+    library pins) under their kinds."""
+    scene = project.scene
+    findings: list[tuple[str, object]] = _pin_findings(project)
 
     if auto_audio and _has_any_audio_content(scene):
         # Lazy import to keep render.py importable without audio extras.
@@ -329,6 +433,8 @@ def render(
             project.mall,
             tts=tts_provider,
             lipsync=lipsync_provider,
+            # Reported with every other post-synthesis finding, below (an#254).
+            overruns=False,
         )
         # Persist the now-stamped scene back to disk so subsequent loads see it.
         project.mall["scenes"]["main"] = scene
@@ -465,7 +571,6 @@ def render(
     _write_caption_sidecar(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
     )
-    _write_render_report(project.mall, output_name, shot_findings)
     record_root = getattr(engine, "record_root", None)
     if callable(record_root):
         # What this render used, for `an cache gc` (an#274): the knobs AS
@@ -483,40 +588,265 @@ def render(
         )  # fmt: skip
     if engine is not None:
         _finish_run(work_dir)
-    # Last, so it is the last word about the file (an#211): a render that used
-    # all-rights-reserved, private-study material must not read as shippable.
-    import warnings
-
-    from an.credits import CreditsWarning, credits_for_scene, warn_if_private_study
-
-    try:
-        report = credits_for_scene(project.mall, scene)
-    except Exception as e:  # noqa: BLE001 — never fail a finished render
-        warnings.warn(
-            f"{output_path} was rendered, but its credits could not be checked "
-            f"({type(e).__name__}: {e}); run `an credits` before sharing it.",
-            CreditsWarning,
-            stacklevel=2,
-        )
-    else:
-        warn_if_private_study(report, output=output_path)
-    return output_path
+    findings += [("measurement", f) for f in shot_findings]
+    return output_path, scene, findings, effective_fps
 
 
 def _write_render_report(mall, output_name: str, findings) -> None:
     """``render_reports/<output_name>.json``: what this render found, for
-    ``orchestrate`` and MCP to read (an#279). Always written — an empty report
-    replaces a stale one — when the mall has the store."""
+    ``orchestrate``, MCP and ``an render``'s summary to read (an#279, an#254).
+    ``findings`` are ``(kind, Finding)`` pairs; each record is the ``Finding``'s
+    fields plus its ``kind``. Always written — an empty report replaces a stale
+    one — when the mall has the store."""
     import json
-
-    from an.measurements import findings_record
+    from dataclasses import asdict
 
     store = mall.get("render_reports")
     if store is None:
         return
+    records = [{**asdict(f), "kind": kind} for kind, f in findings]
     store[output_name] = json.dumps(
-        {"findings": findings_record(findings)}, indent=2, sort_keys=True
+        {"findings": records}, indent=2, sort_keys=True
     ).encode("utf-8")
+
+
+#: How ``an render``'s summary heads each ``kind`` of finding, in this order; a
+#: kind not listed (another warning category) is headed by its own name, after.
+FINDING_GROUPS: dict[str, str] = {
+    "dialogue_fits": "dialogue that does not fit its shot",
+    "dialogue_in_dissolve": "dialogue heard during a dissolve",
+    "measurement": "shots whose renderer measured their length",
+    "library_pins": "library pins that disagree with assets.lock.json",
+    "CutoutCompileWarning": "stand-ins, substitutions and compile notes",
+    "CutoutAssetWarning": "art that could not be staged",
+    "TakeDigestWarning": "takes whose audio is not the recorded one",
+    "CaptionTimingWarning": "captions without word timings",
+    "ShotCacheWarning": "the shot cache",
+}
+#: At most this many findings of one kind are listed in the summary.
+SUMMARY_MAX_PER_GROUP: int = 5
+
+
+def render_findings(project, output_name: str = "main") -> list:
+    """The ``Finding`` s the last render of ``output_name`` reported (an#254),
+    from ``render_reports/<output_name>.json``; ``[]`` before any render.
+
+    ``project`` is a project directory, a loaded ``Project`` or its mall.
+    """
+    from an.verify._base import Finding
+
+    fields = ("severity", "ir_path", "description", "suggested_fix", "location")
+    return [
+        Finding(**{k: r.get(k) for k in fields})
+        for r in _report_records(project, output_name)
+    ]
+
+
+def _report_records(project, output_name: str) -> list[dict]:
+    import json
+    from collections.abc import Mapping
+
+    if isinstance(project, Project):
+        mall = project.mall
+    elif isinstance(project, Mapping):
+        mall = project
+    elif Path(project).is_dir():
+        from an.stores import build_project_mall
+
+        mall = build_project_mall(project)
+    else:
+        return []  # no project there: nothing rendered (and nothing created)
+    store = mall.get("render_reports")
+    if store is None or output_name not in store:
+        return []
+    return list(json.loads(store[output_name]).get("findings", []))
+
+
+def format_render_findings(
+    project, output_name: str = "main", *, max_per_group: int = SUMMARY_MAX_PER_GROUP
+) -> list[str]:
+    """``an render``'s summary of what the render found: one heading per kind
+    (:data:`FINDING_GROUPS`) with its count, then each finding's IR path and
+    message — the message carries its fix — at most ``max_per_group`` per kind.
+    ``info`` findings are counted in the report, not listed. ``[]`` when the
+    render found nothing to warn about.
+
+    >>> recs = {"findings": [{"severity": "warning", "ir_path": "timeline/0/dialogue/1",
+    ...     "description": "line 1 (bob) ends at 3.64s as synthesized, past the shot's "
+    ...     "3.6s end. Lengthen the shot", "suggested_fix": None, "location": None,
+    ...     "kind": "dialogue_fits"}]}
+    >>> import json
+    >>> print("\\n".join(format_render_findings(
+    ...     {"render_reports": {"main": json.dumps(recs)}})))
+    findings: 1 warning (all in artifacts/render_reports/main.json)
+      dialogue that does not fit its shot (1):
+        timeline/0/dialogue/1: line 1 (bob) ends at 3.64s as synthesized, past the shot's 3.6s end. Lengthen the shot
+    """
+    records = [
+        r for r in _report_records(project, output_name) if r.get("severity") != "info"
+    ]
+    if not records:
+        return []
+    order = list(FINDING_GROUPS)
+    kinds = sorted(
+        {r.get("kind") or "" for r in records},
+        key=lambda k: (order.index(k) if k in order else len(order), k),
+    )
+    errors = sum(r.get("severity") == "error" for r in records)
+    warns = len(records) - errors
+    counts = ", ".join(
+        f"{n} {word}{'s' if n != 1 else ''}"
+        for n, word in ((errors, "error"), (warns, "warning"))
+        if n
+    )
+    lines = [
+        f"findings: {counts} (all in artifacts/render_reports/{output_name}.json)"
+    ]
+    for kind in kinds:
+        group = [r for r in records if (r.get("kind") or "") == kind]
+        lines.append(f"  {FINDING_GROUPS.get(kind, kind or 'other')} ({len(group)}):")
+        for r in group[:max_per_group]:
+            where = f" ({r['location']})" if r.get("location") else ""
+            fix = f" Fix: {r['suggested_fix']}" if r.get("suggested_fix") else ""
+            text = f"{r['description']}{fix}".replace("\n", "\n      ")
+            lines.append(f"    {r['ir_path']}{where}: {text}")
+        if len(group) > max_per_group:
+            lines.append(f"    ... and {len(group) - max_per_group} more")
+    return lines
+
+
+def _pin_findings(project: Project) -> list[tuple[str, object]]:
+    """The scene's ``library:`` pins that disagree with ``assets.lock.json`` —
+    :func:`an.library.checkout.check_pins`, the function ``render_project``
+    warns (and, strict, refuses) with — for the report."""
+    lock = project.mall.get("library_lock")
+    scene = project.scene
+    if lock is None or not any(e.library for shot in scene.timeline for e in shot.entities):
+        return []
+    from an.library.checkout import check_pins
+
+    return [("library_pins", f) for f in check_pins(scene, {k: lock[k] for k in lock})]
+
+
+def _post_synthesis(project: Project, scene, *, fps) -> list[tuple[str, object]]:
+    """``an validate``'s post-synthesis checks on the timing just muxed
+    (:func:`an.ir.validate.post_synthesis_findings`), as ``Finding`` s. A check
+    that cannot run is a finding itself — never a failed render."""
+    from an.ir.validate import post_synthesis_findings
+    from an.verify._base import Finding
+
+    try:
+        found = post_synthesis_findings(
+            scene,
+            fps=fps,
+            available_voices=project.mall.get("voices"),
+            available_characters=project.mall.get("characters"),
+        )
+    except Exception as e:  # noqa: BLE001 — the film is made; say what is unknown
+        return [
+            (
+                "post_synthesis",
+                Finding(
+                    "warning",
+                    "timeline",
+                    f"the post-synthesis checks could not run ({type(e).__name__}: "
+                    f"{e}); run `an validate` on this project",
+                ),
+            )
+        ]
+    return [
+        (kind, Finding(f.severity, f.ir_path, f.description, location=f.location))
+        for kind, f in found
+    ]
+
+
+@contextmanager
+def _recording_warnings(into: list):
+    """Record every warning raised inside (worker threads included: the warning
+    machinery is process-wide) into ``into`` — kept even when the body raises.
+    The filters in force are kept, so an ``error`` filter still raises where
+    the warning is raised, and an ``ignore`` still ignores."""
+    import warnings
+
+    with warnings.catch_warnings(record=True) as log:
+        try:
+            yield
+        finally:
+            into.extend(log)
+
+
+def _is_an_warning(w) -> bool:
+    """Whether ``w`` is ``an``'s own — its category is defined in ``an``, or it
+    was raised from ``an``'s code (another library's is only echoed)."""
+    if (getattr(w.category, "__module__", "") or "").split(".")[0] == "an":
+        return True
+    try:
+        return Path(w.filename).resolve().is_relative_to(_AN_ROOT)
+    except (OSError, ValueError, TypeError):
+        return False
+
+
+_AN_ROOT: Path = Path(__file__).resolve().parent
+
+
+def _already_findings(w) -> bool:
+    """A warning that restates a finding the report holds as one already."""
+    from an.measurements import ShotFindingWarning
+
+    return issubclass(w.category, ShotFindingWarning) or (
+        w.category.__name__ == "LibraryPinWarning"
+    )
+
+
+def _unique(caught: list) -> list:
+    seen: set = set()
+    out = []
+    for w in caught:
+        key = (w.category, str(w.message))
+        if key not in seen:
+            seen.add(key)
+            out.append(w)
+    return out
+
+
+def _echo(caught: list, *, all_of_them: bool = True) -> None:
+    """Warn again what was recorded, at its own file and line. ``all_of_them=False``
+    echoes only what the report does not carry (another library's warning)."""
+    import warnings
+
+    for w in _unique(caught):
+        if all_of_them or not _is_an_warning(w):
+            warnings.warn_explicit(
+                w.message, w.category, w.filename, w.lineno, source=w.source
+            )
+
+
+_SHOT_NAMED = re.compile(r"""\bshot ['"]([^'"]+)['"]""")
+
+
+def _warning_findings(caught: list, scene) -> list[tuple[str, object]]:
+    """``(kind, Finding)`` per distinct warning ``an`` raised while making the
+    film, its kind the warning's category, addressed to the shot its message
+    names (``shot 's2' …``), else to the timeline. The message's first
+    paragraph is kept: the rest is the explanation ``an`` prints when warning."""
+    from an.verify._base import Finding
+
+    index = {}
+    for i, shot in enumerate(getattr(scene, "timeline", None) or []):
+        index.setdefault(shot.id, i)
+    out = []
+    for w in _unique(caught):
+        if not _is_an_warning(w) or _already_findings(w):
+            continue
+        text = str(w.message).split("\n\n", 1)[0].strip()
+        named = _SHOT_NAMED.search(text)
+        path = (
+            f"timeline/{index[named.group(1)]}"
+            if named and named.group(1) in index
+            else "timeline"
+        )
+        out.append((w.category.__name__, Finding("warning", path, text)))
+    return out
 
 
 def _style_pack(scene, project: Project):
