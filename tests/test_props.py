@@ -126,18 +126,15 @@ def test_the_drawable_kinds_are_exactly_what_the_compiler_dispatches_on():
     how they drift, and the drift is silent in the direction that matters —
     validate passing a scene the render then refuses, after the author has
     paid for TTS and a browser launch.
+
+    Since an#247 the compiler dispatches through its entity BUILDERS (the
+    stage's, plus each genre's registered `CompilePass(builds=kind)`), so the
+    pin is against that table rather than against `if kind ==` source text.
     """
-    import inspect
-
-    from an.adapters.cutout import compile as compile_mod
     from an.ir.validate import _CONFIGURING_ENTITY_KINDS, _DRAWABLE_ENTITY_KINDS
+    from an.stage.compile import scene_builders
 
-    src = inspect.getsource(compile_mod._build_scene_root)
-    dispatched = {
-        kind
-        for kind in ("character", "environment", "prop", "voice")
-        if f'entity.kind == "{kind}"' in src
-    }
+    dispatched = set(scene_builders())
     assert dispatched == set(_DRAWABLE_ENTITY_KINDS), dispatched ^ set(
         _DRAWABLE_ENTITY_KINDS
     )

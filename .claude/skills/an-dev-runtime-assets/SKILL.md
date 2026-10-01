@@ -1,6 +1,6 @@
 ---
 name: an-dev-runtime-assets
-description: Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under `an/data/`, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a `pip install`, or when a "fix" to a data file appears to have no effect. Triggers on "vendor", "bundle", "asset", "force-include", "packaging", "it works locally but not installed".
+description: Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under `an/stage/runtime/` (the stage's runtime, `an/data/cutout_runtime/` before an#247) or `an/data/`, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a `pip install`, or when a "fix" to a data file appears to have no effect. Triggers on "vendor", "bundle", "asset", "force-include", "packaging", "it works locally but not installed".
 ---
 
 # an-dev-runtime-assets — the files that are not code

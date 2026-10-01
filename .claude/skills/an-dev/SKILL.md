@@ -206,7 +206,7 @@ against 20 mutations):
 
 To actually run them: `pytest -q` on a machine with the `cutout` extra **and the ffmpeg
 binary** — the extra ships `ffmpeg-python`, a wrapper, not the binary, so
-`pip install -e '.[cutout]' && playwright install chromium` alone runs 2 of the 24
+`pip install -e '.[stage]' && playwright install chromium` (`[cutout]` is the same extra under its old name) alone runs 2 of the 24
 (`test_preview_reload.py`, the only browser tests that need no ffmpeg). Add
 `brew install ffmpeg` / `apt-get install ffmpeg`.
 
