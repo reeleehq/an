@@ -57,6 +57,7 @@ from importlib.metadata import EntryPoint, entry_points as _entry_points
 from an.genres.registry import (
     CORE_OWNER,
     ActionKind,
+    CompilePass,
     DialogueSugar,
     EntityKind,
     RegistryError,
@@ -68,6 +69,7 @@ from an.genres.registry import (
     entity_kind_names,
     register_action_kind,
     register_check,
+    register_compile_pass,
     register_dialogue_sugar,
     register_entity_kind,
     restore,
@@ -127,6 +129,9 @@ class Genre:
     analysers: tuple = ()
     vocabulary: tuple = ()
     aspects: tuple = ()
+    #: Steps the genre adds to an engine's compiler, and builders for its
+    #: entity kinds (:class:`CompilePass`; an#247).
+    compile_passes: tuple[CompilePass, ...] = ()
 
     def provides(self) -> dict[str, tuple[str, ...]]:
         """What this genre registers, by registry, as names — without registering it.
@@ -145,6 +150,7 @@ class Genre:
             "analysers": tuple(a.kind for a in self.analysers),
             "vocabulary": tuple(e.id for e in self.vocabulary),
             "aspects": tuple(a.name for a in self.aspects),
+            "compile passes": tuple(p.name for p in self.compile_passes),
         }
 
 
@@ -239,6 +245,8 @@ def _install_semantics(genre: Genre, *, check_capabilities: bool = True) -> None
             f"genre {genre.name!r} registers an unsound vocabulary:\n  - "
             + "\n  - ".join(problems)
         )
+    for compile_pass in genre.compile_passes:
+        register_compile_pass(compile_pass, owner=owner)
 
 
 def _uninstall(name: str) -> None:
@@ -558,6 +566,7 @@ def _all_owners() -> set[str]:
 __all__ = [
     "ENTRY_POINT_GROUP",
     "ActionKind",
+    "CompilePass",
     "DialogueSugar",
     "EntityKind",
     "Genre",

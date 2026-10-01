@@ -44,6 +44,7 @@ from typing import Any, Callable
 from an.base import TRANSFORM_PROPERTIES, TRIM_PROPERTIES, swap_set_name_problem
 from an.stage.easing import apply_easing
 from an.genres import entity_space_resolver
+from an.genres.registry import CompilePass
 from an.stage.path_geometry import flatten_curve
 from an.adapters.cutout.coarticulate import coarticulate
 from an.expression.axes import LID_KEY_CLOSED, LID_KEY_OPEN, lid_key
@@ -1052,115 +1053,214 @@ def compile_shot(
         )
     if default_easing is not None:
         _check_default_easing(default_easing)
-    mall = mall or {}
-
-    textures: dict[str, AssetJSON] = {}
-    resolutions: list[AssetResolutionJSON] = []
-    overlay_children: list[NodeJSON] = []
-    fonts: dict[str, str] = {}
-    scene_root = _build_scene_root(
-        shot,
-        mall,
-        textures=textures,
-        resolutions=resolutions,
+    state = CompileState(
+        shot=shot,
+        mall=mall or {},
+        fps=fps,
+        width=width,
+        height=height,
+        strict_assets=strict_assets,
+        step_hz=step_hz,
+        default_easing=default_easing,
         style_pack=style_pack,
-        overlay=overlay_children,
-        fonts=fonts,
+        expression_provider=expression_provider,
+    )
+    for compile_pass in compile_passes_for_stage():
+        compile_pass.resolve()(state)
+    return _assemble_document(state, background=background)
+
+
+@dataclass
+class CompileState:
+    """What the stage compiler's passes read and write, for one shot (an#247).
+
+    The stage's own passes (:data:`STAGE_COMPILE_PASSES`) and every pass a genre
+    registers for the ``"stage"`` compiler (:class:`an.genres.CompilePass`) run
+    over one of these, in order; :func:`_assemble_document` turns it into the
+    wire document. The fields are the locals ``compile_shot`` used to thread by
+    hand, unchanged, so the document is byte-identical.
+    """
+
+    shot: Shot
+    mall: Mapping[str, Mapping]
+    fps: int
+    width: int
+    height: int
+    strict_assets: bool = False
+    step_hz: float | None = None
+    default_easing: Any = None
+    style_pack: "StylePack | None" = None
+    expression_provider: ExpressionProvider | None = None
+    textures: dict[str, AssetJSON] = field(default_factory=dict)
+    resolutions: list[AssetResolutionJSON] = field(default_factory=list)
+    overlay_children: list[NodeJSON] = field(default_factory=list)
+    fonts: dict[str, str] = field(default_factory=dict)
+    scene_root: NodeJSON | None = None
+    vocab: "_SwapVocabulary | None" = None
+    animations: dict[str, AnimationClipJSON] = field(default_factory=dict)
+    tracks: list[TrackJSON] = field(default_factory=list)
+    entity_swaps: list["_EntitySwap"] = field(default_factory=list)
+    #: Actions a pass contributes beside the authored ones, compiled with them
+    #: by the `actions` pass (the cut-out `speech` pass's pulses, an#248).
+    extra_actions: list = field(default_factory=list)
+    #: Cut-out passes' products, read by later passes (an empty default is what
+    #: a shot with no character produces anyway).
+    no_lip_sync: Any = frozenset()
+    poses: Any = None
+    view_spans: Any = None
+    blink_phases: dict[str, float] = field(default_factory=dict)
+    gaze_seeds: dict[str, int] = field(default_factory=dict)
+
+    @property
+    def provider(self) -> ExpressionProvider:
+        return self.expression_provider or DefaultExpressionProvider()
+
+
+def _scene_pass(state: CompileState) -> None:
+    """The scene tree, the overlay, the paper grain and the swap vocabulary."""
+    shot, width, height = state.shot, state.width, state.height
+    state.scene_root = _build_scene_root(
+        shot,
+        state.mall,
+        textures=state.textures,
+        resolutions=state.resolutions,
+        style_pack=state.style_pack,
+        overlay=state.overlay_children,
+        fonts=state.fonts,
         width=width,
         height=height,
     )
+    style_pack, overlay_children = state.style_pack, state.overlay_children
     if style_pack is not None and style_pack.grain is not None:
         # an#163: the paper grain, FIRST on the overlay so any text draws over
         # it, and on the overlay at all so the camera cannot move or scale it.
         overlay_children.insert(
             0,
-            grain_node(style_pack.grain, width=width, height=height, textures=textures),
+            grain_node(style_pack.grain, width=width, height=height, textures=state.textures),
         )
     # The vocabulary sees the overlay too: its nodes are indexed by the
     # runtime under their own paths (`title/word_0`), exactly like the scene's,
     # so an authored tween on one is checked like any other target.
-    vocab = _swap_vocabulary(
+    scene_root = state.scene_root
+    state.vocab = _swap_vocabulary(
         NodeJSON(name="root", children=scene_root.children + overlay_children)
         if overlay_children
         else scene_root,
         shot,
-        mall,
+        state.mall,
     )
-    _check_text_unit_targets(shot, fonts, vocab)
+    _check_text_unit_targets(shot, state.fonts, state.vocab)
     clash = {n.name for n in overlay_children} & {n.name for n in scene_root.children}
     if clash:
         raise CutoutCompileError(
             f"overlay and scene both build a node named {sorted(clash)}; the "
             "runtime indexes both layers by path, so one would shadow the other"
         )
-    entity_swaps: list[_EntitySwap] = []
-    # The speech aspect, resolved once per speaker (an#248): the pulses it adds
-    # here, and the speakers whose lip-sync it switched off for the viseme pass.
-    speech = _speech_plan(shot, vocab, resolutions)
-    animations, tracks = _compile_actions(
-        [*shot.actions, *speech.actions],
-        shot.duration,
-        vocab=vocab,
-        resolutions=resolutions,
-        fps=fps,
-        step_hz=step_hz,
-        default_easing=default_easing,
-        entity_swaps=entity_swaps,
+
+
+def _actions_pass(state: CompileState) -> None:
+    """The authored actions (sets, tweens, plays, swaps) -> clips and tracks."""
+    state.animations, state.tracks = _compile_actions(
+        [*state.shot.actions, *state.extra_actions],
+        state.shot.duration,
+        vocab=state.vocab,
+        resolutions=state.resolutions,
+        fps=state.fps,
+        step_hz=state.step_hz,
+        default_easing=state.default_easing,
+        entity_swaps=state.entity_swaps,
     )
-    # What each whole-character swap POSES (an#197) — folded into the face
-    # solver's channels below, so a posed pupil still follows the gaze.
-    poses = _swap_pose_layer(entity_swaps, vocab)
-    # Which view each character with per-view face sets is in, and when
-    # (an#220): the mouth and the lids draw from `viseme@side`/`eyelid@side`
-    # while the profile shows.
-    view_spans = _view_spans(entity_swaps, vocab, duration=shot.duration)
-    provider = expression_provider or DefaultExpressionProvider()
-    # Phase 4: emit a viseme channel per dialogue line that has a viseme_track.
+
+
+def _speech_pass(state: CompileState) -> None:
+    """Cut-out: the speech aspect, resolved once per speaker (an#248) -- the
+    pulses it adds for a speaker that does not lip-sync (compiled with the
+    authored actions), and those speakers, whose lip-sync the viseme pass skips."""
+    speech = _speech_plan(state.shot, state.vocab, state.resolutions)
+    state.extra_actions.extend(speech.actions)
+    state.no_lip_sync = speech.no_lip_sync
+
+
+def _swap_pose_pass(state: CompileState) -> None:
+    """Cut-out: what each whole-character swap POSES (an#197) -- folded into the
+    face solver's channels, so a posed pupil still follows the gaze."""
+    state.poses = _swap_pose_layer(state.entity_swaps, state.vocab)
+
+
+def _view_span_pass(state: CompileState) -> None:
+    """Cut-out: which view each character with per-view face sets is in, and
+    when (an#220): the mouth and lids draw from `viseme@side` while the profile shows."""
+    state.view_spans = _view_spans(state.entity_swaps, state.vocab, duration=state.shot.duration)
+
+
+def _viseme_pass(state: CompileState) -> None:
+    """Cut-out: a viseme channel per dialogue line that has a viseme track (Phase 4)."""
     _add_viseme_clips(
-        shot,
-        animations,
-        tracks,
-        mall=mall,
-        vocab=vocab,
-        fps=fps,
-        provider=provider,
-        view_spans=view_spans,
-        no_lip_sync=speech.no_lip_sync,
+        state.shot,
+        state.animations,
+        state.tracks,
+        mall=state.mall,
+        vocab=state.vocab,
+        fps=state.fps,
+        provider=state.provider,
+        view_spans=state.view_spans,
+        no_lip_sync=state.no_lip_sync,
     )
-    # The face (an#98): blinks, expressions and the silent mouth form — one
-    # channel per (node, property), ahead of everything authored. An entity
-    # nothing expresses on gets its blink clips exactly as before (an#88).
-    blink_phases, gaze_seeds = _add_face_clips(
-        shot,
-        animations,
-        tracks,
-        vocab=vocab,
-        fps=fps,
-        mall=mall,
-        provider=provider,
-        poses=poses,
-        view_spans=view_spans,
+
+
+def _face_pass(state: CompileState) -> None:
+    """Cut-out: the face (an#98) -- blinks, expressions, gaze and the silent mouth
+    form; one channel per (node, property). An entity nothing expresses on gets
+    its blink clips exactly as before (an#88)."""
+    state.blink_phases, state.gaze_seeds = _add_face_clips(
+        state.shot,
+        state.animations,
+        state.tracks,
+        vocab=state.vocab,
+        fps=state.fps,
+        mall=state.mall,
+        provider=state.provider,
+        poses=state.poses,
+        view_spans=state.view_spans,
     )
-    # Phase 7: wire camera.move ("push_in", "pull_out", "hold") into a scale
-    # animation on the synthetic scene root so directors get visible camera
-    # behavior without writing channels by hand.
-    _add_camera_clips(shot, animations, tracks, width=width, height=height)
-    # After the camera, which reads in the order it happens — though the
-    # ordering is not load-bearing: the two passes write disjoint targets and
-    # swapping them is picture-equivalent. What IS load-bearing is that both
-    # resolve the same `camera_keys`, so they cannot describe different moves.
-    _add_parallax_clips(shot, mall, animations, tracks, width=width, height=height)
-    # After EVERY emission pass, so no channel reaches the runtime's frame loop
-    # naming a node it will not find (an#193).
-    _check_channel_targets(animations, vocab.paths, shot_id=shot.id)
-    _check_keyframe_easings(animations, shot_id=shot.id)
+
+
+def _camera_pass(state: CompileState) -> None:
+    """The camera (Phase 7): `camera.move`/keys onto the scene root."""
+    _add_camera_clips(
+        state.shot, state.animations, state.tracks, width=state.width, height=state.height
+    )
+
+
+def _parallax_pass(state: CompileState) -> None:
+    """Planes' parallax. After the camera, which reads in the order it happens --
+    though not load-bearing: the two write disjoint targets. What IS load-bearing
+    is that both resolve the same `camera_keys`."""
+    _add_parallax_clips(
+        state.shot,
+        state.mall,
+        state.animations,
+        state.tracks,
+        width=state.width,
+        height=state.height,
+    )
+
+
+def _checks_pass(state: CompileState) -> None:
+    """After EVERY emission pass: targets, easings, stand-in assets, faded treatments."""
+    # No channel may reach the runtime's frame loop naming a node it will not
+    # find (an#193).
+    _check_channel_targets(state.animations, state.vocab.paths, shot_id=state.shot.id)
+    _check_keyframe_easings(state.animations, shot_id=state.shot.id)
     # AFTER action + viseme compilation, deliberately: a swap key the timeline
     # actually USES whose art is missing is recorded as a fallback during
     # those passes (usage-aware escalation, an#87), and this is the one place
     # that decides warn-vs-raise for every fallback.
-    _raise_or_warn_on_asset_fallbacks(shot.id, resolutions, strict=strict_assets)
-    if style_pack is not None:
-        faded = faded_treated_targets(scene_root, animations)
+    _raise_or_warn_on_asset_fallbacks(
+        state.shot.id, state.resolutions, strict=state.strict_assets
+    )
+    if state.style_pack is not None:
+        faded = faded_treated_targets(state.scene_root, state.animations)
         if faded:
             warnings.warn(
                 f"an alpha channel fades {faded}, which carry surface treatments "
@@ -1170,35 +1270,61 @@ def compile_shot(
                 "(`entity_surfaces: {<id>: {outline: false, shadow: false}}`), or "
                 "accept it for a short fade.",
                 CutoutCompileWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
 
-    timeline = TimelineJSON(duration=shot.duration, tracks=tracks)
+
+#: The STAGE's own compile passes, in order. A genre adds passes between them by
+#: registering :class:`an.genres.CompilePass` objects for the ``"stage"``
+#: compiler; the in-repo cut-out genre registers ``swap_pose`` (300),
+#: ``view_spans`` (310), ``visemes`` (400) and ``face`` (500), and the ``rig``
+#: entity builder (:data:`an.genres.cutout.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so
+#: no ``without_genres()`` can take the stage's own passes away.
+STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
+    CompilePass("scene", _scene_pass, order=100, description="the scene tree, overlay, grain, vocabulary"),
+    CompilePass("actions", _actions_pass, order=200, description="authored actions -> clips"),
+    CompilePass("camera", _camera_pass, order=600, description="the camera onto the scene root"),
+    CompilePass("parallax", _parallax_pass, order=700, description="planes' parallax"),
+    CompilePass("checks", _checks_pass, order=900, description="targets, easings, stand-ins"),
+)
+
+def compile_passes_for_stage() -> tuple[CompilePass, ...]:
+    """The stage's passes and every registered one, in run order (stable by name)."""
+    from an.genres.registry import compile_passes
+
+    found = list(STAGE_COMPILE_PASSES) + list(compile_passes("stage"))
+    return tuple(sorted(found, key=lambda p: (p.order, p.name)))
+
+
+def _assemble_document(state: CompileState, *, background: str) -> CutoutSceneJSON:
+    """The wire document from what the passes produced."""
+    shot, style_pack, overlay_children = state.shot, state.style_pack, state.overlay_children
+    timeline = TimelineJSON(duration=shot.duration, tracks=state.tracks)
 
     return CutoutSceneJSON(
         meta=CutoutSceneMetaJSON(
-            fps=fps,
-            width=width,
-            height=height,
+            fps=state.fps,
+            width=state.width,
+            height=state.height,
             duration=shot.duration,
             background=background,
-            blink_phases=blink_phases,
-            step_hz=step_hz,
-            gaze_seeds=gaze_seeds,
+            blink_phases=state.blink_phases,
+            step_hz=state.step_hz,
+            gaze_seeds=state.gaze_seeds,
             style_pack=style_pack.name if style_pack is not None else None,
-            fonts=fonts,
+            fonts=state.fonts,
             entity_spaces=entity_spaces_of(shot),
         ),
-        scene=scene_root,
+        scene=state.scene_root,
         overlay=(
             NodeJSON(name="overlay", children=overlay_children)
             if overlay_children
             else None
         ),
-        animations=animations,
+        animations=state.animations,
         timeline=timeline,
-        assets=AssetsJSON(textures=textures),
-        asset_resolution=resolutions,
+        assets=AssetsJSON(textures=state.textures),
+        asset_resolution=state.resolutions,
     )
 
 
@@ -1263,97 +1389,160 @@ def _build_scene_root(
         overlay = []
     if fonts is None:
         fonts = {}
-    children: list[NodeJSON] = []
-    characters_store = mall.get("characters") or {}
-    environments_store = mall.get("environments") or {}
-    props_store = mall.get("props") or {}
-    char_entities = [e for e in shot.entities if e.kind == "character"]
-    n_chars = len(char_entities)
-    char_positions = _layout_character_positions(n_chars)
-    char_idx = 0
-    # Environments first so they sit BEHIND the characters — except for the
-    # planes an environment declares as foreground, which is why this is a
-    # split rather than a loop. Before an#110 the two loops made a plane in
-    # FRONT of the characters structurally unreachable: entity order could not
-    # interleave them however the author wrote the scene.
-    in_front: list[NodeJSON] = []
-    reached: set[str] = set()
-    skipped: set[str] = set()
-    raster: set[str] = set()
+    build = SceneBuild(
+        shot=shot,
+        mall=mall,
+        textures=textures,
+        resolutions=resolutions,
+        style_pack=style_pack,
+        overlay=overlay,
+        fonts=fonts,
+        width=width,
+        height=height,
+    )
     _refuse_unregistered_entity_kinds(shot)
-    for entity in shot.entities:
-        if entity.kind == "environment":
-            node, front = _build_environment_subtree(
-                entity,
-                environments_store,
-                textures=textures,
-                resolutions=resolutions,
-                style_pack=style_pack,
-                reached=reached,
-            )
-            children.append(node)
-            in_front.extend(front)
-    for entity in shot.entities:
-        if entity.kind == "character":
-            x = char_positions[char_idx]
-            char_idx += 1
-            sub = _build_character_subtree(
-                entity,
-                characters_store,
-                textures=textures,
-                resolutions=resolutions,
-                style_pack=style_pack,
-                reached=reached,
-                skipped=skipped,
-                raster=raster,
-            )
-            sub.transform.x = x
-            _apply_stage_placement(sub, entity)
-            # an#163: outline / paper-gap shadow / glow, when the pack asks.
-            _warn_surface(
-                apply_surface(
-                    sub, surface_for(style_pack, entity.id), textures=textures
-                )
-            )
-            children.append(sub)
-        elif entity.kind == "prop":
-            text_doc = text_document(entity, props_store)
-            if text_doc is not None:
-                sub, layer = _build_text_block(
-                    entity,
-                    text_doc,
-                    props_store,
-                    textures=textures,
-                    resolutions=resolutions,
-                    fonts=fonts,
-                    width=width,
-                    height=height,
-                )
-                (overlay if layer == "overlay" else children).append(sub)
-                continue
-            sub = _build_prop_subtree(
-                entity,
-                props_store,
-                textures=textures,
-                resolutions=resolutions,
-                style_pack=style_pack,
-                reached=reached,
-                raster=raster,
-            )
-            _apply_stage_placement(sub, entity)
-            _warn_surface(
-                apply_surface(
-                    sub, surface_for(style_pack, entity.id), textures=textures
-                )
-            )
-            children.append(sub)
-        # `voice` entities are legitimately not drawable: they
-        # configure the render rather than appearing in it.
+    # Builders by phase (an#247): the backdrop (environments, phase 0) first so
+    # it sits BEHIND the cast, then the cast (phase 1) in entity order — except
+    # for the planes an environment declares as foreground, kept in `in_front`.
+    # Before an#110 two fixed loops made a plane in FRONT of the characters
+    # structurally unreachable.
+    builders = scene_builders()
+    for phase in sorted({b.order for b in builders.values()}):
+        for entity in shot.entities:
+            builder = builders.get(entity.kind)
+            if builder is not None and builder.order == phase:
+                builder.resolve()(entity, build)
+        # `voice` entities are legitimately not drawable: they configure the
+        # render rather than appearing in it, and no builder claims them.
+    children, in_front = build.children, build.in_front
+    reached, skipped, raster = build.reached, build.skipped, build.raster
     # …and last, the foreground planes, over everything.
     children.extend(in_front)
     _warn_about_art_a_pack_cannot_reach(style_pack, reached, skipped)
     _warn_raster_parts_not_recoloured(style_pack, raster)
     return NodeJSON(name="root", children=children)
+
+
+@dataclass
+class SceneBuild:
+    """The scene being built, as an entity builder sees it (an#247).
+
+    A builder (:class:`an.genres.CompilePass` with ``builds`` set) appends its
+    entity's subtree to ``children`` (or ``overlay``, or ``in_front``) and
+    records its textures and resolutions here, exactly as the scene pass did
+    by hand.
+    """
+
+    shot: Shot
+    mall: Mapping[str, Mapping]
+    textures: dict[str, AssetJSON]
+    resolutions: list[AssetResolutionJSON]
+    style_pack: "StylePack | None"
+    overlay: list[NodeJSON]
+    fonts: dict[str, str]
+    width: int
+    height: int
+    children: list[NodeJSON] = field(default_factory=list)
+    in_front: list[NodeJSON] = field(default_factory=list)
+    reached: set[str] = field(default_factory=set)
+    skipped: set[str] = field(default_factory=set)
+    raster: set[str] = field(default_factory=set)
+
+    def store(self, name: str) -> Mapping:
+        return self.mall.get(name) or {}
+
+
+def _build_environment_entity(entity: AssetRef, build: SceneBuild) -> None:
+    """The stage's backdrop builder: an environment's planes."""
+    node, front = _build_environment_subtree(
+        entity,
+        build.store("environments"),
+        textures=build.textures,
+        resolutions=build.resolutions,
+        style_pack=build.style_pack,
+        reached=build.reached,
+    )
+    build.children.append(node)
+    build.in_front.extend(front)
+
+
+def _build_prop_entity(entity: AssetRef, build: SceneBuild) -> None:
+    """The stage's prop builder: a text block, a stroked path or a prop with art."""
+    props_store = build.store("props")
+    text_doc = text_document(entity, props_store)
+    if text_doc is not None:
+        sub, layer = _build_text_block(
+            entity,
+            text_doc,
+            props_store,
+            textures=build.textures,
+            resolutions=build.resolutions,
+            fonts=build.fonts,
+            width=build.width,
+            height=build.height,
+        )
+        (build.overlay if layer == "overlay" else build.children).append(sub)
+        return
+    sub = _build_prop_subtree(
+        entity,
+        props_store,
+        textures=build.textures,
+        resolutions=build.resolutions,
+        style_pack=build.style_pack,
+        reached=build.reached,
+        raster=build.raster,
+    )
+    _apply_stage_placement(sub, entity)
+    _warn_surface(
+        apply_surface(sub, surface_for(build.style_pack, entity.id), textures=build.textures)
+    )
+    build.children.append(sub)
+
+
+def _build_character_entity(entity: AssetRef, build: SceneBuild) -> None:
+    """Cut-out (the ``rig`` pass): a character, spread along x among the shot's
+    characters so they don't overlap (a single one at the centre)."""
+    cast = [e for e in build.shot.entities if e.kind == entity.kind]
+    x = _layout_character_positions(len(cast))[
+        next(i for i, e in enumerate(cast) if e is entity)
+    ]
+    sub = _build_character_subtree(
+        entity,
+        build.store("characters"),
+        textures=build.textures,
+        resolutions=build.resolutions,
+        style_pack=build.style_pack,
+        reached=build.reached,
+        skipped=build.skipped,
+        raster=build.raster,
+    )
+    sub.transform.x = x
+    _apply_stage_placement(sub, entity)
+    # an#163: outline / paper-gap shadow / glow, when the pack asks.
+    _warn_surface(
+        apply_surface(sub, surface_for(build.style_pack, entity.id), textures=build.textures)
+    )
+    build.children.append(sub)
+
+
+#: The stage's own entity builders: phase 0 the backdrop, phase 1 the cast.
+STAGE_SCENE_BUILDERS: dict[str, CompilePass] = {
+    "environment": CompilePass(
+        "environment", _build_environment_entity, order=0, builds="environment",
+        description="an environment's planes (the backdrop)",
+    ),
+    "prop": CompilePass(
+        "prop", _build_prop_entity, order=1, builds="prop",
+        description="a prop, a stroked path or a text block",
+    ),
+}
+
+
+def scene_builders() -> dict[str, CompilePass]:
+    """``{entity kind: builder}``: the stage's, and every registered one."""
+    from an.genres.registry import entity_builders
+
+    return {**STAGE_SCENE_BUILDERS, **entity_builders("stage")}
 
 
 # Environment presets — built-in named backdrops. A user-supplied environment

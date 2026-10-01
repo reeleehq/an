@@ -1,4 +1,4 @@
-"""The core's open registries: action kinds, entity kinds, semantic checks, md sugar.
+"""The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.
 
 ADR 0001 decision 2 ("the IR is open at the type level; genres register, never
 edit") and decision 4 (the first batch of registries). Each registry is a plain
@@ -241,7 +241,14 @@ _ACTION_KINDS = _Table("action kind")
 _ENTITY_KINDS = _Table("entity kind")
 _CHECKS = _Table("semantic check")
 _DIALOGUE_SUGAR = _Table("dialogue sugar")
-_TABLES: tuple[_Table, ...] = (_ACTION_KINDS, _ENTITY_KINDS, _CHECKS, _DIALOGUE_SUGAR)
+_COMPILE_PASSES = _Table("compile pass")
+_TABLES: tuple[_Table, ...] = (
+    _ACTION_KINDS,
+    _ENTITY_KINDS,
+    _CHECKS,
+    _DIALOGUE_SUGAR,
+    _COMPILE_PASSES,
+)
 
 
 def register_action_kind(
@@ -339,6 +346,86 @@ def dialogue_sugar(opener: str) -> DialogueSugar | None:
 
 def dialogue_sugars() -> tuple[DialogueSugar, ...]:
     return tuple(_DIALOGUE_SUGAR.entries.values())
+
+
+# -----------------------------------------------------------------------------
+# Compile passes (ADR 0001 decision 4; an#247)
+# -----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CompilePass:
+    """One step a genre adds to an engine's COMPILER (shot -> compiled document).
+
+    A compiler (``compiler``: today ``"stage"``, :mod:`an.stage.compile`) runs
+    its own passes plus every registered one, in ``order``. A pass with
+    ``builds`` set is an ENTITY BUILDER instead: the compiler's scene pass calls
+    it for each entity of that kind (the cut-out genre's ``rig`` builds a
+    ``character``); builders with a lower ``order`` build all their entities
+    first (the stage's backdrop before the cast), equal orders in entity order.
+
+    ``run`` is the callable, or ``"module:function"``, resolved on first use --
+    so a genre is inspectable (:func:`an.genres.available`) without importing
+    the engine its passes target. What ``run`` receives is the compiler's
+    business (the stage hands a pass its ``CompileState``, a builder the entity
+    and the scene being built); the core never calls it.
+    """
+
+    name: str
+    run: Callable[..., Any] | str
+    order: float = 0.0
+    compiler: str = "stage"
+    builds: str | None = None
+    description: str = ""
+
+    def resolve(self) -> Callable[..., Any]:
+        """The callable ``run`` names.
+
+        >>> CompilePass("p", "math:sqrt").resolve()(4.0)
+        2.0
+        """
+        if callable(self.run):
+            return self.run
+        module, _, attr = self.run.partition(":")
+        if not module or not attr:
+            raise RegistryError(
+                f"compile pass {self.name!r}: run={self.run!r} is neither a callable "
+                "nor 'module:function'"
+            )
+        from importlib import import_module
+
+        return getattr(import_module(module), attr)
+
+
+def register_compile_pass(
+    compile_pass: CompilePass, *, owner: str = CORE_OWNER, replace: bool = False
+) -> CompilePass:
+    """Register a compile pass (or an entity builder) under its name."""
+    return _COMPILE_PASSES.register(
+        compile_pass.name, compile_pass, owner=owner, replace=replace
+    )
+
+
+def compile_passes(compiler: str) -> tuple[CompilePass, ...]:
+    """The registered passes of ``compiler`` (builders excluded), in run order."""
+    found = [
+        p for p in _COMPILE_PASSES.entries.values()
+        if p.compiler == compiler and p.builds is None
+    ]
+    return tuple(sorted(found, key=lambda p: (p.order, p.name)))
+
+
+def entity_builders(compiler: str) -> dict[str, CompilePass]:
+    """``{entity kind: builder}`` registered for ``compiler``."""
+    return {
+        p.builds: p
+        for p in _COMPILE_PASSES.entries.values()
+        if p.compiler == compiler and p.builds is not None
+    }
+
+
+def compile_pass_names(*, owner: str | None = None) -> tuple[str, ...]:
+    return _COMPILE_PASSES.names(owner=owner)
 
 
 # -----------------------------------------------------------------------------
