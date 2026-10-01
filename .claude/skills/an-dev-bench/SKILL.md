@@ -157,6 +157,14 @@ regenerates the staged IR from the md, so a developer who ran the example
 
 ## The golden gate (an#38)
 
+**The golden gate is one of four for a timing-kernel change** (an#233): unchanged
+contract hashes (`compiled_contract_sha256` per fixture, against the bless records),
+the Python/JS parity tests, the pure-pose tests, and these decoded-pixel goldens.
+`scene_contract_sha256` hashes the compiled document, not its evaluation, so an
+evaluation change (solver, discrete rule, sampler) can leave every hash intact and
+still move pixels; `python -m an.timing.contract check` and the timing vectors
+cover that gap from the evaluation side.
+
 `an/bench/golden.py` compares today's render against committed PNGs.
 `an/bench/png.py` is the codec: filter-0 writer, full-filter reader, numpy and
 stdlib only. `misc/bench/golden/README.md` is the operator's guide; read it

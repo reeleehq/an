@@ -46,12 +46,13 @@ from an.timing import _vectors
 from an.timing.address import format_address
 from an.timing.clip import LoopMode
 from an.timing.easing import (
+    CORE_OWNER,
     CSS_BEZIERS,
     EASING_FAMILIES,
-    SOLVERS,
     STEP_POSITIONS,
     apply_easing,
     easing_entries,
+    solvers,
 )
 from an.timing.flat import CHANGE_KINDS, FLAT_TIMELINE_FORMAT, FLAT_TIMELINE_VERSION
 from an.timing.kinds import (
@@ -75,7 +76,9 @@ CONTRACT_VERSION: int = 1
 REL_TOL: float = 1e-9
 EASING_SAMPLE_STEPS: int = 20
 JSON_SCHEMA_DIALECT: str = "https://json-schema.org/draft/2020-12/schema"
-SCHEMA_ID_ROOT: str = "https://github.com/thorwhalen/an/blob/main/an/data/timing/"
+SCHEMA_ID_ROOT: str = (
+    "https://raw.githubusercontent.com/thorwhalen/an/main/an/data/timing/"
+)
 
 EASING_FILE = "easing.json"
 KINDS_FILE = "kinds.json"
@@ -146,19 +149,40 @@ def values_close(expected: Any, actual: Any, *, rel_tol: float = REL_TOL) -> boo
     return expected == actual
 
 
+#: The cases whose space is the value-typed rule's write-group space are ALSO
+#: evaluated with ``space=None`` — the path compile, truth projections and the
+#: bench use — so both rules are held to the same numbers.
+VALUE_TYPED_CASE_SPACE: str = "stage.node"
+
+
+def _state_value_typed(doc: Mapping[str, Any], t: float) -> dict[str, Any]:
+    pose = evaluate_timeline(timeline_from_compiled(doc), t)
+    return {format_address(tg, pr): _jsonable(v) for (tg, pr), v in pose.items()}
+
+
 def check_vectors(vectors: Mapping[str, Any] | None = None) -> list[str]:
     """Every sample of ``vectors`` (default: the committed file) that ``an.timing``
-    does not reproduce, as one line each. Empty means the kernel meets the contract."""
+    does not reproduce, as one line each. Empty means the kernel meets the contract.
+
+    Both evaluation rules are held: every case under its declared space, and every
+    ``stage.node`` case also under the value-typed default (``space=None``)."""
     if vectors is None:
         vectors = load_contract_file(VECTORS_FILE)
     problems = []
     for case in vectors["cases"]:
-        for sample in case["samples"]:
-            got = state_at(case["document"], sample["t"], space=case["space"])
-            if not values_close(sample["state"], got):
-                problems.append(
-                    f"{case['name']} at t={sample['t']!r}: expected {sample['state']}, got {got}"
-                )
+        rules = [
+            ("declared", lambda doc, t, sp=case["space"]: state_at(doc, t, space=sp))
+        ]
+        if case["space"] == VALUE_TYPED_CASE_SPACE:
+            rules.append(("value-typed", _state_value_typed))
+        for rule, evaluate in rules:
+            for sample in case["samples"]:
+                got = evaluate(case["document"], sample["t"])
+                if not values_close(sample["state"], got):
+                    problems.append(
+                        f"{case['name']} ({rule}) at t={sample['t']!r}: "
+                        f"expected {sample['state']}, got {got}"
+                    )
     return problems
 
 
@@ -167,11 +191,20 @@ def check_vectors(vectors: Mapping[str, Any] | None = None) -> list[str]:
 # -----------------------------------------------------------------------------
 
 
+#: Where every easing is sampled: a uniform grid, plus points that reach the
+#: solvers' fallbacks (near the ends, and around the middle of a curve whose
+#: slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).
+SOLVER_PROBE_U: tuple[float, ...] = (1e-6, 0.4, 0.501, 1 - 1e-6)
+SAMPLE_U: tuple[float, ...] = tuple(
+    sorted(
+        {i / EASING_SAMPLE_STEPS for i in range(EASING_SAMPLE_STEPS + 1)}
+        | set(SOLVER_PROBE_U)
+    )
+)
+
+
 def _easing_samples(spec: Any) -> list[float]:
-    return [
-        apply_easing(spec, i / EASING_SAMPLE_STEPS)
-        for i in range(EASING_SAMPLE_STEPS + 1)
-    ]
+    return [apply_easing(spec, u) for u in SAMPLE_U]
 
 
 #: Parametrised specs the easing file samples, beside the named entries.
@@ -184,10 +217,19 @@ PARAMETRIC_EXAMPLES: tuple[Any, ...] = (
     "steps(3, jump-none)",
     "steps(2, jump-both)",
     "steps(2, start)",
+    "cubic-bezier(1, 0, 0, 1)",  # Newton stalls mid-curve: the bisection runs
     [0.42, 0.0, 0.58, 1.0],
     [0.5, 2.0, 0.5, 2.0],
     [0.3, 3.0, 0.7, 0.0],
+    [1.0, 0.0, 0.0, 1.0],  # the legacy solver's slope guard and clamps
+    [0.42, 0.0, 1.0, 1.0],
+    [0.0, 0.0, 0.58, 1.0],
 )
+
+#: How a CSS-named document's names map onto this registry where the name means
+#: something else here. ``ease`` is `an`'s quadratic (ADR 0001 decision 10,
+#: amended 2026-10-01); a CSS document's ``ease`` is this spec.
+CSS_IMPORT_ALIASES: dict[str, str] = {"ease": "cubic-bezier(0.25, 0.1, 0.25, 1)"}
 
 
 def build_easing() -> dict[str, Any]:
@@ -196,20 +238,24 @@ def build_easing() -> dict[str, Any]:
         "version": CONTRACT_VERSION,
         "description": (
             "Every named easing, the solver that computes it, and its value at "
-            f"u = i/{EASING_SAMPLE_STEPS}. Hyphenated CSS names are the exact CSS "
+            "u in 'sample_u'. Hyphenated CSS names are the exact CSS "
             "curves; an's underscore names (and 'ease') are an's own polynomial "
-            "curves; Manim's rate functions keep Manim's names. A bare 4-number "
+            "curves, so a CSS document's 'ease' must be read through "
+            "'css_import_aliases'; Manim's rate functions keep Manim's names. A bare 4-number "
             "list is a cubic Bezier solved by 'an-bezier-newton-8'; the string "
             "'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'."
         ),
         "families": list(EASING_FAMILIES),
-        "solvers": dict(SOLVERS),
-        "css_named_curves": {k: list(v) for k, v in CSS_BEZIERS.items()},
+        "solvers": solvers(owner=CORE_OWNER),
+        "css_hyphenated_curves": {
+            k: list(v) for k, v in CSS_BEZIERS.items() if k not in CSS_IMPORT_ALIASES
+        },
+        "css_import_aliases": dict(CSS_IMPORT_ALIASES),
         "step_positions": list(STEP_POSITIONS),
-        "sample_u": [i / EASING_SAMPLE_STEPS for i in range(EASING_SAMPLE_STEPS + 1)],
+        "sample_u": list(SAMPLE_U),
         "entries": [
             {**e.to_json(), "samples": _easing_samples(e.name)}
-            for e in easing_entries()
+            for e in easing_entries(owner=CORE_OWNER)
         ],
         "parametric": [
             {
@@ -343,14 +389,15 @@ def build_kinds() -> dict[str, Any]:
             "property is {'kind': 'discrete'} (switch_at 0.5)."
         ),
         "kinds": kinds,
-        "spaces": [get_space(name).to_json() for name in space_names()],
+        "spaces": [get_space(n).to_json() for n in space_names(owner=CORE_OWNER)],
     }
 
 
 _EASING_SPEC_SCHEMA: dict[str, Any] = {
     "description": (
         "null (linear), a name or parametrised spec from easing.json, or a 4-number "
-        "cubic-Bezier control list solved by an's legacy solver"
+        "cubic-Bezier control list solved by an's legacy solver. The schema does "
+        "NOT check names (the registry is open); an evaluator refuses an unknown one"
     ),
     "anyOf": [
         {"type": "null"},
@@ -409,8 +456,12 @@ def build_timeline_schema() -> dict[str, Any]:
                     },
                     {
                         "type": "object",
-                        "required": ["kind", "to"],
+                        "required": ["kind", "to", "easing"],
                         "additionalProperties": False,
+                        "description": (
+                            "'easing' is always written, resolved (null = linear); an "
+                            "absent 'from' means from the value the property has at start"
+                        ),
                         "properties": {
                             "kind": {"const": CHANGE_KINDS[1]},
                             "from": {},
@@ -610,6 +661,11 @@ def contract_drift(directory: Path = CONTRACT_DIR) -> list[str]:
         committed = json.loads(path.read_text(encoding="utf-8"))
         if not values_close(committed, _jsonable(json.loads(dumps(built)))):
             drift.append(f"{name}: differs from what the registries generate")
+        if name == VECTORS_FILE:
+            names = lambda doc: {c["name"] for c in doc.get("cases", ())}  # noqa: E731
+            removed = sorted(names(committed) - names(built))
+            if removed:
+                drift.append(f"{name}: cases removed: {removed}")
     return drift
 
 

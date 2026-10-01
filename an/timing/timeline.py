@@ -28,7 +28,13 @@ from typing import Any, Mapping
 from an.timing.channel import Channel, Keyframe
 from an.timing.clip import Clip, KindOf, LoopMode, Pose
 from an.timing.clip import evaluate as _evaluate_clip
-from an.timing.spaces import STAGE_NODE, SWAP_WRITE_GROUP, SpaceLike, space_resolver
+from an.timing.spaces import (
+    DFLT_VALUE_TYPED_SPACE,
+    SWAP_WRITE_GROUP,
+    SpaceLike,
+    get_space,
+    space_resolver,
+)
 
 __all__ = [
     "PlacedClip",
@@ -103,11 +109,7 @@ def write_group(prop: str) -> str:
     >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
     ('x', 'rotation', '<swap>')
     """
-    return STAGE_NODE.write_group(prop)
-
-
-def _stage_group(_target: str, prop: str) -> str:
-    return STAGE_NODE.write_group(prop)
+    return get_space(DFLT_VALUE_TYPED_SPACE).write_group(prop)
 
 
 def evaluate_timeline(
@@ -169,7 +171,12 @@ def evaluate_timeline(
     """
     kind_of: KindOf | None
     if space is None:
-        kind_of, group_of = None, _stage_group
+        default = get_space(DFLT_VALUE_TYPED_SPACE)  # by name, at call time
+
+        def group_of(_target: str, prop: str) -> str:
+            return default.write_group(prop)
+
+        kind_of = None
     else:
         resolve = space_resolver(space)
 

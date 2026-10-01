@@ -55,9 +55,11 @@ from an.timing.kinds import (
     kind_names,
     register_kind,
 )
+
+# The seeded stage spaces are reached by name (``get_space("stage.node")``);
+# ``an.timing.spaces.STAGE_NODE`` is a provisional handle, moving with the stage
+# engine in P3.
 from an.timing.spaces import (
-    STAGE_CAMERA,
-    STAGE_NODE,
     FieldDecl,
     PropertySpace,
     SpaceError,
@@ -110,8 +112,6 @@ __all__ = [
     "kind_from_spec",
     "kind_names",
     "register_kind",
-    "STAGE_CAMERA",
-    "STAGE_NODE",
     "FieldDecl",
     "PropertySpace",
     "SpaceError",

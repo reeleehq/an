@@ -49,16 +49,24 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Any, Callable, Collection, Mapping, Sequence
 
-from an.base import EasingSpec
+from an.base import EASING_PRESETS, EasingSpec
 
 #: A curve: normalised time ``u`` -> progress.
 Curve = Callable[[float], float]
 
-#: Families an entry can belong to (see the module docstring).
-EASING_FAMILIES: tuple[str, ...] = ("common", "legacy", "css", "manim")
+#: Who registered a core entry. Registries record an owner for every entry, and
+#: the contract files (:mod:`an.timing.contract`) list only this owner's, so a
+#: genre's registrations never leak into `an`'s core contract.
+CORE_OWNER: str = "an"
 
-#: The solvers, by name. An entry names the one that computes it, so a curve's
-#: numbers are reproducible in another language from its entry alone.
+#: The core families (see the module docstring). Open: a genre adds its own
+#: (a Penner family, say) with :func:`register_family`.
+EASING_FAMILIES: tuple[str, ...] = ("common", "legacy", "css", "manim")
+_FAMILIES: dict[str, str | None] = dict.fromkeys(EASING_FAMILIES, CORE_OWNER)
+
+#: The core solvers, by name. An entry names the one that computes it, so a
+#: curve's numbers are reproducible in another language from its entry alone.
+#: Open: a genre adds one (a spring integrator) with :func:`register_solver`.
 SOLVERS: dict[str, str] = {
     "closed-form": "evaluated directly from its formula",
     "an-bezier-newton-8": (
@@ -73,6 +81,31 @@ SOLVERS: dict[str, str] = {
     ),
     "css-steps": "the CSS Easing Level 1 step algorithm",
 }
+_SOLVER_OWNERS: dict[str, str | None] = dict.fromkeys(SOLVERS, CORE_OWNER)
+
+
+def register_family(name: str, *, owner: str | None = None) -> str:
+    """Open a new easing family (refused if it exists)."""
+    if name in _FAMILIES:
+        raise ValueError(f"easing family {name!r} is already registered")
+    _FAMILIES[name] = owner
+    return name
+
+
+def register_solver(name: str, description: str, *, owner: str | None = None) -> str:
+    """Name a new solver, with the description another language implements it from."""
+    if name in SOLVERS:
+        raise ValueError(f"easing solver {name!r} is already registered")
+    SOLVERS[name] = description
+    _SOLVER_OWNERS[name] = owner
+    return name
+
+
+def solvers(*, owner: str | None = None) -> dict[str, str]:
+    """The registered solvers; only ``owner``'s when given."""
+    return {
+        k: v for k, v in SOLVERS.items() if owner is None or _SOLVER_OWNERS[k] == owner
+    }
 
 
 @dataclass(frozen=True)
@@ -92,15 +125,15 @@ class EasingEntry:
     params: Mapping[str, Any] = field(default_factory=dict, compare=False)
 
     def __post_init__(self) -> None:
-        if self.family not in EASING_FAMILIES:
+        if self.family not in _FAMILIES:
             raise ValueError(
                 f"easing {self.name!r}: family {self.family!r} is not one of "
-                f"{EASING_FAMILIES}"
+                f"{sorted(_FAMILIES)} (register_family adds one)"
             )
         if self.solver not in SOLVERS:
             raise ValueError(
                 f"easing {self.name!r}: solver {self.solver!r} is not one of "
-                f"{sorted(SOLVERS)}"
+                f"{sorted(SOLVERS)} (register_solver adds one)"
             )
 
     def to_json(self) -> dict[str, Any]:
@@ -508,22 +541,36 @@ _MANIM_CURVES: dict[str, tuple[Curve, str]] = {
 # -----------------------------------------------------------------------------
 
 _REGISTRY: dict[str, EasingEntry] = {}
+_OWNERS: dict[str, str | None] = {}
 
 
-def register_easing(entry: EasingEntry, *, replace: bool = False) -> EasingEntry:
+def register_easing(
+    entry: EasingEntry, *, replace: bool = False, owner: str | None = None
+) -> EasingEntry:
     """Add ``entry`` to the registry (a genre's own curves register here).
 
-    Re-registering a name is refused unless ``replace=True``: a name's meaning
-    changing under a scene that uses it is exactly what entry versions exist to
-    make visible, so it must be deliberate.
+    Re-registering a name is refused unless ``replace=True``, and a replacement
+    must carry a HIGHER version: a name's meaning changing under a scene that
+    uses it is exactly what entry versions exist to make visible, so it must be
+    deliberate and visible. ``owner`` names who registered it (core entries:
+    :data:`CORE_OWNER`); only core entries reach the contract files.
     """
-    if not replace and entry.name in _REGISTRY:
-        raise ValueError(f"easing {entry.name!r} is already registered")
+    old = _REGISTRY.get(entry.name)
+    if old is not None:
+        if not replace:
+            raise ValueError(f"easing {entry.name!r} is already registered")
+        if entry.version <= old.version:
+            raise ValueError(
+                f"easing {entry.name!r}: a replacement must raise the version "
+                f"(registered: {old.version}, given: {entry.version}), so the "
+                "change of meaning is visible to every scene that names it"
+            )
     if _parse_call(entry.name) is not None:
         raise ValueError(
             f"easing {entry.name!r} would shadow a parametrised spec; pick a plain name"
         )
     _REGISTRY[entry.name] = entry
+    _OWNERS[entry.name] = owner
     _resolve_cached.cache_clear()
     return entry
 
@@ -542,9 +589,11 @@ def easing_entry(name: str) -> EasingEntry:
         ) from e
 
 
-def easing_entries() -> tuple[EasingEntry, ...]:
-    """Every registered entry, in registration order."""
-    return tuple(_REGISTRY.values())
+def easing_entries(*, owner: str | None = None) -> tuple[EasingEntry, ...]:
+    """Every registered entry in registration order; only ``owner``'s when given."""
+    return tuple(
+        e for e in _REGISTRY.values() if owner is None or _OWNERS[e.name] == owner
+    )
 
 
 def _seed() -> None:
@@ -555,7 +604,8 @@ def _seed() -> None:
             family="common",
             solver="closed-form",
             description="progress equals time; the same in CSS, Manim and an",
-        )
+        ),
+        owner=CORE_OWNER,
     )
     legacy = {
         "ease": (
@@ -582,7 +632,8 @@ def _seed() -> None:
                 family="legacy",
                 solver="closed-form",
                 description=description,
-            )
+            ),
+            owner=CORE_OWNER,
         )
     for name, points in CSS_BEZIERS.items():
         if name == "ease":
@@ -595,7 +646,8 @@ def _seed() -> None:
                 solver="css-bezier-newton-bisection",
                 description=f"CSS '{name}': cubic-bezier{points}",
                 params={"control_points": list(points)},
-            )
+            ),
+            owner=CORE_OWNER,
         )
     register_easing(
         EasingEntry(
@@ -604,7 +656,8 @@ def _seed() -> None:
             family="css",
             solver="css-steps",
             description="CSS 'step-start': steps(1, jump-start)",
-        )
+        ),
+        owner=CORE_OWNER,
     )
     register_easing(
         EasingEntry(
@@ -613,7 +666,8 @@ def _seed() -> None:
             family="css",
             solver="css-steps",
             description="CSS 'step-end': steps(1, jump-end)",
-        )
+        ),
+        owner=CORE_OWNER,
     )
     for name, (curve, description) in _MANIM_CURVES.items():
         register_easing(
@@ -623,8 +677,15 @@ def _seed() -> None:
                 family="manim",
                 solver="closed-form",
                 description=f"Manim rate function '{name}': {description}",
-            )
+            ),
+            owner=CORE_OWNER,
         )
+
+
+#: The easings the value-typed rule accepts: exactly ``runtime.js``'s
+#: ``EASINGS`` table (the stage engine draws these and no others), so the Python
+#: spec of that rule refuses what the browser would refuse.
+VALUE_TYPED_EASINGS: frozenset[str] = frozenset(EASING_PRESETS)
 
 
 # -----------------------------------------------------------------------------
@@ -634,17 +695,17 @@ def _seed() -> None:
 _CALL = re.compile(r"^([a-z-]+)\((.*)\)$")
 
 
+#: A number as both languages parse it alike (no ``1_0``, no ``inf``, no hex).
+_NUMBER = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$")
+
+
 def _parse_numbers(args: str, spec: str) -> list[float]:
     out = []
     for raw in args.split(","):
         text = raw.strip()
-        try:
-            value = float(text)
-        except ValueError:
-            value = math.nan
-        if not text or not math.isfinite(value):
+        if not _NUMBER.match(text):
             raise UnknownEasingError(f"easing {spec!r}: {text!r} is not a number")
-        out.append(value)
+        out.append(float(text))
     return out
 
 
@@ -667,12 +728,12 @@ def _parse_call(spec: str) -> Curve | None:
             raise UnknownEasingError(
                 f"easing {spec!r}: steps takes at most 2 arguments"
             )
-        try:
-            count = int(parts[0])
-        except ValueError as e:
+        (number,) = _parse_numbers(parts[0], spec)
+        if number != int(number):
             raise UnknownEasingError(
                 f"easing {spec!r}: {parts[0]!r} is not a whole number"
-            ) from e
+            )
+        count = int(number)
         position = parts[1] if len(parts) == 2 else DFLT_STEP_POSITION
         return css_steps(count, position)
     raise UnknownEasingError(

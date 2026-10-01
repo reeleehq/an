@@ -14,7 +14,10 @@ value holds, from the last key on the last value holds; a zero-span segment
   port's executable spec (``tests/test_cutout_channel_parity.py`` runs the real
   extracted JS against it). Numbers (``int``/``float``, excluding ``bool``)
   interpolate through the segment's easing; everything else holds ``a`` for
-  exactly ``[a.time, b.time)`` and switches at ``b.time``.
+  exactly ``[a.time, b.time)`` and switches at ``b.time``. Being runtime.js's
+  rule, it accepts only runtime.js's easings
+  (:data:`~an.timing.easing.VALUE_TYPED_EASINGS`): a curve the stage cannot
+  draw raises here, as it does in the browser, instead of yielding a pose.
 - ``kind=<FieldKind>`` — **by declaration** (:mod:`an.timing.kinds`), the
   kernel contract's rule: the declared kind interpolates, a discrete kind
   switches on time, and the first instant of a segment is the key it leaves.
@@ -57,8 +60,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from an.base import EasingSpec
-from an.timing.easing import apply_easing
-from an.timing.kinds import FieldKind, Segment
+from an.timing.easing import VALUE_TYPED_EASINGS, apply_easing
+from an.timing.kinds import FieldKind, FieldKindError, Segment
 
 
 @dataclass(slots=True, frozen=True)
@@ -121,11 +124,19 @@ def evaluate(channel: Channel, t: float, *, kind: FieldKind | None = None) -> An
     u = (t - a.time) / span
     # Validated for every segment (a typo'd easing name must raise on a swap
     # channel too), but *applied* only where the interpolator uses it.
-    eased = apply_easing(a.easing, u)
+    eased = apply_easing(
+        a.easing, u, names=VALUE_TYPED_EASINGS if kind is None else None
+    )
     if kind is not None:
         if t == a.time:  # the first instant of a segment is the key it leaves
             return a.value
-        return kind.interpolate(a.value, b.value, eased, Segment(t, a.time, b.time))
+        try:
+            return kind.interpolate(a.value, b.value, eased, Segment(t, a.time, b.time))
+        except (TypeError, ArithmeticError) as e:
+            raise FieldKindError(
+                f"{channel.target}:{channel.property}: cannot interpolate "
+                f"{a.value!r} -> {b.value!r} as {kind.to_spec()} at t={t} ({e})"
+            ) from e
     if _is_numeric(a.value) and _is_numeric(b.value):
         return a.value + (b.value - a.value) * eased
     # Non-numeric: snap on TIME, never on the (eased or raw) parameter. The

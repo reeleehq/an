@@ -423,12 +423,22 @@ class DiscreteKind(FieldKind):
 KindFactory = Callable[..., FieldKind]
 
 _REGISTRY: dict[str, KindFactory] = {}
+_OWNERS: dict[str, str | None] = {}
+#: Who registered the seeded kinds (only these reach the contract files).
+CORE_OWNER: str = "an"
 
 
 def register_kind(
-    name: str, factory: KindFactory, *, replace: bool = False
+    name: str,
+    factory: KindFactory,
+    *,
+    replace: bool = False,
+    owner: str | None = None,
 ) -> KindFactory:
     """Register a field kind under ``name`` (how a genre adds one).
+
+    ``owner`` names who registered it; only :data:`CORE_OWNER`'s kinds reach
+    `an`'s contract files.
 
     >>> sorted(kind_names())[:3]
     ['angle', 'color', 'discrete']
@@ -436,12 +446,13 @@ def register_kind(
     if not replace and name in _REGISTRY:
         raise FieldKindError(f"field kind {name!r} is already registered")
     _REGISTRY[name] = factory
+    _OWNERS[name] = owner
     return factory
 
 
-def kind_names() -> tuple[str, ...]:
-    """The registered kind names, in registration order."""
-    return tuple(_REGISTRY)
+def kind_names(*, owner: str | None = None) -> tuple[str, ...]:
+    """The registered kind names in registration order; only ``owner``'s when given."""
+    return tuple(k for k in _REGISTRY if owner is None or _OWNERS[k] == owner)
 
 
 def kind_from_spec(spec: Mapping[str, Any] | FieldKind | str) -> FieldKind:
@@ -481,4 +492,4 @@ for _kind in (
     OrbitKind,
     DiscreteKind,
 ):
-    register_kind(_kind.name, _kind)
+    register_kind(_kind.name, _kind, owner=CORE_OWNER)

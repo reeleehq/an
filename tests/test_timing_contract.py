@@ -101,7 +101,166 @@ def test_a_wrong_vector_is_reported():
     case = next(c for c in vectors["cases"] if c["name"] == "an-86-boundary")
     sample = next(s for s in case["samples"] if s["state"].get("hand:hands") == "A")
     sample["state"]["hand:hands"] = "B"
-    assert len(check_vectors(vectors)) == 1
+    problems = check_vectors(vectors)
+    # Both rules are held: the declared stage.node space AND the value-typed
+    # default every stage caller uses (review S2).
+    assert len(problems) == 2
+    assert any("(declared)" in p for p in problems)
+    assert any("(value-typed)" in p for p in problems)
+
+
+def test_the_vectors_catch_the_an86_ratio_bug_on_the_default_path(monkeypatch):
+    """Review S2's mutation, as a test: re-introduce the an#86 bug (snap on the
+    ratio) in the value-typed rule only; the contract check must fail."""
+    import an.timing.channel as channel
+
+    real = channel.evaluate
+
+    def ratio_snap(ch, t, *, kind=None):
+        if kind is None and any(isinstance(k.value, str) for k in ch.keyframes):
+            kfs = ch.keyframes
+            times = [k.time for k in kfs]
+            if times[0] <= t < times[-1]:
+                import bisect
+
+                i = bisect.bisect_right(times, t) - 1
+                a, b = kfs[i], kfs[i + 1]
+                if b.time > a.time:
+                    return (
+                        b.value if (t - a.time) / (b.time - a.time) >= 1.0 else a.value
+                    )
+        return real(ch, t, kind=kind)
+
+    import an.timing.clip as clip
+
+    monkeypatch.setattr(clip, "_evaluate_channel", ratio_snap)
+    problems = check_vectors()
+    assert problems and all("(value-typed)" in p for p in problems)
+    assert any("an-86-boundary" in p for p in problems)
+
+
+#: The committed case set. A case leaving the contract is a contract change and
+#: must be made here too, deliberately (review S7).
+EXPECTED_CASES: frozenset[str] = frozenset(
+    {
+        "number-linear-and-log",
+        "angle",
+        "vector-and-quaternion",
+        "color",
+        "color-srgb",
+        "orbit",
+        "discrete-and-undeclared",
+        "timings",
+        "cuts-dwells-carry-forward",
+        "per-field-timing",
+        "loop",
+        "orbit-overshoot",
+        "manim-rate-functions",
+        "an-numeric-easings",
+        "an-large-magnitude-bezier",
+        "an-86-boundary",
+        "an-swap-holds-under-any-easing",
+        "an-swap-shapes",
+        "an-held-end-value",
+        "an-swap-write-group",
+        "an-alias-write-group",
+        "an-speed",
+        "an-loop",
+        "an-ping-pong",
+        "an-step-swap-clip",
+        "an-playing-beats-held",
+        "an-latest-end-and-tie",
+        "an-cross-track-inclusive-end",
+    }
+)
+
+
+def test_the_vector_case_set_is_pinned():
+    assert {c["name"] for c in _vectors()["cases"]} == EXPECTED_CASES
+
+
+def test_drift_names_a_removed_case(tmp_path, monkeypatch):
+    for name in CONTRACT_FILES:
+        (tmp_path / name).write_text(
+            (contract.CONTRACT_DIR / name).read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    from an.timing import _vectors as seeds
+
+    real = seeds.cases
+    monkeypatch.setattr(
+        seeds, "cases", lambda: [c for c in real() if c["name"] != "an-loop"]
+    )
+    assert f"{VECTORS_FILE}: cases removed: ['an-loop']" in contract_drift(tmp_path)
+
+
+def test_a_genre_registration_never_reaches_the_core_contract():
+    """Review S3: an installed genre registers kinds, spaces, easings, a solver
+    and a family on import; an's contract files must not change."""
+    from dataclasses import dataclass
+    from typing import ClassVar
+
+    from an.timing import easing, kinds, spaces
+    from an.timing.easing import (
+        EasingEntry,
+        register_easing,
+        register_family,
+        register_solver,
+    )
+    from an.timing.kinds import FieldKind, register_kind
+    from an.timing.spaces import FieldDecl, PropertySpace, register_space
+
+    @dataclass(frozen=True)
+    class Points(FieldKind):
+        name: ClassVar[str] = "test-points"
+
+    register_family("test-penner", owner="test-genre")
+    register_solver("test-spring", "a spring integrator", owner="test-genre")
+    register_easing(
+        EasingEntry(
+            "test-bounce",
+            lambda u: u,
+            family="test-penner",
+            solver="test-spring",
+            description="a test curve",
+        ),
+        owner="test-genre",
+    )
+    register_kind(Points.name, Points, owner="test-genre")
+    register_space(
+        PropertySpace("test.character", (FieldDecl("*", Points()),)), owner="test-genre"
+    )
+    try:
+        assert contract_drift() == []
+    finally:
+        easing._REGISTRY.pop("test-bounce")
+        easing._OWNERS.pop("test-bounce")
+        easing._resolve_cached.cache_clear()
+        easing._FAMILIES.pop("test-penner")
+        easing.SOLVERS.pop("test-spring")
+        easing._SOLVER_OWNERS.pop("test-spring")
+        kinds._REGISTRY.pop(Points.name)
+        kinds._OWNERS.pop(Points.name)
+        spaces._REGISTRY.pop("test.character")
+        spaces._OWNERS.pop("test.character")
+
+
+def test_easing_json_does_not_publish_css_ease_under_the_name_ease():
+    """Ruling 1 (ADR 0001 decision 10, amended): 'ease' is an's curve; the CSS
+    curve is reachable only through the published import alias."""
+    doc = load_contract_file("easing.json")
+    assert "ease" not in doc["css_hyphenated_curves"]
+    assert doc["css_import_aliases"] == {"ease": "cubic-bezier(0.25, 0.1, 0.25, 1)"}
+    (entry,) = [e for e in doc["entries"] if e["name"] == "ease"]
+    assert entry["family"] == "legacy"
+
+
+def test_the_solver_fallbacks_are_sampled():
+    """Review S6: the CSS bisection and the legacy slope guard are reached by a
+    committed sample, so a port without them fails the contract."""
+    doc = load_contract_file("easing.json")
+    specs = [p["spec"] for p in doc["parametric"]]
+    assert "cubic-bezier(1, 0, 0, 1)" in specs and [1.0, 0.0, 0.0, 1.0] in specs
+    assert {1e-6, 0.501, 1 - 1e-6} <= set(doc["sample_u"])
 
 
 def test_the_an86_boundary_holds_the_first_key_until_the_second_key_time():

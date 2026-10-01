@@ -1,6 +1,6 @@
 {
  "$schema": "https://json-schema.org/draft/2020-12/schema",
- "$id": "https://github.com/thorwhalen/an/blob/main/an/data/timing/compiled.schema.json",
+ "$id": "https://raw.githubusercontent.com/thorwhalen/an/main/an/data/timing/compiled.schema.json",
  "title": "an compiled timeline",
  "description": "The compiled evaluation form, as runtime.js consumes it: tracks of placed clips (a clip is active on [start, end] inclusive; later wins by track then clip order; an ended clip's final value holds; an unstarted property is at rest and absent), clips with a loop mode, channels of keyframes (half-open segments, easing on the leaving key). Other top-level members (an engine's scene tree) are allowed.",
  "type": "object",
@@ -21,7 +21,7 @@
  },
  "$defs": {
   "easing": {
-   "description": "null (linear), a name or parametrised spec from easing.json, or a 4-number cubic-Bezier control list solved by an's legacy solver",
+   "description": "null (linear), a name or parametrised spec from easing.json, or a 4-number cubic-Bezier control list solved by an's legacy solver. The schema does NOT check names (the registry is open); an evaluator refuses an unknown one",
    "anyOf": [
     {
      "type": "null"

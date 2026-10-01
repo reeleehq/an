@@ -18,9 +18,8 @@ import math
 import pytest
 
 from an.base import EASING_PRESETS, TRANSFORM_PROPERTIES
+from an.timing.spaces import STAGE_CAMERA, STAGE_NODE
 from an.timing import (
-    STAGE_CAMERA,
-    STAGE_NODE,
     Channel,
     Clip,
     DiscreteKind,
@@ -76,6 +75,99 @@ def test_the_stage_easing_table_is_still_exactly_the_legacy_names():
     with pytest.raises(ValueError, match="unknown easing preset"):
         stage_apply("ease-in", 0.5)  # a kernel curve the stage runtime cannot draw
     assert apply_easing("ease-in", 0.5) > 0  # ...which the kernel knows
+
+
+def test_the_value_typed_rule_refuses_what_the_runtime_cannot_draw():
+    """Review S1: the value-typed rule is runtime.js's, easings included."""
+    ch = Channel("root", "x", [Keyframe(0.0, 0.0, "ease-in"), Keyframe(1.0, 10.0)])
+    with pytest.raises(ValueError, match="unknown easing preset 'ease-in'"):
+        evaluate_channel(ch, 0.5)
+    assert (
+        evaluate_channel(ch, 0.5, kind=NumberKind()) > 0
+    )  # the declared rule knows it
+
+
+@pytest.mark.parametrize(
+    "easing", ["ease-in", "smooth", "steps(4)", "cubic-bezier(0, 0, 1, 1)"]
+)
+def test_compile_and_validate_refuse_a_tween_easing_the_stage_cannot_draw(easing):
+    """Review S1's scenario: before, compile baked a CSS-curve start value and
+    runtime.js threw at render; validate passed. Now both refuse."""
+    from an.adapters.cutout.compile import compile_shot
+    from an.ir.compose import delay, parallel, sequence, tween
+    from an.ir.schema import Meta, SceneIR, Shot
+    from an.ir.validate import validate_semantic
+
+    lone = Shot(
+        id="s",
+        renderer="cutout",
+        duration=2.0,
+        actions=[tween("root", "x", 10.0, 1.0, from_=0.0, easing=easing)],
+    )
+    chained = Shot(
+        id="s",
+        renderer="cutout",
+        duration=2.0,
+        actions=[
+            parallel(
+                tween("root", "x", 10.0, 1.0, from_=0.0, easing=easing),
+                sequence(delay(0.5), tween("root", "x", 20.0, 1.0)),
+            )
+        ],
+    )
+    for shot in (lone, chained):
+        with pytest.raises(ValueError, match="unknown easing preset"):
+            compile_shot(shot, mall=None, fps=24)
+    report = validate_semantic(SceneIR(meta=Meta(title="t"), timeline=[lone]))
+    assert any(
+        easing in f.description for f in report.findings if f.severity == "error"
+    )
+
+
+def test_a_replacement_easing_must_raise_its_version():
+    """Review S9: a name's meaning cannot change under a scene silently."""
+    from an.timing.easing import EasingEntry, register_easing
+
+    old = easing_entry("smooth")
+    same = EasingEntry(
+        "smooth",
+        lambda u: u,
+        family="manim",
+        solver="closed-form",
+        description="x",
+        version=old.version,
+    )
+    with pytest.raises(ValueError, match="must raise the version"):
+        register_easing(same, replace=True)
+    assert easing_entry("smooth") is old
+
+
+def test_parametrised_specs_parse_as_both_languages_do():
+    """Review N2: numbers parse alike in Python and JS."""
+    assert apply_easing("steps(4.0)", 0.3) == apply_easing("steps(4)", 0.3)
+    for bad in (
+        "cubic-bezier(1_0, 0, 1, 1)",
+        "cubic-bezier(inf, 0, 1, 1)",
+        "steps(4.5)",
+    ):
+        with pytest.raises(ValueError):
+            apply_easing(bad, 0.5)
+
+
+def test_the_default_rule_resolves_its_space_by_name(monkeypatch):
+    """Review S8: replacing the registered stage.node space reaches the default
+    path (P3 moves the registration, not the kernel)."""
+    from an.timing import spaces
+
+    changed = PropertySpace(
+        "stage.node",
+        (FieldDecl("x", NumberKind(), writes="y"), FieldDecl("y", NumberKind())),
+    )
+    monkeypatch.setitem(spaces._REGISTRY, "stage.node", changed)
+    xs = Clip("x", 1.0, [Channel("a", "x", [Keyframe(0.0, 1.0)])])
+    ys = Clip("y", 1.0, [Channel("a", "y", [Keyframe(0.0, 2.0)])])
+    tl = Timeline(9.0, [Track("a", [PlacedClip(xs, 0.0), PlacedClip(ys, 2.0)])])
+    assert evaluate_timeline(tl, 5.0) == {("a", "y"): 2.0}  # x and y now share a group
 
 
 # ---------------------------------------------------------------- easings

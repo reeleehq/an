@@ -39,8 +39,14 @@ def _jsonable(value: Any) -> Any:
     return list(value) if isinstance(value, tuple) else value
 
 
-def change_of(action: Any) -> dict[str, Any]:
-    """The ``change`` of one leaf action (any object with the IR's attribute names)."""
+def change_of(action: Any, *, default_easing: Any = None) -> dict[str, Any]:
+    """The ``change`` of one leaf action (any object with the IR's attribute names).
+
+    A tween's easing is written RESOLVED and always (``null`` is linear): the
+    tween's own, else ``default_easing`` (the scene's ``meta.default_easing``),
+    else the IR default — the precedence ``TweenAction.resolved_easing`` states,
+    so the flat document says what compiles (an#166).
+    """
     kind = getattr(action, "kind", None)
     if kind == "set":
         return {"kind": "set", "value": _jsonable(action.value)}
@@ -49,9 +55,9 @@ def change_of(action: Any) -> dict[str, Any]:
         if getattr(action, "from_value", None) is not None:
             out["from"] = _jsonable(action.from_value)
         out["to"] = _jsonable(action.to_value)
-        easing = getattr(action, "easing", None)
-        if easing is not None:
-            out["easing"] = _jsonable(easing)
+        resolve = getattr(action, "resolved_easing", None)
+        easing = resolve(default_easing) if resolve else getattr(action, "easing", None)
+        out["easing"] = _jsonable(easing)
         return out
     raise UnsupportedChangeError(
         f"a flat timeline holds set and tween changes only; {kind!r} must be lowered first"
@@ -62,6 +68,7 @@ def flat_timeline_doc(
     flat_actions: Iterable[Any],
     *,
     duration: float | None = None,
+    default_easing: Any = None,
     skip_other: bool = False,
 ) -> dict[str, Any]:
     """A ``timeline.schema.json`` document from flat actions.
@@ -69,13 +76,14 @@ def flat_timeline_doc(
     Each item has ``start``, ``end`` and a leaf ``action`` with ``kind``,
     ``target``, ``property`` and the change's values — the shape of
     ``an.ir.compose.flatten``'s output, read by attribute so this module does not
-    import the IR. ``skip_other`` drops non-change actions instead of raising.
+    import the IR. ``default_easing`` is the scene's ``meta.default_easing``.
+    ``skip_other`` drops non-change actions instead of raising.
     """
     rows = []
     for item in flat_actions:
         action = item.action
         try:
-            change = change_of(action)
+            change = change_of(action, default_easing=default_easing)
         except UnsupportedChangeError:
             if skip_other:
                 continue

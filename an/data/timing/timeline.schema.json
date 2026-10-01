@@ -1,6 +1,6 @@
 {
  "$schema": "https://json-schema.org/draft/2020-12/schema",
- "$id": "https://github.com/thorwhalen/an/blob/main/an/data/timing/timeline.schema.json",
+ "$id": "https://raw.githubusercontent.com/thorwhalen/an/main/an/data/timing/timeline.schema.json",
  "title": "an flat timeline",
  "description": "The authored flat timeline: every action at absolute seconds, as (start, end, address, change). A change is 'set' or 'tween'; a tween without 'from' starts from whatever the property has at 'start'.",
  "type": "object",
@@ -34,7 +34,7 @@
    "description": "<entity>[/<node>...]:<field>[@<qualifier>]; the field may be dotted"
   },
   "easing": {
-   "description": "null (linear), a name or parametrised spec from easing.json, or a 4-number cubic-Bezier control list solved by an's legacy solver",
+   "description": "null (linear), a name or parametrised spec from easing.json, or a 4-number cubic-Bezier control list solved by an's legacy solver. The schema does NOT check names (the registry is open); an evaluator refuses an unknown one",
    "anyOf": [
     {
      "type": "null"
@@ -97,9 +97,11 @@
      "type": "object",
      "required": [
       "kind",
-      "to"
+      "to",
+      "easing"
      ],
      "additionalProperties": false,
+     "description": "'easing' is always written, resolved (null = linear); an absent 'from' means from the value the property has at start",
      "properties": {
       "kind": {
        "const": "tween"

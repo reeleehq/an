@@ -1443,6 +1443,30 @@ def _check_default_easing(spec: Any, *, report: "ValidationReport") -> None:
         report.add("error", "meta/default_easing", f"{spec!r} is not an easing: {e}")
 
 
+def _check_tween_easings(scene: SceneIR, *, report: "ValidationReport") -> None:
+    """Every tween's own easing must be one the evaluators know (an#233 review,
+    S1) — what compile refuses and the stage runtime cannot draw, validate says
+    first, so validate and the player agree."""
+    from an.adapters.cutout.easing import apply_easing
+    from an.ir.schema import TweenAction
+
+    for i, shot in enumerate(scene.timeline):
+        for k, action in enumerate(shot.actions):
+            for flat in flatten(action):
+                tw = flat.action
+                if not isinstance(tw, TweenAction) or "easing" not in tw.model_fields_set:
+                    continue
+                try:
+                    apply_easing(tw.easing, 0.5)
+                except (ValueError, TypeError) as e:
+                    report.add(
+                        "error",
+                        f"timeline/{i}/actions/{k}",
+                        f"tween {tw.target}:{tw.property} easing {tw.easing!r} is "
+                        f"not an easing the renderer draws: {e}",
+                    )
+
+
 def _check_default_easing_reach(scene: SceneIR, *, report: "ValidationReport") -> None:
     """Warn when ``meta.default_easing`` is set and some tweens spell
     ``ease_in_out`` explicitly — the shape every ``scene.json`` written before
@@ -1592,6 +1616,7 @@ def validate_semantic(
         scene.meta.step_hz, fps=scene.meta.fps, path="meta/step_hz", report=report
     )
     _check_default_easing(scene.meta.default_easing, report=report)
+    _check_tween_easings(scene, report=report)
     _check_default_easing_reach(scene, report=report)
     if not scene.timeline:
         report.add(

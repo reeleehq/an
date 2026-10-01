@@ -386,6 +386,21 @@ SEQUENCE_CASES: list[tuple[str, str, dict]] = [
         ),
     ),
     (
+        "orbit-overshoot",
+        "An orbit under an overshooting timing: elevation is clamped at the pole, azimuth and distance extrapolate.",
+        _seq(
+            {"camera": {"kind": "orbit"}},
+            [
+                _kf({"camera": {"azimuth": 0, "elevation": 0, "distance": 1}}),
+                _kf(
+                    {"camera": {"azimuth": 90, "elevation": 80, "distance": 4}},
+                    1,
+                    "cubic-bezier(0.3, 2.2, 0.6, 1.2)",
+                ),
+            ],
+        ),
+    ),
+    (
         "manim-rate-functions",
         "Manim rate functions as segment easings, including two that end where they began.",
         _seq(
@@ -409,6 +424,13 @@ SEQUENCE_CASES: list[tuple[str, str, dict]] = [
 #: The an#86 boundary keyframes: at nextafter(B, 0), (t - A) / (B - A) == 1.0.
 BOUNDARY_A: float = 0.1524221856720187
 BOUNDARY_B: float = 9.767899248713501
+#: Legacy-solver curves whose evaluation reaches the 8-step Newton loop's slope
+#: guard and its clamps (mid-curve for [1, 0, 0, 1], near the ends for the others).
+SOLVER_PROBE_BEZIERS: tuple[list[float], ...] = (
+    [1.0, 0.0, 0.0, 1.0],
+    [0.42, 0.0, 1.0, 1.0],
+    [0.0, 0.0, 0.58, 1.0],
+)
 LEGACY_NAMES: tuple[str, ...] = (
     "linear",
     "ease",
@@ -499,17 +521,22 @@ def _an_cases() -> list[dict]:
     cases = [
         {
             "name": "an-numeric-easings",
-            "description": "Every stage easing and two legacy-solver Béziers (one overshooting) on a 0 to 10 ramp.",
+            "description": "Every stage easing and legacy-solver Béziers (one overshooting; three that reach the solver's slope guard and clamps) on a 0 to 10 ramp.",
             "document": _rows_case(
                 [
                     (f"e{i}", "x", [_key(0.0, 0.0, e), _key(1.0, 10.0)])
                     for i, e in enumerate(
-                        [*LEGACY_NAMES, [0.42, 0.0, 0.58, 1.0], overshoots[0]]
+                        [
+                            *LEGACY_NAMES,
+                            [0.42, 0.0, 0.58, 1.0],
+                            overshoots[0],
+                            *SOLVER_PROBE_BEZIERS,
+                        ]
                     )
                 ],
                 clip_duration=1.0,
             ),
-            "extra_times": [0.146, 0.66, 0.999, 0.9999999],
+            "extra_times": [1e-6, 0.146, 0.4, 0.501, 0.66, 0.999, 0.9999999, 1 - 1e-6],
         },
         {
             "name": "an-large-magnitude-bezier",

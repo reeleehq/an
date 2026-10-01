@@ -197,13 +197,23 @@ def space_from_json(doc: Mapping[str, Any]) -> PropertySpace:
 # -----------------------------------------------------------------------------
 
 _REGISTRY: dict[str, PropertySpace] = {}
+_OWNERS: dict[str, str | None] = {}
+#: Who registered the seeded spaces (only these reach the contract files).
+CORE_OWNER: str = "an"
 
 
-def register_space(space: PropertySpace, *, replace: bool = False) -> PropertySpace:
-    """Register ``space`` under its name (how an entity kind declares its properties)."""
+def register_space(
+    space: PropertySpace, *, replace: bool = False, owner: str | None = None
+) -> PropertySpace:
+    """Register ``space`` under its name (how an entity kind declares its properties).
+
+    ``owner`` names who registered it; only :data:`CORE_OWNER`'s spaces reach
+    `an`'s contract files, so an installed genre never edits the core contract.
+    """
     if not replace and space.name in _REGISTRY:
         raise SpaceError(f"property space {space.name!r} is already registered")
     _REGISTRY[space.name] = space
+    _OWNERS[space.name] = owner
     return space
 
 
@@ -216,8 +226,15 @@ def get_space(name: str) -> PropertySpace:
         ) from e
 
 
-def space_names() -> tuple[str, ...]:
-    return tuple(_REGISTRY)
+def space_names(*, owner: str | None = None) -> tuple[str, ...]:
+    """The registered space names in registration order; only ``owner``'s when given."""
+    return tuple(k for k in _REGISTRY if owner is None or _OWNERS[k] == owner)
+
+
+#: The space whose write groups the value-typed rule (``space=None``) uses:
+#: the stage engine's node, resolved BY NAME at call time, so moving the stage's
+#: registration (P3: into ``an.stage``) or replacing it needs no kernel edit.
+DFLT_VALUE_TYPED_SPACE: str = "stage.node"
 
 
 #: What an evaluator accepts as "the space": one space for every target, a
@@ -293,5 +310,7 @@ def _stage_camera() -> PropertySpace:
     )
 
 
-STAGE_NODE: PropertySpace = register_space(_stage_node())
-STAGE_CAMERA: PropertySpace = register_space(_stage_camera())
+#: Provisional handles on the seeded stage spaces: P3 moves their registration
+#: into ``an.stage``. Kernel code resolves them by name (``get_space``).
+STAGE_NODE: PropertySpace = register_space(_stage_node(), owner=CORE_OWNER)
+STAGE_CAMERA: PropertySpace = register_space(_stage_camera(), owner=CORE_OWNER)
