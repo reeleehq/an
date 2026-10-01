@@ -38,11 +38,74 @@ live:
     default: {kind: cut}     # hard cuts plus gags
   sound:
     bed: {loop: true, gain_db: -8, duck_db: -12, fade_in: 1.0, fade_out: 1.5}   # a music bed ducked under the narrator; levels are an estimate
+  voice:
+    # Voice acting (an#209 keys). Each role is a PARTIAL voice document: merge it into the
+    # voice document of the character who plays the role, beside that voice's own `voice_id`
+    # (looked up by name, never pasted). eleven_v3 reads stability only as 0.0 / 0.5 / 1.0.
+    # Cues go on the LINES as `{cue}` (`speaker {excited}: text`), per guidance.voice_acting; a
+    # line's `[emotion]` is a face preset AND is sent as a tag too, so pick one that agrees with the cue.
+    roles:
+      narrator: {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.0}}   # Creative: the lively setups; {deadpan} still lands flat at 0.0
+      eager:    {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}   # {excited} carries the jump; 0.5 keeps the same voice's wounded lines flat
+      regal:    {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}
+      deadpan:  {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}   # a character who is deadpan throughout (untested as a whole role; the narrator's punchline numbers apply)
+      serene:   {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 1.0}}   # Robust: the only setting that flattened an expressive cloned voice
 
 targets:
   identical_frame_share: [0.55, 0.65]    # measured 0.59
   one_frame_interval_share: [0.85, 0.95] # measured 0.91
   cuts_per_min: [8, 10]                  # measured 9.0
+
+# Delivery targets, checked by `python -m an.verify.prosody <audio>... --targets <this file> --role <role> --text "<words>"`
+# (an.verify.prosody; spectrum level (c): a goal with a verifier). Each range is the 25th-75th
+# percentile of that delivery class in two OverSimplified episodes (57 min, 899 sentences, a
+# vocal stem; measured with an.verify.prosody's own estimators, so only comparable to clips it
+# measures). The ranges are per SENTENCE: pass a role's lines as separate files and the
+# median over the lines is checked (joining them would add the register changes between
+# lines to the pitch spread). register_st needs --reference-hz: the voice's neutral median.
+prosody_targets:
+  narrator:          # sentences of 8+ words in the narrating register (n=374)
+    articulation_rate_sps: [5.2, 6.3]
+    f0_sd_st: [3.9, 5.2]
+    f0_range_st: [12.5, 15.7]
+    final_drop_st: [-3.4, 0.1]
+    loudness_range_db: [20.5, 25.0]
+    emphasis_per_s: [2.1, 3.2]
+  punchline:         # short line after a beat of 0.4-1.1 s, flat and falling (n=10; the beat itself is the `(pause)` before the line)
+    articulation_rate_sps: [3.1, 5.4]
+    f0_sd_st: [2.2, 3.4]
+    f0_range_st: [7.0, 10.3]
+    final_drop_st: [-3.6, -1.7]
+  eager:             # quoted figures pitched UP (register +5 to +11 st over the narrating voice; n=135)
+    articulation_rate_sps: [3.6, 5.9]
+    f0_sd_st: [1.9, 3.8]
+    f0_range_st: [6.0, 11.9]
+    final_drop_st: [-2.7, 0.7]
+    register_st: [3.0, 11.0]          # over the voice's own neutral median; the source's +5 is over ANOTHER register, the low end allows for that
+  regal:             # quoted figures pitched DOWN: pompous, commanding (register -4.6 to -6 st; n=110)
+    articulation_rate_sps: [3.9, 5.6]
+    f0_sd_st: [2.1, 4.1]
+    f0_range_st: [6.1, 12.9]
+    final_drop_st: [-1.4, 1.5]
+  serene:            # the understatement class: slow, narrow, level (n=147); also the wounded-dignity line
+    articulation_rate_sps: [3.0, 4.3]
+    f0_sd_st: [1.9, 3.0]
+    f0_range_st: [5.4, 9.1]
+    final_drop_st: [-1.3, 1.2]
+  deadpan:           # a character deadpan throughout: the punchline numbers
+    f0_sd_st: [2.2, 3.4]
+    f0_range_st: [7.0, 10.3]
+    final_drop_st: [-3.6, -1.7]
+  throwaway:         # fast, quieter aside (n=13)
+    articulation_rate_sps: [6.5, 7.3]
+    f0_sd_st: [3.0, 4.8]
+    final_drop_st: [-3.7, -0.5]
+  build:             # long setup that does not resolve: rising end (n=38)
+    f0_sd_st: [4.6, 5.5]
+    f0_range_st: [14.3, 16.7]
+    final_drop_st: [1.2, 3.7]
+  outburst:          # shouted line: register +3.8 to +11 st and +3.6 to +4.5 dB at the 90th percentile (n=19)
+    register_st: [3.8, 11.0]
 
 guidance:
   construction: blocky body, stick limbs, oversized head (all live as `characters` knobs); brows and mouth only, no nose or ears
@@ -56,3 +119,39 @@ guidance:
   motion_vocabulary_unmapped: [fall, freeze_frame, bait_and_switch]   # no preset
   sound: the bed is `live.sound` (bring a licensed track; the originals are Kevin MacLeod, CC BY, attribution required); dense SFX are shot `sounds` cues you place by hand
   transitions: gag interrupts are an edit, not a transition; cut to them
+  voice_acting:
+    # A style of METHODS, not an imitation of a person: delivery (timing, pitch movement,
+    # emphasis, pauses, register jumps) measured as numbers, applied to the production's own
+    # voices. Never clone, imitate or speech-to-speech any reference voice.
+    source: two OverSimplified episodes (57 min), private study; vocal stem by Demucs, words by Whisper, numbers by an.verify.prosody; no audio or transcript kept in any repository
+    profile:
+      narrator: fast and lively, not monotone - 5.8 syllables/s while speaking, pitch moving 4.5 st (sd) over a 14 st range inside one sentence, phrase ends falling 1.5 st, 2.6 stand-out peaks/s
+      pauses: short - 0.18 s between words, 0.23 s at a comma, 0.32 s at a full stop (90th percentile 0.9 s); the comedic beat before a punchline is 0.4-1.1 s, about twice a full stop
+      contrast: the rate changes 1-2 syllables/s from one sentence to the next (spread 24% of the mean); that contrast, more than any one sentence, is the style
+      characters: 27% of sentences are quoted figures in another register (up +7 st or down -5 st), short (5 words) and steadier than the narration (pitch sd 2.8 st) - the jump is the joke, not the intonation inside the line
+      questions: 14% of sentences are questions, often answered at once by a short flat line; 5% are exclamations; about 2 interjections a minute (oh, well, okay, yep, whoa)
+      artifacts: no breaths or laughs found in the transcript (a weak test - the transcriber drops non-words); the quoted figures' interjections (whoa, oh no, ha ha) are performed as words
+    devices:   # device -> how to write the line for eleven_v3; `targets` names a prosody_targets entry
+      setup:            {share: 0.42, line: "{excited}, one CAPITALISED word per sentence, commas not ellipses (ellipses slowed v3 to 4.7 syll/s)", targets: narrator}
+      punchline:        {share: 0.01, line: "its own dialogue line with a (pause 0.5-0.9) before it, {deadpan}, no CAPS (CAPS flattened the fall), a full stop", targets: punchline}
+      quoted_figure:    {share: 0.27, line: "short lines (8 words or fewer; split a speech into several lines with (pause 0.15)), the role's tag: {excited} up, {matter-of-fact} down", targets: [eager, regal]}
+      understatement:   {share: 0.16, line: "no tag, a full stop, CAPS on the one word that hurts (I was ON slide one.)", targets: serene}
+      outburst:         {share: 0.02, line: "{shouting} and CAPS on the key word; measured +5 to +9 st over the voice's own median", targets: outburst}
+      rhetorical_question: {share: 0.04, line: "a question line ({curious} optional; it rises by itself) then a (pause 0.3) and a short {deadpan} answer", targets: punchline}
+      throwaway:        {share: 0.01, line: "{under his breath} or {under her breath} drops the register 2-4 st and the level; v3 will not speed it up", targets: throwaway}
+      build:            {share: 0.04, line: "a long list sentence; v3 did not rise at the end with an ellipsis or {dramatically} (measured -1.3 to 0); end on a question if the rise matters", targets: build}
+    markup_rules:
+      - One dialogue line per delivery. A tag applies to a whole line (it is sent as a prefix), so a setup and its punchline are two lines, never one.
+      - The beat is a `(pause s)` on the punchline line, 0.5-0.9 s; between ordinary lines leave 0.15-0.35 s.
+      - Narrator setups get {excited}; punchlines get {deadpan}; a figure's lines get its role tag; understatement gets nothing.
+      - Cues are `{braces}`, never `[brackets]`, because `[emotion]` is the face preset vocabulary (an unknown one is a validate error), and it is sent as a tag as well, so `[happy] {excited}` speaks as `[happy] [excited]`. Leave the emotion off a line whose cue it would contradict, and move the face with an expression action instead.
+      - CAPITALISE one stressed word per sentence for the stress it places, never on a punchline (it flattened the fall). Measured alone it did not move the pitch spread; {excited} is the lever (narrator spread 3.0 to 4.4-4.9 st). Ellipses plus dashes plus capitals also raised it to about 4 st, but slowed v3 to 4.7 syll/s.
+      - Split a character's speech into lines of 8 words or fewer; OverSimplified's figures talk in bursts.
+      - Prefer commas and full stops to ellipses in narration; use an ellipsis only where you want a slower, hanging phrase.
+      - Do not stack emotive tags on an expressive cloned voice ({indignant}, {sighs, hurt}, {quietly} each threw a wounded line out to 2.5 syllables/s and 10-17 st of range); the plain line was on target.
+      - Check each role with `python -m an.verify.prosody <line files>... --targets <this file> --role <role> --text "<line 1>" --text "<line 2>"` (one --text per file, in order; the median over the lines is compared). A take varies more than a setting does, so re-roll a missing line (another seed) and keep the closest take before re-tagging.
+    limits:
+      - eleven_v3 ignores `voice_settings.speed` (1.1 measured the same as 1.0) and no tag moved the rate ({fast-paced}, {quickly}, {rapid-fire} all 4.6-5.3 syll/s); the narrator lands at about 5.0-5.3 against 5.2-6.3, and a throwaway cannot reach 6.5. A tempo voice effect would close it (an#265); `effects` has only pitch_semitones today
+      - a `seed` does not make eleven_v3 repeatable (identical requests returned different audio); a take is fixed by the audio cache once synthesized, so re-roll by changing the voice's seed, and keep the take
+      - there is no per-line seed or take, so re-rolling one line re-rolls every line of that voice whose audio is not cached
+      - stability moved the measured pitch spread less than the difference between two seeds; tags and capitals are the levers
