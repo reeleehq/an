@@ -25,16 +25,37 @@ from an.characters.cli import (
 from an.impacts.cli import _dispatch_funcs as _impacts_dispatch_funcs
 from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
 from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
+from an.library.root import DEFAULT_PROJECT_PACKAGE
+from an.library.root import project_dir as _project_dir
 
 
-def init(project_dir: str, name: str | None = None, force: bool = False) -> str:
-    """Create a fresh an project at ``project_dir``.
+def init(
+    project_dir: str,
+    name: str | None = None,
+    force: bool = False,
+    id: bool = False,
+    package: str = DEFAULT_PROJECT_PACKAGE,
+    root: str = "",
+) -> str:
+    """Create a fresh an project at ``project_dir`` — or, with --id, at the default location.
 
-    project_dir: where to create the project (created if missing)
+    project_dir: where to create the project (created if missing); with --id, the project's id
     name: project display name (defaults to the directory name)
     force: overwrite an existing scene.md
+    id: treat project_dir as a project id and create the project under the package's projects folder (an init --id alice-and-bob -> ~/.local/share/cutan/projects/alice-and-bob)
+    package: with --id, the genre package whose root holds the project (cutan: cut-out videos)
+    root: with --id, that package's root (default: its data folder, or <PKG>_HOME)
     """
-    path = _init(project_dir, name=name, force=force)
+    if id:
+        try:
+            target = _project_dir(project_dir, root or None, package=package)
+        except ValueError as e:
+            raise SystemExit(f"an init: {e}") from e
+    elif package != DEFAULT_PROJECT_PACKAGE or root:
+        raise SystemExit("an init: --package and --root place a project by --id only")
+    else:
+        target = project_dir
+    path = _init(target, name=name, force=force)
     return f"initialized an project at {path}"
 
 

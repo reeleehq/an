@@ -11,8 +11,10 @@ render-time private-study warning look:
   descriptor itself does not hold (the asset-level source, the sources of every
   version it derives from). ``an credits`` reads them
   (``an.credits._library_origin_credits``);
-- the asset-level source, written into a descriptor that declares none;
-- the pin in ``assets.lock.json``.
+- the asset-level source, written into a descriptor that declares none (or
+  only the character factory's own stamp, which it then stands in for);
+- the pin in ``assets.lock.json`` — the project mall's ``library_lock`` store,
+  the single source of truth for which version a project holds (an#240).
 
 One asymmetry, deliberate: a RELICENSED version's copy still carries the
 descriptor's and the parts' own sources, so ``an credits`` in the project can
@@ -47,8 +49,14 @@ from an.library.api import (
     verified_files,
     version_sources,
 )
-from an.library.federation import Libraries, as_libraries, resolve
-from an.library.ids import SHA256_PREFIX, LibraryRef, parse_ref
+from an.library.federation import (
+    Libraries,
+    Library,
+    as_libraries,
+    open_library,
+    resolve,
+)
+from an.library.ids import SHA256_PREFIX, AssetIdError, LibraryRef, parse_ref
 from an.library.kinds import asset_kind_info
 from an.library.lock import ProjectLock, lock_key
 from an.library.rights import (
@@ -58,9 +66,17 @@ from an.library.rights import (
     roll_up,
     sources_in,
 )
+from an.credits import is_factory_stamp
 from an.library.root import LibraryLocationWarning, git_worktree_of
 
-__all__ = ["CheckoutResult", "check_pins", "checkout", "verify_checkout"]
+__all__ = [
+    "CheckoutResult",
+    "check_pins",
+    "checkout",
+    "drift_findings",
+    "pinned_libraries",
+    "verify_checkout",
+]
 
 #: Kinds whose descriptor has a ``metadata`` dict to carry the origin block.
 METADATA_KINDS: frozenset[str] = frozenset(
@@ -183,10 +199,16 @@ def checkout(
         resolved now and pinned
     key: the key in the project store (default: the asset id's slug)
     mall: the project mall (default: ``build_project_mall(project_dir)``)
-    lock: the lockfile mapping (default: ``<project_dir>/assets.lock.json``)
+    lock: the lockfile mapping (default: the mall's ``library_lock`` store,
+        ``<project_dir>/assets.lock.json``)
     overwrite: replace an existing entry that is not exactly this version — a
         local fork (any edited file or descriptor) or another asset; without it
         that is refused
+
+    An entry that already IS this version byte for byte — the folder a
+    ``publish`` just sent to the library, still unedited — is recognised and
+    linked (origin block, carried source, pin) without ``overwrite``: publishing
+    a project's asset and checking it back out is the natural first round trip.
 
     Every stored path, blob and the manifest are verified before anything is
     written, and every file is written inside the entry's folder or not at all.
@@ -215,7 +237,7 @@ def checkout(
     mall = mall if mall is not None else build_project_mall(project_dir, ensure=True)
     store = mall[kind.store]
     key = key or pinned.asset_id.split(".", 1)[1]
-    lock = lock if lock is not None else ProjectLock(project_dir)
+    lock = _project_lock(lock, mall, project_dir)
     entry_key = lock_key(kind.store, key)
     if key in store:
         existing = store[key]
@@ -232,16 +254,20 @@ def checkout(
             return CheckoutResult(
                 pinned, kind.store, key, manifest, len(files), False, rights
             )
-        if not overwrite:
+        # The entry is byte-for-byte this version but was never linked to it: the
+        # folder a publish just sent to the library. Linking it rewrites the same
+        # bytes, so it needs no overwrite.
+        linking = not same_version and not differences
+        if not overwrite and not linking:
             what = (
                 f"a fork of it ({', '.join(differences)})"
                 if same_version
-                else "a local fork or another asset"
+                else f"a local fork or another asset ({', '.join(differences)})"
             )
             raise CheckoutError(
                 f"the project already has {kind.store}/{key}, and it is not {pinned} "
-                f"as published: it is {what}. Pass overwrite=True to replace it, or "
-                "key=… to check out beside it"
+                f"as published: it is {what}. Replace it with overwrite=True "
+                "(--overwrite), or check out beside it with key=… (--key …)"
             )
         del store[key]
     if files and not hasattr(store, "sidecar_path"):
@@ -274,10 +300,13 @@ def checkout(
     doc = copy.deepcopy(version["doc"])
     if kind.name in METADATA_KINDS and isinstance(doc, dict):
         added = None
-        if (
-            version.get("source")
-            and descriptor_source(doc, store=kind.credits_store) is None
+        if version.get("source") and (
+            descriptor_source(doc, store=kind.credits_store) is None
+            or is_factory_stamp(doc.get("source"))
         ):
+            # The asset-level source speaks for every file nothing itemises; the
+            # factory's descriptor stamp speaks only for the bytes its part
+            # stamps pin, so it gives way (and comes back on a re-publish).
             added = {
                 "source": copy.deepcopy(version["source"]),
                 "had_key": "source" in doc,
@@ -288,7 +317,14 @@ def checkout(
         # every other contributor is recorded in the origin block.
         visible = {
             label
-            for label, _ in sources_in(doc, store=kind.credits_store)
+            for label, _ in sources_in(
+                doc,
+                store=kind.credits_store,
+                files={
+                    path: ContentRef.from_json(raw).item_id
+                    for path, raw in (version.get("files") or {}).items()
+                },
+            )
             if label != ASSET_SOURCE_LABEL
         }
         if added is not None:
@@ -305,6 +341,14 @@ def checkout(
     return CheckoutResult(pinned, kind.store, key, manifest, len(files), True, rights)
 
 
+def _project_lock(lock: Any, mall: Mapping[str, Any], project_dir: Any) -> Any:
+    """The lockfile to use: the injected one, else the mall's, else the project's file."""
+    if lock is not None:
+        return lock
+    registered = mall.get("library_lock") if isinstance(mall, Mapping) else None
+    return registered if registered is not None else ProjectLock(project_dir)
+
+
 def _pin(pinned: LibraryRef, manifest: str) -> dict[str, Any]:
     from an.library.api import _now
 
@@ -317,14 +361,36 @@ def _pin(pinned: LibraryRef, manifest: str) -> dict[str, Any]:
     }
 
 
+def pinned_libraries(lock: Mapping[str, Any]) -> list[Library]:
+    """The library each pin in ``lock`` names, opened at its default root, once each.
+
+    What :func:`verify_checkout` reads when no search path is given: a pin is
+    namespaced (``cutan:character.alice@v002``), so it says which library to
+    open. A pin that cannot be parsed names no library and is skipped here
+    (the verification reports it).
+    """
+    names: list[str] = []
+    for entry_key in lock:
+        try:
+            namespace = parse_ref(lock[entry_key]["library"]).namespace
+        except Exception:  # noqa: BLE001 — a malformed pin is reported by the caller
+            continue
+        if namespace and namespace not in names:
+            names.append(namespace)
+    return [open_library(name) for name in names]
+
+
 def verify_checkout(
-    libraries: Libraries,
-    project_dir: str | os.PathLike,
+    libraries: Libraries | None,
+    project_dir: str | os.PathLike | None,
     *,
     mall: Mapping[str, Any] | None = None,
     lock: Any | None = None,
 ) -> dict[str, list[str]]:
     """``{<store>/<key>: differences}`` for every pinned entry; empty lists are intact copies.
+
+    libraries: where the pinned versions resolve (``None``: the library each
+        pin names, at its default root — :func:`pinned_libraries`)
 
     What makes a pin usable as more than provenance: an entry with no
     differences is byte-for-byte the version its pin names.
@@ -332,7 +398,9 @@ def verify_checkout(
     from an.stores import build_project_mall
 
     mall = mall if mall is not None else build_project_mall(project_dir)
-    lock = lock if lock is not None else ProjectLock(project_dir)
+    lock = _project_lock(lock, mall, project_dir)
+    if libraries is None:
+        libraries = pinned_libraries(lock)
     out: dict[str, list[str]] = {}
     for entry_key in lock:
         store_name, _, key = entry_key.partition("/")
@@ -341,7 +409,50 @@ def verify_checkout(
         except Exception as e:  # noqa: BLE001 — reported per entry
             out[entry_key] = [f"pinned version unavailable: {e}"]
             continue
+        if store_name not in mall:
+            out[entry_key] = [f"the project has no {store_name!r} store"]
+            continue
         out[entry_key] = drift(mall[store_name], key, version)
+    return out
+
+
+def drift_findings(
+    project_dir: str | os.PathLike | None = None,
+    *,
+    mall: Mapping[str, Any] | None = None,
+    lock: Any | None = None,
+    libraries: Libraries | None = None,
+) -> list[Any]:
+    """One ``info`` Finding per checked-out entry that is no longer its pinned version.
+
+    An edited check-out is a fork, not a mistake — hence ``info``: it says the
+    pin now records where the copy CAME FROM, not what it IS, so nothing may
+    treat the pin as standing for the content (an#240), and publishing the
+    folder would make a new version.
+
+    project_dir: the project (not needed when both ``mall`` and ``lock`` are given)
+    """
+    from an.stores import build_project_mall
+    from an.verify._base import Finding
+
+    mall = mall if mall is not None else build_project_mall(project_dir)
+    lock = _project_lock(lock, mall, project_dir)
+    out: list[Finding] = []
+    for entry_key, differences in sorted(
+        verify_checkout(libraries, project_dir, mall=mall, lock=lock).items()
+    ):
+        if not differences:
+            continue
+        out.append(
+            Finding(
+                "info",
+                f"assets.lock.json/{entry_key}",
+                f"{entry_key} is no longer the version it is pinned to "
+                f"({(lock[entry_key] or {}).get('library')}): {'; '.join(differences)}",
+                "publish the folder as a new version (an library publish), or check the "
+                "pinned version out again with --overwrite to drop the edits",
+            )
+        )
     return out
 
 
@@ -360,9 +471,11 @@ def _same_pin(said: LibraryRef, pinned: LibraryRef, manifest: str) -> bool:
 def check_pins(scene: Any, lock: Mapping[str, Any]) -> list[Any]:
     """Findings where a scene's ``AssetRef.library`` and the project lockfile disagree.
 
-    Two records of one pin can drift (a re-check-out updates the lockfile, not
-    the scene). Until the lockfile joins the project mall and ``an validate``
-    runs this (an#240), call it yourself; each disagreement is a ``warning``.
+    The lockfile is the source of truth (it is what the check-out wrote, beside
+    the files); the scene's ``library:`` restates it. Two records of one pin can
+    drift — a re-check-out updates the lockfile, not the scene — so ``an
+    validate`` runs this on every project (an#240). Each disagreement, and each
+    ``library:`` the lockfile does not pin, is a ``warning``.
     """
     from an.verify._base import Finding
 
@@ -387,7 +500,18 @@ def check_pins(scene: Any, lock: Mapping[str, Any]) -> list[Any]:
                     )
                 )
                 continue
-            said, pinned = parse_ref(entity.library), parse_ref(pin["library"])
+            try:
+                said, pinned = parse_ref(entity.library), parse_ref(pin["library"])
+            except (AssetIdError, KeyError, TypeError) as e:
+                out.append(
+                    Finding(
+                        "warning",
+                        where,
+                        f"the lockfile's pin for {entity.store}/{entity.ref} cannot be read ({e})",
+                        "check the asset out again (an library checkout --overwrite)",
+                    )
+                )
+                continue
             same = _same_pin(said, pinned, pin.get("manifest_sha256") or "")
             if not same:
                 out.append(

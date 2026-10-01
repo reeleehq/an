@@ -1630,6 +1630,9 @@ class ValidationContext:
     voices: Mapping[str, Any] | None = None
     characters: Mapping[str, Any] | None = None
     sounds: Mapping[str, Any] | None = None
+    #: The project's asset-library lockfile (``mall["library_lock"]``, an#240);
+    #: ``None`` means the pin checks did not run.
+    library_lock: Mapping[str, Any] | None = None
     shot: Any = None
     index: int | None = None
     memo: dict[Any, Any] = field(default_factory=dict)
@@ -1654,6 +1657,7 @@ def validate_semantic(
     available_props: Mapping[str, Any] | None = None,
     available_environments: Mapping[str, Any] | None = None,
     available_sounds: Mapping[str, Any] | None = None,
+    available_library_lock: Mapping[str, Any] | None = None,
 ) -> ValidationReport:
     """Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -1669,6 +1673,11 @@ def validate_semantic(
     skipping them is what it sounds like: a `play` or a swap the compiler
     will refuse passes silently without the store (the CLI, `an validate`,
     always passes it).
+
+    ``available_library_lock`` is the project's asset-library lockfile
+    (``mall["library_lock"]``): with it, every scene ``library:`` pin is checked
+    against the lockfile (``warning`` on disagreement) and every pinned
+    check-out against its library version (``info`` when it has been edited).
 
     The checks are a REGISTRY (:func:`an.genres.registry.register_check`):
     the core's own register below, a genre's when it is loaded (the cut-out
@@ -1695,6 +1704,7 @@ def validate_semantic(
         voices=available_voices,
         characters=available_characters,
         sounds=available_sounds,
+        library_lock=available_library_lock,
     )
     for check in registered_checks("scene"):
         _run_check(check, ctx)
@@ -2129,6 +2139,69 @@ def _core_assembly(ctx: ValidationContext) -> None:
     _check_assembly(ctx.scene, ctx.report, sounds=ctx.sounds)
 
 
+def _add_findings(report: ValidationReport, findings: Any) -> None:
+    for f in findings:
+        fix = f" Fix: {f.suggested_fix}" if f.suggested_fix else ""
+        report.add(f.severity, f.ir_path, f"{f.description}.{fix}")
+
+
+def _readable_lock(ctx: ValidationContext) -> dict[str, Any] | None:
+    """The lockfile's pins, read once — or a finding saying it cannot be read."""
+
+    def read() -> dict[str, Any] | None:
+        try:
+            return {k: ctx.library_lock[k] for k in ctx.library_lock}
+        except Exception as e:  # noqa: BLE001 — reported, never a traceback
+            ctx.report.add(
+                "warning",
+                "assets.lock.json",
+                f"the asset library's lockfile cannot be read ({type(e).__name__}: "
+                f"{e}), so no library pin was checked. Check the assets out again "
+                "(an library checkout --overwrite) to rewrite it.",
+            )
+            return None
+
+    if ctx.library_lock is None:
+        return None
+    return ctx.cached("library lock", read)
+
+
+def _core_library_pins(ctx: ValidationContext) -> None:
+    """Every scene ``library:`` pin agrees with the lockfile, the source of truth (an#240)."""
+    lock = _readable_lock(ctx)
+    if lock is None or not any(
+        e.library for shot in ctx.scene.timeline for e in shot.entities
+    ):
+        return
+    from an.library.checkout import check_pins
+
+    _add_findings(ctx.report, check_pins(ctx.scene, lock))
+
+
+def _core_library_checkouts(ctx: ValidationContext) -> None:
+    """Every pinned check-out is still its version byte for byte; an edit is ``info`` (a fork)."""
+    lock = _readable_lock(ctx)
+    if not lock:
+        return
+    from an.library.checkout import drift_findings
+
+    stores = dict(ctx.stores)
+    if ctx.sounds is not None:
+        stores["sounds"] = ctx.sounds
+    supplied = {k: v for k, v in lock.items() if k.partition("/")[0] in stores}
+    try:
+        findings = drift_findings(mall=stores, lock=supplied)
+    except Exception as e:  # noqa: BLE001 — a library that cannot be read is a finding
+        ctx.report.add(
+            "warning",
+            "assets.lock.json",
+            f"the pinned check-outs could not be compared with their library "
+            f"versions ({type(e).__name__}: {e})",
+        )
+        return
+    _add_findings(ctx.report, findings)
+
+
 # -----------------------------------------------------------------------------
 # The cut-out genre's checks, as context functions. The genre object
 # (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its
@@ -2198,6 +2271,20 @@ def _register_core_checks() -> None:
         SemanticCheck("dialogue_lines", _core_dialogue_lines, order=120),
         SemanticCheck("dialogue_fits", _core_dialogue_fits, order=130),
         SemanticCheck("assembly", _core_assembly, stage="finish", order=20),
+        SemanticCheck(
+            "library_pins",
+            _core_library_pins,
+            stage="finish",
+            order=30,
+            description="a scene's `library:` pins agree with assets.lock.json",
+        ),
+        SemanticCheck(
+            "library_checkouts",
+            _core_library_checkouts,
+            stage="finish",
+            order=31,
+            description="a pinned check-out is still its library version (info when edited)",
+        ),
     ):
         if check.name not in check_names(owner=CORE_OWNER):
             register_check(check, owner=CORE_OWNER)

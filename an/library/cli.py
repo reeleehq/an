@@ -8,9 +8,10 @@ the business logic is :mod:`an.library.api`.
 Lists are comma-separated (``--style reiniger,gilliam``). Every command reads
 the library of ``--package`` (default ``an``) at ``--root`` (default: the
 package's data folder, or ``<PKG>_HOME``); the read commands search that
-library, then the core ``an`` library, then ``--extra`` ones. A refusal (an
-unknown asset, a private asset leaving its library, …) prints one sentence and
-exits non-zero.
+library, then the core ``an`` library, then ``--extra`` ones — and the library
+a namespaced reference names (``cutan:character.alice@v002`` reads ``cutan``
+with no ``--package``; an#251). A refusal (an unknown asset, a private asset
+leaving its library, …) prints one sentence and exits non-zero.
 
 Subcommands: ``publish``, ``find``, ``vocabulary``, ``show``, ``checkout``,
 ``promote``.
@@ -19,8 +20,9 @@ Subcommands: ``publish``, ``find``, ``vocabulary``, ``show``, ``checkout``,
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from functools import wraps
+from pathlib import Path
 from typing import Any
 
 from an.library.api import (
@@ -33,6 +35,7 @@ from an.library.api import (
 )
 from an.library.checkout import checkout as _checkout
 from an.library.federation import Library, open_library, search_path
+from an.library.ids import parse_ref
 from an.ir.assets import AssetSource
 from an.library.root import CORE_PACKAGE
 
@@ -80,9 +83,33 @@ def _refusing(func: Callable[..., str]) -> Callable[..., str]:
     return run
 
 
-def _libraries(package: str, root: str, extra: str) -> list[Library]:
+def _namespaces(refs: Iterable[str]) -> list[str]:
+    """The libraries named by namespaced references (``cutan:character.x`` -> ``cutan``)."""
+    out: list[str] = []
+    for ref in refs:
+        namespace = parse_ref(ref).namespace
+        if namespace and namespace not in out:
+            out.append(namespace)
+    return out
+
+
+def _libraries(
+    package: str, root: str, extra: str, *, refs: Iterable[str] = ()
+) -> list[Library]:
+    """``package``'s search path, plus ``--extra`` and every library a reference names."""
     roots = {package: root} if root else {}
-    return search_path(package, extra=_split(extra) or (), roots=roots)
+    names = _split(extra) or []
+    names += [n for n in _namespaces(refs) if n not in names]
+    return search_path(package, extra=names, roots=roots)
+
+
+def _project_of(folder: str) -> Path | None:
+    """The project an asset folder sits in (``<project>/assets/<store>/<key>``), if any."""
+    here = Path(folder).expanduser().absolute()
+    project = here.parent.parent.parent
+    if here.parent.parent.name == "assets" and (project / "scene.md").is_file():
+        return project
+    return None
 
 
 @_refusing
@@ -134,7 +161,7 @@ def publish(
     extra: further libraries where --derived-from resolves, by package name, comma-separated
     """
     lib = open_library(package, root or None)
-    others = _libraries(package, root, extra)[1:]
+    others = _libraries(package, root, extra, refs=_split(derived_from) or ())[1:]
     result = _publish_dir(
         lib,
         folder,
@@ -163,7 +190,14 @@ def publish(
             else {}
         ),
     )
-    return str(result)
+    project = _project_of(folder)
+    if project is None:
+        return str(result)
+    return (
+        f"{result}\n"
+        f"to link the project's copy to it (pin it in assets.lock.json): "
+        f"an library checkout {project} {result.ref}"
+    )
 
 
 @_refusing
@@ -247,13 +281,13 @@ def show(
 ) -> str:
     """Show one asset: its record, the resolved version, and its other versions.
 
-    ref: [<library>:]<asset_id>[@<version>] (latest by default)
+    ref: [<library>:]<asset_id>[@<version>] (latest by default); a <library>: prefix reads that library
     package: the library to read first (then the core an library)
     root: that library's root
     extra: further libraries, by package name, comma-separated
     json_out: print the full record and version as JSON
     """
-    info = _show(_libraries(package, root, extra), ref)
+    info = _show(_libraries(package, root, extra, refs=[ref]), ref)
     if json_out:
         return json.dumps(info, indent=2, sort_keys=True)
     record, version = info["record"], info["version"]
@@ -294,15 +328,15 @@ def checkout(
     """Check a library version out into a project, and pin it in assets.lock.json.
 
     project_dir: the an project
-    ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned)
+    ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no --package needed
     key: the key in the project store (default: the asset's slug)
-    overwrite: replace an existing entry that is not this version
+    overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
     package: the library to read first (then the core an library)
     root: that library's root
     extra: further libraries, by package name, comma-separated
     """
     result = _checkout(
-        _libraries(package, root, extra),
+        _libraries(package, root, extra, refs=[ref]),
         project_dir,
         ref,
         key=key or None,
@@ -329,15 +363,17 @@ def promote(
     """Copy a version into the core an library, so other genres can reuse it.
 
     ref: [<library>:]<asset_id>[@<version>]
-    package: the library it is in (a genre's, e.g. cutan)
+    package: the library it is in (a genre's, e.g. cutan; default: the reference's <library>: prefix)
     root: that library's root
     core_root: the core an library's root (default: its data folder)
     as_id: promote under another id (when the core library has an unrelated asset with this one)
     allow_restricted: copy a private or unknown version anyway (it otherwise never leaves its library)
     """
+    package = package or (_namespaces([ref]) or [""])[0]
     if not package or package == CORE_PACKAGE:
         raise SystemExit(
-            "an library promote: --package names the genre library to promote from"
+            "an library promote: --package (or a <library>: prefix on the reference) "
+            "names the genre library to promote from"
         )
     source = open_library(package, root or None)
     target = open_library(CORE_PACKAGE, core_root or None)

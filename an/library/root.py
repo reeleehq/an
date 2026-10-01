@@ -38,6 +38,7 @@ from pathlib import Path, PureWindowsPath
 
 __all__ = [
     "CORE_PACKAGE",
+    "DEFAULT_PROJECT_PACKAGE",
     "LibraryLocationWarning",
     "LIBRARY_DIRNAME",
     "PROJECTS_DIRNAME",
@@ -50,6 +51,12 @@ __all__ = [
 
 #: The core package, whose library every genre's search path reads after its own.
 CORE_PACKAGE: str = "an"
+#: The package whose root holds an agent-made VIDEO project by default (an#251).
+#: A project belongs to the genre it is made in, and ``an init`` seeds a cut-out
+#: project (``default_renderer = "cutout"``), so its default home is the
+#: cut-out genre's root, ``~/.local/share/cutan/projects/<id>`` — beside the
+#: library its characters come from. Another genre's projects pass ``package=``.
+DEFAULT_PROJECT_PACKAGE: str = "cutan"
 #: The sub-folder of a root that holds the library stores.
 LIBRARY_DIRNAME: str = "library"
 #: The sub-folder of a root that holds agent-made projects (design §7.5).
@@ -122,7 +129,7 @@ def library_root(
 def projects_root(
     root: str | os.PathLike | None = None,
     *,
-    package: str = CORE_PACKAGE,
+    package: str = DEFAULT_PROJECT_PACKAGE,
     environ: Mapping[str, str] | None = None,
 ) -> Path:
     """Where agent-made projects go by default: ``<root>/projects/``.
@@ -137,14 +144,16 @@ def project_dir(
     project_id: str,
     root: str | os.PathLike | None = None,
     *,
-    package: str = CORE_PACKAGE,
+    package: str = DEFAULT_PROJECT_PACKAGE,
     environ: Mapping[str, str] | None = None,
 ) -> Path:
     """The default directory of the agent-made project ``project_id`` (design §7.5).
 
     ``an init <dir>`` with an explicit directory keeps working anywhere; this is
-    the default for projects an agent makes, so they never land in a session's
-    working folder or a repository.
+    the default for projects an agent makes (``an init --id <id>``), so they
+    never land in a session's working folder or a repository. ``package`` is
+    the genre the video is made in (default :data:`DEFAULT_PROJECT_PACKAGE`,
+    the cut-out genre).
 
     >>> project_dir("alice-and-bob", "/lib").as_posix()
     '/lib/projects/alice-and-bob'

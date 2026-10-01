@@ -106,6 +106,7 @@ def test_mall_keys_match_spec():
             "characters",
             "decisions",
             "environments",
+            "library_lock",
             "output",
             "previews",
             "props",

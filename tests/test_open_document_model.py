@@ -692,7 +692,13 @@ def test_the_report_order_is_pinned():
         "dialogue_lines",
         "dialogue_fits",
     ]
-    assert [c.name for c in checks("finish")] == ["cutout.view_continuity", "assembly"]
+    assert [c.name for c in checks("finish")] == [
+        "cutout.view_continuity",
+        "assembly",
+        # the asset library's pin checks (an#240), after everything that was here
+        "library_pins",
+        "library_checkouts",
+    ]
 
 
 def test_validate_and_compile_share_one_space_policy():

@@ -150,23 +150,64 @@ def descriptor_source(
     return dict(_descriptor_sources(doc, store=store)).get(DESCRIPTOR_SOURCE_LABEL)
 
 
+class _OneEntry(dict):
+    """A one-entry project store for the credits walk, knowing its files' digests."""
+
+    def __init__(self, doc: Mapping[str, Any], files: Mapping[str, str] | None):
+        super().__init__({"_": dict(doc)})
+        self._files = files
+
+    def file_digests(self, key: str) -> Mapping[str, str] | None:
+        return self._files
+
+
 def _descriptor_sources(
-    doc: Mapping[str, Any], *, store: str | None
+    doc: Mapping[str, Any],
+    *,
+    store: str | None,
+    files: Mapping[str, str] | None = None,
+    covering: AssetSource | None = None,
 ) -> list[tuple[str, AssetSource]]:
-    from an.credits import collect_credits
+    """The descriptor's own source and each part's, as ``an credits`` reads them.
+
+    files: ``{path: sha256}`` of the asset's files, so the factory's stamps are
+        checked against the bytes they pin, exactly as in a project
+    covering: the asset-level source declared at publish. A check-out writes it
+        into a descriptor that declares none (nor any the credits walk
+        reconstructs), so the parts are walked as they will read there — the
+        library and the project's credits see the same document — but it is
+        reported under its own label, never as the descriptor's.
+    """
+    from an.credits import collect_credits, is_factory_stamp
 
     key = "_"
     prefix = f"{store}/{key}"
-    out: list[tuple[str, AssetSource]] = []
-    own: AssetSource | None = None
-    for entry in collect_credits({store: {key: dict(doc)}}).entries if store else []:
-        if entry.asset == prefix:
-            own = entry.source
-        else:
-            out.append((entry.asset[len(prefix) + 1 :], entry.source))
+
+    def walk(document: Mapping[str, Any]) -> list[Any]:
+        if not store:
+            return []
+        return collect_credits({store: _OneEntry(document, files)}).entries
+
+    entries = walk(doc)
+    own = next((e.source for e in entries if e.asset == prefix), None)
     if own is None and isinstance(doc.get("source"), Mapping):
         own = AssetSource.model_validate(doc["source"])
-    return ([(DESCRIPTOR_SOURCE_LABEL, own)] if own is not None else []) + out
+    if covering is not None and (own is None or is_factory_stamp(doc.get("source"))):
+        # What the checked-out copy will hold (an.library.checkout): the
+        # asset-level source written in as the descriptor's — in place of
+        # nothing, or of the factory's own stamp, which speaks only for the
+        # bytes its part stamps already pin — speaking for every part nothing
+        # itemises.
+        walked = {
+            **doc,
+            "source": covering.model_dump(mode="json", exclude_defaults=True),
+        }
+        entries = walk(walked)
+        own = None
+    parts = [
+        (e.asset[len(prefix) + 1 :], e.source) for e in entries if e.asset != prefix
+    ]
+    return ([(DESCRIPTOR_SOURCE_LABEL, own)] if own is not None else []) + parts
 
 
 def sources_in(
@@ -174,6 +215,7 @@ def sources_in(
     *,
     store: str | None,
     source: AssetSource | None = None,
+    files: Mapping[str, str] | None = None,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source one version holds: the asset's, the descriptor's, each part's.
 
@@ -187,6 +229,10 @@ def sources_in(
         the art came from a film. The only way to relax a stricter source is
         an explicit, recorded relicence (:func:`an.library.api.publish`'s
         ``relicense``), which bypasses this function altogether
+    files: ``{path: sha256}`` of the asset's files. With them, a factory stamp
+        is checked against the bytes it pins (:func:`an.credits._part_credits`):
+        a re-carved part under a stale stamp, or a file the factory's
+        descriptor stamp does not pin, is ``unknown`` unless a source covers it
 
     With no source anywhere the asset contributes ``None``: ``unknown``.
 
@@ -195,7 +241,7 @@ def sources_in(
     ...                                   source=AssetSource(provider="me", license="cc0-1.0"))]
     ['asset', 'descriptor']
     """
-    found = _descriptor_sources(doc, store=store)
+    found = _descriptor_sources(doc, store=store, files=files, covering=source)
     own = dict(found).get(DESCRIPTOR_SOURCE_LABEL)
     parts = [(label, src) for label, src in found if label != DESCRIPTOR_SOURCE_LABEL]
     top: list[tuple[str, AssetSource | None]]
