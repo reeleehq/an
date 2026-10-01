@@ -58,18 +58,43 @@ CUTOUT_GENRE_NAME: str = "cutout_animation"
 #: ``"module:function"`` so this declaration imports no engine; the bodies still
 #: live in `an.stage.compile` until `cutan` (an#225) takes them.
 CUTOUT_COMPILE_PASSES: tuple[CompilePass, ...] = (
-    CompilePass("speech", "an.stage.compile:_speech_pass", order=150,
-                description="the speech aspect: pulses for speakers that do not lip-sync"),
-    CompilePass("swap_pose", "an.stage.compile:_swap_pose_pass", order=300,
-                description="what whole-character swaps pose"),
-    CompilePass("view_spans", "an.stage.compile:_view_span_pass", order=310,
-                description="which view each character is in, when"),
-    CompilePass("visemes", "an.stage.compile:_viseme_pass", order=400,
-                description="lip-sync: a viseme channel per dialogue line"),
-    CompilePass("face", "an.stage.compile:_face_pass", order=500,
-                description="blinks, expressions, gaze, the silent mouth"),
-    CompilePass("rig", "an.stage.compile:_build_character_entity", order=1,
-                builds="character", description="a character's rig and art"),
+    CompilePass(
+        "speech",
+        "an.stage.compile:_speech_pass",
+        order=150,
+        description="the speech aspect: pulses for speakers that do not lip-sync",
+    ),
+    CompilePass(
+        "swap_pose",
+        "an.stage.compile:_swap_pose_pass",
+        order=300,
+        description="what whole-character swaps pose",
+    ),
+    CompilePass(
+        "view_spans",
+        "an.stage.compile:_view_span_pass",
+        order=310,
+        description="which view each character is in, when",
+    ),
+    CompilePass(
+        "visemes",
+        "an.stage.compile:_viseme_pass",
+        order=400,
+        description="lip-sync: a viseme channel per dialogue line",
+    ),
+    CompilePass(
+        "face",
+        "an.stage.compile:_face_pass",
+        order=500,
+        description="blinks, expressions, gaze, the silent mouth",
+    ),
+    CompilePass(
+        "rig",
+        "an.stage.compile:_build_character_entity",
+        order=1,
+        builds="character",
+        description="a character's rig and art",
+    ),
 )
 
 CUTOUT = Genre(

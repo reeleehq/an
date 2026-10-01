@@ -416,7 +416,8 @@ def register_compile_pass(
 def compile_passes(compiler: str) -> tuple[CompilePass, ...]:
     """The registered passes of ``compiler`` (builders excluded), in run order."""
     found = [
-        p for p in _COMPILE_PASSES.entries.values()
+        p
+        for p in _COMPILE_PASSES.entries.values()
         if p.compiler == compiler and p.builds is None
     ]
     return tuple(sorted(found, key=lambda p: (p.order, p.name)))

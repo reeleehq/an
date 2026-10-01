@@ -850,7 +850,11 @@ class StageEngine:
         }
         runtime_target = _copy_runtime(Path(workspace) / "runtime")
         with _loaded_page(
-            runtime_target, doc, size=size, supersample=NO_SUPERSAMPLE, doing="loading a document"
+            runtime_target,
+            doc,
+            size=size,
+            supersample=NO_SUPERSAMPLE,
+            doing="loading a document",
         ) as page:
             yield _session_for(capture)(page)
 
@@ -874,7 +878,9 @@ def _loaded_page(
         # `headless=True` explicitly: the default is headless today, but
         # relying on it means a Playwright default change silently swaps the
         # binary — full Chromium renders on the real GPU and differs by 1.91%.
-        browser = p.chromium.launch(args=list(DETERMINISTIC_CHROMIUM_ARGS), headless=True)
+        browser = p.chromium.launch(
+            args=list(DETERMINISTIC_CHROMIUM_ARGS), headless=True
+        )
         try:
             page = browser.new_page(viewport={"width": size[0], "height": size[1]})
             page.goto(f"{base_url}/index.html")

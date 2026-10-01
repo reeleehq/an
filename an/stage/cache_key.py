@@ -165,7 +165,9 @@ def _draws_system_text(path: Path) -> bool:
 
 #: The calls that make an old module's names LIVE aliases of another module's
 #: (:mod:`an._shims`). Their target is a STRING, invisible to an import walk.
-FORWARDING_CALLS: frozenset[str] = frozenset({"forward_module_attributes", "alias_module"})
+FORWARDING_CALLS: frozenset[str] = frozenset(
+    {"forward_module_attributes", "alias_module"}
+)
 
 
 def _forwarding_target(node: ast.AST) -> str | None:

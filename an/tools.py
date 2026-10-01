@@ -262,7 +262,9 @@ def preview(
     shot: shot id to preview (default: first shot in the timeline)
     no_browser: don't auto-open the default browser
     """
-    from an.stage.preview import preview_project as _preview_project  # the stage, lazily
+    from an.stage.preview import (
+        preview_project as _preview_project,
+    )  # the stage, lazily
 
     base_url = _preview_project(
         project_dir,

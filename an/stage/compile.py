@@ -1145,7 +1145,9 @@ def _scene_pass(state: CompileState) -> None:
         # it, and on the overlay at all so the camera cannot move or scale it.
         overlay_children.insert(
             0,
-            grain_node(style_pack.grain, width=width, height=height, textures=state.textures),
+            grain_node(
+                style_pack.grain, width=width, height=height, textures=state.textures
+            ),
         )
     # The vocabulary sees the overlay too: its nodes are indexed by the
     # runtime under their own paths (`title/word_0`), exactly like the scene's,
@@ -1199,7 +1201,9 @@ def _swap_pose_pass(state: CompileState) -> None:
 def _view_span_pass(state: CompileState) -> None:
     """Cut-out: which view each character with per-view face sets is in, and
     when (an#220): the mouth and lids draw from `viseme@side` while the profile shows."""
-    state.view_spans = _view_spans(state.entity_swaps, state.vocab, duration=state.shot.duration)
+    state.view_spans = _view_spans(
+        state.entity_swaps, state.vocab, duration=state.shot.duration
+    )
 
 
 def _viseme_pass(state: CompileState) -> None:
@@ -1237,7 +1241,11 @@ def _face_pass(state: CompileState) -> None:
 def _camera_pass(state: CompileState) -> None:
     """The camera (Phase 7): `camera.move`/keys onto the scene root."""
     _add_camera_clips(
-        state.shot, state.animations, state.tracks, width=state.width, height=state.height
+        state.shot,
+        state.animations,
+        state.tracks,
+        width=state.width,
+        height=state.height,
     )
 
 
@@ -1290,18 +1298,32 @@ def _checks_pass(state: CompileState) -> None:
 #: entity builder (:data:`an.genres.cutout.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so
 #: no ``without_genres()`` can take the stage's own passes away.
 STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
-    CompilePass("scene", _scene_pass, order=100, description="the scene tree, overlay, grain, vocabulary"),
-    CompilePass("actions", _actions_pass, order=200, description="authored actions -> clips"),
-    CompilePass("camera", _camera_pass, order=600, description="the camera onto the scene root"),
+    CompilePass(
+        "scene",
+        _scene_pass,
+        order=100,
+        description="the scene tree, overlay, grain, vocabulary",
+    ),
+    CompilePass(
+        "actions", _actions_pass, order=200, description="authored actions -> clips"
+    ),
+    CompilePass(
+        "camera", _camera_pass, order=600, description="the camera onto the scene root"
+    ),
     CompilePass("parallax", _parallax_pass, order=700, description="planes' parallax"),
-    CompilePass("checks", _checks_pass, order=900, description="targets, easings, stand-ins"),
+    CompilePass(
+        "checks", _checks_pass, order=900, description="targets, easings, stand-ins"
+    ),
 )
+
 
 class CompilePassCollision(CutoutCompileError):
     """A genre registered a pass (or a builder) the stage already has, without ``replace=True``."""
 
 
-def _merge_over_stage(own: Mapping[str, CompilePass], registered: Iterable[CompilePass], key) -> dict[str, CompilePass]:
+def _merge_over_stage(
+    own: Mapping[str, CompilePass], registered: Iterable[CompilePass], key
+) -> dict[str, CompilePass]:
     """The stage's own entries, with registered ones added; a registered entry
     that names one of the stage's REPLACES it only when it says ``replace=True``."""
     from an.genres.registry import compile_pass_owner
@@ -1326,7 +1348,9 @@ def compile_passes_for_stage() -> tuple[CompilePass, ...]:
     from an.genres.registry import compile_passes
 
     merged = _merge_over_stage(
-        {p.name: p for p in STAGE_COMPILE_PASSES}, compile_passes("stage"), key=lambda p: p.name
+        {p.name: p for p in STAGE_COMPILE_PASSES},
+        compile_passes("stage"),
+        key=lambda p: p.name,
     )
     return tuple(sorted(merged.values(), key=lambda p: (p.order, p.name)))
 
@@ -1337,18 +1361,28 @@ def stage_replacements() -> dict[str, str]:
     from an.genres.registry import compile_pass_owner, compile_passes, entity_builders
 
     own = {p.name for p in STAGE_COMPILE_PASSES}
-    out = {p.name: compile_pass_owner(p.name) for p in compile_passes("stage") if p.replace and p.name in own}
+    out = {
+        p.name: compile_pass_owner(p.name)
+        for p in compile_passes("stage")
+        if p.replace and p.name in own
+    }
     out.update(
-        {f"builder:{kind}": compile_pass_owner(p.name)
-         for kind, p in entity_builders("stage").items()
-         if p.replace and kind in STAGE_SCENE_BUILDERS}
+        {
+            f"builder:{kind}": compile_pass_owner(p.name)
+            for kind, p in entity_builders("stage").items()
+            if p.replace and kind in STAGE_SCENE_BUILDERS
+        }
     )
     return out
 
 
 def _assemble_document(state: CompileState, *, background: str) -> CutoutSceneJSON:
     """The wire document from what the passes produced."""
-    shot, style_pack, overlay_children = state.shot, state.style_pack, state.overlay_children
+    shot, style_pack, overlay_children = (
+        state.shot,
+        state.style_pack,
+        state.overlay_children,
+    )
     timeline = TimelineJSON(duration=shot.duration, tracks=state.tracks)
 
     return CutoutSceneJSON(
@@ -1545,7 +1579,9 @@ def _build_prop_entity(entity: AssetRef, build: SceneBuild) -> None:
     )
     _apply_stage_placement(sub, entity)
     _warn_surface(
-        apply_surface(sub, surface_for(build.style_pack, entity.id), textures=build.textures)
+        apply_surface(
+            sub, surface_for(build.style_pack, entity.id), textures=build.textures
+        )
     )
     build.children.append(sub)
 
@@ -1571,7 +1607,9 @@ def _build_character_entity(entity: AssetRef, build: SceneBuild) -> None:
     _apply_stage_placement(sub, entity)
     # an#163: outline / paper-gap shadow / glow, when the pack asks.
     _warn_surface(
-        apply_surface(sub, surface_for(build.style_pack, entity.id), textures=build.textures)
+        apply_surface(
+            sub, surface_for(build.style_pack, entity.id), textures=build.textures
+        )
     )
     build.children.append(sub)
 
@@ -1579,11 +1617,17 @@ def _build_character_entity(entity: AssetRef, build: SceneBuild) -> None:
 #: The stage's own entity builders: phase 0 the backdrop, phase 1 the cast.
 STAGE_SCENE_BUILDERS: dict[str, CompilePass] = {
     "environment": CompilePass(
-        "environment", _build_environment_entity, order=0, builds="environment",
+        "environment",
+        _build_environment_entity,
+        order=0,
+        builds="environment",
         description="an environment's planes (the backdrop)",
     ),
     "prop": CompilePass(
-        "prop", _build_prop_entity, order=1, builds="prop",
+        "prop",
+        _build_prop_entity,
+        order=1,
+        builds="prop",
         description="a prop, a stroked path or a text block",
     ),
 }

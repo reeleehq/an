@@ -305,7 +305,9 @@ def timeline_from_compiled(doc: Any) -> Timeline:
     clips = {aid: clip_from_json(a, name=aid) for aid, a in animations.items()}
     tl = _get(doc, "timeline")
     return Timeline(
-        space=entity_spaces_resolver(_get(_get(doc, "meta", None), "entity_spaces", None)),
+        space=entity_spaces_resolver(
+            _get(_get(doc, "meta", None), "entity_spaces", None)
+        ),
         duration=_get(tl, "duration"),
         tracks=[
             Track(

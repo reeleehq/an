@@ -130,7 +130,13 @@ class UnderlayJSON(_JSONModel):
 #: The visual kinds ``runtime.js`` draws itself. Any other kind must be
 #: registered by a genre's runtime script (an#247), or it draws as a rect.
 BUILTIN_VISUAL_KINDS: tuple[str, ...] = (
-    "sprite", "rect", "ellipse", "mouth", "eye", "svg_sprite", "path",
+    "sprite",
+    "rect",
+    "ellipse",
+    "mouth",
+    "eye",
+    "svg_sprite",
+    "path",
 )
 
 

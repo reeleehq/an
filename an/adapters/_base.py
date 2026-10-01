@@ -298,7 +298,11 @@ class RendererRegistry:
 
     def _claimer(self, name: str) -> Renderer | None:
         return next(
-            (r for r in self._by_name.values() if name in getattr(r, "supported_renderers", ())),
+            (
+                r
+                for r in self._by_name.values()
+                if name in getattr(r, "supported_renderers", ())
+            ),
             None,
         )
 
@@ -326,13 +330,19 @@ class RendererRegistry:
             if r.can_render(shot):
                 return r
         if failures:
-            raise RendererLoadError(failures, wanted=f"shot {shot.id!r} (renderer={shot.renderer!r})")
+            raise RendererLoadError(
+                failures, wanted=f"shot {shot.id!r} (renderer={shot.renderer!r})"
+            )
         return None
 
     def names(self) -> Iterable[str]:
         failures = self._load()
         if failures:
-            warnings.warn(str(RendererLoadError(failures, wanted="the renderer list")), RendererLoadWarning, stacklevel=2)
+            warnings.warn(
+                str(RendererLoadError(failures, wanted="the renderer list")),
+                RendererLoadWarning,
+                stacklevel=2,
+            )
         return list(self._by_name.keys())
 
 
@@ -345,7 +355,9 @@ class RendererLoadError(ImportError):
 
     def __init__(self, failures: Mapping[str, BaseException], *, wanted: str) -> None:
         self.failures = dict(failures)
-        detail = "; ".join(f"{m}: {type(e).__name__}: {e}" for m, e in self.failures.items())
+        detail = "; ".join(
+            f"{m}: {type(e).__name__}: {e}" for m, e in self.failures.items()
+        )
         super().__init__(
             f"no renderer for {wanted}, and these renderer backends failed to "
             f"import (each is retried on the next lookup): {detail}"
