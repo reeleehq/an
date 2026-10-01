@@ -81,6 +81,7 @@ def render(
     capture: str = "",
     force_render: bool = False,
     no_cache: bool = False,
+    cache_frames: bool = False,
 ) -> str:
     """Render the project at ``project_dir`` to a single mp4.
 
@@ -125,6 +126,9 @@ def render(
         refresh its entry)
     no_cache: neither read nor write the shot cache — every shot is rendered
         cold, as before the cache existed
+    cache_frames: also cache each shot's frames, so a film with transitions or
+        a sound layer reuses its shots too. Off by default: a 1080p shot's
+        frames are hundreds of MB, and nothing collects old entries yet
     """
     from an.build import ShotCache
 
@@ -138,7 +142,7 @@ def render(
             parallel_arg = int(parallel)
         except ValueError:
             return f"invalid --parallel value: {parallel!r}; use a number or 'auto'"
-    cache = ShotCache()
+    cache = ShotCache(cache_frames=cache_frames)
     output_path = _render_project(
         project_dir,
         output_name=output_name,

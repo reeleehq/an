@@ -26,9 +26,9 @@ unreachable blobs is a separate, explicit command (not in this slice).
 
 >>> from an.build.shot_cache import BuildReport, ShotOutcome
 >>> r = BuildReport([ShotOutcome("a", "cutout", "reused", key="k" * 64),
-...                  ShotOutcome("b", "cutout", "rendered", key="j" * 64)])
+...                  ShotOutcome("b", "cutout", "rendered", key="j" * 64, reason="new or changed")])
 >>> r.summary()
-'2 shot(s): 1 rendered (b), 1 reused (a)'
+'2 shot(s): 1 rendered (b), 1 reused (a); not reused: new or changed (b)'
 """
 
 from __future__ import annotations
@@ -67,6 +67,12 @@ SHOT_CACHE_STORE: str = "shot_cache"
 #: recorded only for a film that is assembled from frames (transitions, a
 #: sound layer — `an.assemble`), which cannot be built from an mp4.
 FRAMES_SUFFIX: str = ".frames"
+
+#: Why a shot was not reused, as the render summary says it.
+MISS: str = "new or changed"
+FRAMES_NOT_CACHED: str = (
+    "frames not cached: film has transitions/sound; pass --cache-frames"
+)
 
 #: Bytes per read when a blob is streamed into the store.
 STREAM_CHUNK_BYTES: int = 1 << 20
@@ -182,12 +188,28 @@ class BuildReport:
         return [o.shot_id for o in self.outcomes if o.status == "reused"]
 
     def summary(self) -> str:
+        """One line: what was rendered, what reused, and WHY each rendered shot
+        was not reused — a cache that silently re-renders everything reads as
+        a broken cache (an#243 review, R2-1).
+
+        >>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
+        '1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
+        """
         n = len(self.outcomes)
         ren, reu = self.rendered, self.reused
-        return (
+        line = (
             f"{n} shot(s): {len(ren)} rendered ({', '.join(ren) or '-'}), "
             f"{len(reu)} reused ({', '.join(reu) or '-'})"
         )
+        why: dict[str, list[str]] = {}
+        for o in self.outcomes:
+            if o.status != "reused":
+                why.setdefault(o.reason or "not cacheable", []).append(o.shot_id)
+        if why:
+            line += "; not reused: " + "; ".join(
+                f"{reason} ({', '.join(ids)})" for reason, ids in why.items()
+            )
+        return line
 
     def timing_table(self) -> str:
         """A Markdown table of the per-shot wall times."""
@@ -360,7 +382,7 @@ class ShotCache:
         elif self._store is None:
             reason = "no shot cache store in the mall"
         elif needs_frames and not self.cache_frames:
-            reason = "assembled film: frames are not cached (cache_frames=False)"
+            reason = FRAMES_NOT_CACHED
         if reason:
             plan = ShotPlan(shot.id, name, key=None, reason=reason)
             self._note(plan, "uncached")
@@ -488,7 +510,7 @@ class ShotCache:
         except Exception as e:  # noqa: BLE001 — an unreadable entry is a miss, said
             return None, f"unreadable entry ({type(e).__name__})"
         if record is None:
-            return None, "miss"
+            return None, MISS
         mp4_bytes = self._verified_blob(record.asset_id)
         if mp4_bytes is None:
             return None, "entry whose mp4 blob is missing or does not match its id"

@@ -39,10 +39,10 @@ logger = logging.getLogger("an.build")
 #: Under ``.an/render_work/``: one directory per CACHED render run.
 RENDER_RUNS_DIR: str = "runs"
 
-#: A run directory older than this is removed when a later run finishes; the
-#: latest run is always kept, for inspection. Long enough that no run still in
-#: progress is ever pruned by another.
-STALE_RUN_S: float = 6 * 60 * 60
+#: In a run directory: the pid of the process rendering it (written at start).
+RUN_LIVE_MARKER: str = ".live"
+#: In a run directory: written when the run delivered its film.
+RUN_DONE_MARKER: str = ".done"
 
 
 def _run_id() -> str:
@@ -51,17 +51,47 @@ def _run_id() -> str:
     return f"{time.strftime('%Y%m%dT%H%M%S')}_{os.getpid()}_{secrets.token_hex(3)}"
 
 
-def _prune_runs(runs: Path, *, keep: Path, older_than: float = STALE_RUN_S) -> None:
-    """Remove finished runs' work dirs, keeping ``keep`` and anything recent."""
-    now = time.time()
+def _start_run(work_dir: Path) -> None:
+    work_dir.mkdir(parents=True, exist_ok=True)
+    (work_dir / RUN_LIVE_MARKER).write_text(str(os.getpid()), encoding="utf-8")
+
+
+def _pid_alive(pid: int) -> bool | None:
+    """Whether ``pid`` runs; ``None`` where that cannot be asked safely (Windows)."""
+    if os.name != "posix":
+        return None
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
+def _run_finished(d: Path) -> bool:
+    """A run is finished when it says so, or when the process that ran it is gone."""
+    if (d / RUN_DONE_MARKER).exists():
+        return True
+    try:
+        pid = int((d / RUN_LIVE_MARKER).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return False  # no marker we can read: not ours to judge
+    return pid != os.getpid() and _pid_alive(pid) is False
+
+
+def _finish_run(work_dir: Path) -> None:
+    """Mark this run done and remove every OTHER finished run — promptly, not
+    after hours: each run holds a whole render's PNGs (an#243 review, R2-2).
+    This run is kept, as the latest, for inspection; a run still in progress
+    (its process alive, no done marker) is never touched."""
+    (work_dir / RUN_DONE_MARKER).write_text("", encoding="utf-8")
+    runs = work_dir.parent
     for d in runs.iterdir() if runs.is_dir() else ():
-        if d == keep or not d.is_dir():
+        if d == work_dir or not d.is_dir():
             continue
-        try:
-            if now - d.stat().st_mtime > older_than:
-                shutil.rmtree(d, ignore_errors=True)
-        except OSError:
-            continue
+        if _run_finished(d):
+            shutil.rmtree(d, ignore_errors=True)
 
 # Default cap so a 20-shot scene doesn't try to spawn 20 Chromiums; the user
 # can always pass a higher number explicitly.
@@ -297,6 +327,7 @@ def render(
         # record whatever bytes were there under its own key — poisoning the
         # cache durably, where before it spoiled one run (an#243 review, S1).
         work_dir = work_dir / RENDER_RUNS_DIR / _run_id()
+        _start_run(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
 
     effective_fps = fps if fps is not None else scene.meta.fps or DEFAULT_FPS
@@ -410,7 +441,6 @@ def render(
     if engine is not None:
         report = engine.finish()
         logger.info("%s", report.summary())
-        _prune_runs(work_dir.parent, keep=work_dir)
 
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
@@ -443,6 +473,8 @@ def render(
     _write_caption_sidecar(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
     )
+    if engine is not None:
+        _finish_run(work_dir)
     # Last, so it is the last word about the file (an#211): a render that used
     # all-rights-reserved, private-study material must not read as shippable.
     import warnings

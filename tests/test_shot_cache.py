@@ -523,7 +523,7 @@ def test_an_assembled_film_is_not_cached_unless_frames_are(tmp_path):
     engine = ShotCache(in_memory_shot_cache_store(), environment=_env())
     engine.begin({})
     plan = engine.plan(_shot("a", 1.0), _Named(), _ctx(tmp_path), needs_frames=True)
-    assert plan.key is None and "frames are not cached" in plan.reason
+    assert plan.key is None and "frames not cached" in plan.reason
 
 
 def test_cached_renders_each_work_in_their_own_directory(tmp_path, fake_render):
@@ -902,3 +902,128 @@ def test_the_lockfile_name_is_the_asset_librarys_own():
     from an.library.lock import LOCKFILE_NAME
 
     assert LOCKFILE_NAME in PROJECT_ROOT_FILES
+
+
+# -----------------------------------------------------------------------------
+# Round 2 of the an#243 review
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "duration,fps_a,fps_b", [(2.5, 23.6, 24.4), (33.3333, 29.97, 30.0)]
+)
+def test_two_rates_that_compile_and_mux_alike_still_key_apart(tmp_path, duration, fps_a, fps_b):
+    """R2-3: the document's grid is integral and `picture_seconds` can agree
+    (59/23.6 == 61/24.4), yet the renders have different frame counts — only
+    the `fps` knob tells them apart."""
+    from an.adapters.cutout.cache_key import compiled_document, muxed_audio
+
+    shot = Shot(id="a", renderer="cutout", duration=duration,
+                actions=[tween("root", "x", to=10.0, duration=1.0)])
+    a, b = _ctx(tmp_path, fps=fps_a), _ctx(tmp_path, fps=fps_b)
+    assert round(duration * fps_a) != round(duration * fps_b)
+    assert compiled_document(shot, a) == compiled_document(shot, b)
+    ma, mb = muxed_audio(shot, a), muxed_audio(shot, b)
+    assert ma["lines"] == mb["lines"]
+    assert ma["picture_seconds"] == pytest.approx(mb["picture_seconds"], abs=1e-3)
+    assert _key(shot, a) != _key(shot, b)
+
+
+def test_svg_text_puts_the_machines_fonts_in_the_key(tmp_path, monkeypatch):
+    """R2-3: a part drawing `<text>` keys on the font set; one without does not."""
+    from an.adapters.cutout import cache_key
+
+    amy = AssetRef(kind="character", id="amy", store="characters", ref="amy")
+    root = _project(tmp_path, _shot("a", 10.0, entities=[amy]), character=True)
+    mall = load(root).mall
+    ctx = _ctx(tmp_path, mall=mall)
+    shot = _shot("a", 10.0, entities=[amy])
+
+    monkeypatch.setattr(cache_key, "system_fonts_digest", lambda: "1" * 64)
+    plain_1 = _key(shot, ctx)
+    monkeypatch.setattr(cache_key, "system_fonts_digest", lambda: "2" * 64)
+    assert _key(shot, ctx) == plain_1  # no <text>: the font set is irrelevant
+
+    part = sorted((root / "assets" / "characters" / "amy" / "parts").glob("*.svg"))[0]
+    part.write_text(part.read_text(encoding="utf-8").replace("</svg>", "<text>HI</text></svg>"), encoding="utf-8")
+    with_text_2 = _key(shot, ctx)
+    monkeypatch.setattr(cache_key, "system_fonts_digest", lambda: "1" * 64)
+    assert _key(shot, ctx) != with_text_2  # a font change moves the key
+
+
+def test_the_walk_sees_function_local_imports():
+    import ast
+
+    from an.adapters.cutout.cache_key import _module_imports
+
+    src = "def f():\n    from an.helper_mod import thing\n    import an.other_mod\n"
+    found = _module_imports(ast.parse(src), "an.adapters.cutout.render")
+    assert {"an.helper_mod", "an.other_mod"} <= found
+
+
+def test_frames_are_never_stored_unless_asked(tmp_path):
+    import an.adapters  # noqa: F401
+    from an.build.shot_cache import FRAMES_NOT_CACHED
+
+    store = in_memory_shot_cache_store()
+    ctx, shot = _ctx(tmp_path), _shot("a", 1.0)
+    engine = ShotCache(store, environment=_env())
+    engine.begin({})
+    plan = engine.plan(shot, _Named(), ctx, needs_frames=True)
+    engine.record(plan, _FakeCutoutRender()(None, shot, ctx), render_s=0.1)
+    assert plan.reason == FRAMES_NOT_CACHED
+    assert not any(str(k).endswith(".frames") for k in store)
+    assert "pass --cache-frames" in engine.finish().summary()
+
+
+def test_the_cli_offers_cache_frames(monkeypatch):
+    from an import orchestrate, tools
+
+    seen = {}
+    monkeypatch.setattr(orchestrate, "_render_project", lambda d, **kw: seen.update(kw) or Path("o.mp4"))
+    tools.render("proj", cache_frames=True)
+    assert seen["incremental"].cache_frames is True
+    tools.render("proj")
+    assert seen["incremental"].cache_frames is False
+
+
+def test_finished_runs_are_removed_promptly_and_a_live_one_is_kept(tmp_path, fake_render):
+    """R2-2: no run's frames linger for hours; a run in progress is untouched."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    runs = root / ".an" / "render_work" / "runs"
+    live = runs / "someone_else_rendering"
+    live.mkdir(parents=True)
+    (live / ".live").write_text(str(os.getppid()), encoding="utf-8")  # a live pid
+    for x in (11.0, 12.0, 13.0):
+        _set_shots(root, _shot("a", x))
+        _render(root, fake_render)
+    left = sorted(p.name for p in runs.iterdir())
+    assert len(left) == 2 and "someone_else_rendering" in left
+    (latest,) = [p for p in runs.iterdir() if p != live]
+    assert (latest / ".done").exists()
+
+
+def test_reregistering_the_same_keyer_is_idempotent(monkeypatch):
+    """R2-4: `importlib.reload` / autoreload re-executes the registration."""
+    from an.build import keys
+
+    entry = keys._KEYERS["cutout"]
+    monkeypatch.setitem(keys._KEYERS, "cutout", entry)
+    keys.register_shot_keyer("cutout", entry.keyer, environment=entry.environment,
+                             renderer_type=entry.renderer_type)
+    assert keys._KEYERS["cutout"].identity() == entry.identity()
+
+
+def test_record_itself_refuses_frames_unless_asked(tmp_path):
+    """Defence in depth: even a keyed plan that needs frames (built by another
+    engine, or a later plan path) stores none when `cache_frames` is off."""
+    import an.adapters  # noqa: F401
+    from an.build import ShotPlan
+
+    store = in_memory_shot_cache_store()
+    ctx, shot = _ctx(tmp_path), _shot("a", 1.0)
+    engine = ShotCache(store, environment=_env())
+    engine.begin({})
+    plan = ShotPlan("a", "cutout", key="k" * 64, inputs={}, needs_frames=True)
+    engine.record(plan, _FakeCutoutRender()(None, shot, ctx), render_s=0.1)
+    assert "k" * 64 in store and ("k" * 64) + ".frames" not in store

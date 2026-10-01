@@ -345,7 +345,16 @@ def register_shot_keyer(
     is refused unless ``replace=True`` — a silent replacement would drop the
     first keyer's parts from every key without anyone saying so.
     """
-    if renderer_name in _KEYERS and not replace:
+    new = _KeyerEntry(keyer=keyer, environment=environment, renderer_type=renderer_type)
+    old = _KEYERS.get(renderer_name)
+    if old is not None and not replace and old.identity() == new.identity() and (
+        callable_identity(old.environment) if old.environment else None
+    ) == (callable_identity(environment) if environment else None):
+        # The SAME keyer again — a module re-executed by `importlib.reload` or
+        # IPython's autoreload. Take the new objects (a reloaded renderer class
+        # is a new class), keep the registered parts (an#243 review, R2-4).
+        replace = True
+    if old is not None and not replace:
         raise ShotKeyerRegistrationError(
             f"a shot keyer for renderer {renderer_name!r} is already registered "
             f"({callable_identity(_KEYERS[renderer_name].keyer)}); pass replace=True "
