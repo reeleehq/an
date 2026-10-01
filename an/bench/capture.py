@@ -49,6 +49,7 @@ from an.bench.corpus import (
 )
 from an.bench.png import read_png_dimensions
 
+
 def distinct_png_sizes(frames_dir: Path) -> tuple[tuple[int, int], ...]:
     """Every distinct ``(width, height)`` among a shot's frame PNGs, sorted.
 

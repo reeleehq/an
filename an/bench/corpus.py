@@ -36,6 +36,7 @@ FRAMES_DIRNAME: str = "frames"
 RUNTIME_DIRNAME: str = "runtime"
 STAGED_SCENE_NAME: str = "scene.json"
 
+
 class CorpusError(RuntimeError):
     """A fixture did not render what it declared."""
 

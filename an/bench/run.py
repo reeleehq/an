@@ -1027,7 +1027,7 @@ def run_bench(
             )
             expected = sum(
                 expected_frame_count(s.duration, capture.fps)
-            for s in capture.frame_segments
+                for s in capture.frame_segments
             )
 
             if bless:

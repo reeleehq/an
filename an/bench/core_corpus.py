@@ -381,7 +381,7 @@ def golden_agreement(
     if record is None:
         raise CaptureError(
             f"no bless record for {name!r} at Chromium {chromium_build}: bless it "
-            f"(`an bench --scenes {name} --bless \"<why>\"`)"
+            f'(`an bench --scenes {name} --bless "<why>"`)'
         )
     out = {}
     for frame in record["frames"]:

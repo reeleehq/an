@@ -133,7 +133,11 @@ def _data_uri_bytes(src: str) -> bytes | None:
     if not sep or not head.startswith("data:"):
         return None
     try:
-        return base64.b64decode(payload) if head.endswith(";base64") else unquote_to_bytes(payload)
+        return (
+            base64.b64decode(payload)
+            if head.endswith(";base64")
+            else unquote_to_bytes(payload)
+        )
     except ValueError:
         return None
 
