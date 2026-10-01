@@ -14,7 +14,7 @@ with no ``--package``; an#251). A refusal (an unknown asset, a private asset
 leaving its library, …) prints one sentence and exits non-zero.
 
 Subcommands: ``publish``, ``find``, ``vocabulary``, ``show``, ``checkout``,
-``promote``.
+``promote``, ``retire``.
 """
 
 from __future__ import annotations
@@ -30,6 +30,7 @@ from an.library.api import (
     find as _find,
     promote as _promote,
     publish_dir as _publish_dir,
+    set_status as _set_status,
     show as _show,
     vocabulary as _vocabulary,
 )
@@ -39,7 +40,7 @@ from an.library.ids import parse_ref
 from an.ir.assets import AssetSource
 from an.library.root import CORE_PACKAGE
 
-__all__ = ["checkout", "find", "promote", "publish", "show", "vocabulary"]
+__all__ = ["checkout", "find", "promote", "publish", "retire", "show", "vocabulary"]
 
 
 def _split(text: str) -> list[str] | None:
@@ -162,7 +163,7 @@ def publish(
     family: the identity shared across styles and variants (e.g. alice)
     style: styles the asset suits, comma-separated
     origin: drawn, procedural, dicebear, carved, traced, stock, commissioned, generated
-    status: draft, approved or deprecated
+    status: draft, approved, deprecated or retired (publishing into a retired id needs it, to revive it)
     tags: free tags, comma-separated
     note: what changed in this version
     derived_from: library references this derives from, comma-separated
@@ -172,8 +173,8 @@ def publish(
     source_url: where it was fetched from
     relicense_by: who relicenses the asset (with --relicense-reason and --license): the only way to relax inherited rights
     relicense_reason: why — recorded on the version and shown in its rights
-    relabel_by: who labels bytes nobody labelled (with --relabel-reason and --license): answers the asset's earlier unlabelled files and sourceless versions, never a stricter statement
-    relabel_reason: why — recorded on the version and shown in its rights
+    relabel_by: who labels bytes nobody labelled (with --relabel-reason and --license): answers the asset's earlier unlabelled files and sourceless versions, never a stricter statement nor another asset's files; on unchanged content it is recorded on the head, no new version
+    relabel_reason: why — recorded (on the version, or on the head it labels) and shown in its rights
     expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet
     replace_curation: --style/--tags replace the record's lists instead of adding to them
     extra: further libraries where --derived-from resolves, by package name, comma-separated
@@ -216,11 +217,9 @@ def publish(
     lines = [str(result)]
     if result.rights.license_class == "unknown":
         lines.append(
-            f"unknown (never publishable): {'; '.join(result.rights.reasons)}. "
-            "To label bytes nobody labelled, publish again with --license … "
-            "--provider … --relabel-by <who> --relabel-reason <why>; that relaxes no "
-            "statement anyone made (that takes --relicense-by/--relicense-reason)."
+            f"unknown (never publishable): {'; '.join(result.rights.reasons)}."
         )
+        lines += list(result.advice)
     project = _project_of(folder)
     if project is not None:
         lines.append(
@@ -254,7 +253,7 @@ def find(
     rights: any, publishable, or licence classes (free, attribution, private, unknown)
     family: families, comma-separated
     origin: origins, comma-separated
-    status: draft, approved, deprecated
+    status: draft, approved, deprecated, retired (a retired asset is listed only when asked for)
     tags: tags, comma-separated (any of them)
     near: also list assets that only miss capabilities, with the remedy for each
     package: the library to search first (then the core an library)
@@ -435,4 +434,33 @@ def promote(
     )
 
 
-_dispatch_funcs = [publish, find, vocabulary, show, checkout, promote]
+@_refusing
+def retire(
+    ref: str,
+    by: str = "",
+    reason: str = "",
+    status: str = "retired",
+    package: str = "",
+    root: str = "",
+) -> str:
+    """Retire an asset id: hidden from find, never deleted; its versions stay readable.
+
+    ref: [<library>:]<asset_id> — a <library>: prefix names the library (no --package needed)
+    by: who retires it (recorded)
+    reason: why (recorded)
+    status: the status to set instead (draft, approved or deprecated revives or re-curates it)
+    package: the library it is in (default: the reference's <library>: prefix, else an)
+    root: that library's root
+    """
+    parsed = parse_ref(ref)
+    package = package or parsed.namespace or CORE_PACKAGE
+    library = open_library(package, root or None)
+    record = _set_status(library, parsed.asset_id, status, by=by, reason=reason)
+    hidden = " (hidden from find; find --status retired lists it)" if status == "retired" else ""
+    return (
+        f"{library.name}:{parsed.asset_id} is {record['status']}{hidden}; "
+        f"its versions ({record.get('head') or 'none'} latest) stay readable"
+    )
+
+
+_dispatch_funcs = [publish, find, vocabulary, show, checkout, promote, retire]

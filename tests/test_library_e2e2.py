@@ -71,20 +71,24 @@ def _environment(project: Path, key: str, *, source: dict | None = None) -> Path
 # ============================================================ finding 2
 
 
-def test_a_style_mismatch_is_a_near_miss_with_a_restyle_remedy():
+def test_a_style_mismatch_is_a_near_miss_with_a_restyle_remedy(tmp_path):
+    """Offered only where a StylePack reaches the art (an#307): a factory
+    character's role-tagged colours, never a prop's or hand-drawn art."""
     lib = open_library("cutan", records={}, versions={}, blobs={})
+    amy = new_character(tmp_path / "art", name="amy", use_dicebear=False).parent
+    publish_dir(lib, amy, "character.amy", style="oversimplified")
     publish(lib, "prop.lamp", {"name": "lamp"}, style="oversimplified")
     publish(lib, "prop.vase", {"name": "vase"}, style="reiniger")
-    plain = find(lib, kind="prop", style="reiniger")
+    plain = find(lib, style="reiniger")
     assert [h.asset_id for h in plain] == ["prop.vase"] and plain.near == []
-    near = find(lib, kind="prop", style="reiniger", near=True)
+    near = find(lib, style="reiniger", near=True)
     assert [h.asset_id for h in near] == ["prop.vase"]
     (miss,) = near.near
-    assert (miss.asset_id, miss.missing) == ("prop.lamp", ["style:reiniger"])
-    assert "restyle" in miss.remedies["style:reiniger"]
+    assert (miss.asset_id, miss.missing) == ("character.amy", ["style:reiniger"])
+    assert "StylePack" in miss.remedies["style:reiniger"]
     assert "oversimplified" in miss.remedies["style:reiniger"]
     # another facet failing too is not a near miss
-    assert find(lib, kind="character", style="reiniger", near=True).near == []
+    assert find(lib, kind="prop", style="nothing", near=True).near == []
 
 
 # ============================================================ finding 5

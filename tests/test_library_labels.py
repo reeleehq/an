@@ -86,24 +86,50 @@ def test_a_recorded_label_answers_the_unlabelled_bytes(tmp_path):
     lib = _memory()
     char = _character(tmp_path)
     _unlabelled_v002(lib, char)
-    v3 = publish_dir(lib, char, "character.amy", source=CC0, relabel=LABEL)
-    assert (str(v3.ref), v3.rights.license_class) == ("cutan:character.amy@v003", "free")
-    assert "labelled by tests: re-carved the head myself" in v3.rights.reasons
-    stored = library_api.read_version(lib, "character.amy", "v003")
-    assert stored["relabel"] == LABEL
-    assert library_api.version_manifest(stored) == stored["manifest_sha256"]
-    # who labelled, and why, is part of the version identity (a tampered label fails check-out)
-    assert library_api.version_manifest({**stored, "relabel": {**LABEL, "by": "someone"}}) != stored["manifest_sha256"]
-    # the label is part of the version identity
+    v2 = library_api.read_version(lib, "character.amy", "v002")
+    labelled = publish_dir(lib, char, "character.amy", source=CC0, relabel=LABEL)
+    # unchanged content: the label is recorded on v002, no version is minted (an#307)
+    assert (str(labelled.ref), labelled.created, labelled.rights.license_class) == (
+        "cutan:character.amy@v002", False, "free"
+    )
+    assert "labelled by tests: re-carved the head myself" in labelled.rights.reasons
+    assert library_api.versions_of(lib, "character.amy") == ["v001", "v002"]
+    assert library_api.read_version(lib, "character.amy", "v002") == v2  # write-once
+    (label,) = library_api.version_labels(lib, v2)
+    assert (label["relabel"], label["source"], label["manifest"]) == (
+        LABEL, CC0, v2["manifest_sha256"]
+    )
+    # append-only: the same relabel again writes nothing; another one is added beside it
     assert not publish_dir(lib, char, "character.amy", source=CC0, relabel=LABEL).created
+    assert len(library_api.version_labels(lib, v2)) == 1
     other = publish_dir(lib, char, "character.amy", source=CC0, relabel={**LABEL, "reason": "x"})
-    assert other.created and other.manifest_sha256 != v3.manifest_sha256
-    # the label stays: a later carried publish of the same bytes is free...
+    assert not other.created and len(library_api.version_labels(lib, v2)) == 2
+    # the label stays: publishing the same bytes again (carried) is free, and no version...
     carried = publish_dir(lib, char, "character.amy")
-    assert (carried.created, carried.rights.license_class) == (True, "free")
+    assert (carried.created, carried.rights.license_class) == (False, "free")
     # ...and it labels nothing added after it
-    (char / "notes.txt").write_text("v6", encoding="utf-8")
-    assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"
+    (char / "notes.txt").write_text("v3", encoding="utf-8")
+    added = publish_dir(lib, char, "character.amy")
+    assert (str(added.ref), added.rights.license_class) == ("cutan:character.amy@v003", "unknown")
+
+
+def test_a_tampered_label_is_not_counted(tmp_path):
+    """A label's id is the hash of what it says: an edited label speaks for nothing."""
+    import warnings
+
+    lib = _memory()
+    char = _character(tmp_path)
+    _unlabelled_v002(lib, char)
+    publish_dir(lib, char, "character.amy", source=CC0, relabel=LABEL)
+    (key,) = list(lib.labels)
+    forged = {**lib.labels.store[key], "source": {"provider": "x", "license": "cc0-1.0"}}
+    lib.labels.store[key] = forged
+    v2 = library_api.read_version(lib, "character.amy", "v002")
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter("always")
+        assert library_api.version_labels(lib, v2) == []
+        rights = library_api.effective_rights(lib, v2, owner=lib)
+    assert rights.license_class == "unknown"
 
 
 def test_a_label_answers_a_version_that_recorded_no_source(tmp_path):

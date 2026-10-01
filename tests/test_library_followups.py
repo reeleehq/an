@@ -384,9 +384,9 @@ def test_a_version_label_is_computed_once_however_many_files(monkeypatch):
     calls = []
     real = library_api._own_label_class
 
-    def counting(libraries, version):
+    def counting(libraries, version, **kw):
         calls.append(version.get("version"))
-        return real(libraries, version)
+        return real(libraries, version, **kw)
 
     monkeypatch.setattr(library_api, "_own_label_class", counting)
     files = {f"parts/p{i}.png": f"part {i}".encode() for i in range(12)}

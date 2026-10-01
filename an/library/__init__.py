@@ -20,7 +20,8 @@ What lives where:
 - :mod:`an.library.root` — the root of each package's data (vendored XDG logic);
 - :mod:`an.library.ids` — asset ids, version labels, library references;
 - :mod:`an.library.stores` — the mall: ``records``, write-once ``versions``,
-  content-addressed ``blobs``, all injected ``MutableMapping`` s;
+  content-addressed ``blobs``, append-only ``labels``, all injected
+  ``MutableMapping`` s;
 - :mod:`an.library.federation` — :class:`Library` and the search path;
 - :mod:`an.library.affordances` — capabilities and per-kind analysers (the seed
   of ADR 0002's registry); :mod:`an.library.character` — the character analyser;
@@ -57,8 +58,11 @@ from an.library.api import (
     publish,
     publish_dir,
     reindex,
+    retire,
     scan_index,
+    set_status,
     show,
+    version_labels,
     vocabulary,
 )
 from an.library.checkout import (
@@ -119,6 +123,7 @@ __all__ = [
     "publish",
     "publish_dir",
     "reindex",
+    "retire",
     "register_analyser",
     "register_asset_kind",
     "register_capability",
@@ -128,7 +133,9 @@ __all__ = [
     "roll_up",
     "scan_index",
     "search_path",
+    "set_status",
     "show",
     "verify_checkout",
+    "version_labels",
     "vocabulary",
 ]

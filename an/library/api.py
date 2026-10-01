@@ -1,4 +1,4 @@
-"""The library's verbs: ``publish``, ``find``, ``vocabulary``, ``show``, ``promote``.
+"""The library's verbs: ``publish``, ``find``, ``vocabulary``, ``show``, ``promote``, ``retire``.
 
 Plain functions over :class:`~an.library.federation.Library` objects (pillar 8:
 the functions are the API; the ``an library …`` CLI and, later, MCP are thin
@@ -9,8 +9,12 @@ in :mod:`an.library.checkout`.
 The documents they write (ADR 0005 decision 4, design §4):
 
 - a **record** per asset — identity and curation, mutable: ``id``, ``kind``,
-  ``title``, ``family``, ``head``, ``status``, ``facets`` (``style``, ``origin``),
-  ``tags``;
+  ``title``, ``family``, ``head``, ``status`` (``retired`` hides it from
+  ``find``: :func:`retire`), its append-only ``status_history``, ``facets``
+  (``style``, ``origin``), ``tags``;
+- a **label** per relabel of a version's unchanged content (an#307) —
+  append-only, keyed by the hash of what it says: the source, who and why,
+  and the rights it gave the version; a version's rights read its labels;
 - a **version** per publish — immutable: the descriptor ``doc`` verbatim, its
   ``files`` as ``dol.content.ContentRef`` s, the asset-level ``source``,
   ``derived_from``, the derived ``affordances`` with the ``analysers`` that made
@@ -40,7 +44,7 @@ from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 from dol.content import ContentRef, content_hash
 
@@ -50,6 +54,7 @@ from an.credits import (
     is_factory_stamp,
     is_clutter,
     is_generated_source,
+    nobody_labelled,
     referenced_paths,
     same_source,
 )
@@ -104,7 +109,13 @@ from an.library.rights import (
     sources_in,
 )
 from an.library.root import CORE_PACKAGE
-from an.library.stores import VersionExistsError, canonical_json, version_key
+from an.library.stores import (
+    LABEL_KEY_SEP,
+    VersionExistsError,
+    canonical_json,
+    label_key,
+    version_key,
+)
 
 __all__ = [
     "CheckoutError",
@@ -123,8 +134,12 @@ __all__ = [
     "publish",
     "publish_dir",
     "reindex",
+    "retire",
     "scan_index",
+    "set_status",
     "show",
+    "unknown_advice",
+    "version_labels",
     "version_sources",
     "vocabulary",
 ]
@@ -145,9 +160,23 @@ VERSION_KIND: DocumentKind = register_kind(
         current_version=LIBRARY_SCHEMA_VERSION,
     )
 )
+LABEL_KIND: DocumentKind = register_kind(
+    DocumentKind(
+        name="LibraryLabel",
+        version_field="schema_version",
+        current_version=LIBRARY_SCHEMA_VERSION,
+    )
+)
 #: Curation status vocabulary (design §5); a status is curation, so it lives on the record.
-STATUSES: tuple[str, ...] = ("draft", "approved", "deprecated")
+#: ``retired``: a dead id (an#307) — hidden from ``find``, never deleted.
+STATUSES: tuple[str, ...] = ("draft", "approved", "deprecated", "retired")
 DFLT_STATUS: str = "draft"
+#: Statuses ``find`` and ``vocabulary`` leave out unless asked for by name:
+#: their versions stay readable (projects pin them), they are just not offered.
+HIDDEN_STATUSES: frozenset[str] = frozenset({"retired"})
+#: The record field logging every status change: ``[{status, by, reason, at}]``,
+#: appended to, never rewritten.
+STATUS_HISTORY_FIELD: str = "status_history"
 #: The ``rights=`` filter values besides a licence class.
 RIGHTS_ANY: str = "any"
 RIGHTS_PUBLISHABLE: str = "publishable"
@@ -177,10 +206,15 @@ UNLABELLED_FIELD: str = "unlabelled"
 #: The version field recording an explicit LABEL of bytes nobody labelled:
 #: ``{"by": who, "reason": why}``, beside an explicit ``source`` (an#263). It
 #: answers the GAPS of the asset's own version chain — a file an earlier version
-#: recorded as ``unlabelled``, an earlier version that recorded no source at
-#: all — with that source. It is a first statement, not a relaxation: it answers
-#: nothing anyone stated (a private or any other licence, a per-part source, a
-#: version it derives from, another asset's statement about the same bytes).
+#: recorded as ``unlabelled``, a file no person's source spoke for (a
+#: placeholder of the credits walk: :func:`an.credits.nobody_labelled`), an
+#: earlier version that recorded no source at all, another asset's SILENCE
+#: about a file the chain once held and the labelling version no longer holds
+#: (an#307) — with that source. It is a first statement, not a relaxation: it
+#: answers nothing anyone stated (a private or any other licence, a per-part
+#: source, a version it derives from, another asset's statement about bytes
+#: the labelling version holds). Also the field of a label recorded on an
+#: existing version (:func:`version_labels`).
 RELABEL_FIELD: str = "relabel"
 #: The version field pinning its lineage: ``{parent_ref: manifest_sha256}`` for
 #: ``previous`` and every ``derived_from`` parent, as resolved at publish
@@ -559,6 +593,153 @@ def factory_drew(version: Mapping[str, Any], path: str, digest: str) -> bool:
 _MACHINE: Any = object()
 
 
+class _Answer(NamedTuple):
+    """A recorded label answering the gaps of a version chain (an#263, an#307)."""
+
+    note: str  # "labelled by <who>: <why>"
+    source: AssetSource | None  # the source it labels them with
+    held: frozenset[str]  # the digests the labelling version holds
+
+
+#: What answers an ``unknown`` contributor, as :class:`Contributor` records it.
+REMEDY_RELABEL: str = "relabel"
+#: ``parent:<ref>`` — a gap of a version this one derives from.
+REMEDY_PARENT: str = "parent:"
+#: ``other:<ref>`` — another asset's silence about bytes this version holds.
+REMEDY_OTHER: str = "other:"
+
+
+class Contributor(str):
+    """A contributor's label in :func:`version_sources`, knowing what would answer it.
+
+    A plain ``str`` everywhere a label is read (reasons, credits); ``remedy``
+    (one of the ``REMEDY_*`` forms, or empty) is what :func:`unknown_advice`
+    turns into the sentence a refusal prints — so the advice names what works
+    for THIS gap, not a relabel that cannot answer it (an#307).
+
+    >>> c = Contributor("asset: no source", REMEDY_RELABEL)
+    >>> (c, c.remedy, c.upper())
+    ('asset: no source', 'relabel', 'ASSET: NO SOURCE')
+    """
+
+    remedy: str
+
+    def __new__(cls, text: str, remedy: str = "") -> "Contributor":
+        obj = super().__new__(cls, text)
+        obj.remedy = remedy
+        return obj
+
+
+def version_labels(
+    library: Library | None, version: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    """The labels recorded on a stored version since it was published, oldest first.
+
+    A relabel of a version's UNCHANGED content is recorded on that version, in
+    the library's append-only ``labels`` store, instead of minting a new
+    version (an#307). A label counts only for the very version it was made on:
+    its ``manifest`` must be this version's (a same-named library's other
+    ``x@v001`` never inherits it). An unreadable label is skipped with a
+    :class:`LibraryIndexWarning`; skipping one can only leave the version
+    stricter.
+    """
+    if library is None:
+        return []
+    asset, label, manifest = (
+        version.get("asset"),
+        version.get("version"),
+        version.get("manifest_sha256"),
+    )
+    if not (asset and label and manifest):
+        return []
+    try:
+        prefix = version_key(asset, label) + LABEL_KEY_SEP
+    except AssetIdError:
+        return []
+    store = library.labels
+    out: list[dict[str, Any]] = []
+    for key in list(store):
+        if not str(key).startswith(prefix):
+            continue
+        try:
+            doc = migrate(dict(store[key]), kind=LABEL_KIND.name)
+            relabel = doc.get(RELABEL_FIELD) or {}
+            _source_model(doc.get("source"))
+        except Exception as e:  # noqa: BLE001 — reported, and skipping is stricter
+            warnings.warn(
+                f"{library.name}:{key} could not be read ({type(e).__name__}: {e}); "
+                "that label is not counted",
+                LibraryIndexWarning,
+                stacklevel=2,
+            )
+            continue
+        if str(key).rpartition(LABEL_KEY_SEP)[2] != _label_id(doc):
+            warnings.warn(
+                f"{library.name}:{key} does not say what its id was made from (it "
+                "was edited); that label is not counted",
+                LibraryIndexWarning,
+                stacklevel=2,
+            )
+            continue
+        if (
+            doc.get("manifest") == manifest
+            and doc.get("source")
+            and relabel.get("by")
+            and relabel.get("reason")
+        ):
+            out.append({**doc, "_key": str(key)})
+    return sorted(out, key=lambda d: (str(d.get("labelled") or ""), d["_key"]))
+
+
+#: The fields of a label its id is the hash of: what it says, and the version it says it of.
+_LABEL_ID_FIELDS: tuple[str, ...] = ("manifest", "source", RELABEL_FIELD, "rights")
+#: Hex digits of that hash in the label's key.
+_LABEL_ID_LEN: int = 16
+
+
+def _label_id(label: Mapping[str, Any]) -> str:
+    """The id of a label: the hash of what it says (an edited label no longer matches it)."""
+    said = {f: label.get(f) for f in _LABEL_ID_FIELDS}
+    return hashlib.sha256(canonical_json(said).encode("utf-8")).hexdigest()[
+        :_LABEL_ID_LEN
+    ]
+
+
+def labelled_view(
+    version: Mapping[str, Any], labels: Iterable[Mapping[str, Any]]
+) -> Mapping[str, Any]:
+    """``version`` as its latest label presents it: what a check-out writes, what a publish carries.
+
+    The latest label's source and relabel replace the version's own, and the
+    gaps the version recorded (``unlabelled``) are answered — exactly the
+    version a relabel publish of the unchanged content would have minted.
+    Rights are never read from it: :func:`version_sources` reads the version
+    and its labels.
+    """
+    labels = list(labels)
+    if not labels:
+        return version
+    latest = labels[-1]
+    view = {
+        **version,
+        "source": latest.get("source"),
+        RELABEL_FIELD: latest.get(RELABEL_FIELD),
+    }
+    view.pop(UNLABELLED_FIELD, None)
+    return view
+
+
+def stored_rights(library: Library | None, version: Mapping[str, Any]) -> Rights:
+    """The rights cached for a version: its latest label's, else the version's own.
+
+    A cache, never the answer: every reader takes the stricter of it and the
+    recomputed :func:`effective_rights`.
+    """
+    labels = version_labels(library, version)
+    block = (labels[-1].get("rights") if labels else None) or version.get("rights")
+    return Rights.from_dict(block or {})
+
+
 def _stricter_statement(a: Mapping[str, Any], b: Mapping[str, Any]) -> bool:
     """Whether statement ``a`` is more restrictive than ``b``."""
     order = LICENSE_CLASS_ORDER.index
@@ -647,18 +828,60 @@ def version_sources(
     out: list[tuple[str, AssetSource | None]] = []
     seen: set[str] = set()
     trusted: set[tuple[str, str]] = set()  # (library origin, manifest)
-    visits: list[tuple[str, Mapping[str, Any]]] = []
+    # (prefix, version walked, the labels answering its chain — nearest first)
+    visits: list[tuple[str, Mapping[str, Any], tuple[_Answer, ...]]] = []
 
     def walk(
         version: Mapping[str, Any],
         holder: Library | None,
         prefix: str,
-        answer_from_later: tuple[str, AssetSource | None] | None,
+        answers: tuple[_Answer, ...],
+        *,
+        via: str | None = None,
+        raw: bool = False,
     ) -> bool:
-        """Add one version's contributions and its lineage's; return whether it is verified."""
+        """Add one version's contributions and its lineage's; return whether it is verified.
+
+        answers: the recorded labels of this chain made after this version,
+            nearest first: the nearest answers its gaps; any whose labelling
+            version no longer holds a file answers another asset's silence
+            about it (an#307)
+        via: the ``derived_from`` parent this branch of the walk entered by
+            (``None`` on the version's own chain), for the remedy a gap names
+        raw: the version as published, without the labels recorded on it since
+        """
+        if not raw:
+            labels = version_labels(holder, version)
+            if labels:
+                # Each label is a statement made about this very version after
+                # it was published (an#307): what a relabel publish of its
+                # unchanged content would have said as a new version — its
+                # source contributes, and the earliest label answers the gaps
+                # of this version and its own chain.
+                kind = ASSET_KINDS.get(version.get("doc_kind") or "")
+                hashes = _file_hashes(version.get("files") or {})
+                for label in labels:
+                    out.extend(
+                        (f"{prefix}{name}", src)
+                        for name, src in sources_in(
+                            version.get("doc") or {},
+                            store=kind.credits_store if kind else None,
+                            source=_source_model(label.get("source")),
+                            files=hashes,
+                        )
+                    )
+                first = labels[0]
+                answer = _Answer(
+                    _relabel_note(first[RELABEL_FIELD]),
+                    _source_model(first.get("source")),
+                    frozenset(hashes.values()),
+                )
+                return walk(
+                    version, holder, prefix, (answer, *answers), via=via, raw=True
+                )
         relicense = version.get(RELICENSE_FIELD)
         if not relicense:  # a relicence replaces everything, its bytes' floor included
-            visits.append((prefix, version))
+            visits.append((prefix, version, answers))
         if relicense:
             out.append(
                 (
@@ -668,18 +891,28 @@ def version_sources(
             )
             return _verify(version, holder, True)
 
-        def gap(label: str, unanswered: str) -> tuple[str, AssetSource | None]:
+        def gap(
+            label: str, why: str = "", *, placeholder: AssetSource | None = None
+        ) -> tuple[str, AssetSource | None]:
             # Nobody ever said anything here: answered by a later version's
             # explicit, recorded label of this chain, else unknown.
-            if answer_from_later is None:
-                return (f"{label}{unanswered}", None)
-            note, answer = answer_from_later
-            return (f"{label} ({note})", answer)
+            if not answers:
+                if via is not None:
+                    hint = f"label {via} first"
+                    remedy = f"{REMEDY_PARENT}{via}"
+                else:
+                    hint, remedy = LABEL_HINT, REMEDY_RELABEL
+                text = f"{label} ({why}: {hint})" if why else label
+                return (Contributor(text, remedy), placeholder)
+            return (f"{label} ({answers[0].note})", answers[0].source)
 
         kind = ASSET_KINDS.get(version.get("doc_kind") or "")
         out.extend(
-            gap(f"{prefix}{label}", "")
+            gap(f"{prefix}{label}")
             if src is None and label == ASSET_SOURCE_LABEL
+            # A file no person's source speaks for (an#307): a gap too.
+            else gap(f"{prefix}{label}", placeholder=src)
+            if nobody_labelled(src)
             else (f"{prefix}{label}", src)
             for label, src in sources_in(
                 version.get("doc") or {},
@@ -691,23 +924,27 @@ def version_sources(
         out.extend(
             gap(
                 f"{prefix}{path}",
-                " (changed since the carried source was declared; not labelled: "
-                f"{LABEL_HINT})",
+                "changed since the carried source was declared; not labelled",
             )
             for path in version.get(UNLABELLED_FIELD) or []
         )
         relabel = version.get(RELABEL_FIELD)
         own_answer = (
-            (_relabel_note(relabel), _source_model(version.get("source")))
+            _Answer(
+                _relabel_note(relabel),
+                _source_model(version.get("source")),
+                frozenset(_file_hashes(version.get("files") or {}).values()),
+            )
             if relabel and version.get("source")
             else None
         )
         pins = version.get(LINEAGE_FIELD) or {}
+        chain = (own_answer, *answers) if own_answer else answers
         lineage = [
-            (ref, f"previous version {ref}", own_answer or answer_from_later, True)
+            (ref, f"previous version {ref}", chain, True)
             for ref in [version.get(PREVIOUS_FIELD)]
             if ref
-        ] + [(ref, ref, None, False) for ref in version.get("derived_from") or []]
+        ] + [(ref, ref, (), False) for ref in version.get("derived_from") or []]
         links_ok = True
         for parent, label, answer, is_previous in lineage:
             pin = pins.get(parent)
@@ -742,7 +979,11 @@ def version_sources(
                 continue
             seen.add(str(pinned))
             parent_ok = walk(
-                parent_version, parent_holder, f"{prefix}{label} > ", answer
+                parent_version,
+                parent_holder,
+                f"{prefix}{label} > ",
+                answer,
+                via=via if is_previous else str(pinned),
             )
             links_ok = links_ok and link_ok and parent_ok
         return _verify(version, holder, links_ok)
@@ -752,7 +993,7 @@ def version_sources(
             trusted.add((library_origin(holder), version["manifest_sha256"]))
         return ok
 
-    root_ok = walk(version, owner, "", None)
+    root_ok = walk(version, owner, "", ())
     if floor is None:
         return out
     # The root's own statements, when its walk is verified, are this walk.
@@ -761,10 +1002,14 @@ def version_sources(
         if root_ok and owner is not None and version.get("manifest_sha256")
         else set()
     )
-    for prefix, walked in visits:
+    for prefix, walked, answers in visits:
         for path, raw in sorted((walked.get("files") or {}).items()):
             digest = ContentRef.from_json(raw).item_id
             bound: dict[str, dict[str, Any]] = {}
+            answered: dict[str, dict[str, Any]] = {}
+            # A later label of this chain made by a version that no longer
+            # holds these bytes (an#307).
+            answer = next((a for a in answers if digest not in a.held), None)
             for origin, key, statement in floor.each(digest):
                 cls = statement.get("class", "unknown")
                 made_by = (origin, statement.get("manifest"))
@@ -774,6 +1019,17 @@ def version_sources(
                     # A verified version this walk read in full: its silence
                     # is already here, and may be a gap a later label answers.
                     # (Its `private` or `attribution` is always read.)
+                    continue
+                if cls == "unknown" and answer is not None:
+                    # Another asset's SILENCE about bytes an earlier version
+                    # of this chain held, and the version whose label answers
+                    # this chain's gaps no longer holds (an#307): binding the
+                    # chain to it would make two assets that once shared an
+                    # unlabelled file block each other's labels forever. The
+                    # label says nothing about those bytes — they stay
+                    # `unknown` wherever they are held — and `private` or
+                    # `attribution` statements are never answered.
+                    answered[key] = statement
                     continue
                 held = bound.get(key)
                 if held is None or _stricter_statement(statement, held):
@@ -788,12 +1044,28 @@ def version_sources(
                 }
             for asset_key, statement in sorted(bound.items()):
                 ref = f"{asset_key}@{statement.get('version')}"
+                label = (
+                    f"{prefix}{path}: same bytes as {ref} ({statement.get('label')})"
+                )
                 out.append(
                     (
-                        f"{prefix}{path}: same bytes as {ref} ({statement.get('label')})",
+                        Contributor(label, f"{REMEDY_OTHER}{ref}")
+                        if statement.get("class", "unknown") == "unknown"
+                        else label,
                         _recorded_source(
                             Rights(statement.get("class", "unknown"), []), ref
                         ),
+                    )
+                )
+            for asset_key, statement in sorted(answered.items()):
+                if asset_key in bound:
+                    continue
+                ref = f"{asset_key}@{statement.get('version')}"
+                out.append(
+                    (
+                        f"{prefix}{path}: same bytes as {ref}, unlabelled there "
+                        f"(not held since; {answer.note})",
+                        answer.source,
                     )
                 )
     return out
@@ -806,12 +1078,14 @@ def blob_statement(
     digest: str,
     *,
     own_label: Callable[[], str] | None = None,
+    owner: Library | None = None,
 ) -> dict[str, Any]:
     """What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor).
 
     own_label: the class of the version's own label, computed once by the
         caller for all its files (it is the same for every file the version
         does not itemise); default: computed here
+    owner: the library holding ``version``, whose labels on it count (an#307)
     """
     relicense = version.get(RELICENSE_FIELD)
     itemised = None if relicense else itemising_source(version, path, digest)
@@ -831,7 +1105,7 @@ def blob_statement(
         cls = (
             own_label()
             if own_label is not None
-            else _own_label_class(libraries, version)
+            else _own_label_class(libraries, version, owner=owner)
         )
         label = "the asset's own label"
     return {
@@ -843,9 +1117,14 @@ def blob_statement(
     }
 
 
-def _own_label_class(libraries: Libraries, version: Mapping[str, Any]) -> str:
-    """The class of what a version says about every file it does not itemise."""
-    return roll_up(version_sources(libraries, version, floor=None)).license_class
+def _own_label_class(
+    libraries: Libraries, version: Mapping[str, Any], *, owner: Library | None = None
+) -> str:
+    """The class of what a version says about every file it does not itemise
+    (with the labels recorded on it since, when ``owner`` holds it)."""
+    return roll_up(
+        version_sources(libraries, version, floor=None, owner=owner)
+    ).license_class
 
 
 def _version_statements(
@@ -861,7 +1140,7 @@ def _version_statements(
 
     def own_label() -> str:
         if not memo:
-            memo.append(_own_label_class(readers, version))
+            memo.append(_own_label_class(readers, version, owner=library))
         return memo[0]
 
     for path, raw in sorted((version.get("files") or {}).items()):
@@ -869,7 +1148,9 @@ def _version_statements(
         yield (
             digest,
             asset_key,
-            blob_statement(readers, version, path, digest, own_label=own_label),
+            blob_statement(
+                readers, version, path, digest, own_label=own_label, owner=library
+            ),
         )
 
 
@@ -970,9 +1251,16 @@ def effective_rights(
         return Rights(
             rights.license_class, [*rights.reasons, _relicense_note(relicense)]
         )
-    relabel = version.get(RELABEL_FIELD)
-    if relabel:
-        return Rights(rights.license_class, [*rights.reasons, _relabel_note(relabel)])
+    notes = [
+        _relabel_note(relabel)
+        for relabel in [
+            version.get(RELABEL_FIELD),
+            *(label.get(RELABEL_FIELD) for label in version_labels(owner, version)),
+        ]
+        if relabel
+    ]
+    if notes:
+        return Rights(rights.license_class, [*rights.reasons, *notes])
     return rights
 
 
@@ -980,6 +1268,140 @@ def _stricter(a: Rights, b: Rights) -> Rights:
     """The more restrictive of two rights; on a tie, ``b`` (the recomputed one)."""
     order = LICENSE_CLASS_ORDER.index
     return a if order(a.license_class) < order(b.license_class) else b
+
+
+def _label_version(
+    library: Library,
+    readers: Libraries,
+    version: Mapping[str, Any],
+    *,
+    source: Mapping[str, Any] | None,
+    relabel: Mapping[str, Any],
+    floor: BlobFloor,
+    note: str | None = None,
+) -> bool:
+    """Record a relabel of ``version``'s unchanged content on it; return whether one was written.
+
+    The label holds the source, who and why, and the rights it gives the
+    version — computed as the version a relabel publish would have minted
+    (``previous`` the version, that source and relabel) would have them. Its
+    key is a hash of all three, so repeating the same relabel with the same
+    outcome writes nothing, and repeating it after another asset was labelled
+    records the new outcome beside the old (append-only). The version's floor
+    statements are then rebuilt, so what it says about its bytes reflects it.
+    """
+    ref = str(LibraryRef(version["asset"], version["version"], library.name))
+    as_new = {
+        "doc_kind": version.get("doc_kind"),
+        "doc": version.get("doc"),
+        "files": version.get("files") or {},
+        "source": source,
+        "derived_from": [],
+        PREVIOUS_FIELD: ref,
+        LINEAGE_FIELD: {ref: version["manifest_sha256"]},
+        RELABEL_FIELD: dict(relabel),
+    }
+    rights = effective_rights(readers, as_new, floor=floor, owner=library)
+    said = {
+        "manifest": version["manifest_sha256"],
+        "source": source,
+        RELABEL_FIELD: dict(relabel),
+        "rights": rights.to_dict(),
+    }
+    if (
+        version.get(RELABEL_FIELD) == dict(relabel)
+        and version.get("source") == source
+        and stored_rights(library, version).to_dict() == said["rights"]
+    ):
+        return False  # the version itself already says exactly this
+    key = label_key(version["asset"], version["version"], _label_id(said))
+    if key in library.labels:
+        return False
+    try:
+        library.labels[key] = {
+            "kind": LABEL_KIND.name,
+            "schema_version": LIBRARY_SCHEMA_VERSION,
+            "asset": version["asset"],
+            "version": version["version"],
+            **said,
+            "labelled": _now_precise(),
+            "note": note,
+        }
+    except VersionExistsError:
+        return False  # another publisher recorded the same label meanwhile
+    _index_version(library, readers, version)
+    return True
+
+
+def _now_precise() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+
+
+def unknown_advice(
+    libraries: Libraries,
+    version: Mapping[str, Any],
+    *,
+    owner: Library | None = None,
+    floor: BlobFloor | None = _MACHINE,
+) -> list[str]:
+    """What would answer each ``unknown`` contributor of a version — one sentence per kind.
+
+    The advice a refusal prints, so it names what works for THESE gaps
+    (an#307): a gap of the asset's own chain takes a relabel; a gap of a
+    version it derives from is labelled there; another asset's silence about
+    bytes this version still holds is answered by labelling THAT asset (a
+    relabel here cannot speak for another asset), or by dropping the file; and
+    anything stated (a licence nobody recognises, an unverified stamp, a
+    parent not on the path) relaxes only by a relicence.
+
+    >>> lib = open_library("an", records={}, versions={}, blobs={})
+    >>> r = publish(lib, "prop.vase", {"name": "vase"})
+    >>> r.rights.license_class, "--relabel-by" in r.advice[0]
+    ('unknown', True)
+    """
+    relabel, parents, others, stated = False, [], [], False
+    for label, src in version_sources(libraries, version, floor=floor, owner=owner):
+        if src is not None and license_class(src) != "unknown":
+            continue
+        remedy = getattr(label, "remedy", "")
+        if remedy == REMEDY_RELABEL:
+            relabel = True
+        elif remedy.startswith(REMEDY_PARENT):
+            parents.append(remedy[len(REMEDY_PARENT) :])
+        elif remedy.startswith(REMEDY_OTHER):
+            others.append(remedy[len(REMEDY_OTHER) :])
+        else:
+            stated = True
+    out: list[str] = []
+    if relabel:
+        out.append(
+            "To label what this asset's own versions never labelled, publish it "
+            "again with --license … --provider … --relabel-by <who> "
+            "--relabel-reason <why> (unchanged content makes no new version: the "
+            "label is recorded on this one)."
+        )
+    for parent in dict.fromkeys(parents):
+        out.append(
+            f"It derives from {parent}, which nobody labelled: relabel {parent} "
+            "itself, then publish this again."
+        )
+    if others:
+        names = ", ".join(dict.fromkeys(others))
+        out.append(
+            f"Files it holds are held unlabelled by {names} too, and a relabel "
+            "here cannot speak for another asset's files: relabel that asset, "
+            "then repeat this relabel — or drop those files from this asset and "
+            "publish it with the relabel (a file it no longer holds binds it no "
+            "more)."
+        )
+    if stated:
+        out.append(
+            "The rest is a recorded statement (a licence nobody recognises, a "
+            "stamp that pins other bytes, a parent not on the search path): fix "
+            "the source it names, or relax it explicitly with --license … "
+            "--provider … --relicense-by <who> --relicense-reason <why>."
+        )
+    return out
 
 
 # --------------------------------------------------------------------------- publish
@@ -994,10 +1416,32 @@ class PublishResult:
     created: bool
     rights: Rights
     affordances: dict[str, dict[str, Any]]
+    #: For an ``unknown`` result: what would answer each kind of gap, one
+    #: sentence each (:func:`unknown_advice`).
+    advice: tuple[str, ...] = ()
 
     def __str__(self) -> str:
         what = "published" if self.created else "unchanged (the head already is this)"
         return f"{what}: {self.ref} [{self.rights.license_class}] manifest {self.manifest_sha256[:12]}"
+
+
+def _same_content(
+    head: Mapping[str, Any],
+    pending: Mapping[str, Any],
+    hashes: Mapping[str, str],
+    *,
+    head_ref: str,
+) -> bool:
+    """Whether a publish holds exactly the head's content: descriptor, file
+    bytes and ``derived_from`` — or exactly ``[head]``: a check-out of the
+    head, published back unedited, derives from the head, and its content is
+    the head's."""
+    if head.get("doc") != pending["doc"] or _file_hashes(
+        head.get("files") or {}
+    ) != dict(hashes):
+        return False
+    parents = sorted(pending["derived_from"])
+    return parents in (sorted(head.get("derived_from") or []), [head_ref])
 
 
 def _same_as_head(
@@ -1009,22 +1453,23 @@ def _same_as_head(
 ) -> bool:
     """Whether a publish would repeat the head: the same content and statements.
 
-    Same descriptor, file bytes, asset-level source and relicence, and the same
-    ``derived_from`` — or exactly ``[head]``: a check-out of the head, published
-    back unedited, derives from the head, and its content is the head's.
+    The same content (:func:`_same_content`), asset-level source, relicence and
+    unlabelled files. A relabel the publish does not repeat is no difference:
+    it was a statement about earlier gaps, which the head already makes.
+    ``head`` is the head as its labels present it (:func:`labelled_view`).
     """
-    if (
-        head.get("doc") != pending["doc"]
-        or _file_hashes(head.get("files") or {}) != dict(hashes)
-        or head.get("source") != pending["source"]
-        or (head.get(RELICENSE_FIELD) or None) != (pending.get(RELICENSE_FIELD) or None)
-        or (head.get(RELABEL_FIELD) or None) != (pending.get(RELABEL_FIELD) or None)
-        or sorted(head.get(UNLABELLED_FIELD) or [])
-        != sorted(pending.get(UNLABELLED_FIELD) or [])
-    ):
-        return False
-    parents = sorted(pending["derived_from"])
-    return parents in (sorted(head.get("derived_from") or []), [head_ref])
+    return (
+        _same_content(head, pending, hashes, head_ref=head_ref)
+        and head.get("source") == pending["source"]
+        and (head.get(RELICENSE_FIELD) or None)
+        == (pending.get(RELICENSE_FIELD) or None)
+        and (
+            not pending.get(RELABEL_FIELD)
+            or (head.get(RELABEL_FIELD) or None) == pending.get(RELABEL_FIELD)
+        )
+        and sorted(head.get(UNLABELLED_FIELD) or [])
+        == sorted(pending.get(UNLABELLED_FIELD) or [])
+    )
 
 
 def _apply_curation(
@@ -1043,6 +1488,10 @@ def _apply_curation(
     if family is not None:
         record["family"] = family
     if status is not None:
+        if record.get("status") != status:
+            record.setdefault(STATUS_HISTORY_FIELD, []).append(
+                {"status": status, "by": None, "reason": "set by a publish", "at": _now()}
+            )
         record["status"] = status
     if origin is not None:
         record["facets"]["origin"] = origin
@@ -1107,11 +1556,16 @@ def publish(
     relabel: ``{"by": who, "reason": why}`` beside an explicit ``source=``
         (required) — a first statement about bytes NOBODY labelled (an#263):
         the gaps of this asset's own version chain (files an earlier version
-        recorded ``unlabelled``, an earlier version with no source at all) are
-        answered with ``source``. It relaxes no statement anyone made: a private
-        (or any) licence, a per-part source, a version this one derives from,
-        and every other asset's statement about the same bytes still bind.
-        Recorded on the version, in its manifest and in its reasons
+        recorded ``unlabelled``, files no person's source spoke for, an earlier
+        version with no source at all) are answered with ``source``, and so is
+        another asset's silence about a file the chain held once and this
+        version no longer holds (an#307). It relaxes no statement anyone made:
+        a private (or any) licence, a per-part source, a version this one
+        derives from, and every other asset's statement about bytes this
+        version holds still bind. On content that changed, recorded on the new
+        version, in its manifest and in its reasons; on UNCHANGED content,
+        recorded on the head in the append-only ``labels`` store
+        (:func:`version_labels`) and no version is minted (an#307)
     derived_from: library references this version derives from (an earlier version,
         the original of a recolour); each must resolve, and its rights are inherited.
         A descriptor checked out of a library derives from its origin by default
@@ -1194,6 +1648,11 @@ def publish(
         lineage[str(pinned)] = parent_version["manifest_sha256"]
 
     existing = _read_record(library, asset_id) if asset_id in library.records else None
+    if (existing or {}).get("status") in HIDDEN_STATUSES and status is None:
+        raise LibraryError(
+            f"{library.name}:{asset_id} is {existing['status']}: pick another id, or "
+            "revive it by publishing with status=… (--status draft)"
+        )
     head = (existing or {}).get("head")
     if expect_head is not _ANY_HEAD and head != expect_head:
         raise LibraryError(
@@ -1204,6 +1663,13 @@ def publish(
             "or pass the head you mean to follow (expect_head=…, --expect-head)."
         )
     head_version = read_version(library, asset_id, head) if head else None
+    # The head as the labels recorded on it since present it (an#307): a
+    # relabel of unchanged content is recorded there, not as a new version.
+    head_view = (
+        labelled_view(head_version, version_labels(library, head_version))
+        if head_version is not None
+        else None
+    )
 
     check_path_set(files or {})
     # Before anything is written: a library the machine registry does not know
@@ -1219,18 +1685,18 @@ def publish(
     if (
         source_doc is None
         and carry_source
-        and head_version is not None
+        and head_view is not None
         and descriptor_source(doc, store=kind.credits_store)
-        == descriptor_source(head_version.get("doc") or {}, store=kind.credits_store)
+        == descriptor_source(head_view.get("doc") or {}, store=kind.credits_store)
     ):
         # A source declared on an earlier publish carries forward — but only
         # where the descriptor says nothing new itself (nothing, or exactly
         # what the head's said, such as the factory's own stamp): a descriptor
         # that now declares another source is never masked by it.
-        source_doc = head_version.get("source")
+        source_doc = head_view.get("source")
     hashes = _file_hashes(file_refs)
     unlabelled: list[str] = []
-    if source_doc is not None and source is None and head_version is not None:
+    if source_doc is not None and source is None and head_view is not None:
         # The carried source was a statement about the bytes it was declared
         # on. A file changed or added since is bytes nobody has labelled: it
         # stays `unknown` (in the floor, in the rights, in the credits of a
@@ -1238,8 +1704,8 @@ def publish(
         # descriptor itself labels those very bytes, a per-part source pinned
         # to their digest (the factory re-stamping the mouths it redrew:
         # an#281), which then speaks for them as it would on any publish.
-        before = _file_hashes(head_version.get("files") or {})
-        still = set(head_version.get(UNLABELLED_FIELD) or [])
+        before = _file_hashes(head_view.get("files") or {})
+        still = set(head_view.get(UNLABELLED_FIELD) or [])
         unlabelled = sorted(
             path
             for path, digest in hashes.items()
@@ -1290,11 +1756,30 @@ def publish(
 
     created = True
     label = head
-    if head_version is not None and _same_as_head(
-        head_version,
-        pending,
-        hashes,
-        head_ref=str(LibraryRef(asset_id, head, library.name)),
+    head_ref = str(LibraryRef(asset_id, head, library.name)) if head else ""
+    if (
+        relabel
+        and head_version is not None
+        and _same_content(head_version, pending, hashes, head_ref=head_ref)
+    ):
+        # Relabelling unchanged content records the label on the head, in
+        # the append-only labels store, and mints no version (an#307).
+        created = False
+        manifest = head_version["manifest_sha256"]
+        _label_version(
+            library,
+            readers,
+            head_version,
+            source=source_doc,
+            relabel=relabel,
+            floor=floor,
+            note=note,
+        )
+        rights = effective_rights(
+            readers, head_version, floor=BlobFloor(readers), owner=library
+        )
+    elif head_view is not None and _same_as_head(
+        head_view, pending, hashes, head_ref=head_ref
     ):
         created = False
         manifest = head_version["manifest_sha256"]
@@ -1340,6 +1825,17 @@ def publish(
         created,
         rights,
         affordances,
+        advice=(
+            tuple(
+                unknown_advice(
+                    readers,
+                    read_version(library, asset_id, label),
+                    owner=library,
+                )
+            )
+            if rights.license_class == "unknown"
+            else ()
+        ),
     )
 
 
@@ -1387,6 +1883,61 @@ def _save_record(
         f"{library.name}:{asset_id}: could not record head {label} against concurrent "
         "publishers — retry"
     )
+
+
+def set_status(
+    library: Library,
+    asset_id: str,
+    status: str,
+    *,
+    by: str,
+    reason: str,
+) -> dict[str, Any]:
+    """Set an asset's curation status, recording who and why; return the record.
+
+    The record's ``status_history`` is appended to, never rewritten, and no
+    version is touched: a project pinned to one keeps reading it.
+
+    >>> lib = open_library("an", records={}, versions={}, blobs={})
+    >>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
+    >>> set_status(lib, "prop.lamp", "approved", by="me", reason="looks right")["status"]
+    'approved'
+    """
+    check_asset_id(asset_id)
+    if status not in STATUSES:
+        raise LibraryError(f"status {status!r} is not one of {list(STATUSES)}")
+    by, reason = str(by or "").strip(), str(reason or "").strip()
+    if not by or not reason:
+        raise LibraryError(
+            "a status change records who and why: by=…, reason=… (--by, --reason)"
+        )
+    if asset_id not in library.records:
+        raise AssetNotFoundError(f"{library.name}:{asset_id} is not in the library")
+    record = _read_record(library, asset_id)
+    record.setdefault(STATUS_HISTORY_FIELD, []).append(
+        {"status": status, "by": by, "reason": reason, "at": _now()}
+    )
+    record["status"] = status
+    record["updated"] = _now()
+    library.records[asset_id] = record
+    return record
+
+
+def retire(library: Library, asset_id: str, *, by: str, reason: str) -> dict[str, Any]:
+    """Retire an asset id: recorded, hidden from ``find`` by default, never deleted.
+
+    Its versions stay readable — a project pinned to one still checks it out
+    and validates — and its rights statements still bind the floor (retiring
+    is curation, not a relabel). ``find(status="retired")`` lists it; a publish
+    into it is refused unless it passes ``status=`` to revive it.
+
+    >>> lib = open_library("an", records={}, versions={}, blobs={})
+    >>> _ = publish(lib, "prop.dead", {"name": "dead"})
+    >>> _ = retire(lib, "prop.dead", by="me", reason="superseded")
+    >>> len(find(lib)), [h.asset_id for h in find(lib, status="retired")]
+    (0, ['prop.dead'])
+    """
+    return set_status(library, asset_id, "retired", by=by, reason=reason)
 
 
 def _write_version(library: Library, asset_id: str, version: dict[str, Any]) -> str:
@@ -1541,7 +2092,7 @@ def scan_index(library: Library) -> Iterator[IndexEntry]:
             head,
             kind,
             record,
-            Rights.from_dict(version.get("rights") or {}),
+            stored_rights(library, version),
             affordances,
             version.get("art") or _art_facet(version.get("files") or {}),
             version,
@@ -1668,14 +2219,25 @@ def _counts(entries: Iterable[IndexEntry]) -> dict[str, dict[str, int]]:
 STYLE_GAP_PREFIX: str = "style:"
 
 
+def _recolourable(entry: IndexEntry) -> bool:
+    """Whether a scene's StylePack can recolour this asset: a character whose
+    descriptor tags its colours by role (every ``an character new --offline``
+    character). Hand-drawn art keeps its colours, so no style reaches it."""
+    doc = (entry.document or {}).get("doc") or {}
+    return entry.kind == "character" and bool(doc.get("colour_roles"))
+
+
 def _restyle_remedy(wanted: Iterable[str], has: Iterable[str]) -> str:
     want = " or ".join(wanted)
     now = ", ".join(sorted(has)) or "no style"
     return (
-        f"restyle it to {want} (it is curated as {now}): apply the {want} style's "
-        "policy over its art — a tint, a palette, the style's speech and view "
-        "rules (the an-style skill) — and publish the result as a sibling id in "
-        "the same --family, with --style " + want
+        f"no command restyles a published asset (it is curated as {now}). Its "
+        f"colours are role-tagged, so the {want} style's StylePack recolours it at "
+        "render: save the pack and set `style_pack:` in the scene's meta (the "
+        "an-style skill, step 3). That changes colours only, never the build, "
+        f"head or shapes; if {want} needs another build, make a character for it "
+        "(`an character new <name> --offline --build …`) and publish it with "
+        f"--style {want} in the same --family"
     )
 
 
@@ -1703,6 +2265,9 @@ def find(
     rights: ``any`` (default — study renders are legitimate), ``publishable``
         (``free`` + ``attribution``), or licence classes. Rights are recomputed
         from each version's sources and lineage, not read from its cache
+    status: curation statuses; an asset whose status is hidden
+        (:data:`HIDDEN_STATUSES`: ``retired``) is offered only when its status
+        is asked for by name
     near: also return assets that pass every other facet but miss some
         capabilities, or are curated for another style than asked, each with
         what is missing and the remedy that would add it (a style mismatch is
@@ -1734,54 +2299,51 @@ def find(
     near_hits: list[tuple[int, Hit]] = []
     matched: list[IndexEntry] = []
     floor = BlobFloor(libs)
-    for order, library in enumerate(libs):
-        readers = [library, *(lib for lib in libs if lib is not library)]
-        for entry in index(library):
-            if entry.document:
-                recomputed = effective_rights(
-                    readers, entry.document, floor=floor, owner=library
-                )
-                entry = replace(entry, rights=_stricter(entry.rights, recomputed))
-            values = entry.facet_values()
-            failed = {
-                f
-                for f, want in asked.items()
-                if want is not None and not (values[f] & set(want))
-            }
-            # Only the style differs: with near=True, a restyle away (an#271).
-            restyle = near and failed == {"style"}
-            if failed and not restyle:
-                continue
-            if license_classes is not None and not (
-                values["license_class"] & license_classes
-            ):
-                continue
-            gaps = missing(entry.affordances, wanted)
-            remedies = {g: remedy_for(g) for g in gaps}
-            if restyle:
-                term = STYLE_GAP_PREFIX + "|".join(asked["style"] or [])
-                gaps = [term, *gaps]
-                remedies[term] = _restyle_remedy(asked["style"] or [], values["style"])
-            if gaps and not near:
-                continue
-            asks = len(wanted) + (1 if asked["style"] else 0)
-            score = (asks - len(gaps)) / asks if asks else 1.0
-            hit = Hit(
-                entry.library,
-                entry.asset_id,
-                entry.version,
-                score,
-                title=entry.record.get("title"),
-                license_class=entry.rights.license_class,
-                missing=gaps,
-                remedies=remedies,
-                federated=federated,
-            )
-            if gaps:
-                near_hits.append((order, hit))
-            else:
-                hits.append((order, hit))
-                matched.append(entry)
+    hidden = HIDDEN_STATUSES - set(asked["status"] or ())
+    for order, library, entry in _rated_entries(libs, index, floor):
+        values = entry.facet_values()
+        if values["status"] & hidden:
+            continue
+        failed = {
+            f
+            for f, want in asked.items()
+            if want is not None and not (values[f] & set(want))
+        }
+        # Only the style differs: with near=True, a restyle away (an#271) —
+        # offered only where a style pack reaches the art (an#307).
+        restyle = near and failed == {"style"} and _recolourable(entry)
+        if failed and not restyle:
+            continue
+        if license_classes is not None and not (
+            values["license_class"] & license_classes
+        ):
+            continue
+        gaps = missing(entry.affordances, wanted)
+        remedies = {g: remedy_for(g) for g in gaps}
+        if restyle:
+            term = STYLE_GAP_PREFIX + "|".join(asked["style"] or [])
+            gaps = [term, *gaps]
+            remedies[term] = _restyle_remedy(asked["style"] or [], values["style"])
+        if gaps and not near:
+            continue
+        asks = len(wanted) + (1 if asked["style"] else 0)
+        score = (asks - len(gaps)) / asks if asks else 1.0
+        hit = Hit(
+            entry.library,
+            entry.asset_id,
+            entry.version,
+            score,
+            title=entry.record.get("title"),
+            license_class=entry.rights.license_class,
+            missing=gaps,
+            remedies=remedies,
+            federated=federated,
+        )
+        if gaps:
+            near_hits.append((order, hit))
+        else:
+            hits.append((order, hit))
+            matched.append(entry)
 
     def ordered(items: list[tuple[int, Hit]]) -> list[Hit]:
         return [
@@ -1794,21 +2356,52 @@ def find(
     return FindResult(ordered(hits), ordered(near_hits), _counts(matched))
 
 
+def _rated_entries(
+    libs: list[Library], index: Index, floor: BlobFloor
+) -> Iterator[tuple[int, Library, IndexEntry]]:
+    """``(order, library, entry)`` for every indexed asset, its rights recomputed.
+
+    The one place ``find`` and ``vocabulary`` read rights from, so the two
+    never disagree (an#307): the stricter of the cached rights and the ones
+    recomputed from the version's sources, lineage and bytes — the bytes'
+    floor moves when another asset is published, the cache does not.
+    """
+    for order, library in enumerate(libs):
+        readers = [library, *(lib for lib in libs if lib is not library)]
+        for entry in index(library):
+            if entry.document:
+                recomputed = effective_rights(
+                    readers, entry.document, floor=floor, owner=library
+                )
+                entry = replace(entry, rights=_stricter(entry.rights, recomputed))
+            yield order, library, entry
+
+
 def vocabulary(libraries: Libraries, *, index: Index = scan_index) -> dict[str, Any]:
     """Every facet with its values and counts, and the registered capabilities.
 
     What an agent reads to turn words into a typed query (spectrum (b)): "a
     Reiniger character who can walk in profile" → ``style=reiniger``,
-    ``affords=["limbs.legs", "swap.view:side"]``.
+    ``affords=["limbs.legs", "swap.view:side"]``. The counts are over what
+    ``find`` offers by default — the same recomputed rights, and no asset of a
+    hidden status (``retired``), whose numbers are under ``hidden``.
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
     >>> v = vocabulary(lib)
     >>> sorted(v)
-    ['capabilities', 'facets', 'kinds', 'rights', 'statuses']
+    ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
     >>> "limbs.legs" in v["capabilities"]
     True
     """
-    entries = [e for lib in as_libraries(libraries) for e in index(lib)]
+    libs = as_libraries(libraries)
+    entries: list[IndexEntry] = []
+    hidden: Counter = Counter()
+    for _, _, entry in _rated_entries(libs, index, BlobFloor(libs)):
+        status = entry.record.get("status") or DFLT_STATUS
+        if status in HIDDEN_STATUSES:
+            hidden[status] += 1
+        else:
+            entries.append(entry)
     counts = _counts(entries)
     caps_count = counts.get("affords", {})
     return {
@@ -1825,6 +2418,7 @@ def vocabulary(libraries: Libraries, *, index: Index = scan_index) -> dict[str, 
         },
         "kinds": sorted(ASSET_KINDS),
         "statuses": list(STATUSES),
+        "hidden": dict(sorted(hidden.items())),
         "rights": [RIGHTS_ANY, RIGHTS_PUBLISHABLE, *LICENSE_CLASS_ORDER],
     }
 
@@ -1840,7 +2434,7 @@ def show(libraries: Libraries, ref: str | LibraryRef) -> dict[str, Any]:
     """
     library, pinned, _ = resolve(libraries, ref)
     version = read_version(library, pinned.asset_id, pinned.version)
-    stored = Rights.from_dict(version.get("rights") or {})
+    stored = stored_rights(library, version)
     return {
         "ref": str(pinned),
         "library": library.name,
@@ -1941,7 +2535,7 @@ def promote(
     if target.name == library.name:
         raise LibraryError(f"{pinned} is already in the {target.name!r} library")
     readers = [library, *(lib for lib in as_libraries(libraries) if lib is not library)]
-    stored = Rights.from_dict(version.get("rights") or {})
+    stored = stored_rights(library, version)
     rights = _stricter(stored, effective_rights(readers, version, owner=library))
     if not rights.publishable and not allow_restricted:
         raise RightsRefusal(
@@ -1961,12 +2555,15 @@ def promote(
         )
     record = _read_record(library, pinned.asset_id)
     facets = record.get("facets") or {}
+    # The source as the version's labels present it: what a relabel version
+    # would have carried (an#307).
+    labelled = labelled_view(version, version_labels(library, version))
     return publish(
         target,
         target_id,
         version["doc"],
         verified_files(library, version),
-        source=version.get("source"),
+        source=labelled.get("source"),
         relicense=version.get(RELICENSE_FIELD),
         # No relabel: it was a statement about the SOURCE asset's chain, which
         # the copy inherits through derived_from; it says nothing about the
