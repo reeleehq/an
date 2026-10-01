@@ -1,18 +1,18 @@
 ---
 name: an-dev-text
-description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) — the `TextDescriptor` prop, captions from word timings (`an/captions.py`, the SRT sidecar), tituli as the typesetter, units compiled to SVG-sprite nodes with inline `data:` textures, the camera-immune overlay layer (`CutoutSceneJSON.overlay`), fail-loud fonts and the embedded default face. Load before touching `an/text.py`, `an/adapters/cutout/text.py`, `_build_text_block`, `_check_text_unit_targets`, `_check_text_blocks`, the overlay container in `runtime.js`, `screen_position`'s overlay branch, or anything that puts words, titles, labels, captions or fonts on screen. Triggers on "text", "title card", "label", "caption", "subtitle", "font", "typeface", "glyph", "word by word", "typewriter", "overlay", "HUD", "lower third".
+description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) — the `TextDescriptor` prop, captions from word timings (`an/captions.py`, the SRT sidecar), tituli as the typesetter, units compiled to SVG-sprite nodes with inline `data:` textures, the camera-immune overlay layer (`CutoutSceneJSON.overlay`), fail-loud fonts and the embedded default face. Load before touching `an/stage/text.py`, `an/stage/text_layout.py`, `_build_text_block`, `_check_text_unit_targets`, `_check_text_blocks`, the overlay container in `runtime.js`, `screen_position`'s overlay branch, or anything that puts words, titles, labels, captions or fonts on screen. Triggers on "text", "title card", "label", "caption", "subtitle", "font", "typeface", "glyph", "word by word", "typewriter", "overlay", "HUD", "lower third".
 ---
 
 # an-dev-text — words on screen
 
 ## The model in six lines
 
-- A text block is a **prop** whose document `kind` is `TextDescriptor` (`an/text.py`) — the `PathDescriptor` shape. No scene-IR field, no migration, no new action kind (so the six-place action enumeration does not apply). Overrides merge over the stored document and validate strictly (`resolve_text`); a stored doc may be a reusable style with no `text`.
+- A text block is a **prop** whose document `kind` is `TextDescriptor` (`an/stage/text.py`) — the `PathDescriptor` shape. No scene-IR field, no migration, no new action kind (so the six-place action enumeration does not apply). Overrides merge over the stored document and validate strictly (`resolve_text`); a stored doc may be a reusable style with no `text`.
 - **tituli typesets; an consumes.** `layout_text` calls `tituli.block(...)` (wrap, align, one `Run` per unit) and `tituli.run_outline(run)` (the run's glyph contours as SVG `d`, fontTools). Never reimplement metrics or wrapping here — add to tituli (its own repo, own PR) instead.
 - Each drawn unit → node `<id>/<unit>_<i>` (i counts DRAWN units; spaces are not units), visual `svg_sprite` `fit: contain`, texture alias `text.<id>.<unit>_<i>`, `src` = `data:image/svg+xml;base64,…`. The block node is the entity; units sit at their box centres so a scale/rotation pivots mid-unit.
 - `layer: overlay` → `CutoutSceneJSON.overlay` (a sibling of `scene`); `layer: world` → the scene like any prop.
 - Fonts: `font: None` = Pillow's embedded Aileron via `tituli.EMBEDDED`; `font:` = a FILE path (absolute, or relative to the text document's directory in an on-disk props store). The face's sha256 goes to `meta.fonts[<id>]`.
-- Reveals are ordinary actions: `an.text.reveal_units(...)` returns a list of `set` holds + `sequence(delay, tween)` leaves.
+- Reveals are ordinary actions: `an.stage.text.reveal_units(...)` returns a list of `set` holds + `sequence(delay, tween)` leaves.
 
 ## Silent failures this prevents — keep each one refused
 

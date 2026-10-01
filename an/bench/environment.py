@@ -119,7 +119,7 @@ def probe_browser() -> dict[str, Any]:
     try:
         from playwright.sync_api import sync_playwright
 
-        from an.adapters.cutout.render import DETERMINISTIC_CHROMIUM_ARGS
+        from an.stage.render import DETERMINISTIC_CHROMIUM_ARGS
 
         args = list(DETERMINISTIC_CHROMIUM_ARGS)
         with sync_playwright() as p:
@@ -175,7 +175,7 @@ def runtime_sha256() -> str:
     """
     import hashlib
 
-    from an.adapters.cutout.render import runtime_dir
+    from an.stage.render import runtime_dir
 
     digest = hashlib.sha256()
     root = runtime_dir()
@@ -212,7 +212,7 @@ def environment_record(
     the file, and this field is what `bench-compare` uses to decide whether two
     encode-side rows may be compared at all.
     """
-    from an.adapters.cutout.render import DETERMINISTIC_X264_ARGS
+    from an.stage.render import DETERMINISTIC_X264_ARGS
 
     return {
         "render_side": {

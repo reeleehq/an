@@ -25,7 +25,7 @@ from typing import Any
 
 from an.bench import contract, golden as G, imageio, masks, metrics as M, palette as P
 from an.bench import png
-from an.adapters.cutout.compile import FOREGROUND_SUFFIX
+from an.stage.compile import FOREGROUND_SUFFIX
 from an.bench.capture import (
     SceneCapture,
     capture_fixture,
@@ -168,7 +168,7 @@ def _png_source_rgb(frames_dir: Path, *, height: int, width: int, frames: int):
     """
     import numpy as np
 
-    from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN
+    from an.stage.render import DEFAULT_FRAME_PNG_PATTERN
 
     paths = sorted(Path(frames_dir).glob("frame_*.png"))
     if not paths:
@@ -247,7 +247,7 @@ def _timeline_frames_dir(capture: SceneCapture):
     reference has to be the same sequence, in the same order, that the delivered
     mp4 shows.
     """
-    from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN
+    from an.stage.render import DEFAULT_FRAME_PNG_PATTERN
 
     if len(capture.shots) == 1:
         yield capture.shots[0].frames_dir
@@ -1165,7 +1165,7 @@ def run_bench(
             ),
             **({"blessed": blessed} if blessed else {}),
             "encode_command_source": (
-                "an.adapters.cutout.render._ffmpeg_mux + DETERMINISTIC_X264_ARGS"
+                "an.stage.render._ffmpeg_mux + DETERMINISTIC_X264_ARGS"
             ),
             "decode_commands": {
                 "source_rgb": imageio.source_rgb_command(Path("<frames>")),

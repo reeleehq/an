@@ -3,7 +3,7 @@
 Every position here comes from one of two sources, and they are checked against
 each other at every instant the renderer captures:
 
-- **the compiled document**, evaluated by `an.adapters.cutout.timeline` — the
+- **the compiled document**, evaluated by `an.stage.timeline` — the
   executable spec of the JS runtime (parity-tested under node) — and projected
   to canvas pixels by `screen_position`. The per-frame keypoints come from
   here, at exactly the instants the renderer captured;
@@ -83,8 +83,8 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from an.adapters.cutout.serialize import CutoutSceneJSON
-from an.adapters.cutout.timeline import (
+from an.stage.serialize import CutoutSceneJSON
+from an.stage.timeline import (
     evaluate_timeline,
     screen_position,
     timeline_from_scene,

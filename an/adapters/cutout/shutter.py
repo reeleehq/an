@@ -1,19 +1,10 @@
-"""Moved to :mod:`an.media.shutter` (an#247); this path re-exports it.
+"""Moved to :mod:`an.media.shutter` (an#247); this path is a LIVE alias of it.
 
-The temporal resolve is engine-independent, so it lives in the core's media
-package. Every name below is the same object as in its new home.
+The resolve is engine-independent, so it lives in the core's media package.
+Every name of the new module is reachable here, and rebinding one here rebinds
+it there (:func:`an._shims.alias_module`).
 """
 
-from an.media.shutter import (  # noqa: F401
-    ShutterError,
-    check_frame_samples,
-    mean_png_bytes,
-    temporal_mean,
-)
+from an._shims import alias_module
 
-__all__ = [
-    "ShutterError",
-    "check_frame_samples",
-    "mean_png_bytes",
-    "temporal_mean",
-]
+alias_module(__name__, "an.media.shutter")

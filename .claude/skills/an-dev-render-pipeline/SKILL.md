@@ -22,7 +22,7 @@ about measuring them. Any change here that could move a pixel needs the
 ## 1. The path, stage by stage
 
 **Since an#247 the path is split at the engine seam.** The stage engine
-(`StageEngine` in `an/adapters/cutout/render.py`, moving to `an.stage`) does
+(`StageEngine` in `an/stage/render.py`, moving to `an.stage`) does
 steps 1-5 (compile, stage, Chromium, load, determinism probe) and yields a
 session; the CORE frame stage (`an.engines.frame_stage_renderer`) validates the
 knobs first and owns steps 6-8 for every engine: the capture loop
@@ -36,7 +36,7 @@ an.render.render(project, …)
      ↑ per-render knobs live HERE — see §6 for why anywhere else refuses metrics
      │
      ├ per shot (thread pool, DEFAULT_PARALLEL_CAP=4, one Chromium each)
-     │   CutoutRenderer.render(shot, ctx)                 an/adapters/cutout/render.py
+     │   CutoutRenderer.render(shot, ctx)                 an/stage/render.py
      │    1. compile_shot(...)          → CutoutSceneJSON   ← the wire contract; its digest is
      │                                                        `scene_contract_sha256`
      │    2. _stage_job(...)            → <project>/.an/render_work/<shot>/{runtime,frames}
@@ -146,7 +146,7 @@ record that it happened. Measured on `aa_probe` (declared 320x240):
   that reads it** instead. That was found by an#54's shape guard reporting
   160x120 frames against a 320x240 declaration.
 - **The resolve is `an.media.supersample.block_mean_resolve` (moved there from
-  `an.adapters.cutout.supersample` in an#247, which re-exports it) — one
+  `an.media.supersample` in an#247, which re-exports it) — one
   implementation, three callers**: the renderer, the bench lever, and
   `misc/bench/wave3_ab.py`. A lever that computes the resolve differently from
   the product it examines is a lever measuring nothing, and nothing in CI would
@@ -253,7 +253,7 @@ that guard fails when it is reintroduced.
 (`DEFAULT_CAPTURE`, read at call time); `--capture screenshot` still selects
 the element-screenshot loop above. The page's
 `window.anCaptureFrames(requests)` seeks each requested instant and returns
-`app.view.toDataURL('image/png')`; `an/adapters/cutout/canvas_capture.py` turns
+`app.view.toDataURL('image/png')`; `an/stage/canvas_capture.py` turns
 each into the frame the screenshot path writes; `render._capture_frames_canvas`
 drives it. **The contract is the DECODED frame**: same RGB array, same mode,
 same size — so the mux sees the same frames and the delivered mp4 is
@@ -313,7 +313,7 @@ is overstated, but the corpus cannot inform the choice.
 ## 3. Every encoder flag, and why it is there
 
 `DETERMINISTIC_X264_ARGS` in `an/media/mp4.py` (moved from
-`an/adapters/cutout/render.py` in an#247, whose old names are LIVE aliases), plus three literals
+`an/stage/render.py` in an#247, whose old names are LIVE aliases), plus three literals
 `mux_frames` (old name `_ffmpeg_mux`) spells inline. **None of these is a default someone liked** — each
 is a named constant with a recorded reason.
 
@@ -327,7 +327,7 @@ is a named constant with a recorded reason.
 | `-color_primaries` / `-color_trc bt709` | **do not reach the bitstream** on their own — ffprobe reports `unknown` for both | kept so the ffmpeg-level intent is explicit |
 | `-color_range tv` | a **no-op today** (limited range is already the yuv420p default), pinned so a differently-defaulting build cannot change the output silently | |
 | `-x264-params colorprim=…:transfer=…:colormatrix=…` | **this** is what lands all three in the VUI, and it leaves the decoded stream identical | a half-tagged file is worse than an untagged one: the player stops guessing the matrix but still guesses the primaries |
-| `-pix_fmt` (`an.adapters.cutout.render.DEFAULT_PIX_FMT`, per render via `--pix-fmt`) | **the first-order quality lever, and the default is a product constraint, not an encoder-tuning one.** High 4:4:4 Predictive is refused by many hardware decoders, browsers and platforms — flipping the default would hand a design partner a file they cannot play. Read as a MODULE GLOBAL at call time, which is the seam the `pix_fmt` bench lever pulls; a default argument would sever it | 4:4:4 opt-in since an#59, and measured inside the panel: `chroma_edge_dCr` -21% to -75% on every scene |
+| `-pix_fmt` (`an.stage.render.DEFAULT_PIX_FMT`, per render via `--pix-fmt`) | **the first-order quality lever, and the default is a product constraint, not an encoder-tuning one.** High 4:4:4 Predictive is refused by many hardware decoders, browsers and platforms — flipping the default would hand a design partner a file they cannot play. Read as a MODULE GLOBAL at call time, which is the seam the `pix_fmt` bench lever pulls; a default argument would sever it | 4:4:4 opt-in since an#59, and measured inside the panel: `chroma_edge_dCr` -21% to -75% on every scene |
 | `-c:v libx264` (literal) | | |
 | `-movflags +faststart` (`an.base.MP4_FASTSTART_ARGS`) | moov atom first, so a browser can start playing before the file finishes downloading | must be re-asked for on **every** leg — `_ffmpeg_mux`, `_ffmpeg_add_audio` AND `_ffmpeg_concat`. `-c copy` re-lays the container and writes `moov` last. Deliberately **not** in `DETERMINISTIC_X264_ARGS`: that tuple is a comparability key and this flag moves no metric. Two further literal copies exist and are out of scope — `an/characters/record.py:146` and `an/bench/imageio.py:184` (the latter must stay import-bound; see §4) |
 
@@ -372,7 +372,7 @@ guard green. Only the file knows which seam won.
 ## 4. Two bench levers are pinned to the exact shape of this code
 
 **Since an#247 the seams live in the core**: the argv and pixel format in
-`an.media.mp4` (rebinding the old `an.adapters.cutout.render` names still lands
+`an.media.mp4` (rebinding the old `an.stage.render` names still lands
 there — they are live aliases, `an/_shims.py`; a plain re-export would have
 disarmed both levers silently), and the frame-stage seam the `supersample` lever
 wraps is `an.engines.capture.capture_frames`, which `frame_stage_renderer` reads
@@ -399,7 +399,7 @@ reflowing the line, and keep the count at one.
 ## 5. The shot cache — `mall["shot_cache"]`, keyed by content (an#242)
 
 `render_project` reuses a shot whose key has an entry (ADR 0004 first slice;
-`an/build/`, the cut-out keyer in `an/adapters/cutout/cache_key.py`). Rules for
+`an/build/`, the cut-out keyer in `an/stage/cache_key.py`). Rules for
 anyone touching the frame path:
 
 - **A new per-render knob must reach the key.** `cache_key.render_knobs` lists
@@ -410,7 +410,7 @@ anyone touching the frame path:
   `CutoutRenderer.render` passes `compile_shot`; extend `render_knobs` in the
   same PR as the knob.
 - **Python-side render code is in the key automatically**: the `code` part
-  digests every module `an.adapters.cutout.render` reaches (walked from its
+  digests every module `an.stage.render` reaches (walked from its
   imports; compile-side modules are excluded in `RENDER_PATH_EXCLUDED`, each
   with its reason). A new module the render path imports is covered; a new
   EXCLUSION needs a reason that its change reaches another part. The runtime
@@ -463,7 +463,7 @@ property.
 
 ## 7. `an preview` is not the render path
 
-`an/preview.py` reuses the runtime in a live-reloading page. The two paths share
+`an/stage/preview.py` reuses the runtime in a live-reloading page. The two paths share
 `runtime.js` but **load different HTML** — `index.html` for the render,
 `preview.html` for the preview — and that split is already load-bearing and
 already enforced: `an.determinism.CAPTURE_PAGE` refuses a render captured from

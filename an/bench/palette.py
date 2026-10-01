@@ -245,7 +245,7 @@ def palette_for_scene(scene_json: dict, *, runtime_dir: Path) -> dict:
 
 
 #: Where the runtime's own hard-coded colours live, for the source cross-check.
-RUNTIME_JS_RELPATH: str = "an/data/cutout_runtime/runtime.js"
+RUNTIME_JS_RELPATH: str = "an/stage/runtime/runtime.js"
 
 _RUNTIME_LITERAL_RE = re.compile(r"0x([0-9a-fA-F]{6})\b")
 

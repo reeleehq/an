@@ -125,7 +125,8 @@ def test_the_real_environment_probe_spawns_no_process():
 def test_the_engine_analyser_derives_from_the_registered_renderers_members():
     import an.adapters  # noqa: F401 — registers the renderers
 
-    assert engine_affordances("cutout")["engine.render"] == {"keys": ["cutout"]}
+    # The stage renderer claims its own name and the persisted `cutout` (an#247).
+    assert engine_affordances("cutout")["engine.render"] == {"keys": ["cutout", "stage"]}
     assert engine_affordances("manim")["engine.render"] == {"keys": ["manim"]}
 
 

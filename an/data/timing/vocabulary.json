@@ -2104,7 +2104,7 @@
    "levels": [
     "a"
    ],
-   "usage": "timeline: a list of shots, each with id (string, unique), renderer (\"cutout\" | \"manim\" | \"motion_graphics\" | \"whiteboard\"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds"
+   "usage": "timeline: a list of shots, each with id (string, unique), renderer (\"cutout\" | \"stage\" | \"manim\" | \"motion_graphics\" | \"whiteboard\"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds"
   },
   {
    "id": "field.shot.actions",

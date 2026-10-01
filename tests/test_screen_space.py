@@ -32,7 +32,7 @@ from an.adapters.cutout.serialize import (
 )
 from an.adapters.cutout.timeline import Transform2D, screen_position
 
-RUNTIME_DIR = Path(__file__).resolve().parents[1] / "an" / "data" / "cutout_runtime"
+RUNTIME_DIR = Path(__file__).resolve().parents[1] / "an" / "stage" / "runtime"
 
 #: One awkward chain, reused by both the Python and the node side: a nested
 #: rotation and scale under a pivoted parent, which is the case a "just add the

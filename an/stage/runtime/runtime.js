@@ -160,7 +160,19 @@
         return container;
     }
 
+    // Visual kinds a genre's runtime script registers (an#247): checked FIRST,
+    // so a genre may also take over a built-in kind (cutan's mouth and eye,
+    // P8). `make(visualSpec, PIXI)` returns the display object.
+    const VISUAL_KINDS = {};
+    NS.anRegisterVisual = function (kind, make) {
+        VISUAL_KINDS[kind] = make;
+    };
+
     function makeVisual(visualSpec) {
+        const registered = VISUAL_KINDS[visualSpec.kind];
+        if (registered) {
+            return registered(visualSpec, PIXI);
+        }
         if (visualSpec.kind === 'ellipse') {
             return makeEllipse(visualSpec);
         }
@@ -1358,6 +1370,18 @@
         }
         return out;
     }
+
+    // ------------------------------------------------------------------------
+    // The read-back (an#247): the pose `evaluateTimeline` computes at each t,
+    // WITHOUT applying it -- what the stage engine's `state(t)` reports, and
+    // what `an.engines.conformance` holds to the timing kernel's golden
+    // vectors (`an/data/timing/timing_vectors.json`). Keys are
+    // "target::property", absent = at rest, exactly as `anSetTime` applies.
+    // ------------------------------------------------------------------------
+    NS.anStates = function (times) {
+        if (!scene) return null;
+        return times.map((t) => evaluateTimeline(t));
+    };
 
     NS.anDeterminismReport = function () {
         const stage = app ? app.stage : null;

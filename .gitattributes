@@ -2,8 +2,8 @@
 
 # The vendored PixiJS bundle is pinned by sha256 in tests/test_vendored_engine.py.
 # Without -text the Windows CI leg CRLF-converts it and the digest goes red there only.
-an/data/cutout_runtime/vendor/pixi.min.js -text
-an/data/cutout_runtime/vendor/pixi.LICENSE.txt -text
+an/stage/runtime/vendor/pixi.min.js -text
+an/stage/runtime/vendor/pixi.LICENSE.txt -text
 
 # Golden frames are compared on DECODED PIXELS, and the decoder now verifies
 # each chunk's CRC — so a Windows CI leg CRLF-converting one would turn it from

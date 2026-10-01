@@ -47,7 +47,7 @@ A vendored MIT bundle ships **with its notice**, because MIT requires the copyri
 names the licence and links to it discharges **neither** — verified against the vendored
 PixiJS bundle, whose banner has no copyright line and no permission text.
 
-The in-repo pattern to copy (`an/data/cutout_runtime/vendor/`):
+The in-repo pattern to copy (`an/stage/runtime/vendor/`):
 
 - bytes taken from the **npm tarball**, not a CDN — identical content, but only the tarball
   carries a registry integrity hash to check *before* unpacking;

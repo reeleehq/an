@@ -156,7 +156,7 @@ def resolve_frames(capture: Any, times: Sequence[float]) -> list[FrameRef]:
 
 def frame_png_path(capture: Any, ref: FrameRef) -> Path:
     """Where the renderer left the PNG for one resolved frame."""
-    from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN
+    from an.stage.render import DEFAULT_FRAME_PNG_PATTERN
 
     shot = next(s for s in capture.shots if s.shot_id == ref.shot_id)
     return shot.frames_dir / (DEFAULT_FRAME_PNG_PATTERN % ref.local_index)

@@ -57,6 +57,8 @@ from importlib.metadata import EntryPoint, entry_points as _entry_points
 from an.genres.registry import (
     CORE_OWNER,
     ActionKind,
+    CompilePass,
+    RuntimeScript,
     DialogueSugar,
     EntityKind,
     RegistryError,
@@ -68,6 +70,8 @@ from an.genres.registry import (
     entity_kind_names,
     register_action_kind,
     register_check,
+    register_compile_pass,
+    register_runtime_script,
     register_dialogue_sugar,
     register_entity_kind,
     restore,
@@ -127,6 +131,12 @@ class Genre:
     analysers: tuple = ()
     vocabulary: tuple = ()
     aspects: tuple = ()
+    #: Steps the genre adds to an engine's compiler, and builders for its
+    #: entity kinds (:class:`CompilePass`; an#247).
+    compile_passes: tuple[CompilePass, ...] = ()
+    #: Code the genre adds to an engine's runtime: its visual kinds
+    #: (:class:`RuntimeScript`; an#247).
+    runtime_scripts: tuple[RuntimeScript, ...] = ()
 
     def provides(self) -> dict[str, tuple[str, ...]]:
         """What this genre registers, by registry, as names — without registering it.
@@ -145,6 +155,8 @@ class Genre:
             "analysers": tuple(a.kind for a in self.analysers),
             "vocabulary": tuple(e.id for e in self.vocabulary),
             "aspects": tuple(a.name for a in self.aspects),
+            "compile passes": tuple(p.name for p in self.compile_passes),
+            "runtime scripts": tuple(s.name for s in self.runtime_scripts),
         }
 
 
@@ -212,6 +224,10 @@ def _install(genre: Genre, *, check_capabilities: bool = True) -> None:
         register_check(check, owner=owner)
     for sugar in genre.dialogue_sugar:
         register_dialogue_sugar(sugar, owner=owner)
+    for compile_pass in genre.compile_passes:
+        register_compile_pass(compile_pass, owner=owner)
+    for script in genre.runtime_scripts:
+        register_runtime_script(script, owner=owner)
     if genre.capabilities or genre.analysers or genre.vocabulary or genre.aspects:
         _install_semantics(genre, check_capabilities=check_capabilities)
 
@@ -497,9 +513,9 @@ def entity_space_resolver(entities: Iterable, *, default: str | None = None):
     unregistered or declares no space, gets ``default`` — the timing default
     :data:`an.timing.spaces.DFLT_TIMELINE_SPACE` when ``None``.
 
-    (The default EVALUATOR still uses that one space for every target: a
-    compiled stage document does not carry its entities' kinds, so a
-    per-entity evaluation default arrives with the ``Engine`` seam, P3.)
+    The default EVALUATOR agrees since an#245: the stage's compiled document
+    records each entity whose kind declares another space
+    (``meta.entity_spaces``), and ``timeline_from_compiled`` resolves by it.
 
     >>> from an.ir.schema import AssetRef
     >>> space_of = entity_space_resolver([AssetRef(kind="prop", id="lamp", store="props", ref="l")])
@@ -558,6 +574,8 @@ def _all_owners() -> set[str]:
 __all__ = [
     "ENTRY_POINT_GROUP",
     "ActionKind",
+    "CompilePass",
+    "RuntimeScript",
     "DialogueSugar",
     "EntityKind",
     "Genre",

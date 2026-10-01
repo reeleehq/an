@@ -89,12 +89,13 @@ packages = ["an"]
 # partial version of this list (which omitted preview.html) read as though
 # preview.html was excluded from the wheel when it was not.
 [tool.hatch.build.targets.wheel.force-include]
-"an/data/cutout_runtime/index.html" = "an/data/cutout_runtime/index.html"
-"an/data/cutout_runtime/preview.html" = "an/data/cutout_runtime/preview.html"
-"an/data/cutout_runtime/runtime.js" = "an/data/cutout_runtime/runtime.js"
-"an/data/cutout_runtime/README.md" = "an/data/cutout_runtime/README.md"
-"an/data/cutout_runtime/vendor/pixi.min.js" = "an/data/cutout_runtime/vendor/pixi.min.js"
-"an/data/cutout_runtime/vendor/pixi.LICENSE.txt" = "an/data/cutout_runtime/vendor/pixi.LICENSE.txt"
+"an/stage/runtime/index.html" = "an/stage/runtime/index.html"
+"an/stage/runtime/preview.html" = "an/stage/runtime/preview.html"
+"an/stage/runtime/runtime.js" = "an/stage/runtime/runtime.js"
+"an/stage/runtime/extensions.js" = "an/stage/runtime/extensions.js"
+"an/stage/runtime/README.md" = "an/stage/runtime/README.md"
+"an/stage/runtime/vendor/pixi.min.js" = "an/stage/runtime/vendor/pixi.min.js"
+"an/stage/runtime/vendor/pixi.LICENSE.txt" = "an/stage/runtime/vendor/pixi.LICENSE.txt"
 
 
 # SDIST: `misc/` and `examples/` are deliberately IN, and there is deliberately
@@ -126,7 +127,10 @@ docs = [
     "sphinx>=6.0",
     "sphinx-rtd-theme>=1.0",
 ]
-cutout = [
+# The 2D stage engine (`an.stage`, an#247): what `an render` of a stage or
+# cut-out shot needs beyond the core. The core imports none of it (the import
+# firewall, ADR 0001 decision 14).
+stage = [
     # PINNED, not floated (an#31). The Chromium build is an input to every
     # pixel: 1.55.0 resolves to chromium-1187 / Chrome 140.0.7339.16. Pixels did
     # survive 1187 -> 1223 under the launch-flag pin, but PNG *file* bytes did
@@ -142,6 +146,11 @@ cutout = [
     # silence when it was absent — the rendering-verification equivalent of the
     # collection hole in an#22.
     "pillow",
+]
+# The extra's old name, kept: install commands and CI lanes say `an[cutout]`.
+# When the cut-out genre moves to `cutan` (an#225), this extra depends on it.
+cutout = [
+    "an[stage]",
 ]
 manim = [
     # Manim opaque-source shots (an#279): `an.adapters.manim_adapter` renders

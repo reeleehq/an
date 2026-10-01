@@ -46,7 +46,7 @@ from an.adapters.cutout.timeline import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-RUNTIME_JS = REPO_ROOT / "an" / "data" / "cutout_runtime" / "runtime.js"
+RUNTIME_JS = REPO_ROOT / "an" / "stage" / "runtime" / "runtime.js"
 
 
 def _ramp(name, target="a", prop="x", *, start=0.0, end=10.0, duration=1.0, **kw):

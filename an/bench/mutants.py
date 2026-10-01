@@ -657,7 +657,7 @@ MUTANTS: tuple[Mutant, ...] = (
     # ------------------------------------------ canvas capture (epic #9 track)
     Mutant(
         name="canvas_capture_flips_rows",
-        file="an/adapters/cutout/canvas_capture.py",
+        file="an/stage/canvas_capture.py",
         old='rgb = image.convert("RGB")',
         new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")',
         caught_by="tests/test_canvas_capture.py",
@@ -678,7 +678,7 @@ MUTANTS: tuple[Mutant, ...] = (
     # mutation is hardest to catch by reading.
     Mutant(
         name="capture_page_stops_compositing_the_canvas",
-        file="an/data/cutout_runtime/index.html",
+        file="an/stage/runtime/index.html",
         old="#stage { display: block; }",
         new="#stage { display: none; }",
         caught_by="tests/test_cutout_runtime_files.py",
@@ -694,7 +694,7 @@ MUTANTS: tuple[Mutant, ...] = (
     # ---------------------------------------------------------------- an#56
     Mutant(
         name="supersample_autodensity_true",
-        file="an/data/cutout_runtime/runtime.js",
+        file="an/stage/runtime/runtime.js",
         old="            autoDensity: false,",
         new="            autoDensity: true,",
         caught_by="tests/test_bench_supersample_lever.py",
@@ -999,7 +999,7 @@ def check_sites(root: Path | None = None) -> list[str]:
             #
             # **Gated on `.py`, and that gate is the whole reason this registry
             # can reach the renderer at all.** Unconditionally, `compile()`
-            # refuses `an/data/cutout_runtime/runtime.js` and `index.html` —
+            # refuses `an/stage/runtime/runtime.js` and `index.html` —
             # which are precisely the files where a pixel-affecting mutation
             # hides, and where a guard is hardest to prove by argument. Before
             # an#58 the registry silently could not hold one, so those guards

@@ -211,8 +211,8 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
     It is the contract of a bench render, which passes no overrides: a render
     given its own ``step_hz``, fps or resolution compiles something else.
     """
-    from an.adapters.cutout.compile import compile_shot, style_pack_for
-    from an.adapters.cutout.serialize import to_dict
+    from an.stage.compile import compile_shot, style_pack_for
+    from an.stage.serialize import to_dict
     from an.bench.contract import scenes_contract_sha256
     from an.ir.schema import resolve_step_hz
     from an.project import load
@@ -276,7 +276,7 @@ def capture_fixture(
     project = load(work_copy)
     scene = project.scene
 
-    from an.adapters.cutout.render import _check_capture
+    from an.stage.render import _check_capture
 
     capture_path = _check_capture(BENCH_RENDER_KWARGS.get("capture"))
     started = time.perf_counter()

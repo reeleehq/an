@@ -1,17 +1,17 @@
 ---
 name: an-dev-path
-description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `PathDescriptor` prop, compile-time Bézier flattening, `trim_start`/`trim_end` as ordinary numeric properties, the arrowhead at the trimmed tip, and the exact Python↔runtime geometry parity. Load before touching `an/paths.py`, `an/adapters/cutout/path.py`, `_build_path_subtree`, `PathJSON`, `pathGeometry`/`drawPath`/`applyTrim` in `runtime.js`, or anything that draws a stroke. Triggers on "path", "stroke", "arrow", "arrowhead", "trim", "draw-on", "route", "connector", "border", "timeline line", "hand-drawn wobble".
+description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `PathDescriptor` prop, compile-time Bézier flattening, `trim_start`/`trim_end` as ordinary numeric properties, the arrowhead at the trimmed tip, and the exact Python↔runtime geometry parity. Load before touching `an/stage/paths.py`, `an/stage/path_geometry.py`, `_build_path_subtree`, `PathJSON`, `pathGeometry`/`drawPath`/`applyTrim` in `runtime.js`, or anything that draws a stroke. Triggers on "path", "stroke", "arrow", "arrowhead", "trim", "draw-on", "route", "connector", "border", "timeline line", "hand-drawn wobble".
 ---
 
 # an-dev-path — stroked paths, trim, arrowheads
 
 ## The model in five lines
 
-- A path is a **prop** whose document `kind` is `PathDescriptor` (`an/paths.py`), in the props store. `_build_prop_subtree` dispatches on the document kind; no scene-IR field, no migration.
-- The entity's `overrides` are merged over the stored document and validated **strictly** by `an.paths.resolve_path` — the one call both the compiler and `an validate` make, so their verdicts agree (`tests/test_path.py::test_validate_and_compile_reach_the_same_verdict`).
-- Cubic Béziers are **flattened in the compiler** (`an.adapters.cutout.path.flatten_curve`, uniform in the parameter). The wire (`VisualJSON.path`, a `PathJSON`) only ever carries a polyline.
+- A path is a **prop** whose document `kind` is `PathDescriptor` (`an/stage/paths.py`), in the props store. `_build_prop_subtree` dispatches on the document kind; no scene-IR field, no migration.
+- The entity's `overrides` are merged over the stored document and validated **strictly** by `an.stage.paths.resolve_path` — the one call both the compiler and `an validate` make, so their verdicts agree (`tests/test_path.py::test_validate_and_compile_reach_the_same_verdict`).
+- Cubic Béziers are **flattened in the compiler** (`an.stage.path_geometry.flatten_curve`, uniform in the parameter). The wire (`VisualJSON.path`, a `PathJSON`) only ever carries a polyline.
 - `trim_start` / `trim_end` are in `an.base.TRANSFORM_PROPERTIES` (rest 0.0 / 1.0), so they tween, step and hold like `alpha`. They are path-only: `_check_trim_target` (compile) and `_check_trim_targets` (validate) refuse any other target, and the runtime's `applyTrim` throws.
-- The runtime draws `pathGeometry(points, trim_start, trim_end, head_length, head_width, dash, gap, dash_offset)` → `{stroke, head[, dashes]}`; `an/adapters/cutout/path.py::path_geometry` is its **executable spec**.
+- The runtime draws `pathGeometry(points, trim_start, trim_end, head_length, head_width, dash, gap, dash_offset)` → `{stroke, head[, dashes]}`; `an/stage/path_geometry.py::path_geometry` is its **executable spec**.
 
 ## Invariants that are not obvious
 

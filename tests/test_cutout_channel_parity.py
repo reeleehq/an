@@ -43,7 +43,7 @@ from an.adapters.cutout.easing import EASING_FUNCS
 from an.base import EASING_PRESETS
 
 RUNTIME_JS = (
-    Path(__file__).resolve().parents[1] / "an" / "data" / "cutout_runtime" / "runtime.js"
+    Path(__file__).resolve().parents[1] / "an" / "stage" / "runtime" / "runtime.js"
 )
 
 

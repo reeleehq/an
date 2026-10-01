@@ -1,6 +1,6 @@
 ---
 name: an-dev-runtime-assets
-description: Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under `an/data/`, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a `pip install`, or when a "fix" to a data file appears to have no effect. Triggers on "vendor", "bundle", "asset", "force-include", "packaging", "it works locally but not installed".
+description: Use when adding, moving, renaming or removing any non-Python file that the renderer loads at run time — anything under `an/stage/runtime/` (the stage's runtime, `an/data/cutout_runtime/` before an#247) or `an/data/`, a vendored JS bundle, an SVG part, a font, an HTML page. Also use when a render looks wrong rather than failing, when something works in the dev tree but not from a `pip install`, or when a "fix" to a data file appears to have no effect. Triggers on "vendor", "bundle", "asset", "force-include", "packaging", "it works locally but not installed".
 ---
 
 # an-dev-runtime-assets — the files that are not code
@@ -28,9 +28,9 @@ The packaging config is not the answer. `pyproject.toml` has a
 `[tool.hatch.build.targets.wheel.force-include]` block listing three files:
 
 ```toml
-"an/data/cutout_runtime/index.html" = "an/data/cutout_runtime/index.html"
-"an/data/cutout_runtime/runtime.js" = "an/data/cutout_runtime/runtime.js"
-"an/data/cutout_runtime/README.md"  = "an/data/cutout_runtime/README.md"
+"an/stage/runtime/index.html" = "an/stage/runtime/index.html"
+"an/stage/runtime/runtime.js" = "an/stage/runtime/runtime.js"
+"an/stage/runtime/README.md"  = "an/stage/runtime/README.md"
 ```
 
 Reading that, you would have concluded `preview.html` — in the same directory, and

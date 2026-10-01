@@ -20,7 +20,7 @@ environment the machine's render environment, from the renderer's registered
            the cut-out renderer: the compiled document, its textures' bytes,
            the easing versions it names, the audio it muxes, the runtime,
            the render path's Python source and every render knob
-           (`an.adapters.cutout.cache_key`)
+           (`an.stage.cache_key`)
 ========== ===================================================================
 
 The core names no renderer: a backend joins by :func:`register_shot_keyer`. A
@@ -126,7 +126,7 @@ def canonical_digest(obj: Any) -> str:
 def file_digest(path: str | Path) -> str:
     """The hex sha256 of a file's bytes, read NOW.
 
-    Deliberately unmemoised. A (path, mtime, size) memo — `an.raster`'s, which
+    Deliberately unmemoised. A (path, mtime, size) memo — `an.stage.raster`'s, which
     is fine for a texture alias inside one compile — let a same-size edit whose
     mtime was restored (``cp -p``, ``rsync -t``, ``tar x``, a sync client) be
     served stale from cache in a long-running process (an#243 review, S2). A
@@ -385,7 +385,13 @@ def register_shot_key_part(renderer_name: str, part_name: str, part: ShotKeyPart
     early cutoff for free): a genre package's side file, a vocabulary entry's
     version (P7). Refuses a duplicate ``part_name``; a name that collides with
     one of the keyer's own parts is refused when the key is computed.
+
+    A renderer registered LAZILY (the stage, an#247) brings its keyer when the
+    renderer registry first loads, so this loads it first -- a genre adding a
+    key part at install (``cutan``, P8) needs no prior lookup.
     """
+    if renderer_name not in _KEYERS:
+        registered_shot_keyers()  # a lazily registered backend brings its keyer
     entry = _KEYERS.get(renderer_name)
     if entry is None:
         raise ShotKeyerRegistrationError(
@@ -406,6 +412,8 @@ def shot_keyer_for(renderer: Any) -> _KeyerEntry | None:
     renderer whose class is not the one the keyer was registered for.
     """
     name = renderer if isinstance(renderer, str) else getattr(renderer, "name", "") or ""
+    if name not in _KEYERS:
+        registered_shot_keyers()  # a lazily registered backend brings its keyer
     entry = _KEYERS.get(name)
     if entry is None or isinstance(renderer, str):
         return entry
@@ -417,8 +425,14 @@ def shot_keyer_for(renderer: Any) -> _KeyerEntry | None:
 def registered_shot_keyers() -> tuple[str, ...]:
     """The renderer names that have a keyer.
 
-    >>> import an.adapters  # registers the built-in renderers and their keyers
+    A keyer registers beside its renderer, and a backend behind the import
+    firewall registers when the renderer registry first loads it (an#247), so
+    this loads the registry first.
+
     >>> "cutout" in registered_shot_keyers()
     True
     """
+    from an.adapters import list_renderers
+
+    list_renderers()
     return tuple(_KEYERS)

@@ -21,7 +21,6 @@ from typing import Iterable
 
 from an.adapters._base import RenderContext, RenderResult
 from an.assemble import assemble_film, film_timeline, needs_assembly
-from an.adapters.cutout.compile import style_pack_for
 from an.adapters._base import _DEFAULT_REGISTRY
 from an.build.shot_cache import IncrementalEngine, ShotPlan, resolve_incremental
 from an.base import (
@@ -179,7 +178,7 @@ def render_project(
     via ``None``, since an#192) — an in-page read of the canvas, batched,
     writing frames whose decoded pixels equal the screenshot path's and
     measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at
-    1080p (see `an.adapters.cutout.canvas_capture`) — or ``"screenshot"``, a
+    1080p (see `an.stage.canvas_capture`) — or ``"screenshot"``, a
     Playwright element screenshot per instant.
 
     ``step_hz`` overrides the scene's ``meta.step_hz`` for this render (a shot's
@@ -367,7 +366,7 @@ def render(
         # Resolved here, once, so a missing pack fails before the first browser
         # launch rather than per shot — and so every shot in a scene is drawn
         # under the same art direction by construction.
-        style_pack=style_pack_for(scene.meta, project.mall.get("styles") or {}),
+        style_pack=_style_pack(scene, project),
         default_easing=scene.meta.default_easing,
     )
 
@@ -542,6 +541,16 @@ def _write_render_report(mall, output_name: str, findings) -> None:
     ).encode("utf-8")
 
 
+def _style_pack(scene, project: Project):
+    """The scene's `StylePack`, resolved by the stage (which owns what a pack
+    draws); imported here, at call time, so the core never imports the stage."""
+    if not getattr(scene.meta, "style_pack", None):
+        return None
+    from an.stage.compile import style_pack_for
+
+    return style_pack_for(scene.meta, project.mall.get("styles") or {})
+
+
 def _write_caption_sidecar(mall, output_name, scene, captions, pages, *, fps):
     """Write ``output/<name>.srt`` from ``pages`` — or REMOVE a stale one.
 
@@ -593,7 +602,9 @@ def _burn_captions(shot, index, pages, captions, ctx, project, *, fps):
 
     if not any(p.shot == index for p in pages):
         return shot, ctx
-    if shot.renderer != "cutout":
+    from an.stage import STAGE_RENDERER_NAMES  # the stage has the overlay layer
+
+    if shot.renderer not in STAGE_RENDERER_NAMES:
         warnings.warn(
             f"shot {shot.id!r} is drawn by the {shot.renderer!r} renderer, which "
             "has no overlay layer: its captions are in the sidecar only",

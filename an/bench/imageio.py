@@ -88,11 +88,20 @@ from pathlib import Path
 from typing import Any
 
 from an.base import BT709_SCALE_FILTER, MP4_FASTSTART_ARGS
-from an.adapters.cutout.render import (
-    DETERMINISTIC_X264_ARGS,
-    SUPPORTED_PIX_FMTS,
-    _check_pix_fmt,
-)
+from an.media.mp4 import DETERMINISTIC_X264_ARGS, SUPPORTED_PIX_FMTS
+
+
+def _check_pix_fmt(pix_fmt: str | None) -> str:
+    """The renderer's own pixel-format check, refusing as the RENDER does.
+
+    Imported at call time: the stage is behind the core's import firewall
+    (an#247), and the refusal keeps the renderer's error type
+    (``CutoutRenderError``), which the bench's callers already handle.
+    """
+    from an.stage.render import _check_pix_fmt as check
+
+    return check(pix_fmt)
+
 
 #: The pinned conversion applied to the PNG leg. Never remove it: without it
 #: the encode-side metrics measure a colour-space conversion.
@@ -113,7 +122,7 @@ RGB_PIX_FMT: str = "rgb24"
 
 #: The frame filename pattern the renderer writes. Imported rather than
 #: restated so a rename cannot desynchronise the two.
-from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN  # noqa: E402
+from an.media.frames import DEFAULT_FRAME_PNG_PATTERN  # noqa: E402
 
 
 class BenchDecodeError(RuntimeError):
@@ -272,7 +281,7 @@ def lossless_encode_command(
       stay lossless, or every encode-side metric is measured against a moving
       target and the lever produces beautiful numbers about nothing.
     - ``pix_fmt`` is resolved at CALL time through the product's own
-      :func:`~an.adapters.cutout.render._check_pix_fmt`. The bench passes the
+      :func:`~an.stage.render._check_pix_fmt`. The bench passes the
       format **probed off the delivered mp4** (:func:`delivered_pix_fmt`);
       ``None`` falls back to ``DEFAULT_PIX_FMT``, which is right for a caller
       with no delivered file to match and wrong for one that has it.

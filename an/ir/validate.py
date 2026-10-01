@@ -247,7 +247,7 @@ def _path_document_problem(entity, store) -> "str | None | bool":
         return False
     if not isinstance(doc, dict) or doc.get("kind") != "PathDescriptor":
         return False
-    from an.paths import resolve_path  # the compiler's own resolver
+    from an.stage.paths import resolve_path  # the compiler's own resolver
 
     try:
         resolve_path(doc, entity.overrides)
@@ -281,7 +281,7 @@ def _check_text_blocks(
     props = stores.get("props")
     if props is None:
         return set()
-    from an.text import (
+    from an.stage.text import (
         font_base_dir,
         layout_text,
         resolve_text,
@@ -377,7 +377,7 @@ def _check_trim_targets(
         }
     undashed_ids: set[str] = set()
     if props is not None:
-        from an.paths import resolve_path
+        from an.stage.paths import resolve_path
 
         for e in shot.entities:
             if e.id in path_ids and e.kind == "prop":
@@ -1049,7 +1049,7 @@ def _check_action_targets(
     Resolved against :func:`_built_node_paths` — the compiler's own stage
     builder, the one a preset `play` is checked against (an#166) — so the rig
     is never restated here; the message is the compiler's
-    (:func:`an.adapters.cutout.compile.unknown_target_message`), with "did you
+    (:func:`an.stage.compile.unknown_target_message`), with "did you
     mean" suggestions from the real paths. A target on an entity whose store
     was not supplied is skipped: without it a stand-in (the placeholder rig,
     the default backdrop) would be built, and its paths are not the asset's.
@@ -1057,9 +1057,11 @@ def _check_action_targets(
     checked by `_check_text_blocks`, at the scene's resolution). The runtime's
     camera node (``root``) is a legitimate target, as the compiler says.
     """
-    if not stores or shot.renderer != "cutout":
+    from an.stage import STAGE_RENDERER_NAMES
+
+    if not stores or shot.renderer not in STAGE_RENDERER_NAMES:
         return
-    from an.adapters.cutout.compile import CAMERA_NODE, unknown_target_message
+    from an.stage.compile import CAMERA_NODE, unknown_target_message
 
     store_of = {kind: name for kind, (name, _doc) in RIG_STORES.items()}
     store_of["environment"] = "environments"  # its planes are nodes too
@@ -1258,7 +1260,7 @@ def _check_flat_pan(shot, keys, path: str, report: "ValidationReport", stores) -
     env_store = (stores or {}).get("environments")
     if env_store is None:
         return
-    from an.environments import ENVIRONMENT_DOCUMENT_KIND, EnvironmentDescriptor
+    from an.stage.environments import ENVIRONMENT_DOCUMENT_KIND, EnvironmentDescriptor
 
     factors: list[tuple[float, float]] = []
     for entity in shot.entities:
@@ -1312,9 +1314,9 @@ def _check_framing(
     band of background colour, the top of a tree cut off — and renders
     happily. The check is the compiler's geometry evaluated at every camera
     key (or the resting frame when there is no move): the region the pose
-    frames (`an.environments.frame_rect`) against the union of every plane's
+    frames (`an.stage.environments.frame_rect`) against the union of every plane's
     drawn rect with its parallax compensation at that pose
-    (`an.environments.plane_rect`).
+    (`an.stage.environments.plane_rect`).
 
     **Keys suffice for a move without roll.** Between two keys x, y and zoom
     share one eased parameter; a plane edge minus a frame edge is then a
@@ -1333,7 +1335,7 @@ def _check_framing(
     envs = [e for e in shot.entities if e.kind == "environment"]
     if env_store is None or not envs or not (width and height):
         return
-    from an.environments import (
+    from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         EnvironmentDescriptor,
         frame_rect,
@@ -1424,7 +1426,7 @@ def _plane_art_size(root, ref, plane) -> tuple[float, float] | None:
         return None
     from pathlib import Path
 
-    from an.raster import art_size
+    from an.stage.raster import art_size
 
     try:
         return art_size(Path(root) / str(ref) / plane.art.src)
@@ -1505,7 +1507,7 @@ def _check_default_easing(spec: Any, *, report: "ValidationReport") -> None:
     validate."""
     if spec is None:
         return
-    from an.adapters.cutout.easing import apply_easing
+    from an.stage.easing import apply_easing
 
     try:
         apply_easing(spec, 0.5)
@@ -1517,7 +1519,7 @@ def _check_tween_easings(scene: SceneIR, *, report: "ValidationReport") -> None:
     """Every tween's own easing must be one the evaluators know (an#233 review,
     S1) — what compile refuses and the stage runtime cannot draw, validate says
     first, so validate and the player agree."""
-    from an.adapters.cutout.easing import apply_easing
+    from an.stage.easing import apply_easing
     from an.ir.schema import TweenAction
 
     for i, shot in enumerate(scene.timeline):

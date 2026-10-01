@@ -13,7 +13,7 @@ never ``shot.id``) already has an entry, and reuses that entry's mp4.
   the entries, shaped as ``lacing`` artifacts in a ``lacing.ArtifactStore``.
 
 The core names no renderer; the cut-out keyer lives with the cut-out backend
-(`an.adapters.cutout.cache_key`) and registers on its import.
+(`an.stage.cache_key`) and registers on its import.
 
 >>> from an.build import ShotCache, resolve_incremental
 >>> isinstance(resolve_incremental(True), ShotCache)

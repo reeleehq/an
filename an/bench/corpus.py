@@ -68,7 +68,7 @@ def _declare_procedural_rig(entity_ref: str) -> Callable[[Path], None]:
     """
 
     def prepare(project_dir: Path) -> None:
-        from an.adapters.cutout.compile import _PLACEHOLDER_PARTS
+        from an.stage.compile import _PLACEHOLDER_PARTS
         from an.project import load
 
         project = load(project_dir)

@@ -15,7 +15,7 @@ get fixed.
   `resolve_mouth_set`, `expression_problems`, `DefaultExpressionProvider` (`curves`, `spans`, `mouth_preset_at`),
   `BLENDSHAPE_V2_NAMES`/`from_blendshapes`. The combinator is `an.ir.expression` (NOT re-exported at `an.` — that
   name is this subpackage).
-- The solver: `_add_face_clips` → `_solve_face` in `an/adapters/cutout/compile.py`; untouched entities (and empty
+- The solver: `_add_face_clips` → `_solve_face` in `an/stage/compile.py`; untouched entities (and empty
   expressions: `preset: None` with no axes, `intensity: 0`) go through `_blink_placements` (the an#88 body,
   verbatim). `_add_viseme_clips` asks the provider for the preset at the line's start and `resolve_mouth_set` for the
   set (coverage includes the terminal rest, checked against RESOLVED keys); silent spans hold the variant's rest via

@@ -27,7 +27,7 @@ from tests._node import run_node
 
 from an.adapters.cutout.clip import LoopMode, _wrap_time
 
-RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/data/cutout_runtime/runtime.js"
+RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/stage/runtime/runtime.js"
 
 #: (mode, duration, t, expected). Computed from the Python implementation.
 GOLDEN = [

@@ -25,7 +25,7 @@ parallaxing stage from a zooming one. Two additions the epic does not require:
 Two measurements, deliberately different instruments:
 
 **(a) JSON** — free, on every PR, from the compiled document through
-:func:`an.adapters.cutout.timeline.screen_position`. Composed screen space,
+:func:`an.stage.timeline.screen_position`. Composed screen space,
 not local channel values: a rigid pan on ``root`` leaves every plane's local
 ``Δx`` at zero.
 
@@ -150,7 +150,7 @@ def measure_pan_json(
     ``plane_paths`` are full node paths (``"depths/far"``); the returned
     tracks are keyed by the LAST segment, which is the plane's own name.
     """
-    from an.adapters.cutout.timeline import (
+    from an.stage.timeline import (
         evaluate_timeline,
         screen_position,
         timeline_from_scene,
@@ -224,7 +224,7 @@ def _probe_point(scene: Any, path: str) -> tuple[float, float]:
     compiler path produces either shape today — both environment containers sit
     at identity — so it was a guarantee resting on an unstated invariant.
     """
-    from an.adapters.cutout.timeline import _node_chain, transform_of
+    from an.stage.timeline import _node_chain, transform_of
 
     at = (0.0, 0.0)
     # Root first, downward, undoing each transform in turn — and skipping the

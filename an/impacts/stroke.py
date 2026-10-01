@@ -44,7 +44,7 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from typing import Literal
 
-from an.adapters.cutout.easing import apply_easing
+from an.stage.easing import apply_easing
 from an.impacts.performance import ImpactEvent
 
 __all__ = [

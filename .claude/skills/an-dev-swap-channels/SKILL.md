@@ -117,7 +117,7 @@ If your new set needed code, you broke the generalisation; stop and fix that.
 | What | Where |
 |---|---|
 | Declared sets, eyelid keys, 0.3.0 migration | `an/characters/schema.py` |
-| Projection + aliases + swap checks + hold channels | `an/adapters/cutout/compile.py` (`_swap_vocabulary`, `_check_swap_action`, `_build_svg_character_subtree`, `_compile_actions`) |
+| Projection + aliases + swap checks + hold channels | `an/stage/compile.py` (`_swap_vocabulary`, `_check_swap_action`, `_build_svg_character_subtree`, `_compile_actions`) |
 | Wire carrier | `serialize.py::VisualJSON.asset_sets` |
 | The one applier | `runtime.js::applySwap` (+ `applyProperty` default case; `_anDrawSets` for the procedural mouth) |
 | Pre-render validation | `an/ir/validate.py::_check_swap_references` (transform list duplicated-and-pinned); `an/characters/validate.py::_check_asset_sets` |

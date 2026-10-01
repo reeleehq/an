@@ -56,7 +56,7 @@ from an.ir.schema import (
     VisemeTrack,
 )
 
-RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/data/cutout_runtime/runtime.js"
+RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/stage/runtime/runtime.js"
 
 
 def _character(entity_id: str = "charlie") -> AssetRef:
@@ -305,7 +305,7 @@ def test_no_user_facing_error_cites_an_internal_wave_number():
     """Wave numbering is roadmap vocabulary; it is not in the package."""
     import re as _re
 
-    for mod in ("an/adapters/cutout/compile.py", "an/audio/pipeline.py"):
+    for mod in ("an/stage/compile.py", "an/audio/pipeline.py"):
         src = Path(__file__).resolve().parents[1].joinpath(mod).read_text(encoding="utf-8")
         for m in _re.finditer(r'"[^"]*Wave \d[^"]*"', src):
             raise AssertionError(

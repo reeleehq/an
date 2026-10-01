@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-RUNTIME_DIR = REPO_ROOT / "an/data/cutout_runtime"
+RUNTIME_DIR = REPO_ROOT / "an/stage/runtime"
 VENDOR_DIR = RUNTIME_DIR / "vendor"
 
 #: The published pixi.js@7.4.2 bundle. Obtained from the npm tarball
