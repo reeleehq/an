@@ -58,7 +58,13 @@ from an.library.affordances import (
     missing,
     remedy_for,
 )
-from an.library.floor import BlobFloor, record_statement, register_library, remember
+from an.library.floor import (
+    BlobFloor,
+    library_origin,
+    record_statement,
+    register_library,
+    remember,
+)
 from an.library.federation import (
     AssetNotFoundError,
     Libraries,
@@ -503,9 +509,10 @@ def version_sources(
     version: Mapping[str, Any],
     *,
     floor: BlobFloor | None = _MACHINE,
+    owner: Library | None = None,
     _prefix: str = "",
     _seen: set[str] | None = None,
-    _walked: set[str] | None = None,
+    _walked: set[tuple[str, str]] | None = None,
     _answer: tuple[str, AssetSource | None] | None = None,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source a version's rights depend on — its own, its lineage, its bytes.
@@ -517,12 +524,16 @@ def version_sources(
       machine says about the same bytes (:mod:`an.library.floor`), labelled
       ``<path>: same bytes as <asset>@<version>``. A blob is as restricted as the
       strictest statement made about it anywhere. A statement made by a version
-      this walk reads in full (itself, its lineage) is not read twice from the
-      floor: the walk already holds everything it said.
+      this walk reads in full (itself, its lineage — each in the library it is
+      read from) is not read twice from the floor: the walk already holds
+      everything it said.
 
     floor: a :class:`~an.library.floor.BlobFloor` to read (default: every
         library on the machine); ``None`` leaves the floor out — what the
         version itself says (its "asset label"), which is what the floor stores
+    owner: the library holding ``version``, so its own statements are known as
+        its own (default: unknown — they are then read from the floor too,
+        which repeats a reason and relaxes nothing)
 
     A version carrying an explicit ``relicense`` (who, why) contributes its
     asset-level source alone: that recorded statement replaces everything it
@@ -535,8 +546,8 @@ def version_sources(
     """
     seen = set() if _seen is None else _seen
     walked = set() if _walked is None else _walked
-    if version.get("manifest_sha256"):
-        walked.add(version["manifest_sha256"])
+    if owner is not None and version.get("manifest_sha256"):
+        walked.add((library_origin(owner), version["manifest_sha256"]))
     if floor is _MACHINE:
         floor = BlobFloor(libraries)
     relicense = version.get(RELICENSE_FIELD)
@@ -589,7 +600,7 @@ def version_sources(
     ] + [(ref, ref, None) for ref in version.get("derived_from") or []]
     for parent, label, answer in lineage:
         try:
-            _, pinned, parent_version = resolve(libraries, parent)
+            holder, pinned, parent_version = resolve(libraries, parent)
         except (AssetNotFoundError, AssetIdError):
             # Not on this search path: fall back to the rights this version
             # recorded when it was published (which did resolve the parent).
@@ -610,6 +621,7 @@ def version_sources(
             libraries,
             parent_version,
             floor=floor,
+            owner=holder,
             _prefix=f"{_prefix}{label} > ",
             _seen=seen,
             _walked=walked,
@@ -792,16 +804,19 @@ def effective_rights(
     version: Mapping[str, Any],
     *,
     floor: BlobFloor | None = _MACHINE,
+    owner: Library | None = None,
 ) -> Rights:
     """The rights of a version, recomputed from its sources, its lineage and its bytes.
+
+    owner: the library holding ``version`` (see :func:`version_sources`)
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
     >>> _ = publish(lib, "prop.vase", {"name": "vase"},
     ...             source={"provider": "film", "license": "all-rights-reserved"})
-    >>> effective_rights(lib, read_version(lib, "prop.vase", "v001")).license_class
+    >>> effective_rights(lib, read_version(lib, "prop.vase", "v001"), owner=lib).license_class
     'private'
     """
-    rights = roll_up(version_sources(libraries, version, floor=floor))
+    rights = roll_up(version_sources(libraries, version, floor=floor, owner=owner))
     relicense = version.get(RELICENSE_FIELD)
     if relicense:
         return Rights(
@@ -1093,7 +1108,7 @@ def publish(
     if unlabelled:
         pending[UNLABELLED_FIELD] = unlabelled
     floor = BlobFloor(readers)
-    rights = effective_rights(readers, pending, floor=floor)
+    rights = effective_rights(readers, pending, floor=floor, owner=library)
     manifest = _manifest(
         doc,
         hashes,
@@ -1125,7 +1140,7 @@ def publish(
     ):
         created = False
         manifest = head_version["manifest_sha256"]
-        rights = effective_rights(readers, head_version, floor=floor)
+        rights = effective_rights(readers, head_version, floor=floor, owner=library)
     else:
         label = _write_version(
             library,
@@ -1540,7 +1555,9 @@ def find(
         readers = [library, *(lib for lib in libs if lib is not library)]
         for entry in index(library):
             if entry.document:
-                recomputed = effective_rights(readers, entry.document, floor=floor)
+                recomputed = effective_rights(
+                    readers, entry.document, floor=floor, owner=library
+                )
                 entry = replace(entry, rights=_stricter(entry.rights, recomputed))
             values = entry.facet_values()
             if any(
@@ -1636,7 +1653,9 @@ def show(libraries: Libraries, ref: str | LibraryRef) -> dict[str, Any]:
         "library": library.name,
         "record": _read_record(library, pinned.asset_id),
         "version": version,
-        "rights": _stricter(stored, effective_rights(libraries, version)).to_dict(),
+        "rights": _stricter(
+            stored, effective_rights(libraries, version, owner=library)
+        ).to_dict(),
         "versions": versions_of(library, pinned.asset_id),
     }
 
@@ -1730,7 +1749,7 @@ def promote(
         raise LibraryError(f"{pinned} is already in the {target.name!r} library")
     readers = [library, *(lib for lib in as_libraries(libraries) if lib is not library)]
     stored = Rights.from_dict(version.get("rights") or {})
-    rights = _stricter(stored, effective_rights(readers, version))
+    rights = _stricter(stored, effective_rights(readers, version, owner=library))
     if not rights.publishable and not allow_restricted:
         raise RightsRefusal(
             f"{pinned} is {rights.license_class} ({'; '.join(rights.reasons) or 'no reasons recorded'}); "

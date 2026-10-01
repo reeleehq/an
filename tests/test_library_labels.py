@@ -209,6 +209,24 @@ def test_a_same_named_librarys_statement_is_not_hidden_by_the_walk(tmp_path, sta
     assert labelled.rights.license_class == expected
 
 
+def test_a_same_named_twin_version_is_not_taken_for_the_walks_own(tmp_path):
+    """Two libraries named ``cutan`` can hold versions with the SAME manifest
+    (same doc, bytes, source and ``previous`` reference) whose ``previous``
+    resolves to different versions — so they say different things. The walk
+    leaves out only the statements of the versions it read, in the library it
+    read them from: the twin's private statement still binds."""
+    head = {"parts/head.svg": CARVED}
+    study = open_library("cutan", root=tmp_path / "study-lib")
+    publish(study, "prop.x", {"name": "x", "source": PRIVATE}, head)
+    twin = publish(study, "prop.x", {"name": "x"}, head)  # private through its v001
+    default = open_library("cutan")
+    publish(default, "prop.x", {"name": "x", "draft": True}, head)
+    mine = publish(default, "prop.x", {"name": "x"}, head)  # unknown through its v001
+    assert mine.manifest_sha256 == twin.manifest_sha256
+    labelled = publish(default, "prop.x", {"name": "x"}, head, source=CC0, relabel=LABEL)
+    assert labelled.rights.license_class == "private", labelled.rights.reasons
+
+
 @pytest.mark.parametrize(
     "kwargs, match",
     [

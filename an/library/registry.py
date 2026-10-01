@@ -85,6 +85,7 @@ __all__ = [
     "registered_roots",
     "remember_statements",
     "remembered_statements",
+    "remembered_statements_by_root",
 ]
 
 #: The sub-folder of the core package's default data root holding the registry
@@ -291,6 +292,14 @@ def remembered_statements(digest: str) -> list[tuple[str, dict[str, Any]]]:
     statement (it said something; what is no longer known). A memory that
     exists but cannot be listed raises :class:`RegistryError`.
     """
+    return [(key, held) for _, key, held in remembered_statements_by_root(digest)]
+
+
+def remembered_statements_by_root(
+    digest: str,
+) -> list[tuple[str | None, str, dict[str, Any]]]:
+    """``(root, asset_key, statement)``: :func:`remembered_statements` with the
+    resolved root of the library that made each (``None`` when unreadable)."""
     folder = _statements_dir(digest)
     try:
         names = sorted(p for p in folder.iterdir() if p.suffix == ".json")
@@ -298,14 +307,15 @@ def remembered_statements(digest: str) -> list[tuple[str, dict[str, Any]]]:
         return []
     except OSError as e:
         raise _unreadable(folder, e) from e
-    out: list[tuple[str, dict[str, Any]]] = []
+    out: list[tuple[str | None, str, dict[str, Any]]] = []
     for path in names:
         try:
             held = json.loads(path.read_text(encoding="utf-8"))
             asset_key = str(held.pop("asset"))
-            held.pop("root", None)
+            root = held.pop("root", None)
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
-            asset_key, held = (
+            root, asset_key, held = (
+                None,
                 f"unreadable statement {path.stem}",
                 {
                     "class": "unknown",
@@ -313,5 +323,5 @@ def remembered_statements(digest: str) -> list[tuple[str, dict[str, Any]]]:
                     "number": 0,
                 },
             )
-        out.append((asset_key, held))
+        out.append((str(root) if root else None, asset_key, held))
     return out

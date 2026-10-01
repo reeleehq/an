@@ -241,7 +241,7 @@ def checkout(
         )
     files = verified_files(library, version)
     readers = [library, *(lib for lib in as_libraries(libraries) if lib is not library)]
-    contributors = version_sources(readers, version)
+    contributors = version_sources(readers, version, owner=library)
     rights = _stricter(
         Rights.from_dict(version.get("rights") or {}), roll_up(contributors)
     )

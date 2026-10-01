@@ -57,13 +57,14 @@ from an.library.registry import (
     register_root,
     registered_roots,
     remember_statements,
-    remembered_statements,
+    remembered_statements_by_root,
 )
 from an.library.root import HOME_ENV_SUFFIX, LIBRARY_DIRNAME, _platform_data_dir
 from an.library.rights import LICENSE_CLASS_ORDER
 
 __all__ = [
     "BlobFloor",
+    "library_origin",
     "machine_libraries",
     "record_statement",
     "register_library",
@@ -142,6 +143,18 @@ def register_library(library: Library) -> None:
             stacklevel=3,
         )
     register_root(library.name, library.root)
+
+
+def library_origin(library: Library) -> str:
+    """Which library a statement came from: its resolved root, or this in-memory library.
+
+    Two libraries can share a name (the default ``cutan`` and one at a custom
+    root), and so an asset key, a version label and even a manifest: only the
+    root tells their statements apart.
+    """
+    if library.root is not None:
+        return str(Path(library.root).expanduser().resolve())
+    return f"<in-memory library {id(library)}>"
 
 
 def remember(library: Library, statements) -> None:
@@ -230,39 +243,43 @@ class BlobFloor:
             else (as_libraries(libraries) if libraries else [])
         )
         self.remembered = discover
-        self._memo: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+        self._memo: dict[str, list[tuple[str | None, str, dict[str, Any]]]] = {}
 
-    def _all(self, digest: str) -> list[tuple[str, dict[str, Any]]]:
-        """Every ``(asset_key, statement)`` about ``digest``, unmerged, read once."""
+    def _all(self, digest: str) -> list[tuple[str | None, str, dict[str, Any]]]:
+        """Every ``(origin, asset_key, statement)`` about ``digest``, unmerged, read once."""
         if digest not in self._memo:
-            found: list[tuple[str, dict[str, Any]]] = []
+            found: list[tuple[str | None, str, dict[str, Any]]] = []
             for library in self.libraries:
                 store = library.blob_rights
                 try:
                     entries = store[digest] if digest in store else {}
                 except Exception:  # noqa: BLE001 — a damaged index entry is rebuilt by reindex
                     entries = {}
-                found += [(key, dict(s)) for key, s in entries.items()]
+                origin = library_origin(library)
+                found += [(origin, key, dict(s)) for key, s in entries.items()]
             # What any library on this machine ever said, even one since moved,
             # renamed or deleted: a missing root relaxes nothing.
-            found += remembered_statements(digest) if self.remembered else []
+            found += remembered_statements_by_root(digest) if self.remembered else []
             self._memo[digest] = found
         return self._memo[digest]
 
     def statements(
-        self, digest: str, *, exclude: Collection[str] = ()
+        self, digest: str, *, exclude: Collection[tuple[str, str]] = ()
     ) -> dict[str, dict[str, Any]]:
         """``{asset_key: statement}`` about ``digest`` from every library.
 
-        exclude: version manifests whose statements to leave out — the
-            versions a rights walk reads in full itself
-            (:func:`an.library.api.version_sources`). Excluded before two
-            libraries' statements under one asset key are merged, so another
-            library's same-named asset is never hidden by it.
+        exclude: ``(origin, manifest)`` of versions whose statements to leave
+            out — the versions a rights walk reads in full itself
+            (:func:`an.library.api.version_sources`), each in the library it
+            was read from (:func:`library_origin`). A same-named library's
+            version with the same manifest is another version (its lineage
+            resolves in ITS library), so it is never left out; and the
+            exclusion runs before statements under one asset key are merged,
+            so it can hide nothing else.
         """
         merged: dict[str, dict[str, Any]] = {}
-        for key, statement in self._all(digest):
-            if exclude and statement.get("manifest") in exclude:
+        for origin, key, statement in self._all(digest):
+            if exclude and (origin, statement.get("manifest")) in exclude:
                 continue
             held = merged.get(key)
             if held is None or _outranks(statement, held):
