@@ -54,18 +54,25 @@ live:
     # tempo = target median / its measured rate (guidance.voice_acting.tempo).
     # `takes` re-rolls a line N times and keeps the take that measures closest to its targets
     # (each take is a billed request; the render prints the cost before the first one).
+    # `effects.trim_silence: {threshold_db: -45}` (an#254) on every role: the style's measured gaps
+    # between lines are 0.15-0.35 s (guidance.voice_acting.pauses), set with `(pause s)`, and the
+    # silence eleven_v3 pads a line with (0.4 s before "Hi!", 0.65 s after) would swamp them; -45 dB
+    # under the line's loudest window cuts only that dead air and KEEPS breaths, which this style
+    # keeps as natural artifacts (the default -20 would cut them).
     roles:
       narrator:  # Creative: the lively setups; {deadpan} still lands flat at 0.0. Punchlines are re-rolled.
-        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.0}, effects: {tempo: 1.1},
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.0}, effects: {tempo: 1.1, trim_silence: {threshold_db: -45}},
          takes: {n: 1, cues: {deadpan: {n: 3, targets: punchline}}}}
       eager:     # {excited} carries the jump; 0.5 keeps the same voice's wounded lines flat. The most variable voice: re-roll every line.
         {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5},
-         takes: {n: 3, targets: eager}}
-      regal:     {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}   # on target in one take
+         effects: {trim_silence: {threshold_db: -45}}, takes: {n: 3, targets: eager}}
+      regal:     {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5},
+                  effects: {trim_silence: {threshold_db: -45}}}   # on target in one take
       deadpan:   # a character who is deadpan throughout (untested as a whole role; the narrator's punchline numbers apply)
-        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}, takes: {n: 2, targets: deadpan}}
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5},
+         effects: {trim_silence: {threshold_db: -45}}, takes: {n: 2, targets: deadpan}}
       serene:    # Robust: the only setting that flattened an expressive cloned voice; slowed, since no v3 tag slows it
-        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 1.0}, effects: {tempo: 0.7},
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 1.0}, effects: {tempo: 0.7, trim_silence: {threshold_db: -45}},
          takes: {n: 2, targets: serene}}
 
 targets:
