@@ -195,7 +195,7 @@ def test_a_changed_contract_file_without_a_bump_is_reported(build, sandbox):
 def test_a_line_ending_difference_is_not_a_change(build, sandbox):
     """A Windows checkout may rewrite line endings; the digest is of the text as git stores it."""
     path = sandbox / "easing.json"
-    path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+    path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
     assert build.check(sandbox) == []
 
 
