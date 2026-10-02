@@ -1397,7 +1397,8 @@ def _assemble_document(state: CompileState, *, background: str) -> CutoutSceneJS
             gaze_seeds=state.gaze_seeds,
             style_pack=style_pack.name if style_pack is not None else None,
             fonts=state.fonts,
-            entity_spaces=entity_spaces_of(shot),
+            entity_spaces=(entity_spaces := entity_spaces_of(shot)),
+            spaces=space_definitions(entity_spaces),
             extensions=state.meta_extensions,
         ),
         scene=state.scene_root,
@@ -1435,6 +1436,54 @@ def entity_spaces_of(shot: Shot) -> dict[str, str]:
         kind = entity_kind(entity.kind)
         if kind is not None and kind.space and kind.space != spaces.DFLT_TIMELINE_SPACE:
             out[entity.id] = kind.space
+    return out
+
+
+#: The field kinds ``runtime.js`` implements (its ``FIELD_KINDS`` table; a test
+#: pins the two). A declared space using any other kind cannot be drawn by the
+#: stage, so the compiler refuses it instead of the browser failing mid-render.
+RUNTIME_FIELD_KINDS: frozenset[str] = frozenset(
+    {"number", "angle", "vector", "quaternion", "color", "orbit", "discrete"}
+)
+
+
+def space_definitions(entity_spaces: Mapping[str, str]) -> dict[str, dict[str, Any]]:
+    """``{space name: definition}`` for every space ``entity_spaces`` names --
+    what the compiled document embeds as ``meta.spaces`` so ``runtime.js``
+    evaluates each declared entity in its space (an#287).
+
+    The definition is :meth:`~an.timing.spaces.PropertySpace.to_json` without
+    its prose (a reworded description must not move a contract hash; a
+    space's ``version`` does). A space using a field kind the runtime does not
+    implement is refused here (:class:`CutoutCompileError`).
+
+    >>> space_definitions({})
+    {}
+    >>> space_definitions({"cam": "stage.camera"})["stage.camera"]["fields"][0]
+    {'pattern': 'x', 'spec': {'kind': 'number'}, 'unit': 'px'}
+    """
+    from an.timing import spaces
+
+    out: dict[str, dict[str, Any]] = {}
+    for name in sorted(set(entity_spaces.values())):
+        space = spaces.get_space(name)
+        used = {d.kind.name for d in space.fields} | {space.undeclared.name}
+        missing = sorted(used - RUNTIME_FIELD_KINDS)
+        if missing:
+            users = sorted(e for e, s in entity_spaces.items() if s == name)
+            raise CutoutCompileError(
+                f"entities {users} declare the property space {name!r}, which uses "
+                f"field kind(s) {missing} that the stage runtime cannot evaluate "
+                f"(it implements {sorted(RUNTIME_FIELD_KINDS)}). Render these "
+                "entities with an engine that implements the kind, or declare a "
+                "space of core kinds for the stage (an#287)."
+            )
+        doc = space.to_json()
+        doc.pop("description", None)
+        doc["fields"] = [
+            {k: v for k, v in f.items() if k != "description"} for f in doc["fields"]
+        ]
+        out[name] = doc
     return out
 
 

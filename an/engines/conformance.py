@@ -27,6 +27,7 @@ from typing import Any
 __all__ = [
     "VECTORS_RESOURCE",
     "as_contract_state",
+    "case_document",
     "conformance_report",
     "readback_mismatches",
     "vector_cases",
@@ -43,6 +44,50 @@ def vector_cases(*, space: str | None = None) -> list[dict[str, Any]]:
     package, name = VECTORS_RESOURCE
     doc = json.loads(files(package).joinpath(name).read_text(encoding="utf-8"))
     return [c for c in doc["cases"] if space is None or c.get("space") == space]
+
+
+def case_document(case: Mapping[str, Any]) -> dict[str, Any]:
+    """The case's document, carrying its property space the way a compiled
+    document does (an#287): ``meta.entity_spaces`` names the space for every
+    entity the case animates and ``meta.spaces`` defines it, so an engine that
+    reads only the DOCUMENT (``runtime.js`` has no registry) evaluates the case
+    in the case's space. A case in the default space is returned as it is.
+
+    >>> case = {"space": {"name": "inline", "fields": []}, "document": {
+    ...     "timeline": {"duration": 1.0, "tracks": []}, "animations": {"m": {
+    ...     "duration": 1.0, "channels": [{"target": "view/a", "property": "x",
+    ...     "keyframes": [{"time": 0.0, "value": 0}]}]}}}}
+    >>> meta = case_document(case)["meta"]
+    >>> meta["entity_spaces"], meta["spaces"]["inline"]["fields"]
+    ({'view': 'inline'}, [])
+    >>> "meta" in case_document({"space": "stage.node", "document": case["document"]})
+    False
+    """
+    import copy
+
+    from an.timing import spaces
+
+    doc = copy.deepcopy(dict(case["document"]))
+    space = case.get("space")
+    if space is None or space == spaces.DFLT_TIMELINE_SPACE:
+        return doc
+    definition = (
+        spaces.get_space(space).to_json() if isinstance(space, str) else dict(space)
+    )
+    name = definition.get("name", "inline")
+    entities = sorted(
+        {
+            ch["target"].split("/", 1)[0]
+            for anim in doc.get("animations", {}).values()
+            for ch in anim.get("channels", ())
+        }
+    )
+    doc["meta"] = {
+        **dict(doc.get("meta", {})),
+        "entity_spaces": dict.fromkeys(entities, name),
+        "spaces": {name: definition},
+    }
+    return doc
 
 
 def as_contract_state(state: Mapping[Any, Any]) -> dict[str, Any]:

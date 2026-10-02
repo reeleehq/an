@@ -526,7 +526,9 @@ Also still unmeasured, from `wave3_research.md` §7 — do not assume any of the
    cache-poisoning vector, not merely an imprecision.
 5. **`runtime.js`'s evaluator is held to the timing contract** (an#233). A change
    to `evaluateChannel`, `evaluateTimeline`, `applyEasing`/`EASINGS` or `wrapTime`
-   must still reproduce every `stage.node` case of `an/data/timing/timing_vectors.json`
-   (`tests/test_timing_contract.py::test_the_stage_runtime_reproduces_every_stage_vector`),
+   must still reproduce every case of `an/data/timing/timing_vectors.json` — the
+   `stage.node` ones by value type, the inline-space ones in their declared space
+   (an#287: `meta.entity_spaces` + `meta.spaces`; `tests/test_timing_contract.py`,
+   node-run, and `tests/test_stage_engine.py`, in the browser),
    and the Python side must pass `python -m an.timing.contract check`. A kernel
    change is gated on four checks: contract hashes, parity, pure-pose, pixel goldens.

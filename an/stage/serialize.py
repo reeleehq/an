@@ -399,6 +399,14 @@ class CutoutSceneMetaJSON(_JSONModel):
     #: non-empty**: no shipped kind declares another space, so no document and
     #: no contract hash moves until a genre registers one.
     entity_spaces: dict[str, str] = Field(default_factory=dict)
+    #: The definition of each space ``entity_spaces`` names, in the timing
+    #: contract's ``kinds.json`` form (``PropertySpace.to_json``), so the
+    #: document is self-describing: ``runtime.js`` has no registry and evaluates
+    #: a declared entity's targets by THESE field kinds and write groups
+    #: (an#287), and :func:`an.timing.timeline.timeline_from_compiled` reads the
+    #: same definitions back. **Serialized only when non-empty** (it is empty
+    #: exactly when ``entity_spaces`` is).
+    spaces: dict[str, dict[str, Any]] = Field(default_factory=dict)
     #: What genre compile passes add to the document's meta, by key (an#247):
     #: the generic slot a pass writes through ``CompileState.meta_extensions``
     #: rather than a field the stage would have to know by name. Also where a
@@ -426,6 +434,9 @@ class CutoutSceneMetaJSON(_JSONModel):
         # an#245, in the same commit as the field (the an#112 rule).
         if isinstance(data, dict) and not data.get("entity_spaces"):
             data.pop("entity_spaces", None)
+        # an#287, in the same commit as the field (the an#112 rule).
+        if isinstance(data, dict) and not data.get("spaces"):
+            data.pop("spaces", None)
         if isinstance(data, dict) and not data.get("extensions"):
             data.pop("extensions", None)
         return data

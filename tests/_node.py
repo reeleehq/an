@@ -57,6 +57,14 @@ def timeout_for(base: float = NODE_TIMEOUT_S) -> float:
 NODE_ATTEMPTS: int = 2
 
 
+#: What `node -e` actually runs: the script itself arrives on stdin. Windows
+#: caps a command line at 32,767 characters, and the runtime's evaluation code
+#: lifted out of `runtime.js` passed that once the declared-space kernel landed
+#: (an#287: WinError 206). Evaluated directly, so `process.argv` is what
+#: `node -e <script> <args>` always gave the callers.
+NODE_STDIN_LOADER: str = "eval(require('fs').readFileSync(0, 'utf8'))"
+
+
 def have_node() -> bool:
     """Whether `node` is on PATH at all."""
     return shutil.which("node") is not None
@@ -68,7 +76,7 @@ requires_node = pytest.mark.skipif(not have_node(), reason="node is not installe
 def run_node(
     script: str, *args: str, timeout: float = NODE_TIMEOUT_S
 ) -> subprocess.CompletedProcess:
-    """Evaluate `script` with `node -e`, and return the completed process.
+    """Evaluate `script` with `node` (fed on stdin), and return the completed process.
 
     Raises `pytest.fail` on a timeout that survives the retry, naming it as a
     runner stall rather than letting a bare `TimeoutExpired` traceback imply the
@@ -80,9 +88,11 @@ def run_node(
     for _attempt in range(NODE_ATTEMPTS):
         try:
             return subprocess.run(
-                ["node", "-e", script, *args],
+                ["node", "-e", NODE_STDIN_LOADER, *args],
+                input=script,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
                 timeout=bound,
             )
         except subprocess.TimeoutExpired as exc:  # pragma: no cover - runner-dependent
