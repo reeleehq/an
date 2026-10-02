@@ -751,7 +751,11 @@ def pytest_make_collect_report(collector):
     static = static_genre_marked([path])
     if not static:
         return
-    _GENRE_COLLECTED.update(static)
+    # Kept apart from _GENRE_COLLECTED, which `pytest_collection_modifyitems` rebuilds
+    # from the items (and so would drop these): the guard counts both.
+    _GENRE_UNIMPORTABLE_COLLECTED.update(
+        (str(path.resolve()), name) for _, name in static
+    )
     _GENRE_UNIMPORTABLE.append((str(path), len(static)))
     report.outcome = "skipped"
     report.longrepr = (
@@ -763,13 +767,17 @@ def pytest_make_collect_report(collector):
 
 #: ``(file, marked tests)`` of genre test files skipped because the genre is absent.
 _GENRE_UNIMPORTABLE: list = []
+#: The marked tests of those files, as the count guard keys them.
+_GENRE_UNIMPORTABLE_COLLECTED: set = set()
 
 
 def pytest_sessionfinish(session, exitstatus):
     scope = _genre_guard_scope(session.config)
     if not scope:
         return
-    gaps = genre_count_gaps(static_genre_marked(sorted(scope)), _GENRE_COLLECTED)
+    gaps = genre_count_gaps(
+        static_genre_marked(sorted(scope)), _GENRE_COLLECTED | _GENRE_UNIMPORTABLE_COLLECTED
+    )
     if gaps:
         reporter = session.config.pluginmanager.get_plugin("terminalreporter")
         lines = "\n  ".join(f"{f}::{n}" for f, n in gaps)
