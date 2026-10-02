@@ -26,11 +26,8 @@ from pathlib import Path
 
 import pytest
 
-from an.adapters.cutout.compile import (
-    _PLACEHOLDER_PARTS,
-    CutoutCompileWarning,
-    compile_shot,
-)
+from an.adapters.cutout.compile import CutoutCompileWarning, compile_shot
+from cutan.compile.passes import _PLACEHOLDER_PARTS
 from an.adapters.cutout.serialize import from_dict, to_dict
 from an.adapters.cutout.surface import (
     GLOW_NODE,
@@ -43,6 +40,9 @@ from an.adapters.cutout.surface import (
 )
 from an.ir.schema import AssetRef, Shot, TweenAction
 from an.styles import StylePack, SurfaceTreatment, surface_for
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 W, H = 640, 360
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "characters" / "gale"
@@ -382,7 +382,7 @@ def test_in_pixels_outline_shadow_and_grain_land_where_the_document_says(tmp_pat
     edge = cx + 50 + 15  # the right arm's right edge: x 50, width 30
     y = cy - 10  # the arm's middle: y -10, height 70
     # the arm itself is drawn OVER its copies (draw order), in its own colour
-    from an.adapters.cutout.compile import _palette_for
+    from cutan.compile.passes import _palette_for
 
     arm = tuple(int(_palette_for("charlie")[1][i : i + 2], 16) for i in (1, 3, 5))
     check(first, edge - 10, y, arm, "the arm over its own outline")

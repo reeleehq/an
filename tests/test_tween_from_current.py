@@ -20,10 +20,14 @@ import pytest
 
 from an.adapters.cutout.compile import CutoutCompileError, compile_shot
 from an.adapters.cutout.timeline import evaluate_timeline, timeline_from_scene
-from an.ir.compose import delay, play, sequence, set_
+from an.ir.compose import delay, sequence, set_
+from cutan.characters.registration import play
 from an.ir.compose import tween as _tween
 from an.ir.schema import AssetRef, Shot, StagePlacement
 from an.motion import rest_pose
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 
 def tween(target, prop, *, to, duration, start=0.0, **kw):

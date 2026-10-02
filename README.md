@@ -204,12 +204,12 @@ transcript=)` returning `(text, start, end)` tuples). `muvid` uses
 this hook to feed `lacing` alignment-store timings straight into the
 cutout pipeline.
 
-### Synthetic impact clips (`an.impacts`)
+### Synthetic impact clips (`cutan.impacts`)
 
 Structured animations of a stick or a ball striking a surface — or striking *the air*, a stroke that turns with nothing to hit — on a known tempo grid, filmed by a camera whose frame rate, shutter and capture jitter you choose. Each clip ships a sidecar that keeps three times apart, which is what makes it useful for scoring estimators that try to recover an impact *between* two frames: the **intended** grid time, the **executed** impact time (grid plus humanisation, in continuous seconds — never snapped to a frame), and **what the frames show** (each frame's exposure interval and sample instants, per-frame keypoints, and which frames bracket each impact).
 
 ```python
-from an.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
+from cutan.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
 
 spec = ImpactClipSpec(
     object="stick",
@@ -232,7 +232,7 @@ write_impact_clip(
 write_impact_set("~/clips/set")  # 24 clips sharing one performance
 ```
 
-The clips are ordinary `an` scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — `write_impact_clip` refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame's keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The `truth.json` schema is documented in `an/impacts/truth.py`. The camera model is `an.frame_clock.FrameClock`, which reaches the renderer through `RenderContext.frame_samples`: several instants averaged per frame are an open shutter, instants off the `i / fps` grid are capture jitter, and a render without it is byte-identical to before.
+The clips are ordinary `an` scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — `write_impact_clip` refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame's keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The `truth.json` schema is documented in `cutan/impacts/truth.py`. The camera model is `an.frame_clock.FrameClock`, which reaches the renderer through `RenderContext.frame_samples`: several instants averaged per frame are an open shutter, instants off the `i / fps` grid are capture jitter, and a render without it is byte-identical to before.
 
 ---
 

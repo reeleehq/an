@@ -17,23 +17,24 @@ import pytest
 
 from an.ir.schema import AssetRef, SceneIR
 from an.ir.sync import ir_to_markdown, markdown_to_ir, scene_from_json_doc
+from tests._corpus_roots import corpus_glob, corpus_relative
 
 ROOT = Path(__file__).resolve().parents[1]
-SCENE_MDS = sorted(
-    [*ROOT.glob("examples/**/scene.md"), *ROOT.glob("misc/bench/corpus/*/scene.md")]
-)
-SCENE_JSONS = sorted(
-    [
-        *ROOT.glob("examples/**/ir/scene.json"),
-        *ROOT.glob("misc/bench/corpus/*/ir/scene.json"),
-    ]
-)
+SCENE_MDS = [
+    *corpus_glob("examples/**/scene.md"),
+    *corpus_glob("misc/bench/corpus/*/scene.md"),
+]
+SCENE_JSONS = [
+    *corpus_glob("examples/**/ir/scene.json"),
+    *corpus_glob("misc/bench/corpus/*/ir/scene.json"),
+]
 
 
 def _ids(paths):
-    return [p.relative_to(ROOT).as_posix() for p in paths]
+    return [corpus_relative(p) for p in paths]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_corpus_is_found():
     """Guard the guard: an empty glob would make every parametrised case vanish."""
     assert len(SCENE_MDS) >= 10 and len(SCENE_JSONS) >= 1

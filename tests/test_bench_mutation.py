@@ -296,7 +296,7 @@ def test_a_lever_that_did_not_apply_is_refused_rather_than_reported_as_blindness
     from an.bench.mutations import LEVERS
 
     lever = LEVERS["high_crf"]
-    one = {"aa_probe": DFLT_FIXTURES["aa_probe"]}
+    one = {"path_draw": DFLT_FIXTURES["path_draw"]}
     row = mutated_row("high_crf", scenes=one)
     lever.verify_row(row)  # the real thing passes
 
@@ -382,7 +382,7 @@ def test_the_aa_lever_can_prove_it_applied():
     from an.bench.environment import runtime_sha256
     from an.bench.run import run_bench
 
-    one = {"aa_probe": DFLT_FIXTURES["aa_probe"]}
+    one = {"path_draw": DFLT_FIXTURES["path_draw"]}
     lever = LEVERS["disabled_aa"]
     assert lever.verify_row is not None
 
@@ -599,6 +599,7 @@ def test_a_killed_sweep_restores_the_tree(tmp_path, signame):
     )
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("signame", ["SIGINT", "SIGTERM"])
 def test_the_cli_says_the_tree_survived_however_it_was_interrupted(tmp_path, signame):
     """MUTATION: narrow the CLI clause back to `except MutantRunInterrupted`.

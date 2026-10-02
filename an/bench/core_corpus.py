@@ -22,10 +22,10 @@ same ``an bench`` (the cut-out corpus imports them, in
 contract hashes are checked by the same default-leg guard. What makes them the
 CORE corpus is what they need: ``tests/test_core_corpus.py`` renders every one
 of them with NO GENRE REGISTERED and checks each pinned frame against its bless
-record. That they render with no cut-out CODE is not proven yet — the stage
-compiler still imports and runs ``an.characters`` — and is the strict-xfail
-proof P8's B0c (an#225) flips. When the cut-out corpus moves to ``cutan``, this
-module, the scenes and their goldens stay.
+record. That they render with no cut-out CODE is proven too, since the move
+(an#225): the same tests run with every cut-out module poisoned. The cut-out
+corpus lives in ``cutan`` (``cutan.bench``); this module, the scenes and their
+goldens stay.
 
 This module is CORE (behind no firewall): the fixture type, the pinned render
 knobs, the throwaway copy and the browser-free contract hash moved here from
@@ -90,7 +90,7 @@ class Fixture:
 #: The second reason is that a metrics fixture must **hold still**. These four
 #: carry their whole rig as committed files and have no ``prepare`` step, so
 #: their pixels are a function of the repo alone — where `promote_demo`'s are a
-#: function of `an.characters.promote`, and would need re-blessing whenever that
+#: function of `cutan.characters.promote`, and would need re-blessing whenever that
 #: changes.
 CORPUS_DIRNAME: str = "misc/bench/corpus"
 

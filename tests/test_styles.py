@@ -79,6 +79,7 @@ def _colours(scene) -> list[str]:
 # --- byte-identity, the rule the whole feature is shaped around --------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_scene_with_no_pack_compiles_to_exactly_what_it_always_did():
     """The no-pack path is a LOOKUP WITH A DEFAULT, not a rewrite."""
     import warnings
@@ -142,11 +143,16 @@ def test_an_unreachable_role_is_refused_with_its_reason(role):
         StylePack(name="x", entities={"maya": {role: "#800000"}})
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_unreachable_list_matches_the_runtime_literals_it_names():
     """Read out of `runtime.js`, not typed here. The list's whole job is to be
     true about that file, so a literal that becomes document-driven — or a new
     one that does not — must move this test rather than pass it."""
-    src = RUNTIME_JS.read_text(encoding="utf-8")
+    import importlib.util
+
+    # The mouth and eye are the cut-out genre's runtime script since an#225.
+    visuals = importlib.util.find_spec("cutan.runtime")
+    src = (Path(list(visuals.submodule_search_locations)[0]) / "visuals.js").read_text(encoding="utf-8")
     for literal in ("_LIP_COLOR", "_MOUTH_FILL", "_TEETH_COLOR", "_TONGUE_COLOR"):
         assert f"const {literal}" in src, literal
     # The eye white is an inline literal in makeEye, which is why `eye_sclera`
@@ -182,6 +188,7 @@ def _painted(scene) -> list[str]:
     return out
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("role", sorted(REACHABLE_ROLES))
 def test_every_role_declared_REACHABLE_actually_reaches_the_document(role, tmp_path):
     """The counterpart `UNREACHABLE_ROLES` never had, and its absence is how
@@ -221,7 +228,7 @@ def test_every_role_declared_REACHABLE_actually_reaches_the_document(role, tmp_p
     elif role == "accessory":
         # Only role-tagged SVG art has an accessory: a factory character with
         # a hat, whose descriptor records the hat's literal as `accessory`.
-        from an.characters import new_character
+        from cutan.characters import new_character
         from an.stores.characters import CharactersStore
 
         new_character(tmp_path, name="c", use_dicebear=False, hat="cap")
@@ -241,6 +248,7 @@ def test_every_role_declared_REACHABLE_actually_reaches_the_document(role, tmp_p
     assert marker in _painted(scene), f"{role} is declared reachable and reaches nothing"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_pack_recolours_the_procedural_rig_and_the_environment_preset():
     pack = StylePack(
         name="noir",
@@ -260,6 +268,7 @@ def test_a_pack_recolours_the_procedural_rig_and_the_environment_preset():
     assert plain & {"#3a3a44", "#22222a"} == set()
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_per_entity_override_beats_the_role():
     pack = StylePack(name="noir", roles={"sky": "#3a3a44"},
                      entities={"room": {"sky": "#ff00ff"}})
@@ -282,6 +291,7 @@ def test_resolve_palette_is_a_lookup_with_a_default():
 # --- the SVG limit, said out loud ---------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_pack_warns_about_the_svg_art_it_cannot_reach(tmp_path):
     """A pack recolours what the COMPILER decides and role-TAGGED SVG art. An
     untagged rig's colours are inside its drawings with no record of what they
@@ -303,6 +313,7 @@ def test_a_pack_warns_about_the_svg_art_it_cannot_reach(tmp_path):
                      style_pack=StylePack(name="noir", roles={"skin": "#d8d8d8"}))
 
 
+@pytest.mark.genre("cutout_animation")
 def test_no_pack_means_no_warning_about_unreachable_art(tmp_path):
     """The warning is about the pack, so a scene without one must be silent —
     otherwise every SVG scene in the corpus grows a warning it cannot act on."""
@@ -352,6 +363,7 @@ def test_the_pack_is_its_own_registered_document_kind():
 # --- the bench sees it, without the bench being told about packs -------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_benchs_palette_derivation_picks_up_a_pack():
     """The done-when, and the reason nothing in `an/bench/` mentions a pack:
     the compiler RESOLVES the colours into the staged document, and the
@@ -471,6 +483,7 @@ def test_the_preview_path_carries_it_too():
     assert "style_pack=style_pack_for(" in src
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_per_entity_override_reaches_the_CHARACTER_palette():
     """The existing override test used the environment only, so dropping
     `entity=` from `resolve_palette` passed the suite (an#112 review, M3)."""
@@ -487,6 +500,7 @@ def test_a_per_entity_override_reaches_the_CHARACTER_palette():
     assert "#00ff00" in painted and "#d8d8d8" not in painted
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_leg_role_reaches_a_character_that_HAS_legs():
     """The older test declares a `leg` colour and leaves it out of its own
     assertion, because the placeholder rig has no legs — so the role was
@@ -508,16 +522,18 @@ def test_the_leg_role_reaches_a_character_that_HAS_legs():
     assert "#101014" in _colours(scene)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_default_leg_and_pupil_colours_are_the_literals_they_replaced():
     """Both moved from inline literals into named constants. A constant whose
     value drifts is a picture change nobody asked for, and only a labelled
     golden run would otherwise catch it."""
-    from an.adapters.cutout.compile import DFLT_LEG_COLOUR, DFLT_PUPIL_COLOUR
+    from cutan.compile.passes import DFLT_LEG_COLOUR, DFLT_PUPIL_COLOUR
 
     assert DFLT_LEG_COLOUR == "#2c3e50"
     assert DFLT_PUPIL_COLOUR == "#1a1a1a"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_compiled_document_records_which_pack_produced_it():
     """It recorded nothing: `compile_shot` never passed `style_pack` into the
     meta, so the field its docstring called provenance was unconditionally

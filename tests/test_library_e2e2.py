@@ -23,12 +23,15 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
-from an.characters.factory import new_character
+from cutan.characters.factory import new_character
 from an.credits import collect_credits, credits_for_scene, speech_credits
 from an.library import checkout, find, open_library, publish, publish_dir
 from an.library.lock import ProjectLock
 from an.project import init as init_project
 from an.stores import build_project_mall
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 CC0 = {"provider": "an-tests", "license": "cc0-1.0"}
 CARVED = b"<svg>a torso nobody has seen</svg>"
@@ -207,8 +210,8 @@ def test_show_counts_the_descriptor_file(project):
 def test_an_explicit_label_stands_in_for_a_generated_descriptor_source(tmp_path, project):
     """A DiceBear character with a re-carved torso: `--license` covers it, as
     it does under the factory's own stamp; DiceBear still credits its head."""
-    from an.characters.factory import stamp_generated_head
-    from an.characters.licenses import dicebear_source
+    from cutan.characters.factory import stamp_generated_head
+    from cutan.characters.licenses import dicebear_source
 
     lib = open_library("cutan")
     char = new_character(tmp_path, name="dee", use_dicebear=False).parent
@@ -228,8 +231,8 @@ def test_an_explicit_label_stands_in_for_a_generated_descriptor_source(tmp_path,
 def test_a_generated_source_that_owes_attribution_never_gives_way(tmp_path):
     """A CC BY DiceBear style keeps its descriptor source under an explicit
     label: the label cannot drop the attribution it obliges."""
-    from an.characters.factory import stamp_generated_head
-    from an.characters.licenses import dicebear_source
+    from cutan.characters.factory import stamp_generated_head
+    from cutan.characters.licenses import dicebear_source
 
     lib = open_library("cutan", records={}, versions={}, blobs={})
     char = new_character(tmp_path, name="ada", use_dicebear=False).parent
@@ -246,7 +249,7 @@ def test_parts_a_generator_restamps_under_a_carried_label_are_labelled(tmp_path,
     """A version labelled cc0 explicitly; `an character mouths` then redraws
     and re-stamps the mouths. The carried label does not cover them, but their
     own stamps do: not `unlabelled`, in the library and in `an credits`."""
-    from an.characters.cli import mouths
+    from cutan.characters.cli import mouths
 
     lib = open_library("cutan")
     char = new_character(project / "assets" / "characters", name="amy", use_dicebear=False).parent
@@ -288,7 +291,7 @@ def test_a_factory_stamp_the_record_does_not_confirm_labels_nothing(tmp_path, pr
     """B1 (A1d / A1e): under a carried label, a carved head under a factory
     stamp — typed by hand, or written by the public stamping function — is
     `unknown`, and UNVERIFIED in a check-out's credits."""
-    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER, stamp_factory_parts
+    from cutan.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER, stamp_factory_parts
     from an.library import api as library_api
 
     lib = open_library("cutan")
@@ -312,7 +315,7 @@ def test_a_factory_stamp_the_record_does_not_confirm_labels_nothing(tmp_path, pr
 def test_a_fresh_publish_under_a_forged_factory_stamp_is_unknown(tmp_path):
     """V1 (pre-existing on main): no carry, a carved head under a hand-forged
     factory stamp is not the factory's work."""
-    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+    from cutan.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
     from an.library import api as library_api
 
     lib = open_library("cutan", records={}, versions={}, blobs={})
@@ -350,7 +353,7 @@ def test_a_part_in_a_dot_named_file_is_credited_and_published(tmp_path, project)
 
 
 def test_add_views_records_what_it_draws(tmp_path):
-    from an.characters.factory import FACTORY_PROVIDER, add_views
+    from cutan.characters.factory import FACTORY_PROVIDER, add_views
     from an.library import api as library_api
     from an.library import registry
 
@@ -364,7 +367,7 @@ def test_a_forged_descriptor_stamp_on_a_carved_drawing_says_nothing_for_it(tmp_p
     """The descriptor's factory stamp itemises its drawing only when the record
     confirms it: otherwise its statement about the drawing is the asset's own
     (`unknown`) label, and another asset labelling the bytes cc0 meets it."""
-    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+    from cutan.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
     from an.library import api as library_api
 
     lib = open_library("cutan", records={}, versions={}, blobs={})

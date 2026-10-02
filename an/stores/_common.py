@@ -15,7 +15,7 @@ Both patterns wrap dol's ``Files`` family.
 from __future__ import annotations
 
 import json
-from collections.abc import MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -152,3 +152,20 @@ class JsonSidecarStore(MutableMapping):
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({str(self._root)!r})"
+
+
+def art_exists_for(characters_store: Mapping, ref: str) -> Callable[[str], bool] | None:
+    """``rel_path -> is the art on disk``, for a character in a filesystem
+    store; ``None`` when the store has no root to look under (a dict, a
+    fake) — a store that can answer nothing must assume presence, not absence,
+    exactly as the rig builder's part probe does.
+    """
+    root = getattr(characters_store, "_root", None)
+    if root is None:
+        return None
+    base = Path(root) / ref
+
+    def exists(rel_path: str) -> bool:
+        return (base / rel_path).is_file()
+
+    return exists

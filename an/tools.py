@@ -18,10 +18,6 @@ from an.orchestrate import render_project as _render_project
 from an.orchestrate import validate_project
 from an.project import init as _init
 from an.iterate import iterate as _iterate
-from an.characters.cli import (
-    _dispatch_funcs as _character_dispatch_funcs,
-)
-from an.impacts.cli import _dispatch_funcs as _impacts_dispatch_funcs
 from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
 from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
 from an.build.cli import _dispatch_funcs as _cache_dispatch_funcs
@@ -654,11 +650,22 @@ _dispatch_funcs = [
 ]
 
 
-# Sub-namespaces. ``__main__`` mounts each as a sub-app so
-# the CLI looks like ``an character new <name> ...``.
+# Sub-namespaces. ``__main__`` mounts each as a sub-app so the CLI looks like
+# ``an voices list``. A genre adds its own (``an character new <name> ...``, from
+# the cut-out genre) through the ``cli.<namespace>`` service
+# (:func:`registered_namespaces`).
+def registered_namespaces() -> dict[str, list]:
+    """The sub-namespaces installed genres added (``cli.<namespace>`` services).
+
+    >>> registered_namespaces() == {} or all(isinstance(v, list) for v in registered_namespaces().values())
+    True
+    """
+    from an.genres import services
+
+    return {name: list(funcs) for name, funcs in services("cli.").items()}
+
+
 _dispatch_namespaces: dict[str, list] = {
-    "character": _character_dispatch_funcs,
-    "impacts": _impacts_dispatch_funcs,
     "voices": _voices_dispatch_funcs,
     # The asset library (ADR 0005): `an library find --affords limbs.legs`.
     "library": _library_dispatch_funcs,

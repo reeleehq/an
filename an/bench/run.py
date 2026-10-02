@@ -966,6 +966,7 @@ def run_bench(
     bless: str = "",
     golden_root: Path | None = None,
     lossless_scratch_root: Path | None = None,
+    root: Path | None = None,
 ) -> dict:
     """Render the corpus, compute the panel, and (by default) write the row.
 
@@ -984,8 +985,11 @@ def run_bench(
     the committed corpus. That is not hypothetical: the first version of an#38's
     bless test did exactly that, replacing a real bless record's reason with the
     test's own.
+
+    ``root`` is the source checkout whose corpus ``scenes`` names (default: ``an``'s
+    own); a genre package runs its own corpus with its own checkout (``cutan.bench``).
     """
-    root = repo_root()
+    root = Path(root) if root is not None else repo_root()
     goldens = Path(golden_root) if golden_root is not None else root
     fixtures = scenes if scenes is not None else DFLT_FIXTURES
     git = git_state(root)

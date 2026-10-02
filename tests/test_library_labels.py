@@ -26,7 +26,7 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
-from an.characters.factory import new_character
+from cutan.characters.factory import new_character
 from an.credits import collect_credits
 from an.library import LibraryError, checkout, open_library, publish, publish_dir
 from an.library import api as library_api
@@ -34,6 +34,9 @@ from an.library import registry
 from an.library.registry import RegistryError, RegistryWarning
 from an.project import init as init_project
 from an.stores import build_project_mall
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 PRIVATE = {"provider": "a-film", "license": "all-rights-reserved-private-study"}
 CC0 = {"provider": "an-tests", "license": "cc0-1.0"}
@@ -382,7 +385,7 @@ def test_an_older_checkout_is_relinked_with_its_digests(checked_out):
 def test_a_legacy_generated_source_without_a_digest_speaks_for_nothing(tmp_path):
     """R2b-N3: a DiceBear source made before an#259 pins nothing, so a file
     added under it is unverified in credits and unknown in the library."""
-    from an.characters.licenses import dicebear_source
+    from cutan.characters.licenses import dicebear_source
 
     char = _character(tmp_path, "lee")
     path = char / "character.json"
@@ -482,7 +485,7 @@ def test_the_factory_record_is_written_by_new_character_only(tmp_path):
     char = new_character(tmp_path, name="amy", use_dicebear=False).parent
     drawing = library_api.content_hash((char / "amy.svg").read_bytes())
     head = library_api.content_hash((char / "parts" / "head.svg").read_bytes())
-    from an.characters.factory import FACTORY_PROVIDER
+    from cutan.characters.factory import FACTORY_PROVIDER
 
     assert FACTORY_PROVIDER in registry.generated_by(drawing)
     assert FACTORY_PROVIDER in registry.generated_by(head)
@@ -496,7 +499,7 @@ def test_a_hand_written_cc0_does_not_label_unlabelled_carved_bytes(tmp_path, cla
     under a per-part cc0 pinned to their digest. Only the factory's record
     verifies a stamp, so the other asset's silence still binds; a relicence
     is the way out."""
-    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+    from cutan.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
 
     lib = open_library("cutan")
     publish(lib, "prop.carving", {"name": "c"}, {"parts/head.svg": CARVED})  # unlabelled
@@ -589,7 +592,7 @@ def _set_part_source(char: Path, path: str, source: dict) -> None:
 def test_stamping_carved_bytes_does_not_make_them_the_factorys(tmp_path):
     """X3 / X3b / X4: the public stamping functions stamp, but record nothing;
     carved bytes another asset holds unlabelled stay `unknown`, then and later."""
-    from an.characters.factory import (
+    from cutan.characters.factory import (
         FACTORY_LICENSE, FACTORY_PROVIDER, stamp_factory_descriptor, stamp_factory_parts,
     )
 
@@ -706,7 +709,7 @@ def test_a_label_answers_a_gap_behind_a_verified_derived_from(tmp_path):
 def test_a_file_swapped_in_while_the_factory_runs_is_not_recorded(tmp_path, monkeypatch):
     """Round-2 nit: the record holds the digests of the bytes the factory wrote,
     computed as it wrote them — not whatever the folder holds when it ends."""
-    from an.characters import factory
+    from cutan.characters import factory
 
     lib = open_library("cutan")
     publish(lib, "prop.old-carve", {"name": "old"}, {"parts/head.svg": CARVED})  # unlabelled

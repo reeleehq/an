@@ -271,6 +271,7 @@ def test_palette_sources_separates_the_two_halves_of_the_derivation():
     assert pal["palette_sources"]["scene_json"] >= 2  # background + the rect
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_compiled_scene_s_swap_set_aliases_flow_into_the_palette(tmp_path):
     """The reader moved from `viseme_assets` to `asset_sets` (an#87). A stale
     key there degrades SILENTLY (`or {}`) into an under-collected palette, so

@@ -16,11 +16,13 @@ from an.audio.pipeline import (
 from an.ir.schema import Dialogue, Meta, SceneIR, Shot
 
 
+@pytest.mark.genre("cutout_animation")
 def test_default_providers_are_offline():
     assert default_tts().name == "offline"
     assert default_lipsync().name == "offline"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_produce_audio_for_dialogue_returns_clip_and_track():
     line = Dialogue(speaker="charlie", text="Hello, world.")
     audio, track = produce_audio_for_dialogue(line)
@@ -29,6 +31,7 @@ def test_produce_audio_for_dialogue_returns_clip_and_track():
     assert len(track.visemes) >= 2
 
 
+@pytest.mark.genre("cutout_animation")
 def test_produce_audio_for_scene_stamps_visemes():
     scene = SceneIR(
         meta=Meta(title="t", duration=5.0),

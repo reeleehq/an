@@ -90,6 +90,24 @@ class WordTimingProvider(Protocol):
         """Return the word timings for ``audio``."""
 
 
+class NullLipSync:
+    """The lip-sync provider of a core without a genre: no mouth shapes at all.
+
+    A genre that animates mouths (``cutan``) registers real providers
+    (``offline``, ``rhubarb``, ``whisper``); without one, a line's audio is still
+    synthesized and the track it gets is empty -- nothing draws a mouth anyway.
+
+    >>> NullLipSync().align(AudioClip(bytes_=b"", duration=0.5), "hi").duration
+    0.5
+    """
+
+    name: str = "none"
+    convention: str = "none"
+
+    def align(self, audio: AudioClip, transcript: str) -> VisemeTrack:
+        return VisemeTrack(visemes=[], convention=self.convention, duration=audio.duration)
+
+
 # --- shared word-timings → visemes conversion ----------------------------
 
 _DEFAULT_REST_VISEME = "X"

@@ -71,12 +71,9 @@ dependencies = [
 [project.scripts]
 an = "an.__main__:main"
 
-# Genres register through this group, read by `an.genres.load()` — never at
-# import time (ADR 0001 decision 3). The cut-out genre is still inside `an`;
-# when it moves to its own distribution (`cutan`), that distribution declares
-# the same name here and `an` drops this line.
-[project.entry-points."an.genres"]
-cutout_animation = "an.genres.cutout:CUTOUT"
+# Genres register through the `an.genres` entry-point group, read by
+# `an.genres.load()` — never at import time (ADR 0001 decision 3). `an` declares
+# none: the cut-out genre is the `cutan` distribution's (an#225).
 
 [tool.hatch.build.targets.wheel]
 packages = ["an"]
@@ -148,9 +145,11 @@ stage = [
     "pillow",
 ]
 # The extra's old name, kept: install commands and CI lanes say `an[cutout]`.
-# When the cut-out genre moves to `cutan` (an#225), this extra depends on it.
+# The cut-out genre is its own distribution since an#225; this installs it
+# (unversioned, per the local-package convention) on top of the stage.
 cutout = [
     "an[stage]",
+    "cutan",
 ]
 manim = [
     # Manim opaque-source shots (an#279): `an.adapters.manim_adapter` renders
@@ -271,7 +270,10 @@ required_envvars = []
 test_envvars = []
 extra_envvars = []
 
+# The main CI leg installs no genre: the tests marked `genre` are skipped AND
+# COUNTED there and run in .github/workflows/genre-tests.yml (an#225).
 [tool.wads.ci.env.defaults]
+AN_GENRE_TESTS = "0"
 
 [tool.wads.ci.quality.ruff]
 enabled = true

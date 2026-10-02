@@ -108,9 +108,9 @@ def test_the_gate_catches_flipped_rows(tmp_path, monkeypatch):
     def flipped(png, *, frame):
         return real(png, frame=frame).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-    screenshot, _ = _render_fixture("aa_probe", "screenshot", tmp_path)
+    screenshot, _ = _render_fixture("path_draw", "screenshot", tmp_path)
     monkeypatch.setattr(canvas_capture, "opaque_rgb", flipped)
-    canvas, _ = _render_fixture("aa_probe", "canvas", tmp_path)
+    canvas, _ = _render_fixture("path_draw", "canvas", tmp_path)
     assert len(_mismatches(screenshot, canvas)) == len(screenshot), (
         "a vertically flipped capture must differ on every frame"
     )
@@ -168,6 +168,7 @@ def _long_project(root: Path):
     return [s.id for s in shots]
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_a_long_render_in_a_parallel_pool_keeps_every_frame_in_order(tmp_path):
     """Back-pressure and ordering under the conditions the prototype numbers
@@ -204,6 +205,7 @@ def test_a_long_render_in_a_parallel_pool_keeps_every_frame_in_order(tmp_path):
     assert a_mp4 == b_mp4
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_supersample_and_an_open_shutter_go_through_the_canvas_path_identically(tmp_path):
     """The two frame-stage resolves — the k x k block mean and the frame

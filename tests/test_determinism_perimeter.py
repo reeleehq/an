@@ -200,6 +200,7 @@ def test_the_probe_reports_every_field_the_checker_requires():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_blink_phase_dependence_on_the_entity_name_is_recorded():
     """The hazard nothing warns about, turned into a stamped fact.
 
@@ -213,7 +214,8 @@ def test_the_blink_phase_dependence_on_the_entity_name_is_recorded():
     written into every bench ledger row (the runtime's probe no longer owns
     the fact).
     """
-    from an.adapters.cutout.compile import blink_phase, compile_shot
+    from an.adapters.cutout.compile import compile_shot
+    from cutan.compile.passes import blink_phase
     from an.ir.schema import AssetRef, Shot
 
     shot = Shot(

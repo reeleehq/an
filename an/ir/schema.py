@@ -466,99 +466,6 @@ def unregistered_action_kind(kind: str, *, where: str = "") -> Exception:
     )
 
 
-# -----------------------------------------------------------------------------
-# The cut-out genre's action models (ADR 0001 §First slice). They are DEFINED
-# here, beside the core's, until the genre package exists (P8 moves them, with a
-# re-export), but they are not core: nothing dispatches on them unless the
-# cut-out genre is registered (``an.genres.cutout``), and a document's
-# ``kind: play`` validates to `PlayAction` only after that.
-# -----------------------------------------------------------------------------
-
-
-class PlayAction(ExtensionAction):
-    """Play a named animation of the target entity's descriptor (an#7).
-
-    ``animation`` names an entry of ``CharacterDescriptor.animations`` (the
-    seeded ``idle_breath`` and ``blink``, or anything an author adds); the
-    compiler resolves its tracks into channels on the entity's nodes. A name
-    the descriptor does NOT declare — or any name on an entity with no
-    descriptor (a procedural rig, a prop) — falls back to the motion presets
-    of :data:`an.motion.PRESETS` (``hop``, ``nod``, …), which expand to
-    ordinary tweens at the target's built rest pose; a descriptor animation of
-    the same name wins (an#166). Both halves are decided by
-    :func:`an.characters.play.play_problems`, the one resolver ``an validate``
-    and the compiler share. For a preset, ``args`` are its parameters,
-    ``duration`` stretches the whole move to that length, ``speed`` divides
-    it, and ``loop: true`` is refused (a preset is a one-shot).
-    ``duration`` widens/narrows the placement window; ``None`` means the
-    animation's own duration — or, when the resolved ``loop`` is true, the
-    rest of the shot, because a loop bounded by its own natural duration
-    never loops. ``loop`` overrides the animation's declared ``loop``
-    (``None`` = use the descriptor's). Inside a ``sequence`` a play with
-    ``duration=None`` occupies its NATURAL length — a motion preset's own
-    length, a non-looping descriptor animation's ``duration``, both over
-    ``speed`` — so the next sibling starts when it ends; a looping one runs to
-    the shot end and occupies ZERO (:func:`an.characters.play.play_extent`).
-    """
-
-    kind: Literal["play"] = "play"
-    target: PathStr
-    animation: str  # a key of the entity descriptor's `animations`
-    duration: Seconds | None = None  # None = the animation's natural duration
-    speed: float = 1.0
-    loop: bool | None = None  # None = the descriptor animation's own `loop`
-    #: Parameters of a MOTION PRESET (an#166) — ``{"height": 30}`` for a
-    #: ``hop`` — passed to its :data:`an.motion.PRESETS` function as keyword
-    #: arguments. ``None`` (the default, omitted from JSON) means the preset's
-    #: own defaults. A descriptor animation takes none, and one given to it is
-    #: refused; ``rest`` is never one — it is read off the built scene.
-    args: dict[str, Any] | None = None
-
-    @model_serializer(mode="wrap")
-    def _omit_unset_args(self, handler):
-        """``args: null`` leaves no trace: every committed ``scene.json`` with
-        a ``play`` predates the field (the an#112 omit-when-unset rule)."""
-        data = handler(self)
-        if isinstance(data, dict) and data.get("args") is None:
-            data.pop("args", None)
-        return data
-
-
-#: Default ramp in/out of an expression, seconds (0 = cut). The dialogue
-#: `[emotion]` sugar uses its own in `an.expression.provider`.
-DFLT_EXPRESSION_BLEND_S: float = 0.15
-
-
-class ExpressionAction(ExtensionAction):
-    """Hold a facial expression on an entity (an#98, epic #9 Wave 6).
-
-    ``preset`` names one of :data:`an.expression.presets.PRESETS`; ``axes``
-    are per-axis overrides layered on it (axis units, see
-    :mod:`an.expression.axes`); ``None`` + no axes is a cheap "return to
-    rest". ``duration=None`` runs to the shot end (the looping-play rule) and
-    is **zero-width in a sequence**, like a looping ``play``. ``blend`` ramps the
-    intensity in and out; two overlapping expressions cross-fade because the
-    face solver sums offsets. The dialogue ``speaker [emotion]: …`` bracket is
-    sugar for one of these over the line, desugared in memory only.
-
-    A leaf action, flattened like ``play``: the compiler resolves it in the
-    face solver (one channel per ``(node, property)``), never per action.
-
-    The ramp is a min over the two ends, so a span shorter than ``2·blend``
-    never reaches full intensity (a 0.2 s expression at the default 0.15 s
-    blend peaks at 0.67) and a ``duration=0`` expression shows only where a
-    frame lands on it with ``blend=0`` — cut the blend for a flash.
-    """
-
-    kind: Literal["expression"] = "expression"
-    target: PathStr  # the ENTITY; the binding picks the nodes
-    preset: str | None = None
-    axes: dict[str, float] = Field(default_factory=dict)
-    intensity: float = Field(default=1.0, ge=0.0, le=1.0)
-    duration: Seconds | None = Field(default=None, ge=0.0)  # None = to the shot end
-    blend: Seconds = Field(default=DFLT_EXPRESSION_BLEND_S, ge=0.0)
-
-
 class SequenceAction(_ActionBase):
     """Composition: run children one after the other."""
 
@@ -1156,3 +1063,18 @@ CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
 for _kind in CORE_ENTITY_KINDS:
     if entity_kind(_kind.name) is None:
         register_entity_kind(_kind, owner=CORE_OWNER)
+
+
+# The cut-out genre's action models moved to `cutan` (an#225): `PlayAction` and
+# `ExpressionAction` are DEFINED beside their action kinds there. These names keep
+# resolving (with a MovedModuleWarning) while the genre package is installed.
+from an._shims import moved_names as _moved_names  # noqa: E402
+
+__getattr__ = _moved_names(
+    __name__,
+    {
+        "PlayAction": "cutan.characters.registration:PlayAction",
+        "ExpressionAction": "cutan.expression.registration:ExpressionAction",
+        "DFLT_EXPRESSION_BLEND_S": "cutan.expression.registration:DFLT_EXPRESSION_BLEND_S",
+    },
+)

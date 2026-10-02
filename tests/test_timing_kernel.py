@@ -359,7 +359,7 @@ def test_the_stage_camera_space_is_the_four_fields_the_compiler_lowers():
 
 
 def _corpus_timelines(tmp_path):
-    from tests.test_pure_pose import _corpus_shots
+    from tests._corpus_shots import _corpus_shots
 
     from an.adapters.cutout.timeline import timeline_from_scene
 

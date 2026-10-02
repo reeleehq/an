@@ -333,7 +333,7 @@ is a named constant with a recorded reason.
 | `-x264-params colorprim=…:transfer=…:colormatrix=…` | **this** is what lands all three in the VUI, and it leaves the decoded stream identical | a half-tagged file is worse than an untagged one: the player stops guessing the matrix but still guesses the primaries |
 | `-pix_fmt` (`an.stage.render.DEFAULT_PIX_FMT`, per render via `--pix-fmt`) | **the first-order quality lever, and the default is a product constraint, not an encoder-tuning one.** High 4:4:4 Predictive is refused by many hardware decoders, browsers and platforms — flipping the default would hand a design partner a file they cannot play. Read as a MODULE GLOBAL at call time, which is the seam the `pix_fmt` bench lever pulls; a default argument would sever it | 4:4:4 opt-in since an#59, and measured inside the panel: `chroma_edge_dCr` -21% to -75% on every scene |
 | `-c:v libx264` (literal) | | |
-| `-movflags +faststart` (`an.base.MP4_FASTSTART_ARGS`) | moov atom first, so a browser can start playing before the file finishes downloading | must be re-asked for on **every** leg — `_ffmpeg_mux`, `_ffmpeg_add_audio` AND `_ffmpeg_concat`. `-c copy` re-lays the container and writes `moov` last. Deliberately **not** in `DETERMINISTIC_X264_ARGS`: that tuple is a comparability key and this flag moves no metric. Two further literal copies exist and are out of scope — `an/characters/record.py:146` and `an/bench/imageio.py:184` (the latter must stay import-bound; see §4) |
+| `-movflags +faststart` (`an.base.MP4_FASTSTART_ARGS`) | moov atom first, so a browser can start playing before the file finishes downloading | must be re-asked for on **every** leg — `_ffmpeg_mux`, `_ffmpeg_add_audio` AND `_ffmpeg_concat`. `-c copy` re-lays the container and writes `moov` last. Deliberately **not** in `DETERMINISTIC_X264_ARGS`: that tuple is a comparability key and this flag moves no metric. Two further literal copies exist and are out of scope — `cutan/characters/record.py:146` and `an/bench/imageio.py:184` (the latter must stay import-bound; see §4) |
 
 Why the colour tags matter at all: untagged, the *player* picks its matrix by a
 height heuristic (BT.601 below ~576 lines). Every shipped `an` example is 320x240
@@ -342,7 +342,7 @@ encode BT.601 and be displayed BT.709 — a silent, resolution-dependent colour 
 
 ### There is a third, undeclared x264 site
 
-`an/characters/record.py` hand-builds `libx264 / yuv420p / -crf <param> /
+`cutan/characters/record.py` hand-builds `libx264 / yuv420p / -crf <param> /
 +faststart` and does **not** use `DETERMINISTIC_X264_ARGS`. Any "one mux call, no
 literals" refactor that only touches `adapters/cutout/render.py` leaves that
 divergent copy behind. `an/bench/imageio.py::lossless_encode_command` is a

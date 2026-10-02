@@ -24,7 +24,7 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app, command_name
-from an.tools import _dispatch_funcs, _dispatch_namespaces
+from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
 
 runner = CliRunner()
 
@@ -93,7 +93,11 @@ def test_every_dispatched_function_reaches_the_cli():
     """
     app = _app()
     assert _registered(app) == [command_name(f) for f in _dispatch_funcs]
-    assert [g.name for g in app.registered_groups] == list(_dispatch_namespaces)
+    # The core's namespaces, then the ones an installed genre adds (`character`, `impacts`).
+    assert [g.name for g in app.registered_groups] == [
+        *_dispatch_namespaces,
+        *registered_namespaces(),
+    ]
     assert runner.invoke(app, ["--help"]).exit_code == 0
 
 
@@ -115,16 +119,17 @@ def test_command_names_are_hyphenated_as_argh_spelled_them():
         assert command_name(func) in names
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_namespaced_command_is_reachable_under_its_group():
     """MUTATION: in `build_app`, drop `app.add_typer(sub, name=group)`.
 
     The documented spelling is `an character new`. The functions are named bare
-    in `an/characters/cli.py`, exactly as argh required, so there is no prefix
+    in `cutan/characters/cli.py`, exactly as argh required, so there is no prefix
     to strip — a strip was defensive code with no live case, and it survived its
     own mutation test, which is how it was found and removed.
     """
     names = _group_commands(_app(), "character")
-    assert names == [command_name(f) for f in _dispatch_namespaces["character"]]
+    assert names == [command_name(f) for f in registered_namespaces()["character"]]
     assert runner.invoke(_app(), ["character", "--help"]).exit_code == 0
     assert runner.invoke(_app(), ["character", "validate", "--help"]).exit_code == 0
 
@@ -283,6 +288,7 @@ def test_a_single_command_app_still_needs_its_subcommand_name():
     assert runner.invoke(app, ["--value", "y"]).exit_code != 0
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_command_set_is_pinned_by_literal():
     """MUTATION: delete any command from `_dispatch_funcs` or `_character_dispatch_funcs`.
 
@@ -322,6 +328,7 @@ def test_the_command_set_is_pinned_by_literal():
     ]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_short_help_still_works_everywhere():
     """MUTATION: drop `context_settings={"help_option_names": [...]}`.
 

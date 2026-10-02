@@ -20,26 +20,9 @@ from typing import Any, Collection, Literal, Mapping
 from pydantic import ValidationError
 
 from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
-from an.characters.play import (
-    PRESET_SOURCE,
-    Facing,
-    TurnResolution,
-    art_exists_for,
-    facing_at,
-    play_extent_for,
-    play_problems,
-    play_source,
-    preset_moved_nodes,
-    preset_play_span,
-    resolve_turns,
-    slot_node_path,
-    swap_art_missing,
-    swap_slots,
-)
 from an.audio.effects import TRIM_SILENCE, VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
-from an.characters.schema import DFLT_VIEW, VIEW_CHANNEL, CharacterDescriptor
-from an.expression.binding import expression_problems
+from an.stores._common import art_exists_for
 from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
@@ -54,6 +37,7 @@ from an.genres.registry import (
     check_names,
     checks as registered_checks,
     entity_kind,
+    entity_kind_names,
     register_check,
 )
 
@@ -203,10 +187,33 @@ _PROCEDURAL_SWAP_SETS: frozenset[str] = frozenset({"viseme"})
 #: Entity kind → (the mall store holding its rig, the descriptor `kind` tag
 #: that store's documents carry). `environment` and `voice` are absent because
 #: neither has a rig to declare asset sets on.
-RIG_STORES: dict[str, tuple[str, str]] = {
-    "character": ("characters", "CharacterDescriptor"),
+_CORE_RIG_STORES: dict[str, tuple[str, str]] = {
     "prop": ("props", "PropDescriptor"),
 }
+
+
+def rig_stores() -> dict[str, tuple[str, str]]:
+    """``{entity kind: (mall store, descriptor kind)}`` for every kind that has a rig.
+
+    The core's own (``prop``) plus the kinds genres register with a
+    ``descriptor_kind`` (the cut-out genre's ``character``): derived from the
+    registry, not a table the core edits (an#246).
+
+    >>> rig_stores()["prop"]
+    ('props', 'PropDescriptor')
+    """
+    out = dict(_CORE_RIG_STORES)
+    for name in entity_kind_names():
+        kind = entity_kind(name)
+        if kind is not None and kind.store and kind.descriptor_kind:
+            out[name] = (kind.store, kind.descriptor_kind)
+    return out
+
+
+def _has_procedural_rig(kind: str) -> bool:
+    """Whether entities of ``kind`` have a procedural fallback rig (a genre says so)."""
+    registered = entity_kind(kind)
+    return registered is not None and registered.placeholder_on_missing
 
 
 def _rig_document(entity, stores: Mapping[str, Any]) -> dict | None:
@@ -223,7 +230,7 @@ def _rig_document(entity, stores: Mapping[str, Any]) -> dict | None:
     under `assets/props/` is not a prop, and the compiler says so too.
     """
     try:
-        store_name, want_kind = RIG_STORES[entity.kind]
+        store_name, want_kind = rig_stores()[entity.kind]
     except KeyError:
         return None
     store = stores.get(store_name)
@@ -423,199 +430,15 @@ def _rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str
     means the descriptor is missing: those entities' checks are SKIPPED, not
     failed.
     """
-    rigs = {e.id: e for e in shot.entities if e.kind in RIG_STORES}
+    rigs = {e.id: e for e in shot.entities if e.kind in rig_stores()}
     unchecked = {
-        eid for eid, e in rigs.items() if stores.get(RIG_STORES[e.kind][0]) is None
+        eid for eid, e in rigs.items() if stores.get(rig_stores()[e.kind][0]) is None
     }
     return rigs, unchecked
 
 
-def _check_play_actions(
-    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
-) -> None:
-    """A `play` must resolve against its target's descriptor animations, or a
-    motion preset — checked HERE, before the author pays for TTS or a Chromium
-    launch, because compile raises (an#7, an#166). The cut-out genre's check
-    (registered by :mod:`an.genres.cutout`); with no stores it does not run, so
-    a bare `validate_semantic(scene)` passes a play the compiler will refuse.
-    """
-    if not stores:
-        return
-    rigs, unchecked = _rig_scope(shot, stores)
-    # `play` (an#7): resolved against the target entity's MIGRATED descriptor
-    # by `an.characters.play` — the SAME code the compiler resolves with, so
-    # validate's verdict is compile's (an unknown bone property, a bone with
-    # no slot of its own, art missing for a frame, a face slot suppressed by
-    # `face_overlay=false` all used to pass here and raise there). Art is
-    # checked when the store has a filesystem root; a dict store assumes
-    # presence, as the compiler's part probe does.
-    #
-    # A name the descriptor does not declare — or any name on an entity with
-    # no descriptor — falls back to a motion preset (an#166), decided by the
-    # same `play_problems`. A preset additionally needs the node it moves to
-    # be BUILT, which only the compiler's scene builder knows: the stage is
-    # built once per shot, lazily, and only when a preset play is present.
-    stage_nodes: set[str] | None = None
-    stage_tried = False
-
-    def play_descriptor(entity_id: str) -> CharacterDescriptor | None:
-        # `play` resolves against a CHARACTER's animations. A prop has an
-        # `animations` field so the shared rig builder can read the same
-        # attribute on either document, but nothing seeds it and no author
-        # tool writes one — so a `play` on a prop resolves presets only,
-        # exactly as the compiler (which reads character descriptors
-        # alone) resolves it.
-        entity = rigs.get(entity_id)
-        doc = _rig_document(entity, stores) if entity is not None else None
-        is_character = entity is not None and entity.kind == "character"
-        return (
-            CharacterDescriptor.model_validate(doc)
-            if doc is not None and is_character
-            else None
-        )
-
-    def extent_descriptor(entity_id: str) -> CharacterDescriptor | None:
-        # Only to place a `sequence`'s later siblings, exactly as the compiler
-        # does; a descriptor that will not even parse is reported by the loop
-        # below, so it must not raise from inside `flatten`.
-        if entity_id in unchecked:
-            return None
-        try:
-            return play_descriptor(entity_id)
-        except ValidationError:
-            return None
-
-    play_extent = play_extent_for(extent_descriptor)
-    for k, action in enumerate(shot.actions):
-        for flat in flatten(action, play_extent=play_extent):
-            leaf = flat.action
-            if getattr(leaf, "kind", None) != "play":
-                continue
-            entity_id = (getattr(leaf, "target", "") or "").split("/", 1)[0]
-            if entity_id in unchecked:
-                continue
-            entity = rigs.get(entity_id)
-            is_character = entity is not None and entity.kind == "character"
-            desc = play_descriptor(entity_id)
-            problems = play_problems(
-                desc,
-                leaf.animation,
-                art_exists=(
-                    art_exists_for(stores.get("characters"), entity.ref)
-                    if is_character
-                    else None
-                ),
-                args=leaf.args,
-                duration=leaf.duration,
-                speed=leaf.speed,
-                loop=leaf.loop,
-            )
-            if not problems and play_source(desc, leaf.animation) == PRESET_SOURCE:
-                if not stage_tried:
-                    stage_tried = True
-                    stage_nodes, why = _built_node_paths(shot, stores)
-                    if why is not None:
-                        # Said out loud, never a silent pass: validate could
-                        # not see what compile will look the node up in.
-                        report.add(
-                            "warning",
-                            f"{path}/actions/{k}",
-                            "the node a motion-preset `play` moves was NOT "
-                            f"checked: the shot's stage did not build ({why}).",
-                        )
-                end = flat.start + preset_play_span(leaf)
-                if end > shot.duration + 1e-9:
-                    report.add(
-                        "warning",
-                        f"{path}/actions/{k}",
-                        f"`play` of motion preset {leaf.animation!r} on "
-                        f"{entity_id!r} runs to t={end:g}s, past the shot's end "
-                        f"({shot.duration:g}s): the rest of the move never shows.",
-                    )
-                if stage_nodes is not None:
-                    prefix = f"{leaf.target}/"
-                    moved = preset_moved_nodes(
-                        leaf.target,
-                        leaf.animation,
-                        leaf.args,
-                        parts=[
-                            p[len(prefix) :]
-                            for p in stage_nodes
-                            if p.startswith(prefix)
-                        ],
-                    )
-                    missing = [n for n in moved if n not in stage_nodes]
-                    if missing:
-                        built = sorted(
-                            p for p in stage_nodes if p.split("/")[0] == entity_id
-                        )
-                        problems = [
-                            f"motion preset {leaf.animation!r} moves node {n!r}, "
-                            f"which the built scene does not carry (built: {built})"
-                            for n in missing
-                        ]
-            for problem in problems:
-                report.add(
-                    "error",
-                    f"{path}/actions/{k}",
-                    f"`play` of {leaf.animation!r} on {entity_id!r} cannot "
-                    f"resolve: {problem} — compiling this shot raises.",
-                )
 
 
-def _check_expression_actions(
-    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
-) -> None:
-    """An `expression` and a dialogue `[emotion]` must resolve (an#98) — the
-    cut-out genre's check (registered by :mod:`an.genres.cutout`). CHARACTER
-    entities only: a prop has no face."""
-    if not stores:
-        return
-    refs_by_entity = {e.id: e.ref for e in shot.entities if e.kind == "character"}
-    available_characters = stores.get("characters")
-    # `expression` (an#98) and the dialogue `[emotion]` sugar resolve through
-    # `an.expression.binding.expression_problems` — the SAME function the face
-    # solver raises with. An unknown preset used to be silence.
-    for k, action in enumerate(shot.actions):
-        for flat in flatten(action):
-            leaf = flat.action
-            if getattr(leaf, "kind", None) != "expression":
-                continue
-            entity_id = (getattr(leaf, "target", "") or "").split("/", 1)[0]
-            if entity_id not in refs_by_entity:
-                report.add(
-                    "error",
-                    f"{path}/actions/{k}",
-                    f"`expression` targets {entity_id!r}, which is not a character "
-                    f"entity of this shot (entities: {sorted(refs_by_entity) or 'none'}) "
-                    "— it would compile to nothing.",
-                )
-                continue
-            desc = _descriptor_for(refs_by_entity.get(entity_id), available_characters)
-            for problem in expression_problems(
-                desc, preset=leaf.preset, axes=leaf.axes, who=entity_id
-            ):
-                report.add(
-                    "error",
-                    f"{path}/actions/{k}",
-                    f"`expression` on {entity_id!r} cannot resolve: {problem} — "
-                    "compiling this shot raises.",
-                )
-    for j, line in enumerate(shot.dialogue):
-        emotion = (line.emotion or "").strip().lower()
-        if not emotion:
-            continue
-        desc = _descriptor_for(refs_by_entity.get(line.speaker), available_characters)
-        for problem in expression_problems(None, preset=emotion, who=line.speaker):
-            report.add("error", f"{path}/dialogue/{j}/emotion", problem)
-        if desc is not None and not desc.face_overlay:
-            report.add(
-                "warning",
-                f"{path}/dialogue/{j}/emotion",
-                f"{line.speaker!r} has its face baked into the head art "
-                "(face_overlay: false), so the [emotion] on this line moves "
-                "nothing; the audio still plays.",
-            )
 
 
 def _check_swap_references(
@@ -659,11 +482,13 @@ def _check_swap_references(
             continue
         entity = rigs.get(entity_id)
         desc = _rig_document(entity, stores) if entity is not None else None
+        registered = entity_kind(entity.kind) if entity is not None else None
+        swap_checks = registered.swap_checks if registered is not None else None
         if desc is None:
             # The procedural carve-out is a CHARACTER's drawn mouth; a prop
             # with no rig document (a stroked path, an#160) has no swap set at
             # all, which is what the compiler says too.
-            is_prop = entity is not None and entity.kind != "character"
+            is_prop = entity is not None and not _has_procedural_rig(entity.kind)
             if prop not in _PROCEDURAL_SWAP_SETS or is_prop:
                 report.add(
                     "error",
@@ -682,21 +507,16 @@ def _check_swap_references(
                 f"property {prop!r} names no declared asset set of "
                 f"{entity_id!r} (it has: {sorted(declared)}) — compiling "
                 "this shot raises."
-                + (
-                    " A character made before an#197 has no views: "
-                    "`an character add-views` draws them."
-                    if prop == VIEW_CHANNEL and entity.kind == "character"
-                    else ""
-                ),
+                + (swap_checks.missing_set_hint(prop) if swap_checks else ""),
             )
             continue
         keys = declared.get(prop) or {}
-        if entity.kind == "character" and "/" not in target:
+        if swap_checks is not None and "/" not in target:
             # A swap on the CHARACTER ITSELF (an#197) is fanned out by the
             # compiler to every slot the set projects onto — so it is checked
             # per slot, through the resolvers the compiler's fan-out and
             # `play: turn` share (an#201), not by the per-node rule below.
-            _check_whole_character_swap(
+            if swap_checks.whole_entity(
                 action,
                 desc,
                 prop,
@@ -705,10 +525,10 @@ def _check_swap_references(
                 where=f"{path}/actions/{k}",
                 report=report,
                 art_exists=art_exists_for(
-                    stores.get(RIG_STORES[entity.kind][0]), entity.ref
+                    stores.get(rig_stores()[entity.kind][0]), entity.ref
                 ),
-            )
-            continue
+            ):
+                continue
         # …and the ART has to be there. The compiler registers only the
         # attachments whose files resolve and then refuses a key whose art is
         # missing, so a key that is DECLARED but undrawable passed validate and
@@ -716,7 +536,7 @@ def _check_swap_references(
         # H3). Same rule the rig builder's probe uses: a store with no
         # filesystem root can answer nothing, so it must assume presence rather
         # than drop every key.
-        art_exists = art_exists_for(stores.get(RIG_STORES[entity.kind][0]), entity.ref)
+        art_exists = art_exists_for(stores.get(rig_stores()[entity.kind][0]), entity.ref)
         if art_exists is not None:
             skin = (desc.get("skins") or {}).get("default") or {}
             slots = skin.get("slots") or {}
@@ -752,275 +572,14 @@ def _check_swap_references(
                 )
 
 
-def _check_whole_character_swap(
-    action,
-    desc: Mapping[str, Any],
-    prop: str,
-    keys: Mapping[str, str],
-    entity_id: str,
-    *,
-    where: str,
-    report: "ValidationReport",
-    art_exists,
-) -> None:
-    """A swap-set action on a character's ROOT, judged the way compile judges
-    it (an#201). A ``set`` lands on every slot the set projects onto
-    (:func:`~an.characters.play.swap_slots`), so each key's art must be there
-    on EVERY one of them (:func:`~an.characters.play.swap_art_missing`) —
-    "some slot has it" passed a key ``--strict-assets`` then refused. A
-    ``tween`` is not fanned out: compile names the nodes that carry the set,
-    and so does this.
-    """
-    try:
-        cdesc = CharacterDescriptor.model_validate(desc)
-    except ValidationError:
-        return  # reported where the descriptor is loaded
-    nodes = []
-    for slot in swap_slots(cdesc, prop, art_exists=art_exists):
-        try:
-            nodes.append(f"{entity_id}/{slot_node_path(cdesc, slot)}")
-        except KeyError:
-            continue  # `an character validate` names the slot
-    if getattr(action, "kind", None) == "tween":
-        if not nodes:
-            return  # no node carries the set: compile drops it, recording why
-        report.add(
-            "error",
-            where,
-            f"a `tween` of {prop!r} on the whole character {entity_id!r}: the "
-            f"{prop!r} set resolves on {nodes}, not on that node — compiling "
-            "this shot raises. A whole-character swap is a `set` (it lands on "
-            "all of them at one instant); a `tween` targets one of those nodes.",
-        )
-        return
-    values = [
-        v
-        for v in (
-            getattr(action, "value", None),
-            getattr(action, "from_value", None),
-            getattr(action, "to_value", None),
-        )
-        if v is not None
-    ]
-    for v in values:
-        if not isinstance(v, str) or v not in keys:
-            report.add(
-                "error",
-                where,
-                f"{v!r} is not a declared key of the {prop!r} set of "
-                f"{entity_id!r} (it has: {sorted(keys)}) — compiling this shot "
-                "raises.",
-            )
-            continue
-        if art_exists is None:
-            continue  # a store with no filesystem root assumes presence
-        missing = swap_art_missing(cdesc, prop, v, art_exists)
-        if missing:
-            report.add(
-                "error",
-                where,
-                f"setting {prop!r} to {v!r} on {entity_id!r} swaps every slot "
-                f"that carries it ({nodes}), but its art is not on disk for "
-                f"all of them: {missing} — the render draws those slots "
-                "unswapped, and `--strict-assets` refuses the shot.",
-            )
 
 
-def _turn_resolution(
-    shot, stores: Mapping[str, Any]
-) -> tuple[TurnResolution, list[int]] | None:
-    """The shot's flat timeline with its turns resolved the way the compiler
-    resolves them (:func:`an.characters.play.resolve_turns`, an#203), and the
-    top-level action index each flat came from. ``None`` without a characters
-    store — the check did not run, which is not the same as passing.
-
-    The rest pose is the identity: validate builds no stage. A facing is only
-    the SIGN of ``scale_x``, so this is exact unless a character is staged
-    mirrored and a preset settles it back to its rest — then validate reads
-    it facing right where compile has it facing left (a known, narrow gap).
-    """
-    if stores.get("characters") is None:
-        return None
-    rigs = {e.id: e for e in shot.entities if e.kind == "character"}
-
-    def descriptor_of(entity_id: str) -> CharacterDescriptor | None:
-        entity = rigs.get(entity_id)
-        doc = _rig_document(entity, stores) if entity is not None else None
-        try:
-            return CharacterDescriptor.model_validate(doc) if doc else None
-        except ValidationError:
-            return None  # reported by the play check
-
-    extent = play_extent_for(descriptor_of)
-    origin: list[int] = []
-    flats = []
-    for k, action in enumerate(shot.actions):
-        for flat in flatten(action, play_extent=extent):
-            flats.append(flat)
-            origin.append(k)
-    resolution = resolve_turns(
-        flats,
-        descriptor_of=descriptor_of,
-        rest_of=lambda _p: {
-            "x": 0.0,
-            "y": 0.0,
-            "rotation": 0.0,
-            "scale_x": 1.0,
-            "scale_y": 1.0,
-            "alpha": 1.0,
-        },
-    )
-    return resolution, origin
 
 
-def _check_turns(shot, path: str, report: "ValidationReport", resolved) -> None:
-    """A ``turn`` whose declared ``from_direction`` contradicts the side the
-    timeline before it left the character facing (an#203): the compiler
-    keeps what the author wrote, so the character flips to the other side
-    before it squashes — a visible jump."""
-    if resolved is None:
-        return
-    resolution, origin = resolved
-    for turn in resolution.turns:
-        if not turn.contradicted:
-            continue
-        report.add(
-            "warning",
-            f"{path}/actions/{origin[turn.index]}",
-            f"`turn` on {turn.entity!r} at t={turn.start:g}s declares "
-            f"from_direction {turn.declared!r}, but the timeline before it left "
-            f"{turn.entity!r} facing {turn.before.direction!r}"
-            + (f" in its {turn.before.view!r} view" if turn.before.view else "")
-            + ", so it jumps to the other side before it turns. Drop "
-            "`from_direction`: a turn infers it from the timeline.",
-        )
 
 
-def _check_hidden_mouth_while_speaking(
-    shot, path: str, report: "ValidationReport", resolved, stores: Mapping[str, Any]
-) -> None:
-    """A line spoken while the speaker's view HIDES its mouth (an#220): the
-    view's ``swap_poses`` sets the mouth slot's ``alpha`` to 0 — the back
-    view does, and so did every profile carved with the mouth baked in — so
-    the audio plays over a face with no lip-sync. A warning, since a line
-    delivered over the shoulder can be meant; the fix for a profile is a
-    per-view mouth set (``viseme@side``) instead of the hide.
-    """
-    if resolved is None:
-        return
-    from an.ir.schema import SetAction
-
-    events = resolved[0].events
-    rigs = {e.id: e for e in shot.entities if e.kind == "character"}
-    for k, line in enumerate(shot.dialogue or ()):
-        entity = rigs.get(line.speaker)
-        if entity is None or line.start is None:
-            continue
-        doc = _rig_document(entity, stores)
-        try:
-            desc = CharacterDescriptor.model_validate(doc) if doc else None
-        except ValidationError:
-            continue
-        if desc is None or not desc.face_overlay:
-            continue
-        skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
-        mouth_names = set((desc.asset_sets.get("viseme") or {}).values())
-        mouths = {
-            slot
-            for slot, attachments in (skin.slots.items() if skin else ())
-            if mouth_names & set(attachments)
-        }
-        start = float(line.start)
-        end = start + float(line.duration or 0.0)
-        views = [facing_at(events, line.speaker, start).view or desc.rest_view]
-        views += [
-            f.action.value
-            for f in events
-            if isinstance(f.action, SetAction)
-            and f.action.target == line.speaker
-            and f.action.property == VIEW_CHANNEL
-            and start < f.start <= end
-        ]
-        poses = desc.swap_poses.get(VIEW_CHANNEL) or {}
-        for view in dict.fromkeys(v for v in views if v is not None):
-            hidden = sorted(
-                m for m in mouths if (p := poses.get(view, {}).get(m)) and p.alpha == 0
-            )
-            if not hidden:
-                continue
-            report.add(
-                "warning",
-                f"{path}/dialogue/{k}",
-                f"{line.speaker!r} speaks this line while its {view!r} view hides "
-                f"its mouth ({', '.join(hidden)}: swap_poses.{VIEW_CHANNEL}.{view} "
-                "alpha 0), so the line plays with no lip-sync on screen. "
-                + (
-                    "Turn before the line if the face should be seen."
-                    if view == "back"
-                    else f"Give the view its own mouth (a `viseme@{view}` set) "
-                    "instead of hiding it, or turn before the line."
-                ),
-            )
 
 
-def _check_view_continuity(
-    scene: SceneIR, report: "ValidationReport", resolved: list
-) -> None:
-    """A character that ends one shot turned (a view other than the default,
-    or facing left) and appears in the very next shot starts that shot at its rest
-    — shots are independent by design (each compiles alone; the per-shot
-    archive and `render_project` depend on it), so a view does not carry
-    across a cut (an#203). Said as a warning, with the one line that carries
-    it on; the next shot setting the view (or ``scale_x``) at t=0 is taken as
-    the author's decision either way. ``resolved`` is
-    :func:`_turn_resolution` per shot.
-    """
-    previous: dict[str, tuple[str, Facing]] = {}
-    for i, (shot, shot_resolved) in enumerate(zip(scene.timeline, resolved)):
-        if shot_resolved is None:
-            return  # no characters store: the check did not run
-        events = shot_resolved[0].events
-        ids = [e.id for e in shot.entities if e.kind == "character"]
-        for entity_id in ids:
-            if entity_id not in previous:
-                continue
-            prev_shot, ended = previous[entity_id]
-            start = facing_at(events, entity_id, 0.0)
-            turned_view = ended.view not in (None, DFLT_VIEW) and start.view is None
-            turned_left = ended.direction == "left" and start.direction is None
-            if not (turned_view or turned_left):
-                continue
-            state = " ".join(
-                bit
-                for bit in (
-                    f"in its {ended.view!r} view" if turned_view else "",
-                    "facing left" if turned_left else "",
-                )
-                if bit
-            )
-            fix = " and ".join(
-                bit
-                for bit in (
-                    f"`{{kind: set, target: {entity_id}, property: view, value: "
-                    f"{ended.view}, at: 0}}`"
-                    if turned_view
-                    else "",
-                    "a negative `scale_x` set at 0" if turned_left else "",
-                )
-                if bit
-            )
-            report.add(
-                "warning",
-                f"timeline/{i}/entities",
-                f"{entity_id!r} ends shot {prev_shot!r} {state}, and shot "
-                f"{shot.id!r} starts it at its rest — a view does not carry "
-                f"across a cut (each shot compiles alone). To continue the "
-                f"turn, open shot {shot.id!r} with {fix}; to reset it on "
-                "purpose, set the view there anyway.",
-            )
-        previous = {
-            e: (shot.id, facing_at(events, e, float(shot.duration))) for e in ids
-        }
 
 
 #: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and
@@ -1063,7 +622,7 @@ def _check_action_targets(
         return
     from an.stage.compile import CAMERA_NODE, unknown_target_message
 
-    store_of = {kind: name for kind, (name, _doc) in RIG_STORES.items()}
+    store_of = {kind: name for kind, (name, _doc) in rig_stores().items()}
     store_of["environment"] = "environments"  # its planes are nodes too
     unchecked = {
         e.id
@@ -1130,19 +689,6 @@ def _built_node_paths(
         return None, f"{type(e).__name__}: {e}"
 
 
-def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
-    """The MIGRATED descriptor a store holds for ``ref``, or ``None``."""
-    if ref is None or available_characters is None:
-        return None
-    try:
-        candidate = available_characters[ref]
-    except (KeyError, TypeError):
-        return None
-    if isinstance(candidate, dict) and candidate.get("kind") == "CharacterDescriptor":
-        return CharacterDescriptor.model_validate(
-            migrate(dict(candidate), kind="CharacterDescriptor")
-        )
-    return None
 
 
 def _check_voice_effects(
@@ -2055,17 +1601,18 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
 
 def _core_entity_refs(ctx: ValidationContext) -> None:
     """Entity references resolve?"""
-    shot, path, report, rig_stores = ctx.shot, ctx.path, ctx.report, ctx.stores
+    shot, path, report, mall_stores = ctx.shot, ctx.path, ctx.report, ctx.stores
     text_ids = _text_ids(ctx)
     for j, entity in enumerate(shot.entities):
-        if entity.kind not in RIG_STORES or entity.id in text_ids:
+        if entity.kind not in rig_stores() or entity.id in text_ids:
             continue
-        store_name, want_kind = RIG_STORES[entity.kind]
-        store = rig_stores.get(store_name)
+        store_name, want_kind = rig_stores()[entity.kind]
+        store = mall_stores.get(store_name)
         if store is None:
             continue  # store not supplied → this check did not run
-        if entity.kind in _PLACEHOLDER_RIG_KINDS:
-            continue  # its genre reports a missing ref (`check_character_refs`)
+        registered = entity_kind(entity.kind)
+        if registered is not None and registered.placeholder_on_missing:
+            continue  # its genre reports a missing ref with its own check
         # A stroked path (an#160) is a prop whose document is a
         # `PathDescriptor`; it is checked by the same resolver the
         # compiler builds it with, overrides merged, so the verdicts agree.
@@ -2081,7 +1628,7 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         # did not exist at all: the harsher outcome had the weaker
         # prediction, and `an validate` said "passed" about a scene that
         # cannot render.
-        if _rig_document(entity, rig_stores) is None:
+        if _rig_document(entity, mall_stores) is None:
             if entity.ref in store:
                 why = (
                     f"is in the {store_name!r} store but is not a "
@@ -2099,30 +1646,8 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
             )
 
 
-#: Entity kinds whose missing ref is NOT an error, because the compiler draws
-#: a placeholder rig instead: the cut-out genre's `character`, reported by its
-#: own check (:func:`check_character_refs`). P8 moves this with the genre.
-_PLACEHOLDER_RIG_KINDS: frozenset[str] = frozenset({"character"})
 
 
-def check_character_refs(ctx: ValidationContext) -> None:
-    """The cut-out genre's missing-character warning. A WARNING: the compiler
-    falls back to the built-in placeholder rig and the scene still renders.
-    Deliberately not escalated — an asset-less project rendering placeholders
-    is a supported way to work."""
-    store = ctx.stores.get("characters")
-    if store is None:
-        return  # store not supplied → this check did not run
-    text_ids = _text_ids(ctx)
-    for j, entity in enumerate(ctx.shot.entities):
-        if entity.kind != "character" or entity.id in text_ids:
-            continue
-        if entity.ref not in store:
-            ctx.report.add(
-                "warning",
-                f"{ctx.path}/entities/{j}",
-                f"character ref {entity.ref!r} not in characters store",
-            )
 
 
 def _core_voices(ctx: ValidationContext) -> None:
@@ -2293,40 +1818,16 @@ def _core_library_checkouts(ctx: ValidationContext) -> None:
 # -----------------------------------------------------------------------------
 
 
-def _turns_of(ctx: ValidationContext, index: int, shot: Any):
-    return ctx.cached(("turns", index), lambda: _turn_resolution(shot, ctx.stores))
 
 
-def check_play_actions(ctx: ValidationContext) -> None:
-    """The cut-out genre's `play` check (:func:`_check_play_actions`)."""
-    _check_play_actions(ctx.shot, ctx.path, ctx.report, ctx.stores)
 
 
-def check_expression_actions(ctx: ValidationContext) -> None:
-    """The cut-out genre's `expression` / `[emotion]` check."""
-    _check_expression_actions(ctx.shot, ctx.path, ctx.report, ctx.stores)
 
 
-def check_turns(ctx: ValidationContext) -> None:
-    """The cut-out genre's contradicted-turn warning (:func:`_check_turns`)."""
-    _check_turns(ctx.shot, ctx.path, ctx.report, _turns_of(ctx, ctx.index, ctx.shot))
 
 
-def check_hidden_mouth_while_speaking(ctx: ValidationContext) -> None:
-    """The cut-out genre's mouth-hidden-by-a-view warning."""
-    _check_hidden_mouth_while_speaking(
-        ctx.shot,
-        ctx.path,
-        ctx.report,
-        _turns_of(ctx, ctx.index, ctx.shot),
-        ctx.stores,
-    )
 
 
-def check_view_continuity(ctx: ValidationContext) -> None:
-    """The cut-out genre's view-across-a-cut warning (:func:`_check_view_continuity`)."""
-    resolved = [_turns_of(ctx, i, shot) for i, shot in enumerate(ctx.scene.timeline)]
-    _check_view_continuity(ctx.scene, ctx.report, resolved)
 
 
 def _register_core_checks() -> None:

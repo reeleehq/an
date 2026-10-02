@@ -381,13 +381,16 @@ def judge_emotion(
     """Name the emotion a frame (or short strip) shows, or ``None`` if the
     reply named nothing in ``labels`` (an#98).
 
-    ``labels`` defaults to every preset in :mod:`an.expression`. ``judge`` is
+    ``labels`` defaults to every expression preset the loaded genre knows (the
+    ``expression.known_presets`` service; ``cutan`` in practice). ``judge`` is
     the `judge_frames`-shaped seam; parsing stays outside the recording.
     """
     if labels is None:
-        from an.expression import known_presets
+        from an.genres import require_service
 
-        labels = known_presets()
+        labels = require_service(
+            "expression.known_presets", what="the emotion labels of judge_emotion"
+        )()
     reply = (judge or judge_frames)(
         frames,
         prompt=emotion_prompt(labels),

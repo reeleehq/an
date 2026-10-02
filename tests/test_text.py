@@ -318,6 +318,7 @@ def _validate_errors(shot, mall):
     return [f.description for f in report.findings if f.severity == "error"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_overlay_sharing_a_path_with_the_scene_is_refused():
     """One runtime index serves both layers, so a clash would shadow a node."""
     mall = {"props": {"t": _title()}}

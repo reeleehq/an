@@ -37,7 +37,10 @@ from an.adapters.cutout.compile import (
 from an.environments import EnvironmentDescriptor, Plane, PlaneArt
 from an.ir.schema import AssetRef, Camera, CameraKey, SetAction, Shot
 from an.props import PropDescriptor
-from an.characters.schema import Attachment, Skin
+from cutan.characters.schema import Attachment, Skin
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 W, H = 320, 180
 
@@ -240,8 +243,8 @@ def test_a_raster_part_is_sized_from_its_pixels_and_addressed_by_its_bytes(tmp_p
 def test_a_character_can_be_built_entirely_from_raster_parts(tmp_path):
     """Required parts, mouth shapes and the eyelid swap, all PNG: the rig
     compiles with every slot drawn and `an character validate` is satisfied."""
-    from an.characters.schema import CharacterDescriptor
-    from an.characters.validate import validate_character
+    from cutan.characters.schema import CharacterDescriptor
+    from cutan.characters.validate import validate_character
     from an.stores.characters import CharactersStore
 
     doc = json.loads(CharacterDescriptor(name="rae").model_dump_json())
@@ -295,7 +298,7 @@ def test_a_pack_warns_once_that_it_cannot_recolour_raster_parts(tmp_path):
 def test_a_colour_role_on_a_raster_part_is_skipped_not_read_as_text(tmp_path):
     """`_recoloured_texture_srcs` read every tagged part as UTF-8 SVG text; a
     PNG there raised `UnicodeDecodeError` in the compiler."""
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
     from an.stores.characters import CharactersStore
     from an.styles import StylePack
 
@@ -322,7 +325,7 @@ def test_a_colour_role_on_a_raster_part_is_skipped_not_read_as_text(tmp_path):
 
 def _package(tmp_path, *, head=None):
     """A complete PNG art package; ``head`` overrides the head part's writer."""
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
 
     doc = json.loads(CharacterDescriptor(name="rae").model_dump_json())
     char_dir = tmp_path / "rae"
@@ -338,7 +341,7 @@ def _package(tmp_path, *, head=None):
 
 
 def _findings(char_dir, severity):
-    from an.characters.validate import validate_character
+    from cutan.characters.validate import validate_character
 
     return [f for f in validate_character(char_dir).findings if f.severity == severity]
 
@@ -382,7 +385,7 @@ def test_an_embedded_image_in_an_svg_part_is_still_refused(tmp_path):
 
 
 def test_the_contract_documents_raster_parts():
-    from an.characters.validate import render_contract
+    from cutan.characters.validate import render_contract
 
     text = render_contract()
     assert "## Raster parts" in text and ".png" in text

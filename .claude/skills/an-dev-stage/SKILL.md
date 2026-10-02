@@ -176,7 +176,7 @@ and the rig has **no hand bone**.
 A StylePack recolours SVG art **only where the descriptor tags it**: the character factory records,
 per part, which colour literal it drew as which role (`CharacterDescriptor.colour_roles`,
 `{"parts/torso.svg": {"#a83249": "clothing"}}`), and the compiler's `_recoloured_texture_srcs`
-rewrites exactly those literals (`an.characters.colour_roles.recolour_svg` — paint attributes and
+rewrites exactly those literals (`cutan.characters.colour_roles.recolour_svg` — paint attributes and
 style declarations only, never geometry, ids or `#frag` references) into an inline `data:` texture
 whose alias carries a content digest. Palette swapping: a role is keyed by its literal per PART, so
 the factory keeps each role's literal distinct within a part (`distinct_literal`, one step in one

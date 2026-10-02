@@ -33,7 +33,6 @@ from an.audio.pipeline import (
     produce_audio_for_scene,
     tts_chooser,
 )
-from an.audio.offline_lipsync import OfflineLipSync
 from an.ir.schema import Dialogue
 from an.project import load
 from an.render import render_findings, render_project
@@ -237,6 +236,7 @@ def test_a_provider_an_does_not_know_falls_back_loudly(tmp_path, fake_render):
         _render(root, strict_assets=True)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_pipeline_warns_a_python_caller_too():
     from an.ir.schema import SceneIR, Shot
 
@@ -246,7 +246,7 @@ def test_the_pipeline_warns_a_python_caller_too():
     mall = {"voices": {"bob": EL_VOICE}, "audio": {}, "visemes": {}}
     with pytest.warns(VoiceStandInWarning, match="SILENT"):
         produce_audio_for_scene(
-            scene, mall, tts="offline", lipsync=OfflineLipSync(), announce=None
+            scene, mall, tts="offline", lipsync=_offline_lipsync(), announce=None
         )
 
 
@@ -273,3 +273,10 @@ def test_the_cli_defaults_to_each_voices_provider():
     from an.tools import render
 
     assert inspect.signature(render).parameters["tts"].default == ""
+
+
+def _offline_lipsync():
+    """The deterministic lip-sync provider is the cut-out genre's (`cutan`, an#225)."""
+    from cutan.audio.offline_lipsync import OfflineLipSync
+
+    return OfflineLipSync()

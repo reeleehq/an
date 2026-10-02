@@ -128,6 +128,7 @@ def test_planes_are_drawn_in_list_order():
     assert [c.name for c in env_node.children] == ["sky", "hills", "road", "railing"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_foreground_plane_is_drawn_after_the_characters():
     """The thing that was structurally unreachable.
 
@@ -496,6 +497,7 @@ def test_duplicate_plane_names_are_refused():
         EnvironmentDescriptor(name="e", planes=[Plane(name="d"), Plane(name="d")])
 
 
+@pytest.mark.genre("cutout_animation")
 def test_every_parallax_channel_targets_a_node_that_exists():
     """The channel target and the node's actual path are computed by two
     different call sites, so they can disagree — and the disagreement is a

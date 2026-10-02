@@ -125,25 +125,3 @@ def test_a_child_that_bypasses_the_redirect_is_logged(tmp_path):
     assert log.exists() and "registry" in log.read_text(encoding="utf-8")
 
 
-def test_the_demo_builder_keeps_its_throwaway_characters_out_of_the_real_registry(
-    monkeypatch, tmp_path
-):
-    """``misc/demos/build_demos.py`` draws characters into temp projects; each run once left ~60 records behind (an#302)."""
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(
-        "_build_demos_redirect_test", ROOT / "misc" / "demos" / "build_demos.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module  # a slots dataclass resolves its module by name
-    try:
-        spec.loader.exec_module(module)
-        sentinel = tmp_path / "before"
-        monkeypatch.setattr(registry, "_account_home", lambda: sentinel)
-        home = module._keep_machine_registry_private()
-        assert registry._account_home() == home != sentinel
-        assert not str(registry.machine_registry_dir()).startswith(
-            str(_real_data_dir())
-        )
-    finally:
-        sys.modules.pop(spec.name, None)

@@ -242,6 +242,38 @@ def render_path_roots(renderer_type: type | None = None) -> tuple[str, ...]:
     return tuple(dict.fromkeys(roots))
 
 
+def genre_code_modules() -> dict[str, Path]:
+    """``{module: source path}`` for every module of every package a loaded genre runs code from.
+
+    The stage reaches a genre's code by REGISTRATION (compile passes, lowerings,
+    entity hooks, services, runtime scripts), never by an import from ``an``, so
+    the static walk from the renderer cannot find it. A package that registers a
+    hook is therefore keyed WHOLE -- every module under it, tests excluded --
+    which is over-inclusive on purpose: a stale shot-cache hit after a genre
+    upgrade is the failure (an#294), and a genre's edit to a module that cannot
+    reach a pixel costs one re-render. ``an`` itself is walked from the renderer.
+
+    >>> isinstance(genre_code_modules(), dict)
+    True
+    """
+    from an.genres.registry import hook_modules
+
+    out: dict[str, Path] = {}
+    for top in sorted({m.split(".", 1)[0] for m in hook_modules()} - {"an"}):
+        spec = _quiet_find_spec(top)
+        for location in (spec.submodule_search_locations or ()) if spec else ():
+            base = Path(location)
+            for path in sorted(base.rglob("*.py")):
+                rel = path.relative_to(base).with_suffix("")
+                parts = (top, *rel.parts)
+                if "tests" in parts or "__pycache__" in parts:
+                    continue
+                if parts[-1] == "__init__":
+                    parts = parts[:-1]
+                out[".".join(parts)] = path
+    return out
+
+
 def _moved_shim_file(old: str) -> Path | None:
     """The source file of a moved module's old name, when it has one under ``an/``."""
     import an
@@ -307,8 +339,12 @@ def render_path_modules(
         moves = declared_moves()
     from an._shims import resolve_moved
 
+    genre_code = genre_code_modules() if root is None else {}
+
     tops = {"an"} | {target.split(".", 1)[0] for target in moves.values()}
+    tops |= {name.split(".", 1)[0] for name in genre_code}
     found: dict[str, Path] = {}
+    roots.extend(genre_code)
     aliases = _alias_index()
     asked = set(roots)
     todo = roots

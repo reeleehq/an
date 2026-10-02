@@ -134,6 +134,7 @@ def test_the_deadline_is_read_at_call_time_so_it_can_be_lowered_for_a_test():
     assert '"timeoutMs": DEFAULT_ASSET_LOAD_TIMEOUT_MS' in source
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_a_degenerate_part_svg_raises_instead_of_hanging(tmp_path, monkeypatch):
@@ -148,7 +149,7 @@ def test_a_degenerate_part_svg_raises_instead_of_hanging(tmp_path, monkeypatch):
     so a fixture that simply omits them would test the wrong hole.
     """
     import an.adapters.cutout.render as render_mod
-    from an.characters.schema import MOUTH_SHAPES
+    from cutan.characters.schema import MOUTH_SHAPES
 
     # Well below a legitimate load, so a pass is fast and a regression shows up
     # as a hang rather than as a minute of waiting.

@@ -12,11 +12,14 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
-from an.characters.factory import new_character
+from cutan.characters.factory import new_character
 from an.library import open_library, show
 from an.library.cli import _dispatch_funcs
 from an.project import init as init_project
 from an.tools import _dispatch_namespaces
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 runner = CliRunner()
 

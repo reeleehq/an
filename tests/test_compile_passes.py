@@ -28,6 +28,7 @@ def _quiet_compile(shot, **kw):
         return to_dict(compile_shot(shot, mall={}, fps=10, width=64, height=48, **kw))
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_passes_run_in_the_order_the_document_was_always_built_in():
     assert [p.name for p in compile_passes_for_stage()] == [
         "scene", "speech", "actions", "swap_pose", "view_spans", "visemes", "face",
@@ -35,8 +36,9 @@ def test_the_passes_run_in_the_order_the_document_was_always_built_in():
     ]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_cutout_passes_are_the_genres_not_the_stages():
-    from an.genres.cutout import CUTOUT, CUTOUT_COMPILE_PASSES
+    from cutan.genre import CUTOUT, CUTOUT_COMPILE_PASSES
 
     assert CUTOUT.compile_passes == CUTOUT_COMPILE_PASSES
     assert "rig" in CUTOUT.provides()["compile passes"]
@@ -92,9 +94,10 @@ def test_a_genre_adds_a_pass_and_an_entity_builder_without_editing_the_stage():
     assert seen and seen[0], "the pass ran after the actions, before the parallax"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_genres_passes_are_inspectable_before_the_stage_loads():
     """`run` may be 'module:function', resolved only when the compiler runs."""
-    pending = CompilePass("later", "an.stage.compile:_face_pass", order=500)
+    pending = CompilePass("later", "cutan.compile.passes:_face_pass", order=500)
     assert pending.resolve().__name__ == "_face_pass"
     with pytest.raises(Exception, match="neither a callable"):
         CompilePass("bad", "not-a-reference").resolve()

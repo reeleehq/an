@@ -17,12 +17,15 @@ from an.adapters.cutout.compile import (
     compile_shot,
     node_path_suggestions,
 )
-from an.characters import new_character
+from cutan.characters import new_character
 from an.ir.compose import delay, sequence
 from an.ir.schema import AssetRef, SceneIR, SetAction, Shot, TweenAction
 from an.ir.validate import validate_semantic
 from an.project import init
 from an.stores import build_project_mall
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 
 @pytest.fixture

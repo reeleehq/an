@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from an.characters.factory import new_character
+from cutan.characters.factory import new_character
 from an.credits import (
     PrivateStudyWarning,
     collect_credits,
@@ -47,6 +47,9 @@ from an.library.root import LibraryLocationWarning
 from an.library.stores import LocalFiles, build_library_mall
 from an.project import init as init_project
 from an.stores import build_project_mall
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 CC0 = {"provider": "an-tests", "license": "cc0-1.0"}
 MIT = {"provider": "an-tests", "license": "mit"}
@@ -231,7 +234,7 @@ def test_private_bytes_in_a_genre_library_bind_the_core_library_too():
 
 
 def _factory(tmp_path, name):
-    from an.characters.factory import new_character
+    from cutan.characters.factory import new_character
 
     return new_character(tmp_path / name, name=name, use_dicebear=False).parent
 
@@ -675,10 +678,10 @@ def test_build_library_mall_wraps_injected_stores_in_every_guard():
 
 
 _CUT_OUT_MODULES = (
-    "an.characters",
+    "cutan.characters",
     "an.motion",
     "an.adapters",
-    "an.expression",
+    "cutan.expression",
     "an.stage",
 )
 

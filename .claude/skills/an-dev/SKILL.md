@@ -68,7 +68,7 @@ Read `misc/docs/architecture_as_built.md` for the full map. The pieces that didn
 - `an/verify/media.py` — ssim, detect_silence, audio_volume, extract_frames, transcribe (Phase 8)
 - `an/verify/media_quality.py` — MediaQualityVerifier (Phase 9)
 - `an/verify/vision.py` — VisionLMVerifier (Claude vision QA, Phase 9)
-- `an/characters/` — character authoring tools (Phase 11a): Spine-shaped `CharacterDescriptor`, SVG utils, parametric 9-shape mouth generator, DiceBear client + envelope, idle-animation factories, silhouette test, `assets.promote`. Powers `an character {new,mouths,add-gaze,validate,silhouette,preview,record}`. The Pixi SVG-texture path has since shipped: `makeSvgSprite` builds a real `PIXI.Sprite` from a preloaded texture, and `preloadAssets` stages them. The procedural rig is the fallback for characters with no descriptor art, not the only path.
+- `cutan/characters/` — character authoring tools (Phase 11a): Spine-shaped `CharacterDescriptor`, SVG utils, parametric 9-shape mouth generator, DiceBear client + envelope, idle-animation factories, silhouette test, `assets.promote`. Powers `an character {new,mouths,add-gaze,validate,silhouette,preview,record}`. The Pixi SVG-texture path has since shipped: `makeSvgSprite` builds a real `PIXI.Sprite` from a preloaded texture, and `preloadAssets` stages them. The procedural rig is the fallback for characters with no descriptor art, not the only path.
 
 ## How to wire a new TTS / LipSync / Verifier / Renderer
 
@@ -85,7 +85,7 @@ The IR is open (an#241, ADR 0001 decisions 2–4): never add an `isinstance`/`ki
 
 1. An action kind is an `an.genres.ActionKind(name, model, duration=…, flatten=…, children=…, read_md=…, write_md=…)`, its model a subclass of `an.ir.schema.ExtensionAction` with `kind: Literal["<name>"]`. An entity kind is an `EntityKind(name, space="<property space>", store=…)` (the space is P1's `an.timing.spaces.register_space`); a semantic check is a `SemanticCheck(name, run(ctx), stage="scene"|"shot"|"finish", order=…)`; `scene.md` dialogue sugar is a `DialogueSugar` on the `[…]` brackets.
 2. List them on ONE `an.genres.Genre` object and declare it under `[project.entry-points."an.genres"]`. `an.genres.load()` (called by `an.load` and the CLI, never at import) registers it; `register_genre(obj)` does so directly.
-3. The cut-out genre is the worked example: `an/genres/cutout.py`, with its declarations in `an/characters/registration.py` and `an/expression/registration.py`. Tests run with it registered (root `conftest.py`); test the core alone under `an.genres.without_genres()`.
+3. The cut-out genre is the worked example: `an/genres/cutout.py`, with its declarations in `cutan/characters/registration.py` and `cutan/expression/registration.py`. Tests run with it registered (root `conftest.py`); test the core alone under `an.genres.without_genres()`.
 4. An unregistered kind must stay an error that names its genre — at validate, flatten, compile and `scene.md` read/write — and must round-trip untouched (`tests/test_open_document_model.py`).
 
 The timing default is the DECLARED `stage.node` space (`an.timing.spaces.DFLT_TIMELINE_SPACE`); `space=VALUE_TYPED` is `runtime.js`'s rule. The compiler refuses a keyframe value that fails its field kind, which is what keeps the two equal.
@@ -93,11 +93,11 @@ The timing default is the DECLARED `stage.node` space (`an.timing.spaces.DFLT_TI
 ## How to add a behaviour that needs structure, or a vocabulary name (an#248)
 
 - **Never write another `if rig has X` branch** (ADR 0002 decision 8). A behaviour is a `Method` (an `an.semantic.Entry` of kind `method`) of an `Aspect`; it declares `requires` in the four-form grammar (`cap`, `cap:key`, `cap>=N`, `a|b`), its params as JSON Schema with defaults, an `expand`, and per-term `remedies`. The aspect's chain must end in a method that requires nothing or in `NOOP` — `register_genre` refuses it otherwise.
-- **Capabilities are derived, never typed beside the asset**: a new capability goes into the analyser of its subject (`an.library.character` for characters; `an.capabilities.subjects` for engine and environment), and capability names are persisted identifiers (library facets, substitution records).
-- **Every vocabulary entry carries a version; bump it in the same PR that changes what the name means** (`an.motion.PRESET_VERSIONS`, `an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS`, `an.semantic.seeds.CAMERA_MOVE_VERSIONS`, `ActionKind.version`/`EntityKind.version`, the easing registry's own). The shot's `vocabulary_digest` carries it into the shot key.
+- **Capabilities are derived, never typed beside the asset**: a new capability goes into the analyser of its subject (`cutan.library` for characters; `an.capabilities.subjects` for engine and environment), and capability names are persisted identifiers (library facets, substitution records).
+- **Every vocabulary entry carries a version; bump it in the same PR that changes what the name means** (`an.motion.PRESET_VERSIONS`, `cutan.characters.vocabulary.EXPRESSION_PRESET_VERSIONS`, `an.semantic.seeds.CAMERA_MOVE_VERSIONS`, `ActionKind.version`/`EntityKind.version`, the easing registry's own). The shot's `vocabulary_digest` carries it into the shot key.
 - **A genre contributes through its `Genre` fields** (`capabilities`, `analysers`, `vocabulary`, `aspects`), never by an edit to `an.capabilities` or `an.semantic`; a second genre adds methods to an aspect and a policy chooses them, the chain stays the owning genre's.
 - **Generated surfaces**: after a vocabulary change run `python -m an.semantic.docs --write .claude/skills/an/SKILL.md` (a test holds the skill's section to the registry); the `an iterate` prompt and the MCP tools regenerate themselves.
-- Compile-time resolution is `an.characters.methods` (`compile_profile` feeds the analyser what compiled; `resolve_walk_gait`, `speech_default_actions`); its byte-identity gate is `tests/test_methods_compile.py`.
+- Compile-time resolution is `cutan.characters.methods` (`compile_profile` feeds the analyser what compiled; `resolve_walk_gait`, `speech_default_actions`); its byte-identity gate is `tests/test_methods_compile.py`.
 
 ## Code conventions
 

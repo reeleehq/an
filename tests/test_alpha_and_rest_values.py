@@ -87,6 +87,7 @@ def _shot_with_tween(prop: str, *, to_value, from_value=None) -> Shot:
     )
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize(
     "prop,expected_rest",
     [("x", 0.0), ("y", 0.0), ("rotation", 0.0), ("scale_x", 1.0), ("scale_y", 1.0), ("alpha", 1.0)],
@@ -124,6 +125,7 @@ def test_rest_values_are_derived_from_the_schema_not_restated():
             )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_tween_on_an_undeclared_property_is_refused_at_compile():
     """A property outside the transform vocabulary names a SWAP SET (an#87).
 
@@ -150,6 +152,7 @@ def test_a_tween_on_an_undeclared_property_is_refused_at_compile():
         assert "transform" in msg.lower()
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_explicit_from_value_makes_any_transform_property_tweenable():
     """The rest-value refusal is about a missing identity, not the property.
 
@@ -251,6 +254,7 @@ def test_applypose_applies_shallowest_target_first():
 MAX_FADED_INK_RATIO = 0.35
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_an_alpha_tween_changes_the_rendered_pixels(hermetic_browser, tmp_path):
@@ -350,6 +354,7 @@ MAX_TINTED_CHANNEL_RATIO = 0.6
 _NEAR_WHITE = 245
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_tint_tween_expands_into_three_numeric_channels():
     """MUTATION: leave `tint` un-expanded and let the swap dispatch see it.
 
@@ -389,6 +394,7 @@ def test_a_tint_tween_expands_into_three_numeric_channels():
     assert (round(r, 4), round(g, 4), round(b, 4)) == (1.0, 0.502, 0.0)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_tint_value_that_is_not_a_hex_colour_is_refused():
     """MUTATION: accept any string, or coerce.
 
@@ -413,6 +419,7 @@ def test_a_tint_value_that_is_not_a_hex_colour_is_refused():
             compile_shot(shot, mall={"characters": {}})
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_a_tint_tween_changes_the_rendered_pixels(hermetic_browser, tmp_path):

@@ -25,8 +25,6 @@ from an.ir.schema import (
 from an.ir.compose import (
     set_,
     tween,
-    play,
-    expression,
     sequence,
     parallel,
     stagger,
@@ -63,8 +61,6 @@ __all__ = [
     "Resolution",
     "set_",
     "tween",
-    "play",
-    "expression",
     "sequence",
     "parallel",
     "stagger",
@@ -88,11 +84,19 @@ __all__ = [
     "sync",
 ]
 
-# Document kinds self-register on import of the package that owns their schema,
-# the same way renderers self-register in `an.adapters`. Imported here so a bare
-# `import an.ir` is enough to make every shipped kind migratable — otherwise
-# `migrate()` on a descriptor raises "unknown document kind" in any process that
-# happened not to import the character schema. Last in the file, and a submodule
-# import, so the `an.characters.schema -> an.ir.assets` edge does not close a
-# cycle through this partially-initialised package.
-from an.characters import schema as _character_schema  # noqa: F401,E402
+# Document kinds self-register on import of the package that owns their schema.
+# The character descriptor's kind (and its migrations) is registered by `cutan`
+# when its genre is loaded (an#225): `migrate()` on an unregistered kind names the
+# genre package that provides it.
+#
+# `play` and `expression` moved to `cutan` with the cut-out genre's action kinds;
+# the old names still resolve, with a warning.
+from an._shims import moved_names as _moved_names  # noqa: E402
+
+__getattr__ = _moved_names(
+    __name__,
+    {
+        "play": "cutan.characters.registration:play",
+        "expression": "cutan.expression.registration:expression",
+    },
+)

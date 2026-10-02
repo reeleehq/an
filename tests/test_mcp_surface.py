@@ -75,6 +75,7 @@ def project(tmp_path):
     return root
 
 
+@pytest.mark.genre("cutout_animation")
 def test_queries_answer_from_the_registry(project):
     assert {e["kind"] for e in tools.vocabulary()} >= {"method", "motion_preset", "easing"}
     assert tools.vocabulary_entry("loco.rock")["name"] == "rock"
@@ -84,6 +85,7 @@ def test_queries_answer_from_the_registry(project):
         tools.scene_schema("nope")
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_capability_queries_describe_a_character(project):
     d = tools.describe_character(str(project), "gale")
     assert d["aspects"]["locomotion"]["default"] == "loco.legged_cycle"
@@ -129,6 +131,7 @@ def test_long_work_is_a_job_you_start_and_poll(project, monkeypatch):
         tools.job_status("no-such-job")
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_server_projects_exactly_the_curated_tools():
     pytest.importorskip("py2mcp", reason="the `an[mcp]` extra is optional")
     import asyncio

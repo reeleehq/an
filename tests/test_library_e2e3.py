@@ -28,7 +28,7 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
-from an.characters.factory import new_character
+from cutan.characters.factory import new_character
 from an.credits import speech_credits
 from an.library import (
     LibraryError,
@@ -41,6 +41,9 @@ from an.library import (
 from an.library import api as library_api
 from an.library import registry
 from an.library.registry import RegistryWarning
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 PRIVATE = {"provider": "a-film", "license": "all-rights-reserved-private-study"}
 CC0 = {"provider": "an-tests", "license": "cc0-1.0"}

@@ -142,9 +142,10 @@ def test_the_library_reads_the_same_tables_not_a_copy():
     assert lib.missing is caps.missing
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_character_analyser_is_the_cut_out_genres_and_leaves_with_it():
     from an.genres import without_genres
-    from an.library.character import CHARACTER_ANALYSER
+    from cutan.library import CHARACTER_ANALYSER
 
     assert caps.ANALYSERS["character"] is CHARACTER_ANALYSER
     assert caps.owner_of("limbs.legs") == "cutout_animation"
@@ -155,6 +156,7 @@ def test_the_character_analyser_is_the_cut_out_genres_and_leaves_with_it():
     assert caps.ANALYSERS["character"] is CHARACTER_ANALYSER
 
 
+@pytest.mark.genre("cutout_animation")
 def test_another_owner_cannot_redefine_a_persisted_capability_name():
     with pytest.raises(CapabilityError, match="already registered"):
         register_capability("limbs.legs", description="other", remedy="other", owner="intruder")
@@ -173,13 +175,14 @@ def test_importing_the_library_registers_no_analyser():
     assert out.stdout.strip() == "['engine', 'environment']"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_library_loads_the_genres_before_it_analyses(tmp_path):
     """Consult trap 1's consequence: a library used from a plain script (no
     `an.genres.load()`) still derives a character's facets."""
     code = (
         "import json, sys, pathlib\n"
         "from an.library import open_library, publish\n"
-        "from an.characters.schema import CharacterDescriptor\n"
+        "from cutan.characters.schema import CharacterDescriptor\n"
         "lib = open_library('an', records={}, versions={}, blobs={})\n"
         "doc = CharacterDescriptor(name='blob').model_dump(mode='json')\n"
         "publish(lib, 'character.blob', doc, source={'provider': 'an-tests', 'license': 'cc0-1.0'})\n"

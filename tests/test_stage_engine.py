@@ -123,17 +123,19 @@ def _demo_genre():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_genres_runtime_script_is_staged_and_keyed():
     from an.genres import register_genre, without_genres
     from an.stage.render import runtime_extensions
 
-    assert runtime_extensions() == "", "nothing registered: the shipped file stays"
     with without_genres():
+        assert runtime_extensions() == "", "nothing registered: the shipped file stays"
         register_genre(_demo_genre())
         code = runtime_extensions()
     assert "anRegisterVisual('demo_disc'" in code
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 def test_a_genre_draws_its_own_visual_kind_on_the_stage(tmp_path):
     """The hook `cutan` takes the mouth and eye through: a kind the stage does

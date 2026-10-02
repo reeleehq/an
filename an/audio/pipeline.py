@@ -18,8 +18,7 @@ than its voice declares is a :class:`VoiceStandInWarning` (an error under
 >>> from an.audio.pipeline import default_tts, default_lipsync
 >>> default_tts().name
 'offline'
->>> default_lipsync().name
-'offline'
+
 """
 
 from __future__ import annotations
@@ -32,8 +31,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from an.audio.effects import EFFECT_SAMPLE_RATE, apply_voice_effects, voice_effects
-from an.audio.lipsync import LipSyncProvider, Viseme, VisemeTrack
-from an.audio.offline_lipsync import OfflineLipSync
+from an.audio.lipsync import LipSyncProvider, NullLipSync, Viseme, VisemeTrack
 from an.audio.offline_tts import OfflineTTS
 from an.audio.takes import (
     REROLL_HINT,
@@ -108,8 +106,19 @@ def default_tts() -> TTSProvider:
 
 
 def default_lipsync() -> LipSyncProvider:
-    """The default lip-sync provider: ``OfflineLipSync``."""
-    return OfflineLipSync()
+    """The default lip-sync provider: the loaded genre's ``offline`` one (the
+    deterministic char-to-viseme provider of ``cutan``), else
+    :class:`~an.audio.lipsync.NullLipSync`.
+
+    >>> default_lipsync().name in {"offline", "none"}
+    True
+    """
+    from an.audio.providers import DFLT_LIPSYNC, lipsync_factories
+
+    factories = lipsync_factories()
+    if DFLT_LIPSYNC in factories:
+        return factories[DFLT_LIPSYNC]()
+    return NullLipSync()
 
 
 def is_voice_tts(tts: Any) -> bool:

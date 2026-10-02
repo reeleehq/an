@@ -118,6 +118,32 @@ class ActionKind:
     #: this kind compiles to changes for the same fields, so the shots that use
     #: it re-render visibly (:mod:`an.semantic` folds it into the shot digest).
     version: str = "1"
+    #: How the STAGE compiler turns an action of this kind into clips, for a kind
+    #: that is not a plain tween or set (the cut-out ``play``): an object with
+    #: ``extent_resolver(vocab)``, ``expand(flat_list, *, vocab, fps, step_hz,
+    #: default_easing, resolutions)``, ``view_of(entity_swaps, vocab, *, duration)``
+    #: and ``clip(action, *, anim_id, vocab, fps, view)`` -- see
+    #: :class:`an.stage.compile.ActionLowering`. ``None``: the compiler has
+    #: nothing kind-specific to do. (an#225: this is how the compiler stops
+    #: naming ``play``.)
+    lowering: Any = None
+
+
+@dataclass(frozen=True)
+class SwapDeclaration:
+    """What one entity's descriptor declares for the stage compiler's swap vocabulary.
+
+    ``sets`` is ``{set name: {KEY: attachment name}}`` as declared;
+    ``descriptor`` is the (migrated) document the declaration came from, kept
+    for the kind's own lowering; ``art_exists`` answers ``rel_path -> art on
+    disk`` (``None`` when the store cannot say); ``scale`` is the factor from the
+    entity's view box to scene pixels.
+    """
+
+    sets: dict
+    descriptor: Any = None
+    art_exists: Any = None
+    scale: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -135,6 +161,23 @@ class EntityKind:
     description: str = ""
     #: The kind's vocabulary version (ADR 0003), as :attr:`ActionKind.version`.
     version: str = "1"
+    #: ``(entity, mall) -> SwapDeclaration | None``: what the entity's descriptor
+    #: declares for the stage compiler's swap vocabulary (an#87). ``None``: the
+    #: kind declares nothing (its built nodes' sets ARE its declaration).
+    swap_declaration: Callable[[Any, Any], "SwapDeclaration | None"] | None = None
+    #: The ``kind`` tag of the descriptor document ``store`` holds for this kind
+    #: (``"CharacterDescriptor"``): what makes the validator treat the entity as a
+    #: rig whose declared asset sets it can check (an#246).
+    descriptor_kind: str | None = None
+    #: A missing ``ref`` is NOT an error because the compiler draws a placeholder
+    #: instead; the genre reports it with its own (warning) check.
+    placeholder_on_missing: bool = False
+    #: Extra swap-reference checks for this kind: an object with
+    #: ``missing_set_hint(prop) -> str`` (appended to "names no declared asset
+    #: set") and ``whole_entity(action, desc, prop, keys, entity_id, *, where,
+    #: report, art_exists) -> bool`` (judge a swap on the entity ITSELF; ``True``
+    #: when handled). ``None``: the generic per-node rule only.
+    swap_checks: Any = None
 
 
 #: When a check runs: once before the shots, once per shot, once after them.
@@ -243,7 +286,9 @@ _CHECKS = _Table("semantic check")
 _DIALOGUE_SUGAR = _Table("dialogue sugar")
 _COMPILE_PASSES = _Table("compile pass")
 _RUNTIME_SCRIPTS = _Table("runtime script")
+_SERVICES = _Table("service")
 _TABLES: tuple[_Table, ...] = (
+    _SERVICES,
     _ACTION_KINDS,
     _ENTITY_KINDS,
     _CHECKS,
@@ -481,6 +526,121 @@ def runtime_scripts(engine: str) -> tuple[RuntimeScript, ...]:
             key=lambda s: s.name,
         )
     )
+
+
+class ServiceMissingError(RegistryError, ImportError):
+    """The core asked a genre for a service nobody registered."""
+
+
+def register_service(
+    name: str, target: Any, *, owner: str = CORE_OWNER, replace: bool = False
+) -> Any:
+    """Register a named service a genre offers the core (an#225).
+
+    The seam for the places where the core needs a genre's code only when that
+    genre is installed: a CLI namespace (``cli.character``), a provider factory
+    (``lipsync.offline``), a licence lookup. ``target`` is the object itself or
+    ``"module:attr"`` (imported on first use, so declaring a service imports no
+    engine). The names a genre may use are the core's contract, listed with
+    their callers in ``misc/docs/architecture_as_built.md``.
+    """
+    return _SERVICES.register(name, target, owner=owner, replace=replace)
+
+
+def _resolve_target(target: Any) -> Any:
+    if isinstance(target, str):
+        from importlib import import_module
+
+        module, _, attr = target.partition(":")
+        obj = import_module(module)
+        for part in filter(None, attr.split(".")):
+            obj = getattr(obj, part)
+        return obj
+    return target
+
+
+def service(name: str, default: Any = None) -> Any:
+    """The registered service ``name``, resolved, or ``default`` when none is.
+
+    >>> service("no.such.service") is None
+    True
+    """
+    if name not in _SERVICES.entries:
+        return default
+    return _resolve_target(_SERVICES.entries[name])
+
+
+def require_service(name: str, *, what: str = "", extra: str = "cutout") -> Any:
+    """The registered service ``name``; a typed error naming the install when absent."""
+    if name not in _SERVICES.entries:
+        raise ServiceMissingError(
+            f"{what or name} needs a genre package that is not loaded "
+            f"(no genre registered the service {name!r}). Install it with "
+            f'pip install "an[{extra}]" and load genres (an.genres.load() or '
+            "an.load(project))."
+        )
+    return _resolve_target(_SERVICES.entries[name])
+
+
+def services(prefix: str) -> dict[str, Any]:
+    """``{name without the prefix: resolved service}`` for every service under ``prefix``.
+
+    >>> services("no.such.")
+    {}
+    """
+    return {
+        n[len(prefix) :]: _resolve_target(t)
+        for n, t in _SERVICES.entries.items()
+        if n.startswith(prefix)
+    }
+
+
+def _module_of(target: Any) -> str | None:
+    """The module a registered hook lives in: a ``"module:attr"`` string's, else the object's."""
+    if isinstance(target, str):
+        return target.partition(":")[0] or None
+    return getattr(target, "__module__", None) or getattr(type(target), "__module__", None)
+
+
+def hook_modules(*, exclude_owner: str = CORE_OWNER) -> tuple[str, ...]:
+    """The modules whose code the genres' registered hooks run, sorted and unique.
+
+    Compile passes, lowerings, entity hooks, checks, services and runtime scripts
+    of every owner but ``exclude_owner`` (the core's own are walked from the
+    renderer already). The shot cache's code key starts its walk here for the
+    packages outside ``an``, so a change to a genre's code changes the key
+    (an#294): the genre is reached by REGISTRATION, not by an import from ``an``.
+
+    >>> isinstance(hook_modules(), tuple)
+    True
+    """
+    found: set[str] = set()
+
+    def add(target: Any) -> None:
+        module = _module_of(target)
+        if module:
+            found.add(module)
+
+    def owned(table: _Table):
+        return (e for n, e in table.entries.items() if table.owners[n] != exclude_owner)
+
+    for kind in owned(_ACTION_KINDS):
+        add(kind.model)
+        add(kind.lowering)
+        for hook in (kind.duration, kind.flatten, kind.read_md, kind.write_md):
+            add(hook)
+    for kind in owned(_ENTITY_KINDS):
+        add(kind.swap_declaration)
+        add(kind.swap_checks)
+    for check in owned(_CHECKS):
+        add(check.run)
+    for compile_pass in owned(_COMPILE_PASSES):
+        add(compile_pass.run)
+    for script in owned(_RUNTIME_SCRIPTS):
+        found.add(script.source.partition(":")[0])
+    for target in owned(_SERVICES):
+        add(target)
+    return tuple(sorted(found))
 
 
 def compile_pass_owner(name: str) -> str | None:

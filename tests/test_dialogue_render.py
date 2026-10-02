@@ -20,7 +20,7 @@ from an.project import load
 
 
 
-pytestmark = [pytest.mark.browser, pytest.mark.ffmpeg]
+pytestmark = [pytest.mark.browser, pytest.mark.ffmpeg, pytest.mark.genre("cutout_animation")]
 
 
 def test_dialogue_scene_renders_to_mp4():

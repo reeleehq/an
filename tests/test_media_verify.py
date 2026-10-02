@@ -96,6 +96,7 @@ def _render_dialogue_scene(
     return render_project(root, output_name="quality")
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_render_has_nonzero_audio_volume():
@@ -108,6 +109,7 @@ def test_render_has_nonzero_audio_volume():
         assert vol["max_db"] > -100.0
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_silence_detect_runs_without_error():
@@ -120,6 +122,7 @@ def test_silence_detect_runs_without_error():
             assert s.duration >= 0.1
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_frame_ssim_moves_during_the_line_and_rests_after_it():

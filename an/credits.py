@@ -91,10 +91,17 @@ class CreditEntry:
 
 def _own_work_providers() -> frozenset[str]:
     """The providers of the sources ``an`` writes on what it generates itself."""
-    from an.characters.factory import FACTORY_PROVIDER
     from an.sounds import SYNTH_SOURCE
 
     return frozenset({FACTORY_PROVIDER, SYNTH_SOURCE.provider})
+
+
+#: The provider and licence the cut-out genre's character factory stamps on every
+#: part it draws itself (persisted in descriptors and the asset library: do not
+#: rename). Core vocabulary, because "``an``'s own generated work: nothing owed"
+#: is the credits report's rule; the factory (``cutan``) imports them from here.
+FACTORY_PROVIDER: str = "an character factory"
+FACTORY_LICENSE: str = "cc0-1.0"
 
 
 @dataclass
@@ -868,7 +875,6 @@ def factory_recorded(digest: str) -> bool:
     descriptor counts as the factory's only when the record confirms it
     (review-288 B1). Read fail-safe: unreadable is unconfirmed.
     """
-    from an.characters.factory import FACTORY_PROVIDER
     from an.library.registry import generated_by
 
     return FACTORY_PROVIDER in generated_by(str(digest).removeprefix("sha256:"))
@@ -901,8 +907,6 @@ def is_factory_stamp(raw: Any) -> bool:
     credits report lists what is OWED, and listing fifty generated parts per
     character would bury the one carved head.
     """
-    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
-
     # Both fields: a record naming the factory but another licence is not the
     # factory's stamp — it is a claim, and is reported (and counted) as one.
     return (
@@ -1063,35 +1067,16 @@ def warn_if_private_study(report: CreditsReport, *, output: Any = None) -> bool:
 def _reconstruct_legacy_source(descriptor: Any) -> AssetSource | None:
     """Recover provenance from a descriptor written before ``source`` existed.
 
-    **The users most at risk are the ones with no ``source`` field**, because
-    every character created before it existed used a CC BY default. Reporting
-    those as "no third-party assets recorded" is not an absence of information —
-    it is an affirmative, false compliance statement, made to exactly the people
-    who need the opposite.
-
-    The evidence is right there in the same file: `new_character` has always
-    written ``metadata.dicebear_style`` and ``metadata.dicebear_seed``. So this
-    reconstructs the record rather than shrugging.
-
-    Returns ``None`` only when the art genuinely was not third-party (the
-    offline geometric fallback), which is the one case where "nothing owed" is
-    the true answer.
+    Only a genre's descriptors can be that old, so the genre answers
+    (the ``credits.legacy_source`` service; the cut-out genre reads the
+    DiceBear style its old ``new_character`` recorded). Without a genre that
+    knows the document: ``None``, which callers read as "no record", never as
+    "nothing owed".
     """
-    metadata = getattr(descriptor, "metadata", None)
-    if metadata is None and isinstance(descriptor, Mapping):
-        metadata = descriptor.get("metadata")
-    if not isinstance(metadata, Mapping):
-        return None
-    style = metadata.get("dicebear_style")
-    if not style:
-        return None  # fallback_geometric — we made it, nothing is owed
-    from an.characters.licenses import DICEBEAR_STYLE_LICENSES, dicebear_source
+    from an.genres import service
 
-    seed = str(metadata.get("dicebear_seed") or "")
-    if style in DICEBEAR_STYLE_LICENSES:
-        return dicebear_source(style, seed=seed)
-    # An unrecognised style is UNKNOWN, never "nothing owed".
-    return AssetSource(provider="dicebear", id=f"{style}/{seed}", license=None)
+    reconstruct = service("credits.legacy_source")
+    return reconstruct(descriptor) if reconstruct is not None else None
 
 
 def credits_for_project(project_dir: str | Path) -> CreditsReport:

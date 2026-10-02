@@ -468,8 +468,8 @@ def test_the_golden_gate_is_green_on_a_real_render_of_the_committed_corpus():
     from an.bench.corpus import DFLT_FIXTURES
     from an.bench.run import run_bench
 
-    ledger = run_bench(scenes={"aa_probe": DFLT_FIXTURES["aa_probe"]}, write=False)
-    block = ledger["scenes"]["aa_probe"]
+    ledger = run_bench(scenes={"path_draw": DFLT_FIXTURES["path_draw"]}, write=False)
+    block = ledger["scenes"]["path_draw"]
     tripwire = block["tripwires"]["golden_identity"]
     metric = block["metrics"]["min_ssim_win8_vs_golden"]
     assert tripwire["state"] == "measured", (
@@ -521,12 +521,12 @@ def test_the_golden_gate_goes_red_when_the_rasteriser_changes():
     real = render_module.runtime_dir
     render_module.runtime_dir = lambda: staged
     try:
-        ledger = run_bench(scenes={"aa_probe": DFLT_FIXTURES["aa_probe"]}, write=False)
+        ledger = run_bench(scenes={"path_draw": DFLT_FIXTURES["path_draw"]}, write=False)
     finally:
         render_module.runtime_dir = real
         shutil.rmtree(staged.parent, ignore_errors=True)
 
-    block = ledger["scenes"]["aa_probe"]
+    block = ledger["scenes"]["path_draw"]
     tripwire = block["tripwires"]["golden_identity"]
     assert tripwire["state"] == "measured"
     assert tripwire["value"] is False, "the gate did not notice a changed rasteriser"
@@ -719,11 +719,11 @@ def test_the_panel_distinguishes_a_fired_golden_from_a_passing_one():
                 "golden_identity": measured(value, changed_px=431, max_delta=99)
             },
         )
-        return format_panel({"scenes": {"aa_probe": block}})
+        return format_panel({"scenes": {"path_draw": block}})
 
     fired, held = panel(False), panel(True)
     assert "FIRED" in fired and "FIRED" not in held
-    assert "GOLDEN MISMATCH in aa_probe" in fired
+    assert "GOLDEN MISMATCH in path_draw" in fired
     assert "GOLDEN MISMATCH" not in held, (
         "a passing gate must print nothing extra, or the loud block is noise"
     )
@@ -936,4 +936,4 @@ def test_the_committed_goldens_all_agree_with_their_own_records():
                     f"{scene}/{frame['file']} is not the picture its record names"
                 )
                 checked += 1
-    assert checked >= 12, f"expected the whole corpus, checked {checked} frames"
+    assert checked >= 2 * len(scenes), f"expected two frames per corpus scene, checked {checked}"

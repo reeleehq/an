@@ -19,8 +19,8 @@ from pathlib import Path
 
 import pytest
 
-from an.characters.dicebear import DICEBEAR_DEFAULT_STYLE, DICEBEAR_STYLES
-from an.characters.licenses import (
+from cutan.characters.dicebear import DICEBEAR_DEFAULT_STYLE, DICEBEAR_STYLES
+from cutan.characters.licenses import (
     DICEBEAR_STYLE_LICENSES,
     NO_ATTRIBUTION_REQUIRED,
     attribution_for,
@@ -29,6 +29,9 @@ from an.characters.licenses import (
 )
 from an.credits import collect_credits
 from an.ir.assets import AssetSource, requires_attribution
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 
 # ------------------------------------------------------- the shared vocabulary
@@ -90,7 +93,17 @@ def test_attribution_classification_distinguishes_unknown_from_no(license, expec
 #: CC BY 4.0, i.e. attribution-bearing), `glass` and `rings`. A guard whose
 #: reference is another copy of the thing it guards can only confirm that
 #: someone copied one list into the other.
-_UPSTREAM_SNAPSHOT = Path(__file__).resolve().parents[1] / "an/data/dicebear_9x_styles.json"
+def _upstream_snapshot() -> Path | None:
+    """The DiceBear 9.x style snapshot, shipped as data by the cut-out genre (`cutan`, an#225)."""
+    import importlib.util
+
+    spec = importlib.util.find_spec("cutan")
+    if spec is None or not spec.submodule_search_locations:
+        return None  # the genre-marked tests that read it are skipped where cutan is absent
+    return Path(list(spec.submodule_search_locations)[0]) / "data" / "dicebear_9x_styles.json"
+
+
+_UPSTREAM_SNAPSHOT = _upstream_snapshot()
 
 
 def _upstream_styles() -> set[str]:
@@ -198,14 +211,14 @@ def test_a_cc_by_style_is_refused_without_an_explicit_acknowledgement(tmp_path):
     """Not paternalism: the duty falls on whoever ships the video, and making it
     an explicit flag is the difference between an informed choice and an
     unknowing violation."""
-    from an.characters.factory import new_character
+    from cutan.characters.factory import new_character
 
     with pytest.raises(ValueError, match="obliges"):
         new_character(tmp_path / "c", name="amy", style="adventurer")
 
 
 def test_acknowledging_lets_it_through_and_the_message_says_what_is_owed(tmp_path):
-    from an.characters.factory import new_character
+    from cutan.characters.factory import new_character
 
     try:
         new_character(tmp_path / "c", name="amy", style="adventurer")
@@ -223,7 +236,7 @@ def test_acknowledging_lets_it_through_and_the_message_says_what_is_owed(tmp_pat
 
 
 def _descriptor_with(source: AssetSource):
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
 
     return CharacterDescriptor(name="x", source=source)
 
@@ -308,8 +321,8 @@ def test_creating_a_character_actually_records_its_provenance(tmp_path, stub_dic
 
     This walks the real path: create → write to disk → read back → credits.
     """
-    from an.characters.factory import new_character
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.factory import new_character
+    from cutan.characters.schema import CharacterDescriptor
 
     desc_path = new_character(tmp_path, name="maya", style="lorelei")
     on_disk = CharacterDescriptor.model_validate_json(desc_path.read_text(encoding="utf-8"))
@@ -325,8 +338,8 @@ def test_creating_a_character_actually_records_its_provenance(tmp_path, stub_dic
 def test_an_acknowledged_cc_by_character_carries_the_attribution_it_owes(
     tmp_path, stub_dicebear
 ):
-    from an.characters.factory import new_character
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.factory import new_character
+    from cutan.characters.schema import CharacterDescriptor
 
     desc_path = new_character(
         tmp_path, name="bo", style="adventurer", acknowledge_attribution=True
@@ -345,8 +358,8 @@ def test_offline_art_records_nothing_because_nothing_is_owed(tmp_path):
     descriptor carries its own ``cc0`` stamp, pinned to the drawing the parts
     were cut from — not a third-party source, and nothing owed.
     """
-    from an.characters.factory import FACTORY_PROVIDER, new_character
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.factory import FACTORY_PROVIDER, new_character
+    from cutan.characters.schema import CharacterDescriptor
     from an.credits import collect_credits
     from an.stores import build_project_mall
 
@@ -369,7 +382,7 @@ def test_a_character_from_before_this_feature_still_reports_what_it_owes():
     who need the opposite. The evidence was in the same file all along:
     `metadata.dicebear_style`.
     """
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
 
     legacy = CharacterDescriptor(
         name="old",
@@ -387,7 +400,7 @@ def test_a_character_from_before_this_feature_still_reports_what_it_owes():
 
 def test_a_legacy_character_from_the_offline_fallback_owes_nothing():
     """Reconstruction must not invent an obligation where there is none."""
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
 
     legacy = CharacterDescriptor(
         name="old", metadata={"art_provenance": "fallback_geometric"}
@@ -396,7 +409,7 @@ def test_a_legacy_character_from_the_offline_fallback_owes_nothing():
 
 
 def test_a_legacy_character_of_an_unrecognised_style_is_unverified_not_clear():
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
 
     legacy = CharacterDescriptor(
         name="old", metadata={"dicebear_style": "some-style-nobody-checked"}

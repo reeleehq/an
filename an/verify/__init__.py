@@ -30,9 +30,9 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
-    if name == "StyleLintVerifier":
-        from an.verify.style import StyleLintVerifier
+# `StyleLintVerifier` moved to `cutan` with the cut-out style lint (an#225).
+from an._shims import moved_names as _moved_names  # noqa: E402
 
-        return StyleLintVerifier
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__getattr__ = _moved_names(
+    __name__, {"StyleLintVerifier": "cutan.verify.style:StyleLintVerifier"}
+)

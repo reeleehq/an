@@ -519,7 +519,7 @@ def test_every_vector_document_validates_against_the_compiled_schema():
 def test_every_corpus_shot_compiles_to_a_document_the_schema_accepts(tmp_path):
     """The compiled schema is hand-written in the kernel; the stage serializer is
     separate code. A field added to either without the other fails here."""
-    from tests.test_pure_pose import _corpus_shots
+    from tests._corpus_shots import _corpus_shots
 
     from an.adapters.cutout.serialize import to_dict
 
@@ -551,7 +551,7 @@ def test_the_compiled_schema_names_exactly_the_stage_serializer_fields():
 
 
 def test_every_corpus_scene_flattens_to_a_timeline_the_schema_accepts(tmp_path):
-    from tests.test_pure_pose import _corpus_shots
+    from tests._corpus_shots import _corpus_shots
 
     from an.ir.compose import flatten
     from an.timing.flat import flat_timeline_doc

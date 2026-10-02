@@ -79,40 +79,6 @@ def test_visual_kinds_reads_the_scene_tree_and_not_the_whole_document():
     assert visual_kinds(staged) == {"rect", "eye"}
 
 
-def test_the_fixture_that_uses_the_placeholder_rig_declares_it(tmp_path):
-    """`single_character` INTENDS the built-in rig; `strict_assets` refuses fallbacks.
-
-    Its prepare step writes exactly `_PLACEHOLDER_PARTS` into the copy's store,
-    so the compiled tree — and therefore every pixel — is identical to the
-    fallback's, and the record changes from `fallback: true` to `resolved:
-    "parts"`. That equivalence is what makes this a declaration rather than a
-    different scene, and it is asserted here rather than assumed.
-    """
-    from an.adapters.cutout.compile import _PLACEHOLDER_PARTS, compile_shot
-    from an.ir.schema import AssetRef, Shot
-
-    shot = Shot(
-        id="s1",
-        renderer="cutout",
-        duration=1.0,
-        entities=[
-            AssetRef(
-                kind="character", id="charlie", store="characters", ref="charlie-v1"
-            )
-        ],
-    )
-    with pytest.warns(Warning):
-        fell_back = compile_shot(shot, mall={"characters": {}})
-    declared = compile_shot(
-        shot,
-        mall={"characters": {"charlie-v1": {"parts": list(_PLACEHOLDER_PARTS)}}},
-        strict_assets=True,
-    )
-    assert fell_back.scene == declared.scene, (
-        "the declaration must render the same picture as the fallback did; if "
-        "these diverge, the corpus fixture has quietly become a different scene"
-    )
-    assert declared.asset_resolution[0].fallback is False
 
 
 def test_the_copy_leaves_the_previous_render_behind(tmp_path):
@@ -173,19 +139,6 @@ def test_every_fixture_declares_at_least_two_golden_frames_and_says_what_moves()
         )
 
 
-def test_the_corpus_covers_the_four_scenes_the_research_says_it_lacked():
-    """MUTATION: delete any one of the four an#38 fixtures.
-
-    Pinned by NAME rather than by counting, because a count is satisfied by any
-    four scenes and each of these four exists for its own measured reason:
-    banding has no edge in it; the shipped examples' 4:2:0 edge error is ~3x
-    smaller than a saturated pattern's; a single-shot render short-circuits
-    `_ffmpeg_concat` to `shutil.copy`; and axis-aligned `drawRect` edges are
-    bit-identical with MSAA on or off.
-    """
-    assert {"graded_field", "saturated_outline", "multi_shot", "aa_probe"} <= set(
-        DFLT_FIXTURES
-    )
 
 
 def test_the_bench_owned_fixtures_need_no_prepare_step():
@@ -194,7 +147,7 @@ def test_the_bench_owned_fixtures_need_no_prepare_step():
     MUTATION: give one of the four a `prepare` that regenerates its art.
 
     `promote_demo` legitimately has one — its rig is a gitignored build product,
-    and exercising `an.characters.promote` is part of what that scene is for.
+    and exercising `cutan.characters.promote` is part of what that scene is for.
     The four bench-owned scenes must not: their pixels have to be a function of
     the repo alone, or every change to an unrelated generator forces a re-bless.
     """
@@ -249,28 +202,6 @@ def test_every_corpus_fixture_is_committed_whole():
         assert not untracked, f"{name} has untracked fixture files: {untracked}"
 
 
-def test_the_multi_shot_fixture_ids_do_not_sort_into_timeline_order():
-    """The ordering trap has to stay armed.
-
-    MUTATION: rename `multi_shot`'s shots to `s1` and `s2`.
-
-    `an/render.py` concatenates in `scene.timeline` order; a directory-name sort
-    agrees only by luck. This fixture is the thing that notices when it does
-    not, and it can only do that while its ids disagree with their own sort.
-    """
-    from an.bench.paths import repo_root
-
-    scene_md = (repo_root() / DFLT_FIXTURES["multi_shot"].path / "scene.md").read_text(
-        encoding="utf-8"
-    )
-    ids = [
-        line.split()[2] for line in scene_md.splitlines() if line.startswith("## Shot ")
-    ]
-    assert len(ids) >= 2, "the multi-shot fixture must have more than one shot"
-    assert ids != sorted(ids), (
-        f"shot ids {ids} sort into timeline order, so a directory-name sort would "
-        "agree with the timeline and this fixture would stop catching the bug"
-    )
 
 
 def test_iter_shot_dirs_follows_the_timeline_not_the_directory_name(tmp_path):
@@ -307,30 +238,6 @@ def test_a_shot_the_timeline_names_but_the_render_did_not_produce_is_refused(tmp
         list(iter_shot_dirs(tmp_path, order=["intro", "beat"]))
 
 
-def test_corpus_entity_ids_are_pinned_by_literal():
-    """A rename silently re-phases every blink and moves every metric.
-
-    MUTATION: rename an entity in any corpus `scene.md`.
-    """
-    from an.bench.paths import repo_root
-
-    expected = {
-        "graded_field": ["field"],
-        "saturated_outline": ["plates"],
-        "aa_probe": ["probe"],
-        "multi_shot": ["back", "ada", "back", "ada"],
-    }
-    root = repo_root()
-    for name, ids in expected.items():
-        text = (root / DFLT_FIXTURES[name].path / "scene.md").read_text(
-            encoding="utf-8"
-        )
-        found = [
-            line.split("id:", 1)[1].strip()
-            for line in text.splitlines()
-            if line.strip().startswith("id:")
-        ]
-        assert found == ids, f"{name}: entity ids are {found}, expected {ids}"
 
 
 def test_the_golden_corpus_is_not_excluded_from_the_sdist():

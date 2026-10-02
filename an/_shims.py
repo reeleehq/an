@@ -57,6 +57,7 @@ __all__ = [
     "forward_module_attributes",
     "forwarded_names",
     "declared_moves",
+    "moved_names",
     "moved_to_package",
     "moved_targets",
     "resolve_moved",
@@ -435,6 +436,49 @@ def moved_to_package(
     # The import system re-reads `sys.modules[name]` after running the old
     # module's body, so this is what `import old` returns.
     sys.modules[module_name] = module
+
+
+def moved_names(
+    module_name: str,
+    names: Mapping[str, str],
+    *,
+    distribution: str = DFLT_MOVED_DISTRIBUTION,
+    extra: str = DFLT_MOVED_EXTRA,
+):
+    """A module-level ``__getattr__`` that serves names which moved to a genre package.
+
+    ``names`` is ``{old name: "new.module:attr"}``. Assign the result to
+    ``__getattr__`` in the old module: ``old.NAME`` imports the new module (typed
+    errors as for :func:`moved_to_package`), warns once with
+    :class:`MovedModuleWarning`, and returns the attribute -- so a module that
+    still has code of its own can send a few names to the genre.
+
+    >>> import sys, types
+    >>> new = types.ModuleType("_moved_names_new"); new.THING = 7
+    >>> sys.modules["_moved_names_new"] = new
+    >>> get = moved_names("_moved_names_old", {"OLD_THING": "_moved_names_new:THING"}, distribution="demo")
+    >>> import warnings
+    >>> with warnings.catch_warnings(record=True):
+    ...     warnings.simplefilter("always")
+    ...     get("OLD_THING")
+    7
+    >>> del sys.modules["_moved_names_new"]
+    """
+
+    def __getattr__(name: str):
+        target = names.get(name)
+        if target is None:
+            raise AttributeError(f"module {module_name!r} has no attribute {name!r}")
+        module_path, _, attr = target.partition(":")
+        module = _import_moved(
+            f"{module_name}.{name}",
+            module_path,
+            move=_Move(module_path, distribution, extra),
+            declared=True,
+        )
+        return getattr(module, attr)
+
+    return __getattr__
 
 
 def moved_targets() -> dict[str, str]:

@@ -3,10 +3,11 @@
 Phase 3 ships:
 
 - Protocols: ``TTSProvider``, ``LipSyncProvider`` (Phase 1).
-- Default offline providers: ``OfflineTTS`` (silent WAV), ``OfflineLipSync``
-  (deterministic char-to-viseme).
-- Real providers: ``ElevenLabsTTS`` (needs ``ELEVEN_API_KEY``),
-  ``RhubarbLipSync`` (needs ``rhubarb`` binary).
+- Default offline provider: ``OfflineTTS`` (silent WAV). The lip-sync providers
+  (``OfflineLipSync`` deterministic char-to-viseme, ``RhubarbLipSync``,
+  ``WhisperLipSync``) moved to ``cutan`` with the cut-out genre (an#225); the old
+  names still resolve from here, with a warning.
+- Real providers: ``ElevenLabsTTS`` (needs ``ELEVEN_API_KEY``).
 - Orchestration: ``produce_audio_for_dialogue`` /
   ``produce_audio_for_scene`` walk a SceneIR, synthesize, persist to mall,
   stamp viseme tracks back onto the IR.
@@ -22,15 +23,12 @@ from an.audio.lipsync import (
     VisemeTrack,
     WordTiming,
     WordTimingProvider,
+    NullLipSync,
     word_timings_to_visemes,
 )
 from an.audio.offline_tts import OfflineTTS
-from an.audio.offline_lipsync import OfflineLipSync
 from an.audio.elevenlabs_tts import ElevenLabsTTS
 from an.audio.mac_say_tts import MacSayTTS
-from an.audio.rhubarb_lipsync import RhubarbLipSync
-from an.audio.whisper_lipsync import WhisperLipSync
-from an.audio.injectable_lipsync import StaticWordTimings, WordTimingsLipSync
 from an.audio.pipeline import (
     default_tts,
     default_lipsync,
@@ -53,15 +51,11 @@ __all__ = [
     "VisemeTrack",
     "WordTiming",
     "WordTimingProvider",
+    "NullLipSync",
     "word_timings_to_visemes",
     "OfflineTTS",
-    "OfflineLipSync",
     "ElevenLabsTTS",
     "MacSayTTS",
-    "RhubarbLipSync",
-    "WhisperLipSync",
-    "StaticWordTimings",
-    "WordTimingsLipSync",
     "default_tts",
     "default_lipsync",
     "produce_audio_for_dialogue",
@@ -71,3 +65,16 @@ __all__ = [
     "known_tts_names",
     "known_lipsync_names",
 ]
+
+from an._shims import moved_names as _moved_names  # noqa: E402
+
+__getattr__ = _moved_names(
+    __name__,
+    {
+        "OfflineLipSync": "cutan.audio.offline_lipsync:OfflineLipSync",
+        "RhubarbLipSync": "cutan.audio.rhubarb_lipsync:RhubarbLipSync",
+        "WhisperLipSync": "cutan.audio.whisper_lipsync:WhisperLipSync",
+        "StaticWordTimings": "cutan.audio.injectable_lipsync:StaticWordTimings",
+        "WordTimingsLipSync": "cutan.audio.injectable_lipsync:WordTimingsLipSync",
+    },
+)
