@@ -121,7 +121,7 @@ def check() -> str:
 def render(
     project_dir: str,
     output_name: str = "main",
-    tts: str = "offline",
+    tts: str = "",
     lipsync: str = "offline",
     parallel: str = "",
     strict_assets: bool = False,
@@ -148,7 +148,12 @@ def render(
 
     project_dir: path to an an project (must contain scene.md / ir/scene.json)
     output_name: filename stem under output/ (default: "main")
-    tts: TTS provider — "offline" (silent) or "elevenlabs" (needs ELEVEN_API_KEY)
+    tts: TTS provider for EVERY line — "offline" (silent), "elevenlabs" (needs
+        ELEVEN_API_KEY) or "mac_say". Omitted (the default): each voice's own
+        `provider` speaks its lines, a voice naming none is offline, and what a
+        paid provider will bill is printed before the first request. A line
+        spoken by another provider than its voice declares is a finding (an
+        error under --strict-assets)
     lipsync: lip-sync provider — "offline" (deterministic), "rhubarb"
         (needs the rhubarb binary), or "whisper" (needs faster-whisper)
     parallel: per-shot concurrency. "" or "1" = serial (default); "auto" =
@@ -205,7 +210,7 @@ def render(
     output_path = _render_project(
         project_dir,
         output_name=output_name,
-        tts=tts,
+        tts=tts or None,
         lipsync=lipsync,
         parallel=parallel_arg,
         strict_assets=strict_assets,

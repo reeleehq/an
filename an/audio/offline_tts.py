@@ -66,6 +66,9 @@ class OfflineTTS:
     #: The same request gives the same audio, so best-of-N takes never apply
     #: (:func:`an.audio.takes.voice_takes`) and nothing is billed.
     repeatable: bool = True
+    #: Its audio is silence: a line it speaks for a voice written for a real
+    #: provider is a stand-in the render says so loudly (an#305).
+    silent: bool = True
 
     def __init__(
         self,

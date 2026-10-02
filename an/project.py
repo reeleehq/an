@@ -52,7 +52,9 @@ resolution = [{width}, {height}]
 # Nothing reads this section yet; it mirrors the defaults `an render` uses.
 # A paid provider belongs here only behind an explicit opt-in — see an.live_api.
 [providers]
-tts = "offline"
+# "voice": each voice document's own `provider` speaks its lines; a voice that
+# names none is spoken by the offline (silent) provider.
+tts = "voice"
 lipsync = "offline"
 """
 

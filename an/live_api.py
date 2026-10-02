@@ -17,7 +17,10 @@ provider.
 *auto-detection* — code that picks a paid provider because a key happened to be
 in the environment. It is not a ban on paid work, and two shipped paths reach
 paid APIs without consulting this predicate because the caller named them:
-``an iterate`` (Anthropic) and the vision verifier's default judge. If you add a
+``an iterate`` (Anthropic) and the vision verifier's default judge — and a third
+whose project named it: ``an render`` speaks a voice whose document declares
+``provider: elevenlabs`` with ElevenLabs (an#305), printing the requests and
+characters it will bill before the first one, and never billing a cached line. If you add a
 path that CHOOSES a provider rather than being told one, it belongs here — an example is not a test, but it is the file with the most footfall,
 and a clean checkout has a cold audio cache, so every line it speaks is a new
 charge.

@@ -119,7 +119,7 @@ def orchestrate(
     output_name: str = "main",
     verifiers: Sequence[Verifier] | None = None,
     skip_render: bool = False,
-    tts: str | object = "offline",
+    tts: str | object | None = None,
     lipsync: str | object = "offline",
     parallel: int | str | None = None,
     language: str = "en",
@@ -141,7 +141,8 @@ def orchestrate(
     ``tts`` and ``lipsync`` accept either a provider name string or a
     provider instance — useful for callers (e.g. ``muvid``) that want
     to inject a :class:`an.audio.WordTimingsLipSync` driven by their
-    own alignment store, instead of letting ``an`` re-transcribe.
+    own alignment store, instead of letting ``an`` re-transcribe. ``tts``
+    defaults to each voice's own provider (an#305), as ``an render`` does.
     """
     report = OrchestratorReport()
     if verifiers is None:

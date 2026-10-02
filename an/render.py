@@ -140,7 +140,7 @@ def render_project(
     output_name: str = "main",
     fps: int | None = None,
     resolution: tuple[int, int] | None = None,
-    tts: str | object = "offline",
+    tts: str | object | None = None,
     lipsync: str | object = "offline",
     parallel: int | str | None = None,
     strict_assets: bool = False,
@@ -166,10 +166,17 @@ def render_project(
     ``an.build`` logger. See :func:`render`.
 
     ``tts`` and ``lipsync`` may be provider name strings (``"offline"``,
-    ``"elevenlabs"``, ``"rhubarb"``) or provider instances. Defaults are
-    offline so no API keys are required. Switching providers triggers a
-    re-synthesis on dialogue lines whose stamped audio_ref / viseme_ref
-    no longer match the current configuration.
+    ``"elevenlabs"``, ``"rhubarb"``) or provider instances. **``tts`` defaults
+    to each voice's own provider** (an#305): a line whose voice document
+    declares ``provider: elevenlabs`` is spoken by ElevenLabs — its cost
+    announced before the first request, a cached line never billed — and a
+    voice that declares none by the offline provider, so a project that
+    declares no provider needs no API key and renders exactly as before. A
+    ``tts`` given overrides every voice; a line spoken by another provider than
+    its voice declares (``--tts offline`` for an ElevenLabs voice: silence) is a
+    finding, and refused under ``strict_assets``. ``lipsync`` defaults to
+    offline. Switching providers triggers a re-synthesis on dialogue lines whose
+    stamped audio_ref / viseme_ref no longer match the current configuration.
 
     ``parallel`` controls per-shot concurrency:
 
@@ -253,7 +260,7 @@ def render(
     fps: int | None = None,
     resolution: tuple[int, int] | None = None,
     auto_audio: bool = True,
-    tts: str | object = "offline",
+    tts: str | object | None = None,
     lipsync: str | object = "offline",
     parallel: int | str | None = None,
     strict_assets: bool = False,
@@ -419,9 +426,8 @@ def _render_film(
     if auto_audio and _has_any_audio_content(scene):
         # Lazy import to keep render.py importable without audio extras.
         from an.audio.pipeline import produce_audio_for_scene
-        from an.audio.providers import make_lipsync, make_tts
+        from an.audio.providers import make_lipsync
 
-        tts_provider = make_tts(tts) if isinstance(tts, str) else tts
         lipsync_provider = (
             make_lipsync(lipsync, language=language)
             if isinstance(lipsync, str)
@@ -431,10 +437,13 @@ def _render_film(
         produce_audio_for_scene(
             scene,
             project.mall,
-            tts=tts_provider,
+            # A name, an instance, or None: each voice's own provider (an#305).
+            tts=tts,
             lipsync=lipsync_provider,
             # Reported with every other post-synthesis finding, below (an#254).
             overruns=False,
+            # A voice spoken by another provider than it declares is a stand-in.
+            strict=strict_assets,
         )
         # Persist the now-stamped scene back to disk so subsequent loads see it.
         project.mall["scenes"]["main"] = scene
@@ -581,7 +590,7 @@ def _render_film(
             profile=dict(
                 fps=fps, resolution=resolution, strict_assets=strict_assets,
                 supersample=supersample, pix_fmt=pix_fmt, capture=capture,
-                step_hz=step_hz, tts=_provider_name(tts),
+                step_hz=step_hz, tts=_tts_name(tts),
                 lipsync=_provider_name(lipsync), language=language,
             ),
             output=output_path,
@@ -659,6 +668,7 @@ def portable_text(text: str, *, root=None, home=None) -> str:
 #: How ``an render``'s summary heads each ``kind`` of finding, in this order; a
 #: kind not listed (another warning category) is headed by its own name, after.
 FINDING_GROUPS: dict[str, str] = {
+    "VoiceStandInWarning": "voices spoken by another provider than they declare",
     "dialogue_fits": "dialogue that does not fit its shot",
     "dialogue_in_dissolve": "dialogue heard during a dissolve",
     "measurement": "shots whose renderer measured their length",
@@ -1042,6 +1052,14 @@ def _provider_name(provider) -> str | None:
     return provider if isinstance(provider, str) else None
 
 
+def _tts_name(tts) -> str | None:
+    """The ``tts`` a root records: :func:`_provider_name`, and ``"voice"``
+    (:data:`an.audio.pipeline.VOICE_TTS`) for each voice's own provider (an#305)."""
+    from an.audio.pipeline import VOICE_TTS, is_voice_tts
+
+    return VOICE_TTS if is_voice_tts(tts) else _provider_name(tts)
+
+
 def _film_parts(windows, shot_results, plans, engine, work_dir, *, fps, pix_fmt):
     """Each shot's `ShotParts` for an assembled film: a reused shot's from the
     cache, a rendered shot's built from its frames once and recorded."""
@@ -1074,7 +1092,7 @@ def cache_entries(
     pix_fmt: str | None = None,
     capture: str | None = None,
     step_hz: float | None = None,
-    tts: str | object = "offline",
+    tts: str | object | None = None,
     lipsync: str | object = "offline",
     language: str = "en",
 ) -> list[str]:
@@ -1095,12 +1113,12 @@ def cache_entries(
 
     scene = project.scene
     if _has_any_audio_content(scene):
-        from an.audio.providers import make_lipsync, make_tts
+        from an.audio.providers import make_lipsync
 
         stamp_from_stores(
             scene,
             project.mall,
-            tts=make_tts(tts) if isinstance(tts, str) else tts,
+            tts=tts,  # None: each voice's own provider, as the render (an#305)
             lipsync=(
                 make_lipsync(lipsync, language=language)
                 if isinstance(lipsync, str)

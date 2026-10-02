@@ -66,6 +66,10 @@ class ElevenLabsVoiceError(ValueError):
     """A voice document declares ElevenLabs settings that are malformed."""
 
 
+class ElevenLabsUnavailableError(RuntimeError):
+    """A request cannot be sent: no API key is configured."""
+
+
 def takes_audio_tags(
     model_id: str, *, prefixes: Sequence[str] = AUDIO_TAG_MODEL_PREFIXES
 ) -> bool:
@@ -160,12 +164,18 @@ class ElevenLabsTTS:
         #: ``api_key -> client``; tests inject a fake so nothing reaches the API.
         self.client_factory = client_factory
 
-    def _client(self):
+    def check_available(self) -> None:
+        """Raise :class:`ElevenLabsUnavailableError` when a request could not be
+        sent (no API key) — what the audio pipeline asks before the first
+        request of a render, so nothing is half-synthesized (an#305)."""
         if not self.api_key:
-            raise RuntimeError(
+            raise ElevenLabsUnavailableError(
                 "ElevenLabsTTS requires an API key. Set ELEVEN_API_KEY in your "
                 "environment or pass api_key= to the constructor."
             )
+
+    def _client(self):
+        self.check_available()
         if self.client_factory is not None:
             return self.client_factory(self.api_key)
         try:

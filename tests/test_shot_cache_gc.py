@@ -39,6 +39,7 @@ from an.build.gc import (
 from an.build.shot_cache import FRAMES_SUFFIX, PARTS_INFIX, ROOT_PREFIX
 from an.ir.schema import Meta, Resolution, SceneIR, Shot, SoundCue, Transition
 from an.project import load
+from tests.test_voice_provider import eleven  # noqa: F401 — the fixture, by name
 from tests.test_shot_cache import (  # noqa: F401 — the fixture, by name
     _ENV,
     _FPS,
@@ -1028,3 +1029,72 @@ def test_a_fresh_process_finds_the_renderers_through_the_lazy_registry(tmp_path,
     ).stdout
     deleted, kept = json.loads(out.strip().splitlines()[-1])
     assert deleted == [old] and kept >= 2  # the current mp4 and the root
+
+
+# -----------------------------------------------------------------------------
+# an#306: each recorded render's own providers, never a hypothetical default
+# -----------------------------------------------------------------------------
+
+
+def _voiced(root, *texts: str, voice: dict | None = None) -> None:
+    """One shot per text, each with one line in voice `bob`."""
+    from an.ir.schema import Dialogue
+
+    shots = []
+    for i, text in enumerate(texts):
+        shot = _shot(f"s{i}", 10.0 + i)
+        shot.duration = 3.0
+        shot.dialogue = [Dialogue(speaker="x", text=text, voice_ref="bob")]
+        shots.append(shot)
+    _set_shots(root, *shots)
+    if voice is not None:
+        load(root).mall["voices"]["bob"] = voice
+
+
+def test_gc_and_info_work_right_after_an_elevenlabs_render(tmp_path, fake_render, eleven):
+    """The end-user report: `--tts elevenlabs` for a voice that names no
+    provider, then `an cache info/gc` failed keying the scene under offline."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there", "and again")
+    first, _ = _render(root, fake_render, tts="elevenlabs")
+    info = cache_info(root, engine=ShotCache(environment=_env()))
+    assert info.reachable is not None and info.unreachable[0] == 0
+    assert "not keyed under 2 knob set(s) (tts=offline, tts=voice)" in info.summary()
+    report = _gc(root)
+    assert report.deleted == [] and "not keyed under" in report.summary()
+    _, rendered = _render(root, fake_render, tts="elevenlabs")
+    assert rendered == [] and len(eleven.requests) == 2  # nothing re-billed
+
+
+def test_a_voice_that_names_elevenlabs_is_kept_under_a_plain_render(
+    tmp_path, fake_render, eleven
+):
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there", voice={"provider": "elevenlabs", "voice_id": "TX3"})
+    report, _ = _render(root, fake_render, tts="elevenlabs")
+    _drop_roots(root)  # no root: only the plain render's knob sets speak
+    assert _gc(root, force=True).deleted == []
+    _, rendered = _render(root, fake_render)  # plain: the voice's own provider
+    assert rendered == [] and len(eleven.requests) == 1
+
+
+def test_a_knob_set_missing_a_lines_audio_keeps_what_its_render_used(
+    tmp_path, fake_render, eleven
+):
+    """Rendered offline once, then ElevenLabs; a line edited and re-rendered
+    with ElevenLabs only. The offline knob set cannot key the edited shot, so
+    it is skipped — and its root keeps the unchanged shot's offline entry even
+    when --max-age has expired it."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there", "stays the same")
+    offline, _ = _render(root, fake_render, tts="offline")
+    _render(root, fake_render, tts="elevenlabs")
+    _voiced(root, "hello again", "stays the same")
+    _render(root, fake_render, tts="elevenlabs")
+    report = _gc(root, max_age=1.0)
+    # offline (recorded) and a plain render's (bob names no provider: offline)
+    assert sorted(p["tts"] for p, _ in report.reach.skipped) == ["offline", "voice"]
+    assert "hello again" in report.reach.skipped[0][1]
+    assert set(_keys(offline)) <= _ids(root)  # what the offline render used
+    _, rendered = _render(root, fake_render, tts="offline")
+    assert rendered == ["s0"]  # the edited shot only: its offline line is new
