@@ -105,7 +105,9 @@ class NullLipSync:
     convention: str = "none"
 
     def align(self, audio: AudioClip, transcript: str) -> VisemeTrack:
-        return VisemeTrack(visemes=[], convention=self.convention, duration=audio.duration)
+        return VisemeTrack(
+            visemes=[], convention=self.convention, duration=audio.duration
+        )
 
 
 # --- shared word-timings → visemes conversion ----------------------------

@@ -326,9 +326,20 @@ mall["environments"]["card"] = EnvironmentDescriptor(
 mall["environments"]["dusk"] = EnvironmentDescriptor(
     name="dusk",
     planes=[
-        Plane(name="sky", art=PlaneArt(kind="gradient", gradient={"stops": ["#141a33", "#f2c48a"]}), depth=0.2),
-        Plane(name="glow", art=PlaneArt(kind="gradient", role="glass", gradient={"type": "radial",
-              "stops": ["#fff3d2", "#fff3d200"]}), size=(800.0, 600.0)),
+        Plane(
+            name="sky",
+            art=PlaneArt(kind="gradient", gradient={"stops": ["#141a33", "#f2c48a"]}),
+            depth=0.2,
+        ),
+        Plane(
+            name="glow",
+            art=PlaneArt(
+                kind="gradient",
+                role="glass",
+                gradient={"type": "radial", "stops": ["#fff3d2", "#fff3d200"]},
+            ),
+            size=(800.0, 600.0),
+        ),
     ],
 ).model_dump(mode="json")
 

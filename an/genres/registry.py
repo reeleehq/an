@@ -599,7 +599,9 @@ def _module_of(target: Any) -> str | None:
     """The module a registered hook lives in: a ``"module:attr"`` string's, else the object's."""
     if isinstance(target, str):
         return target.partition(":")[0] or None
-    return getattr(target, "__module__", None) or getattr(type(target), "__module__", None)
+    return getattr(target, "__module__", None) or getattr(
+        type(target), "__module__", None
+    )
 
 
 def hook_modules(*, exclude_owner: str = CORE_OWNER) -> tuple[str, ...]:

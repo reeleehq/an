@@ -830,7 +830,9 @@ def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
 def _md_shot_text(shot: Shot) -> str:
     """One shot as the writer spells it: heading, then its blocks."""
     parts = [_md_shot_heading(shot) + "\n"]
-    parts += [_md_fence(key, body) + "\n" for key, body in _md_shot_blocks(shot).items()]
+    parts += [
+        _md_fence(key, body) + "\n" for key, body in _md_shot_blocks(shot).items()
+    ]
     return "\n".join(parts)
 
 
@@ -989,7 +991,11 @@ def _patch_markdown(existing: str, old: SceneIR, new: SceneIR) -> str:
     # The title line and the meta block live before the first shot.
     if _md_title_line(old) != _md_title_line(new) or not _H1_RE.search(head):
         line = _md_title_line(new)
-        head = _H1_RE.sub(line, head, count=1) if _H1_RE.search(head) else line + "\n\n" + head
+        head = (
+            _H1_RE.sub(line, head, count=1)
+            if _H1_RE.search(head)
+            else line + "\n\n" + head
+        )
     head = _patch_blocks(
         head,
         {_META_FENCE: _md_meta_body(old)},
@@ -999,7 +1005,9 @@ def _patch_markdown(existing: str, old: SceneIR, new: SceneIR) -> str:
     if _META_FENCE not in {k for k, _ in _fences_in(head)}:
         title = _H1_RE.search(head)
         at = title.end() if title else 0
-        head = head[:at] + "\n\n" + _md_fence(_META_FENCE, _md_meta_body(new)) + head[at:]
+        head = (
+            head[:at] + "\n\n" + _md_fence(_META_FENCE, _md_meta_body(new)) + head[at:]
+        )
 
     sections: dict[str, tuple[str, str]] = {}
     for i, m in enumerate(headings):

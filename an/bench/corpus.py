@@ -41,7 +41,6 @@ class CorpusError(RuntimeError):
     """A fixture did not render what it declared."""
 
 
-
 #:
 #: The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 #: is the core's: `prop_swap` and the core corpus (`an.bench.core_corpus`).

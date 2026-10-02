@@ -109,11 +109,6 @@ from an.stage.surface import (
 )
 
 
-
-
-
-
-
 def style_pack_for(scene_meta, styles_store: Mapping) -> "StylePack | None":
     """The `StylePack` a scene declares, or ``None`` (an#112).
 
@@ -230,33 +225,13 @@ def _warn_raster_parts_not_recoloured(
     )
 
 
-
-
-
-
-
-
-
-
-
 def _warn_surface(notes: list[str]) -> None:
     """Say what a surface treatment could not do (an#163) — never silently."""
     for note in notes:
         warnings.warn(f"surface treatment: {note}", CutoutCompileWarning, stacklevel=3)
 
 
-
-
-
-
 PROCEDURAL_MOUTH_SETS: frozenset[str] = frozenset({"viseme"})
-
-
-
-
-
-
-
 
 
 #: The authored spelling of a per-node colour multiply, and the three channels
@@ -847,7 +822,6 @@ class CompileState:
     meta_extensions: dict[str, Any] = field(default_factory=dict)
 
 
-
 def _scene_pass(state: CompileState) -> None:
     """The scene tree, the overlay, the paper grain and the swap vocabulary."""
     shot, width, height = state.shot, state.width, state.height
@@ -904,16 +878,6 @@ def _actions_pass(state: CompileState) -> None:
         default_easing=state.default_easing,
         entity_swaps=state.entity_swaps,
     )
-
-
-
-
-
-
-
-
-
-
 
 
 def _camera_pass(state: CompileState) -> None:
@@ -1314,8 +1278,6 @@ def _build_prop_entity(entity: AssetRef, build: SceneBuild) -> None:
     build.children.append(sub)
 
 
-
-
 #: The stage's own entity builders: phase 0 the backdrop, phase 1 the cast.
 STAGE_SCENE_BUILDERS: dict[str, CompilePass] = {
     "environment": CompilePass(
@@ -1671,10 +1633,17 @@ def _plane_node(
     art = plane.art
     ox, oy = plane.offset
     transform = TransformJSON(x=float(ox), y=float(oy))
-    gradient = (style_pack.gradient_for(art.role) if style_pack else None) or art.gradient
+    gradient = (
+        style_pack.gradient_for(art.role) if style_pack else None
+    ) or art.gradient
     if gradient is not None and art.kind in ("fill", "gradient"):
         return _gradient_plane_node(
-            plane, gradient, ref=ref, textures=textures, transform=transform, canvas=canvas
+            plane,
+            gradient,
+            ref=ref,
+            textures=textures,
+            transform=transform,
+            canvas=canvas,
         )
     if art.kind == "fill":
         w, h = plane.size or (PLANE_FILL_SPAN, PLANE_FILL_SPAN)
@@ -1924,8 +1893,6 @@ def _emit_plane_compensation(
                     ],
                 )
             )
-
-
 
 
 def _apply_stage_placement(node: NodeJSON, entity: AssetRef) -> None:
@@ -2233,8 +2200,6 @@ def _path_colour(
     if reached is not None:
         reached.add(entity.id)
     return chosen
-
-
 
 
 # -----------------------------------------------------------------------------
@@ -2803,7 +2768,11 @@ def _lowerings() -> tuple[ActionLowering, ...]:
 def _lowering_of(action: Any) -> ActionLowering | None:
     """The lowering of ``action``'s kind that produces a clip for it, or ``None``."""
     kind = action_kind(getattr(action, "kind", ""))
-    return kind.lowering if kind is not None and getattr(kind.lowering, "clip", None) else None
+    return (
+        kind.lowering
+        if kind is not None and getattr(kind.lowering, "clip", None)
+        else None
+    )
 
 
 def _compile_actions(
@@ -2891,7 +2860,9 @@ def _compile_actions(
     view_of = None
     if vocab is not None and entity_swaps is not None:
         for low in lowerings:
-            view_of = low.view_of(entity_swaps, vocab, duration=shot_duration) or view_of
+            view_of = (
+                low.view_of(entity_swaps, vocab, duration=shot_duration) or view_of
+            )
 
     if vocab is not None:
         for flat in flat_list:
@@ -3129,21 +3100,6 @@ def _fan_out_entity_swaps(
 
 #: ``(node path, property) -> [(time, value)]``: a step function, first key at 0.
 _StepCurve = list[tuple[float, float]]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def _compile_one(
@@ -3517,22 +3473,6 @@ def _check_keyframe_easings(
                     ) from e
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def _built_value(target: str, prop: str, *, vocab: _SwapVocabulary | None) -> float:
     """What ``target``'s ``prop`` shows before anything animates it: its BUILT
     transform (a ``stage`` placement, a laid-out ``x``), a path's own trim, or
@@ -3656,8 +3596,6 @@ def _value_at(
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return base  # a value the compiler refuses later, where it says why
     return float(value)
-
-
 
 
 def _check_swap_action(
@@ -3853,46 +3791,14 @@ def _track_root_of(target: str) -> str:
 # -----------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
-
-
 # -----------------------------------------------------------------------------
 # Blinks: compiled per eye (an#88) — emitted by the face solver below
 # -----------------------------------------------------------------------------
 
 
-
-
-
-
 # -----------------------------------------------------------------------------
 # The face solver (an#98): one channel per (node, property), summed at compile time
 # -----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # -----------------------------------------------------------------------------

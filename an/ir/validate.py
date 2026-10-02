@@ -437,10 +437,6 @@ def _rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str
     return rigs, unchecked
 
 
-
-
-
-
 def _check_swap_references(
     shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
 ) -> None:
@@ -536,7 +532,9 @@ def _check_swap_references(
         # H3). Same rule the rig builder's probe uses: a store with no
         # filesystem root can answer nothing, so it must assume presence rather
         # than drop every key.
-        art_exists = art_exists_for(stores.get(rig_stores()[entity.kind][0]), entity.ref)
+        art_exists = art_exists_for(
+            stores.get(rig_stores()[entity.kind][0]), entity.ref
+        )
         if art_exists is not None:
             skin = (desc.get("skins") or {}).get("default") or {}
             slots = skin.get("slots") or {}
@@ -570,16 +568,6 @@ def _check_swap_references(
                     f"{prop!r} set (it has: {sorted(keys)}) — compiling "
                     "this shot raises.",
                 )
-
-
-
-
-
-
-
-
-
-
 
 
 #: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and
@@ -687,8 +675,6 @@ def _built_node_paths(
             )
     except Exception as e:  # noqa: BLE001 — reported by the caller, by name
         return None, f"{type(e).__name__}: {e}"
-
-
 
 
 def _check_voice_effects(
@@ -1646,10 +1632,6 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
             )
 
 
-
-
-
-
 def _core_voices(ctx: ValidationContext) -> None:
     """Dialogue voice refs resolve? The line's own voice_ref, else the one its
     speaker is bound to — the resolver the audio pipeline speaks with (an#194)."""
@@ -1816,18 +1798,6 @@ def _core_library_checkouts(ctx: ValidationContext) -> None:
 # (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its
 # own. They live here until the genre package exists (P8 moves them).
 # -----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def _register_core_checks() -> None:
