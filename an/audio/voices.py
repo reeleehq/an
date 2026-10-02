@@ -21,6 +21,12 @@ failing on a foreign voice id. Nothing declared anywhere
 resolves every line to ``"default"`` handed to the provider as ``"default"`` —
 exactly what the pipeline did before this module, so no cache key moves.
 
+The document's ``provider`` also DECIDES who speaks the line when the render
+names no provider (an#305): :func:`declared_provider` reads it, and
+:func:`an.audio.pipeline.tts_chooser` turns it into the provider — so a voice
+written for ElevenLabs is spoken by ElevenLabs by a plain ``an render``, and
+``--tts`` is an override for every line.
+
 >>> from an.ir.schema import AssetRef, Dialogue, Shot
 >>> shot = Shot(id="s", entities=[
 ...     AssetRef(kind="character", id="carl", store="characters", ref="carl"),
@@ -37,6 +43,8 @@ exactly what the pipeline did before this module, so no cache key moves.
 >>> mall["voices"]["bob"] = {"provider": "elevenlabs", "voice_id": "abc123"}
 >>> provider_voice(mall, "bob", tts_name="elevenlabs"), provider_voice(mall, "bob", tts_name="mac_say")
 ('abc123', 'default')
+>>> declared_provider(mall, "bob"), declared_provider(mall, "carl_kid")
+('elevenlabs', None)
 """
 
 from __future__ import annotations
@@ -103,6 +111,21 @@ def voice_document(mall: Mapping | None, voice_id: str) -> Mapping:
     return doc if isinstance(doc, Mapping) else {}
 
 
+def declared_provider(mall: Mapping | None, voice_id: str) -> str | None:
+    """The TTS provider ``mall["voices"][voice_id]`` is written for, lower-cased,
+    or ``None`` when the voice declares none (or has no document).
+
+    >>> declared_provider({"voices": {"v": {"provider": " ElevenLabs "}}}, "v")
+    'elevenlabs'
+    >>> declared_provider({"voices": {"v": {"provider": ""}}}, "v") is None
+    True
+    """
+    declared = voice_document(mall, voice_id).get(PROVIDER_KEY)
+    if not isinstance(declared, str) or not declared.strip():
+        return None
+    return declared.strip().lower()
+
+
 def voice_applies(doc: Mapping, tts_name: str | None) -> bool:
     """Whether ``doc``'s provider-specific keys apply under the TTS ``tts_name``.
 
@@ -117,7 +140,7 @@ def voice_applies(doc: Mapping, tts_name: str | None) -> bool:
     declared = doc.get(PROVIDER_KEY)
     if not declared or tts_name is None:
         return True
-    return str(declared).lower() == str(tts_name).lower()
+    return str(declared).strip().lower() == str(tts_name).strip().lower()
 
 
 def provider_voice(

@@ -7,8 +7,8 @@ separate, explicit command, and this module is it.
 
 **What is kept (reachable).** An entry is reachable when either
 
-- a render of the project's CURRENT scene would read it — under the default
-  render knobs, or under any knob set a recorded render ever used — computed
+- a render of the project's CURRENT scene would read it — under any knob set
+  a recorded render ever used, or under a plain ``an render``'s — computed
   by the render loop's own setup and the engine's own key code, with the
   dialogue stamped from the audio stores as the render stamps it
   (:func:`an.render.cache_entries`); or
@@ -21,6 +21,17 @@ A cache no render of the project has recorded a root in (one written before
 an#274) is refused unless ``force``: the current scene's keys alone are then
 the only evidence, and a render's knobs or providers that differ from the
 defaults would leave its entries looking unreachable.
+
+**A knob set under which the current scene has a line with no audio** (an#306)
+— a line edited since the last render under it, or the plain render's
+hypothetical knobs for a project only ever spoken by ElevenLabs — has no keys
+to compute until that line is synthesised, so nothing in the cache can be its
+entry for that shot. It is skipped rather than refused, and what each root
+recorded under it is kept whatever ``--max-age`` says, so its unchanged shots
+stay. Only when the current scene can be keyed under NO knob set (every one
+lacks some line's audio: the scene has lines nothing has synthesised) is the
+collection refused — render first. Each knob set is replayed with its OWN
+providers (a root's recorded ``tts``), never with a command line's defaults.
 
 Everything else is unreachable: the entries of shots as they were before an
 edit, parts cut for an old neighbour, whole-frame entries (``<key>.frames``)
@@ -60,6 +71,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from an.audio.pipeline import VOICE_TTS, AudioNotCachedError
 from an.base import DEFAULT_SUPERSAMPLE
 from an.build.shot_cache import (
     FRAMES_SUFFIX,
@@ -73,6 +85,7 @@ from an.build.shot_cache import (
 __all__ = [
     "CLOCK_SLACK_S",
     "DEFAULT_PROFILE",
+    "HYPOTHETICAL_PROFILES",
     "CacheEntry",
     "CacheGcError",
     "CacheInfo",
@@ -92,9 +105,10 @@ __all__ = [
 CLOCK_SLACK_S: float = 2.0
 
 #: The render knobs of a plain ``an render`` (and of ``render_project``'s
-#: defaults), as :meth:`ShotCache.record_root` records them. Always among the
-#: profiles the current scene is keyed under, so a cache written before roots
-#: existed keeps what a plain render of the current scene reads.
+#: defaults), as :meth:`ShotCache.record_root` records them: ``tts`` is each
+#: voice's own provider (an#305). Always among the profiles the current scene
+#: is keyed under, so a cache written before roots existed keeps what a plain
+#: render of the current scene reads.
 DEFAULT_PROFILE: Mapping[str, Any] = {
     "fps": None,
     "resolution": None,
@@ -103,10 +117,18 @@ DEFAULT_PROFILE: Mapping[str, Any] = {
     "pix_fmt": None,
     "capture": None,
     "step_hz": None,
-    "tts": "offline",
+    "tts": VOICE_TTS,
     "lipsync": "offline",
     "language": "en",
 }
+
+#: The knob sets a plain render used or uses, recorded by a root or not: today's
+#: (:data:`DEFAULT_PROFILE`) and the one before an#305, which spoke every line
+#: offline — what a cache written before roots existed was rendered with.
+HYPOTHETICAL_PROFILES: tuple[Mapping[str, Any], ...] = (
+    DEFAULT_PROFILE,
+    {**DEFAULT_PROFILE, "tts": "offline"},
+)
 
 _SIZE_UNITS = {"": 1, "B": 1, "K": 1024, "M": 1024**2, "G": 1024**3, "T": 1024**4}
 _AGE_UNITS = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 7 * 86400}
@@ -238,12 +260,17 @@ def _blobs(store: Any) -> dict[str, tuple[int, float | None]]:
 
 @dataclass
 class Reachability:
-    """What the current scene and the recorded roots keep, and why."""
+    """What the current scene and the recorded roots keep, and why.
+
+    ``profiles`` are the knob sets the current scene was keyed under;
+    ``skipped`` the ones it could not be (``(profile, why)``: a line's audio
+    is not cached under it — an#306), whose roots keep what they recorded."""
 
     from_scene: set[str] = field(default_factory=set)
     from_roots: set[str] = field(default_factory=set)
     profiles: list[dict] = field(default_factory=list)
     roots: list[str] = field(default_factory=list)
+    skipped: list[tuple[dict, str]] = field(default_factory=list)
 
     @property
     def ids(self) -> set[str]:
@@ -286,18 +313,24 @@ def reachable_entries(
 ) -> Reachability:
     """What the project's current scene and its recorded roots reach.
 
-    The current scene is keyed under the default knobs and under the knobs of
-    EVERY recorded root (of any project, any age: a knob set is a few values,
-    and dropping one would orphan that render's entries of the unchanged scene).
-    A root younger than ``root_max_age`` seconds (all, when ``None``) also
-    keeps the entries it names; roots themselves are always kept.
+    The current scene is keyed under the knobs of EVERY recorded root (of any
+    project, any age: a knob set is a few values, and dropping one would orphan
+    that render's entries of the unchanged scene), each with its own recorded
+    providers, and under :data:`HYPOTHETICAL_PROFILES` (a plain render's). A
+    root younger than ``root_max_age`` seconds (all, when ``None``) also keeps
+    the entries it names; roots themselves are always kept.
+
+    A knob set under which some line's audio is not cached cannot be keyed
+    without a synthesis (an#306): it is skipped, listed in ``skipped``, and
+    every root recorded under it keeps its entries whatever ``root_max_age``.
 
     ``engine`` computes the keys (its environment seam included); ``None`` is
     a default :class:`~an.build.ShotCache` over ``store``, which probes this
     machine like a render does. Raises :class:`CacheGcError` when the current
-    scene's keys cannot be computed (guessing is never safe), and when no render
-    of THIS project has recorded a root yet — a cache written before roots
-    existed (an#274) — unless ``force``.
+    scene's keys cannot be computed for any other reason, or under no knob set
+    at all (guessing is never safe), and when no render of THIS project has
+    recorded a root yet — a cache written before roots existed (an#274) —
+    unless ``force``.
     """
     from an.build.shot_cache import project_id
     from an.render import cache_entries
@@ -313,7 +346,8 @@ def reachable_entries(
             "recorded ones"
         )
     reach = Reachability()
-    profiles = [dict(DEFAULT_PROFILE)]
+    # Each knob set, with the roots recorded under it (none: hypothetical).
+    candidates: list[tuple[dict, list[CacheEntry]]] = []
     for e in entries:
         if not e.is_root or e.record is None:
             continue
@@ -325,25 +359,50 @@ def reachable_entries(
         if not expired:
             reach.from_roots.update(info.get("entries") or ())
         profile = _profile_kwargs(info.get("profile") or {})
-        if profile is not None and profile not in profiles:
-            profiles.append(profile)
-    reach.profiles = profiles
+        if profile is None:
+            continue
+        for known, roots in candidates:
+            if known == profile:
+                roots.append(e)
+                break
+        else:
+            candidates.append((profile, [e]))
+    for hypothetical in HYPOTHETICAL_PROFILES:
+        profile = _profile_kwargs(hypothetical)
+        if all(known != profile for known, _ in candidates):
+            candidates.append((profile, []))
     engine = engine or ShotCache(store)
-    for profile in profiles:
+    for profile, roots in candidates:
         try:
             with warnings.catch_warnings():
                 # A stand-in or a missing font warns at compile time; that is
                 # the render's message to give, not the collector's.
                 warnings.simplefilter("ignore")
-                reach.from_scene.update(cache_entries(project, engine, **profile))
+                ids = cache_entries(project, engine, **profile)
+        except AudioNotCachedError as e:
+            # No key until that line is synthesised: nothing cached can be its
+            # shot's entry. What the renders under it used stays, whatever age.
+            reach.skipped.append((profile, str(e)))
+            for root in roots:
+                rp = root.record.render_provenance or {}
+                reach.from_roots.update(rp.get("entries") or ())
+            continue
         except Exception as e:  # noqa: BLE001 — refuse rather than guess
             raise CacheGcError(
                 f"cannot compute what the current scene reaches under {profile} "
-                f"({type(e).__name__}: {e}); nothing was deleted. Render the "
-                "project first (a line whose audio is not cached yet has no key "
-                "until it is synthesised), or fix what keeps it from rendering "
-                "(`an validate`)"
+                f"({type(e).__name__}: {e}); nothing was deleted. Fix what keeps "
+                "it from rendering (`an validate`)"
             ) from e
+        reach.profiles.append(profile)
+        reach.from_scene.update(ids)
+    if not reach.profiles:
+        why = "; ".join(sorted({why for _, why in reach.skipped}))
+        raise CacheGcError(
+            "cannot compute what the current scene reaches under any setting a "
+            f"render used or a plain render uses ({why}); nothing was deleted. "
+            "Render the project first: a line whose audio is not cached yet has "
+            "no key until it is synthesised"
+        )
     return reach
 
 
@@ -392,6 +451,8 @@ class GcReport:
             + f", {self.kept_retained} within --max-size/--max-age"
             + f", {len(self.kept_protected)} written during a render or this collection",
         ]
+        if self.reach is not None and self.reach.skipped:
+            lines.append(_skipped_line(self.reach.skipped))
         if self.failed:
             lines.append(
                 f"could not delete {len(self.failed)} (in use, or already gone): "
@@ -399,6 +460,16 @@ class GcReport:
                 + (" ..." if len(self.failed) > 5 else "")
             )
         return "\n".join(lines)
+
+
+def _skipped_line(skipped: list[tuple[dict, str]]) -> str:
+    """One line on the knob sets the current scene could not be keyed under."""
+    names = ", ".join(sorted({f"tts={profile.get('tts')}" for profile, _ in skipped}))
+    return (
+        f"not keyed under {len(skipped)} knob set(s) ({names}): a line's audio is "
+        "not cached under it, so it has no key until synthesised; what renders "
+        "under it recorded is kept"
+    )
 
 
 def _remove_record(store: Any, entry_id: str, layout, *, horizon: float) -> bool:
@@ -579,6 +650,7 @@ class CacheInfo:
     orphan_blobs: tuple[int, int] = (0, 0)
     roots: list[dict] = field(default_factory=list)
     reachability_error: str = ""
+    skipped: list[tuple[dict, str]] = field(default_factory=list)
 
     def summary(self) -> str:
         lines = [f"shot cache: {human_bytes(self.total_bytes)} at {self.path}"]
@@ -595,6 +667,8 @@ class CacheInfo:
             )
         else:
             lines.append(f"reachable: unknown ({self.reachability_error})")
+        if self.skipped:
+            lines.append(_skipped_line(self.skipped))
         for r in self.roots:
             lines.append(
                 f"  render of {r['output']!r}, {r['age']} ago, {r['entries']} entries"
@@ -659,12 +733,13 @@ def cache_info(
             )
     if reachability:
         try:
-            keep = reachable_entries(
+            reach = reachable_entries(
                 project, store, entries=entries, engine=engine, now=now, force=True
-            ).ids
+            )
         except CacheGcError as e:
             info.reachability_error = str(e)
             return info
+        keep, info.skipped = reach.ids, reach.skipped
         kept = [e for e in entries if e.id in keep]
         gone = [e for e in entries if e.id not in keep]
         info.reachable = (len(kept), _unique_size(kept, blobs))

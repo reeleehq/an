@@ -6,8 +6,14 @@ configured providers, persists artifacts to ``mall["audio"]`` /
 ``mall["visemes"]``, and stamps the resulting ``VisemeTrack`` and timing
 back onto the ``Dialogue`` line so renderers can find it.
 
-Defaults are the offline providers (silent WAV + deterministic visemes), so
-the entire pipeline runs without API keys or external binaries.
+**Who speaks a line** (an#305): with no ``tts`` given, each line's voice
+document decides — its ``provider`` (:func:`an.audio.voices.declared_provider`)
+— and a voice that names none is spoken by the offline provider (silent WAV;
+lip-sync defaults to deterministic offline visemes), so a project that declares
+no provider runs without API keys or external binaries, exactly as before. A
+``tts`` given is an override for every line; a line spoken by another provider
+than its voice declares is a :class:`VoiceStandInWarning` (an error under
+``strict``). See :func:`tts_chooser`.
 
 >>> from an.audio.pipeline import default_tts, default_lipsync
 >>> default_tts().name
@@ -49,6 +55,7 @@ from an.audio.takes import (
 from an.audio.tts import AudioClip, TTSProvider
 from an.audio.voices import (
     DEFAULT_VOICE,
+    declared_provider,
     line_voice_id,
     provider_voice,
     voice_applies,
@@ -65,6 +72,23 @@ class AudioPipelineError(RuntimeError):
 
 class TakeDigestWarning(UserWarning):
     """The audio restored for a line's recorded take is not the audio the record names."""
+
+
+class VoiceStandInWarning(UserWarning):
+    """A line is spoken by another provider than its voice document declares —
+    an override for every line, or a provider ``an`` has no TTS for (an#305)."""
+
+
+class VoiceStandInError(AudioPipelineError):
+    """Under ``strict``: a line would be spoken by another provider than its
+    voice declares. Raised before any request."""
+
+
+#: The ``tts`` that means "each line's voice document names its provider" — the
+#: default of a render (an#305). ``None`` and ``""`` mean the same.
+VOICE_TTS: str = "voice"
+#: Who speaks a line whose voice declares no provider, when no ``tts`` overrides it.
+DEFAULT_TTS_NAME: str = "offline"
 
 
 #: Resolve the takes from the voice document (the default of ``takes=``).
@@ -86,6 +110,113 @@ def default_tts() -> TTSProvider:
 def default_lipsync() -> LipSyncProvider:
     """The default lip-sync provider: ``OfflineLipSync``."""
     return OfflineLipSync()
+
+
+def is_voice_tts(tts: Any) -> bool:
+    """Whether ``tts`` means "each voice's own provider": ``None``, ``""`` or
+    :data:`VOICE_TTS`.
+
+    >>> [is_voice_tts(t) for t in (None, "", "voice", " Voice ", "offline")]
+    [True, True, True, True, False]
+    """
+    return tts is None or (
+        isinstance(tts, str) and tts.strip().lower() in ("", VOICE_TTS)
+    )
+
+
+TtsFactory = Callable[[str], TTSProvider]
+
+
+def tts_chooser(
+    tts: TTSProvider | str | None,
+    mall: Mapping[str, Any] | None,
+    *,
+    make: TtsFactory | None = None,
+) -> Callable[[str], TTSProvider]:
+    """``voice_id -> provider``: who speaks a line in that voice (an#305).
+
+    A ``tts`` given (a provider, or a name ``make`` builds) speaks every line —
+    an override. Otherwise (``None``, ``""``, :data:`VOICE_TTS`) the voice
+    document's ``provider`` decides, and a voice that declares none — or one
+    ``make`` has no provider for (:func:`voice_stand_ins` reports it) — is
+    spoken by :data:`DEFAULT_TTS_NAME`. One instance per provider name.
+    ``make`` defaults to :func:`an.audio.providers.make_tts`.
+
+    >>> mall = {"voices": {"bob": {"provider": "mac_say"}, "ann": {}}}
+    >>> choose = tts_chooser(None, mall)
+    >>> choose("bob").name, choose("ann").name, choose("nobody").name
+    ('mac_say', 'offline', 'offline')
+    >>> tts_chooser("offline", mall)("bob").name
+    'offline'
+    """
+    if make is None:
+        from an.audio.providers import make_tts as make
+    if not is_voice_tts(tts):
+        provider = make(tts) if isinstance(tts, str) else tts
+        return lambda voice_id: provider
+    made: dict[str, TTSProvider] = {}
+
+    def provider_named(name: str) -> TTSProvider | None:
+        if name not in made:
+            try:
+                made[name] = make(name)
+            except ValueError:  # no provider by that name: a stand-in, reported
+                return None
+        return made[name]
+
+    def choose(voice_id: str) -> TTSProvider:
+        declared = declared_provider(mall, voice_id)
+        found = provider_named(declared) if declared else None
+        return found or provider_named(DEFAULT_TTS_NAME)
+
+    return choose
+
+
+def voice_stand_ins(
+    lines: list[tuple[str, TTSProvider]],
+    mall: Mapping[str, Any] | None,
+    *,
+    overridden: bool,
+) -> list[str]:
+    """One message per voice whose lines are spoken by another provider than its
+    document declares; ``lines`` is ``(voice_id, provider)`` per line, and
+    ``overridden`` says whether a ``tts`` was given for every line.
+
+    >>> from an.audio.offline_tts import OfflineTTS
+    >>> mall = {"voices": {"bob": {"provider": "elevenlabs"}}}
+    >>> print(voice_stand_ins([("bob", OfflineTTS())] * 2, mall, overridden=True)[0])
+    voice 'bob' declares provider 'elevenlabs', but its 2 line(s) are spoken by 'offline' — SILENT audio — because `tts` overrides every voice. Drop `--tts` to let each voice speak with its own provider.
+    >>> voice_stand_ins([("bob", OfflineTTS())], {}, overridden=True)
+    []
+    """
+    counts: dict[tuple[str, str, str], list] = {}
+    for voice_id, provider in lines:
+        declared = declared_provider(mall, voice_id)
+        if declared is None or declared == str(provider.name).lower():
+            continue
+        key = (voice_id, declared, provider.name)
+        counts.setdefault(key, [0, provider])[0] += 1
+    out = []
+    for (voice_id, declared, used), (n, provider) in counts.items():
+        silent = " — SILENT audio —" if getattr(provider, "silent", False) else ""
+        if overridden:
+            why = (
+                "because `tts` overrides every voice. Drop `--tts` to let each "
+                "voice speak with its own provider."
+            )
+        else:
+            from an.audio.providers import known_tts_names
+
+            why = (
+                f"because an has no TTS provider named {declared!r} (known: "
+                f"{', '.join(known_tts_names())}). Fix the voice document's "
+                "`provider`."
+            )
+        out.append(
+            f"voice {voice_id!r} declares provider {declared!r}, but its {n} "
+            f"line(s) are spoken by {used!r}{silent} {why}"
+        )
+    return out
 
 
 def produce_audio_for_dialogue(
@@ -111,6 +242,9 @@ def produce_audio_for_dialogue(
     computed on the audio the viewer hears. The raw synthesis stays cached under
     its own key, so changing an effect never re-pays the TTS.
 
+    ``tts`` (default: the provider the voice document declares, else offline —
+    :func:`tts_chooser`) is an override when given.
+
     ``voice_id`` (default: the line's ``voice_ref``, else ``"default"``) is the
     ``voices``-store key; :func:`produce_audio_for_scene` passes the one
     :func:`an.audio.voices.line_voice_id` resolves, so a character's bound
@@ -130,13 +264,12 @@ def produce_audio_for_dialogue(
     restored from the record and never re-rolled; a recorded take whose audio is
     gone raises :class:`~an.audio.takes.TakeLostError` before any request.
     """
-    tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_id = voice_id or dialogue.voice_ref or DEFAULT_VOICE
     req = _line_request(
         dialogue,
         mall,
-        tts,
+        tts_chooser(tts, mall)(voice_id),
         voice_id,
         effects=effects,
         takes=takes,
@@ -201,11 +334,13 @@ def produce_audio_for_scene(
     scene: SceneIR,
     mall: Mapping[str, MutableMapping] | None = None,
     *,
-    tts: TTSProvider | None = None,
+    tts: TTSProvider | str | None = None,
     lipsync: LipSyncProvider | None = None,
     take_scorer: TakeScorerFactory = make_take_scorer,
     announce: Callable[[str], None] | None = _announce_to_stderr,
     overruns: bool = True,
+    strict: bool = False,
+    tts_factory: TtsFactory | None = None,
 ) -> SceneIR:
     """Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -233,14 +368,28 @@ def produce_audio_for_scene(
     announced too — or, with ``announce=None``, a ``DialogueOverrunWarning`` —
     unless ``overruns=False``: ``an render`` passes that, because it reports
     every post-synthesis finding together in its summary (an#254).
+
+    **Who speaks each line** (an#305, :func:`tts_chooser`): with ``tts`` not
+    given (``None``, ``""`` or :data:`VOICE_TTS`), the line's voice document's
+    ``provider``, built by ``tts_factory`` (default
+    :func:`an.audio.providers.make_tts`), else offline; a ``tts`` given speaks
+    every line. A line spoken by another provider than its voice declares is a
+    :class:`VoiceStandInWarning` — the silent offline voice says so — and,
+    with ``strict``, a :class:`VoiceStandInError` before any request. A provider
+    with requests to send is asked ``check_available()`` first (ElevenLabs: is
+    there a key?), and what a provider that bills per character will bill is
+    announced before the first request — whatever chose the provider; a cached
+    line is never billed and never counted.
     """
-    tts = tts or default_tts()
+    choose = tts_chooser(tts, mall, make=tts_factory)
+    overridden = not is_voice_tts(tts)
     lipsync = lipsync or default_lipsync()
     voice_default = DEFAULT_VOICE
     audio_store = mall.get("audio") if mall is not None else None
     viseme_store = mall.get("visemes") if mall is not None else None
     pending: list[tuple[Dialogue, str, _LineRequest]] = []
     resolved: list[_LineRequest] = []
+    spoken: list[tuple[str, TTSProvider]] = []
     for shot in scene.timeline:
         if shot.narration:
             # `Shot.narration` is fully modelled in the IR — text, voice_ref,
@@ -267,8 +416,11 @@ def produce_audio_for_scene(
             ):
                 line.at = line.start
             voice_id = line_voice_id(line, shot, mall, default=voice_default)
-            req = _line_request(line, mall, tts, voice_id, take_scorer=take_scorer)
+            req = _line_request(
+                line, mall, choose(voice_id), voice_id, take_scorer=take_scorer
+            )
             resolved.append(req)
+            spoken.append((voice_id, req.tts))
             expected_audio_ref = req.cache_key  # None: a best-of-N choice to make
             expected_viseme_ref = viseme_key(
                 expected_audio_ref or "", lipsync.name, line.text
@@ -303,13 +455,29 @@ def produce_audio_for_scene(
             if not already_done:
                 pending.append((line, voice_id, req))
 
-    messages = [
-        takes_cost_message(
-            [(line.text, req) for line, _, req in pending], tts, audio_store
-        ),
-        _older_scorer_message(resolved),
-        _carried_message(resolved),
-    ]
+    stand_ins = voice_stand_ins(spoken, mall, overridden=overridden)
+    if strict and stand_ins:
+        raise VoiceStandInError(
+            "refused under strict: " + " ".join(stand_ins) + " Nothing was synthesized."
+        )
+    for message in stand_ins:
+        warnings.warn(message, VoiceStandInWarning, stacklevel=2)
+    by_provider: dict[int, list[tuple[str, _LineRequest]]] = {}
+    for line, _, req in pending:
+        by_provider.setdefault(id(req.tts), []).append((line.text, req))
+    costs = []
+    for group in by_provider.values():
+        provider = group[0][1].tts
+        cost = takes_cost_message(group, provider, audio_store)
+        if cost and not overridden and getattr(provider, "billed_characters", None):
+            cost += (
+                f" — the voices name {provider.name}; `an render --tts offline` "
+                "previews silently for free"
+            )
+        costs.append(cost)
+        if _requests_to_send(group, audio_store):
+            _check_available(provider, overridden=overridden)
+    messages = [*costs, _older_scorer_message(resolved), _carried_message(resolved)]
     if announce is not None:
         for message in filter(None, messages):
             announce(message)
@@ -438,6 +606,9 @@ class _CacheOnlyProvider:
             f"the audio of {text!r} ({self._provider.name}) is not in the audio store"
         )
 
+    def check_available(self) -> None:
+        """Always: nothing is ever sent (a line to synthesize raises above)."""
+
     def align(self, audio: Any, transcript: str) -> Any:
         raise AudioNotCachedError(
             f"the visemes of {transcript!r} ({self._provider.name}) are not in the "
@@ -474,12 +645,14 @@ def stamp_from_stores(
     scene: SceneIR,
     mall: Mapping[str, MutableMapping],
     *,
-    tts: TTSProvider,
+    tts: TTSProvider | str | None = None,
     lipsync: LipSyncProvider,
+    tts_factory: TtsFactory | None = None,
 ) -> SceneIR:
     """Stamp ``scene``'s dialogue exactly as :func:`produce_audio_for_scene`
-    would with these providers — from the content-keyed ``audio`` and
-    ``visemes`` stores only. Synthesises, aligns and writes nothing; a line the
+    would with these providers — ``tts`` as it takes it: ``None`` for each
+    voice's own (an#305) — from the content-keyed ``audio`` and ``visemes``
+    stores only. Synthesises, aligns, writes and announces nothing; a line the
     stores cannot answer raises :class:`AudioNotCachedError`.
 
     What a reader of the render's cache keys needs (an#274): a ``scene.md``
@@ -491,11 +664,21 @@ def stamp_from_stores(
         k: (_ReadOnlyStore(v) if k in ("audio", "visemes") else v)
         for k, v in dict(mall).items()
     }
+    if tts_factory is None:
+        from an.audio.providers import make_tts as tts_factory
+    make = tts_factory
     return produce_audio_for_scene(
         scene,
         view,
-        tts=_CacheOnlyProvider(tts),
+        tts=(
+            tts
+            if is_voice_tts(tts)
+            else _CacheOnlyProvider(make(tts) if isinstance(tts, str) else tts)
+        ),
         lipsync=_CacheOnlyProvider(lipsync),
+        tts_factory=lambda name: _CacheOnlyProvider(make(name)),
+        announce=None,
+        overruns=False,
     )
 
 
@@ -587,7 +770,9 @@ def takes_cost_message(
     tts: TTSProvider,
     audio_store: Mapping | None,
 ) -> str:
-    """What synthesizing ``lines`` will bill, when any of them takes best-of-N; else ``""``.
+    """What synthesizing ``lines`` with ``tts`` will bill, when any of them takes
+    best-of-N or ``tts`` bills per character (an#305: a voice that names a paid
+    provider is spoken by it with no flag, so its cost is said first); else ``""``.
 
     Counts only the requests not already in ``audio_store`` (a cached take is
     free; a recorded take is restored, never billed), and the provider's billed
@@ -595,20 +780,41 @@ def takes_cost_message(
     ElevenLabs counts the audio tags too). A provider without the hook bills no
     characters, and the message says so.
     """
-    if not any(req.spec is not None and req.cache_key is None for _, req in lines):
-        return ""
+    takes = any(req.spec is not None and req.cache_key is None for _, req in lines)
     billed = getattr(tts, "billed_characters", None) is not None
+    if not takes and not billed:
+        return ""
+    requests, characters, cached, takes_lines, billed_lines = _cost_tally(
+        lines, audio_store
+    )
+    if not requests:
+        return ""
+    bill = f"{characters:,} billed characters" if billed else "not billed per character"
+    if not takes:
+        return f"{tts.name}: {requests} request(s) for {billed_lines} line(s), {bill}"
+    return (
+        f"best-of-N takes: {requests} {tts.name} request(s) for {billed_lines} line(s) "
+        f"({takes_lines} with several takes; {cached} take(s) already cached), {bill}"
+    )
+
+
+def _cost_tally(
+    lines: list[tuple[str, "_LineRequest"]], audio_store: Mapping | None
+) -> tuple[int, int, int, int, int]:
+    """``(requests, billed characters, takes already cached, lines with several
+    takes, lines with a request)`` that synthesizing ``lines`` would send."""
     requests = characters = cached = takes_lines = billed_lines = 0
-    seen: set[str] = set()  # two lines saying the same thing share their takes
+    lines_seen: set[str] = set()  # two lines saying the same thing share their takes
+    seen: set[str] = set()  # each request is sent once
     for text, req in lines:
         if req.spec is not None and req.cache_key is not None:
             continue  # a recorded take: restored from the store
         ident = req.choice_key or req.cache_key
-        if ident in seen or (
+        if ident in lines_seen or (
             req.spec is None and audio_store is not None and ident in audio_store
         ):
             continue
-        seen.add(ident)
+        lines_seen.add(ident)
         before = requests
         for _take, options, key in req.take_requests():
             in_store = audio_store is not None and key in audio_store
@@ -621,13 +827,33 @@ def takes_cost_message(
         if requests > before:
             billed_lines += 1
             takes_lines += req.spec is not None
-    if not requests:
-        return ""
-    bill = f"{characters:,} billed characters" if billed else "not billed per character"
-    return (
-        f"best-of-N takes: {requests} {tts.name} request(s) for {billed_lines} line(s) "
-        f"({takes_lines} with several takes; {cached} take(s) already cached), {bill}"
-    )
+    return requests, characters, cached, takes_lines, billed_lines
+
+
+def _requests_to_send(
+    lines: list[tuple[str, "_LineRequest"]], audio_store: Mapping | None
+) -> int:
+    """How many provider requests synthesizing ``lines`` would send."""
+    return _cost_tally(lines, audio_store)[0]
+
+
+def _check_available(provider: TTSProvider, *, overridden: bool) -> None:
+    """Ask ``provider`` whether it can take requests (its optional
+    ``check_available()``) before the first one; a provider the voices chose
+    says how to preview without it."""
+    check = getattr(provider, "check_available", None)
+    if check is None:
+        return
+    try:
+        check()
+    except Exception as e:  # noqa: BLE001 — re-raised, with the way out
+        if overridden:
+            raise
+        raise AudioPipelineError(
+            f"the voices name {provider.name}, which cannot be used here: {e} "
+            "Nothing was synthesized. To preview without it, render with "
+            "`--tts offline` (silent)."
+        ) from e
 
 
 def _older_scorer_message(reqs: list["_LineRequest"]) -> str:
