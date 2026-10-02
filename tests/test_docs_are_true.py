@@ -147,8 +147,41 @@ def test_the_live_api_gate_is_what_the_docs_say_it_is():
 
 # --------------------------------------------------------- cross-platform
 
+def _unpinned_text_io(method: str) -> list[str]:
+    """``path:line`` of every ``.<method>(...)`` call in ``tests/`` and ``an/`` that
+    does not pin its encoding — by AST, so a call spread over several lines is
+    seen too (the line-by-line regex this replaced missed three, an#298 review).
+
+    Pinned means an ``encoding=`` keyword, the encoding passed positionally
+    (``read_text("utf-8")``; ``write_text(data, "utf-8")``), or ``**kwargs``
+    (whose contents the AST cannot see, so it is not judged).
+    """
+    import ast as _ast
+
+    positional_encoding = {"read_text": 0, "write_text": 1}[method]
+    offenders = []
+    for path in sorted(list((ROOT / "tests").rglob("*.py")) + list((ROOT / "an").rglob("*.py"))):
+        if ".claude" in path.relative_to(ROOT).parts:  # not the worktree it runs in
+            continue
+        tree = _ast.parse(path.read_text(encoding="utf-8"))
+        for node in _ast.walk(tree):
+            if not (
+                isinstance(node, _ast.Call)
+                and isinstance(node.func, _ast.Attribute)
+                and node.func.attr == method
+            ):
+                continue
+            keywords = {k.arg for k in node.keywords}
+            if "encoding" in keywords or None in keywords:
+                continue
+            if len(node.args) > positional_encoding:
+                continue
+            offenders.append(f"{path.relative_to(ROOT)}:{node.lineno}")
+    return offenders
+
+
 def test_no_source_file_reads_text_without_pinning_the_encoding():
-    """`Path.read_text(encoding="utf-8")` uses the LOCALE codec, which is cp1252 on Windows.
+    """`Path.read_text()` without an encoding uses the LOCALE codec, which is cp1252 on Windows.
 
     Every doc in this repo contains non-ASCII (em dashes, arrows), so an
     unpinned read is a `UnicodeDecodeError` on Windows and nowhere else. It
@@ -161,15 +194,7 @@ def test_no_source_file_reads_text_without_pinning_the_encoding():
     This is the second Windows-only defect of its kind, hence a guard rather
     than another fix.
     """
-    import re as _re
-
-    offenders = []
-    for path in sorted(list((ROOT / "tests").rglob("*.py")) + list((ROOT / "an").rglob("*.py"))):
-        if ".claude" in path.relative_to(ROOT).parts:  # not the worktree it runs in
-            continue
-        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if _re.search(r"\.read_text\(\s*\)", line):
-                offenders.append(f"{path.relative_to(ROOT)}:{n}")
+    offenders = _unpinned_text_io("read_text")
     assert not offenders, (
         "read_text() without encoding=\"utf-8\" — decodes with the locale codec, "
         "which fails on Windows for any non-ASCII content:\n  "
@@ -179,16 +204,20 @@ def test_no_source_file_reads_text_without_pinning_the_encoding():
 
 def test_no_source_file_writes_text_without_pinning_the_encoding():
     """The write side has the same trap, and it corrupts rather than raising."""
-    import re as _re
-
-    offenders = []
-    for path in sorted(list((ROOT / "tests").rglob("*.py")) + list((ROOT / "an").rglob("*.py"))):
-        if ".claude" in path.relative_to(ROOT).parts:  # not the worktree it runs in
-            continue
-        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if _re.search(r"\.write_text\([^)]*\)", line) and "encoding" not in line:
-                offenders.append(f"{path.relative_to(ROOT)}:{n}: {line.strip()[:70]}")
+    offenders = _unpinned_text_io("write_text")
     assert not offenders, (
         "write_text() without encoding=\"utf-8\" — encodes with the locale codec:\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_the_encoding_guard_sees_a_call_over_several_lines(tmp_path):
+    """The hole the line regex had: the guard must parse, not grep."""
+    import ast as _ast
+
+    src = "p.write_text(\n    'x'\n)\nq.read_text(\n)\nr.write_text('x', encoding='utf-8')\n"
+    calls = [
+        n for n in _ast.walk(_ast.parse(src))
+        if isinstance(n, _ast.Call) and not any(k.arg == "encoding" for k in n.keywords)
+    ]
+    assert [c.func.attr for c in calls] == ["write_text", "read_text"]

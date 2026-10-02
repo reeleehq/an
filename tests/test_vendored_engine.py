@@ -69,7 +69,7 @@ def test_the_mit_notice_ships_with_the_bytes():
     assert "Copyright (c) 2013-2023 Mathew Groves, Chad Engler" in text
     assert "The above copyright notice and this permission notice" in text
 
-    banner = (VENDOR_DIR / "pixi.min.js").read_text(errors="ignore")[:400]
+    banner = (VENDOR_DIR / "pixi.min.js").read_text(encoding="utf-8", errors="ignore")[:400]
     assert "Copyright" not in banner, (
         "the bundle banner now carries a copyright line — re-check whether the "
         "separate notice file is still required before removing it"
@@ -84,7 +84,7 @@ def test_no_runtime_file_fetches_from_the_network():
             continue
         if p.is_relative_to(VENDOR_DIR):
             continue  # third-party bundle; its internals are not ours to police
-        for lineno, line in enumerate(p.read_text(errors="ignore").splitlines(), 1):
+        for lineno, line in enumerate(p.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
             if "src=" in line and ("http://" in line or "https://" in line):
                 offenders.append(f"{p.relative_to(REPO_ROOT)}:{lineno}: {line.strip()}")
     assert not offenders, "runtime file loads a remote script:\n" + "\n".join(offenders)

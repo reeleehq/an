@@ -249,6 +249,12 @@ doctest_optionflags = [
     "ELLIPSIS",
     "IGNORE_EXCEPTION_DETAIL",
 ]
+# `an`'s own code and tests never import a module through the old path of a
+# module that moved to a genre package (P8, an#225): the warning is an error
+# here, so a leftover old import fails instead of quietly using the alias.
+filterwarnings = [
+    "error::an._shims.MovedModuleWarning",
+]
 
 [tool.wads.ci]
 project_name = ""
