@@ -21,6 +21,7 @@ an.audio.lipsync
    .. autosummary::
    
       LipSyncProvider
+      NullLipSync
       Viseme
       VisemeTrack
       WordTimingProvider

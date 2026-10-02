@@ -33,7 +33,7 @@ the MCP entry call it, and anyone can. A package declares its genre as:
 
 ```default
 [project.entry-points."an.genres"]
-cutout_animation = "an.genres.cutout:CUTOUT"
+cutout_animation = "cutan.genre:CUTOUT"
 ```
 
 [`register_genre()`](#an.genres.register_genre) installs a genre object directly (a test, a notebook, a
@@ -55,27 +55,34 @@ genre defined in the same process).
 
 | [`ENTRY_POINT_GROUP`](#an.genres.ENTRY_POINT_GROUP)      | The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.   |
 |-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| [`API_LEVEL`](#an.genres.API_LEVEL)              | every hook, registry field and moved path a genre package may rely on.                                             |
 | [`IN_DISTRIBUTION_GENRES`](#an.genres.IN_DISTRIBUTION_GENRES) | Genres the `an` distribution itself ships, as entry-point values.                                                  |
 
 ### Functions
 
-| [`action_kind`](#an.genres.action_kind)(name)                                | The registered kind called `name`, or `None`.                                                                                                                                                                           |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`action_kind_names`](#an.genres.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.                                                                                                                                          |
-| [`available`](#an.genres.available)(\*[, entry_points, builtin])           | Every discoverable genre's declaration, by name — read, never registered.                                                                                                                                               |
-| `entity_kind`(name)                                                                               |                                                                                                                                                                                                                         |
-| `entity_kind_names`(\*[, owner])                                                                  |                                                                                                                                                                                                                         |
-| [`entity_space_resolver`](#an.genres.entity_space_resolver)(entities, \*[, default])   | `target -> PropertySpace`: the space its ENTITY's kind declares.                                                                                                                                                        |
-| [`discovered_entry_points`](#an.genres.discovered_entry_points)(\*[, entry_points, ...]) | The in-distribution genres (`builtin`) merged with `entry_points` (default: the installed ones), de-duplicated by name — the in-distribution declaration first, so a stale or missing installed entry cannot shadow it. |
-| [`genre_entry_points`](#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                           |
-| [`genres_declaring`](#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                   |
-| [`installed`](#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                              |
-| [`genre_library`](#an.genres.genre_library)(name, \*[, default])               | The package whose data root holds genre `name`'s library and projects.                                                                                                                                                  |
-| `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
-| [`load`](#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
-| [`providers_of`](#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](#an.genres.Genre.provides)).                                                                    |
-| [`register_genre`](#an.genres.register_genre)(genre, \*[, replace, ...])        | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
-| [`without_genres`](#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                    |
+| [`require_api_level`](#an.genres.require_api_level)(level, \*, package)            | Refuse, with an upgrade hint, when this `an` is older than `package` needs.                                                                                                                                            |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`hook_modules`](#an.genres.hook_modules)(\*[, exclude_owner])                | The modules whose code the genres' registered hooks run, sorted and unique.                                                                                                                                            |
+| [`register_service`](#an.genres.register_service)(name, target, \*[, owner, ...]) | Register a named service a genre offers the core (an#225).                                                                                                                                                             |
+| [`require_service`](#an.genres.require_service)(name, \*[, what, extra])         | The registered service `name`; a typed error naming the install when absent.                                                                                                                                           |
+| [`service`](#an.genres.service)(name[, default])                         | The registered service `name`, resolved, or `default` when none is.                                                                                                                                                    |
+| [`services`](#an.genres.services)(prefix)                                 | `{name without the prefix: resolved service}` for every service under `prefix`.                                                                                                                                        |
+| [`action_kind`](#an.genres.action_kind)(name)                                | The registered kind called `name`, or `None`.                                                                                                                                                                          |
+| [`action_kind_names`](#an.genres.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.                                                                                                                                         |
+| [`available`](#an.genres.available)(\*[, entry_points, builtin])           | Every discoverable genre's declaration, by name — read, never registered.                                                                                                                                              |
+| `entity_kind`(name)                                                                               |                                                                                                                                                                                                                        |
+| `entity_kind_names`(\*[, owner])                                                                  |                                                                                                                                                                                                                        |
+| [`entity_space_resolver`](#an.genres.entity_space_resolver)(entities, \*[, default])   | `target -> PropertySpace`: the space its ENTITY's kind declares.                                                                                                                                                       |
+| [`discovered_entry_points`](#an.genres.discovered_entry_points)(\*[, entry_points, ...]) | The in-distribution genres (`builtin`; none since the cut-out genre moved to `cutan`, an#225) merged with `entry_points` (default: the installed ones), de-duplicated by name — the in-distribution declaration first. |
+| [`genre_entry_points`](#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                          |
+| [`genres_declaring`](#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                  |
+| [`installed`](#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                             |
+| [`genre_library`](#an.genres.genre_library)(name, \*[, default])               | The package whose data root holds genre `name`'s library and projects.                                                                                                                                                 |
+| `installed_genre`(name)                                                                           |                                                                                                                                                                                                                        |
+| [`load`](#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                     |
+| [`providers_of`](#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](#an.genres.Genre.provides)).                                                                   |
+| [`register_genre`](#an.genres.register_genre)(genre, \*[, replace, ...])        | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                           |
+| [`without_genres`](#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                   |
 
 ### Classes
 
@@ -83,6 +90,7 @@ genre defined in the same process).
 |------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`CompilePass`](#an.genres.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
 | [`RuntimeScript`](#an.genres.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
+| [`SwapDeclaration`](#an.genres.SwapDeclaration)(sets[, descriptor, ...])            | What one entity's descriptor declares for the stage compiler's swap vocabulary.                                                                                                                                                                              |
 | [`DialogueSugar`](#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
 | [`EntityKind`](#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`Genre`](#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                                                                                                                                                                                            |
@@ -90,12 +98,37 @@ genre defined in the same process).
 
 ### Exceptions
 
-| [`GenreError`](#an.genres.GenreError)                                   | A genre declaration is malformed, or its entry point does not resolve.   |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.           |
-| [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                      |
+| [`GenreAPILevelError`](#an.genres.GenreAPILevelError)                           | A genre package needs a newer `an` than the one installed.             |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [`ServiceMissingError`](#an.genres.ServiceMissingError)                          | The core asked a genre for a service nobody registered.                |
+| [`GenreError`](#an.genres.GenreError)                                   | A genre declaration is malformed, or its entry point does not resolve. |
+| [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
+| [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+
+every hook, registry
+field and moved path a genre package may rely on. Bumped by each change a
+genre needs (the P8 seam PRs and each move to `cutan`, an#225), never
+decremented. A genre states the lowest level it needs with
+[`require_api_level()`](#an.genres.require_api_level), which is how “the genre declares the lowest `an`
+it supports” (ADR 0001 decision 8) is said without a version pin: `an`’s
+version is assigned by CI at merge, so no PR can name the release it ships in.
+
+A genre package must also run against an `an` older than this constant:
+it reads `getattr(an.genres, "API_LEVEL", 0)` before calling
+[`require_api_level()`](#an.genres.require_api_level), and raises its own typed error when it is missing.
+
+Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
+
+1 = moved-module shims (`an._shims.moved_to_package`) and this check (an#296, P8 B0a).
+2 = the cut-out genre’s move (an#225): `Genre.services`, `ActionKind.lowering`,
+
+> `EntityKind.swap_declaration`, `an.stage.rig`.
+* **Type:**
+  The level of the genre-facing API this `an` provides
+
+### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1', lowering=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -116,6 +149,17 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
   `read_md(item, index=i) -> action` (`start:` already removed when
   `md_start`) and `write_md(action) -> dict` (without `start`).
   A kind with no `read_md` has no `scene.md` form.
+
+#### lowering *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+How the STAGE compiler turns an action of this kind into clips, for a kind
+that is not a plain tween or set (the cut-out `play`): an object with
+`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
+default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+and `clip(action, *, anim_id, vocab, fps, view)` – see
+[`an.stage.compile.ActionLowering`](an.stage.compile.html.md#an.stage.compile.ActionLowering). `None`: the compiler has
+nothing kind-specific to do. (an#225: this is how the compiler stops
+naming `play`.)
 
 #### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
@@ -183,7 +227,7 @@ the line carries none). The cut-out genre’s `[emotion]` is one.
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1')
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -193,11 +237,42 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
 
+#### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The `kind` tag of the descriptor document `store` holds for this kind
+(`"CharacterDescriptor"`): what makes the validator treat the entity as a
+rig whose declared asset sets it can check (an#246).
+
+#### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+A missing `ref` is NOT an error because the compiler draws a placeholder
+instead; the genre reports it with its own (warning) check.
+
+#### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+an object with
+`missing_set_hint(prop) -> str` (appended to “names no declared asset
+set”) and `whole_entity(action, desc, prop, keys, entity_id, *, where,
+report, art_exists) -> bool` (judge a swap on the entity ITSELF; `True`
+when handled). `None`: the generic per-node rule only.
+
+* **Type:**
+  Extra swap-reference checks for this kind
+
+#### swap_declaration *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [SwapDeclaration](an.genres.registry.html.md#an.genres.registry.SwapDeclaration) | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+what the entity’s descriptor
+declares for the stage compiler’s swap vocabulary (an#87). `None`: the
+kind declares nothing (its built nodes’ sets ARE its declaration).
+
+* **Type:**
+  `(entity, mall) -> SwapDeclaration | None`
+
 #### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
 
 The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](#an.genres.ActionKind.version).
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=())
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -252,22 +327,35 @@ its visual kinds
 * **Type:**
   Code the genre adds to an engine’s runtime
 
+#### services *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [object](https://docs.python.org/3/builtins/functions.html#object)]*
+
+`{name: object or "module:attr"}` the genre offers the core by name
+([`register_service()`](#an.genres.register_service); an#225): the CLI namespaces it adds
+(`cli.<namespace>`), its lip-sync providers (`lipsync.<name>`), and the
+other places the core asks “is there a genre that does this?”.
+
+### *exception* an.genres.GenreAPILevelError
+
+Bases: [`GenreError`](#an.genres.GenreError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+A genre package needs a newer `an` than the one installed.
+
 ### *exception* an.genres.GenreError
 
 Bases: [`RegistryError`](an.genres.registry.html.md#an.genres.registry.RegistryError)
 
 A genre declaration is malformed, or its entry point does not resolve.
 
-### an.genres.IN_DISTRIBUTION_GENRES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], ...]* *= (('cutout_animation', 'an.genres.cutout:CUTOUT'),)*
+### an.genres.IN_DISTRIBUTION_GENRES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], ...]* *= ()*
 
 Genres the `an` distribution itself ships, as entry-point values. They are
 found by [`load()`](#an.genres.load) WITHOUT relying on installed metadata: an editable
 install made before the `an.genres` group existed never refreshes its
 `dist-info`, and a missing entry point must never silently drop a genre
 that ships in the same distribution as the core (review-244 S1). Still
-explicit discovery (only [`load()`](#an.genres.load) reads it, never an import). External
-genres (`cutan` after P8) come through the entry point alone; when the
-cut-out genre moves there, its line here goes.
+explicit discovery (only [`load()`](#an.genres.load) reads it, never an import). Every genre is
+external now: the cut-out genre moved to `cutan` (an#225) and comes through
+the `an.genres` entry point alone.
 
 ### *exception* an.genres.RegistryError
 
@@ -311,6 +399,24 @@ called once per shot with `ctx.shot` set. Within a stage, checks run by
 `order` (then registration order), so a genre’s check lands exactly where
 it belongs in the report.
 
+### *exception* an.genres.ServiceMissingError
+
+Bases: [`RegistryError`](an.genres.registry.html.md#an.genres.registry.RegistryError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The core asked a genre for a service nobody registered.
+
+### *class* an.genres.SwapDeclaration(sets, descriptor=None, art_exists=None, scale=1.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one entity’s descriptor declares for the stage compiler’s swap vocabulary.
+
+`sets` is `{set name: {KEY: attachment name}}` as declared;
+`descriptor` is the (migrated) document the declaration came from, kept
+for the kind’s own lowering; `art_exists` answers `rel_path -> art on
+disk` (`None` when the store cannot say); `scale` is the factor from the
+entity’s view box to scene pixels.
+
 ### *exception* an.genres.UnregisteredKindError(what, name, , known=(), providers=(), where='')
 
 Bases: [`RegistryError`](an.genres.registry.html.md#an.genres.registry.RegistryError)
@@ -348,16 +454,16 @@ A genre whose entry point does not import is left out (its error is what
 
 ### an.genres.discovered_entry_points(, entry_points=None, builtin=True)
 
-The in-distribution genres (`builtin`) merged with `entry_points`
-(default: the installed ones), de-duplicated by name — the in-distribution
-declaration first, so a stale or missing installed entry cannot shadow it.
+The in-distribution genres (`builtin`; none since the cut-out genre moved to
+`cutan`, an#225) merged with `entry_points` (default: the installed ones),
+de-duplicated by name — the in-distribution declaration first.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> [ep.name for ep in discovered_entry_points(entry_points=())]
-['cutout_animation']
+[]
 ```
 
 ### an.genres.entity_space_resolver(entities, , default=None)
@@ -415,6 +521,24 @@ genre modules but registers nothing.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
+### an.genres.hook_modules(, exclude_owner='an')
+
+The modules whose code the genres’ registered hooks run, sorted and unique.
+
+Compile passes, lowerings, entity hooks, checks, services and runtime scripts
+of every owner but `exclude_owner` (the core’s own are walked from the
+renderer already). The shot cache’s code key starts its walk here for the
+packages outside `an`, so a change to a genre’s code changes the key
+(an#294): the genre is reached by REGISTRATION, not by an import from `an`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> isinstance(hook_modules(), tuple)
+True
+```
+
 ### an.genres.installed()
 
 The names of the genres registered in this process, in registration order.
@@ -460,6 +584,69 @@ genres are in, so a genre extending another loads in any order).
 * **Return type:**
   [`Genre`](#an.genres.Genre)
 
+### an.genres.register_service(name, target, , owner='an', replace=False)
+
+Register a named service a genre offers the core (an#225).
+
+The seam for the places where the core needs a genre’s code only when that
+genre is installed: a CLI namespace (`cli.character`), a provider factory
+(`lipsync.offline`), a licence lookup. `target` is the object itself or
+`"module:attr"` (imported on first use, so declaring a service imports no
+engine). The names a genre may use are the core’s contract, listed with
+their callers in `misc/docs/architecture_as_built.md`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.genres.require_api_level(level, , package)
+
+Refuse, with an upgrade hint, when this `an` is older than `package` needs.
+
+A genre package calls it at import (`require_api_level(3, package="cutan")`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> require_api_level(1, package="demo")
+>>> try:
+...     require_api_level(API_LEVEL + 1, package="demo")
+... except GenreAPILevelError as e:
+...     print(str(e).startswith(f"demo needs an.genres API level {API_LEVEL + 1}"))
+True
+```
+
+### an.genres.require_service(name, , what='', extra='cutout')
+
+The registered service `name`; a typed error naming the install when absent.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.genres.service(name, default=None)
+
+The registered service `name`, resolved, or `default` when none is.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> service("no.such.service") is None
+True
+```
+
+### an.genres.services(prefix)
+
+`{name without the prefix: resolved service}` for every service under `prefix`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> services("no.such.")
+{}
+```
+
 ### an.genres.without_genres()
 
 Run a block with no genre registered (the core alone), then restore.
@@ -475,6 +662,5 @@ True
 
 ### Modules
 
-| [`cutout`](an.genres.cutout.html.md#module-an.genres.cutout)     | The cut-out animation genre, declared as one object (still inside `an`).                           |
-|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| [`registry`](an.genres.registry.html.md#module-an.genres.registry) | The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes. |
+| [`registry`](an.genres.registry.html.md#module-an.genres.registry)   | The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.   |
+|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|

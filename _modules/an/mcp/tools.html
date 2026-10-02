@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -803,7 +803,8 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The documents :func:`scene_schema` describes, and where their models live.</span>
 <span class="n">_SCHEMAS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"scene"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"an.ir.schema"</span><span class="p">,</span> <span class="s2">"SceneIR"</span><span class="p">),</span>
-    <span class="s2">"character"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"an.characters.schema"</span><span class="p">,</span> <span class="s2">"CharacterDescriptor"</span><span class="p">),</span>
+    <span class="c1"># The cut-out genre's descriptor: needs the `cutan` package (an#225).</span>
+    <span class="s2">"character"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"cutan.characters.schema"</span><span class="p">,</span> <span class="s2">"CharacterDescriptor"</span><span class="p">),</span>
 <span class="p">}</span>
 
 
@@ -819,7 +820,14 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"document must be one of </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_SCHEMAS</span><span class="p">)</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">document</span><span class="si">!r}</span><span class="s2">"</span>
         <span class="p">)</span>
     <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">_SCHEMAS</span><span class="p">[</span><span class="n">document</span><span class="p">]</span>
-    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span></div>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">document</span><span class="si">!r}</span><span class="s2"> schema comes from the </span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'.'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s1">'package, which is not installed: pip install "an[cutout]"'</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span></div>
 
 
 

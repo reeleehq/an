@@ -24,6 +24,7 @@ an.stage.cache\_key
       cutout_shot_inputs
       easing_versions
       ffmpeg_build
+      genre_code_modules
       muxed_audio
       render_code_digest
       render_knobs

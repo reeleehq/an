@@ -1,0 +1,30 @@
+an.stage.rig
+============
+
+.. automodule:: an.stage.rig
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_VIEW_BOX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      attachment_box
+      drawn_attachment
+      primary_slot_per_bone
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Attachment
+      Bone
+      RigModel
+      Skin
+      Slot
+   

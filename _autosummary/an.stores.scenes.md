@@ -7,7 +7,9 @@ exposes only the `"main"` key. Future versions can support multi-scene
 projects by promoting siblings inside a `scenes/` directory.
 
 Reading returns a `SceneIR`. Writing accepts a `SceneIR` (or a dict that
-validates as one) and persists both the JSON and the regenerated Markdown.
+validates as one) and persists the JSON and the Markdown – the Markdown UPDATED
+rather than regenerated (an#275): unchanged content leaves the author’s file as it
+was, and a change rewrites only the blocks it touches (`an.ir.sync.merge_markdown`).
 
 ### Functions
 

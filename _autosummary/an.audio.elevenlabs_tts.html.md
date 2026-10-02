@@ -48,8 +48,9 @@ existing cache key moves.
 
 ### Exceptions
 
-| [`ElevenLabsVoiceError`](#an.audio.elevenlabs_tts.ElevenLabsVoiceError)   | A voice document declares ElevenLabs settings that are malformed.   |
-|-------------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`ElevenLabsUnavailableError`](#an.audio.elevenlabs_tts.ElevenLabsUnavailableError)   | A request cannot be sent: no API key is configured.               |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`ElevenLabsVoiceError`](#an.audio.elevenlabs_tts.ElevenLabsVoiceError)         | A voice document declares ElevenLabs settings that are malformed. |
 
 ### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('eleven_v3', 'eleven_v4')*
 
@@ -78,6 +79,15 @@ Characters one request bills: the text as sent, audio tags included.
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+#### check_available()
+
+Raise [`ElevenLabsUnavailableError`](#an.audio.elevenlabs_tts.ElevenLabsUnavailableError) when a request could not be
+sent (no API key) — what the audio pipeline asks before the first
+request of a render, so nothing is half-synthesized (an#305).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 #### client_factory
 
@@ -132,6 +142,12 @@ sampling varies the take.
 >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
 {'seed': 13}
 ```
+
+### *exception* an.audio.elevenlabs_tts.ElevenLabsUnavailableError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A request cannot be sent: no API key is configured.
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
 

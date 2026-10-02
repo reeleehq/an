@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1036,9 +1036,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">animations</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"animations"</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="n">clips</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">clip_from_json</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">animations</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">tl</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">)</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">Timeline</span><span class="p">(</span>
         <span class="n">space</span><span class="o">=</span><span class="n">entity_spaces_resolver</span><span class="p">(</span>
-            <span class="n">_get</span><span class="p">(</span><span class="n">_get</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"entity_spaces"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">_get</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="s2">"entity_spaces"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">definitions</span><span class="o">=</span><span class="n">_get</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="s2">"spaces"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="p">),</span>
         <span class="n">duration</span><span class="o">=</span><span class="n">_get</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="s2">"duration"</span><span class="p">),</span>
         <span class="n">tracks</span><span class="o">=</span><span class="p">[</span>
@@ -1062,8 +1063,8 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">entity_spaces_resolver</span><span class="p">(</span><span class="n">entity_spaces</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``target -&gt; space name`` from a compiled document's ``meta.entity_spaces``.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entity_spaces_resolver</span><span class="p">(</span><span class="n">entity_spaces</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">definitions</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``target -&gt; space`` from a compiled document's ``meta.entity_spaces``.</span>
 
 <span class="sd">    The document records, per ENTITY, the space its kind declares -- only</span>
 <span class="sd">    where that is not the kernel default, so a document that declares nothing</span>
@@ -1071,21 +1072,35 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    anything not listed (the camera's ``root`` included) is the default.</span>
 <span class="sd">    ``None`` when there is nothing to resolve.</span>
 
+<span class="sd">    ``definitions`` is the document's ``meta.spaces`` (an#287): each declared</span>
+<span class="sd">    space's definition as the compiler embedded it (the ``kinds.json`` form),</span>
+<span class="sd">    which is what ``runtime.js`` evaluates -- so a space defined there is read</span>
+<span class="sd">    from the DOCUMENT, and only a name it does not define falls back to the</span>
+<span class="sd">    registry.</span>
+
 <span class="sd">    &gt;&gt;&gt; of = entity_spaces_resolver({"cam": "stage.camera"})</span>
 <span class="sd">    &gt;&gt;&gt; of("cam/lens").name, of("root").name == _spaces.DFLT_TIMELINE_SPACE</span>
 <span class="sd">    ('stage.camera', True)</span>
+<span class="sd">    &gt;&gt;&gt; inline = {"name": "demo", "fields": [{"pattern": "z", "spec": {"kind": "number", "space": "log"}}]}</span>
+<span class="sd">    &gt;&gt;&gt; entity_spaces_resolver({"cam": "demo"}, definitions={"demo": inline})("cam").kind_of("z")</span>
+<span class="sd">    NumberKind(space='log')</span>
 <span class="sd">    &gt;&gt;&gt; entity_spaces_resolver({}) is None</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_spaces</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">entity_spaces</span><span class="p">)</span>
+    <span class="n">embedded</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">definitions</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="n">resolved</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">space_of</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">_spaces</span><span class="o">.</span><span class="n">DFLT_TIMELINE_SPACE</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resolved</span><span class="p">:</span>  <span class="c1"># by name, once per document</span>
-            <span class="n">resolved</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_spaces</span><span class="o">.</span><span class="n">get_space</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">resolved</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_spaces</span><span class="o">.</span><span class="n">space_from_json</span><span class="p">({</span><span class="o">**</span><span class="n">embedded</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="s2">"name"</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">embedded</span>
+                <span class="k">else</span> <span class="n">_spaces</span><span class="o">.</span><span class="n">get_space</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">resolved</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">space_of</span>

@@ -18,8 +18,6 @@ authoring-time DSL to canonical-form actions.
 | [`set_`](#an.ir.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).       |
 |---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
 | [`tween`](#an.ir.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.             |
-| [`play`](#an.ir.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).            |
-| [`expression`](#an.ir.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                              |
 | [`sequence`](#an.ir.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](#an.ir.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`stagger`](#an.ir.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
@@ -408,23 +406,6 @@ An empty span that consumes time. Useful inside `sequence`.
 * **Return type:**
   [`DelayAction`](an.ir.schema.md#an.ir.schema.DelayAction)
 
-### an.ir.expression(target, preset=None, , axes=None, intensity=1.0, duration=None, blend=0.15)
-
-Hold a facial expression on an entity (an#98).
-
-`duration=None` runs to the shot end and counts as **zero** in a
-`sequence`, as a looping `play` does:
-
-* **Return type:**
-  [`ExpressionAction`](an.ir.schema.md#an.ir.schema.ExpressionAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(expression("a", "happy"), delay(1.0), expression("a", "sad")))]
-[0.0, 1.0]
->>> flatten(expression("a", "angry", duration=2.0))[0].end
-2.0
-```
-
 ### an.ir.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
@@ -463,6 +444,11 @@ True
 >>> "## Shot s1 (cutout)" in md
 True
 ```
+
+This writes the WHOLE document in the writer’s own formatting, and keeps no
+prose but `meta.notes`. Updating an existing `scene.md` goes through
+`merge_markdown()`, which keeps the author’s text wherever the content
+did not change.
 
 ### an.ir.kind_of(doc, , kind=None)
 
@@ -541,44 +527,6 @@ Run all children at once. Total duration = max of child durations.
 
 * **Return type:**
   [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction)
-
-### an.ir.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one. In a `sequence` a play with no `duration`
-occupies its **natural** length (a motion preset’s own length divided by
-`speed`; a non-looping descriptor animation’s likewise), so the sibling
-after it starts when it ends; a looping one runs to the shot end and
-occupies **zero**:
-
-* **Return type:**
-  [`PlayAction`](an.ir.schema.md#an.ir.schema.PlayAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
-[0.0, 1.0]
->>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
-[0.0, 2.0]
->>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
-[0.0, 0.5]
->>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
-[0.0, 0.25]
-```
-
-(Bare `flatten` knows only the presets, by name; `an validate` and the
-compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
-— so a descriptor animation that shares a preset’s name is measured as the
-descriptor’s.)
-
-A name the descriptor does not declare falls back to a motion preset of
-[`an.motion.PRESETS`](an.motion.md#an.motion.PRESETS), with `args` as its parameters (an#166):
-
-```pycon
->>> play("charlie", "hop", args={"height": 30}).args
-{'height': 30}
-```
 
 ### an.ir.register_kind(kind)
 

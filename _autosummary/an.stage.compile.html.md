@@ -40,33 +40,26 @@ mall). It reads only.
 
 ### Module Attributes
 
-| [`DFLT_LEG_COLOUR`](#an.stage.compile.DFLT_LEG_COLOUR)            | The procedural rig's leg colour — a literal the palette table never carried, which is why it is a named constant rather than two copies of a string.                                                                                                                                                         |
-|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_PUPIL_COLOUR`](#an.stage.compile.DFLT_PUPIL_COLOUR)          | The procedural rig's pupil colour.                                                                                                                                                                                                                                                                           |
-| [`COARTICULATION_ENABLED`](#an.stage.compile.COARTICULATION_ENABLED)     | Co-articulation on/off (an#97).                                                                                                                                                                                                                                                                              |
-| [`PROCEDURAL_MOUTH_KEYS`](#an.stage.compile.PROCEDURAL_MOUTH_KEYS)      | The procedural (drawn) mouth's swap vocabulary, DECLARED as data on its visual exactly as the runtime declares it (`g._anDrawSets = {viseme: ...}`) and as an SVG mouth carries its projection.                                                                                                              |
-| [`EYE_NODE_NAMES`](#an.stage.compile.EYE_NODE_NAMES)             | the default rig's eye slots ARE its node names, on both the procedural and the descriptor path.                                                                                                                                                                                                              |
-| [`PUPIL_NODE_NAMES`](#an.stage.compile.PUPIL_NODE_NAMES)           | The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.                                                                                                                                                                                                                         |
-| [`GAZE_ELLIPSE_MARGIN`](#an.stage.compile.GAZE_ELLIPSE_MARGIN)        | The summed gaze (x, y), in axis units, is clamped to a circle of this radius — the declared travel maps the unit circle onto the sclera's inner ellipse, and 0.95 keeps the whole pupil disc inside it at every angle (measured on the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal). |
-| [`RUNTIME_APPLIED_PROPERTIES`](#an.stage.compile.RUNTIME_APPLIED_PROPERTIES) | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                                                                                                        |
-| [`DFLT_TARGET_SUGGESTIONS`](#an.stage.compile.DFLT_TARGET_SUGGESTIONS)    | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                                                                                                              |
-| [`CAMERA_NODE`](#an.stage.compile.CAMERA_NODE)                | indexed by the runtime, absent from the tree.                                                                                                                                                                                                                                                                |
-| [`STAGE_COMPILE_PASSES`](#an.stage.compile.STAGE_COMPILE_PASSES)       | The STAGE's own compile passes, in order.                                                                                                                                                                                                                                                                    |
-| [`STAGE_SCENE_BUILDERS`](#an.stage.compile.STAGE_SCENE_BUILDERS)       | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                                                                                                      |
-| [`ENVIRONMENT_ART_PREFIX`](#an.stage.compile.ENVIRONMENT_ART_PREFIX)     | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                                                                                                                  |
-| [`PLANE_FILL_SPAN`](#an.stage.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here.                                                                                    |
-| [`FOREGROUND_SUFFIX`](#an.stage.compile.FOREGROUND_SUFFIX)          | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                                                                                                         |
-| [`SCENE_PX_PER_VIEW_BOX`](#an.stage.compile.SCENE_PX_PER_VIEW_BOX)      | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                         |
-| [`CONTAIN_FIT`](#an.stage.compile.CONTAIN_FIT)                | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                |
-| [`CHARACTER_ART_PREFIX`](#an.stage.compile.CHARACTER_ART_PREFIX)       | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                       |
-| [`PROP_ART_PREFIX`](#an.stage.compile.PROP_ART_PREFIX)            | The same, for props.                                                                                                                                                                                                                                                                                         |
-| [`STAGE_NODE_SPACE`](#an.stage.compile.STAGE_NODE_SPACE)           | The property space every compiled node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                                                                                                                 |
+| [`RUNTIME_APPLIED_PROPERTIES`](#an.stage.compile.RUNTIME_APPLIED_PROPERTIES)   | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                     |
+|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_TARGET_SUGGESTIONS`](#an.stage.compile.DFLT_TARGET_SUGGESTIONS)      | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                           |
+| [`CAMERA_NODE`](#an.stage.compile.CAMERA_NODE)                  | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
+| [`STAGE_COMPILE_PASSES`](#an.stage.compile.STAGE_COMPILE_PASSES)         | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
+| [`RUNTIME_FIELD_KINDS`](#an.stage.compile.RUNTIME_FIELD_KINDS)          | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
+| [`STAGE_SCENE_BUILDERS`](#an.stage.compile.STAGE_SCENE_BUILDERS)         | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                   |
+| [`ENVIRONMENT_ART_PREFIX`](#an.stage.compile.ENVIRONMENT_ART_PREFIX)       | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                               |
+| [`PLANE_FILL_SPAN`](#an.stage.compile.PLANE_FILL_SPAN)              | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here. |
+| [`FOREGROUND_SUFFIX`](#an.stage.compile.FOREGROUND_SUFFIX)            | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                      |
+| [`SCENE_PX_PER_VIEW_BOX`](#an.stage.compile.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                      |
+| [`CONTAIN_FIT`](#an.stage.compile.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                             |
+| [`CHARACTER_ART_PREFIX`](#an.stage.compile.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                    |
+| [`PROP_ART_PREFIX`](#an.stage.compile.PROP_ART_PREFIX)              | The same, for props.                                                                                                                                                                                                      |
+| [`STAGE_NODE_SPACE`](#an.stage.compile.STAGE_NODE_SPACE)             | The property space every compiled node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                              |
 
 ### Functions
 
-| [`blink_phase`](#an.stage.compile.blink_phase)(entity_id)                        | The entity's blink phase in [0, 1): the runtime's rule, ported exactly.                                                                                                                                  |
-|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)          | [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`compile_passes_for_stage`](#an.stage.compile.compile_passes_for_stage)()                    | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
 | [`compile_shot`](#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])   | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
 | [`entity_spaces_of`](#an.stage.compile.entity_spaces_of)(shot)                        | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245). |
@@ -75,6 +68,7 @@ mall). It reads only.
 | [`parse_tint`](#an.stage.compile.parse_tint)(value, \*, where)                  | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
 | [`plane_parents`](#an.stage.compile.plane_parents)(env, entity_id)                 | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
 | [`scene_builders`](#an.stage.compile.scene_builders)()                              | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
+| [`space_definitions`](#an.stage.compile.space_definitions)(entity_spaces)              | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
 | [`stage_replacements`](#an.stage.compile.stage_replacements)()                          | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
 | [`step_times`](#an.stage.compile.step_times)(start, duration, step_hz)          | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                      |
 | [`style_pack_for`](#an.stage.compile.style_pack_for)(scene_meta, styles_store)      | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                    |
@@ -82,9 +76,10 @@ mall). It reads only.
 
 ### Classes
 
-| [`CompileState`](#an.stage.compile.CompileState)(shot, mall, fps, width, height)   | What the stage compiler's passes read and write, for one shot (an#247).   |
-|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`SceneBuild`](#an.stage.compile.SceneBuild)(shot, mall, textures, ...[, ...])   | The scene being built, as an entity builder sees it (an#247).             |
+| [`ActionLowering`](#an.stage.compile.ActionLowering)(\*args, \*\*kwargs)           | How a genre's action kind becomes clips in the stage compiler (an#225).   |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`CompileState`](#an.stage.compile.CompileState)(shot, mall, fps, width, height) | What the stage compiler's passes read and write, for one shot (an#247).   |
+| [`SceneBuild`](#an.stage.compile.SceneBuild)(shot, mall, textures, ...[, ...]) | The scene being built, as an entity builder sees it (an#247).             |
 
 ### Exceptions
 
@@ -92,6 +87,24 @@ mall). It reads only.
 |-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [`CutoutCompileError`](#an.stage.compile.CutoutCompileError)     | A shot cannot be compiled to a cutout scene.                                              |
 | [`CutoutCompileWarning`](#an.stage.compile.CutoutCompileWarning)   | A shot compiles, but something in it will not reach the screen.                           |
+
+### *class* an.stage.compile.ActionLowering(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+How a genre’s action kind becomes clips in the stage compiler (an#225).
+
+Registered as [`an.genres.ActionKind.lowering`](an.genres.html.md#an.genres.ActionKind.lowering). The stage knows no
+kind by name beyond its own (`tween`, `set`); a genre’s kind supplies:
+
+- `extent_resolver(vocab)`: `action -> seconds` for a leaf that names no
+  duration (or `None`);
+- `expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions)`:
+  the flat list with this kind’s leaves replaced by what they stand for;
+- `view_of(entity_swaps, vocab, *, duration)`: `flat -> view name | None`
+  (or `None`), for kinds whose clips depend on the view in force;
+- `clip(action, *, anim_id, vocab, fps, view)`: the animation clip of one
+  leaf that survived `expand`.
 
 ### an.stage.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
 
@@ -110,16 +123,6 @@ about where their art lives. Two hardcoded copies of `"characters/"` — the
 `src` builder and the probe’s own — reached three call sites, and that is
 what made “a prop is a rig too” read as a rewrite instead of an argument
 (an#108).
-
-### an.stage.compile.COARTICULATION_ENABLED *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
-
-Co-articulation on/off (an#97). ON is the product; OFF reproduces the
-pre-#97 mouth CHOICE — the raw provider track thinned by the old drop-not-hold
-condenser — over the new frame-ceiled clip window (so not byte-for-byte the
-old emission: OFF still closes the mouth after a line) and exists so the `lipsync-coarticulation` demo and a test can
-render the two side by side. Not a RenderContext knob: nobody should ship
-the old behaviour, and a module flag rebound for one render is the shape
-the bench’s levers already use.
 
 ### an.stage.compile.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
 
@@ -188,18 +191,6 @@ mistake, so it raises. A speaker with no mouth is usually an off-screen
 narrator and occasionally a typo — refusing it would break the documented
 idiom, and passing in silence is what this whole change is against.
 
-### an.stage.compile.DFLT_LEG_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#2c3e50'*
-
-The procedural rig’s leg colour — a literal the palette table never
-carried, which is why it is a named constant rather than two copies of a
-string. A `StylePack`’s `leg` role replaces it.
-
-### an.stage.compile.DFLT_PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
-
-The procedural rig’s pupil colour. `makeEye` reads it from the document —
-the eye WHITE beside it is a literal and cannot be reached, which is the
-split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
-
 ### an.stage.compile.DFLT_TARGET_SUGGESTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How many “did you mean” paths an unknown-target message offers.
@@ -207,14 +198,6 @@ How many “did you mean” paths an unknown-target message offers.
 ### an.stage.compile.ENVIRONMENT_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'environments/'*
 
 The `assets.textures` `src` prefix an environment plate is addressed under.
-
-### an.stage.compile.EYE_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_eye', 'right_eye'})*
-
-the default rig’s eye slots ARE its node
-names, on both the procedural and the descriptor path.
-
-* **Type:**
-  The nodes that blink, by name
 
 ### an.stage.compile.FOREGROUND_SUFFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_front'*
 
@@ -230,36 +213,16 @@ and the runtime’s unknown-target throw does not fire because the name IS
 known, just bound to the wrong one of two. The determinism report’s
 `node_count` under-counted by one per split environment too.
 
-### an.stage.compile.GAZE_ELLIPSE_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.95*
-
-The summed gaze (x, y), in axis units, is clamped to a circle of this radius
-— the declared travel maps the unit circle onto the sclera’s inner ellipse,
-and 0.95 keeps the whole pupil disc inside it at every angle (measured on
-the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).
-
 ### an.stage.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale
 — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR
 layer’s framing check reads the same number, re-exported here.
 
-### an.stage.compile.PROCEDURAL_MOUTH_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
-
-The procedural (drawn) mouth’s swap vocabulary, DECLARED as data on its
-visual exactly as the runtime declares it (`g._anDrawSets = {viseme: ...}`)
-and as an SVG mouth carries its projection. A drawn mouth has no textures,
-so each key maps to itself — the code the runtime’s shape table draws. The
-compiler never branches on the set’s NAME: the drawn mouth is just a node
-whose visual carries a `viseme` set (an#87).
-
 ### an.stage.compile.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
 
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
-
-### an.stage.compile.PUPIL_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_pupil', 'right_pupil'})*
-
-The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.
 
 ### an.stage.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
@@ -273,6 +236,12 @@ Any OTHER property is a swap-set name, applied dynamically through the
 node’s `asset_sets` projection (an#87) — `viseme` left the static
 switch when that landed, which is precisely what makes it a conventional
 set name rather than control flow.
+
+### an.stage.compile.RUNTIME_FIELD_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'angle', 'color', 'discrete', 'number', 'orbit', 'quaternion', 'vector'})*
+
+The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
+pins the two). A declared space using any other kind cannot be drawn by the
+stage, so the compiler refuses it instead of the browser failing mid-render.
 
 ### an.stage.compile.SCENE_PX_PER_VIEW_BOX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 345.0*
 
@@ -321,18 +290,6 @@ entity’s subtree to `children` (or `overlay`, or `in_front`) and
 records its textures and resolutions here, exactly as the scene pass did
 by hand.
 
-### an.stage.compile.blink_phase(entity_id)
-
-The entity’s blink phase in [0, 1): the runtime’s rule, ported exactly.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> blink_phase("charlie")
-0.762
-```
-
 ### an.stage.compile.camera_keys(shot, , width, height)
 
 [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.
@@ -363,7 +320,7 @@ curve of every authored tween that names none (tween > this > the built-in
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis
-curves for the face solver; `None` is `DefaultExpressionProvider`.
+curves for the face solver; `None` is the genre’s default provider.
 
 `step_hz` (an#89) resamples every authored **tween** onto a SHOT-wide
 pose grid of that many updates per second (multiples of `1/step_hz` on
@@ -480,6 +437,27 @@ which is the class of drift this wave keeps closing.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`CompilePass`](an.genres.registry.html.md#an.genres.registry.CompilePass)]
+
+### an.stage.compile.space_definitions(entity_spaces)
+
+`{space name: definition}` for every space `entity_spaces` names –
+what the compiled document embeds as `meta.spaces` so `runtime.js`
+evaluates each declared entity in its space (an#287).
+
+The definition is `to_json()` without
+its prose (a reworded description must not move a contract hash; a
+space’s `version` does). A space using a field kind the runtime does not
+implement is refused here ([`CutoutCompileError`](#an.stage.compile.CutoutCompileError)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+```pycon
+>>> space_definitions({})
+{}
+>>> space_definitions({"cam": "stage.camera"})["stage.camera"]["fields"][0]
+{'pattern': 'x', 'spec': {'kind': 'number'}, 'unit': 'px'}
+```
 
 ### an.stage.compile.stage_replacements()
 

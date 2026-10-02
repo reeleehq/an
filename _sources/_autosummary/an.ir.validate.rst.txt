@@ -8,7 +8,6 @@ an.ir.validate
 
    .. autosummary::
    
-      RIG_STORES
       RETIRED_KEYS
       RETIRED_CAMERA_KEYS
       DIALOGUE_OVERRUN_TOLERANCE_S
@@ -18,15 +17,10 @@ an.ir.validate
 
    .. autosummary::
    
-      check_character_refs
-      check_expression_actions
-      check_hidden_mouth_while_speaking
-      check_play_actions
-      check_turns
-      check_view_continuity
       post_synthesis_findings
       registered_kind_problems
       require_registered_kinds
+      rig_stores
       shot_dialogue_overruns
       validate_schema
       validate_semantic

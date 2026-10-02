@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -720,7 +720,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">projects by promoting siblings inside a ``scenes/`` directory.</span>
 
 <span class="sd">Reading returns a ``SceneIR``. Writing accepts a ``SceneIR`` (or a dict that</span>
-<span class="sd">validates as one) and persists both the JSON and the regenerated Markdown.</span>
+<span class="sd">validates as one) and persists the JSON and the Markdown -- the Markdown UPDATED</span>
+<span class="sd">rather than regenerated (an#275): unchanged content leaves the author's file as it</span>
+<span class="sd">was, and a change rewrites only the blocks it touches (`an.ir.sync.merge_markdown`).</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -732,7 +734,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">ir_to_markdown</span><span class="p">,</span> <span class="n">scene_from_json_doc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">ir_to_markdown</span><span class="p">,</span> <span class="n">merge_markdown</span><span class="p">,</span> <span class="n">scene_from_json_doc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">_read_text</span><span class="p">,</span> <span class="n">_write_json</span><span class="p">,</span> <span class="n">_write_text</span>
 
 
@@ -780,8 +782,15 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># loaded genre can spell), and a refusal must leave the pair as it was,</span>
         <span class="c1"># not a new JSON beside a stale md (review-244 N5).</span>
         <span class="n">markdown</span> <span class="o">=</span> <span class="n">ir_to_markdown</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+        <span class="c1"># The author's file is UPDATED, not regenerated (an#275): unchanged</span>
+        <span class="c1"># content leaves it byte-for-byte as written, and a change rewrites</span>
+        <span class="c1"># only the blocks it touches -- never the prose around them.</span>
+        <span class="n">existing</span> <span class="o">=</span> <span class="n">_read_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md_path</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">md_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">markdown</span> <span class="o">=</span> <span class="n">merge_markdown</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
         <span class="n">_write_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json_path</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()))</span>
-        <span class="n">_write_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md_path</span><span class="p">,</span> <span class="n">markdown</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">markdown</span> <span class="o">!=</span> <span class="n">existing</span><span class="p">:</span>
+            <span class="n">_write_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md_path</span><span class="p">,</span> <span class="n">markdown</span><span class="p">)</span>
         <span class="c1"># Equalize mtimes so the JSON wins ties on subsequent sync()s. Pipeline</span>
         <span class="c1"># stages (audio, lip-sync) inject rich state into the JSON that the</span>
         <span class="c1"># Markdown can't represent — without this, sync() would round-trip</span>

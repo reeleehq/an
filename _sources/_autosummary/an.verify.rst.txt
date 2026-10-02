@@ -15,7 +15,6 @@ an.verify
       HumanInTheLoopVerifier
       MediaQualityVerifier
       VisionLMVerifier
-      StyleLintVerifier
    
 .. rubric:: Modules
 

@@ -114,7 +114,7 @@ The source checkout `an` was imported from.
 
 Raises rather than returning a plausible-but-wrong path, because the
 failure it guards is running the bench against an installed wheel: the
-corpus lives under `examples/`, which is not packaged, so the first
+corpus lives under `misc/bench/`, which is not packaged, so the first
 symptom would be a missing-fixture error three frames deep.
 
 The checkout’s folder name is not asserted: a git worktree or a clone

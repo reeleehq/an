@@ -29,5 +29,6 @@ an.audio.elevenlabs\_tts
 
    .. autosummary::
    
+      ElevenLabsUnavailableError
       ElevenLabsVoiceError
    

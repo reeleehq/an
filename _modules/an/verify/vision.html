@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1116,13 +1116,16 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Name the emotion a frame (or short strip) shows, or ``None`` if the</span>
 <span class="sd">    reply named nothing in ``labels`` (an#98).</span>
 
-<span class="sd">    ``labels`` defaults to every preset in :mod:`an.expression`. ``judge`` is</span>
+<span class="sd">    ``labels`` defaults to every expression preset the loaded genre knows (the</span>
+<span class="sd">    ``expression.known_presets`` service; ``cutan`` in practice). ``judge`` is</span>
 <span class="sd">    the `judge_frames`-shaped seam; parsing stays outside the recording.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">known_presets</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_service</span>
 
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">known_presets</span><span class="p">()</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">require_service</span><span class="p">(</span>
+            <span class="s2">"expression.known_presets"</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"the emotion labels of judge_emotion"</span>
+        <span class="p">)()</span>
     <span class="n">reply</span> <span class="o">=</span> <span class="p">(</span><span class="n">judge</span> <span class="ow">or</span> <span class="n">judge_frames</span><span class="p">)(</span>
         <span class="n">frames</span><span class="p">,</span>
         <span class="n">prompt</span><span class="o">=</span><span class="n">emotion_prompt</span><span class="p">(</span><span class="n">labels</span><span class="p">),</span>

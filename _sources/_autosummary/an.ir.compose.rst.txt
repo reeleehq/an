@@ -15,16 +15,13 @@ an.ir.compose
 
    .. autosummary::
    
-      default_play_extent
       delay
       duration_of
-      expression
       flatten
       iter_actions
       kind_of
       loop
       parallel
-      play
       resolve_action
       sequence
       set_

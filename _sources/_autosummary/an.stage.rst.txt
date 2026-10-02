@@ -22,12 +22,14 @@ an.stage
    easing
    environments
    fidelity
+   gradients
    path_geometry
    paths
    preview
    props
    raster
    render
+   rig
    runtime
    runtime_files
    serialize

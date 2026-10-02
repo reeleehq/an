@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1211,105 +1211,6 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="c1"># -----------------------------------------------------------------------------</span>
-<span class="c1"># The cut-out genre's action models (ADR 0001 §First slice). They are DEFINED</span>
-<span class="c1"># here, beside the core's, until the genre package exists (P8 moves them, with a</span>
-<span class="c1"># re-export), but they are not core: nothing dispatches on them unless the</span>
-<span class="c1"># cut-out genre is registered (``an.genres.cutout``), and a document's</span>
-<span class="c1"># ``kind: play`` validates to `PlayAction` only after that.</span>
-<span class="c1"># -----------------------------------------------------------------------------</span>
-
-
-<div class="viewcode-block" id="PlayAction">
-<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.PlayAction">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">PlayAction</span><span class="p">(</span><span class="n">ExtensionAction</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Play a named animation of the target entity's descriptor (an#7).</span>
-
-<span class="sd">    ``animation`` names an entry of ``CharacterDescriptor.animations`` (the</span>
-<span class="sd">    seeded ``idle_breath`` and ``blink``, or anything an author adds); the</span>
-<span class="sd">    compiler resolves its tracks into channels on the entity's nodes. A name</span>
-<span class="sd">    the descriptor does NOT declare — or any name on an entity with no</span>
-<span class="sd">    descriptor (a procedural rig, a prop) — falls back to the motion presets</span>
-<span class="sd">    of :data:`an.motion.PRESETS` (``hop``, ``nod``, …), which expand to</span>
-<span class="sd">    ordinary tweens at the target's built rest pose; a descriptor animation of</span>
-<span class="sd">    the same name wins (an#166). Both halves are decided by</span>
-<span class="sd">    :func:`an.characters.play.play_problems`, the one resolver ``an validate``</span>
-<span class="sd">    and the compiler share. For a preset, ``args`` are its parameters,</span>
-<span class="sd">    ``duration`` stretches the whole move to that length, ``speed`` divides</span>
-<span class="sd">    it, and ``loop: true`` is refused (a preset is a one-shot).</span>
-<span class="sd">    ``duration`` widens/narrows the placement window; ``None`` means the</span>
-<span class="sd">    animation's own duration — or, when the resolved ``loop`` is true, the</span>
-<span class="sd">    rest of the shot, because a loop bounded by its own natural duration</span>
-<span class="sd">    never loops. ``loop`` overrides the animation's declared ``loop``</span>
-<span class="sd">    (``None`` = use the descriptor's). Inside a ``sequence`` a play with</span>
-<span class="sd">    ``duration=None`` occupies its NATURAL length — a motion preset's own</span>
-<span class="sd">    length, a non-looping descriptor animation's ``duration``, both over</span>
-<span class="sd">    ``speed`` — so the next sibling starts when it ends; a looping one runs to</span>
-<span class="sd">    the shot end and occupies ZERO (:func:`an.characters.play.play_extent`).</span>
-<span class="sd">    """</span>
-
-    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"play"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"play"</span>
-    <span class="n">target</span><span class="p">:</span> <span class="n">PathStr</span>
-    <span class="n">animation</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># a key of the entity descriptor's `animations`</span>
-    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># None = the animation's natural duration</span>
-    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="n">loop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># None = the descriptor animation's own `loop`</span>
-    <span class="c1">#: Parameters of a MOTION PRESET (an#166) — ``{"height": 30}`` for a</span>
-    <span class="c1">#: ``hop`` — passed to its :data:`an.motion.PRESETS` function as keyword</span>
-    <span class="c1">#: arguments. ``None`` (the default, omitted from JSON) means the preset's</span>
-    <span class="c1">#: own defaults. A descriptor animation takes none, and one given to it is</span>
-    <span class="c1">#: refused; ``rest`` is never one — it is read off the built scene.</span>
-    <span class="n">args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-
-    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""``args: null`` leaves no trace: every committed ``scene.json`` with</span>
-<span class="sd">        a ``play`` predates the field (the an#112 omit-when-unset rule)."""</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"args"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"args"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
-
-
-
-<span class="c1">#: Default ramp in/out of an expression, seconds (0 = cut). The dialogue</span>
-<span class="c1">#: `[emotion]` sugar uses its own in `an.expression.provider`.</span>
-<span class="n">DFLT_EXPRESSION_BLEND_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.15</span>
-
-
-<div class="viewcode-block" id="ExpressionAction">
-<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.ExpressionAction">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">ExpressionAction</span><span class="p">(</span><span class="n">ExtensionAction</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Hold a facial expression on an entity (an#98, epic #9 Wave 6).</span>
-
-<span class="sd">    ``preset`` names one of :data:`an.expression.presets.PRESETS`; ``axes``</span>
-<span class="sd">    are per-axis overrides layered on it (axis units, see</span>
-<span class="sd">    :mod:`an.expression.axes`); ``None`` + no axes is a cheap "return to</span>
-<span class="sd">    rest". ``duration=None`` runs to the shot end (the looping-play rule) and</span>
-<span class="sd">    is **zero-width in a sequence**, like a looping ``play``. ``blend`` ramps the</span>
-<span class="sd">    intensity in and out; two overlapping expressions cross-fade because the</span>
-<span class="sd">    face solver sums offsets. The dialogue ``speaker [emotion]: …`` bracket is</span>
-<span class="sd">    sugar for one of these over the line, desugared in memory only.</span>
-
-<span class="sd">    A leaf action, flattened like ``play``: the compiler resolves it in the</span>
-<span class="sd">    face solver (one channel per ``(node, property)``), never per action.</span>
-
-<span class="sd">    The ramp is a min over the two ends, so a span shorter than ``2·blend``</span>
-<span class="sd">    never reaches full intensity (a 0.2 s expression at the default 0.15 s</span>
-<span class="sd">    blend peaks at 0.67) and a ``duration=0`` expression shows only where a</span>
-<span class="sd">    frame lands on it with ``blend=0`` — cut the blend for a flash.</span>
-<span class="sd">    """</span>
-
-    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"expression"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"expression"</span>
-    <span class="n">target</span><span class="p">:</span> <span class="n">PathStr</span>  <span class="c1"># the ENTITY; the binding picks the nodes</span>
-    <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">axes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-    <span class="n">intensity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>  <span class="c1"># None = to the shot end</span>
-    <span class="n">blend</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DFLT_EXPRESSION_BLEND_S</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></div>
-
-
-
 <div class="viewcode-block" id="SequenceAction">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.SequenceAction">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SequenceAction</span><span class="p">(</span><span class="n">_ActionBase</span><span class="p">):</span>
@@ -1958,6 +1859,21 @@ window.runMermaid = runMermaid;</script>
 <span class="k">for</span> <span class="n">_kind</span> <span class="ow">in</span> <span class="n">CORE_ENTITY_KINDS</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">register_entity_kind</span><span class="p">(</span><span class="n">_kind</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
+
+
+<span class="c1"># The cut-out genre's action models moved to `cutan` (an#225): `PlayAction` and</span>
+<span class="c1"># `ExpressionAction` are DEFINED beside their action kinds there. These names keep</span>
+<span class="c1"># resolving (with a MovedModuleWarning) while the genre package is installed.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an._shims</span><span class="w"> </span><span class="kn">import</span> <span class="n">moved_names</span> <span class="k">as</span> <span class="n">_moved_names</span>  <span class="c1"># noqa: E402</span>
+
+<span class="fm">__getattr__</span> <span class="o">=</span> <span class="n">_moved_names</span><span class="p">(</span>
+    <span class="vm">__name__</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">"PlayAction"</span><span class="p">:</span> <span class="s2">"cutan.characters.registration:PlayAction"</span><span class="p">,</span>
+        <span class="s2">"ExpressionAction"</span><span class="p">:</span> <span class="s2">"cutan.expression.registration:ExpressionAction"</span><span class="p">,</span>
+        <span class="s2">"DFLT_EXPRESSION_BLEND_S"</span><span class="p">:</span> <span class="s2">"cutan.expression.registration:DFLT_EXPRESSION_BLEND_S"</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">)</span>
 </pre></div>
 
                 </article>

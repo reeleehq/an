@@ -29,14 +29,10 @@ an.audio
       Viseme
       VisemeTrack
       WordTimingProvider
+      NullLipSync
       OfflineTTS
-      OfflineLipSync
       ElevenLabsTTS
       MacSayTTS
-      RhubarbLipSync
-      WhisperLipSync
-      StaticWordTimings
-      WordTimingsLipSync
    
 .. rubric:: Modules
 

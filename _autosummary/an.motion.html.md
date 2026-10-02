@@ -58,7 +58,7 @@ sets and tweens before it (an#212) — so no `rest=`, and a preset after a move
 starts where the move left it (an entrance in [`HOME_PRESETS`](#an.motion.HOME_PRESETS) lands on the
 built pose instead); `args` are the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; `an validate` and the compiler
-decide both through [`an.characters.play.play_problems()`](an.characters.play.html.md#an.characters.play.play_problems). `duration`
+decide both through `an.characters.play.play_problems()`. `duration`
 stretches the move and `speed` divides it; `loop` is refused. In a
 `sequence` a `play` without a `duration` occupies the preset’s own
 length divided by `speed`, so two in a row run one after the other.
@@ -68,11 +68,10 @@ too since an#241, but verbatim, as its JSON form).
 
 ### Module Attributes
 
-| [`OVERSHOOT`](#an.motion.OVERSHOOT)     | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").                                                                                                                     |
-|----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`IDENTITY_POSE`](#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                                                                                                                                         |
-| [`PRESETS`](#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and the `play` fallback ([`an.characters.play.play_source()`](an.characters.play.html.md#an.characters.play.play_source), an#166) read. |
-| [`HOME_PRESETS`](#an.motion.HOME_PRESETS)  | Presets whose `rest` is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.                                                                                          |
+| [`OVERSHOOT`](#an.motion.OVERSHOOT)    | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").                                       |
+|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| [`PRESETS`](#an.motion.PRESETS)      | Every preset by name — the one list the skill, the demo and the `play` fallback (`an.characters.play.play_source()`, an#166) read. |
+| [`HOME_PRESETS`](#an.motion.HOME_PRESETS) | Presets whose `rest` is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.            |
 
 ### Functions
 
@@ -101,10 +100,6 @@ BUILT pose (`slide_out` then `slide_in` comes back home; `pop_in` after a
 `set` of the scales to 0 grows to full size); every other preset moves
 relative to where the node IS at its start (an#212).
 
-### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
-
-`x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.
-
 ### an.motion.OVERSHOOT *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.34, 1.56, 0.64, 1.0)*
 
 A cubic-Bézier that overshoots its target by about 10% and settles back
@@ -114,7 +109,7 @@ Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 ### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'speech_pulse': <function speech_pulse>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
-fallback ([`an.characters.play.play_source()`](an.characters.play.html.md#an.characters.play.play_source), an#166) read.
+fallback (`an.characters.play.play_source()`, an#166) read.
 
 ### an.motion.as_leaves(action, , start=0.0)
 
@@ -144,6 +139,8 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 [`turn()`](#an.motion.turn) `who` to `view`, facing `other` — the direction read
 off the stage, so a profile looks at the other character wherever the
 layout put them.
+
+(These examples build character entities, the cut-out genre’s; they are not run here.)
 
 * **Return type:**
   `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
@@ -227,6 +224,8 @@ camera — through the cutout compiler’s own scene builder, so the layout
 scale are read, never restated. Pass the same `mall` you render with:
 a descriptor rig is built from its character store.
 
+(These examples build character entities, the cut-out genre’s; they are not run here.)
+
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
@@ -302,6 +301,8 @@ centre). Volume is roughly kept: one axis grows by what the other loses.
 target against (an#166, an#193). `width`/`height` (default: the
 compiler’s) matter to text, whose line breaks depend on the frame.
 
+(These examples build character entities, the cut-out genre’s; they are not run here.)
+
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
@@ -326,7 +327,7 @@ the rest `scale_x` (a character staged mirrored faces left). Called from
 Python the preset cannot see an EARLIER turn, so turning back from a
 left-facing profile is `turn(to="front", from_direction="left")`; PLAYED
 by name (`{kind: play, animation: turn}`) the compiler fills it in from
-the timeline before it ([`an.characters.play.resolve_turns()`](an.characters.play.html.md#an.characters.play.resolve_turns), an#203).
+the timeline before it (`an.characters.play.resolve_turns()`, an#203).
 
 `to` is a key of the character’s `view` set — `front`, `back`,
 `side` or `three_quarter` on a factory character
@@ -395,7 +396,7 @@ at the start, filled in by the compiler). Played by name with no view on
 the timeline, the view is the descriptor’s `rest_view` (an#220) — a
 character carved in profile swings its legs with nothing passed.
 
-**Gait** (`gait`, one of [`an.characters.schema.GAITS`](an.characters.schema.html.md#an.characters.schema.GAITS), an#220).
+**Gait** (`gait`, one of `an.characters.schema.GAITS`, an#220).
 `legs` is the above. `hem` is a robe whose leg slots are the two
 halves of its hem: facing the camera the halves TILT in turn by
 `hem_tilt` radians about the hip while the body sways by `rock` and

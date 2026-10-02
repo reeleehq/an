@@ -14,28 +14,22 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Module Attributes
 
-| [`RIG_STORES`](#an.ir.validate.RIG_STORES)                   | Entity kind → (the mall store holding its rig, the descriptor `kind` tag that store's documents carry).                                                                                                                                                                                                                                                      |
-|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)                 | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
+|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS)          | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S) | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](#an.ir.validate.POST_SYNTHESIS_CHECKS)        | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
 
 ### Functions
 
-| [`check_character_refs`](#an.ir.validate.check_character_refs)(ctx)                         | The cut-out genre's missing-character warning.                                                                                                                                                                |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`check_expression_actions`](#an.ir.validate.check_expression_actions)(ctx)                     | The cut-out genre's `expression` / `[emotion]` check.                                                                                                                                                         |
-| [`check_hidden_mouth_while_speaking`](#an.ir.validate.check_hidden_mouth_while_speaking)(ctx)            | The cut-out genre's mouth-hidden-by-a-view warning.                                                                                                                                                           |
-| [`check_play_actions`](#an.ir.validate.check_play_actions)(ctx)                           | The cut-out genre's `play` check (`_check_play_actions()`).                                                                                                                                                   |
-| [`check_turns`](#an.ir.validate.check_turns)(ctx)                                  | The cut-out genre's contradicted-turn warning (`_check_turns()`).                                                                                                                                             |
-| [`check_view_continuity`](#an.ir.validate.check_view_continuity)(ctx)                        | The cut-out genre's view-across-a-cut warning (`_check_view_continuity()`).                                                                                                                                   |
-| [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
-| [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
-| [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
-| [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
-| [`validate_schema`](#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
-| [`validate_semantic`](#an.ir.validate.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                                  |
+| [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks])   | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
+|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                     | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])        | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_stores`](#an.ir.validate.rig_stores)()                                        | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
+| [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])             | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
+| [`validate_schema`](#an.ir.validate.validate_schema)(doc)                                | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](#an.ir.validate.validate_semantic)(scene, \*[, ...])                 | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
@@ -87,12 +81,6 @@ renderer. The migration rewrites stored 0.1.x documents, but nothing rewrites
 a document that is already 0.2.0: an agent patch, a hand edit, or a caller
 passing `style=` to `Shot(...)` all produce a permanently dead key that no
 later migration will touch. So it is caught here, at ERROR, by name.
-
-### an.ir.validate.RIG_STORES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'character': ('characters', 'CharacterDescriptor'), 'prop': ('props', 'PropDescriptor')}*
-
-Entity kind → (the mall store holding its rig, the descriptor `kind` tag
-that store’s documents carry). `environment` and `voice` are absent because
-neither has a rig to declare asset sets on.
 
 ### *exception* an.ir.validate.UnregisteredInSceneError(findings, , where='')
 
@@ -153,51 +141,6 @@ Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
 
-### an.ir.validate.check_character_refs(ctx)
-
-The cut-out genre’s missing-character warning. A WARNING: the compiler
-falls back to the built-in placeholder rig and the scene still renders.
-Deliberately not escalated — an asset-less project rendering placeholders
-is a supported way to work.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_expression_actions(ctx)
-
-The cut-out genre’s `expression` / `[emotion]` check.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_hidden_mouth_while_speaking(ctx)
-
-The cut-out genre’s mouth-hidden-by-a-view warning.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_play_actions(ctx)
-
-The cut-out genre’s `play` check (`_check_play_actions()`).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_turns(ctx)
-
-The cut-out genre’s contradicted-turn warning (`_check_turns()`).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_view_continuity(ctx)
-
-The cut-out genre’s view-across-a-cut warning (`_check_view_continuity()`).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ### an.ir.validate.post_synthesis_findings(scene, , fps=None, checks=('dialogue_fits', 'dialogue_in_dissolve', 'cutout.hidden_mouth_while_speaking'), \*\*stores)
 
 `(check, finding)` for each finding the synthesized timing gives.
@@ -231,6 +174,22 @@ kind, entity kind and renderer it uses that is not registered.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.ir.validate.rig_stores()
+
+`{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.
+
+The core’s own (`prop`) plus the kinds genres register with a
+`descriptor_kind` (the cut-out genre’s `character`): derived from the
+registry, not a table the core edits (an#246).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> rig_stores()["prop"]
+('props', 'PropDescriptor')
+```
 
 ### an.ir.validate.shot_dialogue_overruns(shot, , effects_of=None, synthesized_only=False, tolerance_s=0.016666666666666666)
 

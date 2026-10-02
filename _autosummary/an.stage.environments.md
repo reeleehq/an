@@ -244,11 +244,31 @@ What a plane is made of.
 An `image` is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
 sizes it from its header and PixiJS loads it natively.
 
-Two kinds ship, and the omission is deliberate rather than partial:
-`gradient` and `generated` would each need a runtime that can draw them,
-and this package’s standing rule is that schema without a consumer is
-worse than an absent field — the `repeat`/`TilingSprite` decision in
-an#110 is the same call made the same way.
+A `gradient` (an#275) is a linear or radial blend of colour stops
+([`an.paint.Gradient`](an.paint.md#an.paint.Gradient), CSS’s vocabulary), compiled into an inline SVG
+texture ([`an.stage.gradients`](an.stage.gradients.md#module-an.stage.gradients)) – a backlit-glass plate or a sky
+without hand-drawing one:
+
+```pycon
+>>> PlaneArt(kind="gradient", gradient={"type": "radial",
+...          "stops": ["#fff3d0", "#3a2a18"]}).gradient.type
+'radial'
+```
+
+A `role` names the plane’s paint for a StylePack: under a pack whose
+`gradients` sets that role, the plane is drawn with the pack’s gradient (a
+`fill` plane included); with no pack, or a pack that does not set it, the
+plane draws exactly as authored.
+
+```pycon
+>>> PlaneArt(kind="fill", color="#202830", role="glass").role
+'glass'
+```
+
+`generated` art is still not a kind: it needs a generator, and this
+package’s standing rule is that schema without a consumer is worse than an
+absent field — the `repeat`/`TilingSprite` decision in an#110 is the same
+call made the same way.
 
 #### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -257,9 +277,25 @@ a CSS colour.
 * **Type:**
   `fill` only
 
+#### gradient *: [Gradient](an.paint.md#an.paint.Gradient) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the gradient (an#275). Omitted from the stored document
+when unset.
+
+* **Type:**
+  `gradient` only
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### role *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the gradient role a StylePack may set for this
+plane (an#275). Omitted from the stored document when unset.
+
+* **Type:**
+  `fill` or `gradient`
 
 #### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

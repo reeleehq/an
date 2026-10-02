@@ -10,6 +10,7 @@ an.build.gc
    
       CLOCK_SLACK_S
       DEFAULT_PROFILE
+      HYPOTHETICAL_PROFILES
    
    .. rubric:: Functions
 

@@ -138,7 +138,7 @@ Map of asset id → AssetJSON, split by kind.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.stage.serialize.BUILTIN_VISUAL_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sprite', 'rect', 'ellipse', 'mouth', 'eye', 'svg_sprite', 'path')*
+### an.stage.serialize.BUILTIN_VISUAL_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sprite', 'rect', 'ellipse', 'svg_sprite', 'path')*
 
 The visual kinds `runtime.js` draws itself. Any other kind must be
 registered by a genre’s runtime script (an#247), or it draws as a rect.
@@ -237,6 +237,16 @@ its compiled document, the bench’s scene contract, must not move.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### spaces *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+The definition of each space `entity_spaces` names, in the timing
+contract’s `kinds.json` form (`PropertySpace.to_json`), so the
+document is self-describing: `runtime.js` has no registry and evaluates
+a declared entity’s targets by THESE field kinds and write groups
+(an#287), and [`an.timing.timeline.timeline_from_compiled()`](an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled) reads the
+same definitions back. **Serialized only when non-empty** (it is empty
+exactly when `entity_spaces` is).
 
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

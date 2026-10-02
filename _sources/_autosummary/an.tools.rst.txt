@@ -16,6 +16,7 @@ an.tools
       init
       iterate
       preview
+      registered_namespaces
       render
       sync
       validate

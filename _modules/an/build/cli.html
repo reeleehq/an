@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -760,8 +760,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    project_dir: path to an an project</span>
 <span class="sd">    dry_run: report what would be deleted, delete nothing</span>
 <span class="sd">    max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB); reachable entries are never removed, so the cache can stay above it</span>
-<span class="sd">    max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept</span>
-<span class="sd">    force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches</span>
+<span class="sd">    max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept (and when the current scene cannot be keyed under its settings, a line's audio not cached under them, its entries are kept whatever its age)</span>
+<span class="sd">    force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches (a setting whose audio is no longer cached is not kept; an#311)</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">collect_garbage</span><span class="p">(</span>

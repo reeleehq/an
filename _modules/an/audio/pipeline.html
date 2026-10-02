@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -718,14 +718,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">``mall["visemes"]``, and stamps the resulting ``VisemeTrack`` and timing</span>
 <span class="sd">back onto the ``Dialogue`` line so renderers can find it.</span>
 
-<span class="sd">Defaults are the offline providers (silent WAV + deterministic visemes), so</span>
-<span class="sd">the entire pipeline runs without API keys or external binaries.</span>
+<span class="sd">**Who speaks a line** (an#305): with no ``tts`` given, each line's voice</span>
+<span class="sd">document decides — its ``provider`` (:func:`an.audio.voices.declared_provider`)</span>
+<span class="sd">— and a voice that names none is spoken by the offline provider (silent WAV;</span>
+<span class="sd">lip-sync defaults to deterministic offline visemes), so a project that declares</span>
+<span class="sd">no provider runs without API keys or external binaries, exactly as before. A</span>
+<span class="sd">``tts`` given is an override for every line; a line spoken by another provider</span>
+<span class="sd">than its voice declares is a :class:`VoiceStandInWarning` (an error under</span>
+<span class="sd">``strict``). See :func:`tts_chooser`.</span>
 
 <span class="sd">&gt;&gt;&gt; from an.audio.pipeline import default_tts, default_lipsync</span>
 <span class="sd">&gt;&gt;&gt; default_tts().name</span>
 <span class="sd">'offline'</span>
-<span class="sd">&gt;&gt;&gt; default_lipsync().name</span>
-<span class="sd">'offline'</span>
+
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -738,8 +743,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">,</span> <span class="n">apply_voice_effects</span><span class="p">,</span> <span class="n">voice_effects</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipSyncProvider</span><span class="p">,</span> <span class="n">Viseme</span><span class="p">,</span> <span class="n">VisemeTrack</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineLipSync</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipSyncProvider</span><span class="p">,</span> <span class="n">NullLipSync</span><span class="p">,</span> <span class="n">Viseme</span><span class="p">,</span> <span class="n">VisemeTrack</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.takes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">REROLL_HINT</span><span class="p">,</span>
@@ -761,6 +765,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">TTSProvider</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DEFAULT_VOICE</span><span class="p">,</span>
+    <span class="n">declared_provider</span><span class="p">,</span>
     <span class="n">line_voice_id</span><span class="p">,</span>
     <span class="n">provider_voice</span><span class="p">,</span>
     <span class="n">voice_applies</span><span class="p">,</span>
@@ -785,6 +790,29 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="VoiceStandInWarning">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.VoiceStandInWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VoiceStandInWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A line is spoken by another provider than its voice document declares —</span>
+<span class="sd">    an override for every line, or a provider ``an`` has no TTS for (an#305)."""</span></div>
+
+
+
+<div class="viewcode-block" id="VoiceStandInError">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.VoiceStandInError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VoiceStandInError</span><span class="p">(</span><span class="n">AudioPipelineError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Under ``strict``: a line would be spoken by another provider than its</span>
+<span class="sd">    voice declares. Raised before any request."""</span></div>
+
+
+
+<span class="c1">#: The ``tts`` that means "each line's voice document names its provider" — the</span>
+<span class="c1">#: default of a render (an#305). ``None`` and ``""`` mean the same.</span>
+<span class="n">VOICE_TTS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"voice"</span>
+<span class="c1">#: Who speaks a line whose voice declares no provider, when no ``tts`` overrides it.</span>
+<span class="n">DEFAULT_TTS_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"offline"</span>
+
+
 <span class="c1">#: Resolve the takes from the voice document (the default of ``takes=``).</span>
 <span class="n">_FROM_VOICE</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 <span class="c1">#: ``(TakesSpec) -&gt; TakeScorer`` — the seam that turns a takes spec into its scorer.</span>
@@ -807,8 +835,135 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="default_lipsync">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.default_lipsync">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">default_lipsync</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">LipSyncProvider</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The default lip-sync provider: ``OfflineLipSync``."""</span>
-    <span class="k">return</span> <span class="n">OfflineLipSync</span><span class="p">()</span></div>
+<span class="w">    </span><span class="sd">"""The default lip-sync provider: the loaded genre's ``offline`` one (the</span>
+<span class="sd">    deterministic char-to-viseme provider of ``cutan``), else</span>
+<span class="sd">    :class:`~an.audio.lipsync.NullLipSync`.</span>
+
+<span class="sd">    &gt;&gt;&gt; default_lipsync().name in {"offline", "none"}</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_LIPSYNC</span><span class="p">,</span> <span class="n">lipsync_factories</span>
+
+    <span class="n">factories</span> <span class="o">=</span> <span class="n">lipsync_factories</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">DFLT_LIPSYNC</span> <span class="ow">in</span> <span class="n">factories</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">factories</span><span class="p">[</span><span class="n">DFLT_LIPSYNC</span><span class="p">]()</span>
+    <span class="k">return</span> <span class="n">NullLipSync</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="is_voice_tts">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.is_voice_tts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_voice_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``tts`` means "each voice's own provider": ``None``, ``""`` or</span>
+<span class="sd">    :data:`VOICE_TTS`.</span>
+
+<span class="sd">    &gt;&gt;&gt; [is_voice_tts(t) for t in (None, "", "voice", " Voice ", "offline")]</span>
+<span class="sd">    [True, True, True, True, False]</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">tts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">tts</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">VOICE_TTS</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">TtsFactory</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TTSProvider</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="tts_chooser">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.tts_chooser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tts_chooser</span><span class="p">(</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">make</span><span class="p">:</span> <span class="n">TtsFactory</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TTSProvider</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``voice_id -&gt; provider``: who speaks a line in that voice (an#305).</span>
+
+<span class="sd">    A ``tts`` given (a provider, or a name ``make`` builds) speaks every line —</span>
+<span class="sd">    an override. Otherwise (``None``, ``""``, :data:`VOICE_TTS`) the voice</span>
+<span class="sd">    document's ``provider`` decides, and a voice that declares none — or one</span>
+<span class="sd">    ``make`` has no provider for (:func:`voice_stand_ins` reports it) — is</span>
+<span class="sd">    spoken by :data:`DEFAULT_TTS_NAME`. One instance per provider name.</span>
+<span class="sd">    ``make`` defaults to :func:`an.audio.providers.make_tts`.</span>
+
+<span class="sd">    &gt;&gt;&gt; mall = {"voices": {"bob": {"provider": "mac_say"}, "ann": {}}}</span>
+<span class="sd">    &gt;&gt;&gt; choose = tts_chooser(None, mall)</span>
+<span class="sd">    &gt;&gt;&gt; choose("bob").name, choose("ann").name, choose("nobody").name</span>
+<span class="sd">    ('mac_say', 'offline', 'offline')</span>
+<span class="sd">    &gt;&gt;&gt; tts_chooser("offline", mall)("bob").name</span>
+<span class="sd">    'offline'</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">make</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span> <span class="k">as</span> <span class="n">make</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_voice_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">):</span>
+        <span class="n">provider</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">voice_id</span><span class="p">:</span> <span class="n">provider</span>
+    <span class="n">made</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TTSProvider</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">provider_named</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">made</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">made</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># no provider by that name: a stand-in, reported</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">made</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">choose</span><span class="p">(</span><span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TTSProvider</span><span class="p">:</span>
+        <span class="n">declared</span> <span class="o">=</span> <span class="n">declared_provider</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">provider_named</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span> <span class="k">if</span> <span class="n">declared</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">found</span> <span class="ow">or</span> <span class="n">provider_named</span><span class="p">(</span><span class="n">DEFAULT_TTS_NAME</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">choose</span></div>
+
+
+
+<div class="viewcode-block" id="voice_stand_ins">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.voice_stand_ins">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">voice_stand_ins</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TTSProvider</span><span class="p">]],</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">overridden</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""One message per voice whose lines are spoken by another provider than its</span>
+<span class="sd">    document declares; ``lines`` is ``(voice_id, provider)`` per line, and</span>
+<span class="sd">    ``overridden`` says whether a ``tts`` was given for every line.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.audio.offline_tts import OfflineTTS</span>
+<span class="sd">    &gt;&gt;&gt; mall = {"voices": {"bob": {"provider": "elevenlabs"}}}</span>
+<span class="sd">    &gt;&gt;&gt; print(voice_stand_ins([("bob", OfflineTTS())] * 2, mall, overridden=True)[0])</span>
+<span class="sd">    voice 'bob' declares provider 'elevenlabs', but its 2 line(s) are spoken by 'offline' — SILENT audio — because `tts` overrides every voice. Drop `--tts` to let each voice speak with its own provider.</span>
+<span class="sd">    &gt;&gt;&gt; voice_stand_ins([("bob", OfflineTTS())], {}, overridden=True)</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">provider</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">declared</span> <span class="o">=</span> <span class="n">declared_provider</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">declared</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">declared</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">provider</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">declared</span><span class="p">,</span> <span class="n">provider</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">counts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">provider</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">declared</span><span class="p">,</span> <span class="n">used</span><span class="p">),</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">provider</span><span class="p">)</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">silent</span> <span class="o">=</span> <span class="s2">" — SILENT audio —"</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"silent"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">if</span> <span class="n">overridden</span><span class="p">:</span>
+            <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">"because `tts` overrides every voice. Drop `--tts` to let each "</span>
+                <span class="s2">"voice speak with its own provider."</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">known_tts_names</span>
+
+            <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"because an has no TTS provider named </span><span class="si">{</span><span class="n">declared</span><span class="si">!r}</span><span class="s2"> (known: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">known_tts_names</span><span class="p">())</span><span class="si">}</span><span class="s2">). Fix the voice document's "</span>
+                <span class="s2">"`provider`."</span>
+            <span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice_id</span><span class="si">!r}</span><span class="s2"> declares provider </span><span class="si">{</span><span class="n">declared</span><span class="si">!r}</span><span class="s2">, but its </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"line(s) are spoken by </span><span class="si">{</span><span class="n">used</span><span class="si">!r}{</span><span class="n">silent</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 
 
@@ -837,6 +992,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    computed on the audio the viewer hears. The raw synthesis stays cached under</span>
 <span class="sd">    its own key, so changing an effect never re-pays the TTS.</span>
 
+<span class="sd">    ``tts`` (default: the provider the voice document declares, else offline —</span>
+<span class="sd">    :func:`tts_chooser`) is an override when given.</span>
+
 <span class="sd">    ``voice_id`` (default: the line's ``voice_ref``, else ``"default"``) is the</span>
 <span class="sd">    ``voices``-store key; :func:`produce_audio_for_scene` passes the one</span>
 <span class="sd">    :func:`an.audio.voices.line_voice_id` resolves, so a character's bound</span>
@@ -856,13 +1014,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    restored from the record and never re-rolled; a recorded take whose audio is</span>
 <span class="sd">    gone raises :class:`~an.audio.takes.TakeLostError` before any request.</span>
 <span class="sd">    """</span>
-    <span class="n">tts</span> <span class="o">=</span> <span class="n">tts</span> <span class="ow">or</span> <span class="n">default_tts</span><span class="p">()</span>
     <span class="n">lipsync</span> <span class="o">=</span> <span class="n">lipsync</span> <span class="ow">or</span> <span class="n">default_lipsync</span><span class="p">()</span>
     <span class="n">voice_id</span> <span class="o">=</span> <span class="n">voice_id</span> <span class="ow">or</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">DEFAULT_VOICE</span>
     <span class="n">req</span> <span class="o">=</span> <span class="n">_line_request</span><span class="p">(</span>
         <span class="n">dialogue</span><span class="p">,</span>
         <span class="n">mall</span><span class="p">,</span>
-        <span class="n">tts</span><span class="p">,</span>
+        <span class="n">tts_chooser</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">mall</span><span class="p">)(</span><span class="n">voice_id</span><span class="p">),</span>
         <span class="n">voice_id</span><span class="p">,</span>
         <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span>
         <span class="n">takes</span><span class="o">=</span><span class="n">takes</span><span class="p">,</span>
@@ -930,11 +1087,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="n">LipSyncProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">take_scorer</span><span class="p">:</span> <span class="n">TakeScorerFactory</span> <span class="o">=</span> <span class="n">make_take_scorer</span><span class="p">,</span>
     <span class="n">announce</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_announce_to_stderr</span><span class="p">,</span>
     <span class="n">overruns</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">tts_factory</span><span class="p">:</span> <span class="n">TtsFactory</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Walk every dialogue line, synthesize, and stamp viseme tracks back.</span>
 
@@ -962,14 +1121,28 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    announced too — or, with ``announce=None``, a ``DialogueOverrunWarning`` —</span>
 <span class="sd">    unless ``overruns=False``: ``an render`` passes that, because it reports</span>
 <span class="sd">    every post-synthesis finding together in its summary (an#254).</span>
+
+<span class="sd">    **Who speaks each line** (an#305, :func:`tts_chooser`): with ``tts`` not</span>
+<span class="sd">    given (``None``, ``""`` or :data:`VOICE_TTS`), the line's voice document's</span>
+<span class="sd">    ``provider``, built by ``tts_factory`` (default</span>
+<span class="sd">    :func:`an.audio.providers.make_tts`), else offline; a ``tts`` given speaks</span>
+<span class="sd">    every line. A line spoken by another provider than its voice declares is a</span>
+<span class="sd">    :class:`VoiceStandInWarning` — the silent offline voice says so — and,</span>
+<span class="sd">    with ``strict``, a :class:`VoiceStandInError` before any request. A provider</span>
+<span class="sd">    with requests to send is asked ``check_available()`` first (ElevenLabs: is</span>
+<span class="sd">    there a key?), and what a provider that bills per character will bill is</span>
+<span class="sd">    announced before the first request — whatever chose the provider; a cached</span>
+<span class="sd">    line is never billed and never counted.</span>
 <span class="sd">    """</span>
-    <span class="n">tts</span> <span class="o">=</span> <span class="n">tts</span> <span class="ow">or</span> <span class="n">default_tts</span><span class="p">()</span>
+    <span class="n">choose</span> <span class="o">=</span> <span class="n">tts_chooser</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">make</span><span class="o">=</span><span class="n">tts_factory</span><span class="p">)</span>
+    <span class="n">overridden</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">is_voice_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span>
     <span class="n">lipsync</span> <span class="o">=</span> <span class="n">lipsync</span> <span class="ow">or</span> <span class="n">default_lipsync</span><span class="p">()</span>
     <span class="n">voice_default</span> <span class="o">=</span> <span class="n">DEFAULT_VOICE</span>
     <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">viseme_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"visemes"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">pending</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Dialogue</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_LineRequest</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">resolved</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_LineRequest</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">spoken</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TTSProvider</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">narration</span><span class="p">:</span>
             <span class="c1"># `Shot.narration` is fully modelled in the IR — text, voice_ref,</span>
@@ -996,8 +1169,11 @@ window.runMermaid = runMermaid;</script>
             <span class="p">):</span>
                 <span class="n">line</span><span class="o">.</span><span class="n">at</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span>
             <span class="n">voice_id</span> <span class="o">=</span> <span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">voice_default</span><span class="p">)</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="n">_line_request</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">tts</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">take_scorer</span><span class="o">=</span><span class="n">take_scorer</span><span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">_line_request</span><span class="p">(</span>
+                <span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">choose</span><span class="p">(</span><span class="n">voice_id</span><span class="p">),</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">take_scorer</span><span class="o">=</span><span class="n">take_scorer</span>
+            <span class="p">)</span>
             <span class="n">resolved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+            <span class="n">spoken</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="p">))</span>
             <span class="n">expected_audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>  <span class="c1"># None: a best-of-N choice to make</span>
             <span class="n">expected_viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span>
                 <span class="n">expected_audio_ref</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
@@ -1032,13 +1208,29 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">already_done</span><span class="p">:</span>
                 <span class="n">pending</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">req</span><span class="p">))</span>
 
-    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">takes_cost_message</span><span class="p">(</span>
-            <span class="p">[(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">],</span> <span class="n">tts</span><span class="p">,</span> <span class="n">audio_store</span>
-        <span class="p">),</span>
-        <span class="n">_older_scorer_message</span><span class="p">(</span><span class="n">resolved</span><span class="p">),</span>
-        <span class="n">_carried_message</span><span class="p">(</span><span class="n">resolved</span><span class="p">),</span>
-    <span class="p">]</span>
+    <span class="n">stand_ins</span> <span class="o">=</span> <span class="n">voice_stand_ins</span><span class="p">(</span><span class="n">spoken</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">overridden</span><span class="o">=</span><span class="n">overridden</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">strict</span> <span class="ow">and</span> <span class="n">stand_ins</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceStandInError</span><span class="p">(</span>
+            <span class="s2">"refused under strict: "</span> <span class="o">+</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stand_ins</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" Nothing was synthesized."</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">stand_ins</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">VoiceStandInWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">by_provider</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">_LineRequest</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">by_provider</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="p">))</span>
+    <span class="n">costs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">by_provider</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">provider</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tts</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">takes_cost_message</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">audio_store</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cost</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overridden</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"billed_characters"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">cost</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">" — the voices name </span><span class="si">{</span><span class="n">provider</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">; `an render --tts offline` "</span>
+                <span class="s2">"previews silently for free"</span>
+            <span class="p">)</span>
+        <span class="n">costs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_requests_to_send</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">audio_store</span><span class="p">):</span>
+            <span class="n">_check_available</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">overridden</span><span class="o">=</span><span class="n">overridden</span><span class="p">)</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">costs</span><span class="p">,</span> <span class="n">_older_scorer_message</span><span class="p">(</span><span class="n">resolved</span><span class="p">),</span> <span class="n">_carried_message</span><span class="p">(</span><span class="n">resolved</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">messages</span><span class="p">):</span>
             <span class="n">announce</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
@@ -1180,6 +1372,9 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"the audio of </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">) is not in the audio store"</span>
         <span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Always: nothing is ever sent (a line to synthesize raises above)."""</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">AudioNotCachedError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"the visemes of </span><span class="si">{</span><span class="n">transcript</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">) are not in the "</span>
@@ -1218,12 +1413,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">],</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="n">LipSyncProvider</span><span class="p">,</span>
+    <span class="n">tts_factory</span><span class="p">:</span> <span class="n">TtsFactory</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Stamp ``scene``'s dialogue exactly as :func:`produce_audio_for_scene`</span>
-<span class="sd">    would with these providers — from the content-keyed ``audio`` and</span>
-<span class="sd">    ``visemes`` stores only. Synthesises, aligns and writes nothing; a line the</span>
+<span class="sd">    would with these providers — ``tts`` as it takes it: ``None`` for each</span>
+<span class="sd">    voice's own (an#305) — from the content-keyed ``audio`` and ``visemes``</span>
+<span class="sd">    stores only. Synthesises, aligns, writes and announces nothing; a line the</span>
 <span class="sd">    stores cannot answer raises :class:`AudioNotCachedError`.</span>
 
 <span class="sd">    What a reader of the render's cache keys needs (an#274): a ``scene.md``</span>
@@ -1235,11 +1432,21 @@ window.runMermaid = runMermaid;</script>
         <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">_ReadOnlyStore</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"audio"</span><span class="p">,</span> <span class="s2">"visemes"</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">}</span>
+    <span class="k">if</span> <span class="n">tts_factory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span> <span class="k">as</span> <span class="n">tts_factory</span>
+    <span class="n">make</span> <span class="o">=</span> <span class="n">tts_factory</span>
     <span class="k">return</span> <span class="n">produce_audio_for_scene</span><span class="p">(</span>
         <span class="n">scene</span><span class="p">,</span>
         <span class="n">view</span><span class="p">,</span>
-        <span class="n">tts</span><span class="o">=</span><span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">tts</span><span class="p">),</span>
+        <span class="n">tts</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">tts</span>
+            <span class="k">if</span> <span class="n">is_voice_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">make</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span><span class="p">)</span>
+        <span class="p">),</span>
         <span class="n">lipsync</span><span class="o">=</span><span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span>
+        <span class="n">tts_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">make</span><span class="p">(</span><span class="n">name</span><span class="p">)),</span>
+        <span class="n">announce</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">overruns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -1343,7 +1550,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span>
     <span class="n">audio_store</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""What synthesizing ``lines`` will bill, when any of them takes best-of-N; else ``""``.</span>
+<span class="w">    </span><span class="sd">"""What synthesizing ``lines`` with ``tts`` will bill, when any of them takes</span>
+<span class="sd">    best-of-N or ``tts`` bills per character (an#305: a voice that names a paid</span>
+<span class="sd">    provider is spoken by it with no flag, so its cost is said first); else ``""``.</span>
 
 <span class="sd">    Counts only the requests not already in ``audio_store`` (a cached take is</span>
 <span class="sd">    free; a recorded take is restored, never billed), and the provider's billed</span>
@@ -1351,20 +1560,42 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ElevenLabs counts the audio tags too). A provider without the hook bills no</span>
 <span class="sd">    characters, and the message says so.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">takes</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">)</span>
     <span class="n">billed</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"billed_characters"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">takes</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">billed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">requests</span><span class="p">,</span> <span class="n">characters</span><span class="p">,</span> <span class="n">cached</span><span class="p">,</span> <span class="n">takes_lines</span><span class="p">,</span> <span class="n">billed_lines</span> <span class="o">=</span> <span class="n">_cost_tally</span><span class="p">(</span>
+        <span class="n">lines</span><span class="p">,</span> <span class="n">audio_store</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">requests</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">bill</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">characters</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> billed characters"</span> <span class="k">if</span> <span class="n">billed</span> <span class="k">else</span> <span class="s2">"not billed per character"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">takes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">requests</span><span class="si">}</span><span class="s2"> request(s) for </span><span class="si">{</span><span class="n">billed_lines</span><span class="si">}</span><span class="s2"> line(s), </span><span class="si">{</span><span class="n">bill</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"best-of-N takes: </span><span class="si">{</span><span class="n">requests</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> request(s) for </span><span class="si">{</span><span class="n">billed_lines</span><span class="si">}</span><span class="s2"> line(s) "</span>
+        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">takes_lines</span><span class="si">}</span><span class="s2"> with several takes; </span><span class="si">{</span><span class="n">cached</span><span class="si">}</span><span class="s2"> take(s) already cached), </span><span class="si">{</span><span class="n">bill</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cost_tally</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">"_LineRequest"</span><span class="p">]],</span> <span class="n">audio_store</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(requests, billed characters, takes already cached, lines with several</span>
+<span class="sd">    takes, lines with a request)`` that synthesizing ``lines`` would send."""</span>
     <span class="n">requests</span> <span class="o">=</span> <span class="n">characters</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="n">takes_lines</span> <span class="o">=</span> <span class="n">billed_lines</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># two lines saying the same thing share their takes</span>
+    <span class="n">lines_seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># two lines saying the same thing share their takes</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># each request is sent once</span>
     <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># a recorded take: restored from the store</span>
         <span class="n">ident</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span> <span class="ow">or</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
-        <span class="k">if</span> <span class="n">ident</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="k">if</span> <span class="n">ident</span> <span class="ow">in</span> <span class="n">lines_seen</span> <span class="ow">or</span> <span class="p">(</span>
             <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ident</span> <span class="ow">in</span> <span class="n">audio_store</span>
         <span class="p">):</span>
             <span class="k">continue</span>
-        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ident</span><span class="p">)</span>
+        <span class="n">lines_seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ident</span><span class="p">)</span>
         <span class="n">before</span> <span class="o">=</span> <span class="n">requests</span>
         <span class="k">for</span> <span class="n">_take</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">req</span><span class="o">.</span><span class="n">take_requests</span><span class="p">():</span>
             <span class="n">in_store</span> <span class="o">=</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">audio_store</span>
@@ -1377,14 +1608,33 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">requests</span> <span class="o">&gt;</span> <span class="n">before</span><span class="p">:</span>
             <span class="n">billed_lines</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">takes_lines</span> <span class="o">+=</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">requests</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">""</span>
-    <span class="n">bill</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">characters</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> billed characters"</span> <span class="k">if</span> <span class="n">billed</span> <span class="k">else</span> <span class="s2">"not billed per character"</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"best-of-N takes: </span><span class="si">{</span><span class="n">requests</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> request(s) for </span><span class="si">{</span><span class="n">billed_lines</span><span class="si">}</span><span class="s2"> line(s) "</span>
-        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">takes_lines</span><span class="si">}</span><span class="s2"> with several takes; </span><span class="si">{</span><span class="n">cached</span><span class="si">}</span><span class="s2"> take(s) already cached), </span><span class="si">{</span><span class="n">bill</span><span class="si">}</span><span class="s2">"</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">requests</span><span class="p">,</span> <span class="n">characters</span><span class="p">,</span> <span class="n">cached</span><span class="p">,</span> <span class="n">takes_lines</span><span class="p">,</span> <span class="n">billed_lines</span>
 
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_requests_to_send</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">"_LineRequest"</span><span class="p">]],</span> <span class="n">audio_store</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How many provider requests synthesizing ``lines`` would send."""</span>
+    <span class="k">return</span> <span class="n">_cost_tally</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">audio_store</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_available</span><span class="p">(</span><span class="n">provider</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">overridden</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Ask ``provider`` whether it can take requests (its optional</span>
+<span class="sd">    ``check_available()``) before the first one; a provider the voices chose</span>
+<span class="sd">    says how to preview without it."""</span>
+    <span class="n">check</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"check_available"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">check</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — re-raised, with the way out</span>
+        <span class="k">if</span> <span class="n">overridden</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">AudioPipelineError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the voices name </span><span class="si">{</span><span class="n">provider</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, which cannot be used here: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="s2">"Nothing was synthesized. To preview without it, render with "</span>
+            <span class="s2">"`--tts offline` (silent)."</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_older_scorer_message</span><span class="p">(</span><span class="n">reqs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"_LineRequest"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

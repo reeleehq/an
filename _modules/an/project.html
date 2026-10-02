@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -764,7 +764,9 @@ window.runMermaid = runMermaid;</script>
 <span class="s2"># Nothing reads this section yet; it mirrors the defaults `an render` uses.</span>
 <span class="s2"># A paid provider belongs here only behind an explicit opt-in — see an.live_api.</span>
 <span class="s2">[providers]</span>
-<span class="s2">tts = "offline"</span>
+<span class="s2"># "voice": each voice document's own `provider` speaks its lines; a voice that</span>
+<span class="s2"># names none is spoken by the offline (silent) provider.</span>
+<span class="s2">tts = "voice"</span>
 <span class="s2">lipsync = "offline"</span>
 <span class="s2">"""</span>
 

@@ -1,4 +1,4 @@
-> built 2026-10-01 23:47 UTC from 4ca55fd (main) · an 0.1.154. Details: build_info.json
+> built 2026-10-02 04:05 UTC from b71ea7f (main) · an 0.1.155. Details: build_info.json
 
 # index.html.md
 
@@ -209,12 +209,12 @@ name strings or instances. Plug in any `WordTimingProvider`
 this hook to feed `lacing` alignment-store timings straight into the
 cutout pipeline.
 
-### Synthetic impact clips (`an.impacts`)
+### Synthetic impact clips (`cutan.impacts`)
 
 Structured animations of a stick or a ball striking a surface — or striking *the air*, a stroke that turns with nothing to hit — on a known tempo grid, filmed by a camera whose frame rate, shutter and capture jitter you choose. Each clip ships a sidecar that keeps three times apart, which is what makes it useful for scoring estimators that try to recover an impact *between* two frames: the **intended** grid time, the **executed** impact time (grid plus humanisation, in continuous seconds — never snapped to a frame), and **what the frames show** (each frame’s exposure interval and sample instants, per-frame keypoints, and which frames bracket each impact).
 
 ```python
-from an.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
+from cutan.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
 
 spec = ImpactClipSpec(
     object="stick",
@@ -237,7 +237,7 @@ write_impact_clip(
 write_impact_set("~/clips/set")  # 24 clips sharing one performance
 ```
 
-The clips are ordinary `an` scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — `write_impact_clip` refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame’s keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The `truth.json` schema is documented in `an/impacts/truth.py`. The camera model is `an.frame_clock.FrameClock`, which reaches the renderer through `RenderContext.frame_samples`: several instants averaged per frame are an open shutter, instants off the `i / fps` grid are capture jitter, and a render without it is byte-identical to before.
+The clips are ordinary `an` scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — `write_impact_clip` refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame’s keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The `truth.json` schema is documented in `cutan/impacts/truth.py`. The camera model is `an.frame_clock.FrameClock`, which reaches the renderer through `RenderContext.frame_samples`: several instants averaged per frame are an open shutter, instants off the `i / fps` grid are capture jitter, and a render without it is byte-identical to before.
 
 ---
 
@@ -427,345 +427,6 @@ Used by the timeline to combine concurrent clips on the same target.
 ```
 
 
-# _autosummary/an.adapters.cutout.coarticulate.html.md
-
-# an.adapters.cutout.coarticulate
-
-Co-articulation for a swap mouth: the passes between a provider’s raw viseme
-track and the compiler’s channel emission (an#97, epic #9 Wave 6).
-
-A lip-sync provider hands the compiler a list of `(time, code)` cues — one
-mouth shape per phoneme or per character, at whatever density it produced.
-Shown as-is, that track *flickers*: consonant clusters swap the mouth faster
-than a frame or two can show, tongue-only shapes swap the lips for one frame, and
-every shape lands exactly on its sound instead of a beat ahead of it. These
-passes turn the raw track into what an animator would key, in this order:
-
-1. **Symbolic** — [`merge_duplicates()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.merge_duplicates) drops a cue whose shape is already
-   showing; [`suppress_weak()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak) drops a low-dominance cue that would show for
-   less than one frame (JALI, Edwards et al. 2016 §4.2: “Tongue-only visemes
-   (l n t d g k N) have no influence on the lips” — for a swap mouth, “take the
-   neighbour’s shape” is “do not swap”).
-2. **Anticipation** — [`lead()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.lead) moves every cue earlier by a fixed lead
-   (JALI: “speech onset begins 120 ms before the apex”; the animator’s “two
-   frames ahead”; Rhubarb’s own `maxExtensionDuration` of 60 ms), clamped
-   at 0.
-   2b. **Close after speech** — [`close_after_speech()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.close_after_speech) puts the mouth at rest
-   where the last WORD ends, when the line knows its words (an#213). A
-   provider that aligns from words keyed a rest between words but, until
-   an#213, not after the last one, so the last shape held through the
-   trailing silence of the clip; cached tracks keep that defect, so the
-   compiler closes the mouth rather than asking for a re-alignment. After
-   the lead (on the led times, so a word shorter than the lead still opens
-   the mouth before it closes) and before the decay (which gives the last
-   shape its time).
-3. **Decay** — [`decay()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay) gives a shape its time to close: a rest cue that
-   arrives sooner than `decay_s` after the shape before it is pushed out to
-   `decay_s` (JALI: “another 120 ms to decay to zero”), never past the next
-   speaking cue.
-4. **Minimum hold** — [`condense()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.condense), LAST. It **holds and votes**; it never
-   drops a cue unvoted (a carried loser can lose its next window too and never
-   show — outvoted twice, not skipped). Windows of at least `min_hold_s` open at each cue that clears the
-   previous window; within a window the shape with the largest
-   `span × dominance` (Rhubarb’s “select shape with highest total duration
-   within the candidate range”, weighted by Cohen–Massaro’s per-segment
-   dominance) shows, **placed at the window start**. The old compiler loop
-
-   ```
-   ``
-   ```
-
-   continue\`\`d past every cue inside the window, so a consonant cluster
-   collapsed to whichever shape arrived first — the defect epic #9 names.
-
-Order matters: (1) before (4) so a one-frame /t/ never wins a window; (2) and
-(3) before (4) so the hold is measured on shifted times. Every pass is a pure
-function over `list[Cue]`, runs in the **compiler** (never in the audio
-pipeline, so a knob change is a recompile and never a paid re-alignment), and
-none of these constants may ever enter a cache key.
-
-Dominance: the ORDER of [`DOMINANCE`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.DOMINANCE) is sourced — A (bilabial closure;
-JALI rule 1 “must close the lips”) > F, G (lip-heavy) > E, D > C > X > B, H
-(tongue) — and its values are art direction. A provider that knows the
-character behind a cue may scale it through `Cue.intensity` (Rhubarb’s `B`
-codes both “most consonants” and the vowel EE, so the letter alone cannot say).
-
-### Module Attributes
-
-| [`DOMINANCE`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.DOMINANCE)          | Per-shape dominance for Rhubarb's letters.                                                                 |
-|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| [`DEFAULT_DOMINANCE`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.DEFAULT_DOMINANCE)  | A shape not in the table (another convention's code) is neither strong nor weak.                           |
-| [`WEAK_BELOW`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.WEAK_BELOW)         | Below this dominance a cue is "weak" for [`suppress_weak()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak). |
-| [`DEFAULT_LEAD_S`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.DEFAULT_LEAD_S)     | Anticipation lead — two frames at 24 fps (art direction; JALI's 120 ms is the ceiling).                    |
-| [`DEFAULT_DECAY_S`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.DEFAULT_DECAY_S)    | Time a shape is given to close before rest (JALI's "120 ms to decay").                                     |
-| [`DEFAULT_MIN_HOLD_S`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S) | The minimum hold, unchanged from the pre-an#97 compiler until measured.                                    |
-
-### Functions
-
-| [`close_after_speech`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.close_after_speech)(keys, \*, speech_end[, rest])   | Rest once speech is over: at `speech_end`, or just after the last shape when a shape is keyed at or after it — never before a shape.                                                                                    |
-|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.coarticulate)(keys, \*, fps[, end, ...])            | All the passes, in the order the module docstring gives.                                                                                                                                                                |
-| [`condense`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.condense)(keys, \*, min_hold_s[, end])              | Enforce a minimum hold by voting, never by dropping.                                                                                                                                                                    |
-| [`decay`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay)(keys, \*, decay_s[, rest, end])              | Give a shape `decay_s` to close: a rest arriving sooner than that after the shape before it is pushed out to `decay_s`, never past the next cue and never past `end` (a rest pushed to `end` is where the line closes). |
-| [`lead`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.lead)(keys, \*, lead_s)                             | Anticipation: every cue moves `lead_s` earlier, clamped at 0.                                                                                                                                                           |
-| [`merge_duplicates`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.merge_duplicates)(keys)                             | Drop a cue whose shape is the one already showing.                                                                                                                                                                      |
-| [`suppress_weak`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak)(keys, \*, max_weak_s[, end])         | Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.                                                                                                                                             |
-
-### Classes
-
-| [`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)(time, code[, intensity])   | One mouth-shape cue: when it starts, which shape, how loudly it wants the lips.   |
-|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-
-### *class* an.adapters.cutout.coarticulate.Cue(time, code, intensity=1.0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One mouth-shape cue: when it starts, which shape, how loudly it wants the lips.
-
-### an.adapters.cutout.coarticulate.DEFAULT_DECAY_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.12*
-
-Time a shape is given to close before rest (JALI’s “120 ms to decay”).
-
-### an.adapters.cutout.coarticulate.DEFAULT_DOMINANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
-
-A shape not in the table (another convention’s code) is neither strong nor weak.
-
-### an.adapters.cutout.coarticulate.DEFAULT_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.08333333333333333*
-
-Anticipation lead — two frames at 24 fps (art direction; JALI’s 120 ms is the ceiling).
-
-### an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.14*
-
-The minimum hold, unchanged from the pre-an#97 compiler until measured.
-
-### an.adapters.cutout.coarticulate.DOMINANCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'A': 1.0, 'B': 0.3, 'C': 0.6, 'D': 0.8, 'E': 0.8, 'F': 0.9, 'G': 0.9, 'H': 0.3, 'X': 0.5}*
-
-Per-shape dominance for Rhubarb’s letters. Order sourced, values ours.
-
-### an.adapters.cutout.coarticulate.WEAK_BELOW *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
-
-Below this dominance a cue is “weak” for [`suppress_weak()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak).
-
-### an.adapters.cutout.coarticulate.close_after_speech(keys, , speech_end, rest='X')
-
-Rest once speech is over: at `speech_end`, or just after the last
-shape when a shape is keyed at or after it — never before a shape.
-
-`speech_end` is where the line’s last word ends (`None`: the line does
-not know its words, and nothing changes). A provider spreads a very short
-word’s shapes over a minimum span, so a shape can start after its word’s
-end; the rest then follows that shape, and [`decay()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay) pushes it out to
-`decay_s` after it (an#213 review). Nothing is inserted when the mouth
-is already at rest there. `rest` is the TRACK’s rest code (a track keyed
-in another convention closes with its own).
-
-The evidence, “Bye.” timed 0.0–0.5 s in a 1.84 s clip:
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
->>> [(c.time, c.code) for c in close_after_speech(raw, speech_end=0.5)]
-[(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]
->>> close_after_speech(raw, speech_end=None) == _cues(raw)
-True
-```
-
-A 25 ms last word whose second shape starts after it ends:
-
-```pycon
->>> [(c.time, c.code) for c in close_after_speech(
-...     [(0, "X"), (1.0, "E"), (1.025, "B"), (2.0, "X")], speech_end=1.02)][-3:]
-[(1.025, 'B'), (1.025000001, 'X'), (2.0, 'X')]
-```
-
-### an.adapters.cutout.coarticulate.coarticulate(keys, , fps, end=None, min_hold_s=0.14, lead_s=0.08333333333333333, decay_s=0.12, rest='X', speech_end=None)
-
-All the passes, in the order the module docstring gives.
-
-`speech_end` (where the last word ends, when the line knows its words)
-closes the mouth there instead of at `end` (an#213):
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
->>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838)][-2:]
-[(0.28, 'C'), (1.755, 'X')]
->>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838, speech_end=0.5)][-2:]
-[(0.28, 'C'), (0.5, 'X')]
-```
-
-(The shapes lead by two frames; the closing rest is placed after the lead,
-at the word’s end, and the decay keeps it at least `decay_s` after the
-last shape.)
-
-```pycon
->>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
->>> [(round(c.time, 3), c.code) for c in coarticulate(raw, fps=24, end=1.0)]
-[(0.0, 'X'), (0.257, 'D'), (0.717, 'X')]
-```
-
-A track that ends on `rest` still does after the passes, at `end` when
-the decay left no room before it (the compiler appends its own terminal
-rest at the line’s end regardless — this is for every other caller):
-
-```pycon
->>> [(round(c.time, 3), c.code) for c in coarticulate([(0, "X"), (0.3, "D"), (0.69, "C"), (0.71, "X")], fps=24, end=0.71)]
-[(0.0, 'X'), (0.217, 'D'), (0.607, 'C'), (0.71, 'X')]
-```
-
-The knobs are validated up front — a negative lead or a zero hold is a
-typo, not a style:
-
-```pycon
->>> coarticulate(raw, fps=24, end=1.0, min_hold_s=0)
-Traceback (most recent call last):
-...
-ValueError: min_hold_s must be > 0, got 0
-```
-
-### an.adapters.cutout.coarticulate.condense(keys, , min_hold_s, end=None)
-
-Enforce a minimum hold by voting, never by dropping.
-
-Windows of `min_hold_s` open at each cue that clears the previous window.
-Every cue inside a window — the opener included — votes with the length of
-its raw span **that falls inside the window** times its dominance
-(Rhubarb’s “select shape with highest total duration within the candidate
-range”, weighted); the winner shows for the window, placed at the window
-start. A member whose span runs past the window’s end and did not win is
-not lost: it opens the next window at the window’s end, delayed — that is
-the hold doing its job. Ties go to the later arrival.
-
-The defect the epic names, verbatim semantics of the old compiler loop —
-‘A’ (the closure) and ‘D’ (the open vowel) are gone and a 40 ms ‘B’ holds
-for 500 ms:
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
->>> old = []
->>> for t, v in raw:
-...     if old and (t - old[-1][0]) < 0.14:
-...         continue
-...     old.append((t, v))
->>> old
-[(0.0, 'X'), (0.3, 'B'), (0.8, 'X')]
-```
-
-The vote in the window at 0.30: B (0.04 × 0.3) and A (0.04 × 1.0) lose to
-D (0.06 in-window × 0.8), which shows at the window’s start:
-
-```pycon
->>> [(c.time, c.code) for c in condense(raw, min_hold_s=0.14)]
-[(0.0, 'X'), (0.3, 'D'), (0.8, 'X')]
-```
-
-A cue exactly at the window edge opens the next window, untouched — also
-at the third edge, where `0.28 + 0.14` is a hair over `0.42` in binary:
-
-```pycon
->>> [(c.time, c.code) for c in condense([(0.0, "X"), (0.14, "C"), (0.28, "D"), (0.42, "A")], min_hold_s=0.14)]
-[(0.0, 'X'), (0.14, 'C'), (0.28, 'D'), (0.42, 'A')]
-```
-
-Without `end` the last cue shows forever, so it always survives (it opens
-its own window when it loses one):
-
-```pycon
->>> [(c.time, c.code) for c in condense([(0.0, "X"), (0.1, "A")], min_hold_s=0.14)]
-[(0.0, 'X'), (0.14, 'A')]
-```
-
-Windows chain, so nothing is lost: the opening rest keeps its window
-(0.10 of rest beats a 20 ms closure and 20 ms of F); F, running past the
-window, opens the next one at 0.14 and wins it over the 40 ms of C inside
-it; C in turn opens the window at 0.28:
-
-```pycon
->>> [(c.time, c.code) for c in condense([(0.0, "X"), (0.10, "A"), (0.12, "F"), (0.20, "C"), (0.9, "X")], min_hold_s=0.14)]
-[(0.0, 'X'), (0.14, 'F'), (0.28, 'C'), (0.9, 'X')]
-```
-
-A winner equal to the shape already showing is merged:
-
-```pycon
->>> [(c.time, c.code) for c in condense([(0.0, "X"), (0.05, "B"), (0.10, "X")], min_hold_s=0.14)]
-[(0.0, 'X')]
-```
-
-### an.adapters.cutout.coarticulate.decay(keys, , decay_s, rest='X', end=None)
-
-Give a shape `decay_s` to close: a rest arriving sooner than that after
-the shape before it is pushed out to `decay_s`, never past the next cue
-and never past `end` (a rest pushed to `end` is where the line closes).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> [(round(c.time, 3), c.code) for c in decay([(0.0, "X"), (0.2, "D"), (0.25, "X"), (0.6, "B")], decay_s=0.12)]
-[(0.0, 'X'), (0.2, 'D'), (0.32, 'X'), (0.6, 'B')]
->>> [(round(c.time, 3), c.code) for c in decay([(0.0, "X"), (0.2, "D"), (0.25, "X"), (0.30, "B")], decay_s=0.12)]
-[(0.0, 'X'), (0.2, 'D'), (0.3, 'B')]
-```
-
-### an.adapters.cutout.coarticulate.lead(keys, , lead_s)
-
-Anticipation: every cue moves `lead_s` earlier, clamped at 0.
-
-Cues that collide at 0 collapse to the last one — the shape that is still
-the state once the collision is over. An opening burst shorter than the
-lead (`[(0, X), (0.02, A), (0.05, D), (0.07, X)]`) therefore never opens
-the mouth; the hold would have refused a 70 ms word anyway, and the old
-condenser did.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> [(round(c.time, 3), c.code) for c in lead([(0.0, "X"), (0.05, "D"), (0.5, "B")], lead_s=0.08)]
-[(0.0, 'D'), (0.42, 'B')]
-```
-
-### an.adapters.cutout.coarticulate.merge_duplicates(keys)
-
-Drop a cue whose shape is the one already showing.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> [(c.time, c.code) for c in merge_duplicates([(0, "X"), (0.1, "B"), (0.2, "B"), (0.3, "C")])]
-[(0.0, 'X'), (0.1, 'B'), (0.3, 'C')]
-```
-
-### an.adapters.cutout.coarticulate.suppress_weak(keys, , max_weak_s, end=None)
-
-Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
-
-```pycon
->>> raw = [(0.0, "X"), (0.20, "D"), (0.40, "B"), (0.43, "D"), (0.80, "X")]
->>> [(c.time, c.code) for c in suppress_weak(raw, max_weak_s=0.04)]
-[(0.0, 'X'), (0.2, 'D'), (0.8, 'X')]
-```
-
-A weak cue that lasts is kept — this is not the minimum-hold pass:
-
-```pycon
->>> [(c.time, c.code) for c in suppress_weak([(0.0, "X"), (0.2, "B"), (0.5, "D")], max_weak_s=0.04)]
-[(0.0, 'X'), (0.2, 'B'), (0.5, 'D')]
-```
-
-
 # _autosummary/an.adapters.cutout.compile.html.md
 
 # an.adapters.cutout.compile
@@ -802,94 +463,6 @@ and rebinding one here (a bench lever, `monkeypatch`) rebinds it there, where
 the code runs (`an._shims.alias_module()`).
 
 
-# _autosummary/an.adapters.cutout.gaze.html.md
-
-# an.adapters.cutout.gaze
-
-Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
-
-Pure Python, no renderer. Given an entity’s name, a shot’s duration and its
-frame rate, produce a **step** track of pupil offsets — where the eyes rest,
-and when they jump — that the face solver adds onto the pupil nodes’ `x` /
-`y` beside any authored gaze. Steps, not tweens: at 24 fps a frame is
-41.7 ms and a small saccade is 20–200 ms, so a jump between two frames is the
-honest rendering (the way the compiled blink squash samples at frame times).
-
-The statistics are **design values**, labelled so: the canonical source
-(“Eyes Alive”, Lee, Badler & Badler, SIGGRAPH 2002) was unreachable when this
-was designed, and nothing was transcribed from memory. Fixation lengths are
-right-skewed with a ~200 ms peak and a long tail, so they are drawn from a
-gamma clipped to `[FIXATION_MIN_S, FIXATION_MAX_S]`; amplitudes are mostly
-small with a rare large jump and a horizontal bias; and a jump above
-`BLINK_COUPLED_AMPLITUDE` is moved to the centre of the nearest blink window
-within `BLINK_COUPLING_WINDOW_S` when one exists, because gaze-evoked blinks
-hide the pop.
-
-Seeding follows the blink pattern — a pure function of the entity name — so
-renaming a character re-seeds its saccades (the recorded blink hazard); the
-seed is stamped into the compiled scene’s `meta` beside `blink_phases`.
-Integer seeding of [`random.Random`](https://docs.python.org/3/library/random.html#random.Random) is version-stable.
-
-```pycon
->>> track = saccade_track("gale", duration=2.0, fps=24)
->>> track[0].time, all(t.time <= 2.0 for t in track)
-(0.0, True)
->>> track == saccade_track("gale", duration=2.0, fps=24)  # deterministic
-True
->>> track != saccade_track("nora", duration=2.0, fps=24)  # per entity
-True
-```
-
-### Module Attributes
-
-| [`GAZE_SALT`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.GAZE_SALT)   | XOR'd into the entity-name hash so saccades and blinks never share a seed.   |
-|--------------------------------------------------------------|------------------------------------------------------------------------------|
-
-### Functions
-
-| [`gaze_seed`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.gaze_seed)(entity_id)                               | The generator's seed for an entity — a pure function of its name.   |
-|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`saccade_track`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.saccade_track)(entity_id, \*, duration, fps[, ...]) | Step keyframes on frame times, seeded by `entity_id`.               |
-
-### Classes
-
-| [`GazeStep`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.GazeStep)(time, x, y)   | The pupils rest at `(x, y)` (axis units) from `time` on.   |
-|-------------------------------------------------------------------------|------------------------------------------------------------|
-
-### an.adapters.cutout.gaze.GAZE_SALT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 27182*
-
-XOR’d into the entity-name hash so saccades and blinks never share a seed.
-
-### *class* an.adapters.cutout.gaze.GazeStep(time, x, y)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-The pupils rest at `(x, y)` (axis units) from `time` on.
-
-### an.adapters.cutout.gaze.gaze_seed(entity_id)
-
-The generator’s seed for an entity — a pure function of its name.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
-```pycon
->>> gaze_seed("gale") == gaze_seed("gale") and gaze_seed("gale") != gaze_seed("nora")
-True
-```
-
-### an.adapters.cutout.gaze.saccade_track(entity_id, , duration, fps, blink_windows=None, amplitude=1.0)
-
-Step keyframes on frame times, seeded by `entity_id`.
-
-`amplitude` scales every jump (0 = the eyes hold centre; the design
-values assume 1). `blink_windows` are the entity’s compiled blink
-windows, for the coupling rule.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`GazeStep`](_autosummary/an.adapters.cutout.gaze.html.md#an.adapters.cutout.gaze.GazeStep)]
-
-
 # _autosummary/an.adapters.cutout.html.md
 
 # an.adapters.cutout
@@ -900,8 +473,8 @@ The render path is `an.stage.compile` -> `an.stage.serialize` ->
 `an.stage.render` (the stage engine, driven by the core frame stage) ->
 `runtime.js`. Every module that moved keeps a LIVE alias here
 (`an.adapters.cutout.render` is `an.stage.render` for reading and for
-rebinding, `an._shims.alias_module()`). What stays here is cut-out genre
-code on its way to `cutan` (an#225): `coarticulate`, `gaze`, and the
+rebinding, `an._shims.alias_module()`). `coarticulate` and `gaze` moved to `cutan` (an#225; live aliases with a
+warning). What stays here is the
 timing re-exports (`channel`, `clip`, `timeline`).
 
 The names this package used to export are resolved LAZILY, on first access:
@@ -1223,7 +796,7 @@ curve of every authored tween that names none (tween > this > the built-in
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis
-curves for the face solver; `None` is `DefaultExpressionProvider`.
+curves for the face solver; `None` is the genre’s default provider.
 
 `step_hz` (an#89) resamples every authored **tween** onto a SHOT-wide
 pose grid of that many updates per second (multiples of `1/step_hz` on
@@ -1262,11 +835,9 @@ clothes (an#33).
 | [`canvas_capture`](_autosummary/an.adapters.cutout.canvas_capture.html.md#module-an.adapters.cutout.canvas_capture) | Moved to [`an.stage.canvas_capture`](_autosummary/an.stage.canvas_capture.html.md#module-an.stage.canvas_capture) (an#247); this path is a LIVE alias of it. |
 | [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)               | Channel evaluation — moved to [`an.timing.channel`](_autosummary/an.timing.channel.html.md#module-an.timing.channel) (the timing kernel).              |
 | [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                     | Clips, loop modes and poses — moved to [`an.timing.clip`](_autosummary/an.timing.clip.html.md#module-an.timing.clip) (the timing kernel).           |
-| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)     | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).             |
 | [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)               | Moved to [`an.stage.compile`](_autosummary/an.stage.compile.html.md#module-an.stage.compile) (an#247); this path is a LIVE alias of it.               |
 | [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)                 | Moved to [`an.stage.easing`](_autosummary/an.stage.easing.html.md#module-an.stage.easing) (an#247); this path is a LIVE alias of it.                 |
 | [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)             | Moved to [`an.stage.fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity) (an#247); this path is a LIVE alias of it.             |
-| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                     | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                                     |
 | [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                     | Moved to [`an.stage.path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry) (an#247); this path is a LIVE alias of it.   |
 | [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                 | Moved to [`an.stage.render`](_autosummary/an.stage.render.html.md#module-an.stage.render) (an#247); this path is a LIVE alias of it.                 |
 | [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)   | Moved to [`an.stage.runtime_files`](_autosummary/an.stage.runtime_files.html.md#module-an.stage.runtime_files) (an#247); this path is a LIVE alias of it.   |
@@ -2775,8 +2346,9 @@ existing cache key moves.
 
 ### Exceptions
 
-| [`ElevenLabsVoiceError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsVoiceError)   | A voice document declares ElevenLabs settings that are malformed.   |
-|-------------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`ElevenLabsUnavailableError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsUnavailableError)   | A request cannot be sent: no API key is configured.               |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`ElevenLabsVoiceError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsVoiceError)         | A voice document declares ElevenLabs settings that are malformed. |
 
 ### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('eleven_v3', 'eleven_v4')*
 
@@ -2805,6 +2377,15 @@ Characters one request bills: the text as sent, audio tags included.
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+#### check_available()
+
+Raise [`ElevenLabsUnavailableError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsUnavailableError) when a request could not be
+sent (no API key) — what the audio pipeline asks before the first
+request of a render, so nothing is half-synthesized (an#305).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 #### client_factory
 
@@ -2859,6 +2440,12 @@ sampling varies the take.
 >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
 {'seed': 13}
 ```
+
+### *exception* an.audio.elevenlabs_tts.ElevenLabsUnavailableError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A request cannot be sent: no API key is configured.
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
 
@@ -2919,10 +2506,11 @@ Audio pipeline — TTS and lip-sync providers + orchestration.
 Phase 3 ships:
 
 - Protocols: `TTSProvider`, `LipSyncProvider` (Phase 1).
-- Default offline providers: `OfflineTTS` (silent WAV), `OfflineLipSync`
-  (deterministic char-to-viseme).
-- Real providers: `ElevenLabsTTS` (needs `ELEVEN_API_KEY`),
-  `RhubarbLipSync` (needs `rhubarb` binary).
+- Default offline provider: `OfflineTTS` (silent WAV). The lip-sync providers
+  (`OfflineLipSync` deterministic char-to-viseme, `RhubarbLipSync`,
+  `WhisperLipSync`) moved to `cutan` with the cut-out genre (an#225); the old
+  names still resolve from here, with a warning.
+- Real providers: `ElevenLabsTTS` (needs `ELEVEN_API_KEY`).
 - Orchestration: `produce_audio_for_dialogue` /
   `produce_audio_for_scene` walk a SceneIR, synthesize, persist to mall,
   stamp viseme tracks back onto the IR.
@@ -2932,35 +2520,31 @@ without external services.
 
 ### Functions
 
-| [`word_timings_to_visemes`](_autosummary/an.audio.html.md#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])    | Distribute viseme keyframes across word boundaries.                 |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`default_tts`](_autosummary/an.audio.html.md#an.audio.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                             |
-| [`default_lipsync`](_autosummary/an.audio.html.md#an.audio.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                    |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                   |
-| [`produce_audio_for_scene`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back. |
-| [`make_tts`](_autosummary/an.audio.html.md#an.audio.make_tts)(name)                                    | Instantiate a TTS provider by name.                                 |
-| [`make_lipsync`](_autosummary/an.audio.html.md#an.audio.make_lipsync)(name, \*[, language])                | Instantiate a LipSync provider by name.                             |
-| [`known_tts_names`](_autosummary/an.audio.html.md#an.audio.known_tts_names)()                                 | Return the registered TTS provider names.                           |
-| [`known_lipsync_names`](_autosummary/an.audio.html.md#an.audio.known_lipsync_names)()                             | Return the registered LipSync provider names.                       |
+| [`word_timings_to_visemes`](_autosummary/an.audio.html.md#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])    | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_tts`](_autosummary/an.audio.html.md#an.audio.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
+| [`default_lipsync`](_autosummary/an.audio.html.md#an.audio.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
+| [`produce_audio_for_scene`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
+| [`make_tts`](_autosummary/an.audio.html.md#an.audio.make_tts)(name)                                    | Instantiate a TTS provider by name.                                                                                                                                                                                     |
+| [`make_lipsync`](_autosummary/an.audio.html.md#an.audio.make_lipsync)(name, \*[, language])                | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
+| [`known_tts_names`](_autosummary/an.audio.html.md#an.audio.known_tts_names)()                                 | Return the registered TTS provider names.                                                                                                                                                                               |
+| [`known_lipsync_names`](_autosummary/an.audio.html.md#an.audio.known_lipsync_names)()                             | Return the registered LipSync provider names.                                                                                                                                                                           |
 
 ### Classes
 
-| [`TTSProvider`](_autosummary/an.audio.html.md#an.audio.TTSProvider)(\*args, \*\*kwargs)                   | Text-to-speech provider.                                                                                                                          |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`AudioClip`](_autosummary/an.audio.html.md#an.audio.AudioClip)([path, bytes_, duration, ...])          | A rendered audio clip, on disk or in memory.                                                                                                      |
-| [`VoiceMeta`](_autosummary/an.audio.html.md#an.audio.VoiceMeta)(voice_id, name, provider[, ...])        | Metadata for a TTS voice as exposed by a provider.                                                                                                |
-| [`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                                                                                                        |
-| [`Viseme`](_autosummary/an.audio.html.md#an.audio.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                                                                                                    |
-| [`VisemeTrack`](_autosummary/an.audio.html.md#an.audio.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                                                                                            |
-| [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                                                                                          |
-| [`OfflineTTS`](_autosummary/an.audio.html.md#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.                                                                                  |
-| [`OfflineLipSync`](_autosummary/an.audio.html.md#an.audio.OfflineLipSync)(\*[, char_to_viseme])              | Default lip-sync provider: deterministic char-to-viseme mapping.                                                                                  |
-| [`ElevenLabsTTS`](_autosummary/an.audio.html.md#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                                                                                                    |
-| [`MacSayTTS`](_autosummary/an.audio.html.md#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                                                                                                   |
-| [`RhubarbLipSync`](_autosummary/an.audio.html.md#an.audio.RhubarbLipSync)(\*[, binary_path, language, ...])  | Wrap the rhubarb CLI.                                                                                                                             |
-| [`WhisperLipSync`](_autosummary/an.audio.html.md#an.audio.WhisperLipSync)(\*[, model_size, device, ...])     | faster-whisper word timestamps → visemes.                                                                                                         |
-| [`StaticWordTimings`](_autosummary/an.audio.html.md#an.audio.StaticWordTimings)(words, \*[, label])             | A [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider) over a fixed list of timings.                                               |
-| [`WordTimingsLipSync`](_autosummary/an.audio.html.md#an.audio.WordTimingsLipSync)(provider, \*[, ...])           | [`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider) driven by a [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider). |
+| [`TTSProvider`](_autosummary/an.audio.html.md#an.audio.TTSProvider)(\*args, \*\*kwargs)                   | Text-to-speech provider.                                                 |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`AudioClip`](_autosummary/an.audio.html.md#an.audio.AudioClip)([path, bytes_, duration, ...])          | A rendered audio clip, on disk or in memory.                             |
+| [`VoiceMeta`](_autosummary/an.audio.html.md#an.audio.VoiceMeta)(voice_id, name, provider[, ...])        | Metadata for a TTS voice as exposed by a provider.                       |
+| [`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                               |
+| [`Viseme`](_autosummary/an.audio.html.md#an.audio.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                           |
+| [`VisemeTrack`](_autosummary/an.audio.html.md#an.audio.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                   |
+| [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
+| [`NullLipSync`](_autosummary/an.audio.html.md#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
+| [`OfflineTTS`](_autosummary/an.audio.html.md#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.         |
+| [`ElevenLabsTTS`](_autosummary/an.audio.html.md#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                           |
+| [`MacSayTTS`](_autosummary/an.audio.html.md#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                          |
 
 ### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
 
@@ -2989,6 +2573,15 @@ Characters one request bills: the text as sent, audio tags included.
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+#### check_available()
+
+Raise `ElevenLabsUnavailableError` when a request could not be
+sent (no API key) — what the audio pipeline asks before the first
+request of a render, so nothing is half-synthesized (an#305).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 #### client_factory
 
@@ -3077,13 +2670,20 @@ fully offline — uses Apple’s voice synthesis bundled with the OS.
 The same request gives the same audio, so best-of-N takes never apply
 ([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
 
-### *class* an.audio.OfflineLipSync(, char_to_viseme=None)
+### *class* an.audio.NullLipSync
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-Default lip-sync provider: deterministic char-to-viseme mapping.
+The lip-sync provider of a core without a genre: no mouth shapes at all.
 
-Implements the `LipSyncProvider` protocol.
+A genre that animates mouths (`cutan`) registers real providers
+(`offline`, `rhubarb`, `whisper`); without one, a line’s audio is still
+synthesized and the track it gets is empty – nothing draws a mouth anyway.
+
+```pycon
+>>> NullLipSync().align(AudioClip(bytes_=b"", duration=0.5), "hi").duration
+0.5
+```
 
 ### *class* an.audio.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
@@ -3098,30 +2698,13 @@ Implements the `TTSProvider` protocol.
 The same request gives the same audio, so best-of-N takes never apply
 ([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
 
-### *class* an.audio.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
+#### silent *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+a line it speaks for a voice written for a real
+provider is a stand-in the render says so loudly (an#305).
 
-Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
-
-```pycon
->>> RhubarbLipSync(binary_path="/bin/rhubarb").recognizer
-'pocketSphinx'
->>> RhubarbLipSync(binary_path="/bin/rhubarb", language="de").recognizer
-'phonetic'
->>> RhubarbLipSync(binary_path="/bin/rhubarb", language="de").name
-'rhubarb:phonetic'
-```
-
-#### *property* uses_dialog_file *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
-
-Whether the chosen recognizer reads a transcript at all.
-
-### *class* an.audio.StaticWordTimings(words, , label='static')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider) over a fixed list of timings.
+* **Type:**
+  Its audio is silence
 
 ### *class* an.audio.TTSProvider(\*args, \*\*kwargs)
 
@@ -3156,7 +2739,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Aligned viseme sequence produced by a LipSyncProvider.
 
 `words` carries the word timings the provider aligned from, when it had
-any (whisper, [`WordTimingsLipSync`](_autosummary/an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.WordTimingsLipSync));
+any (whisper, `WordTimingsLipSync`);
 `None` for providers that never see words (offline, Rhubarb — whose JSON
 is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know
@@ -3167,20 +2750,6 @@ viseme conversion: captions (Wave 8) and any consumer that wants to know
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
-
-### *class* an.audio.WhisperLipSync(, model_size='tiny', device='cpu', compute_type='int8', char_to_viseme=None)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-faster-whisper word timestamps → visemes.
-
-Implements the `LipSyncProvider` protocol. The model is lazy-loaded on
-the first call (subsequent calls in the same process reuse the instance
-via the class-level `_model` cache).
-
-#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
-
-Whisper aligns from words, so the track carries them (an#96).
 
 ### *class* an.audio.WordTimingProvider(\*args, \*\*kwargs)
 
@@ -3200,39 +2769,19 @@ Return the word timings for `audio`.
 * **Return type:**
   [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### *class* an.audio.WordTimingsLipSync(provider, , char_to_viseme=None, convention='rhubarb', rest_viseme='X', min_gap_for_rest=0.2)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-[`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider) driven by a [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider).
-
-Skips transcription entirely. Use this when the caller already has
-authoritative word timings (e.g. from a separate lyric-alignment
-pipeline).
-
-* **Parameters:**
-  * **provider** ([`WordTimingProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)) – any [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider).
-  * **char_to_viseme** ([`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional override of the character→viseme code
-    mapping; defaults to the one shared with
-    [`OfflineLipSync`](_autosummary/an.audio.html.md#an.audio.OfflineLipSync) / [`WhisperLipSync`](_autosummary/an.audio.html.md#an.audio.WhisperLipSync).
-  * **convention** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – declared viseme convention string for the produced
-    track. Defaults to `"rhubarb"` for compatibility with the
-    existing cutout adapter.
-  * **rest_viseme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – code emitted in silent gaps. Defaults to
-    `_REST_VISEME`.
-  * **min_gap_for_rest** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – minimum inter-word silence (seconds) before
-    we insert a rest keyframe. Defaults to `0.20`.
-
-#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
-
-Built from words, so the track carries them (an#96).
-
 ### an.audio.default_lipsync()
 
-The default lip-sync provider: `OfflineLipSync`.
+The default lip-sync provider: the loaded genre’s `offline` one (the
+deterministic char-to-viseme provider of `cutan`), else
+[`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).
 
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
+
+```pycon
+>>> default_lipsync().name in {"offline", "none"}
+True
+```
 
 ### an.audio.default_tts()
 
@@ -3262,8 +2811,17 @@ Instantiate a LipSync provider by name.
 `language` (BCP-47) reaches providers that select behaviour by language —
 Rhubarb’s recognizer today; a future aligner’s weight allowlist.
 
+The default name (`"offline"`) resolves to [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync)
+when no loaded genre provides it, so voicing a line needs no genre; any other
+name that nothing provides is an error that says how to get it.
+
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
+
+```pycon
+>>> make_lipsync("offline").name in {"offline", "none"}
+True
+```
 
 ### an.audio.make_tts(name)
 
@@ -3288,6 +2846,9 @@ is applied to the synthesized audio BEFORE alignment, so the visemes are
 computed on the audio the viewer hears. The raw synthesis stays cached under
 its own key, so changing an effect never re-pays the TTS.
 
+`tts` (default: the provider the voice document declares, else offline —
+`tts_chooser()`) is an override when given.
+
 `voice_id` (default: the line’s `voice_ref`, else `"default"`) is the
 `voices`-store key; [`produce_audio_for_scene()`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene) passes the one
 [`an.audio.voices.line_voice_id()`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
@@ -3310,7 +2871,7 @@ gone raises [`TakeLostError`](_autosummary/an.audio.takes.html.md#an.audio.takes
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>, overruns=True)
+### an.audio.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>, overruns=True, strict=False, tts_factory=None)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -3339,6 +2900,18 @@ announced too — or, with `announce=None`, a `DialogueOverrunWarning` —
 unless `overruns=False`: `an render` passes that, because it reports
 every post-synthesis finding together in its summary (an#254).
 
+**Who speaks each line** (an#305, `tts_chooser()`): with `tts` not
+given (`None`, `""` or `VOICE_TTS`), the line’s voice document’s
+`provider`, built by `tts_factory` (default
+[`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)), else offline; a `tts` given speaks
+every line. A line spoken by another provider than its voice declares is a
+`VoiceStandInWarning` — the silent offline voice says so — and,
+with `strict`, a `VoiceStandInError` before any request. A provider
+with requests to send is asked `check_available()` first (ElevenLabs: is
+there a key?), and what a provider that bills per character will bill is
+announced before the first request — whatever chose the provider; a cached
+line is never billed and never counted.
+
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
 
@@ -3346,7 +2919,7 @@ every post-synthesis finding together in its summary (an#254).
 
 Distribute viseme keyframes across word boundaries.
 
-Used by [`WhisperLipSync`](_autosummary/an.audio.html.md#an.audio.WhisperLipSync) and [`WordTimingsLipSync`](_autosummary/an.audio.html.md#an.audio.WordTimingsLipSync). The
+Used by `WhisperLipSync` and `WordTimingsLipSync`. The
 algorithm: per word, walk its characters in order, look up each
 character’s viseme code, dedupe consecutive identical codes, and
 space the resulting keyframes evenly across the word’s
@@ -3363,97 +2936,18 @@ audio’s actual length.
 
 ### Modules
 
-| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).            |
-|--------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
-| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
-| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                           |
-| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                     |
-| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
-| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                            |
-| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                            |
-| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
-| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                     |
-| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.      |
-| [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                           | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
-| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                      |
-| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
-| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                  |
-
-
-# _autosummary/an.audio.injectable_lipsync.html.md
-
-# an.audio.injectable_lipsync
-
-Lip-sync provider that consumes pre-computed word timings.
-
-Useful when an upstream system already has authoritative word-level
-timings and would otherwise force `an` to re-transcribe the same
-audio. The canonical case is `muvid`, where the lyric → audio
-alignment store (`lacing`) is the SSOT and re-running
-`WhisperLipSync` on the audio produces a redundant (and possibly
-divergent) word-timestamp set.
-
-Two pieces:
-
-- [`StaticWordTimings`](_autosummary/an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.StaticWordTimings) — a `WordTimingProvider` over a
-  fixed list of `(word, start, end)` tuples.
-- [`WordTimingsLipSync`](_autosummary/an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.WordTimingsLipSync) — a `LipSyncProvider` that reads
-  from any `WordTimingProvider` and runs the same
-  word→viseme conversion as `WhisperLipSync` (via
-  `word_timings_to_visemes()`), so output is shape-compatible with
-  > the rest of the cutout pipeline.
-
-Drop-in usage:
-
-```default
-from an.audio.injectable_lipsync import (
-    StaticWordTimings, WordTimingsLipSync,
-)
-
-timings = [("hello", 0.5, 1.0), ("world", 1.2, 1.8)]
-lipsync = WordTimingsLipSync(StaticWordTimings(timings))
-track = lipsync.align(audio_clip, "hello world")
-```
-
-### Classes
-
-| [`StaticWordTimings`](_autosummary/an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.StaticWordTimings)(words, \*[, label])   | A `WordTimingProvider` over a fixed list of timings.   |
-|------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| [`WordTimingsLipSync`](_autosummary/an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.WordTimingsLipSync)(provider, \*[, ...]) | `LipSyncProvider` driven by a `WordTimingProvider`.    |
-
-### *class* an.audio.injectable_lipsync.StaticWordTimings(words, , label='static')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A `WordTimingProvider` over a fixed list of timings.
-
-### *class* an.audio.injectable_lipsync.WordTimingsLipSync(provider, , char_to_viseme=None, convention='rhubarb', rest_viseme='X', min_gap_for_rest=0.2)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-`LipSyncProvider` driven by a `WordTimingProvider`.
-
-Skips transcription entirely. Use this when the caller already has
-authoritative word timings (e.g. from a separate lyric-alignment
-pipeline).
-
-* **Parameters:**
-  * **provider** ([`WordTimingProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)) – any `WordTimingProvider`.
-  * **char_to_viseme** ([`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional override of the character→viseme code
-    mapping; defaults to the one shared with
-    `OfflineLipSync` / `WhisperLipSync`.
-  * **convention** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – declared viseme convention string for the produced
-    track. Defaults to `"rhubarb"` for compatibility with the
-    existing cutout adapter.
-  * **rest_viseme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – code emitted in silent gaps. Defaults to
-    `_REST_VISEME`.
-  * **min_gap_for_rest** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – minimum inter-word silence (seconds) before
-    we insert a rest keyframe. Defaults to `0.20`.
-
-#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
-
-Built from words, so the track carries them (an#96).
+| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                       | `an voices ...` — browse a TTS provider's voices from the shell (an#209).            |
+|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)               | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
+| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts) | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
+| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)               | Lip-sync provider protocol + viseme dataclasses.                                     |
+| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
+| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                            |
+| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
+| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                     |
+| [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
+| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                      |
+| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
 
 
 # _autosummary/an.audio.lipsync.html.md
@@ -3488,11 +2982,12 @@ Two protocols live here:
 
 ### Classes
 
-| [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.             |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| [`Viseme`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                         |
-| [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider. |
-| [`WordTimingProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.               |
+| [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                               |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
+| [`Viseme`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                           |
+| [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                   |
+| [`WordTimingProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
 
 ### *class* an.audio.lipsync.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -3513,6 +3008,21 @@ Produce a viseme track for `audio` given its `transcript`.
 * **Return type:**
   [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)
 
+### *class* an.audio.lipsync.NullLipSync
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The lip-sync provider of a core without a genre: no mouth shapes at all.
+
+A genre that animates mouths (`cutan`) registers real providers
+(`offline`, `rhubarb`, `whisper`); without one, a line’s audio is still
+synthesized and the track it gets is empty – nothing draws a mouth anyway.
+
+```pycon
+>>> NullLipSync().align(AudioClip(bytes_=b"", duration=0.5), "hi").duration
+0.5
+```
+
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -3526,7 +3036,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Aligned viseme sequence produced by a LipSyncProvider.
 
 `words` carries the word timings the provider aligned from, when it had
-any (whisper, [`WordTimingsLipSync`](_autosummary/an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.WordTimingsLipSync));
+any (whisper, `WordTimingsLipSync`);
 `None` for providers that never see words (offline, Rhubarb — whose JSON
 is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know
@@ -3627,46 +3137,6 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 Raised when the `say` subprocess fails.
 
 
-# _autosummary/an.audio.offline_lipsync.html.md
-
-# an.audio.offline_lipsync
-
-OfflineLipSync — deterministic transcript → viseme track. No network, no binary.
-
-The default lip-sync provider for `an`. Maps each meaningful character of the
-transcript to a Rhubarb-convention viseme letter (A–H + X), then distributes
-keyframes evenly across the audio’s duration. Repeated visemes get collapsed
-into a single keyframe so the mouth doesn’t “stutter” on long vowel runs.
-
-Crude but visible. Use `RhubarbLipSync` for real phoneme alignment once
-you’ve installed the Rhubarb binary.
-
-```pycon
->>> from an.audio.tts import AudioClip
->>> ls = OfflineLipSync()
->>> track = ls.align(AudioClip(duration=1.0, transcript="hello"), "hello")
->>> track.convention
-'rhubarb'
->>> track.duration
-1.0
->>> len(track.visemes) >= 2
-True
-```
-
-### Classes
-
-| [`OfflineLipSync`](_autosummary/an.audio.offline_lipsync.html.md#an.audio.offline_lipsync.OfflineLipSync)(\*[, char_to_viseme])   | Default lip-sync provider: deterministic char-to-viseme mapping.   |
-|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-
-### *class* an.audio.offline_lipsync.OfflineLipSync(, char_to_viseme=None)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Default lip-sync provider: deterministic char-to-viseme mapping.
-
-Implements the `LipSyncProvider` protocol.
-
-
 # _autosummary/an.audio.offline_tts.html.md
 
 # an.audio.offline_tts
@@ -3712,6 +3182,14 @@ Implements the `TTSProvider` protocol.
 The same request gives the same audio, so best-of-N takes never apply
 ([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
 
+#### silent *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+a line it speaks for a voice written for a real
+provider is a stand-in the render says so loudly (an#305).
+
+* **Type:**
+  Its audio is silence
+
 ### an.audio.offline_tts.estimate_speech_duration(text, , seconds_per_char=0.06)
 
 Seconds the offline voice takes to say `text` — a leading pad plus a
@@ -3744,48 +3222,59 @@ configured providers, persists artifacts to `mall["audio"]` /
 `mall["visemes"]`, and stamps the resulting `VisemeTrack` and timing
 back onto the `Dialogue` line so renderers can find it.
 
-Defaults are the offline providers (silent WAV + deterministic visemes), so
-the entire pipeline runs without API keys or external binaries.
+**Who speaks a line** (an#305): with no `tts` given, each line’s voice
+document decides — its `provider` ([`an.audio.voices.declared_provider()`](_autosummary/an.audio.voices.html.md#an.audio.voices.declared_provider))
+— and a voice that names none is spoken by the offline provider (silent WAV;
+lip-sync defaults to deterministic offline visemes), so a project that declares
+no provider runs without API keys or external binaries, exactly as before. A
+`tts` given is an override for every line; a line spoken by another provider
+than its voice declares is a [`VoiceStandInWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInWarning) (an error under
+`strict`). See [`tts_chooser()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser).
 
 ```pycon
 >>> from an.audio.pipeline import default_tts, default_lipsync
 >>> default_tts().name
 'offline'
->>> default_lipsync().name
-'offline'
 ```
 
 ### Module Attributes
 
-| [`TakeScorerFactory`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeScorerFactory)           | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.                             |
+| [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS)                   | The `tts` that means "each line's voice document names its provider" — the default of a render (an#305).    |
 |------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_TTS_NAME`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DEFAULT_TTS_NAME)            | Who speaks a line whose voice declares no provider, when no `tts` overrides it.                             |
+| [`TakeScorerFactory`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeScorerFactory)           | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.                             |
 | [`OVERRUN_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.OVERRUN_TOLERANCE_S)         | a frame at 60 fps (the same as `an validate`'s).                                                            |
 | [`REROLL_ONLY_HINT`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.REROLL_ONLY_HINT)            | only a new roll (new keys) replaces it.                                                                     |
 | [`LEGACY_DURATION_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S) | How far a legacy sidecar's duration may sit from its audio's and still be the same take: a frame at 60 fps. |
 
 ### Functions
 
-| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).   |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                                                                                                    |
-| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                             |
-| [`dialogue_overruns`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                     |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                   |
-| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                 |
-| [`retake_lines`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                              |
-| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                     |
-| [`stamp_from_stores`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores)(scene, mall, \*, tts, lipsync)  | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) would with these providers — from the content-keyed `audio` and `visemes` stores only.                               |
-| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                 |
-| [`takes_cost_message`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` will bill, when any of them takes best-of-N; else `""`.                                                                                                                                                   |
-| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                               |
+| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).                                  |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                            |
+| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                                            |
+| [`dialogue_overruns`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                                                    |
+| [`is_voice_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.is_voice_tts)(tts)                                 | Whether `tts` means "each voice's own provider": `None`, `""` or [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS).                                                                                                                                       |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                                  |
+| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                |
+| [`retake_lines`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                             |
+| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                                                    |
+| [`stamp_from_stores`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores)(scene, mall, \*[, tts, ...])    | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) would with these providers — `tts` as it takes it: `None` for each voice's own (an#305) — from the content-keyed `audio` and `visemes` stores only. |
+| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                                                |
+| [`takes_cost_message`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` with `tts` will bill, when any of them takes best-of-N or `tts` bills per character (an#305: a voice that names a paid provider is spoken by it with no flag, so its cost is said first); else `""`.                                     |
+| [`tts_chooser`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser)(tts, mall, \*[, make])                | `voice_id -> provider`: who speaks a line in that voice (an#305).                                                                                                                                                                                                  |
+| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                                              |
+| [`voice_stand_ins`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.voice_stand_ins)(lines, mall, \*, overridden)      | One message per voice whose lines are spoken by another provider than its document declares; `lines` is `(voice_id, provider)` per line, and `overridden` says whether a `tts` was given for every line.                                                           |
 
 ### Exceptions
 
-| [`AudioNotCachedError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioNotCachedError)    | A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.   |
-|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                                                                                   |
-| [`DialogueOverrunWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                                                                        |
-| [`TakeDigestWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                        |
+| [`AudioNotCachedError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioNotCachedError)    | A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.           |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                                                                                           |
+| [`DialogueOverrunWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                                                                                |
+| [`TakeDigestWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                                |
+| [`VoiceStandInError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInError)      | Under `strict`: a line would be spoken by another provider than its voice declares.                                                             |
+| [`VoiceStandInWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInWarning)    | A line is spoken by another provider than its voice document declares — an override for every line, or a provider `an` has no TTS for (an#305). |
 
 ### *exception* an.audio.pipeline.AudioNotCachedError
 
@@ -3799,6 +3288,10 @@ stamping it would need a synthesis this caller does not allow.
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The scene declares audio the pipeline cannot produce. Carries detail.
+
+### an.audio.pipeline.DEFAULT_TTS_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'offline'*
+
+Who speaks a line whose voice declares no provider, when no `tts` overrides it.
 
 ### *exception* an.audio.pipeline.DialogueOverrunWarning
 
@@ -3838,6 +3331,25 @@ The audio restored for a line’s recorded take is not the audio the record name
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`TakesSpec`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesSpec)], [`TakeScorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScorer)]
 
+### an.audio.pipeline.VOICE_TTS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice'*
+
+The `tts` that means “each line’s voice document names its provider” — the
+default of a render (an#305). `None` and `""` mean the same.
+
+### *exception* an.audio.pipeline.VoiceStandInError
+
+Bases: [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)
+
+Under `strict`: a line would be spoken by another provider than its
+voice declares. Raised before any request.
+
+### *exception* an.audio.pipeline.VoiceStandInWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A line is spoken by another provider than its voice document declares —
+an override for every line, or a provider `an` has no TTS for (an#305).
+
 ### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None, options=None, takes=None, take=None, roll=None)
 
 Content key of a line’s audio: text, voice, provider, and — only when the
@@ -3862,10 +3374,17 @@ True
 
 ### an.audio.pipeline.default_lipsync()
 
-The default lip-sync provider: `OfflineLipSync`.
+The default lip-sync provider: the loaded genre’s `offline` one (the
+deterministic char-to-viseme provider of `cutan`), else
+[`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).
 
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
+
+```pycon
+>>> default_lipsync().name in {"offline", "none"}
+True
+```
 
 ### an.audio.pipeline.default_tts()
 
@@ -3897,6 +3416,19 @@ be lost silently. It is `an validate`’s own check
 "shot 's': line 0 (a) ends at 1.30s as synthesi"
 ```
 
+### an.audio.pipeline.is_voice_tts(tts)
+
+Whether `tts` means “each voice’s own provider”: `None`, `""` or
+[`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> [is_voice_tts(t) for t in (None, "", "voice", " Voice ", "offline")]
+[True, True, True, True, False]
+```
+
 ### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
 Synthesize audio + visemes for one dialogue line.
@@ -3910,6 +3442,9 @@ second call with identical inputs returns the cached versions.
 is applied to the synthesized audio BEFORE alignment, so the visemes are
 computed on the audio the viewer hears. The raw synthesis stays cached under
 its own key, so changing an effect never re-pays the TTS.
+
+`tts` (default: the provider the voice document declares, else offline —
+[`tts_chooser()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser)) is an override when given.
 
 `voice_id` (default: the line’s `voice_ref`, else `"default"`) is the
 `voices`-store key; [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) passes the one
@@ -3933,7 +3468,7 @@ gone raises [`TakeLostError`](_autosummary/an.audio.takes.html.md#an.audio.takes
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>, overruns=True)
+### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>, overruns=True, strict=False, tts_factory=None)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -3961,6 +3496,18 @@ a line that ends past its shot’s end ([`dialogue_overruns()`](_autosummary/an.
 announced too — or, with `announce=None`, a `DialogueOverrunWarning` —
 unless `overruns=False`: `an render` passes that, because it reports
 every post-synthesis finding together in its summary (an#254).
+
+**Who speaks each line** (an#305, [`tts_chooser()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser)): with `tts` not
+given (`None`, `""` or [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS)), the line’s voice document’s
+`provider`, built by `tts_factory` (default
+[`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)), else offline; a `tts` given speaks
+every line. A line spoken by another provider than its voice declares is a
+[`VoiceStandInWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInWarning) — the silent offline voice says so — and,
+with `strict`, a [`VoiceStandInError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInError) before any request. A provider
+with requests to send is asked `check_available()` first (ElevenLabs: is
+there a key?), and what a provider that bills per character will bill is
+announced before the first request — whatever chose the provider; a cached
+line is never billed and never counted.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
@@ -4010,11 +3557,12 @@ without the pipeline there is no authority to say that stamp is stale.
 [0.0, 2.0]
 ```
 
-### an.audio.pipeline.stamp_from_stores(scene, mall, , tts, lipsync)
+### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None)
 
 Stamp `scene`’s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)
-would with these providers — from the content-keyed `audio` and
-`visemes` stores only. Synthesises, aligns and writes nothing; a line the
+would with these providers — `tts` as it takes it: `None` for each
+voice’s own (an#305) — from the content-keyed `audio` and `visemes`
+stores only. Synthesises, aligns, writes and announces nothing; a line the
 stores cannot answer raises [`AudioNotCachedError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioNotCachedError).
 
 What a reader of the render’s cache keys needs (an#274): a `scene.md`
@@ -4038,7 +3586,9 @@ keeps their cache keys where they were.
 
 ### an.audio.pipeline.takes_cost_message(lines, tts, audio_store)
 
-What synthesizing `lines` will bill, when any of them takes best-of-N; else `""`.
+What synthesizing `lines` with `tts` will bill, when any of them takes
+best-of-N or `tts` bills per character (an#305: a voice that names a paid
+provider is spoken by it with no flag, so its cost is said first); else `""`.
 
 Counts only the requests not already in `audio_store` (a cached take is
 free; a recorded take is restored, never billed), and the provider’s billed
@@ -4049,12 +3599,53 @@ characters, and the message says so.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### an.audio.pipeline.tts_chooser(tts, mall, , make=None)
+
+`voice_id -> provider`: who speaks a line in that voice (an#305).
+
+A `tts` given (a provider, or a name `make` builds) speaks every line —
+an override. Otherwise (`None`, `""`, [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS)) the voice
+document’s `provider` decides, and a voice that declares none — or one
+`make` has no provider for ([`voice_stand_ins()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.voice_stand_ins) reports it) — is
+spoken by [`DEFAULT_TTS_NAME`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DEFAULT_TTS_NAME). One instance per provider name.
+`make` defaults to [`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts).
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)]
+
+```pycon
+>>> mall = {"voices": {"bob": {"provider": "mac_say"}, "ann": {}}}
+>>> choose = tts_chooser(None, mall)
+>>> choose("bob").name, choose("ann").name, choose("nobody").name
+('mac_say', 'offline', 'offline')
+>>> tts_chooser("offline", mall)("bob").name
+'offline'
+```
+
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
 Content key of a line’s viseme track (a function of the audio HEARD).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.pipeline.voice_stand_ins(lines, mall, , overridden)
+
+One message per voice whose lines are spoken by another provider than its
+document declares; `lines` is `(voice_id, provider)` per line, and
+`overridden` says whether a `tts` was given for every line.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from an.audio.offline_tts import OfflineTTS
+>>> mall = {"voices": {"bob": {"provider": "elevenlabs"}}}
+>>> print(voice_stand_ins([("bob", OfflineTTS())] * 2, mall, overridden=True)[0])
+voice 'bob' declares provider 'elevenlabs', but its 2 line(s) are spoken by 'offline' — SILENT audio — because `tts` overrides every voice. Drop `--tts` to let each voice speak with its own provider.
+>>> voice_stand_ins([("bob", OfflineTTS())], {}, overridden=True)
+[]
+```
 
 
 # _autosummary/an.audio.providers.html.md
@@ -4071,27 +3662,40 @@ specific classes.
 >>> from an.audio.providers import make_tts, make_lipsync
 >>> make_tts("offline").name
 'offline'
->>> make_lipsync("offline").name
-'offline'
+>>> make_lipsync("none").name
+'none'
 ```
 
 ### Module Attributes
 
-| [`DEFAULT_LANGUAGE`](_autosummary/an.audio.providers.html.md#an.audio.providers.DEFAULT_LANGUAGE)   | The language a provider aligns for when the caller says nothing.   |
-|---------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`DEFAULT_LANGUAGE`](_autosummary/an.audio.providers.html.md#an.audio.providers.DEFAULT_LANGUAGE)   | The language a provider aligns for when the caller says nothing.     |
+|---------------------------------------------------------------------|----------------------------------------------------------------------|
+| [`LIPSYNC_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.LIPSYNC_FACTORIES)  | The lip-sync providers the core itself offers.                       |
+| [`DFLT_LIPSYNC`](_autosummary/an.audio.providers.html.md#an.audio.providers.DFLT_LIPSYNC)       | The provider `default_lipsync()` prefers when a genre registered it. |
 
 ### Functions
 
-| [`known_lipsync_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_lipsync_names)()              | Return the registered LipSync provider names.   |
-|-------------------------------------------------------------------------------------|-------------------------------------------------|
-| [`known_tts_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_tts_names)()                  | Return the registered TTS provider names.       |
-| [`make_lipsync`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.         |
-| [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name)                     | Instantiate a TTS provider by name.             |
+| [`known_lipsync_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_lipsync_names)()              | Return the registered LipSync provider names.                                 |
+|-------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`known_tts_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_tts_names)()                  | Return the registered TTS provider names.                                     |
+| [`lipsync_factories`](_autosummary/an.audio.providers.html.md#an.audio.providers.lipsync_factories)()                | Every lip-sync factory by name: the core's, then the loaded genres' services. |
+| [`make_lipsync`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.                                       |
+| [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name)                     | Instantiate a TTS provider by name.                                           |
 
 ### an.audio.providers.DEFAULT_LANGUAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'en'*
 
 The language a provider aligns for when the caller says nothing. Only
 Rhubarb reads it today (its recognizer follows the language, an#96).
+
+### an.audio.providers.DFLT_LIPSYNC *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'offline'*
+
+The provider `default_lipsync()` prefers when a genre registered it.
+
+### an.audio.providers.LIPSYNC_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[...], [LipSyncProvider](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]* *= {'none': <function <lambda>>}*
+
+The lip-sync providers the core itself offers. A genre adds its own through
+the `lipsync.<name>` service (`cutan`: `offline`, `rhubarb`,
+`whisper`); see [`lipsync_factories()`](_autosummary/an.audio.providers.html.md#an.audio.providers.lipsync_factories).
 
 ### an.audio.providers.known_lipsync_names()
 
@@ -4107,6 +3711,13 @@ Return the registered TTS provider names.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+### an.audio.providers.lipsync_factories()
+
+Every lip-sync factory by name: the core’s, then the loaded genres’ services.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]
+
 ### an.audio.providers.make_lipsync(name, , language='en')
 
 Instantiate a LipSync provider by name.
@@ -4114,8 +3725,17 @@ Instantiate a LipSync provider by name.
 `language` (BCP-47) reaches providers that select behaviour by language —
 Rhubarb’s recognizer today; a future aligner’s weight allowlist.
 
+The default name (`"offline"`) resolves to [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync)
+when no loaded genre provides it, so voicing a line needs no genre; any other
+name that nothing provides is an error that says how to get it.
+
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
+
+```pycon
+>>> make_lipsync("offline").name in {"offline", "none"}
+True
+```
 
 ### an.audio.providers.make_tts(name)
 
@@ -4125,86 +3745,6 @@ Raises `ValueError` for unknown names with a list of known options.
 
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
-
-
-# _autosummary/an.audio.rhubarb_lipsync.html.md
-
-# an.audio.rhubarb_lipsync
-
-RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.
-
-Requires the `rhubarb` binary on PATH. macOS: `brew install rhubarb-lipsync`.
-Linux/Windows: download from the project’s GitHub releases.
-
-Falls back gracefully (raises a clear error) if the binary is missing — the
-default `OfflineLipSync` keeps the pipeline functional in the meantime.
-
-**The recognizer follows the language** (an#96, epic #9 defect 5a). Rhubarb has
-two: `pocketSphinx` — its default, “use for English recordings”, the only one
-that reads `--dialogFile` (it builds a dialog language model and mixes it 90/10
-with the default) — and `phonetic`, “use for non-English recordings”, which
-`UNUSED(dialog)``s the transcript at source. This module used to pass
-``-r phonetic` **and** `--dialogFile` unconditionally: English speech from an
-English transcript ran the language-independent recognizer and the transcript
-it wrote to disk was never read. Now `recognizer=None` (the default) resolves
-per `language` — `"en"` → `pocketSphinx` with the dialog file, anything
-else → `phonetic` and **no transcript is written** (a file nothing reads is a
-lie waiting for the next reader). An explicit `recognizer` still overrides.
-`name` carries the recognizer so the viseme cache key changes with it and no
-stale `phonetic` track replays.
-
-### Module Attributes
-
-| [`ENGLISH_LANGUAGES`](_autosummary/an.audio.rhubarb_lipsync.html.md#an.audio.rhubarb_lipsync.ENGLISH_LANGUAGES)   | The languages `pocketSphinx` (CMU Sphinx US English acoustic model) covers.   |
-|----------------------------------------------------------------------|-------------------------------------------------------------------------------|
-
-### Functions
-
-| [`recognizer_for`](_autosummary/an.audio.rhubarb_lipsync.html.md#an.audio.rhubarb_lipsync.recognizer_for)(language)   | The Rhubarb recognizer for a BCP-47 language tag (primary subtag only).   |
-|-----------------------------------------------------------------------------|---------------------------------------------------------------------------|
-
-### Classes
-
-| [`RhubarbLipSync`](_autosummary/an.audio.rhubarb_lipsync.html.md#an.audio.rhubarb_lipsync.RhubarbLipSync)(\*[, binary_path, language, ...])   | Wrap the rhubarb CLI.   |
-|-----------------------------------------------------------------------------------------------------|-------------------------|
-
-### an.audio.rhubarb_lipsync.ENGLISH_LANGUAGES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'en'})*
-
-The languages `pocketSphinx` (CMU Sphinx US English acoustic model) covers.
-
-### *class* an.audio.rhubarb_lipsync.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Wrap the rhubarb CLI. Implements the `LipSyncProvider` protocol.
-
-```pycon
->>> RhubarbLipSync(binary_path="/bin/rhubarb").recognizer
-'pocketSphinx'
->>> RhubarbLipSync(binary_path="/bin/rhubarb", language="de").recognizer
-'phonetic'
->>> RhubarbLipSync(binary_path="/bin/rhubarb", language="de").name
-'rhubarb:phonetic'
-```
-
-#### *property* uses_dialog_file *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
-
-Whether the chosen recognizer reads a transcript at all.
-
-### an.audio.rhubarb_lipsync.recognizer_for(language)
-
-The Rhubarb recognizer for a BCP-47 language tag (primary subtag only).
-
-Accepts the POSIX locale spelling too (`en_US`); an empty tag is refused
-rather than read as “non-English” (an#96 review).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> recognizer_for("en"), recognizer_for("en-GB"), recognizer_for("en_US"), recognizer_for("fr")
-('pocketSphinx', 'pocketSphinx', 'pocketSphinx', 'phonetic')
-```
 
 
 # _autosummary/an.audio.takes.html.md
@@ -4654,6 +4194,12 @@ failing on a foreign voice id. Nothing declared anywhere
 resolves every line to `"default"` handed to the provider as `"default"` —
 exactly what the pipeline did before this module, so no cache key moves.
 
+The document’s `provider` also DECIDES who speaks the line when the render
+names no provider (an#305): [`declared_provider()`](_autosummary/an.audio.voices.html.md#an.audio.voices.declared_provider) reads it, and
+[`an.audio.pipeline.tts_chooser()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser) turns it into the provider — so a voice
+written for ElevenLabs is spoken by ElevenLabs by a plain `an render`, and
+`--tts` is an override for every line.
+
 ```pycon
 >>> from an.ir.schema import AssetRef, Dialogue, Shot
 >>> shot = Shot(id="s", entities=[
@@ -4671,6 +4217,8 @@ exactly what the pipeline did before this module, so no cache key moves.
 >>> mall["voices"]["bob"] = {"provider": "elevenlabs", "voice_id": "abc123"}
 >>> provider_voice(mall, "bob", tts_name="elevenlabs"), provider_voice(mall, "bob", tts_name="mac_say")
 ('abc123', 'default')
+>>> declared_provider(mall, "bob"), declared_provider(mall, "carl_kid")
+('elevenlabs', None)
 ```
 
 ### Module Attributes
@@ -4683,12 +4231,13 @@ exactly what the pipeline did before this module, so no cache key moves.
 
 ### Functions
 
-| [`line_voice_id`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id)(line, shot, mall, \*[, default])   | The `voices`-store key `line` is spoken with (see the module doc).     |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`provider_voice`](_autosummary/an.audio.voices.html.md#an.audio.voices.provider_voice)(mall, voice_id, \*[, tts_name])   | The provider voice `mall["voices"][voice_id]` names, or `None`.        |
-| [`speaker_voice_ref`](_autosummary/an.audio.voices.html.md#an.audio.voices.speaker_voice_ref)(speaker, shot, mall)           | The voice the speaking character is bound to in `shot`, or `None`.     |
-| [`voice_applies`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_applies)(doc, tts_name)                     | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`. |
-| [`voice_document`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_document)(mall, voice_id)                   | `mall["voices"][voice_id]` when it is a mapping, else `{}`.            |
+| [`declared_provider`](_autosummary/an.audio.voices.html.md#an.audio.voices.declared_provider)(mall, voice_id)              | The TTS provider `mall["voices"][voice_id]` is written for, lower-cased, or `None` when the voice declares none (or has no document).   |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`line_voice_id`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id)(line, shot, mall, \*[, default]) | The `voices`-store key `line` is spoken with (see the module doc).                                                                      |
+| [`provider_voice`](_autosummary/an.audio.voices.html.md#an.audio.voices.provider_voice)(mall, voice_id, \*[, tts_name]) | The provider voice `mall["voices"][voice_id]` names, or `None`.                                                                         |
+| [`speaker_voice_ref`](_autosummary/an.audio.voices.html.md#an.audio.voices.speaker_voice_ref)(speaker, shot, mall)         | The voice the speaking character is bound to in `shot`, or `None`.                                                                      |
+| [`voice_applies`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_applies)(doc, tts_name)                   | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`.                                                                  |
+| [`voice_document`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_document)(mall, voice_id)                 | `mall["voices"][voice_id]` when it is a mapping, else `{}`.                                                                             |
 
 ### an.audio.voices.CHARACTER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_ref'*
 
@@ -4706,6 +4255,21 @@ The key, in a voice document, naming the TTS provider it is written for.
 ### an.audio.voices.PROVIDER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_id'*
 
 The key, in a voice document, naming the TTS provider’s own voice.
+
+### an.audio.voices.declared_provider(mall, voice_id)
+
+The TTS provider `mall["voices"][voice_id]` is written for, lower-cased,
+or `None` when the voice declares none (or has no document).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> declared_provider({"voices": {"v": {"provider": " ElevenLabs "}}}, "v")
+'elevenlabs'
+>>> declared_provider({"voices": {"v": {"provider": ""}}}, "v") is None
+True
+```
 
 ### an.audio.voices.line_voice_id(line, shot, mall, , default='default')
 
@@ -4762,50 +4326,6 @@ False
 
 * **Return type:**
   [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)
-
-
-# _autosummary/an.audio.whisper_lipsync.html.md
-
-# an.audio.whisper_lipsync
-
-WhisperLipSync — faster-whisper word timestamps → viseme keyframes.
-
-Phase 9. Bridges the gap between deterministic `OfflineLipSync` (twitchy,
-char-distributed) and the system-binary-dependent `RhubarbLipSync`. Uses
-`faster-whisper` to transcribe the rendered audio into word-level
-timestamps, then distributes visemes within each word’s [start, end] span
-based on the word’s letter→viseme mapping (collapsed-duplicates).
-
-This gives ~75% of Rhubarb-quality lip-sync without any system binaries,
-just a ~75 MB model download (cached after first use).
-
-Trade-offs vs. OfflineLipSync:
-
-- **Better**: timing is locked to actual word boundaries. Mouth holds shape
-  through silent gaps between words instead of cycling through visemes.
-- **Same**: viseme codes per phoneme are still our simple letter mapping;
-  no IPA/ARPAbet awareness yet (that’s a future upgrade with cmudict).
-- **Cost**: ~3–5 seconds CPU inference for a 10s clip on first call;
-  subsequent calls in the same process re-use the cached model.
-
-### Classes
-
-| [`WhisperLipSync`](_autosummary/an.audio.whisper_lipsync.html.md#an.audio.whisper_lipsync.WhisperLipSync)(\*[, model_size, device, ...])   | faster-whisper word timestamps → visemes.   |
-|--------------------------------------------------------------------------------------------------|---------------------------------------------|
-
-### *class* an.audio.whisper_lipsync.WhisperLipSync(, model_size='tiny', device='cpu', compute_type='int8', char_to_viseme=None)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-faster-whisper word timestamps → visemes.
-
-Implements the `LipSyncProvider` protocol. The model is lazy-loaded on
-the first call (subsequent calls in the same process reuse the instance
-via the class-level `_model` cache).
-
-#### emits_word_timings *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
-
-Whisper aligns from words, so the track carries them (an#96).
 
 
 # _autosummary/an.base.html.md
@@ -5702,10 +5222,10 @@ same `an bench` (the cut-out corpus imports them, in
 contract hashes are checked by the same default-leg guard. What makes them the
 CORE corpus is what they need: `tests/test_core_corpus.py` renders every one
 of them with NO GENRE REGISTERED and checks each pinned frame against its bless
-record. That they render with no cut-out CODE is not proven yet — the stage
-compiler still imports and runs `an.characters` — and is the strict-xfail
-proof P8’s B0c (an#225) flips. When the cut-out corpus moves to `cutan`, this
-module, the scenes and their goldens stay.
+record. That they render with no cut-out CODE is proven too, since the move
+(an#225): the same tests run with every cut-out module poisoned. The cut-out
+corpus lives in `cutan` (`cutan.bench`); this module, the scenes and their
+goldens stay.
 
 This module is CORE (behind no firewall): the fixture type, the pinned render
 knobs, the throwaway copy and the browser-free contract hash moved here from
@@ -5762,7 +5282,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5776,7 +5296,7 @@ there without a carve-out per scene. `misc/` is not ignored at all.
 The second reason is that a metrics fixture must **hold still**. These four
 carry their whole rig as committed files and have no `prepare` step, so
 their pixels are a function of the repo alone — where `promote_demo`’s are a
-function of `an.characters.promote`, and would need re-blessing whenever that
+function of `cutan.characters.promote`, and would need re-blessing whenever that
 changes.
 
 ### *exception* an.bench.core_corpus.CaptureError
@@ -5958,9 +5478,9 @@ scene JSON **the browser actually loaded** — an independent second opinion to
 
 ### Module Attributes
 
-| [`SHOT_DIR_GLOB`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.SHOT_DIR_GLOB)   | Per-shot subdirectory naming inside `.an/render_work`, and the staged scene filename.                                                                                                                                  |
-|------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_FIXTURES`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.DFLT_FIXTURES)   | the descriptor (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the procedural one (2.94% vs 0.24% of pixels under GPU-vs-software), so a procedural-only corpus under-reports the case that matters. |
+| [`SHOT_DIR_GLOB`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.SHOT_DIR_GLOB)   | Per-shot subdirectory naming inside `.an/render_work`, and the staged scene filename.                                                                                             |
+|------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_FIXTURES`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.DFLT_FIXTURES)   | The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this is the core's: `prop_swap` and the core corpus (`an.bench.core_corpus`). |
 
 ### Functions
 
@@ -5981,53 +5501,10 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'rect', 'ellipse', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
-the descriptor
-(SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
-procedural one (2.94% vs 0.24% of pixels under GPU-vs-software), so a
-procedural-only corpus under-reports the case that matters.
-
-The four scenes an#38 adds, each for a **measured** reason:
-
-- `graded_field` — a real gradient (98 distinct luma levels down the centre
-  column) over a large flat block. Banding has no edge in it, so every
-  edge-masked metric is blind to it; and the gradient itself sits OUTSIDE the
-  flat mask by construction (`flat_mask` demands a zero 4-neighbour delta),
-  which is why the scene carries a flat block too — measured 0.2795 of the
-  frame, against 0.0341 for a gradient alone.
-- `saturated_outline` — maximally saturated fills under a pure-black 12px
-  outline. The shipped examples are 31 colours on white and their measured
-  4:2:0 edge error is ~3x smaller, so the chroma metric under-reports exactly
-  the artefact class the epic cares about. Highest edge-mask fraction in the
-  corpus (0.0566).
-- `aa_probe` — three bars pinned at 7, 23 and 45 degrees. Axis-aligned
-  `drawRect` edges are bit-identical with MSAA on or off, so a corpus of
-  axis-aligned art cannot validate an AA metric at all. Measured under the
-  real AA lever (PixiJS `antialias: false`): `edge_transition_width`
-  2.9866 -> 2.0000 and `video_stream_bytes` **+6.1%**. That last number is
-  why this scene is load-bearing rather than decorative — on
-  `single_character` the same lever moves the bytes **-6.1%**, the opposite
-  of the declared direction, because AA-off on axis-aligned art removes
-  intermediate colours instead of creating a staircase. Family F is only an
-  honest witness for `disabled_aa` on a scene with non-axis-aligned edges.
-- `multi_shot` — two shots, so `an/render.py`’s `_ffmpeg_concat` is
-  exercised at all (a single-shot render short-circuits it to
-  `shutil.copy`) and `file_bytes` stops meaning two different things
-  depending on shot count. Its shot ids are `intro` then `beat`
-  **deliberately**: they sort the other way, so any code that recovers shot
-  order from the directory name instead of the timeline pairs source frames
-  against the wrong half of the concatenated video, and this fixture is what
-  notices.
-
-One measured fact that shapes the set: the \*\*descriptor path is nearly blind
-to the AA lever\*\* (96 differing pixels out of 12.4M on `promote_demo`),
-because MSAA applies to WebGL geometry and an SVG sprite is a pre-rasterised
-texture. So the descriptor scenes are in the corpus for the rasteriser
-sensitivity the cross-arch work measured, not as AA witnesses.
-
-* **Type:**
-  The corpus. One fixture per render path, deliberately both
+The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
+is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
 
 ### an.bench.corpus.SHOT_DIR_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'shot_\*'*
 
@@ -6563,8 +6040,8 @@ Entry points: [`an.bench.run.run_bench()`](_autosummary/an.bench.run.html.md#an.
 | [`build_ledger`](_autosummary/an.bench.html.md#an.bench.build_ledger)(\*, provenance, scenes)              | The whole row.                                                                |
 | [`build_scene_block`](_autosummary/an.bench.html.md#an.bench.build_scene_block)(\*, provenance, metrics, ...)   | Assemble one scene's three blocks, refusing anything unreadable.              |
 | [`witnesses`](_autosummary/an.bench.html.md#an.bench.witnesses)(ledger_scene, mutation)                 | Which metrics would count for `mutation`, grouped by family.                  |
-| [`run_bench`](_autosummary/an.bench.html.md#an.bench.run_bench)(\*[, scenes, out, keep_render, ...])    | Render the corpus, compute the panel, and (by default) write the row.         |
-| [`format_panel`](_autosummary/an.bench.html.md#an.bench.format_panel)(ledger)                              | A human-readable digest of a row — the thing `an bench` prints.               |
+| `run_bench`(\*[, scenes, out, keep_render, ...])                                                   | Render the corpus, compute the panel, and (by default) write the row.         |
+| `format_panel`(ledger)                                                                             | A human-readable digest of a row — the thing `an bench` prints.               |
 
 ### Classes
 
@@ -6580,13 +6057,7 @@ Entry points: [`an.bench.run.run_bench()`](_autosummary/an.bench.run.html.md#an.
 | [`PngFormatError`](_autosummary/an.bench.html.md#an.bench.PngFormatError)    | A PNG this module deliberately does not decode, or a malformed one. |
 | [`RegistryError`](_autosummary/an.bench.html.md#an.bench.RegistryError)     | A metric declaration violates one of the table's invariants.        |
 | [`LedgerSchemaError`](_autosummary/an.bench.html.md#an.bench.LedgerSchemaError) | A ledger row violates an invariant that would make it misreadable.  |
-| [`BenchError`](_autosummary/an.bench.html.md#an.bench.BenchError)        | The bench could not produce a row it would be honest to file.       |
-
-### *exception* an.bench.BenchError
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-The bench could not produce a row it would be honest to file.
+| `BenchError`                                                       | The bench could not produce a row it would be honest to file.       |
 
 ### *exception* an.bench.GoldenError
 
@@ -6744,13 +6215,6 @@ True
 (2, 3, 3)
 ```
 
-### an.bench.format_panel(ledger)
-
-A human-readable digest of a row — the thing `an bench` prints.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ### an.bench.frame_key(index)
 
 The filename stem for a frame, zero-padded so a directory listing sorts.
@@ -6830,29 +6294,6 @@ free rather than a second full decode of the corpus.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
-### an.bench.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None)
-
-Render the corpus, compute the panel, and (by default) write the row.
-
-`bless` is the **reason** a re-bless is being made, and passing it is what
-turns the run into a bless. One argument rather than a `--bless` flag plus
-a `--reason` string, so “blessed with no recorded reason” — the failure
-this rule exists to prevent — is not expressible.
-
-`lossless_scratch_root` is forwarded to `_lossless_scratch_dir()` for
-every scene (an#143) — a caller may point it at a shared parent to prove
-that two concurrent lossless-leg encodes still get distinct scratch
-directories under it; production code has no reason to pass it.
-
-`golden_root` redirects where goldens are read and written, and it exists
-because without it a test of the bless path has no choice but to overwrite
-the committed corpus. That is not hypothetical: the first version of an#38’s
-bless test did exactly that, replacing a real bless record’s reason with the
-test’s own.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.witnesses(ledger_scene, mutation)
 
@@ -8853,7 +8294,7 @@ The source checkout `an` was imported from.
 
 Raises rather than returning a plausible-but-wrong path, because the
 failure it guards is running the bench against an installed wheel: the
-corpus lives under `examples/`, which is not packaged, so the first
+corpus lives under `misc/bench/`, which is not packaged, so the first
 symptom would be a missing-fixture error three frames deep.
 
 The checkout’s folder name is not asserted: a git worktree or a clone
@@ -9441,7 +8882,7 @@ single frame, which the fixture rule forbids.
 * **Return type:**
   [`Value`](_autosummary/an.bench.ledger.html.md#an.bench.ledger.Value)
 
-### an.bench.run.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None)
+### an.bench.run.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None, root=None)
 
 Render the corpus, compute the panel, and (by default) write the row.
 
@@ -9460,6 +8901,9 @@ because without it a test of the bless path has no choice but to overwrite
 the committed corpus. That is not hypothetical: the first version of an#38’s
 bless test did exactly that, replacing a real bless record’s reason with the
 test’s own.
+
+`root` is the source checkout whose corpus `scenes` names (default: `an`’s
+own); a genre package runs its own corpus with its own checkout (`cutan.bench`).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
@@ -9729,8 +9173,8 @@ Never deletes a reachable entry, nor anything written since a render of this pro
 project_dir: path to an an project
 dry_run: report what would be deleted, delete nothing
 max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB); reachable entries are never removed, so the cache can stay above it
-max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept
-force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches
+max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept (and when the current scene cannot be keyed under its settings, a line’s audio not cached under them, its entries are kept whatever its age)
+force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches (a setting whose audio is no longer cached is not kept; an#311)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -9759,8 +9203,8 @@ separate, explicit command, and this module is it.
 
 **What is kept (reachable).** An entry is reachable when either
 
-- a render of the project’s CURRENT scene would read it — under the default
-  render knobs, or under any knob set a recorded render ever used — computed
+- a render of the project’s CURRENT scene would read it — under any knob set
+  a recorded render ever used, or under a plain `an render`’s — computed
   by the render loop’s own setup and the engine’s own key code, with the
   dialogue stamped from the audio stores as the render stamps it
   ([`an.render.cache_entries()`](_autosummary/an.render.html.md#an.render.cache_entries)); or
@@ -9773,6 +9217,17 @@ A cache no render of the project has recorded a root in (one written before
 an#274) is refused unless `force`: the current scene’s keys alone are then
 the only evidence, and a render’s knobs or providers that differ from the
 defaults would leave its entries looking unreachable.
+
+**A knob set under which the current scene has a line with no audio** (an#306)
+— a line edited since the last render under it, or the plain render’s
+hypothetical knobs for a project only ever spoken by ElevenLabs — has no keys
+to compute until that line is synthesised, so nothing in the cache can be its
+entry for that shot. It is skipped rather than refused, and what each root
+recorded under it is kept whatever `--max-age` says, so its unchanged shots
+stay. Only when the current scene can be keyed under NO knob set (every one
+lacks some line’s audio: the scene has lines nothing has synthesised) is the
+collection refused — render first. Each knob set is replayed with its OWN
+providers (a root’s recorded `tts`), never with a command line’s defaults.
 
 Everything else is unreachable: the entries of shots as they were before an
 edit, parts cut for an old neighbour, whole-frame entries (`<key>.frames`)
@@ -9804,9 +9259,10 @@ layout `lacing.ArtifactStore.from_directory` documents.
 
 ### Module Attributes
 
-| [`CLOCK_SLACK_S`](_autosummary/an.build.gc.html.md#an.build.gc.CLOCK_SLACK_S)   | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.           |
-|------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| [`DEFAULT_PROFILE`](_autosummary/an.build.gc.html.md#an.build.gc.DEFAULT_PROFILE) | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them. |
+| [`CLOCK_SLACK_S`](_autosummary/an.build.gc.html.md#an.build.gc.CLOCK_SLACK_S)         | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.                                                                                      |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_PROFILE`](_autosummary/an.build.gc.html.md#an.build.gc.DEFAULT_PROFILE)       | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them: `tts` is each voice's own provider (an#305).                               |
+| [`HYPOTHETICAL_PROFILES`](_autosummary/an.build.gc.html.md#an.build.gc.HYPOTHETICAL_PROFILES) | today's ([`DEFAULT_PROFILE`](_autosummary/an.build.gc.html.md#an.build.gc.DEFAULT_PROFILE)) and the one before an#305, which spoke every line offline — what a cache written before roots existed was rendered with. |
 
 ### Functions
 
@@ -9852,18 +9308,19 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The collection cannot be done safely; nothing was deleted.
 
-### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='')
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The shot cache’s size, what it holds, and how much of it is reachable.
 
-### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'}*
+### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}*
 
 The render knobs of a plain `an render` (and of `render_project`’s
-defaults), as `ShotCache.record_root()` records them. Always among the
-profiles the current scene is keyed under, so a cache written before roots
-existed keeps what a plain render of the current scene reads.
+defaults), as `ShotCache.record_root()` records them: `tts` is each
+voice’s own provider (an#305). Always among the profiles the current scene
+is keyed under, so a cache written before roots existed keeps what a plain
+render of the current scene reads.
 
 ### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None)
 
@@ -9872,11 +9329,24 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 What a collection deleted (or, with `dry_run`, would delete), and why
 the rest was kept.
 
-### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>)
+### an.build.gc.HYPOTHETICAL_PROFILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], ...]* *= ({'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}, {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'})*
+
+today’s
+([`DEFAULT_PROFILE`](_autosummary/an.build.gc.html.md#an.build.gc.DEFAULT_PROFILE)) and the one before an#305, which spoke every line
+offline — what a cache written before roots existed was rendered with.
+
+* **Type:**
+  The knob sets a plain render used or uses, recorded by a root or not
+
+### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What the current scene and the recorded roots keep, and why.
+
+`profiles` are the knob sets the current scene was keyed under;
+`skipped` the ones it could not be (`(profile, why)`: a line’s audio
+is not cached under it — an#306), whose roots keep what they recorded.
 
 ### an.build.gc.cache_info(project_dir, , reachability=True, engine=None, now=None)
 
@@ -9940,18 +9410,24 @@ listed with role `"unreadable"` and, on disk, its file’s mtime.
 
 What the project’s current scene and its recorded roots reach.
 
-The current scene is keyed under the default knobs and under the knobs of
-EVERY recorded root (of any project, any age: a knob set is a few values,
-and dropping one would orphan that render’s entries of the unchanged scene).
-A root younger than `root_max_age` seconds (all, when `None`) also
-keeps the entries it names; roots themselves are always kept.
+The current scene is keyed under the knobs of EVERY recorded root (of any
+project, any age: a knob set is a few values, and dropping one would orphan
+that render’s entries of the unchanged scene), each with its own recorded
+providers, and under [`HYPOTHETICAL_PROFILES`](_autosummary/an.build.gc.html.md#an.build.gc.HYPOTHETICAL_PROFILES) (a plain render’s). A
+root younger than `root_max_age` seconds (all, when `None`) also keeps
+the entries it names; roots themselves are always kept.
+
+A knob set under which some line’s audio is not cached cannot be keyed
+without a synthesis (an#306): it is skipped, listed in `skipped`, and
+every root recorded under it keeps its entries whatever `root_max_age`.
 
 `engine` computes the keys (its environment seam included); `None` is
 a default [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache) over `store`, which probes this
 machine like a render does. Raises [`CacheGcError`](_autosummary/an.build.gc.html.md#an.build.gc.CacheGcError) when the current
-scene’s keys cannot be computed (guessing is never safe), and when no render
-of THIS project has recorded a root yet — a cache written before roots
-existed (an#274) — unless `force`.
+scene’s keys cannot be computed for any other reason, or under no knob set
+at all (guessing is never safe), and when no render of THIS project has
+recorded a root yet — a cache written before roots existed (an#274) —
+unless `force`.
 
 * **Return type:**
   [`Reachability`](_autosummary/an.build.gc.html.md#an.build.gc.Reachability)
@@ -11888,4329 +11364,6 @@ longer than a line gets a line of its own and is never split.
 ```
 
 
-# _autosummary/an.characters.brows.html.md
-
-# an.characters.brows
-
-Brow acting: where the brows can go, what may not draw there, and the `face.brows` capability.
-
-An expression acts largely with the brows (raised in surprise, knitted in
-anger, tilted in sorrow). A drawing that sits where the brows go — a hat brim
-pulled down over the forehead — leaves them nothing to read against, and the
-expression falls to the lids, the gaze and the mouth (an#252). So:
-
-- **The brows’ acting range** ([`brow_range()`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_range)) is measured, not assumed:
-  the factory’s brow drawing, posed by every shipped expression preset through
-  the default expression binding (its travel and its signs), on every view
-  that shows a brow, at the character’s head scale — in the offline head’s
-  drawing units, so it can be compared with what the head draws.
-- **A hat is seated above that range** ([`seat_above_brows()`](_autosummary/an.characters.brows.html.md#an.characters.brows.seat_above_brows)): lifted, and
-  if its crown would leave the drawing, flattened toward its crown, by one
-  transform shared by every view so the hat does not change shape as the
-  character turns. When even the flattest seat still overlaps — a small head
-  under a tall hat — the overlap is not hidden: the factory records it in the
-  descriptor’s `occluded` (a declared fact, written by whoever KNOWS the
-  geometry, like `colour_roles`).
-- **\`\`face.brows\`\`** is the capability the character analyser
-  ([`an.library.character`](_autosummary/an.library.character.html.md#module-an.library.character)) derives with [`brow_affordance()`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_affordance): two brow
-  slots with art on an overlay face, and nothing recorded over them. The cut-out genre’s `expression` aspect
-  requires it for its full-face method ([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)).
-
-Hair is not measured here: the brows’ outer ends meet the hairline by design
-(the default hair has always run under them), so a hair style is held to the
-default hairline instead (tests), never to the brows’ range.
-
-Units: the offline head is drawn in an [`HEAD_ART_SIZE`](_autosummary/an.characters.brows.html.md#an.characters.brows.HEAD_ART_SIZE) square; the rig
-draws it [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT) × `head_scale`
-view-box units tall, hung from the neck at
-[`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR). The face offsets scale with the head
-(`_scale_face`), so a brow’s rest place in head units does not depend on the
-head scale; its expression travel does (`BROW_HEIGHT_TRAVEL` is a view-box
-length), which is why a small head’s brows reach higher up its forehead.
-
-A surprised brow reaches about three head units above its rest, less on a
-bigger head; a band drawn across the forehead is lifted clear of it:
-
-```pycon
->>> round(BROW_REST_TOP, 1)
-22.8
->>> [round(min(brow_range(head_scale=s)["front"].values()), 1) for s in (1.0, 1.7)]
-[19.5, 20.3]
->>> seat_above_brows({"front": '<rect x="20" y="20" width="40" height="4"/>'}, head_scale=1.0)
-Seat(transform='translate(0 -5.47)', covers=False)
-```
-
-### Module Attributes
-
-| [`HEAD_ART_SIZE`](_autosummary/an.characters.brows.html.md#an.characters.brows.HEAD_ART_SIZE)      | The offline head's drawing is this many units square (its `viewBox`).                                                                                  |
-|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`BROW_CANVAS`](_autosummary/an.characters.brows.html.md#an.characters.brows.BROW_CANVAS)        | its canvas (view-box units at head scale 1), the stroke, and how far each end tilts from the level.                                                    |
-| [`BROWS_FEATURE`](_autosummary/an.characters.brows.html.md#an.characters.brows.BROWS_FEATURE)      | The face features a drawing can be recorded as covering (`occluded` keys).                                                                             |
-| [`HAT_BROW_CLEARANCE`](_autosummary/an.characters.brows.html.md#an.characters.brows.HAT_BROW_CLEARANCE) | Head units left between a hat's lowest ink and the brows' highest reach — about the outline's width, so a raised brow never touches the brim's line.   |
-| [`HAT_CROWN_MIN_Y`](_autosummary/an.characters.brows.html.md#an.characters.brows.HAT_CROWN_MIN_Y)    | How high a lifted hat's crown may go (head units from the drawing's top edge): above it the crown would be clipped by the head's canvas.               |
-| [`HAT_MIN_FLATTEN`](_autosummary/an.characters.brows.html.md#an.characters.brows.HAT_MIN_FLATTEN)    | The flattest a hat is drawn (its height kept, as a fraction) to seat it above the brows; past it the hat keeps this shape and the overlap is recorded. |
-
-### Functions
-
-| [`brow_affordance`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_affordance)(desc, drawn)                       | `face.brows`'s params for a descriptor whose drawn slots are `drawn`, or `None`.   |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`brow_slots`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_slots)(desc)                                   | The slots the character's own expression binding moves on a brow axis.             |
-| [`brow_path_d`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_path_d)(side)                                  | The path of the factory's brow on `side` (`l` or `r`) in its canvas.               |
-| [`brow_range`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_range)(\*[, head_scale, views, presets])       | `{view: {column: top}}`: the highest the brows' ink reaches, per head-unit column. |
-| [`ink_columns`](_autosummary/an.characters.brows.html.md#an.characters.brows.ink_columns)(discs)                                 | `{column: (top, bottom)}` of ink, per head-unit column (`round(x)`).               |
-| [`seat_above_brows`](_autosummary/an.characters.brows.html.md#an.characters.brows.seat_above_brows)(fragments, \*[, head_scale, ...]) | Seat a hat, drawn as `{view: svg fragment}` in head units, above the brows' range. |
-
-### Classes
-
-| [`Seat`](_autosummary/an.characters.brows.html.md#an.characters.brows.Seat)([transform, covers])   | Where a hat is drawn: `transform` (`None`: where it was drawn) and whether it still covers the brows' range there (`covers`).   |
-|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-
-### an.characters.brows.BROWS_FEATURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'brows'*
-
-The face features a drawing can be recorded as covering (`occluded` keys).
-
-### an.characters.brows.BROW_CANVAS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (80, 24)*
-
-its canvas (view-box units at head scale 1),
-the stroke, and how far each end tilts from the level.
-
-* **Type:**
-  The factory’s brow drawing
-
-### an.characters.brows.HAT_BROW_CLEARANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
-
-Head units left between a hat’s lowest ink and the brows’ highest reach —
-about the outline’s width, so a raised brow never touches the brim’s line.
-
-### an.characters.brows.HAT_CROWN_MIN_Y *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
-
-How high a lifted hat’s crown may go (head units from the drawing’s top
-edge): above it the crown would be clipped by the head’s canvas.
-
-### an.characters.brows.HAT_MIN_FLATTEN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.6*
-
-The flattest a hat is drawn (its height kept, as a fraction) to seat it
-above the brows; past it the hat keeps this shape and the overlap is recorded.
-
-### an.characters.brows.HEAD_ART_SIZE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 80.0*
-
-The offline head’s drawing is this many units square (its `viewBox`).
-
-### *class* an.characters.brows.Seat(transform=None, covers=False)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Where a hat is drawn: `transform` (`None`: where it was drawn) and
-whether it still covers the brows’ range there (`covers`).
-
-### an.characters.brows.brow_affordance(desc, drawn)
-
-`face.brows`’s params for a descriptor whose drawn slots are `drawn`, or `None`.
-
-Afforded when the face is an overlay (`face_overlay`), the binding moves
-a brow ([`brow_slots()`](_autosummary/an.characters.brows.html.md#an.characters.brows.brow_slots)) and every slot it moves on a brow axis has
-art, and the descriptor records nothing over the brows (`occluded`).
-The slots are the solver’s own binding’s, so the capability and the solver
-cannot disagree about which slots act.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-```pycon
->>> from an.characters.schema import CharacterDescriptor
->>> d = CharacterDescriptor(name="c")
->>> brow_affordance(d, {"left_brow": {"brow_l"}, "right_brow": {"brow_r"}})
-{'slots': ['left_brow', 'right_brow']}
->>> d.occluded = {"brows": "a helmet"}
->>> brow_affordance(d, {"left_brow": {"brow_l"}, "right_brow": {"brow_r"}}) is None
-True
-```
-
-### an.characters.brows.brow_path_d(side)
-
-The path of the factory’s brow on `side` (`l` or `r`) in its canvas.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> brow_path_d("l")
-'M 8 16 Q 40 4 72 8'
-```
-
-### an.characters.brows.brow_range(, head_scale=1.0, views=('front', 'three_quarter', 'side'), presets=None)
-
-`{view: {column: top}}`: the highest the brows’ ink reaches, per head-unit column.
-
-Every shipped expression preset (or `presets`), at full intensity, posed
-through the default binding on each brow the view shows (its turnaround
-pose: shifted, narrowed, or hidden) — the region a cover must stay above
-for the presets to read.
-The range is bounded by the PRESETS, not by the axes’ full box: an
-`axes:` override at the corner (height 1, a full tilt) or two summed
-spans can reach past it (review-278 L1).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-### an.characters.brows.brow_slots(desc)
-
-The slots the character’s own expression binding moves on a brow axis.
-
-The binding the solver uses ([`binding_for()`](_autosummary/an.expression.binding.html.md#an.expression.binding.binding_for):
-the declared `expression_binding`, else the default one), so a rig whose
-brows live on slots of its own naming is read as having brows, and one
-whose declared binding moves no brow is read as having none. A binding
-that does not resolve moves nothing (`an validate` reports it).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> from an.characters.schema import CharacterDescriptor
->>> brow_slots(CharacterDescriptor(name="c"))
-['left_brow', 'right_brow']
-```
-
-### an.characters.brows.ink_columns(discs)
-
-`{column: (top, bottom)}` of ink, per head-unit column (`round(x)`).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-```pycon
->>> ink_columns([(10.2, 5.0, 0.0), (10.4, 7.0, 0.0)])
-{10: (5.0, 7.0)}
-```
-
-### an.characters.brows.seat_above_brows(fragments, , head_scale=1.0, clearance=1.0, crown_min_y=0.5, min_flatten=0.6)
-
-Seat a hat, drawn as `{view: svg fragment}` in head units, above the brows’ range.
-
-No transform when it already clears them by `clearance`. Else it is
-lifted — as far as its crown may go (`crown_min_y`) — and, if that is
-not enough, flattened toward its crown, never below `min_flatten` of its
-height; one transform for every view. `covers` says the seat found still
-overlaps the range (it never claims a clearance it did not measure).
-
-* **Return type:**
-  [`Seat`](_autosummary/an.characters.brows.html.md#an.characters.brows.Seat)
-
-
-# _autosummary/an.characters.cli.html.md
-
-# an.characters.cli
-
-User-facing character CLI subcommands.
-
-Wired into the top-level `an` dispatcher via `character_*` dispatch-friendly
-functions in [`an.tools`](_autosummary/an.tools.html.md#module-an.tools). Each function here takes plain strings/bools
-and returns a string for terminal display.
-
-Subcommands (used as `an character <verb> ...`):
-
-- `new`       — generate a fresh character from DiceBear or fallback art.
-- `add-views` — give an offline character its turnaround (an#197).
-- `mouths`    — regenerate the 9-shape default mouth set.
-- `validate`  — completeness check.
-- `capabilities` — what it affords, and per aspect which methods apply (an#248).
-- `silhouette`— rasterize silhouettes; for two characters, also IoU.
-- `preview`   — open an HTML viewer cycling visemes + idle animation.
-
-### Functions
-
-| [`add_gaze`](_autosummary/an.characters.cli.html.md#an.characters.cli.add_gaze)(name[, out_dir, overwrite_eyes])         | Give `name` the eye stack (an#99): sclera and pupil slots under each lid, a filled closed lid, and the `gaze_travel` clamp — so `gaze_x` / `gaze_y` and the ambient saccades move its pupils.   |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`add_views`](_autosummary/an.characters.cli.html.md#an.characters.cli.add_views)(name[, out_dir])                        | Give `name` its turnaround (an#197): back, side and three-quarter head and torso art, a `view` swap set, and a pose per view — so `play: turn` and `set <name> view <key>` turn it.             |
-| [`capabilities`](_autosummary/an.characters.cli.html.md#an.characters.cli.capabilities)(name[, out_dir, as_json])            | What a character affords, and per aspect which methods apply and what the rest lack.                                                                                                            |
-| [`contract`](_autosummary/an.characters.cli.html.md#an.characters.cli.contract)()                                        | Print the art-package contract an illustrator must satisfy.                                                                                                                                     |
-| [`mouths`](_autosummary/an.characters.cli.html.md#an.characters.cli.mouths)(name[, out_dir, palette, variants])        | Regenerate the default 9-shape mouth set for `name`, plus its `viseme@<form>` variants, and declare them in the descriptor.                                                                     |
-| [`new`](_autosummary/an.characters.cli.html.md#an.characters.cli.new)(name[, out_dir, seed, style, voice_ref, ...]) | Create a new character at `out_dir`/`name`.                                                                                                                                                     |
-| [`preview`](_autosummary/an.characters.cli.html.md#an.characters.cli.preview)(name[, out_dir, open_browser])            | Render a small HTML viewer that previews all visemes + idle animation.                                                                                                                          |
-| [`record`](_autosummary/an.characters.cli.html.md#an.characters.cli.record)(name[, out_dir, output, duration, ...])    | Record a character's preview HTML to mp4.                                                                                                                                                       |
-| [`silhouette`](_autosummary/an.characters.cli.html.md#an.characters.cli.silhouette)(name[, other, out_dir, output, size])  | Render a black silhouette for `name` (and optionally compare to `other`).                                                                                                                       |
-| [`validate`](_autosummary/an.characters.cli.html.md#an.characters.cli.validate)(name[, out_dir])                         | Validate a character's directory structure and descriptor.                                                                                                                                      |
-
-### an.characters.cli.add_gaze(name, out_dir='', overwrite_eyes=False)
-
-Give `name` the eye stack (an#99): sclera and pupil slots under each
-lid, a filled closed lid, and the `gaze_travel` clamp — so `gaze_x` /
-`gaze_y` and the ambient saccades move its pupils. The expand step for a
-character made before Wave 6; idempotent on one that has it.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-overwrite_eyes: replace hand-drawn eye parts with the synthesized outline
-
-> and filled lid (refused otherwise — a promoted rig’s eyes are not the
-> factory’s to redraw)
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.add_views(name, out_dir='')
-
-Give `name` its turnaround (an#197): back, side and three-quarter head
-and torso art, a `view` swap set, and a pose per view — so `play: turn`
-and `set <name> view <key>` turn it. The expand step for an offline
-character made before views; idempotent. Refused for a DiceBear head or a
-hand-drawn rig, whose views are an illustrator’s to draw.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.capabilities(name, out_dir='', as_json=False)
-
-What a character affords, and per aspect which methods apply and what the rest lack.
-
-The affordances are derived from `character.json` and the art files
-present (ADR 0002 decision 2), with the declared overrides it used; per
-aspect (`locomotion`, `speech`, …) the method the default chain picks,
-the methods that apply, and for each other method the missing capabilities
-with the remedy that would add them.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-as_json: print the answer as JSON (what the MCP surface returns)
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.contract()
-
-Print the art-package contract an illustrator must satisfy.
-
-**Derived from the schema and the validator, never hand-written**, so it
-cannot drift from what `an character validate` actually enforces — a
-contract that disagrees with its checker is worse than none, because it
-gets a human paid for work that cannot land.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.mouths(name, out_dir='', palette='', variants='happy,sad')
-
-Regenerate the default 9-shape mouth set for `name`, plus its
-`viseme@<form>` variants, and declare them in the descriptor.
-
-Useful when you want to reset a character’s mouth art to the offline
-fallback (e.g. after experimenting with hand-drawn mouths), or to give a
-pre-an#98 character the variant sets its expressions prefer.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-palette: optional JSON string to override colors, e.g. ‘{“lip”:”#a44”}’
-variants: comma-separated mouth forms (see `an character new`); “” = none
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True, hair_style='peak', hair_length='short')
-
-Create a new character at `out_dir`/`name`.
-
-name: character id (used as the directory name and descriptor ‘name’)
-out_dir: parent directory; defaults to ./assets/characters
-seed: deterministic seed for DiceBear; defaults to `name`
-style: DiceBear style. The default is CC0 — no attribution duty. Some styles
-
-> are CC BY 4.0 and oblige whoever ships the video to credit the artist;
-> those need –acknowledge-attribution. Run `an credits <project>` to see
-> what a project owes.
-
-voice_ref: voice id stored in the descriptor’s `voice_ref` field
-offline: skip DiceBear and use the deterministic geometric fallback
-acknowledge_attribution: accept the attribution duty of a CC BY style
-overwrite: replace an existing directory at the target
-mouth_variants: comma-separated mouth forms to draw as `viseme@<form>`
-
-> sets (an#98) — a form an expression preset prefers (happy, sad, angry,
-> surprised, afraid, disgusted); “” for the neutral set only
-
-palette: colours by StylePack role, “skin=#f1c9a5,clothing=#2e7d4f” (or a
-: JSON object); roles: skin, hair, clothing, leg, accessory
-
-build: body proportions — regular, squat (round body, short legs), tall,
-: stick (small blocky body, stick limbs)
-
-head_scale: the head and its whole face scaled together (1.0 = regular)
-hat: none, cap, beanie, bowler or bicorne (offline head only), in the
-
-> accessory colour, worn above the brows so expressions read (a hat that
-> cannot clear them on a very small head is recorded, and
-> `an character capabilities` says the brows cannot act)
-
-hair_style: peak (the default), bald, bun or curly (offline head only),
-: in the hair colour
-
-hair_length: short (the default), medium (to the jaw) or long (past the
-: chin) (offline head only); bald takes short
-
-sash: a diagonal band across the torso, in the accessory colour
-views: draw the turnaround — back, side (a profile facing right) and
-
-> three_quarter beside the front, as a `view` swap set (offline head
-> only), so `play: turn` can turn the character (an#197)
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.preview(name, out_dir='', open_browser=False)
-
-Render a small HTML viewer that previews all visemes + idle animation.
-
-The page includes the head SVG, cycles through `mouth_a … mouth_x`
-once a second, and shows a ±2 px sine-wave breath on the head. Useful
-for eyeballing a character’s mouth set before integrating into the
-main runtime.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-open_browser: also open the file in the default browser
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.record(name, out_dir='', output='', duration=8.0, width=640, height=480)
-
-Record a character’s preview HTML to mp4.
-
-Real video file showing the new SVG character art animating: cycles
-through all 9 visemes and applies the breath/head-tilt animation.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-output: output mp4 path; defaults to <character_dir>/preview.mp4
-duration: recording length in seconds (default 8)
-width / height: video resolution (default 640x480)
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.silhouette(name, other='', out_dir='', output='', size=512)
-
-Render a black silhouette for `name` (and optionally compare to `other`).
-
-When two names are given, prints both silhouettes’ paths and an IoU
-score (0..1; lower means more visually distinct).
-
-name: character id
-other: optional second character to compare against
-out_dir: parent directory; defaults to ./assets/characters
-output: output PNG path; defaults to <character_dir>/silhouette.png
-size: square output size in pixels (default 512)
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.cli.validate(name, out_dir='')
-
-Validate a character’s directory structure and descriptor.
-
-name: character id
-out_dir: parent directory; defaults to ./assets/characters
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-
-# _autosummary/an.characters.colour_roles.html.md
-
-# an.characters.colour_roles
-
-Colour roles: which colour literal in which part is skin, clothing, hair…
-
-A `StylePack` maps a role to a colour. For the procedural rig the compiler
-decides every colour, so the mapping is a lookup. For SVG art the colours live
-inside the drawings, and a pack could only reach them by guessing which literal
-means what — inferring a role from a pixel, which is what produced an#99’s
-wrong-tone lid. So the roles are recorded at the SOURCE instead: the character
-factory knows which fill it drew as skin and which as clothing, and it writes
-that down in the descriptor’s `colour_roles`:
-
-```default
-{"parts/torso.svg": {"#a83249": "clothing", "#3b2a1a": "hair"}}
-```
-
-This is **palette swapping**, the indexed-colour technique 2D games have used
-since sprites: a part is keyed by the literal it was drawn in, and a swap
-rewrites that literal. Keyed per PART, not per character, because one literal
-can mean two things in two drawings (the default pupil and a near-black hair
-are both `#1a1a1a`). The one limit it inherits is the classic one: within a
-single part, two roles must be drawn in two distinct literals — the factory
-guarantees it ([`distinct_literal()`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.distinct_literal)), and an illustrator tagging their own
-art is told so by the descriptor validator.
-
-The compiler applies it ([`recolour_svg()`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.recolour_svg)) at compile time: the tagged
-part’s SVG text is rewritten, and the result becomes a new, content-addressed
-inline texture. Art with no roles — hand-drawn, DiceBear — is untouched, and
-the compiler says so.
-
-```pycon
->>> recolour_svg('<rect fill="#A83249" stroke="#222"/>', {"#a83249": "#123456"})
-'<rect fill="#123456" stroke="#222"/>'
-```
-
-### Module Attributes
-
-| [`ColourRoles`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.ColourRoles)   | `{part path: {"#rrggbb": role}}` — the descriptor field's shape.   |
-|----------------------------------------------------------------|--------------------------------------------------------------------|
-
-### Functions
-
-| [`normalise_hex`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.normalise_hex)(colour)               | `'#ABC'` -> `'#aabbcc'`: the one spelling a literal is keyed by.                                                              |
-|--------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| [`recolour_svg`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.recolour_svg)(svg, swaps)            | `svg` with every paint use of an old literal replaced by its new one.                                                         |
-| [`role_recolouring`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.role_recolouring)(roles, colour_for) | `{old literal: new colour}` for the roles `colour_for` sets.                                                                  |
-| [`distinct_literal`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.distinct_literal)(colour, taken)     | `colour`, nudged by the smallest step until no literal in `taken` has it — the one rule palette swapping needs within a part. |
-
-### an.characters.colour_roles.ColourRoles
-
-`{part path: {"#rrggbb": role}}` — the descriptor field’s shape.
-
-alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
-### an.characters.colour_roles.distinct_literal(colour, taken)
-
-`colour`, nudged by the smallest step until no literal in `taken`
-has it — the one rule palette swapping needs within a part.
-
-Two roles drawn in one literal cannot be told apart by a swap, and neither
-can a role and an untagged detail (a shoe, an outline) that happens to share
-it. One step in one channel is invisible and makes the key exact.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> distinct_literal("#222222", {"#222222"})
-'#222223'
->>> distinct_literal("#ffffff", {"#ffffff", "#fffffe"})
-'#fffffd'
->>> distinct_literal("#123456", {"#abcdef"})
-'#123456'
-```
-
-### an.characters.colour_roles.normalise_hex(colour)
-
-`'#ABC'` -> `'#aabbcc'`: the one spelling a literal is keyed by.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> normalise_hex("#A83249"), normalise_hex("#fa0")
-('#a83249', '#ffaa00')
->>> normalise_hex("red")
-Traceback (most recent call last):
-...
-ValueError: 'red' is not a #rgb or #rrggbb colour
-```
-
-### an.characters.colour_roles.recolour_svg(svg, swaps)
-
-`svg` with every paint use of an old literal replaced by its new one.
-
-Only paint colours are touched (`fill`, `stroke`, gradient stops…, as an
-attribute or a style declaration); everything else — geometry, ids,
-fragment references — stays byte-for-byte. Literals match case- and
-length-insensitively (`#FA0` is `#ffaa00`). Deterministic, and cached by
-content: the same text and swaps are rewritten once per process.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> recolour_svg('<g style="fill:#fa0;stroke:#000"><use href="#fa0"/></g>',
-...              {"#ffaa00": "#010203"})
-'<g style="fill:#010203;stroke:#000"><use href="#fa0"/></g>'
->>> recolour_svg('<rect data-fill="#aaa" fill="#aaa"/>', {"#aaaaaa": "#bbbbbb"})
-'<rect data-fill="#aaa" fill="#bbbbbb"/>'
-```
-
-### an.characters.colour_roles.role_recolouring(roles, colour_for)
-
-`{old literal: new colour}` for the roles `colour_for` sets.
-
-`colour_for(role)` is the pack’s lookup (per entity); a role it leaves
-unset keeps its literal, and a role set to the colour it already has is not
-a swap — so a pack that changes nothing produces nothing to rewrite.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> role_recolouring({"#a83249": "clothing", "#3b2a1a": "hair"},
-...                  {"clothing": "#202028"}.get)
-{'#a83249': '#202028'}
-```
-
-
-# _autosummary/an.characters.dicebear.html.md
-
-# an.characters.dicebear
-
-DiceBear HTTP API client + best-effort post-processing.
-
-DiceBear ([https://www.dicebear.com](https://www.dicebear.com)) hosts deterministic SVG avatar
-generators. We pin to API `9.x` for stability — DiceBear pins styles to
-API versions and 9.x is supported through 2028 (research §4.1, caveats).
-
-The styles we care about — `adventurer`, `lorelei`, `avataaars` —
-emit SVGs with internal groups but the group naming is style-specific and
-not stable across versions. Rather than parse it heuristically (which
-would silently break on a future style version), we wrap the DiceBear SVG
-in a [`wrap_dicebear_for_an()`](_autosummary/an.characters.dicebear.html.md#an.characters.dicebear.wrap_dicebear_for_an) envelope: the original SVG becomes a
-single `head` part, and the rest of the rig is filled in from defaults.
-That gives a usable cutout puppet immediately, at the cost of less
-articulation (you can’t, e.g., blink an avataaars-style avatar — the eyes
-are baked into the head).
-
-```pycon
->>> # The wrapping is offline and deterministic.
->>> wrapped = wrap_dicebear_for_an('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><circle cx="40" cy="40" r="35"/></svg>', name='maya')
->>> 'id="head"' in wrapped
-True
-```
-
-### Module Attributes
-
-| [`DICEBEAR_API_VERSION`](_autosummary/an.characters.dicebear.html.md#an.characters.dicebear.DICEBEAR_API_VERSION)   | 9.x and 10.x are both Active with End of Life "None" — the April 2028 date sometimes cited is the EOL of the DEPRECATED 5.x-8.x line, not of this one.   |
-|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DICEBEAR_DEFAULT_STYLE`](_autosummary/an.characters.dicebear.html.md#an.characters.dicebear.DICEBEAR_DEFAULT_STYLE) | The default avatar style.                                                                                                                                |
-
-### Functions
-
-| [`fetch_dicebear`](_autosummary/an.characters.dicebear.html.md#an.characters.dicebear.fetch_dicebear)(seed, \*[, style, ...])            | Fetch an avatar SVG from DiceBear's HTTP API.                     |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| [`wrap_dicebear_for_an`](_autosummary/an.characters.dicebear.html.md#an.characters.dicebear.wrap_dicebear_for_an)(avatar_svg, \*, name[, ...]) | Wrap a DiceBear avatar SVG into the canonical `an` cutout layout. |
-
-### an.characters.dicebear.DICEBEAR_API_VERSION *= '9.x'*
-
-9.x and 10.x are both Active with End of Life “None” —
-the April 2028 date sometimes cited is the EOL of the DEPRECATED 5.x-8.x line,
-not of this one. The pin is right; the reason previously given for it was not.
-
-* **Type:**
-  Pinned major. NOTE
-
-### an.characters.dicebear.DICEBEAR_DEFAULT_STYLE *= 'lorelei'*
-
-The default avatar style. CC0 1.0 — no attribution duty falls on anyone who
-renders with stock settings.
-
-The previous default (`adventurer`) is CC BY 4.0, so every character created
-with default flags carried an undischarged attribution obligation, recorded
-nowhere. `lorelei` is not merely “a CC0 one”: it is the only CC0 *human* style
-shaped like a head-and-shoulders bust, which is what the rig needs —
-`wrap_dicebear_for_an` pastes the whole avatar in as the single `head` part,
-so the other CC0 human styles (`notionists`, `open-peeps`) render half-body
-characters and would put a torso on a torso. It is also by the same artist as
-`adventurer`, so the demo art barely shifts. `pixel-art` is the CC0 fallback.
-
-All 27 styles stay requestable; only the default moves. See
-`an/characters/licenses.py` for the per-style table.
-
-### an.characters.dicebear.fetch_dicebear(seed, , style='lorelei', api_version='9.x', timeout_s=10.0, extra_params=None)
-
-Fetch an avatar SVG from DiceBear’s HTTP API.
-
-Returns the SVG string. Raises [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError) if the API call
-fails (network error, HTTP error, non-SVG response).
-
-The URL pattern is:
-
-```default
-https://api.dicebear.com/<api_version>/<style>/svg?seed=<seed>
-```
-
-Pass `extra_params` to forward style-specific options (e.g.
-`backgroundColor=transparent`).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.dicebear.wrap_dicebear_for_an(avatar_svg, , name, canvas_size=1024, head_size=600)
-
-Wrap a DiceBear avatar SVG into the canonical `an` cutout layout.
-
-The avatar becomes the `head` part; `torso`, `arm_l`, `arm_r`,
-`leg_l`, `leg_r` are filled with simple colored rounded-rects so the
-character is immediately renderable as a stick-figure-with-real-face.
-The user can later replace any part by dropping a hand-drawn SVG into
-`parts/<part>.svg`.
-
-`head_size` is the head’s width in canvas pixels; the rest of the rig
-scales accordingly.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-
-# _autosummary/an.characters.drawn.html.md
-
-# an.characters.drawn
-
-What the character factory wrote, as it wrote it: the in-memory log behind its record of drawn bytes.
-
-The machine’s record of bytes the factory drew (an#269,
-`an.library.registry.record_generated`) verifies the factory’s stamps in the
-asset library. It must hold the digests of bytes the factory itself produced,
-never of whatever sits on disk when it finishes: a file swapped in while
-`new_character` runs is not the factory’s drawing. So every file the factory
-writes goes through [`write_text()`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.write_text) / [`write_bytes()`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.write_bytes), which write it AND,
-while a [`drawing()`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.drawing) is open in this context, log the SHA-256 of the exact
-bytes written — computed in memory at write time.
-
-```pycon
->>> import tempfile, pathlib
->>> with tempfile.TemporaryDirectory() as d, drawing() as log:
-...     p = pathlib.Path(d) / "a.svg"
-...     write_text(p, "<svg/>")
-...     log[str(p.resolve())] == hashlib.sha256(b"<svg/>").hexdigest()
-True
-```
-
-### Functions
-
-| [`drawing`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.drawing)()                                         | Log `{resolved path: sha256}` of every file written through this module, in this context.                           |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| [`write_bytes`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.write_bytes)(path, data)                           | Write `data` to `path`, logging its digest if a [`drawing()`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.drawing) is open. |
-| [`write_derived_text`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.write_derived_text)(path, source, text, \*[, ...]) | Write `text`, derived from `source` — the bytes just read back from `path`.                                         |
-| [`write_text`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.write_text)(path, text, \*[, encoding])            | Write `text` as `Path.write_text` does (newlines as the platform writes them), logged.                              |
-
-### an.characters.drawn.drawing()
-
-Log `{resolved path: sha256}` of every file written through this module, in this context.
-
-Re-entrant: inside an open drawing (`add_gaze` called by
-`new_character`) the same log is shared, so the outer call sees every
-byte the inner one wrote.
-
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
-### an.characters.drawn.write_bytes(path, data)
-
-Write `data` to `path`, logging its digest if a [`drawing()`](_autosummary/an.characters.drawn.html.md#an.characters.drawn.drawing) is open.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.drawn.write_derived_text(path, source, text, , encoding='utf-8')
-
-Write `text`, derived from `source` — the bytes just read back from `path`.
-
-Logged only if `source` is exactly what this drawing itself wrote there:
-a file swapped in between the factory’s write and its re-read (a rescale)
-is rewritten, but not as the factory’s drawing (review-288 round 2).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-```pycon
->>> import tempfile, pathlib
->>> with tempfile.TemporaryDirectory() as d, drawing() as log:
-...     p = pathlib.Path(d) / "a.svg"
-...     write_text(p, "<svg/>")
-...     p.write_bytes(b"<svg>swapped</svg>")  # not the factory's write
-...     write_derived_text(p, p.read_bytes(), "<svg>scaled</svg>")
-...     str(p.resolve()) in log
-18
-False
-```
-
-### an.characters.drawn.write_text(path, text, , encoding='utf-8')
-
-Write `text` as `Path.write_text` does (newlines as the platform writes them), logged.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-
-# _autosummary/an.characters.factory.html.md
-
-# an.characters.factory
-
-High-level entry points: build and inspect a character.
-
-The [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) function wires together fetching/wrapping art,
-slicing it into per-part SVGs, generating the default mouth set, and
-writing a complete character directory + `character.json` descriptor.
-
-Checking one is [`an.characters.validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)’s job, not this module’s — it
-opens every part and reports [`an.verify._base.Finding`](_autosummary/an.verify.html.md#an.verify.Finding) s, so a character
-problem routes the way every other verifier’s does (an#78).
-
-```pycon
->>> import tempfile
->>> with tempfile.TemporaryDirectory() as d:
-...     descriptor_path = new_character(d, name='nobody', use_dicebear=False)
-...     descriptor_path.parent.name, descriptor_path.name
-('nobody', 'character.json')
-```
-
-### Module Attributes
-
-| [`PALETTE_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.PALETTE_ROLES)            | The roles `new_character(palette=...)` takes.                                                                                                                                                                                                                                                                                                               |
-|---------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`HEAD_ART_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.HEAD_ART_ROLES)           | The roles a head's own art carries.                                                                                                                                                                                                                                                                                                                         |
-| [`OUTLINE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.OUTLINE_COLOUR)           | it is the drawing's ink, not a costume colour.                                                                                                                                                                                                                                                                                                              |
-| [`SHOE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.SHOE_COLOUR)              | The shoe, drawn in the leg part.                                                                                                                                                                                                                                                                                                                            |
-| [`PUPIL_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.PUPIL_COLOUR)             | The pupil, in its own part (or the pre-gaze open eye).                                                                                                                                                                                                                                                                                                      |
-| [`DFLT_HAND_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.DFLT_HAND_COLOUR)         | Default hand, trouser and brow colours — the literals the factory always drew.                                                                                                                                                                                                                                                                              |
-| [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS)                     | The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.                                                                                                                                                                                                                                                                         |
-| [`HAIR_STYLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.HAIR_STYLES)              | `peak` (the factory's original hair, a widow's peak — the default), `bald`, `bun` (the hair gathered in a bun on the crown) and `curly` (a halo of curls around the crown).                                                                                                                                                                                 |
-| [`HAIR_LENGTHS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HAIR_LENGTHS)             | `short` (nothing below the crown — the default), `medium` (falling beside the face to the jaw) and `long` (past the chin, in locks that keep clear of the neck and the collar).                                                                                                                                                                             |
-| [`MAX_HEAD_SCALE`](_autosummary/an.characters.factory.html.md#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                                                                                                                                                                                                              |
-| [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
-| [`FACTORY_PROVIDER`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_PROVIDER)         | The provider of every per-part source the factory stamps on what it draws.                                                                                                                                                                                                                                                                                  |
-| [`FACTORY_LICENSE`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_LICENSE)          | no rights to clear.                                                                                                                                                                                                                                                                                                                                         |
-| [`FACTORY_AUTHOR`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACTORY_AUTHOR)           | Who the factory's descriptor-level source names as the author.                                                                                                                                                                                                                                                                                              |
-| [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                                                                                                                                                                                                         |
-| [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                                                                                                                                                                                                         |
-| [`FACE_SLOTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                                                                                                                                                                                                               |
-| [`SIDE_EYE_SHIFT`](_autosummary/an.characters.factory.html.md#an.characters.factory.SIDE_EYE_SHIFT)           | how far the near eye, its stack and brow slide toward the face's edge, and the mouth with them (view_box units at head_scale 1); the mouth is narrowed, seen edge-on.                                                                                                                                                                                       |
-| [`SIDE_LEG_OFFSET`](_autosummary/an.characters.factory.html.md#an.characters.factory.SIDE_LEG_OFFSET)          | both hang from under the body, the near leg (`leg_r`, drawn over the far one) a little forward and the far leg a little back, overlapping at the hip — each hip sits `SIDE_LEG_OFFSET` leg widths off the centre line — and splayed so the FEET part: the shoe centres land `SIDE_FOOT_SPREAD` leg widths apart, on every build (a stubby leg splays more). |
-| [`THREE_QUARTER_FACE_SHIFT`](_autosummary/an.characters.factory.html.md#an.characters.factory.THREE_QUARTER_FACE_SHIFT) | the whole face slides toward the facing side, the far eye narrows, the far arm tucks in toward the body and the legs in.                                                                                                                                                                                                                                    |
-
-### Functions
-
-| [`add_gaze`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_gaze)(char_dir, \*[, skin, overwrite_eyes])   | Give a character the eye stack (an#99): three sibling slots per eye under the head — `<side>_sclera` (white fill) below `<side>_pupil` below `<side>_eye` (the existing slot, now the lid, drawn above the pupil) — with synthesized parts, an outline-only open eye, a FILLED closed lid, the `gaze_travel` clamp, and draw orders that put the lid over the pupil.                            |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`add_views`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) turns the whole character. |
-| [`declare_mouth_variants`](_autosummary/an.characters.factory.html.md#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
-| [`factory_descriptor_source`](_autosummary/an.characters.factory.html.md#an.characters.factory.factory_descriptor_source)(source_svg)            | The descriptor-level source of a character this factory drew, pinned to its drawing.                                                                                                                                                                                                                                                                                                            |
-| [`factory_source`](_autosummary/an.characters.factory.html.md#an.characters.factory.factory_source)(data)                             | The per-part source of a part this factory drew, pinned to its bytes.                                                                                                                                                                                                                                                                                                                           |
-| [`gaze_travel_for`](_autosummary/an.characters.factory.html.md#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
-| [`new_character`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
-| [`recording_drawn`](_autosummary/an.characters.factory.html.md#an.characters.factory.recording_drawn)(char_dir)                        | Log what the body writes, then record the factory-stamped bytes it wrote at `char_dir`.                                                                                                                                                                                                                                                                                                         |
-| [`scale_part_files`](_autosummary/an.characters.factory.html.md#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
-| [`stage_extent`](_autosummary/an.characters.factory.html.md#an.characters.factory.stage_extent)(desc)                               | How far a character's art reaches above and below its stage point, in scene pixels at `stage.scale: 1`: `{"top", "feet", "height"}`.                                                                                                                                                                                                                                                            |
-| [`stamp_factory_descriptor`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_factory_descriptor)(char_dir)               | Record the factory as the source of the character it just drew at `char_dir`.                                                                                                                                                                                                                                                                                                                   |
-| [`stamp_factory_parts`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_factory_parts)(char_dir, paths, \*[, skip]) | Give each part the factory drew a `cc0` per-part source pinned to its digest.                                                                                                                                                                                                                                                                                                                   |
-| [`stamp_generated_head`](_autosummary/an.characters.factory.html.md#an.characters.factory.stamp_generated_head)(char_dir, source)           | Pin a generator's `source` (DiceBear's) to the bytes it produced at `char_dir`.                                                                                                                                                                                                                                                                                                                 |
-| [`view_poses`](_autosummary/an.characters.factory.html.md#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
-
-### Classes
-
-| [`BodyBuild`](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)([torso_size, torso_radius, ...])   | The proportions of a synthesized body, in view_box units.   |
-|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-
-### an.characters.factory.BUILDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [BodyBuild](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)]* *= {'regular': BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), 'squat': BodyBuild(torso_size=(300, 220), torso_radius=80, torso_inset_bottom=4, arm_width=36, arm_length=140, hand_radius=18, limb_stroke=4, leg_width=50, leg_length=96, shoe_size=(34, 16), shoulder=(118, 168), hip_x=46, neck_height=214), 'stick': BodyBuild(torso_size=(170, 210), torso_radius=14, torso_inset_bottom=4, arm_width=10, arm_length=200, hand_radius=9, limb_stroke=3, leg_width=10, leg_length=230, shoe_size=(15, 7), shoulder=(82, 188), hip_x=28, neck_height=214), 'tall': BodyBuild(torso_size=(224, 320), torso_radius=36, torso_inset_bottom=4, arm_width=32, arm_length=320, hand_radius=18, limb_stroke=4, leg_width=36, leg_length=380, shoe_size=(30, 16), shoulder=(80, 304), hip_x=44, neck_height=324)}*
-
-Named builds. `regular` is today’s body, number for number.
-
-### *class* an.characters.factory.BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-The proportions of a synthesized body, in view_box units.
-
-Every length that decides where a part hangs is here, so the bones the
-factory writes and the art it draws are derived from ONE record and cannot
-disagree — a leg’s art is exactly `leg_length` tall and its bone sits
-`leg_length` above the ground, so it hangs from the hip to the ground at
-every build (tests/test_rig_layout.py).
-
-#### arm_width *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 36*
-
-Sleeve thickness and the arm canvas’s length (sleeve + hand).
-
-#### hip_x *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 50*
-
-The hip joints’ distance from the centre line.
-
-#### neck_height *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 260*
-
-The neck’s height above the hip; the head hangs above it.
-
-#### shoulder *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (90, 240)*
-
-The shoulder joint (x from the centre line, height above the hip).
-
-#### torso_inset_bottom *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20*
-
-The gap between the drawn body and the canvas bottom (the hip). The
-regular body’s 20 leaves a sliver between body and legs; the other
-builds close it.
-
-#### torso_size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (256, 256)*
-
-Torso canvas; the drawn body is inset 20 on every side, and the canvas
-bottom sits on the hip.
-
-### an.characters.factory.DFLT_HAND_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#f1c9a5'*
-
-Default hand, trouser and brow colours — the literals the factory always drew.
-
-### an.characters.factory.EYE_CANVAS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (64, 32)*
-
-The eye’s geometry in its 64x32 canvas, shared by the four synthesizers so
-the sclera, the pupil and the lid outline agree (an#99).
-
-### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
-
-The face slots of the default rig with the eye stack (an#99).
-
-### an.characters.factory.FACTORY_AUTHOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an (generated locally)'*
-
-Who the factory’s descriptor-level source names as the author.
-
-### an.characters.factory.FACTORY_LICENSE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cc0-1.0'*
-
-no rights to clear.
-
-* **Type:**
-  The licence of the factory’s own drawings
-
-### an.characters.factory.FACTORY_PROVIDER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an character factory'*
-
-The provider of every per-part source the factory stamps on what it draws.
-
-### an.characters.factory.GAZE_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
-
-The parts a rig gains with `an character add-gaze`. Optional — never in
-`REQUIRED_PARTS`: a pre-Wave-6 rig without them still renders, and gaze is
-a no-op on it.
-
-### an.characters.factory.HAIR_LENGTHS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('short', 'medium', 'long')*
-
-`short` (nothing below the crown — the default), `medium`
-(falling beside the face to the jaw) and `long` (past the chin, in locks
-that keep clear of the neck and the collar).
-
-* **Type:**
-  Hair lengths
-
-### an.characters.factory.HAIR_STYLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('peak', 'bald', 'bun', 'curly')*
-
-`peak` (the factory’s original hair, a widow’s peak — the
-default), `bald`, `bun` (the hair gathered in a bun on the crown) and
-`curly` (a halo of curls around the crown). Every style keeps the default
-hairline over the forehead — none draws lower over the brows (tests) — so a
-hair style never costs brow acting.
-
-* **Type:**
-  Hair styles
-
-### an.characters.factory.HATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('none', 'cap', 'beanie', 'bowler', 'bicorne')*
-
-The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.
-
-### an.characters.factory.HEAD_ART_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'hair', 'skin'})*
-
-The roles a head’s own art carries. On a head the factory did not draw
-(DiceBear) they are left untagged everywhere, never half-tagged.
-
-### an.characters.factory.MAX_HEAD_SCALE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.5*
-
-The largest head scale accepted — past it the head no longer fits the
-1024-unit view box above a regular body.
-
-### an.characters.factory.OUTLINE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#222222'*
-
-it is the
-drawing’s ink, not a costume colour.
-
-* **Type:**
-  The outline every synthesized body part is stroked in. Untagged
-
-### an.characters.factory.PALETTE_ROLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('skin', 'hair', 'clothing', 'leg', 'accessory')*
-
-The roles `new_character(palette=...)` takes. They are `StylePack` role
-names on purpose: a palette chosen at authoring time and a pack applied at
-compile time speak one vocabulary, and the factory records each as a colour
-role so the pack can reach what the palette drew.
-
-### an.characters.factory.PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
-
-The pupil, in its own part (or the pre-gaze open eye). Role `pupil`.
-
-### an.characters.factory.SHOE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
-
-The shoe, drawn in the leg part. Untagged.
-
-### an.characters.factory.SIDE_EYE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 14.0*
-
-how far the near eye, its stack and brow slide toward
-the face’s edge, and the mouth with them (view_box units at head_scale 1);
-the mouth is narrowed, seen edge-on.
-
-* **Type:**
-  [*Profile*](_autosummary/an.capabilities.html.md#an.capabilities.Profile) (facing right)
-
-### an.characters.factory.SIDE_LEG_OFFSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
-
-both hang from under the body, the near leg
-(`leg_r`, drawn over the far one) a little forward and the far leg a
-little back, overlapping at the hip — each hip sits `SIDE_LEG_OFFSET` leg
-widths off the centre line — and splayed so the FEET part: the shoe centres
-land `SIDE_FOOT_SPREAD` leg widths apart, on every build (a stubby leg
-splays more). Both legs show, even as one silhouette, and a walk in profile
-has two legs to alternate (an#203). A stick leg is thinner than its shoe,
-so leg widths alone would leave the two shoes on top of each other — a
-one-legged stand; the shoes part by at least `SIDE_FOOT_MIN_SHOES` shoe
-lengths (a floor every other build already clears, so they are unchanged).
-
-* **Type:**
-  Profile legs (facing right)
-
-### an.characters.factory.THREE_QUARTER_FACE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20.0*
-
-the whole face slides toward the facing side,
-the far eye narrows, the far arm tucks in toward the body and the legs in.
-
-* **Type:**
-  Three-quarter (facing right)
-
-### an.characters.factory.add_gaze(char_dir, , skin=None, overwrite_eyes=False)
-
-Give a character the eye stack (an#99): three sibling slots per eye under
-the head — `<side>_sclera` (white fill) below `<side>_pupil` below
-`<side>_eye` (the existing slot, now the lid, drawn above the pupil) —
-with synthesized parts, an outline-only open eye, a FILLED closed lid, the
-`gaze_travel` clamp, and draw orders that put the lid over the pupil.
-Idempotent: a rig that already has the stack is rewritten to the same
-state. Returns the descriptor path.
-
-The open and closed eye parts are REWRITTEN (outline-only, filled lid), so
-on a rig whose eyes are not this factory’s drawings — a promoted hand rig —
-it refuses unless `overwrite_eyes=True`: the stack’s geometry is the
-synthesized eye’s, and an illustrator’s eyes would be silently replaced
-(an#99 review). Such a rig wants its own outline-only open eye, filled
-lid, sclera and pupil parts drawn to its own geometry.
-
-This is the **expand** step for a pre-Wave-6 descriptor: no migration
-inserts pupil slots, because their art would be absent and absent art is
-fatal under `strict_assets` — every existing character would stop
-rendering on the bench.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.factory.add_views(char_dir)
-
-Give a factory character its turnaround (an#197): `back`, `side` and
-`three_quarter` head and torso art beside the front, a `view` swap set
-projected onto those two slots, and a pose per view (`swap_poses`) — so
-`{kind: set, target: <entity>, property: view, value: side}` or
-[`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) turns the whole character. Idempotent. Returns the
-descriptor path.
-
-The views are REDRAWN from the recorded knobs (seed, palette, build, hat,
-hair style and length, sash, head scale), so it refuses a rig whose head is not this factory’s
-drawing for them — a DiceBear head (its face is baked, and there is no
-back of it to draw), a promoted hand rig, or an edited head: its views are
-an illustrator’s to draw, declared the same way (a `view` set whose keys
-name attachments on the head and torso slots, and `swap_poses`).
-
-Every colour is role-tagged like the front’s, so a StylePack recolours the
-views exactly as it recolours the front (an#191). The existing art is not
-touched: a shot that never sets a view renders byte-identically.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.factory.declare_mouth_variants(descriptor, variants)
-
-Declare a `viseme@<form>` set per variant on `descriptor` — the set’s
-keys map to `mouth_<shape>_<form>` attachments, which are added to the
-default skin’s `mouth` slot with the neutral mouth’s geometry. The
-neutral set is the SSOT for which shapes exist; a variant mirrors it.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.factory.factory_descriptor_source(source_svg)
-
-The descriptor-level source of a character this factory drew, pinned to its drawing.
-
-The digest is that of the descriptor’s `source_svg` — the drawing every
-part was cut from. Like a part stamp it speaks only for bytes it pins: the
-asset library and `an credits` read every file of the character that no
-stamp pins (a part re-carved later, a file added by hand) as UNVERIFIED,
-never as the factory’s (`an.credits._part_credits()`).
-
-* **Return type:**
-  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
-
-```pycon
->>> s = factory_descriptor_source(b"<svg/>")
->>> (s.provider, s.license, len(s.sha256))
-('an character factory', 'cc0-1.0', 64)
-```
-
-### an.characters.factory.factory_source(data)
-
-The per-part source of a part this factory drew, pinned to its bytes.
-
-* **Return type:**
-  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
-
-```pycon
->>> factory_source(b"<svg/>").license, len(factory_source(b"<svg/>").sha256)
-('cc0-1.0', 64)
-```
-
-### an.characters.factory.gaze_travel_for(rx=14, ry=10, pupil_r=5)
-
-The pupil’s travel per axis, in view-box units: the sclera’s clearance
-minus the pupil’s radius — the semi-axes of the inner ellipse the gaze
-axes’ unit circle maps onto. The compiler clamps the summed gaze to 0.95
-of that circle (`GAZE_ELLIPSE_MARGIN`), which is what keeps the pupil disc
-inside the white at every angle without a runtime mask.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> gaze_travel_for()
-{'x': 9.0, 'y': 5.0}
-```
-
-### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True, hair_style='peak', hair_length='short')
-
-Build a complete character on disk.
-
-**Variety knobs** (every default reproduces the pre-knob character byte for
-byte, which a golden test holds):
-
-- `palette` — `{role: "#rrggbb"}` over [`PALETTE_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.PALETTE_ROLES) (`skin`,
-  `hair`, `clothing`, `leg`, `accessory`) — the SAME role names a
-  [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) uses. Unset roles keep the seed’s colours.
-  > `skin` also paints the hands and the gaze lid; `hair` the brows and
-  > the collar. On a DiceBear head only the body follows (its face is baked).
-- `build` — a key of [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS): `regular`, `squat` (round body,
-  short legs), `tall`, `stick` (small blocky body, stick limbs).
-- `head_scale` — the head and its whole face (eyes, brows, mouths, their
-  offsets, the pupil travel) scaled together, so a big head keeps its face.
-- `hat` — a key of [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS) (offline head only), in `accessory`,
-  worn above the brows’ acting range at this head scale (an#252): lifted,
-  and flattened toward its crown when lifting is not enough. A hat that
-  still covers the brows (a very small head) is recorded in the
-  descriptor’s `occluded`, so the character does not afford
-  `face.brows` and expressions fall to the lids, gaze and mouth.
-- `hair_style` — [`HAIR_STYLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.HAIR_STYLES): `peak` (the default), `bald`,
-  `bun`, `curly`; `hair_length` — [`HAIR_LENGTHS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HAIR_LENGTHS): `short`
-  (the default), `medium`, `long` (offline head only). Drawn in the
-  `hair` role (the palette’s `hair` colours them), in every view.
-- `sash` — a diagonal band across the torso, in `accessory`.
-- `views` (an#197) — draw the turnaround: `back`, `side` (a profile
-  facing the viewer’s right) and `three_quarter` beside the front, as a
-  `view` swap set with a pose per view ([`add_views()`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_views)), so
-  [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) can turn the character around. Offline head only
-  > (a DiceBear face is baked into its art); ignored for a DiceBear head.
-
-  Additive: a shot that never sets a view renders exactly as without it.
-
-Every colour the factory draws in a role is recorded in the descriptor’s
-`colour_roles` so a style pack can recolour it later (palette swapping,
-[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)).
-
-`gaze` (an#99) adds the eye stack — sclera and pupil slots under each
-lid, a filled closed lid, the `gaze_travel` clamp — through
-[`add_gaze()`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_gaze), so `gaze_x`/`gaze_y` and the ambient saccades reach the
-pupils. Off, the eye is the single pre-stack drawing.
-
-`mouth_variants` (an#98) — `{form: smile offset}` — writes one more
-9-shape mouth set per form (`mouth_<shape>_<form>.svg`) and declares it
-as the `viseme@<form>` swap set, with its attachments in the default
-skin’s `mouth` slot, so an expression preset preferring that form
-selects it. `None` means [`DEFAULT_MOUTH_VARIANTS`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS)
-(happy, sad); `{}` means the neutral set only.
-
-Steps:
-
-1. Fetch a DiceBear avatar (skip if `use_dicebear=False` — useful for
-   offline tests).
-2. Wrap it into the canonical `an` cutout SVG (skeleton + illustration
-   groups), saved as `<name>.svg`.
-3. Slice each part into `parts/<part>.svg`.
-4. Write the 9-shape default mouth set into `parts/mouth/`.
-5. Synthesize a few derived parts (open/closed eyes, brows) so the
-   character is complete out of the box.
-6. Emit a `character.json` descriptor.
-
-Returns the path to the created `character.json`.
-
-Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#FileExistsError) if `out_dir/name` already exists and
-`overwrite=False`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.factory.recording_drawn(char_dir)
-
-Log what the body writes, then record the factory-stamped bytes it wrote at `char_dir`.
-
-For a drawing path outside this module (`an character mouths`): only
-bytes written through [`an.characters.drawn`](_autosummary/an.characters.drawn.html.md#module-an.characters.drawn) inside the block, and
-stamped by the factory, are recorded.
-
-### an.characters.factory.scale_part_files(paths, scale)
-
-Rewrite each part SVG’s root size by `scale` (its drawing untouched):
-the compiler draws a part at its own raster size, so that IS its size on
-screen. Missing files are skipped.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.factory.stage_extent(desc)
-
-How far a character’s art reaches above and below its stage point, in
-scene pixels at `stage.scale: 1`: `{"top", "feet", "height"}`.
-
-The stage point (`stage.at`) is not the feet: the compiler places a rig
-by the middle of its bones’ extent, between the neck and the feet, so
-where the feet land depends on the build and the head scale (a squat
-figure’s feet sit about half as far below the point as a tall one’s).
-Read from the compiler’s own placement rule and the head’s art, so this is
-what the compiled scene does, not a second guess at it. Multiply by
-`stage.scale`. The head reaches its drawing’s top edge (a hat stays
-inside it).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> e = stage_extent(CharacterDescriptor(name="c"))
->>> round(e["top"]), round(e["feet"])
-(169, 94)
-```
-
-### an.characters.factory.stamp_factory_descriptor(char_dir)
-
-Record the factory as the source of the character it just drew at `char_dir`.
-
-Only a descriptor that declares no source is stamped (a DiceBear head
-carries DiceBear’s); the stamp pins the bytes of its `source_svg`. Called
-by [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on what it has just drawn, never on a character
-someone may have edited since.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.factory.stamp_factory_parts(char_dir, paths, , skip=())
-
-Give each part the factory drew a `cc0` per-part source pinned to its digest.
-
-Rights in the asset library attach to the BYTES (an#236): a file is as
-restricted as the strictest thing any library says about its SHA-256, and an
-asset-level licence speaks for every file the asset does not itemise. The
-factory’s parts are byte-identical across characters (the default mouths,
-the eyes), so without this stamp a carved character built on a factory body
-would make every other character’s shared parts private. The stamp pins the
-digest, so a part later re-drawn or re-carved no longer matches it and stops
-being itemised as the factory’s — the stamp cannot launder new bytes.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-paths: the relative paths this call has just DRAWN — required (an#249
-: R4-N1): a stamp says “the factory made these bytes”, so only the code
-  that made them may write it. Stamping every part by default would label
-  a part re-carved since as the factory’s `cc0`. A part carrying some
-  other provider’s source is never re-stamped.
-
-### an.characters.factory.stamp_generated_head(char_dir, source)
-
-Pin a generator’s `source` (DiceBear’s) to the bytes it produced at `char_dir`.
-
-The head part(s) the generator drew (`parts/head.svg`) carry the source
-with their own digest, and the descriptor carries it with the digest of its
-`source_svg`. Like the factory’s stamps, it then speaks only for those
-bytes: a part re-carved since, or a file added, is UNVERIFIED in `an
-credits` and `unknown` in the asset library. Called by
-[`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on what it has just written.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
-
-`{view: {slot: SlotPose}}` for the factory’s rig built as `body` — what
-a view does besides swapping art: the back hides the face, the side hides
-the far eye and arm and slides the near eye and mouth to the profile edge.
-
-Face offsets scale with `head_scale` (the face was drawn at it), limb
-offsets come from the build’s own joints. `slots` limits the poses to the
-slots a rig has (a rig without the eye stack has no pupils to pose).
-
-* **Return type:**
-  dict[str, dict[str, ‘SlotPose’]]
-
-```pycon
->>> poses = view_poses()
->>> sorted(poses)
-['back', 'front', 'side', 'three_quarter']
->>> poses["front"], poses["back"]["mouth"].alpha, poses["side"]["arm_r"].x
-({}, 0.0, -90.0)
-```
-
-
-# _autosummary/an.characters.html.md
-
-# an.characters
-
-Character art system: Spine-shaped descriptor + SVG sidecars.
-
-Public API:
-
-- [`CharacterDescriptor`](_autosummary/an.characters.html.md#an.characters.CharacterDescriptor) — the on-disk schema for a character (bones,
-  slots, skins, viseme map, idle animations).
-- [`new_character()`](_autosummary/an.characters.html.md#an.characters.new_character) — generate a fresh character (DiceBear or built-in).
-- [`generate_default_mouths()`](_autosummary/an.characters.html.md#an.characters.generate_default_mouths) — produce the 9-shape default mouth set.
-- [`render_silhouette()`](_autosummary/an.characters.html.md#an.characters.render_silhouette), [`compare_silhouettes()`](_autosummary/an.characters.html.md#an.characters.compare_silhouettes) — silhouette test.
-- [`breath_animation()`](_autosummary/an.characters.html.md#an.characters.breath_animation), [`blink_animation()`](_autosummary/an.characters.html.md#an.characters.blink_animation) — idle animation factories.
-- [`validate_character()`](_autosummary/an.characters.html.md#an.characters.validate_character) — completeness check against the schema.
-- [`promote()`](_autosummary/an.characters.html.md#an.characters.promote) — lift an inline character into the reusable mall.
-
-Conventions (locked in):
-
-- Slot/skin/animation separation modeled on Spine’s JSON format.
-- SVG layout: a `<g id="skeleton">` of named `<circle>` pivots and a
-  sibling `<g id="illustration">` containing named part groups (Pose
-  Animator convention).
-- 9 mouth shapes, named `mouth_a` through `mouth_h` plus `mouth_x`
-  (the rest position), matching Rhubarb’s A–H + X visemes.
-- Time in seconds (float); `bone:<name>.<prop>` and
-  `slot:<name>.attachment` are the two animation target syntaxes.
-
-```pycon
->>> from an.characters import MOUTH_SHAPES
->>> MOUTH_SHAPES
-('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')
-```
-
-### Functions
-
-| [`normalize_svg`](_autosummary/an.characters.html.md#an.characters.normalize_svg)(source, \*[, fallback_viewbox])     | Promote Inkscape labels to ids and ensure a viewBox is set.                                                                                                                         |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`extract_part`](_autosummary/an.characters.html.md#an.characters.extract_part)(source, part_id, \*[, ...])          | Emit a standalone SVG tree containing only the group with the given id.                                                                                                             |
-| [`extract_pivots`](_autosummary/an.characters.html.md#an.characters.extract_pivots)(source, \*[, skeleton_id])         | Return `{name: (cx, cy)}` for every named `<circle>` under skeleton.                                                                                                                |
-| [`write_svg`](_autosummary/an.characters.html.md#an.characters.write_svg)(tree_or_element[, path])                | Serialize an `ElementTree` or `Element` to bytes (and optionally disk).                                                                                                             |
-| [`promote_inkscape_labels_to_ids`](_autosummary/an.characters.html.md#an.characters.promote_inkscape_labels_to_ids)(tree)              | Copy `inkscape:label` to `id` on each group missing an id.                                                                                                                          |
-| [`generate_default_mouths`](_autosummary/an.characters.html.md#an.characters.generate_default_mouths)(\*[, canvas, ...])        | Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.                                                                                                            |
-| [`write_default_mouths`](_autosummary/an.characters.html.md#an.characters.write_default_mouths)(out_dir, \*[, canvas, ...])  | Write the default mouth SVGs into `out_dir` (created if missing), plus one `mouth_<shape>_<form>.svg` per shape for every `variants` entry (`{form: smile offset}`; `None` = none). |
-| [`breath_animation`](_autosummary/an.characters.html.md#an.characters.breath_animation)(\*[, period_s, ...])             | Sine-wave breath on torso Y + head rotation; optional weight shift.                                                                                                                 |
-| [`blink_animation`](_autosummary/an.characters.html.md#an.characters.blink_animation)(\*[, closure_s, duration_s, ...]) | Step-animation that snaps both eye slots closed → open.                                                                                                                             |
-| [`render_silhouette`](_autosummary/an.characters.html.md#an.characters.render_silhouette)(svg_source, out_png, \*[, ...]) | Render an SVG to a binary silhouette PNG (black on white).                                                                                                                          |
-| [`compare_silhouettes`](_autosummary/an.characters.html.md#an.characters.compare_silhouettes)(a, b, \*[, size])             | Return IoU between two silhouette PNGs (0..1; lower = more distinct).                                                                                                               |
-| [`fetch_dicebear`](_autosummary/an.characters.html.md#an.characters.fetch_dicebear)(seed, \*[, style, ...])            | Fetch an avatar SVG from DiceBear's HTTP API.                                                                                                                                       |
-| [`new_character`](_autosummary/an.characters.html.md#an.characters.new_character)(out_dir, \*, name[, seed, ...])     | Build a complete character on disk.                                                                                                                                                 |
-| [`validate_character`](_autosummary/an.characters.html.md#an.characters.validate_character)(char_dir, \*[, name])          | Check an art package against the contract, offline.                                                                                                                                 |
-| [`promote`](_autosummary/an.characters.html.md#an.characters.promote)(project_dir, entity, as_, \*[, ...])      | Promote `entity` from `project_dir`'s inline assets into the mall.                                                                                                                  |
-| [`record_character`](_autosummary/an.characters.html.md#an.characters.record_character)(char_dir, \*[, name, ...])       | Render preview.html for the character at `char_dir` and record it.                                                                                                                  |
-| [`record_preview_to_mp4`](_autosummary/an.characters.html.md#an.characters.record_preview_to_mp4)(preview_html, out_mp4, \*)  | Record `preview_html` to `out_mp4` for `duration_s` seconds.                                                                                                                        |
-
-### Classes
-
-| [`CharacterDescriptor`](_autosummary/an.characters.html.md#an.characters.CharacterDescriptor)(\*\*data)   | The on-disk character schema.                                           |
-|----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`Bone`](_autosummary/an.characters.html.md#an.characters.Bone)(\*\*data)                  | A skeleton joint with a local transform relative to its parent.         |
-| [`Slot`](_autosummary/an.characters.html.md#an.characters.Slot)(\*\*data)                  | A draw-order slot bound to a bone, displaying one attachment at a time. |
-| [`Attachment`](_autosummary/an.characters.html.md#an.characters.Attachment)(\*\*data)            | A drawable: an SVG path + anchor point (in 0..1 per-axis units).        |
-| [`Skin`](_autosummary/an.characters.html.md#an.characters.Skin)(\*\*data)                  | A named outfit/variant: maps slot → {attachment_name → Attachment}.     |
-| [`IdleAnimation`](_autosummary/an.characters.html.md#an.characters.IdleAnimation)(\*\*data)         | A named idle loop (e.g., breath, blink).                                |
-| [`AnimationTrack`](_autosummary/an.characters.html.md#an.characters.AnimationTrack)(\*\*data)        | A single channel inside an idle animation.                              |
-
-### *class* an.characters.AnimationTrack(\*\*data)
-
-Bases: `_CharModel`
-
-A single channel inside an idle animation.
-
-The `target` is a path-string per the architecture pillar:
-
-- `bone:<name>.<prop>` for bone transforms (`x`, `y`, `rotation_deg`,
-  `scale_x`, `scale_y`).
-- `slot:<name>.attachment` for swap animations (eyes blinking, mouth visemes).
-
-For `type="sine"`: `amplitude` is the peak deviation; `phase` is in
-cycles (0..1). For `type="step"` / `type="linear"`: `frames` is a
-list of `[time_s, value]` pairs evaluated in order.
-
-```pycon
->>> t = AnimationTrack(target="bone:torso.y", type="sine", amplitude=2.0)
->>> t.amplitude
-2.0
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.characters.Attachment(\*\*data)
-
-Bases: `_CharModel`
-
-A drawable: an SVG path + anchor point (in 0..1 per-axis units).
-
-```pycon
->>> a = Attachment(path="parts/head.svg", anchor=(0.5, 0.78))
->>> a.anchor
-(0.5, 0.78)
-```
-
-#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
-
-Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Where THIS part’s art came from, when it is not the descriptor’s
-`source` — a character composed from several clips, or a carved head
-on a CC0 body, credits each (an#220). `None` = the descriptor’s
-`source` covers it. `an credits` lists every one; an all-rights-
-reserved part makes the render NOT PUBLISHABLE like any other.
-Omitted from the stored document when unset.
-
-#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-The size the part draws at, in **view_box units** — the rig’s units,
-the ones `x`/`y` and the bones use (an#220). \*\*A declared size
-wins\*\* over the art’s own extent, as `Plane.size` does for plates.
-Unset, the art’s own extent is the size: an SVG’s `width`/`height`
-(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
-pixel per unit needs nothing, and one carved at any other scale
-declares its size here instead of being resampled. The aspect is the
-art’s, always (an#74): with ONE of the two declared the other follows
-the art’s aspect; with both, the art is contained in the box
-(uniformly scaled to fit, never stretched) and `an character
-validate` says when the two aspects disagree. See
-`attachment_box()`.
-
-#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
-
-Offset from the slot’s bone, in view_box units.
-
-**This is where a part’s position lives**, and it is the reference data
-model’s answer, not an invention: DragonBones puts it in
-`display.transform`, Spine in the region attachment’s `{x, y}`, and
-in both the *slot* carries no transform at all. It is what lets five face
-parts share one `head` bone and still land in different places — before
-this field they all stacked on the bone, because the descriptor had no
-way to say otherwise and the compiler used hardcoded literals instead.
-
-### *class* an.characters.Bone(\*\*data)
-
-Bases: `_CharModel`
-
-A skeleton joint with a local transform relative to its parent.
-
-```pycon
->>> b = Bone(name="head", parent="torso", x=0, y=-260, pivot="neck")
->>> b.parent
-'torso'
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Optional pivot name — must match a circle in the SVG `skeleton` group.
-
-### *class* an.characters.CharacterDescriptor(\*\*data)
-
-Bases: `_CharModel`
-
-The on-disk character schema. Saved as `character.json`.
-
-The descriptor is the SSOT for a character’s identity, body part inventory,
-pivot geometry, viseme map, and built-in idle behaviors. Binary art lives
-as SVG sidecars referenced by `Attachment.path` (relative to the
-descriptor file).
-
-```pycon
->>> c = CharacterDescriptor(name="maya")
->>> c.schema_version == CHARACTER_SCHEMA_VERSION
-True
->>> # all 9 mouths are wired into the default skin
->>> sorted(c.skins["default"].slots["mouth"].keys()) == [
-...     'mouth_a', 'mouth_b', 'mouth_c', 'mouth_d',
-...     'mouth_e', 'mouth_f', 'mouth_g', 'mouth_h', 'mouth_x',
-... ]
-True
->>> # round-trip
->>> raw = c.model_dump_json()
->>> back = CharacterDescriptor.model_validate_json(raw)
->>> back.name == c.name
-True
-```
-
-#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
-
-`{channel: {key: attachment_name}}` — what a swap key SELECTS, layered
-over `skins`, which is the SSOT for what art EXISTS. The indirection is
-deliberate: a channel key is not an attachment name. Today’s viseme map
-happens to be one-to-one (9 keys, 9 attachments), but real mouth charts
-are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
-two namespaces makes the first shared drawing a schema change instead of
-a data change. Replaces `viseme_map` (schema 0.2.0).
-
-#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
-
-Which colour literal in which part plays which `StylePack` role —
-`{part path: {"#rrggbb": role}}`, e.g.
-`{"parts/torso.svg": {"#a83249": "clothing"}}`. Written by the factory,
-which KNOWS what it drew as skin or clothing; read by the compiler, which
-rewrites the tagged literals under a pack (palette swapping — see
-[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)). Empty = untagged art (hand-drawn,
-DiceBear): a pack cannot reach it and the compiler says so, because the
-alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
-Additive: no schema bump, and a descriptor without it reads back as
-untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
-one a pack can set ([`an.styles.REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)).
-
-#### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-How expression axes reach this rig (an#98), as a list of binding dicts —
-`{"axis", "slot", "property", "gain"[, "rig_scaled"]}` for a transform
-channel, `{"axis", "slot", "set_family"}` for a swap set. `None` means
-the default binding derived from the slots the rig has
-([`an.expression.binding.default_binding()`](_autosummary/an.expression.binding.html.md#an.expression.binding.default_binding)). Additive: no schema bump,
-and a pre-Wave-6 descriptor reads back unchanged.
-
-#### face_overlay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
-
-Whether this character’s face is drawn as separate overlay parts
-(eyes, brows, mouth as their own slots — the default) or baked into the
-head art (DiceBear / external avatars). `False` suppresses the face
-overlay slots at rig build AND the viseme/emotion channels at dialogue
-compile — a baked face has no overlay mouth to drive.
-
-This is a **declared fact**, replacing the old vendor-name check on
-`metadata.art_provenance` (an#87): provenance says where art came
-from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
-from the provenance string once, and `art_provenance` reverts to pure
-provenance/licensing metadata.
-
-#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-This character’s default walk `gait` (one of `GAITS`, an#220);
-an author’s `gait` arg overrides it. `None` = `legs` when the rig
-builds a leg pair, else `rock`. A robe figure whose leg slots are hem
-halves declares `"hem"` once, here, rather than on every walk.
-Omitted from the stored document when unset.
-
-#### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-How far a pupil may travel from its rest, in view-box units per axis
-(an#99): the sclera’s clearance minus the pupil’s radius, written by
-`an character add-gaze` from the parts it synthesized. `None` = the
-rig has no pupil layer (gaze is a no-op on it) or uses the default
-travel. The travel maps the gaze axes’ unit circle onto the sclera’s
-inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
-circle, which keeps the whole pupil disc inside the white at every
-angle (a per-axis box pokes out at the diagonal) — no runtime mask.
-
-#### metadata *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
-
-Free-form metadata (dicebear style/seed, etc.). Schema-evolution
-friendly: anything an external tool wants to record can land here.
-
-This comment used to say “art license, etc.” — an invitation nothing ever
-took up. Rights live in `source` now, typed, so they can be found.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-#### model_post_init(\_CharacterDescriptor_\_context)
-
-Override this method to perform additional initialization after `__init__` and `model_construct`.
-This is useful if you want to do some validation that requires the entire model to be initialized.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-#### occluded *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
-
-The face features another drawing of this character covers, and what
-covers them — `{feature: what}`, e.g. `{"brows": "the cap hat at
-head_scale 0.3"}` (an#252). A **declared fact**, written by whoever
-knows the geometry: the factory measures its hat against the brows’
-acting range and records an overlap it could not seat away; an
-illustrator declares a helmet over the brows. Read by the character
-analyser: a covered feature is not afforded (`brows` →
-`face.brows`), so the methods needing it fall to their default, said
-by `an character capabilities`. Keys are
-`OCCLUDABLE_FEATURES`. Omitted from the
-stored document when empty.
-
-#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-The view the DEFAULT art is drawn in (an#220) — a declared fact about
-the art, like `face_overlay`. `None` means `DFLT_VIEW`
-(front). A character carved from a profile (a silhouette film, a side-
-on figure) says `"side"`, and everything that asks which view is in
-force before any turn — `walk` swinging its legs rather than lifting
-them — reads it instead of the author passing `view: side` by hand.
-Omitted from the stored document when unset.
-
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Where this character’s art came from, and what its licence obliges.
-
-`None` means “we made this” — not “unknown”. Anything acquired should
-carry one, because a licence defect is the only failure that reaches
-BACKWARDS through completed work: a video shipped with an unattributed
-CC BY asset cannot be un-shipped.
-
-Field names match `illustration.ImageResult` exactly, so an adapter is a
-dict copy rather than a rename table — and a rename table is where a field
-quietly stops being carried. Pinned by test.
-
-#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Optional source SVG (relative path) that the parts/ folder was
-extracted from. Useful for re-slicing.
-
-#### speech *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-a
-method’s spelling (`mouth_chart`, `pulse`), its id
-(`speech.pose_only`) or a choice with args and an optional version pin
-(`{method: pulse, args: {strength: 0}}` — a mime). `None` = the
-default chain: lip-sync when the character has a mouth chart, else a
-head pulse, recorded. Declaring it is also how a baked-face character
-renders under `--strict-assets`: a declared pulse is the request, not a
-fallback. Resolved (and refused when unknown) by the capability
-registry. Omitted from the stored document when unset.
-
-* **Type:**
-  How this character shows it is speaking (the speech aspect, an#248)
-
-#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
-
-{slot:
-SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
-(`{kind: set, target: maya, property: view, value: side}`) fans the
-key out to every slot the set projects onto AND poses the slots listed
-under that key; a slot listed under another key of the set returns to
-rest. That is how one key turns a whole character: the head and torso
-swap art, the far eye and arm hide, the mouth slides to the profile
-edge — while blinks, gaze and lip-sync keep running on what is visible
-(the face solver folds a pose into its own channels). Additive: no
-schema bump, and a descriptor without it reads back unposed.
-
-* **Type:**
-  How slots are POSED while a swap key shows — 
-
-  ```
-  ``
-  ```
-
-  {set
-* **Type:**
-  {key
-
-#### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Voice-store id or path used by the audio pipeline. Optional; the scene
-can override per shot.
-
-### *class* an.characters.IdleAnimation(\*\*data)
-
-Bases: `_CharModel`
-
-A named idle loop (e.g., breath, blink).
-
-```pycon
->>> a = IdleAnimation(name="idle_breath", duration=4.0)
->>> a.loop
-True
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.characters.Skin(\*\*data)
-
-Bases: `_CharModel`
-
-A named outfit/variant: maps slot → {attachment_name → Attachment}.
-
-```pycon
->>> skin = Skin(name="default", slots={"mouth": {"mouth_a": Attachment(path="parts/mouth/mouth_a.svg")}})
->>> skin.slots["mouth"]["mouth_a"].path
-'parts/mouth/mouth_a.svg'
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.characters.Slot(\*\*data)
-
-Bases: `_CharModel`
-
-A draw-order slot bound to a bone, displaying one attachment at a time.
-
-```pycon
->>> s = Slot(name="mouth", bone="head", draw_order=7, attachment="mouth_x")
->>> s.attachment
-'mouth_x'
-```
-
-#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Default attachment name; the active attachment can change at runtime
-via animation tracks targeting `slot:<name>.attachment`.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### an.characters.blink_animation(, closure_s=0.13, duration_s=0.18, eye_l_slot='left_eye', eye_r_slot='right_eye', open_attachment_l='open', closed_attachment_l='closed', open_attachment_r='open', closed_attachment_r='closed', name='blink')
-
-Step-animation that snaps both eye slots closed → open.
-
-The closure is centred: open → closed at `(duration - closure) / 2` →
-open again `closure` later. With the defaults (0.13s closure in an
-0.18s envelope) that is closed at 0.025s, open at 0.155s. (An earlier
-docstring claimed 0.05/0.13 — numbers from an older closure value; and
-the slot/attachment defaults were the stale pre-0.2.0 spellings
-`eye_l`/`eye_l_open`, unnoticed for as long as nothing consumed
-`descriptor.animations` — both fixed in an#87.)
-
-* **Return type:**
-  [`IdleAnimation`](_autosummary/an.characters.schema.html.md#an.characters.schema.IdleAnimation)
-
-### an.characters.breath_animation(, period_s=4.0, amplitude_px=2.0, head_tilt_deg=0.5, include_weight_shift=True, weight_shift_amplitude_px=1.5, weight_shift_period_s=6.0, name='idle_breath')
-
-Sine-wave breath on torso Y + head rotation; optional weight shift.
-
-The head tilt is phase-offset by 0.25 cycles to follow the chest with a
-natural lag. The optional weight shift is on a slower 6-second period to
-avoid a metronomic feel when both run at the same time.
-
-The animation’s `duration` is the LCM-ish combined period: the longest
-sub-track period, so the overall loop closes cleanly.
-
-* **Return type:**
-  [`IdleAnimation`](_autosummary/an.characters.schema.html.md#an.characters.schema.IdleAnimation)
-
-### an.characters.compare_silhouettes(a, b, , size=(256, 256))
-
-Return IoU between two silhouette PNGs (0..1; lower = more distinct).
-
-Both images are resized to `size`, converted to grayscale, thresholded
-at the midpoint, and the intersection-over-union of the foreground (dark)
-pixels is computed.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> # Two identical silhouettes → IoU = 1.0; two empty → 0.0 (no overlap).
->>> # Tested via test suite, not doctest, since it requires Playwright.
-```
-
-### an.characters.extract_part(source, part_id, , crop_viewbox=True, padding=8.0)
-
-Emit a standalone SVG tree containing only the group with the given id.
-
-Any top-level `<defs>` from the source is copied so the part can
-resolve gradient / pattern / filter references like
-`fill="url(#some_gradient)"`. The matched group is appended unchanged.
-
-When `crop_viewbox` is True (the default), the new SVG’s viewBox is
-cropped to the bounding box of the part’s primitive content (rect /
-circle / ellipse / path) plus `padding` units on each side. This
-keeps a part’s texture proportional to its content instead of to the whole
-character canvas. Falls back to the source viewBox when no bbox can be
-derived.
-
-The emitted `width`/`height` always match the emitted viewBox, so the
-part rasterises at its own extent and is never letterboxed inside a canvas
-it does not fill. The crop rect’s \*\*parent-space origin survives as the
-viewBox’s first two numbers\*\*, so where the part sat relative to its
-siblings is not lost and needs no separate record.
-
-If no match is found, raises [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError).
-
-* **Return type:**
-  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
-
-### an.characters.extract_pivots(source, , skeleton_id='skeleton')
-
-Return `{name: (cx, cy)}` for every named `<circle>` under skeleton.
-
-Pivots use the Pose Animator convention: a `<g id="skeleton">` group
-sibling of the illustration, containing one `<circle>` per named joint.
-The circle’s `cx`/`cy` is the pivot in the same coordinate system as
-the art (the SVG’s viewBox).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-### an.characters.fetch_dicebear(seed, , style='lorelei', api_version='9.x', timeout_s=10.0, extra_params=None)
-
-Fetch an avatar SVG from DiceBear’s HTTP API.
-
-Returns the SVG string. Raises [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError) if the API call
-fails (network error, HTTP error, non-SVG response).
-
-The URL pattern is:
-
-```default
-https://api.dicebear.com/<api_version>/<style>/svg?seed=<seed>
-```
-
-Pass `extra_params` to forward style-specific options (e.g.
-`backgroundColor=transparent`).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.generate_default_mouths(, canvas=(256, 128), palette=None, shapes=('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x'), smile=0.0, form=None)
-
-Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> svgs = generate_default_mouths()
->>> 'mouth_x' in svgs and 'viewBox' in svgs['mouth_x']
-True
->>> sorted(generate_default_mouths(shapes=["a"], smile=0.35, form="happy"))
-['mouth_a_happy']
-```
-
-### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True, hair_style='peak', hair_length='short')
-
-Build a complete character on disk.
-
-**Variety knobs** (every default reproduces the pre-knob character byte for
-byte, which a golden test holds):
-
-- `palette` — `{role: "#rrggbb"}` over `PALETTE_ROLES` (`skin`,
-  `hair`, `clothing`, `leg`, `accessory`) — the SAME role names a
-  [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) uses. Unset roles keep the seed’s colours.
-  > `skin` also paints the hands and the gaze lid; `hair` the brows and
-  > the collar. On a DiceBear head only the body follows (its face is baked).
-- `build` — a key of `BUILDS`: `regular`, `squat` (round body,
-  short legs), `tall`, `stick` (small blocky body, stick limbs).
-- `head_scale` — the head and its whole face (eyes, brows, mouths, their
-  offsets, the pupil travel) scaled together, so a big head keeps its face.
-- `hat` — a key of `HATS` (offline head only), in `accessory`,
-  worn above the brows’ acting range at this head scale (an#252): lifted,
-  and flattened toward its crown when lifting is not enough. A hat that
-  still covers the brows (a very small head) is recorded in the
-  descriptor’s `occluded`, so the character does not afford
-  `face.brows` and expressions fall to the lids, gaze and mouth.
-- `hair_style` — `HAIR_STYLES`: `peak` (the default), `bald`,
-  `bun`, `curly`; `hair_length` — `HAIR_LENGTHS`: `short`
-  (the default), `medium`, `long` (offline head only). Drawn in the
-  `hair` role (the palette’s `hair` colours them), in every view.
-- `sash` — a diagonal band across the torso, in `accessory`.
-- `views` (an#197) — draw the turnaround: `back`, `side` (a profile
-  facing the viewer’s right) and `three_quarter` beside the front, as a
-  `view` swap set with a pose per view (`add_views()`), so
-  [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) can turn the character around. Offline head only
-  > (a DiceBear face is baked into its art); ignored for a DiceBear head.
-
-  Additive: a shot that never sets a view renders exactly as without it.
-
-Every colour the factory draws in a role is recorded in the descriptor’s
-`colour_roles` so a style pack can recolour it later (palette swapping,
-[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)).
-
-`gaze` (an#99) adds the eye stack — sclera and pupil slots under each
-lid, a filled closed lid, the `gaze_travel` clamp — through
-`add_gaze()`, so `gaze_x`/`gaze_y` and the ambient saccades reach the
-pupils. Off, the eye is the single pre-stack drawing.
-
-`mouth_variants` (an#98) — `{form: smile offset}` — writes one more
-9-shape mouth set per form (`mouth_<shape>_<form>.svg`) and declares it
-as the `viseme@<form>` swap set, with its attachments in the default
-skin’s `mouth` slot, so an expression preset preferring that form
-selects it. `None` means [`DEFAULT_MOUTH_VARIANTS`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS)
-(happy, sad); `{}` means the neutral set only.
-
-Steps:
-
-1. Fetch a DiceBear avatar (skip if `use_dicebear=False` — useful for
-   offline tests).
-2. Wrap it into the canonical `an` cutout SVG (skeleton + illustration
-   groups), saved as `<name>.svg`.
-3. Slice each part into `parts/<part>.svg`.
-4. Write the 9-shape default mouth set into `parts/mouth/`.
-5. Synthesize a few derived parts (open/closed eyes, brows) so the
-   character is complete out of the box.
-6. Emit a `character.json` descriptor.
-
-Returns the path to the created `character.json`.
-
-Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#FileExistsError) if `out_dir/name` already exists and
-`overwrite=False`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.normalize_svg(source, , fallback_viewbox='0 0 1024 1024')
-
-Promote Inkscape labels to ids and ensure a viewBox is set.
-
-Returns the parsed `ElementTree`. Idempotent: running it twice is a
-no-op on the second pass.
-
-* **Return type:**
-  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
-
-### an.characters.promote(project_dir, entity, as_, , source_svg=None, voice_ref=None, use_dicebear=True, overwrite=False)
-
-Promote `entity` from `project_dir`’s inline assets into the mall.
-
-* **Parameters:**
-  * **project_dir** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)) – Path to an `an` project (must contain `assets/characters/`).
-  * **entity** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Inline entity id used inside the scene (the directory under
-    `assets/characters/<entity>`, or the SVG file at
-    `assets/characters/<entity>.svg`).
-  * **as_** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The mall character id to register the result as. Becomes the
-    directory name under `assets/characters/` and the descriptor’s
-    `name` field.
-  * **source_svg** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – Optional explicit path to a source SVG. If omitted, the function
-    looks for `assets/characters/<entity>.svg` or
-    `assets/characters/<entity>/<entity>.svg`.
-  * **voice_ref** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Voice reference to embed in the descriptor.
-  * **use_dicebear** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – Forwarded to [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) on the
-    no-source fallback path. Pass `False` to keep the call offline —
-    without it that fallback always reaches the DiceBear API, and
-    `new_character` swallows the failure and generates geometry instead,
-    so an offline test looks like it passed rather than like it was skipped.
-  * **overwrite** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – If False and the target already exists, raises `FileExistsError`.
-  * **character.json.** (*Returns the path to the new*)
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.promote_inkscape_labels_to_ids(tree)
-
-Copy `inkscape:label` to `id` on each group missing an id.
-
-Returns the number of groups updated.
-
-Inkscape stores the user-visible name in the `inkscape:label` attribute
-and does NOT promote it to `id` on save. This is a long-standing UX
-issue (Inkscape bug #243383); the workaround is to promote at parse time.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
-### an.characters.record_character(char_dir, , name=None, out_mp4=None, duration_s=8.0, size=(640, 480))
-
-Render preview.html for the character at `char_dir` and record it.
-
-The preview HTML is generated/refreshed via the same writer used by
-`an character preview`, so this command is self-contained.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.record_preview_to_mp4(preview_html, out_mp4, , duration_s=8.0, size=(640, 480), fps=30, crf=23)
-
-Record `preview_html` to `out_mp4` for `duration_s` seconds.
-
-Returns the output mp4 path.
-
-Pipeline:
-
-> 1. Playwright launches headless Chromium with video recording on.
-> 2. Navigates to `preview_html` ([file://](file://) URL).
-> 3. Waits `duration_s` real-time so the browser captures frames.
-> 4. Closes the context to flush the webm.
-> 5. ffmpeg re-encodes the webm to H.264 mp4 (better compatibility,
->    smaller files, plays in `quicktime` / GitHub previews).
-
-Both Playwright (project dep) and ffmpeg (system dep, already
-required by the renderer) must be installed.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.render_silhouette(svg_source, out_png, , size=(256, 256), background='#ffffff')
-
-Render an SVG to a binary silhouette PNG (black on white).
-
-Uses Playwright/Chromium to rasterize, then PIL to threshold by alpha
-or luminance. Returns the output path.
-
-The output is RGB; the silhouette is filled with black (#000) and the
-background with the given color.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.validate_character(char_dir, , name=None)
-
-Check an art package against the contract, offline.
-
-Reports a [`Finding`](_autosummary/an.verify.html.md#an.verify.Finding) per problem: a missing or
-unparseable descriptor, absent required parts or mouth shapes, a part that
-draws nothing, a prohibited construct, a letterboxed part, a joint name
-colliding with a part id, and an unpopulated `AssetSource`.
-
-* **Return type:**
-  [`VerificationReport`](_autosummary/an.verify.html.md#an.verify.VerificationReport)
-
-```pycon
->>> import tempfile, pathlib
->>> with tempfile.TemporaryDirectory() as d:
-...     report = validate_character(d, name="nobody")
->>> report.passed
-False
->>> any("character.json" in f.description for f in report.findings)
-True
-```
-
-### an.characters.write_default_mouths(out_dir, , canvas=(256, 128), palette=None, shapes=('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x'), variants=None)
-
-Write the default mouth SVGs into `out_dir` (created if missing),
-plus one `mouth_<shape>_<form>.svg` per shape for every `variants`
-entry (`{form: smile offset}`; `None` = none).
-
-Returns the list of paths written: the neutral set in shape order, then
-each variant’s.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
-
-### an.characters.write_svg(tree_or_element, path=None)
-
-Serialize an `ElementTree` or `Element` to bytes (and optionally disk).
-
-Always emits `<?xml version="1.0" encoding="UTF-8"?>` and the SVG
-namespace as the default, so the output is a valid standalone SVG.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
-### Modules
-
-| [`brows`](_autosummary/an.characters.brows.html.md#module-an.characters.brows)               | Brow acting: where the brows can go, what may not draw there, and the `face.brows` capability.        |
-|-------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                                                |
-| [`colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…                             |
-| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                                               |
-| [`drawn`](_autosummary/an.characters.drawn.html.md#module-an.characters.drawn)               | What the character factory wrote, as it wrote it: the in-memory log behind its record of drawn bytes. |
-| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                                               |
-| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                                                |
-| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                                                 |
-| [`methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)           | The cut-out genre's methods and aspects, and their compile-time resolution (ADR 0002).                |
-| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                                            |
-| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).                      |
-| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                                          |
-| [`registration`](_autosummary/an.characters.registration.html.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`.                     |
-| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                                              |
-| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                                          |
-| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.                               |
-| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                                       |
-| [`vocabulary`](_autosummary/an.characters.vocabulary.html.md#module-an.characters.vocabulary)     | The cut-out genre's vocabulary entries: motion presets, expression presets, IR-field notes.           |
-
-
-# _autosummary/an.characters.idle.html.md
-
-# an.characters.idle
-
-Idle animation factories: breath, blink, weight-shift.
-
-Defaults are taken from production references (see research §6.3):
-
-- 15 breaths/min ⇒ 4-second period.
-- ±2 px torso vertical travel at a 1024-px-tall canonical character height.
-- ±0.5° head rotation, phase-offset by 0.25 cycles from the chest.
-- Blink closure ≈ 0.13 s; spontaneous blink gap 3-8 s (sampled per scene).
-
-The functions return [`an.characters.IdleAnimation`](_autosummary/an.characters.html.md#an.characters.IdleAnimation) instances ready
-to drop into `CharacterDescriptor.animations`.
-
-**Nothing here renders on its own.** Descriptor `animations` are seeded
-by `model_post_init` and reach the screen ONLY through an authored `play`
-action (an#7: `play("maya", "idle_breath")` renders exactly what
-[`breath_animation()`](_autosummary/an.characters.idle.html.md#an.characters.idle.breath_animation) returns — resolved by [`an.characters.play`](_autosummary/an.characters.play.html.md#module-an.characters.play)),
-never automatically. The blink you see without one is compiled by
-`an.stage.compile._add_face_clips` (an#88, via `_blink_placements`) from a fixed
-entity-name-phase schedule (period 4.0 s). `random_blink_schedule` has no
-caller — it is the seeded alternative the compiled blink could adopt.
-
-One documented number is not what a `play` shows: the “4-second period”
-above is `DEFAULT_BREATH_PERIOD_S`, but the seeded `idle_breath` also
-carries the 6 s weight shift, and [`evaluate_track()`](_autosummary/an.characters.idle.html.md#an.characters.idle.evaluate_track) divides by the
-ANIMATION’s duration — `max(4, 6)` — so every sine track in it runs a 6 s
-cycle. A per-track period is the fix; until then, `include_weight_shift=False`
-gives the 4 s breath the numbers describe.
-
-```pycon
->>> a = breath_animation()
->>> a.name
-'idle_breath'
->>> [t.target for t in a.tracks][:2]
-['bone:torso.y', 'bone:head.rotation_deg']
->>> b = blink_animation()
->>> b.duration
-0.18
-```
-
-### Functions
-
-| [`blink_animation`](_autosummary/an.characters.idle.html.md#an.characters.idle.blink_animation)(\*[, closure_s, duration_s, ...])   | Step-animation that snaps both eye slots closed → open.             |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`breath_animation`](_autosummary/an.characters.idle.html.md#an.characters.idle.breath_animation)(\*[, period_s, ...])               | Sine-wave breath on torso Y + head rotation; optional weight shift. |
-| [`evaluate_track`](_autosummary/an.characters.idle.html.md#an.characters.idle.evaluate_track)(track, t, duration)                  | Evaluate a single animation track at time `t`.                      |
-| [`random_blink_schedule`](_autosummary/an.characters.idle.html.md#an.characters.idle.random_blink_schedule)(duration_s, \*[, ...])        | Return a sorted list of blink start times across `duration_s`.      |
-
-### an.characters.idle.blink_animation(, closure_s=0.13, duration_s=0.18, eye_l_slot='left_eye', eye_r_slot='right_eye', open_attachment_l='open', closed_attachment_l='closed', open_attachment_r='open', closed_attachment_r='closed', name='blink')
-
-Step-animation that snaps both eye slots closed → open.
-
-The closure is centred: open → closed at `(duration - closure) / 2` →
-open again `closure` later. With the defaults (0.13s closure in an
-0.18s envelope) that is closed at 0.025s, open at 0.155s. (An earlier
-docstring claimed 0.05/0.13 — numbers from an older closure value; and
-the slot/attachment defaults were the stale pre-0.2.0 spellings
-`eye_l`/`eye_l_open`, unnoticed for as long as nothing consumed
-`descriptor.animations` — both fixed in an#87.)
-
-* **Return type:**
-  [`IdleAnimation`](_autosummary/an.characters.schema.html.md#an.characters.schema.IdleAnimation)
-
-### an.characters.idle.breath_animation(, period_s=4.0, amplitude_px=2.0, head_tilt_deg=0.5, include_weight_shift=True, weight_shift_amplitude_px=1.5, weight_shift_period_s=6.0, name='idle_breath')
-
-Sine-wave breath on torso Y + head rotation; optional weight shift.
-
-The head tilt is phase-offset by 0.25 cycles to follow the chest with a
-natural lag. The optional weight shift is on a slower 6-second period to
-avoid a metronomic feel when both run at the same time.
-
-The animation’s `duration` is the LCM-ish combined period: the longest
-sub-track period, so the overall loop closes cleanly.
-
-* **Return type:**
-  [`IdleAnimation`](_autosummary/an.characters.schema.html.md#an.characters.schema.IdleAnimation)
-
-### an.characters.idle.evaluate_track(track, t, duration)
-
-Evaluate a single animation track at time `t`.
-
-For sine: `amplitude * sin(2π * (t/duration + phase))`.
-For step: returns the value of the latest frame whose time ≤ `t`.
-For linear: linear interpolation between bracketing frames.
-
-* **Return type:**
-  [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-```pycon
->>> tr = AnimationTrack(target='bone:torso.y', type='sine', amplitude=2.0)
->>> round(evaluate_track(tr, 0.0, 4.0), 6)
-0.0
->>> round(evaluate_track(tr, 1.0, 4.0), 6)
-2.0
-```
-
-### an.characters.idle.random_blink_schedule(duration_s, , min_gap_s=3.0, max_gap_s=8.0, seed=None)
-
-Return a sorted list of blink start times across `duration_s`.
-
-A seeded schedule with uniform gaps in `[min_gap_s, max_gap_s]`. NOT
-what the renderer uses today (see the module docstring); kept as the
-candidate for descriptor-driven scheduling.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> times = random_blink_schedule(20.0, seed=0)
->>> all(0 <= t < 20 for t in times)
-True
->>> times == sorted(times)
-True
-```
-
-
-# _autosummary/an.characters.licenses.html.md
-
-# an.characters.licenses
-
-DiceBear per-style licences, as data.
-
-The DiceBear *software* licence (MIT) is a separate fact from each *style*
-licence — DiceBear itself splits them under literal `# Design` and `# Code`
-headings inside every per-style licence file. Reading the repo’s top-level MIT
-and concluding the avatars are MIT is the trap this table exists to close.
-
-Verified against the per-style licence files and style pages at the pinned API
-major; the sources are recorded in `misc/docs/wave1_verification.md` §2.
-
-Of the styles `an` can request: 11 are CC0 (no attribution duty), 12 are
-CC BY 4.0 (a real duty), and the Pablo Stanley set carries bespoke
-“free for personal and commercial use” terms that are **not** Creative Commons —
-which is why they are their own code here rather than being rounded to one.
-
-### Module Attributes
-
-| [`FREE_PERSONAL_AND_COMMERCIAL`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.FREE_PERSONAL_AND_COMMERCIAL)   | Pablo Stanley's own terms.                                  |
-|---------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`DICEBEAR_STYLE_LICENSES`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.DICEBEAR_STYLE_LICENSES)        | style name -> its DESIGN licence.                           |
-| [`NO_ATTRIBUTION_REQUIRED`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.NO_ATTRIBUTION_REQUIRED)        | Licences that need no credit from whoever ships the output. |
-
-### Functions
-
-| [`attribution_for`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.attribution_for)(style)           | DiceBear's own attribution template, filled in.                |
-|-----------------------------------------------------------------------------------|----------------------------------------------------------------|
-| [`dicebear_source`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.dicebear_source)(style, \*, seed) | Build the provenance record for a DiceBear avatar.             |
-| [`requires_acknowledgement`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.requires_acknowledgement)(style)  | Whether using `style` puts a duty on whoever ships the output. |
-
-### Classes
-
-| [`StyleLicense`](_autosummary/an.characters.licenses.html.md#an.characters.licenses.StyleLicense)(license, license_url, author, ...)   | One style's design licence and the credit it obliges.   |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------|
-
-### an.characters.licenses.DICEBEAR_STYLE_LICENSES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [StyleLicense](_autosummary/an.characters.licenses.html.md#an.characters.licenses.StyleLicense)]* *= {'adventurer': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Adventurer', 'https://www.figma.com/community/file/1184595184137881796'), 'adventurer-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Adventurer Neutral', 'https://www.figma.com/community/file/1184595184137881796'), 'avataaars': ('free-personal-and-commercial', 'https://avataaars.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://avataaars.com/'), 'avataaars-neutral': ('free-personal-and-commercial', 'https://avataaars.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://avataaars.com/'), 'big-ears': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'The Visual Team', 'https://thevisual.team/', 'Face Generator', 'https://www.figma.com/community/file/986078800058673824'), 'big-ears-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'The Visual Team', 'https://thevisual.team/', 'Face Generator', 'https://www.figma.com/community/file/986078800058673824'), 'big-smile': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Ashley Seo', 'http://www.ashleyseo.com/', 'Custom Avatar', 'https://www.figma.com/community/file/881358461963645496'), 'bottts': ('free-personal-and-commercial', 'https://bottts.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://bottts.com/'), 'bottts-neutral': ('free-personal-and-commercial', 'https://bottts.com/', 'Pablo Stanley', 'https://twitter.com/pablostanley', None, 'https://bottts.com/'), 'croodles': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'vijay verma', 'https://vjy.me/', 'Croodles - Doodle your face', 'https://www.figma.com/community/file/966199982810283152'), 'croodles-neutral': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'vijay verma', 'https://vjy.me/', 'Croodles - Doodle your face', 'https://www.figma.com/community/file/966199982810283152'), 'dylan': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Natalia Spivak', 'https://nataspvk.tilda.ws/', 'Dylan! The Avatar Generator', 'https://www.figma.com/community/file/1356575240759683500'), 'fun-emoji': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Davis Uche', 'https://www.instagram.com/davedirect3/', 'Fun Emoji Set', 'https://www.figma.com/community/file/968125295144990435'), 'glass': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', 'https://www.dicebear.com', 'Glass', 'https://www.dicebear.com'), 'icons': ('mit', 'https://opensource.org/licenses/MIT', 'The Bootstrap Authors', None, None, None), 'identicon': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'initials': ('mit', 'https://opensource.org/licenses/MIT', 'Florian Körner', None, None, None), 'lorelei': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Lorelei', 'https://www.figma.com/community/file/1198749693280469639'), 'lorelei-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Lisa Wischofsky', 'https://www.instagram.com/lischi_art/', 'Lorelei Neutral', 'https://www.figma.com/community/file/1198749693280469639'), 'micah': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Micah Lanier', 'https://dribbble.com/micahlanier', 'Avatar Illustration System', 'https://www.figma.com/community/file/829741575478342595'), 'miniavs': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Webpixels', 'https://webpixels.io/', 'Miniavs - Free Avatar Creator', 'https://www.figma.com/community/file/923211396597067458'), 'notionists': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Zoish', 'https://bio.link/heyzoish', 'Notionists', 'https://heyzoish.gumroad.com/l/notionists'), 'notionists-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Zoish', 'https://bio.link/heyzoish', 'Notionists', 'https://heyzoish.gumroad.com/l/notionists'), 'open-peeps': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'Pablo Stanley', 'https://twitter.com/pablostanley', 'Open Peeps', 'https://www.openpeeps.com/'), 'personas': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Draftbit', 'https://draftbit.com/', 'Personas by Draftbit', 'https://personas.draftbit.com/'), 'pixel-art': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, 'Pixel Art', 'https://www.figma.com/community/file/1198754108850888330'), 'pixel-art-neutral': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, 'Pixel Art Neutral', 'https://www.figma.com/community/file/1198754108850888330'), 'rings': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', 'https://www.dicebear.com', 'Rings', 'https://www.dicebear.com'), 'shapes': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'thumbs': ('cc0-1.0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'DiceBear', None, None, 'https://www.dicebear.com'), 'toon-head': ('cc-by-4.0', 'https://creativecommons.org/licenses/by/4.0/', 'Johan Melin', 'https://www.johanmelin.com', 'ToonHead', 'https://www.figma.com/community/file/1589627891082866389')}*
-
-style name -> its DESIGN licence. Absent from this table means “unverified”,
-which is refused rather than assumed permissive.
-
-### an.characters.licenses.FREE_PERSONAL_AND_COMMERCIAL *= 'free-personal-and-commercial'*
-
-Pablo Stanley’s own terms. Permissive in effect, not a CC licence, and not
-something to silently relabel as one.
-
-### an.characters.licenses.NO_ATTRIBUTION_REQUIRED *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'cc0-1.0', 'free-personal-and-commercial', 'mit'})*
-
-Licences that need no credit from whoever ships the output.
-
-### *class* an.characters.licenses.StyleLicense(license, license_url, author, author_url, source_title, source_page_url)
-
-Bases: [`NamedTuple`](https://docs.python.org/3/library/typing.html#typing.NamedTuple)
-
-One style’s design licence and the credit it obliges.
-
-#### author *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Alias for field number 2
-
-#### author_url *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Alias for field number 3
-
-#### license *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-Alias for field number 0
-
-#### license_url *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Alias for field number 1
-
-#### source_page_url *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Alias for field number 5
-
-#### source_title *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Alias for field number 4
-
-### an.characters.licenses.attribution_for(style)
-
-DiceBear’s own attribution template, filled in. `None` when none is owed.
-
-The wording is theirs, verbatim from the per-style package README, including
-the “Remix of the original” half — which is what discharges CC BY’s
-“indicate if changes were made” clause. `an` wraps the avatar into a rig, so
-it genuinely produces a modified work.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.licenses.dicebear_source(style, , seed)
-
-Build the provenance record for a DiceBear avatar.
-
-Raises on an unlisted style rather than returning an empty record: “we did
-not check” and “there is nothing to discharge” must not look the same, and
-a `None` licence silently reads as the latter everywhere downstream.
-
-* **Return type:**
-  AssetSource
-
-### an.characters.licenses.requires_acknowledgement(style)
-
-Whether using `style` puts a duty on whoever ships the output.
-
-An unlisted style counts as requiring acknowledgement — an unverified
-licence is a refusal, not a warning.
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
-
-# _autosummary/an.characters.methods.html.md
-
-# an.characters.methods
-
-The cut-out genre’s methods and aspects, and their compile-time resolution (ADR 0002).
-
-The first two aspects of ADR 0002’s first slice, as registry data:
-
-| aspect     | method (spelled)                       | requires     | chain      |
-|------------|----------------------------------------|--------------|------------|
-| locomotion | `loco.legged_cycle` (`legs`)           | `limbs.legs` | 1st        |
-| locomotion | `loco.hem_sway` (`hem`)                | `limbs.legs` | by request |
-| locomotion | `loco.rock` (`rock`)                   | nothing      | last link  |
-| speech     | `speech.mouth_chart` (`mouth_chart`)   | `face.mouth` | 1st        |
-| speech     | `speech.pose_only` (`pulse`)           | nothing      | last link  |
-| expression | `expr.full_face` (`full_face`)         | `face.brows` | 1st        |
-| expression | `expr.without_brows` (`without_brows`) | nothing      | last link  |
-
-**Locomotion is today’s walk/gait chain, moved, not changed** (ADR 0002
-decision 8: the gate is byte-identical output). A walk’s `gait` arg is the
-author’s request, the descriptor’s `gait` a declared override (reported as
-such); with neither, the chain picks `legs` when the character affords a leg
-pair and `rock` when it does not — exactly what [`an.motion.walk()`](_autosummary/an.motion.html.md#an.motion.walk) did on
-its own. What is new is that the choice is the registry’s, made once, and a
-requested gait the rig cannot honour (`hem` on a legless blob) is a
-**recorded substitution**: a warning, fatal under `--strict-assets`.
-
-**Speech gains a requirement-free last link.** A character whose face is baked
-into its art (`face_overlay: false`) used to speak with a frozen mouth; it now
-pulses its head on each syllable (`an.motion.speech_pulse()`, parametrised:
-`strength`, `part`, `attack`, `release`; `strength: 0` is a mime).
-
-**Expression names what reads when the brows cannot** (an#252). A hat the
-factory could not seat above the brows (recorded in `occluded`), or brow
-slots without art, leave `face.brows` unafforded: the face then acts with
-the lids, the gaze and the mouth form (`expr.without_brows`), recorded. Both
-methods compile to the same face channels — the solver drives whatever the
-rig binds — so the aspect is not consulted by the compiler; `an validate`
-reports the fall ([`check_brow_acting()`](_autosummary/an.characters.methods.html.md#an.characters.methods.check_brow_acting)) and `an character
-capabilities` shows it with the remedy.
-
-The asset profile the compiler resolves against is the character analyser’s
-(`an.capabilities.affordances`), fed what the compiler actually has: the
-descriptor and the art its store holds, or — for a rig drawn from `parts` or
-the placeholder — the parts the builder built. Characters only: other entity
-kinds have no analyser yet, and keep the preset’s own rig lookup.
-
-Importing this module registers nothing: `an.genres.cutout.CUTOUT` lists
-[`CUTOUT_METHODS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_METHODS) and [`CUTOUT_ASPECTS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_ASPECTS).
-
-### Module Attributes
-
-| [`LOCOMOTION`](_autosummary/an.characters.methods.html.md#an.characters.methods.LOCOMOTION)     | The aspect names (persisted in substitution records).       |
-|-----------------------------------------------------------------|-------------------------------------------------------------|
-| [`CUTOUT_METHODS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_METHODS) | The genre's methods, as vocabulary entries (kind `method`). |
-| [`CUTOUT_ASPECTS`](_autosummary/an.characters.methods.html.md#an.characters.methods.CUTOUT_ASPECTS) | each chain ends in a method that requires nothing.          |
-
-### Functions
-
-| [`check_brow_acting`](_autosummary/an.characters.methods.html.md#an.characters.methods.check_brow_acting)(ctx)                             | The cut-out genre's semantic check: an expression that moves the brows of a character whose brows cannot act is reported (a warning) — the expression aspect's recorded fall to `expr.without_brows` (an#252).   |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`check_declared_speech`](_autosummary/an.characters.methods.html.md#an.characters.methods.check_declared_speech)(ctx)                         | The cut-out genre's semantic check: each character's declared `speech` resolves.                                                                                                                                 |
-| [`compile_profile`](_autosummary/an.characters.methods.html.md#an.characters.methods.compile_profile)(descriptor, \*[, ...])             | The character's profile, from what the compiler has: the analyser, fed honestly.                                                                                                                                 |
-| [`speech_problems`](_autosummary/an.characters.methods.html.md#an.characters.methods.speech_problems)(declared)                          | Why a character's declared `speech` cannot be honoured (empty: it can).                                                                                                                                          |
-| [`normalise_gait_args`](_autosummary/an.characters.methods.html.md#an.characters.methods.normalise_gait_args)(args)                          | A walk's args with `gait` as the walk spells it (`legs`/`hem`/`rock`).                                                                                                                                           |
-| [`resolve_walk_gait`](_autosummary/an.characters.methods.html.md#an.characters.methods.resolve_walk_gait)(entity, \*, args, ...[, policy]) | `(gait, resolution)` of a walk on `entity`: the locomotion method's spelling.                                                                                                                                    |
-| [`speech_plan`](_autosummary/an.characters.methods.html.md#an.characters.methods.speech_plan)(shot, \*, is_character, profile_of)    | Resolve the speech aspect ONCE per speaking character, and say what it adds.                                                                                                                                     |
-| [`substitution_record`](_autosummary/an.characters.methods.html.md#an.characters.methods.substitution_record)(sub, \*[, entity_ref])         | A [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) as an `asset_resolution` entry.                                                                                     |
-| [`syllable_beats`](_autosummary/an.characters.methods.html.md#an.characters.methods.syllable_beats)(line, \*[, min_gap_s])              | Syllable onsets of a dialogue line, in seconds from its start.                                                                                                                                                   |
-
-### Classes
-
-| [`SpeechPlan`](_autosummary/an.characters.methods.html.md#an.characters.methods.SpeechPlan)([actions, no_lip_sync])   | What the speech aspect decided for a shot: the actions it adds, and the speakers whose lip-sync it switched off (the viseme pass skips them).   |
-|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-
-### an.characters.methods.CUTOUT_ASPECTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Aspect](_autosummary/an.semantic.html.md#an.semantic.Aspect), ...]* *= (Aspect(name='locomotion', chain=('loco.legged_cycle', 'loco.rock'), applies_to=frozenset(), description='how a character travels when it walks.', declared_by='gait', records_fallback=False), Aspect(name='speech', chain=('speech.mouth_chart', 'speech.pose_only'), applies_to=frozenset(), description='how a character shows that it is speaking.', declared_by='speech', records_fallback=True), Aspect(name='expression', chain=('expr.full_face', 'expr.without_brows'), applies_to=frozenset({'character'}), description="how a character's face shows an emotion.", declared_by='', records_fallback=True))*
-
-each chain ends in a method that requires nothing.
-
-* **Type:**
-  The genre’s aspects
-
-### an.characters.methods.CUTOUT_METHODS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Method](_autosummary/an.semantic.html.md#an.semantic.Method), ...]* *= (Method(id='loco.legged_cycle', kind='method', version='1', name='legs', title='legged walk cycle', description='a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs', usage='', params={'type': 'object', 'properties': {'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'bob': {'type': 'number', 'default': 6.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'legs'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': 'split the legs into two slots named leg_l/leg_r, each with its art, pivoted at the hip (an-art-package skill; \`an character new\` builds them)'}), Method(id='loco.hem_sway', kind='method', version='1', name='hem', title='hem sway', description="a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs", usage='', params={'type': 'object', 'properties': {'hem_tilt': {'type': 'number', 'default': 0.24}, 'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'stride': {'type': 'number', 'default': 0.35}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'hem'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': "carve the robe's hem into two halves on slots leg_l/leg_r, pivoted at the hip, and declare \`gait: hem\` in character.json"}), Method(id='loco.rock', kind='method', version='1', name='rock', title='rock and bob', description='no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable)', usage='', params={'type': 'object', 'properties': {'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'rock'}},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='locomotion', remedies={}), Method(id='speech.mouth_chart', kind='method', version='1', name='mouth_chart', title='mouth chart lip-sync', description="lip-sync on the character's mouth chart: the line's visemes swap the mouth drawings (the nine Rhubarb shapes, or the character's own set)", usage='', params={}, examples=(), requires=(Requirement(capability='face.mouth', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='speech', remedies={'face.mouth': "give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\`) and face_overlay: true"}), Method(id='speech.pose_only', kind='method', version='1', name='pulse', title='speech pulse', description='no lip-sync: the head (or the body) pulses on each syllable, so a baked face or a mime still reads as speaking', usage='', params={'type': 'object', 'properties': {'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=('a character with face_overlay: false speaks',), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='speech', remedies={}), Method(id='expr.full_face', kind='method', version='1', name='full_face', title='full-face expression', description="the expression acts with the whole face: the brows rise, knit and tilt, the lids open and close, the pupils move and the mouth takes the preset's form", usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'},), requires=(Requirement(capability='face.brows', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='expression', remedies={'face.brows': "keep the brows clear: \`an character new\` seats a hat above them at most head scales — at this one it could not, so use a larger --head-scale, another --hat or --hat none; for drawn art, redraw what covers the brows and remove the descriptor's \`occluded\` entry, or give the face brow slots (left_brow/right_brow) with art"}), Method(id='expr.without_brows', kind='method', version='1', name='without_brows', title='expression without brows', description='the brows cannot be seen acting (covered, or not drawn): the lids, the gaze and the mouth form carry the expression', usage='', params={}, examples=('a character whose hat covers its brows takes [surprised]',), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='expression', remedies={}))*
-
-The genre’s methods, as vocabulary entries (kind `method`).
-
-### an.characters.methods.LOCOMOTION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'locomotion'*
-
-The aspect names (persisted in substitution records).
-
-### *class* an.characters.methods.SpeechPlan(actions=(), no_lip_sync=frozenset({}))
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-What the speech aspect decided for a shot: the actions it adds, and the
-speakers whose lip-sync it switched off (the viseme pass skips them).
-
-### an.characters.methods.check_brow_acting(ctx)
-
-The cut-out genre’s semantic check: an expression that moves the brows of
-a character whose brows cannot act is reported (a warning) — the expression
-aspect’s recorded fall to `expr.without_brows` (an#252).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.methods.check_declared_speech(ctx)
-
-The cut-out genre’s semantic check: each character’s declared `speech` resolves.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.methods.compile_profile(descriptor, , built_parts=(), art_exists=None)
-
-The character’s profile, from what the compiler has: the analyser, fed honestly.
-
-`descriptor` is the migrated `CharacterDescriptor` (or `None` for a
-rig drawn from `parts` / the placeholder); `art_exists(rel_path)` the
-store’s probe (`None`: the store cannot say, so every declared drawing
-counts — the rig builder’s own rule); `built_parts` the part names the
-builder built under the entity (for a non-descriptor rig, they ARE its
-parts document).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
-### an.characters.methods.normalise_gait_args(args)
-
-A walk’s args with `gait` as the walk spells it (`legs`/`hem`/`rock`).
-
-`gait` may name a locomotion method by id (`loco.rock`) or be a choice
-`{method, args, version}` — the level-(a) form, and how a scene pins a
-method’s version (ADR 0003 decision 2). The choice’s `args` join the
-walk’s (an explicit arg wins); a pin that no longer holds, or a method of
-another aspect, raises [`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-```pycon
->>> normalise_gait_args({"gait": {"method": "loco.legged_cycle", "args": {"stride": 0.5}, "version": "1"}})
-{'stride': 0.5, 'gait': 'legs'}
->>> normalise_gait_args({"gait": "hem", "distance": 80})
-{'gait': 'hem', 'distance': 80}
-```
-
-### an.characters.methods.resolve_walk_gait(entity, , args, descriptor, profile, policy=None)
-
-`(gait, resolution)` of a walk on `entity`: the locomotion method’s spelling.
-
-The request is the walk’s `gait` arg, else the descriptor’s declared
-`gait` (an override of the derivation, and reported as one). An explicit
-`legs` arg names the limbs itself: a non-empty pair affords legs whatever
-the derivation says, `()` affords none.
-
-```pycon
->>> gait, r = resolve_walk_gait("blob", args={"gait": "hem"}, descriptor=None, profile={})
->>> gait, r.substitution.reason, r.substitution.missing
-('rock', 'missing', ('limbs.legs',))
-```
-
-### an.characters.methods.speech_plan(shot, \*, is_character, profile_of, descriptor_of=<function <lambda>>, has_part, record=None, policy=None)
-
-Resolve the speech aspect ONCE per speaking character, and say what it adds.
-
-The request is the character’s declared `speech` (a method spelling or a
-`{method, args, version}` choice); `policy` is the shot/style policy.
-The one resolution decides both halves: a speaker resolved to anything but
-`speech.mouth_chart` gets no viseme channel (`SpeechPlan.no_lip_sync`),
-and one resolved to `speech.pose_only` gets a `speech_pulse` play at each
-syllable onset of each timed line — one play per syllable, each built at the
-head’s pose at that instant, so it rides an authored head-scale tween rather
-than overwriting it; a syllable that starts while the speaker’s previous pulse
-is still running is skipped, so the head always settles back. `strength: 0`
-is a mime: no pulse at all. An authored `play: speech_pulse` on the speaker
-replaces the automatic pulses (nothing is added beside it), but it is not a
-declaration: the fall from the mouth chart is still recorded, and only a
-declared `speech` makes it the request. Substitutions (a declared method
-the rig cannot honour; the fall from the mouth chart to the pulse) go to
-`record`, once per speaker. A declared `speech` naming no method of the
-aspect, or pinned to a stale version, raises
-[`VocabularyError`](_autosummary/an.semantic.html.md#an.semantic.VocabularyError) naming the aspect’s methods
-([`speech_problems()`](_autosummary/an.characters.methods.html.md#an.characters.methods.speech_problems) is `an validate`’s side of it).
-
-* **Return type:**
-  [`SpeechPlan`](_autosummary/an.characters.methods.html.md#an.characters.methods.SpeechPlan)
-
-### an.characters.methods.speech_problems(declared)
-
-Why a character’s declared `speech` cannot be honoured (empty: it can).
-
-An unknown method, a method of another aspect, or a pin to a version the
-registry no longer has; the message names the speech methods.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> speech_problems("pulse"), speech_problems(None)
-([], [])
->>> speech_problems("flap")[0].startswith("speech 'flap'")
-True
-```
-
-### an.characters.methods.substitution_record(sub, , entity_ref=None)
-
-A [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) as an `asset_resolution` entry.
-
-The compiled document’s record generalised (ADR 0002 decision 6):
-`kind: method`, `store` the aspect, `ref` what was asked for,
-`resolved` what was used, `fallback` whether `--strict-assets` makes
-it fatal.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-### an.characters.methods.syllable_beats(line, , min_gap_s=0.18)
-
-Syllable onsets of a dialogue line, in seconds from its start.
-
-From the line’s viseme track (a syllable starts where the mouth opens out
-of a closed shape), else its word timings (one beat per word), else one
-beat at its start. Beats closer than `min_gap_s` merge.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-
-# _autosummary/an.characters.mouth_set.html.md
-
-# an.characters.mouth_set
-
-Generate the 9-shape default mouth set as parametric SVGs.
-
-Produces drop-in art for `mouth_a` … `mouth_h` plus `mouth_x`, with
-shape parameters cribbed from Daniel Wolf’s Rhubarb README (see research
-§2.2). Every shape is rendered into the same per-mouth canvas
-(`DEFAULT_MOUTH_VIEWBOX`, default 256×128) with a centered anchor, so
-swapping attachments at runtime needs no per-shape offset.
-
-The set is deliberately stylized — flat colors, bold strokes — so it reads
-at the small sizes a typical cutout puppet uses (~30-40 px tall on a
-1080p frame). It’s not meant to compete with hand-drawn art; it’s the
-“always works” fallback.
-
-```pycon
->>> svgs = generate_default_mouths()
->>> sorted(svgs.keys())
-['mouth_a', 'mouth_b', 'mouth_c', 'mouth_d', 'mouth_e', 'mouth_f', 'mouth_g', 'mouth_h', 'mouth_x']
->>> len(svgs['mouth_a']) > 100
-True
-```
-
-### Module Attributes
-
-| [`DEFAULT_MOUTH_VIEWBOX`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.DEFAULT_MOUTH_VIEWBOX)   | Mouth canvas viewBox (width, height) — small per-shape and centered so the anchor is always (0.5, 0.5).   |
-|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [`DEFAULT_MOUTH_VARIANTS`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS)  | a `viseme@<form>` set per entry, its shapes drawn with this corner upturn added (an#98).                  |
-
-### Functions
-
-| [`generate_default_mouths`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.generate_default_mouths)(\*[, canvas, ...])       | Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.                                                                                                            |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`mouth_attachment_name`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.mouth_attachment_name)(shape[, form])             | The attachment (and file stem) of one mouth drawing.                                                                                                                                |
-| [`write_default_mouths`](_autosummary/an.characters.mouth_set.html.md#an.characters.mouth_set.write_default_mouths)(out_dir, \*[, canvas, ...]) | Write the default mouth SVGs into `out_dir` (created if missing), plus one `mouth_<shape>_<form>.svg` per shape for every `variants` entry (`{form: smile offset}`; `None` = none). |
-
-### an.characters.mouth_set.DEFAULT_MOUTH_VARIANTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'happy': 0.35, 'sad': -0.35}*
-
-a
-`viseme@<form>` set per entry, its shapes drawn with this corner upturn
-added (an#98). Every preset that prefers a form the character lacks falls
-back to `viseme` with a warning, so the default covers the two forms the
-most-authored presets (`happy`/`amused`, `sad`) ask for.
-
-* **Type:**
-  The mouth-form variants a synthesized character gets by default
-
-### an.characters.mouth_set.DEFAULT_MOUTH_VIEWBOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (256, 128)*
-
-Mouth canvas viewBox (width, height) — small per-shape and centered so the
-anchor is always (0.5, 0.5).
-
-### an.characters.mouth_set.generate_default_mouths(, canvas=(256, 128), palette=None, shapes=('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x'), smile=0.0, form=None)
-
-Return `{"mouth_<letter>[_<form>]": <svg-string>, ...}` for every shape.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> svgs = generate_default_mouths()
->>> 'mouth_x' in svgs and 'viewBox' in svgs['mouth_x']
-True
->>> sorted(generate_default_mouths(shapes=["a"], smile=0.35, form="happy"))
-['mouth_a_happy']
-```
-
-### an.characters.mouth_set.mouth_attachment_name(shape, form=None)
-
-The attachment (and file stem) of one mouth drawing.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> mouth_attachment_name("a"), mouth_attachment_name("a", "happy")
-('mouth_a', 'mouth_a_happy')
-```
-
-### an.characters.mouth_set.write_default_mouths(out_dir, , canvas=(256, 128), palette=None, shapes=('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x'), variants=None)
-
-Write the default mouth SVGs into `out_dir` (created if missing),
-plus one `mouth_<shape>_<form>.svg` per shape for every `variants`
-entry (`{form: smile offset}`; `None` = none).
-
-Returns the list of paths written: the neutral set in shape order, then
-each variant’s.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
-
-
-# _autosummary/an.characters.play.html.md
-
-# an.characters.play
-
-Resolve a `play` against a character descriptor — the renderer-free half (an#7).
-
-A [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) names a descriptor animation. Its tracks
-speak the DESCRIPTOR’s vocabulary — bones, slots, attachment names, view-box
-units, degrees — while the renderer’s channels speak the SCENE’s: node paths,
-swap-set keys, scene pixels, radians. This module does everything on the
-descriptor side of that line and knows no renderer, so that `an validate`
-and the cutout compiler share ONE verdict on whether a play can resolve. The
-compiler used to decide alone, and validate passed plays that compile then
-refused — four measured cases: an unknown bone property, a bone with no slot
-of its own, a frame naming art that is not on disk, and a slot suppressed by
-`face_overlay=false` (an#7 review).
-
-Every rule mirrors a rig-builder fact, and the builder imports the shared
-helpers rather than restating them, so the two cannot drift:
-
-- A bone track animates the node of the bone’s **primary slot** — the slot
-  named like the bone ([`primary_slot_per_bone()`](_autosummary/an.characters.play.html.md#an.characters.play.primary_slot_per_bone)); `bone:root.*`
-  animates the entity container. A bone with no primary slot is a resolution
-  error that *says so*: the old message (“no node of that name was built”)
-  named the symptom and left the rule for the author to guess.
-- A slot track resolves to exactly **one** swap set: the set whose keys name
-  every frame’s attachment. Resolving frame-by-frame used to split a track
-  across two channels; the runtime applies a pose’s properties in name order,
-  so `blink` never closed once a second set that sorted before `eyelid`
-  also named `open`. Two candidates is an error naming both.
-- Art is consulted when the caller can consult it (`art_exists`): a frame
-  whose attachment is declared but not on disk is reported as exactly that,
-  not as “no set resolves it”.
-
-```pycon
->>> from an.characters.schema import CharacterDescriptor
->>> desc = CharacterDescriptor(name="maya")
->>> resolved = resolve_play(desc, "blink")
->>> [(t.slot, t.set_name) for t in resolved.tracks]
-[('left_eye', 'eyelid'), ('right_eye', 'eyelid')]
-```
-
-**Motion presets (an#166).** A name the descriptor does not declare — or any
-name on an entity with no descriptor (a procedural rig, a prop) — falls back
-to [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS). The DESCRIPTOR WINS a name both know: a rig that
-ships its own `hop` means that one. [`play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source) makes that call and
-[`play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems) gives the whole verdict, for `an validate` and the
-compiler alike. A preset resolves to tweens, not a clip:
-[`expand_preset_play()`](_autosummary/an.characters.play.html.md#an.characters.play.expand_preset_play) builds them at the moved node’s pose, which the
-caller reads off the built scene and the timeline before the play (an#212),
-so an author never passes `rest`.
-
-```pycon
->>> play_problems(desc, "moonwalk")
-["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no
-  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'speech_pulse', 'squash_stretch', 'turn',
-  'waddle', 'walk'])"]
->>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
-('preset', 'preset', 'descriptor')
-```
-
-### Module Attributes
-
-| [`BONE_TRACK_PROPERTIES`](_autosummary/an.characters.play.html.md#an.characters.play.BONE_TRACK_PROPERTIES)   | Descriptor bone-track properties → `(runtime property, unit factor)`.                                                               |
-|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| [`RIG_SCALED_PROPERTIES`](_autosummary/an.characters.play.html.md#an.characters.play.RIG_SCALED_PROPERTIES)   | Bone-track properties whose values are view-box LENGTHS, so a renderer scales them by the rig's view-box → scene-pixel factor.      |
-| [`ROOT_BONE`](_autosummary/an.characters.play.html.md#an.characters.play.ROOT_BONE)               | a track on it animates the entity's container node rather than any slot.                                                            |
-| [`HEAD_BONE`](_autosummary/an.characters.play.html.md#an.characters.play.HEAD_BONE)               | The bone whose primary slot's nested slots are the FACE — what `face_overlay=false` suppresses.                                     |
-| [`DESCRIPTOR_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.DESCRIPTOR_SOURCE)       | the entity descriptor's own `animations`…                                                                                           |
-| [`PRESET_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.PRESET_SOURCE)           | …or, for a name it does not declare, [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (an#166). |
-| [`RESERVED_PRESET_ARGS`](_autosummary/an.characters.play.html.md#an.characters.play.RESERVED_PRESET_ARGS)    | the target is the play's own, and the rest pose is read off the built scene.                                                        |
-| [`TURN_PRESET`](_autosummary/an.characters.play.html.md#an.characters.play.TURN_PRESET)             | a turn opens from the side the character faces NOW, which only the timeline knows.                                                  |
-
-### Functions
-
-| [`active_skin`](_autosummary/an.characters.play.html.md#an.characters.play.active_skin)(desc)                                | The skin the rig draws: `default`, else the first declared, else empty.                                                                                                                                                                                                                                                                                                |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`art_exists_for`](_autosummary/an.characters.play.html.md#an.characters.play.art_exists_for)(characters_store, ref)            | `rel_path -> is the art on disk`, for a character in a filesystem store; `None` when the store has no root to look under (a dict, a fake) — a store that can answer nothing must assume presence, not absence, exactly as the rig builder's part probe does.                                                                                                           |
-| [`drawn_attachment`](_autosummary/an.characters.play.html.md#an.characters.play.drawn_attachment)(desc, skin, slot)               | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                                                                                                           |
-| [`expand_preset_play`](_autosummary/an.characters.play.html.md#an.characters.play.expand_preset_play)(action, \*, start, rest_of)   | A preset `play` as the flat tweens and settling `set``s it stands for, at absolute times from ``start` (an#166).                                                                                                                                                                                                                                                       |
-| [`facing_at`](_autosummary/an.characters.play.html.md#an.characters.play.facing_at)(events, entity, t, \*[, view_set])     | What `entity` shows at time `t`: the latest `view_set` swap set on the entity and the sign of the latest `scale_x` it was given, at or before `t` (a tween counts from its END, when its value has landed; at one instant the one LATER in `events` wins — so pass them in authoring order, as [`resolve_turns()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns) does). |
-| [`play_problems`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems)(desc, animation, \*[, ...])        | Every reason `play(<entity>, animation, ...)` cannot resolve — empty when it can.                                                                                                                                                                                                                                                                                      |
-| [`play_source`](_autosummary/an.characters.play.html.md#an.characters.play.play_source)(desc, animation)                     | Which library a `play` of `animation` resolves in — [`DESCRIPTOR_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a name a preset also has), else [`PRESET_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.PRESET_SOURCE) when a motion preset has it.                                                                        |
-| [`preset_moved_node`](_autosummary/an.characters.play.html.md#an.characters.play.preset_moved_node)(action_target, animation)      | The ONE node path a preset play moves — `<target>/head` for a `nod`, the target itself for the rest.                                                                                                                                                                                                                                                                   |
-| [`preset_moved_nodes`](_autosummary/an.characters.play.html.md#an.characters.play.preset_moved_nodes)(action_target, animation)     | Every node path a preset play moves.                                                                                                                                                                                                                                                                                                                                   |
-| [`preset_takes`](_autosummary/an.characters.play.html.md#an.characters.play.preset_takes)(animation, name)                    | Whether the motion preset `animation` has the keyword `name`.                                                                                                                                                                                                                                                                                                          |
-| [`preset_play_span`](_autosummary/an.characters.play.html.md#an.characters.play.preset_play_span)(action)                         | How long a preset `play` runs, in seconds: its `duration` when set, else the preset's natural length divided by `speed`.                                                                                                                                                                                                                                               |
-| [`preset_problems`](_autosummary/an.characters.play.html.md#an.characters.play.preset_problems)(animation, \*[, args, ...])      | Why a `play` of the motion preset `animation` cannot expand.                                                                                                                                                                                                                                                                                                           |
-| [`primary_slot_per_bone`](_autosummary/an.characters.play.html.md#an.characters.play.primary_slot_per_bone)(desc)                      | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                                                                                            |
-| [`resolve_play`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_play)(desc, animation, \*[, art_exists])  | Resolve `animation` of `desc` into renderer-ready tracks, or raise [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError) listing every problem found.                                                                                                                                                                                                   |
-| [`resolve_turns`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns)(flat_list, \*, descriptor_of, ...) | Fill in each turn's `from_direction` from the timeline before it (an#203): a `play` of `turn` on an entity that does not pass one opens from the side the latest earlier `scale_x` left the entity facing — so `side` (`direction: left`) then `back` is two plays, with no `from_direction` by hand.                                                                  |
-| [`sampled_deviations`](_autosummary/an.characters.play.html.md#an.characters.play.sampled_deviations)(track, duration, fps)         | `(time, deviation)` pairs for a sine bone track at the frame rate — [`an.characters.idle.evaluate_track()`](_autosummary/an.characters.idle.html.md#an.characters.idle.evaluate_track)'s formula, sampled, so the descriptor's own evaluator stays the one definition of a sine track.                                                                             |
-| [`sine_sample_times`](_autosummary/an.characters.play.html.md#an.characters.play.sine_sample_times)(duration, fps)                 | Frame-rate sample times for a sine track, ALWAYS ending at `duration`.                                                                                                                                                                                                                                                                                                 |
-| [`slot_node_path`](_autosummary/an.characters.play.html.md#an.characters.play.slot_node_path)(desc, slot_name)                  | The node path of a slot RELATIVE to its entity (`head/left_eye`, `torso`) — the rig builder's nesting rule, stated once.                                                                                                                                                                                                                                               |
-| [`slot_parent`](_autosummary/an.characters.play.html.md#an.characters.play.slot_parent)(desc, slot)                          | The slot `slot` nests under, or `None` when it is a direct child.                                                                                                                                                                                                                                                                                                      |
-| [`suppressed_slots`](_autosummary/an.characters.play.html.md#an.characters.play.suppressed_slots)(desc)                           | Slots the rig builder never builds: with the face baked into the head art (`face_overlay=false`), every slot nested under the HEAD BONE's primary slot — keyed on the bone, not on a slot named "head".                                                                                                                                                                |
-
-### Classes
-
-| [`BoneTrack`](_autosummary/an.characters.play.html.md#an.characters.play.BoneTrack)(track, slot, property, unit, ...)   | A resolved `bone:<name>.<prop>` track.                                                                                                                                                                                                                                                                                             |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Facing`](_autosummary/an.characters.play.html.md#an.characters.play.Facing)([view, direction])                     | What an entity shows at one instant, read off a flat timeline.                                                                                                                                                                                                                                                                     |
-| [`ResolvedPlay`](_autosummary/an.characters.play.html.md#an.characters.play.ResolvedPlay)(animation, tracks)               |                                                                                                                                                                                                                                                                                                                                    |
-| [`SlotTrack`](_autosummary/an.characters.play.html.md#an.characters.play.SlotTrack)(track, slot, set_name, frames)      | A resolved `slot:<name>.attachment` track: one set, frames as KEYS.                                                                                                                                                                                                                                                                |
-| [`TurnInference`](_autosummary/an.characters.play.html.md#an.characters.play.TurnInference)(index, start, entity, before)   | One `play` of [`TURN_PRESET`](_autosummary/an.characters.play.html.md#an.characters.play.TURN_PRESET) and the state it starts from.                                                                                                                                                                                                                           |
-| [`TurnResolution`](_autosummary/an.characters.play.html.md#an.characters.play.TurnResolution)(flats, turns, events)          | [`resolve_turns()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns)' result: `flats` is the input with each turn's inferred `from_direction` filled in; `turns` says what each turn started from; `events` is the timeline with every preset play expanded, which [`facing_at()`](_autosummary/an.characters.play.html.md#an.characters.play.facing_at) reads. |
-
-### Exceptions
-
-| [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError)(animation, problems)   | A `play` that cannot resolve; `problems` lists every reason found.   |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-
-### an.characters.play.BONE_TRACK_PROPERTIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'rotation_deg': ('rotation', 0.017453292519943295), 'scale_x': ('scale_x', 1.0), 'scale_y': ('scale_y', 1.0), 'x': ('x', 1.0), 'y': ('y', 1.0)}*
-
-Descriptor bone-track properties → `(runtime property, unit factor)`.
-The descriptor speaks degrees for rotation; the runtime is radians.
-
-### *class* an.characters.play.BoneTrack(track, slot, property, unit, rig_scaled)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A resolved `bone:<name>.<prop>` track.
-
-`slot` is the primary slot whose node carries the bone, or `None` for
-the entity container (`bone:root`). `property` is the RUNTIME name;
-values are `rest + deviation * unit` (times the rig’s pixel factor when
-`rig_scaled`).
-
-### an.characters.play.DESCRIPTOR_SOURCE *= 'descriptor'*
-
-the entity descriptor’s own `animations`…
-
-* **Type:**
-  Where a `play` resolves
-
-### *class* an.characters.play.Facing(view=None, direction=None)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-What an entity shows at one instant, read off a flat timeline.
-
-`view` is the key of its view set last set on the ENTITY (`None`: not
-set in this shot, so the rig’s default — `front` on a factory
-character); `direction` is `"right"`/`"left"` from the sign of the
-last `scale_x` it was given (`None`: nothing set it, so its rest).
-
-### an.characters.play.HEAD_BONE *= 'head'*
-
-The bone whose primary slot’s nested slots are the FACE — what
-`face_overlay=false` suppresses.
-
-### an.characters.play.PRESET_SOURCE *= 'preset'*
-
-…or, for a name it does not declare, [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (an#166).
-
-### *exception* an.characters.play.PlayResolutionError(animation, problems)
-
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
-
-A `play` that cannot resolve; `problems` lists every reason found.
-
-### an.characters.play.RESERVED_PRESET_ARGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'parts', 'rest', 'target'})*
-
-the target is
-the play’s own, and the rest pose is read off the built scene.
-
-* **Type:**
-  Preset parameters an author may NOT pass through `args`
-
-### an.characters.play.RIG_SCALED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'x', 'y'})*
-
-Bone-track properties whose values are view-box LENGTHS, so a renderer
-scales them by the rig’s view-box → scene-pixel factor. Scales and angles
-are dimensionless.
-
-### an.characters.play.ROOT_BONE *= 'root'*
-
-a track on it animates the entity’s
-container node rather than any slot.
-
-* **Type:**
-  The bone that stands for the whole rig
-
-### *class* an.characters.play.ResolvedPlay(animation, tracks)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-### *class* an.characters.play.SlotTrack(track, slot, set_name, frames)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A resolved `slot:<name>.attachment` track: one set, frames as KEYS.
-
-### an.characters.play.TURN_PRESET *= 'turn'*
-
-a
-turn opens from the side the character faces NOW, which only the timeline
-knows.
-
-* **Type:**
-  The preset whose START depends on what came before it on the timeline
-
-### *class* an.characters.play.TurnInference(index, start, entity, before, declared=None)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One `play` of [`TURN_PRESET`](_autosummary/an.characters.play.html.md#an.characters.play.TURN_PRESET) and the state it starts from.
-
-`index` is the play’s position in the flat list it was read from;
-`declared` is the `from_direction` the author passed (`None`: left
-to the timeline).
-
-#### *property* contradicted *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
-
-The author’s `from_direction` disagrees with the timeline — the
-turn would jump to the other side before it squashes.
-
-### *class* an.characters.play.TurnResolution(flats, turns, events)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-[`resolve_turns()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns)’ result: `flats` is the input with each turn’s
-inferred `from_direction` filled in; `turns` says what each turn
-started from; `events` is the timeline with every preset play expanded,
-which [`facing_at()`](_autosummary/an.characters.play.html.md#an.characters.play.facing_at) reads.
-
-### an.characters.play.active_skin(desc)
-
-The skin the rig draws: `default`, else the first declared, else empty.
-
-* **Return type:**
-  [`Skin`](_autosummary/an.characters.schema.html.md#an.characters.schema.Skin)
-
-### an.characters.play.art_exists_for(characters_store, ref)
-
-`rel_path -> is the art on disk`, for a character in a filesystem
-store; `None` when the store has no root to look under (a dict, a
-fake) — a store that can answer nothing must assume presence, not absence,
-exactly as the rig builder’s part probe does.
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`bool`](https://docs.python.org/3/builtins/functions.html#bool)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.play.drawn_attachment(desc, skin, slot)
-
-The `(name, attachment)` a slot draws by default, or `None`.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](_autosummary/an.characters.schema.html.md#an.characters.schema.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.play.expand_preset_play(action, , start, rest_of, parts_of=None)
-
-A preset `play` as the flat tweens and settling `set``s it stands
-for, at absolute times from ``start` (an#166).
-
-`rest_of(node_path)` returns the pose to build that node’s move from
-(`x`, `y`, `rotation`, `scale_x`, `scale_y`, `alpha` — the
-compiler passes the pose the node HAS at `start`, an#212), or `None` when the
-built scene carries no such node — then this raises naming it, which is
-what the runtime would otherwise do mid-render. `duration` stretches the
-move to that length; `speed` divides it. Assumes
-[`preset_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.preset_problems) came back empty.
-
-A preset that moves several nodes of the entity (it takes `parts`,
-`PARTS_ARG` — `walk`) gets `parts_of(entity)`’s paths with their
-`rest_of` poses, and every node its expansion moves is checked.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
-
-```pycon
->>> from an.ir.schema import PlayAction
->>> flats = expand_preset_play(
-...     PlayAction(target="a", animation="hop", args={"height": 10}),
-...     start=1.0, rest_of=lambda p: {"y": 5.0})
->>> [(round(f.start, 3), type(f.action).__name__, f.action.property) for f in flats]
-[(1.0, 'TweenAction', 'y'), (1.25, 'TweenAction', 'y'), (1.5, 'SetAction', 'y')]
->>> flats[0].action.to_value
--5.0
-```
-
-### an.characters.play.facing_at(events, entity, t, , view_set='view')
-
-What `entity` shows at time `t`: the latest `view_set` swap set
-on the entity and the sign of the latest `scale_x` it was given, at or
-before `t` (a tween counts from its END, when its value has landed; at
-one instant the one LATER in `events` wins — so pass them in authoring
-order, as [`resolve_turns()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns) does).
-
-* **Return type:**
-  [`Facing`](_autosummary/an.characters.play.html.md#an.characters.play.Facing)
-
-```pycon
->>> from an.ir.compose import flatten, sequence
->>> from an.motion import turn
->>> flats = flatten(sequence(turn("ned", to="side", direction="left")))
->>> facing_at(flats, "ned", 0.0), facing_at(flats, "ned", 1.0)
-(Facing(view=None, direction=None), Facing(view='side', direction='left'))
-```
-
-### an.characters.play.play_problems(desc, animation, , art_exists=None, args=None, duration=None, speed=1.0, loop=None)
-
-Every reason `play(<entity>, animation, ...)` cannot resolve — empty
-when it can. THE verdict `an validate` reports and the compiler raises
-on, for both sources (an#7, an#166).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> play_problems(None, "hop", args={"heigth": 3})
-["motion preset 'hop' has no parameter 'heigth' (it takes: [...])"]
->>> play_problems(None, "hop", loop=True)
-["motion preset 'hop' is a one-shot: `loop: true` ...
-```
-
-### an.characters.play.play_source(desc, animation)
-
-Which library a `play` of `animation` resolves in —
-[`DESCRIPTOR_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a
-name a preset also has), else [`PRESET_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.PRESET_SOURCE) when a motion preset
-has it. `desc=None` is an entity with no descriptor: presets only.
-
-Raises [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError) naming BOTH vocabularies when neither
-has the name.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.play.preset_moved_node(action_target, animation, args=None)
-
-The ONE node path a preset play moves — `<target>/head` for a `nod`,
-the target itself for the rest. Read off the expansion rather than
-restated per preset, so a preset added later needs no entry here.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")
-('charlie/head', 'charlie')
-```
-
-### an.characters.play.preset_moved_nodes(action_target, animation, args=None, , parts=None)
-
-Every node path a preset play moves. `parts` (the entity’s built part
-paths, relative to it) is what a multi-node preset chooses its limbs from;
-`None` lets it assume the rig contract’s names.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> preset_moved_nodes("bob", "walk", {"distance": 80}, parts=["torso", "left_leg", "right_leg"])
-['bob', 'bob/left_leg', 'bob/right_leg']
->>> preset_moved_nodes("charlie", "nod")
-['charlie/head']
-```
-
-### an.characters.play.preset_play_span(action)
-
-How long a preset `play` runs, in seconds: its `duration` when set,
-else the preset’s natural length divided by `speed`. What a
-`sequence` advances by is `play_extent()`, which is this for a preset
-source.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> from an.ir.schema import PlayAction
->>> preset_play_span(PlayAction(target="a", animation="hop"))
-0.5
->>> preset_play_span(PlayAction(target="a", animation="hop", speed=2.0))
-0.25
-```
-
-### an.characters.play.preset_problems(animation, , args=None, duration=None, speed=1.0, loop=None)
-
-Why a `play` of the motion preset `animation` cannot expand.
-
-The parameters are checked by NAME against the preset’s signature, then by
-building it (at the identity pose), so a value the preset itself refuses —
-`cycles: 0`, a string height — is reported in the preset’s own words.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-### an.characters.play.preset_takes(animation, name)
-
-Whether the motion preset `animation` has the keyword `name`.
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
-```pycon
->>> preset_takes("walk", "parts"), preset_takes("hop", "parts")
-(True, False)
-```
-
-### an.characters.play.primary_slot_per_bone(desc)
-
-`{bone name: the slot that IS that bone}`, when one exists.
-
-Used for node nesting, which is deliberately **not** the bone hierarchy.
-The rigs here are flat by design — arms are siblings of the torso, not
-children (CLAUDE.md pillar 4) — so bone parentage decides *position* only.
-A slot nests under the primary slot of its bone when it is not that slot
-itself, which is what puts eyes and mouth under `head` and leaves every
-limb a direct child of the entity.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> primary_slot_per_bone(CharacterDescriptor(name="m"))["head"]
-'head'
-```
-
-### an.characters.play.resolve_play(desc, animation, , art_exists=None)
-
-Resolve `animation` of `desc` into renderer-ready tracks, or raise
-[`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError) listing every problem found.
-
-`art_exists(rel_path)` answers whether a skin attachment’s art is on
-disk; pass `None` when the caller cannot know, and every declared
-attachment is assumed present (the rig builder’s own rule for a store
-without a filesystem root).
-
-* **Return type:**
-  [`ResolvedPlay`](_autosummary/an.characters.play.html.md#an.characters.play.ResolvedPlay)
-
-### an.characters.play.resolve_turns(flat_list, , descriptor_of, rest_of)
-
-Fill in each turn’s `from_direction` from the timeline before it
-(an#203): a `play` of `turn` on an entity that does not pass one
-opens from the side the latest earlier `scale_x` left the entity facing
-— so `side` (`direction: left`) then `back` is two plays, with no
-`from_direction` by hand. Turns are resolved in time order, each seeing
-the ones before it expanded. THE resolver the compiler expands with and
-`an validate` checks with.
-
-An explicit `from_direction` is kept — `turns` records it with the
-inferred state so `an validate` can say when the two disagree. A play
-that cannot resolve is left for [`play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems) to report.
-
-* **Return type:**
-  [`TurnResolution`](_autosummary/an.characters.play.html.md#an.characters.play.TurnResolution)
-
-```pycon
->>> from an.ir.compose import flatten, sequence
->>> from an.ir.schema import PlayAction
->>> flats = flatten(sequence(
-...     PlayAction(target="ned", animation="turn", args={"to": "side", "direction": "left"}),
-...     PlayAction(target="ned", animation="turn", args={"to": "back"})))
->>> res = resolve_turns(flats, descriptor_of=lambda e: None,
-...                     rest_of=lambda p: {"scale_x": 1.0})
->>> res.flats[1].action.args["from_direction"], res.turns[1].before
-('left', Facing(view='side', direction='left'))
-```
-
-### an.characters.play.sampled_deviations(track, duration, fps)
-
-`(time, deviation)` pairs for a sine bone track at the frame rate —
-[`an.characters.idle.evaluate_track()`](_autosummary/an.characters.idle.html.md#an.characters.idle.evaluate_track)’s formula, sampled, so the
-descriptor’s own evaluator stays the one definition of a sine track.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-### an.characters.play.sine_sample_times(duration, fps)
-
-Frame-rate sample times for a sine track, ALWAYS ending at `duration`.
-
-`ceil` rather than `round`: with `round`, a 0.18 s track at 24 fps
-got samples up to 0.1667 s and then held that value to the clip end, so
-the cycle-closing sample (equal to the first) was never emitted and the
-clip wrapped with a jump (an#7 review).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> sine_sample_times(0.19, 24)[-2:]
-[0.16666666666666666, 0.19]
->>> len(sine_sample_times(6.0, 24))
-145
-```
-
-### an.characters.play.slot_node_path(desc, slot_name)
-
-The node path of a slot RELATIVE to its entity (`head/left_eye`,
-`torso`) — the rig builder’s nesting rule, stated once.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> slot_node_path(CharacterDescriptor(name="m"), "left_eye")
-'head/left_eye'
->>> slot_node_path(CharacterDescriptor(name="m"), "torso")
-'torso'
-```
-
-### an.characters.play.slot_parent(desc, slot)
-
-The slot `slot` nests under, or `None` when it is a direct child.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.characters.play.suppressed_slots(desc)
-
-Slots the rig builder never builds: with the face baked into the head
-art (`face_overlay=false`), every slot nested under the HEAD BONE’s
-primary slot — keyed on the bone, not on a slot named “head”.
-
-* **Return type:**
-  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> sorted(suppressed_slots(CharacterDescriptor(name="m", face_overlay=False)))
-['left_brow', 'left_eye', 'mouth', 'right_brow', 'right_eye']
->>> suppressed_slots(CharacterDescriptor(name="m"))
-frozenset()
-```
-
-
-# _autosummary/an.characters.record.html.md
-
-# an.characters.record
-
-Record a character’s preview HTML to an mp4.
-
-Uses Playwright’s video recording (saved as webm) and converts to mp4
-via ffmpeg. The result is a real video file showing the new SVG
-character art animating: cycling visemes + breath/head-tilt.
-
-This is a stop-gap until Phase 11b wires the SVG-texture path into
-`runtime.js` and proper scene rendering uses the new character art
-directly.
-
-```pycon
->>> # Smoke-tested in tests/test_characters_record.py
-```
-
-### Functions
-
-| [`record_character`](_autosummary/an.characters.record.html.md#an.characters.record.record_character)(char_dir, \*[, name, ...])      | Render preview.html for the character at `char_dir` and record it.   |
-|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`record_preview_to_mp4`](_autosummary/an.characters.record.html.md#an.characters.record.record_preview_to_mp4)(preview_html, out_mp4, \*) | Record `preview_html` to `out_mp4` for `duration_s` seconds.         |
-
-### Exceptions
-
-| [`PreviewRecordError`](_autosummary/an.characters.record.html.md#an.characters.record.PreviewRecordError)   | Raised when preview recording fails.   |
-|-----------------------------------------------------------------------|----------------------------------------|
-
-### *exception* an.characters.record.PreviewRecordError
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-Raised when preview recording fails.
-
-### an.characters.record.record_character(char_dir, , name=None, out_mp4=None, duration_s=8.0, size=(640, 480))
-
-Render preview.html for the character at `char_dir` and record it.
-
-The preview HTML is generated/refreshed via the same writer used by
-`an character preview`, so this command is self-contained.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.characters.record.record_preview_to_mp4(preview_html, out_mp4, , duration_s=8.0, size=(640, 480), fps=30, crf=23)
-
-Record `preview_html` to `out_mp4` for `duration_s` seconds.
-
-Returns the output mp4 path.
-
-Pipeline:
-
-> 1. Playwright launches headless Chromium with video recording on.
-> 2. Navigates to `preview_html` ([file://](file://) URL).
-> 3. Waits `duration_s` real-time so the browser captures frames.
-> 4. Closes the context to flush the webm.
-> 5. ffmpeg re-encodes the webm to H.264 mp4 (better compatibility,
->    smaller files, plays in `quicktime` / GitHub previews).
-
-Both Playwright (project dep) and ffmpeg (system dep, already
-required by the renderer) must be installed.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-
-# _autosummary/an.characters.registration.html.md
-
-# an.characters.registration
-
-The character side of the cut-out genre, as declarations: `play` and `character`.
-
-What the cut-out genre ([`an.genres.cutout`](_autosummary/an.genres.cutout.html.md#module-an.genres.cutout)) registers from here (ADR 0001
-§First slice):
-
-- the **\`\`play\`\` action kind** — [`an.ir.schema.PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), how long a
-  duration-less play occupies a `sequence` (its natural length, through the
-  caller’s extent resolver), and its `scene.md` spelling;
-- the **\`\`character\`\` entity kind** — a rigged character, whose nodes are
-  nodes of the 2D stage engine (the `stage.node` property space).
-
-Plain declarations: importing this module registers nothing.
-
-```pycon
->>> PLAY.name, CHARACTER.space
-('play', 'stage.node')
-```
-
-### Functions
-
-| [`play_duration`](_autosummary/an.characters.registration.html.md#an.characters.registration.play_duration)(action, extent)   | The span a `play` occupies: its `duration`, else its natural extent.    |
-|----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`read_play_md`](_autosummary/an.characters.registration.html.md#an.characters.registration.read_play_md)(item, \*, index)   | `{kind: play, target, animation, [duration], [speed], [loop], [args]}`. |
-| [`write_play_md`](_autosummary/an.characters.registration.html.md#an.characters.registration.write_play_md)(leaf)             | The `scene.md` entry for `leaf` (`read_play_md`'s inverse).             |
-
-### an.characters.registration.play_duration(action, extent)
-
-The span a `play` occupies: its `duration`, else its natural extent.
-
-`extent` is the caller’s resolver (the compiler and `an validate` pass
-one bound to the entity’s descriptor); without one, a motion preset’s own
-length ([`an.ir.compose.default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> play_duration(PlayAction(target="a", animation="hop", duration=2.0), None)
-2.0
->>> play_duration(PlayAction(target="a", animation="hop"), None)
-0.5
-```
-
-### an.characters.registration.read_play_md(item, , index)
-
-`{kind: play, target, animation, [duration], [speed], [loop], [args]}`.
-
-Resolved at compile against the target entity’s descriptor `animations`
-(an#7), falling back to the motion presets of `an.motion.PRESETS` for a
-name the descriptor does not declare, with `args` as the preset’s
-parameters (an#166). `loop` omitted means the animation’s own. This
-reader accepted the shape from the start, then #24 made it refuse (nothing
-resolved a play) while the writer kept emitting it — three days of a
-project’s own scene.md failing to parse.
-
-* **Return type:**
-  [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
-
-### an.characters.registration.write_play_md(leaf)
-
-The `scene.md` entry for `leaf` (`read_play_md`’s inverse).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-
-# _autosummary/an.characters.schema.html.md
-
-# an.characters.schema
-
-Character descriptor schema (Spine-shaped, Pydantic v2).
-
-A character on disk lives at:
-
-```default
-characters/<name>/
-    <name>.svg              # optional canonical layered SVG
-    character.json          # CharacterDescriptor as JSON
-    parts/
-        head.svg
-        torso.svg
-        arm_l.svg, arm_r.svg
-        leg_l.svg, leg_r.svg
-        eye_l_open.svg, eye_l_closed.svg, eye_r_open.svg, eye_r_closed.svg
-        brow_l.svg, brow_r.svg
-        mouth/mouth_a.svg … mouth_h.svg, mouth_x.svg
-```
-
-The descriptor borrows Spine’s separation of concerns:
-
-- **bones** — where things attach. Local transforms relative to a parent.
-- **slots** — what is drawn at each bone (one attachment active at a time).
-- **skins** — for each slot, the named attachments and their SVG paths.
-- **asset_sets** — `{channel: {key: attachment_name}}`. What a swap key
-  *selects*, layered over `skins`, which says what art *exists*. The
-  `viseme` channel is Rhubarb’s shape letter → an attachment on the `mouth`
-  slot. (Replaced `viseme_map` in schema 0.2.0.)
-- **animations** — built-in idle loops (breath, blink) keyed by name.
-
-A slot’s name **is** its scene-graph node name, which is why the face slots read
-`left_eye` rather than `eye_l`; attachment names are a separate, per-slot
-namespace — file-derived for single-attachment slots, and shared key-like names
-(`open`/`closed` on both eye slots, 0.3.0) where one swap set must drive
-several slots.
-
-```pycon
->>> char = CharacterDescriptor(name="maya")
->>> char.asset_sets["viseme"]["A"]
-'mouth_a'
->>> char.asset_sets["viseme"]["X"]
-'mouth_x'
->>> char.view_box
-(0, 0, 1024, 1024)
->>> sorted(char.skins["default"].slots.keys())[:3]
-['arm_l', 'arm_r', 'head']
-```
-
-### Module Attributes
-
-| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                                                                                                  |
-|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                                                                                                        |
-| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                                                                                                      |
-| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                                                                                            |
-| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                                                                                               |
-| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                                                                                                    |
-| [`VIEW_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.                                                                            |
-| [`VIEWS`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                                                                                            |
-| [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                                                                                                       |
-| [`VIEW_VARIANT_SEP`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEW_VARIANT_SEP)          | What joins a swap set's name to the view a variant of it serves: `eyelid@side` is the `eyelid` set drawn for the `side` view (an#220), the same separator the expression variants (`viseme@happy`, an#98) use.                                               |
-| [`GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS)                     | `legs` swing about the hip in a profile and step up and down facing the camera; `hem` — the leg slots are the two halves of a robe's hem — tilts them in turn under a swaying, bobbing body; `rock` moves no leg at all (a blob, a sack) and rocks the body. |
-| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                                                                                                         |
-| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                              |
-| [`SLOT_POSE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it.        |
-| [`LEG_LENGTH`](_autosummary/an.characters.schema.html.md#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                                                                                                         |
-| [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                                                                                                      |
-| [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                                                                                              |
-| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                                                                                                    |
-
-### Functions
-
-| [`attachment_box`](_autosummary/an.characters.schema.html.md#an.characters.schema.attachment_box)(width, height, art)      | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                     |
-|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`bones_from_pivots`](_autosummary/an.characters.schema.html.md#an.characters.schema.bones_from_pivots)(pivots, \*[, bones])  | Re-place a bone rig onto an illustrator's own joint coordinates.                                                                                                                                                           |
-| [`default_asset_sets`](_autosummary/an.characters.schema.html.md#an.characters.schema.default_asset_sets)()                    | `{channel: {key: attachment_name}}` for a freshly-built character.                                                                                                                                                         |
-| [`view_variant_set`](_autosummary/an.characters.schema.html.md#an.characters.schema.view_variant_set)(set_name, view)        | The name of `set_name`'s variant for `view` (an#220).                                                                                                                                                                      |
-| [`view_variant_sets`](_autosummary/an.characters.schema.html.md#an.characters.schema.view_variant_sets)(desc, \*[, view_set]) | `{base set: {view: variant set name}}` — every per-view face set the descriptor declares (an#220): a set named `<base>@<view>` where `<base>` is a declared set and `<view>` a key of its `view` set (or its `rest_view`). |
-
-### Classes
-
-| [`AnimationTrack`](_autosummary/an.characters.schema.html.md#an.characters.schema.AnimationTrack)(\*\*data)      | A single channel inside an idle animation.                              |
-|--------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`Attachment`](_autosummary/an.characters.schema.html.md#an.characters.schema.Attachment)(\*\*data)          | A drawable: an SVG path + anchor point (in 0..1 per-axis units).        |
-| [`Bone`](_autosummary/an.characters.schema.html.md#an.characters.schema.Bone)(\*\*data)                | A skeleton joint with a local transform relative to its parent.         |
-| [`CharacterDescriptor`](_autosummary/an.characters.schema.html.md#an.characters.schema.CharacterDescriptor)(\*\*data) | The on-disk character schema.                                           |
-| [`IdleAnimation`](_autosummary/an.characters.schema.html.md#an.characters.schema.IdleAnimation)(\*\*data)       | A named idle loop (e.g., breath, blink).                                |
-| [`Skin`](_autosummary/an.characters.schema.html.md#an.characters.schema.Skin)(\*\*data)                | A named outfit/variant: maps slot → {attachment_name → Attachment}.     |
-| [`Slot`](_autosummary/an.characters.schema.html.md#an.characters.schema.Slot)(\*\*data)                | A draw-order slot bound to a bone, displaying one attachment at a time. |
-| [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)(\*\*data)            | How one slot is posed while a swap key is shown (`swap_poses`, an#197). |
-
-### *class* an.characters.schema.AnimationTrack(\*\*data)
-
-Bases: `_CharModel`
-
-A single channel inside an idle animation.
-
-The `target` is a path-string per the architecture pillar:
-
-- `bone:<name>.<prop>` for bone transforms (`x`, `y`, `rotation_deg`,
-  `scale_x`, `scale_y`).
-- `slot:<name>.attachment` for swap animations (eyes blinking, mouth visemes).
-
-For `type="sine"`: `amplitude` is the peak deviation; `phase` is in
-cycles (0..1). For `type="step"` / `type="linear"`: `frames` is a
-list of `[time_s, value]` pairs evaluated in order.
-
-```pycon
->>> t = AnimationTrack(target="bone:torso.y", type="sine", amplitude=2.0)
->>> t.amplitude
-2.0
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.characters.schema.Attachment(\*\*data)
-
-Bases: `_CharModel`
-
-A drawable: an SVG path + anchor point (in 0..1 per-axis units).
-
-```pycon
->>> a = Attachment(path="parts/head.svg", anchor=(0.5, 0.78))
->>> a.anchor
-(0.5, 0.78)
-```
-
-#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
-
-Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Where THIS part’s art came from, when it is not the descriptor’s
-`source` — a character composed from several clips, or a carved head
-on a CC0 body, credits each (an#220). `None` = the descriptor’s
-`source` covers it. `an credits` lists every one; an all-rights-
-reserved part makes the render NOT PUBLISHABLE like any other.
-Omitted from the stored document when unset.
-
-#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-The size the part draws at, in **view_box units** — the rig’s units,
-the ones `x`/`y` and the bones use (an#220). \*\*A declared size
-wins\*\* over the art’s own extent, as `Plane.size` does for plates.
-Unset, the art’s own extent is the size: an SVG’s `width`/`height`
-(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
-pixel per unit needs nothing, and one carved at any other scale
-declares its size here instead of being resampled. The aspect is the
-art’s, always (an#74): with ONE of the two declared the other follows
-the art’s aspect; with both, the art is contained in the box
-(uniformly scaled to fit, never stretched) and `an character
-validate` says when the two aspects disagree. See
-[`attachment_box()`](_autosummary/an.characters.schema.html.md#an.characters.schema.attachment_box).
-
-#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
-
-Offset from the slot’s bone, in view_box units.
-
-**This is where a part’s position lives**, and it is the reference data
-model’s answer, not an invention: DragonBones puts it in
-`display.transform`, Spine in the region attachment’s `{x, y}`, and
-in both the *slot* carries no transform at all. It is what lets five face
-parts share one `head` bone and still land in different places — before
-this field they all stacked on the bone, because the descriptor had no
-way to say otherwise and the compiler used hardcoded literals instead.
-
-### *class* an.characters.schema.Bone(\*\*data)
-
-Bases: `_CharModel`
-
-A skeleton joint with a local transform relative to its parent.
-
-```pycon
->>> b = Bone(name="head", parent="torso", x=0, y=-260, pivot="neck")
->>> b.parent
-'torso'
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Optional pivot name — must match a circle in the SVG `skeleton` group.
-
-### an.characters.schema.CHARACTER_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='CharacterDescriptor', version_field='schema_version', current_version='0.3.0')*
-
-The descriptor is a schema-versioned document in its own right, with its own
-version field. Registered here rather than in [`an.ir.migrate`](_autosummary/an.ir.html.md#an.ir.migrate) because
-this module already imports from [`an.ir.assets`](_autosummary/an.ir.assets.html.md#module-an.ir.assets) — registering from the
-other direction would close an import cycle, and because the package that
-owns a schema is the one that knows its version field.
-
-### *class* an.characters.schema.CharacterDescriptor(\*\*data)
-
-Bases: `_CharModel`
-
-The on-disk character schema. Saved as `character.json`.
-
-The descriptor is the SSOT for a character’s identity, body part inventory,
-pivot geometry, viseme map, and built-in idle behaviors. Binary art lives
-as SVG sidecars referenced by `Attachment.path` (relative to the
-descriptor file).
-
-```pycon
->>> c = CharacterDescriptor(name="maya")
->>> c.schema_version == CHARACTER_SCHEMA_VERSION
-True
->>> # all 9 mouths are wired into the default skin
->>> sorted(c.skins["default"].slots["mouth"].keys()) == [
-...     'mouth_a', 'mouth_b', 'mouth_c', 'mouth_d',
-...     'mouth_e', 'mouth_f', 'mouth_g', 'mouth_h', 'mouth_x',
-... ]
-True
->>> # round-trip
->>> raw = c.model_dump_json()
->>> back = CharacterDescriptor.model_validate_json(raw)
->>> back.name == c.name
-True
-```
-
-#### asset_sets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
-
-`{channel: {key: attachment_name}}` — what a swap key SELECTS, layered
-over `skins`, which is the SSOT for what art EXISTS. The indirection is
-deliberate: a channel key is not an attachment name. Today’s viseme map
-happens to be one-to-one (9 keys, 9 attachments), but real mouth charts
-are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
-two namespaces makes the first shared drawing a schema change instead of
-a data change. Replaces `viseme_map` (schema 0.2.0).
-
-#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
-
-Which colour literal in which part plays which `StylePack` role —
-`{part path: {"#rrggbb": role}}`, e.g.
-`{"parts/torso.svg": {"#a83249": "clothing"}}`. Written by the factory,
-which KNOWS what it drew as skin or clothing; read by the compiler, which
-rewrites the tagged literals under a pack (palette swapping — see
-[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)). Empty = untagged art (hand-drawn,
-DiceBear): a pack cannot reach it and the compiler says so, because the
-alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
-Additive: no schema bump, and a descriptor without it reads back as
-untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
-one a pack can set ([`an.styles.REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)).
-
-#### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-How expression axes reach this rig (an#98), as a list of binding dicts —
-`{"axis", "slot", "property", "gain"[, "rig_scaled"]}` for a transform
-channel, `{"axis", "slot", "set_family"}` for a swap set. `None` means
-the default binding derived from the slots the rig has
-([`an.expression.binding.default_binding()`](_autosummary/an.expression.binding.html.md#an.expression.binding.default_binding)). Additive: no schema bump,
-and a pre-Wave-6 descriptor reads back unchanged.
-
-#### face_overlay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
-
-Whether this character’s face is drawn as separate overlay parts
-(eyes, brows, mouth as their own slots — the default) or baked into the
-head art (DiceBear / external avatars). `False` suppresses the face
-overlay slots at rig build AND the viseme/emotion channels at dialogue
-compile — a baked face has no overlay mouth to drive.
-
-This is a **declared fact**, replacing the old vendor-name check on
-`metadata.art_provenance` (an#87): provenance says where art came
-from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
-from the provenance string once, and `art_provenance` reverts to pure
-provenance/licensing metadata.
-
-#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-This character’s default walk `gait` (one of [`GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS), an#220);
-an author’s `gait` arg overrides it. `None` = `legs` when the rig
-builds a leg pair, else `rock`. A robe figure whose leg slots are hem
-halves declares `"hem"` once, here, rather than on every walk.
-Omitted from the stored document when unset.
-
-#### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-How far a pupil may travel from its rest, in view-box units per axis
-(an#99): the sclera’s clearance minus the pupil’s radius, written by
-`an character add-gaze` from the parts it synthesized. `None` = the
-rig has no pupil layer (gaze is a no-op on it) or uses the default
-travel. The travel maps the gaze axes’ unit circle onto the sclera’s
-inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
-circle, which keeps the whole pupil disc inside the white at every
-angle (a per-axis box pokes out at the diagonal) — no runtime mask.
-
-#### metadata *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
-
-Free-form metadata (dicebear style/seed, etc.). Schema-evolution
-friendly: anything an external tool wants to record can land here.
-
-This comment used to say “art license, etc.” — an invitation nothing ever
-took up. Rights live in `source` now, typed, so they can be found.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-#### model_post_init(\_CharacterDescriptor_\_context)
-
-Override this method to perform additional initialization after `__init__` and `model_construct`.
-This is useful if you want to do some validation that requires the entire model to be initialized.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-#### occluded *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
-
-The face features another drawing of this character covers, and what
-covers them — `{feature: what}`, e.g. `{"brows": "the cap hat at
-head_scale 0.3"}` (an#252). A **declared fact**, written by whoever
-knows the geometry: the factory measures its hat against the brows’
-acting range and records an overlap it could not seat away; an
-illustrator declares a helmet over the brows. Read by the character
-analyser: a covered feature is not afforded (`brows` →
-`face.brows`), so the methods needing it fall to their default, said
-by `an character capabilities`. Keys are
-`OCCLUDABLE_FEATURES`. Omitted from the
-stored document when empty.
-
-#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-The view the DEFAULT art is drawn in (an#220) — a declared fact about
-the art, like `face_overlay`. `None` means [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)
-(front). A character carved from a profile (a silhouette film, a side-
-on figure) says `"side"`, and everything that asks which view is in
-force before any turn — `walk` swinging its legs rather than lifting
-them — reads it instead of the author passing `view: side` by hand.
-Omitted from the stored document when unset.
-
-#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Where this character’s art came from, and what its licence obliges.
-
-`None` means “we made this” — not “unknown”. Anything acquired should
-carry one, because a licence defect is the only failure that reaches
-BACKWARDS through completed work: a video shipped with an unattributed
-CC BY asset cannot be un-shipped.
-
-Field names match `illustration.ImageResult` exactly, so an adapter is a
-dict copy rather than a rename table — and a rename table is where a field
-quietly stops being carried. Pinned by test.
-
-#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Optional source SVG (relative path) that the parts/ folder was
-extracted from. Useful for re-slicing.
-
-#### speech *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-a
-method’s spelling (`mouth_chart`, `pulse`), its id
-(`speech.pose_only`) or a choice with args and an optional version pin
-(`{method: pulse, args: {strength: 0}}` — a mime). `None` = the
-default chain: lip-sync when the character has a mouth chart, else a
-head pulse, recorded. Declaring it is also how a baked-face character
-renders under `--strict-assets`: a declared pulse is the request, not a
-fallback. Resolved (and refused when unknown) by the capability
-registry. Omitted from the stored document when unset.
-
-* **Type:**
-  How this character shows it is speaking (the speech aspect, an#248)
-
-#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
-
-{slot:
-SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
-(`{kind: set, target: maya, property: view, value: side}`) fans the
-key out to every slot the set projects onto AND poses the slots listed
-under that key; a slot listed under another key of the set returns to
-rest. That is how one key turns a whole character: the head and torso
-swap art, the far eye and arm hide, the mouth slides to the profile
-edge — while blinks, gaze and lip-sync keep running on what is visible
-(the face solver folds a pose into its own channels). Additive: no
-schema bump, and a descriptor without it reads back unposed.
-
-* **Type:**
-  How slots are POSED while a swap key shows — 
-
-  ```
-  ``
-  ```
-
-  {set
-* **Type:**
-  {key
-
-#### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Voice-store id or path used by the audio pipeline. Optional; the scene
-can override per shot.
-
-### an.characters.schema.DEFAULT_EYELID_MAP *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CLOSED': 'closed', 'OPEN': 'open'}*
-
-Default eyelid-state → attachment-name mapping, shared by both eye slots.
-
-### an.characters.schema.DEFAULT_VIEW_BOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (0, 0, 1024, 1024)*
-
-1024x1024 with feet near y≈980. All parts
-inherit this viewBox at export so PixiJS can use the SVG’s intrinsic
-viewBox without a calibration step.
-
-* **Type:**
-  Canonical character viewBox
-
-### an.characters.schema.DEFAULT_VISEME_MAP *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'mouth_a', 'B': 'mouth_b', 'C': 'mouth_c', 'D': 'mouth_d', 'E': 'mouth_e', 'F': 'mouth_f', 'G': 'mouth_g', 'H': 'mouth_h', 'X': 'mouth_x'}*
-
-Default Rhubarb-letter → mouth-attachment-name mapping. Uppercase keys
-because Rhubarb emits A-X; lowercase attachment names by convention.
-
-### an.characters.schema.DFLT_VIEW *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'front'*
-
-its default attachments ARE this view.
-A descriptor whose art is drawn in another view says so in `rest_view`.
-
-* **Type:**
-  The view a character shows at rest
-
-### an.characters.schema.EYELID_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'eyelid'*
-
-The swap channel blinks drive. One set serves BOTH eye slots because the
-eye slots share per-slot attachment names (`open` / `closed`) — the 0.3.0
-migration renamed them from the file-derived `eye_l_open` spelling for
-exactly this: a set’s keys are looked up per slot, so slots that a single
-channel must drive together need attachment names in common.
-
-### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
-
-Where each face part sits relative to the `head` bone, in view_box units.
-
-All five share one bone, so without a per-attachment offset they stack on it.
-These are the compiler’s four deleted hardcoded pairs converted at
-k = 345/1024 — i.e. the same picture, now expressed where an illustrator can
-change it. Those pairs were relative to the head’s CENTRE (the old compiler
-anchored the head at 0.5); the bone is the NECK, and the head hangs above it
-at [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
-the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
-
-### an.characters.schema.GAITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('legs', 'hem', 'rock')*
-
-`legs`
-swing about the hip in a profile and step up and down facing the camera;
-`hem` — the leg slots are the two halves of a robe’s hem — tilts them in
-turn under a swaying, bobbing body; `rock` moves no leg at all (a blob, a
-sack) and rocks the body.
-
-* **Type:**
-  How a character walks (`an.motion.walk`’s `gait`, an#220)
-
-### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
-
-the head hangs above the neck, its lower
-~fifth overlapping the collar.
-
-* **Type:**
-  The head’s anchor on the neck bone
-
-### *class* an.characters.schema.IdleAnimation(\*\*data)
-
-Bases: `_CharModel`
-
-A named idle loop (e.g., breath, blink).
-
-```pycon
->>> a = IdleAnimation(name="idle_breath", duration=4.0)
->>> a.loop
-True
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### an.characters.schema.LEG_LENGTH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 300.0*
-
-Hip to ground in the default rig, in view_box units. The torso bone (the
-hip) and both leg bones sit this far above the root (the ground contact), so
-a leg drawn this long reaches the ground. The factory draws its legs to it.
-
-### an.characters.schema.MOUTH_SHAPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
-
-Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
-are emitted when `--extendedShapes GHX` is on (Rhubarb’s default).
-We always ship all 9 so the renderer never has to fall back.
-
-### an.characters.schema.REFERENCE_HEAD_HEIGHT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 285.0*
-
-The head height the default face layout is drawn for, in view_box units —
-the pre-Wave-4 compiler’s 96 px head at k = 345/1024. The factory writes its
-head art at this height, so [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS) lands on the face.
-
-### an.characters.schema.REQUIRED_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
-
-Required body parts. A character missing any of these can’t be rendered
-as a full puppet; `validate_character` flags the gap.
-
-### an.characters.schema.SLOT_POSE_OFFSETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y')*
-
-The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an
-OFFSET added to the rest (in view_box units, so scaled by the rig), an
-ANGLE added to it (radians, never scaled) or a FACTOR on it.
-
-### *class* an.characters.schema.Skin(\*\*data)
-
-Bases: `_CharModel`
-
-A named outfit/variant: maps slot → {attachment_name → Attachment}.
-
-```pycon
->>> skin = Skin(name="default", slots={"mouth": {"mouth_a": Attachment(path="parts/mouth/mouth_a.svg")}})
->>> skin.slots["mouth"]["mouth_a"].path
-'parts/mouth/mouth_a.svg'
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.characters.schema.Slot(\*\*data)
-
-Bases: `_CharModel`
-
-A draw-order slot bound to a bone, displaying one attachment at a time.
-
-```pycon
->>> s = Slot(name="mouth", bone="head", draw_order=7, attachment="mouth_x")
->>> s.attachment
-'mouth_x'
-```
-
-#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Default attachment name; the active attachment can change at runtime
-via animation tracks targeting `slot:<name>.attachment`.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.characters.schema.SlotPose(\*\*data)
-
-Bases: `_CharModel`
-
-How one slot is posed while a swap key is shown (`swap_poses`, an#197).
-
-Relative to the slot’s REST, so one pose serves every placement: `x`/`y`
-are added (view_box units, like an attachment offset), `rotation` is
-added too (radians, about the slot’s own pivot — how a profile splays its
-legs so both show), `scale_x`, `scale_y` and `alpha` multiply.
-`alpha: 0` is how a view HIDES a slot — the back view hides the face —
-which is a property of the view, never an author’s alpha hack on node
-paths guessed by trial.
-
-```pycon
->>> SlotPose(alpha=0).alpha, SlotPose().x, SlotPose().rotation
-(0.0, 0.0, 0.0)
-```
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### an.characters.schema.VIEWS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('front', 'three_quarter', 'side', 'back')*
-
-The views the factory draws, in turnaround order. `side` is a profile
-facing the viewer’s RIGHT at a positive `scale_x`; a negative `scale_x`
-(`an.motion.turn(direction="left")`) mirrors it to face left.
-
-### an.characters.schema.VIEW_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'view'*
-
-one KEY per drawn view, projected
-onto the slots whose art changes with the view (the factory draws the head
-and the torso), each slot carrying attachments NAMED after the keys. A
-conventional name, like `viseme` — nothing in the compiler or the runtime
-reads it; `an.motion.turn` is the one writer that defaults to it.
-
-* **Type:**
-  The swap set a turnaround rides (an#197)
-
-### an.characters.schema.VIEW_VARIANT_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '@'*
-
-What joins a swap set’s name to the view a variant of it serves:
-`eyelid@side` is the `eyelid` set drawn for the `side` view (an#220),
-the same separator the expression variants (`viseme@happy`, an#98) use.
-
-### an.characters.schema.VISEME_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'viseme'*
-
-The swap channel lip-sync drives. `viseme` is a conventional set name, not
-a special case in control flow (an#87): the compiler projects EVERY
-`asset_sets` channel onto the slots whose attachments its keys name, and
-the runtime applies any projected channel the same way.
-
-### an.characters.schema.attachment_box(width, height, art)
-
-The box a part draws in, in view_box units: the declared size wins, the
-art’s aspect is kept (an#220).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-```pycon
->>> attachment_box(None, None, (40, 20))       # the art's own extent
-(40.0, 20.0)
->>> attachment_box(120, None, (40, 20))        # width declared: height follows
-(120.0, 60.0)
->>> attachment_box(None, 30, (40, 20))
-(60.0, 30.0)
->>> attachment_box(120, 120, (40, 20))         # both: contained, never stretched
-(120.0, 60.0)
->>> attachment_box(120, 90, None)              # unmeasurable art: the box as declared
-(120.0, 90.0)
->>> attachment_box(120, None, None) is None    # nothing to take the aspect from
-True
-```
-
-### an.characters.schema.bones_from_pivots(pivots, , bones=None)
-
-Re-place a bone rig onto an illustrator’s own joint coordinates.
-
-Each [`Bone`](_autosummary/an.characters.schema.html.md#an.characters.schema.Bone) already declares the joint it stands for
-(`head` -> `neck`, `arm_l` -> `shoulder_l`, …), and
-[`extract_pivots()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.extract_pivots) already returns those joints
-as `{name: (cx, cy)}`. Nothing connected the two: `promote` computed the
-pivots and stored **only their names**, so the coordinates an artist drew
-were discarded and every character got the generic rig (an#75).
-
-Bones a drawing has no joint for keep their default placement, so a partial
-skeleton improves a rig rather than breaking it.
-
-Positions are stored parent-relative, so an absolute joint is converted
-against its parent’s resolved absolute position — and parents are resolved
-first, which is why this walks in declaration order rather than by index.
-
-* **Return type:**
-  list[Bone]
-
-```pycon
->>> bones = bones_from_pivots({"neck": (500.0, 300.0), "root": (500.0, 900.0)})
->>> head = next(b for b in bones if b.name == "head")
->>> root = next(b for b in bones if b.name == "root")
->>> root.x, root.y
-(500.0, 900.0)
->>> torso = next(b for b in bones if b.name == "torso")
->>> round(head.y + torso.y + root.y)          # absolute, back to the neck
-300
-```
-
-### an.characters.schema.default_asset_sets()
-
-`{channel: {key: attachment_name}}` for a freshly-built character.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
-### an.characters.schema.view_variant_set(set_name, view)
-
-The name of `set_name`’s variant for `view` (an#220).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> view_variant_set("eyelid", "side")
-'eyelid@side'
-```
-
-### an.characters.schema.view_variant_sets(desc, , view_set='view')
-
-`{base set: {view: variant set name}}` — every per-view face set the
-descriptor declares (an#220): a set named `<base>@<view>` where `<base>`
-is a declared set and `<view>` a key of its `view` set (or its
-`rest_view`). `viseme@happy` is NOT one — `happy` is not a view —
-so the expression variants (an#98) and the view variants never collide.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
-```pycon
->>> d = CharacterDescriptor(name="v")
->>> d.asset_sets["view"] = {"front": "front", "side": "side"}
->>> d.asset_sets["eyelid@side"] = {"OPEN": "open_side", "CLOSED": "closed_side"}
->>> d.asset_sets["viseme@happy"] = {"X": "mouth_x_happy"}
->>> view_variant_sets(d)
-{'eyelid': {'side': 'eyelid@side'}}
-```
-
-
-# _autosummary/an.characters.silhouette.html.md
-
-# an.characters.silhouette
-
-Silhouette rendering and comparison for the silhouette test.
-
-The silhouette test (Disney/AnimSchool, see research §6.4) is a quick
-read-test for character distinctiveness: fill the character with solid
-black, and if you can still tell who’s who, the design is strong.
-
-This module renders an SVG to a binary silhouette PNG (Playwright is the
-underlying rasterizer — already a project dep) and computes an IoU score
-between two silhouettes after centering and scaling them to a common
-canvas. A score near 1.0 means the silhouettes are nearly identical
-(BAD — the characters are indistinguishable). A score below ~0.5 is
-typically the sweet spot for visually-distinct characters.
-
-```pycon
->>> from an.characters import generate_default_mouths
->>> import tempfile, pathlib
->>> # Skip the doctest body — it requires Playwright with Chromium installed.
-```
-
-### Functions
-
-| [`compare_silhouettes`](_autosummary/an.characters.silhouette.html.md#an.characters.silhouette.compare_silhouettes)(a, b, \*[, size])             | Return IoU between two silhouette PNGs (0..1; lower = more distinct).   |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`render_silhouette`](_autosummary/an.characters.silhouette.html.md#an.characters.silhouette.render_silhouette)(svg_source, out_png, \*[, ...]) | Render an SVG to a binary silhouette PNG (black on white).              |
-
-### an.characters.silhouette.compare_silhouettes(a, b, , size=(256, 256))
-
-Return IoU between two silhouette PNGs (0..1; lower = more distinct).
-
-Both images are resized to `size`, converted to grayscale, thresholded
-at the midpoint, and the intersection-over-union of the foreground (dark)
-pixels is computed.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> # Two identical silhouettes → IoU = 1.0; two empty → 0.0 (no overlap).
->>> # Tested via test suite, not doctest, since it requires Playwright.
-```
-
-### an.characters.silhouette.render_silhouette(svg_source, out_png, , size=(256, 256), background='#ffffff')
-
-Render an SVG to a binary silhouette PNG (black on white).
-
-Uses Playwright/Chromium to rasterize, then PIL to threshold by alpha
-or luminance. Returns the output path.
-
-The output is RGB; the silhouette is filled with black (#000) and the
-background with the given color.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-
-# _autosummary/an.characters.svg_utils.html.md
-
-# an.characters.svg_utils
-
-SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.
-
-Pure stdlib so the package stays dependency-light. Operations supported:
-
-- [`promote_inkscape_labels_to_ids()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.promote_inkscape_labels_to_ids) — copy `inkscape:label` to `id`
-  on each group, since Inkscape doesn’t auto-promote labels (a 2008-vintage
-  bug; see research §1.2).
-- [`normalize_svg()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.normalize_svg) — promote labels, ensure a viewBox is set, return
-  the parsed `ElementTree`.
-- [`extract_pivots()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.extract_pivots) — read the `<g id="skeleton">` group of named
-  `<circle>` elements and return `{name: (cx, cy)}`.
-- [`extract_part()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.extract_part) — emit a standalone SVG containing only the named
-  group. By default it writes a viewBox **cropped** to the part’s own bbox
-  while copying the parent’s `width`/`height`, which letterboxes the part
-  under `preserveAspectRatio="xMidYMid meet"` (see #75). The crop rect’s
-  parent-space origin survives as the viewBox’s first two numbers.
-- [`write_svg()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.write_svg) — pretty-print an `ElementTree` (or `Element`) to
-  disk with the SVG namespace set as the default.
-
-```pycon
->>> raw = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-...   <g id="skeleton"><circle id="neck" cx="50" cy="40" r="2"/></g>
-...   <g id="illustration"><g id="head"><circle cx="50" cy="40" r="20"/></g></g>
-... </svg>'''
->>> import io
->>> tree = normalize_svg(io.StringIO(raw))
->>> extract_pivots(tree)
-{'neck': (50.0, 40.0)}
->>> part = extract_part(tree, 'head')
->>> b'<g id="head"' in write_svg(part)
-True
-```
-
-### Functions
-
-| [`extract_part`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.extract_part)(source, part_id, \*[, ...])      | Emit a standalone SVG tree containing only the group with the given id.   |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`extract_pivots`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.extract_pivots)(source, \*[, skeleton_id])     | Return `{name: (cx, cy)}` for every named `<circle>` under skeleton.      |
-| [`normalize_svg`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.normalize_svg)(source, \*[, fallback_viewbox]) | Promote Inkscape labels to ids and ensure a viewBox is set.               |
-| [`promote_inkscape_labels_to_ids`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.promote_inkscape_labels_to_ids)(tree)          | Copy `inkscape:label` to `id` on each group missing an id.                |
-| [`raster_size`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.raster_size)(source)                           | Return the `(width, height)` an SVG declares for its own raster.          |
-| [`write_svg`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.write_svg)(tree_or_element[, path])            | Serialize an `ElementTree` or `Element` to bytes (and optionally disk).   |
-
-### an.characters.svg_utils.extract_part(source, part_id, , crop_viewbox=True, padding=8.0)
-
-Emit a standalone SVG tree containing only the group with the given id.
-
-Any top-level `<defs>` from the source is copied so the part can
-resolve gradient / pattern / filter references like
-`fill="url(#some_gradient)"`. The matched group is appended unchanged.
-
-When `crop_viewbox` is True (the default), the new SVG’s viewBox is
-cropped to the bounding box of the part’s primitive content (rect /
-circle / ellipse / path) plus `padding` units on each side. This
-keeps a part’s texture proportional to its content instead of to the whole
-character canvas. Falls back to the source viewBox when no bbox can be
-derived.
-
-The emitted `width`/`height` always match the emitted viewBox, so the
-part rasterises at its own extent and is never letterboxed inside a canvas
-it does not fill. The crop rect’s \*\*parent-space origin survives as the
-viewBox’s first two numbers\*\*, so where the part sat relative to its
-siblings is not lost and needs no separate record.
-
-If no match is found, raises [`KeyError`](https://docs.python.org/3/builtins/exceptions.html#KeyError).
-
-* **Return type:**
-  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
-
-### an.characters.svg_utils.extract_pivots(source, , skeleton_id='skeleton')
-
-Return `{name: (cx, cy)}` for every named `<circle>` under skeleton.
-
-Pivots use the Pose Animator convention: a `<g id="skeleton">` group
-sibling of the illustration, containing one `<circle>` per named joint.
-The circle’s `cx`/`cy` is the pivot in the same coordinate system as
-the art (the SVG’s viewBox).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-### an.characters.svg_utils.normalize_svg(source, , fallback_viewbox='0 0 1024 1024')
-
-Promote Inkscape labels to ids and ensure a viewBox is set.
-
-Returns the parsed `ElementTree`. Idempotent: running it twice is a
-no-op on the second pass.
-
-* **Return type:**
-  [`ElementTree`](https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree)
-
-### an.characters.svg_utils.promote_inkscape_labels_to_ids(tree)
-
-Copy `inkscape:label` to `id` on each group missing an id.
-
-Returns the number of groups updated.
-
-Inkscape stores the user-visible name in the `inkscape:label` attribute
-and does NOT promote it to `id` on save. This is a long-standing UX
-issue (Inkscape bug #243383); the workaround is to promote at parse time.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
-### an.characters.svg_utils.raster_size(source)
-
-Return the `(width, height)` an SVG declares for its own raster.
-
-This is the size the browser rasterises the file at, which is what a
-`Sprite` then scales — **not** the extent of the drawn art. The two differ
-whenever [`extract_part()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.extract_part) has cropped the viewBox while copying the
-parent’s dimensions, which is the defect behind #75.
-
-Falls back to the viewBox extent when no `width`/`height` is declared,
-matching the browser.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> raster_size('<svg xmlns="http://www.w3.org/2000/svg" '
-...             'viewBox="0 0 10 20" width="100" height="100"/>')
-(100.0, 100.0)
->>> raster_size('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 20"/>')
-(10.0, 20.0)
-```
-
-### an.characters.svg_utils.write_svg(tree_or_element, path=None)
-
-Serialize an `ElementTree` or `Element` to bytes (and optionally disk).
-
-Always emits `<?xml version="1.0" encoding="UTF-8"?>` and the SVG
-namespace as the default, so the output is a valid standalone SVG.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
-
-# _autosummary/an.characters.validate.html.md
-
-# an.characters.validate
-
-Whether an art package is one the compiler can actually render.
-
-The artist-facing contract, checked offline. Wave 4 (#78) exists because the
-previous check had no teeth in two separate ways:
-
-- **It checked file existence only.** A part that was present but drew nothing
-  passed, and then rendered invisibly — the one failure mode with no diagnostic
-  anywhere in the pipeline (`misc/docs/wave4_research.md` §4).
-- **It returned a bespoke report type**, so the orchestrator’s typed-error
-  routing did not apply to any character problem. Findings here are
-  [`an.verify._base.Finding`](_autosummary/an.verify.html.md#an.verify.Finding), the same type every verifier emits, with
-  > `ir_path` pointing at the file or slot that needs the fix.
-
-Everything here is offline and free: no render, no browser, no network. That is
-the point — an illustrator should be able to run it before delivering, and a
-contract they cannot check themselves is a contract that gets them paid for work
-that cannot land.
-
-### Module Attributes
-
-| [`PROHIBITED_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.PROHIBITED_ELEMENTS)       | Elements an art package may not contain.                                                                                                |
-|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| [`PART_SUFFIXES`](_autosummary/an.characters.validate.html.md#an.characters.validate.PART_SUFFIXES)             | SVG, or raster with the suffixes `an.stage.raster` reads (an#211).                                                                      |
-| [`DRAWABLE_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.DRAWABLE_ELEMENTS)         | Elements that put ink on the canvas.                                                                                                    |
-| [`BLOCKING`](_autosummary/an.characters.validate.html.md#an.characters.validate.BLOCKING)                  | Severity for a problem that stops the part rendering correctly.                                                                         |
-| [`ADVISORY`](_autosummary/an.characters.validate.html.md#an.characters.validate.ADVISORY)                  | Severity for a problem worth fixing that still renders.                                                                                 |
-| [`DECLARED_ASPECT_TOLERANCE`](_autosummary/an.characters.validate.html.md#an.characters.validate.DECLARED_ASPECT_TOLERANCE) | How far a declared box's aspect may differ from its art's before the containment is worth saying (a rounding of a pixel or two is not). |
-
-### Functions
-
-| [`format_report`](_autosummary/an.characters.validate.html.md#an.characters.validate.format_report)(report, \*, name)          | A short human-readable rendering, for the CLI.                          |
-|-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`render_contract`](_autosummary/an.characters.validate.html.md#an.characters.validate.render_contract)()                        | The artist-facing spec, generated from the schema and the checks above. |
-| [`validate_character`](_autosummary/an.characters.validate.html.md#an.characters.validate.validate_character)(char_dir, \*[, name]) | Check an art package against the contract, offline.                     |
-
-### an.characters.validate.ADVISORY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'warning'*
-
-Severity for a problem worth fixing that still renders.
-
-### an.characters.validate.BLOCKING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'error'*
-
-Severity for a problem that stops the part rendering correctly.
-
-### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.01*
-
-How far a declared box’s aspect may differ from its art’s before the
-containment is worth saying (a rounding of a pixel or two is not).
-
-### an.characters.validate.DRAWABLE_ELEMENTS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
-
-Elements that put ink on the canvas. A part containing none of these is
-blank, whatever else it contains.
-
-### an.characters.validate.PART_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
-
-SVG, or raster with the
-suffixes `an.stage.raster` reads (an#211). Order is the lookup order for a
-required part, so an SVG wins when both exist.
-
-* **Type:**
-  The part file formats an art package may ship
-
-### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
-
-Elements an art package may not contain.
-
-Not a security perimeter — the renderer loads these files into a headless
-browser we control — but a portability one: each of these makes a part render
-differently, or not at all, depending on the rasteriser, and a part that
-depends on script execution is not a drawing.
-
-### an.characters.validate.format_report(report, , name)
-
-A short human-readable rendering, for the CLI.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.validate.render_contract()
-
-The artist-facing spec, generated from the schema and the checks above.
-
-Every line here is read out of a live object: the required parts and mouth
-shapes from [`an.characters.schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema), the slot and attachment layout from
-a freshly-built descriptor, the prohibitions from
-[`PROHIBITED_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.PROHIBITED_ELEMENTS), and the drawable set from
-[`DRAWABLE_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.DRAWABLE_ELEMENTS). Nothing is retyped, so the document and the
-validator cannot disagree.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.characters.validate.validate_character(char_dir, , name=None)
-
-Check an art package against the contract, offline.
-
-Reports a [`Finding`](_autosummary/an.verify.html.md#an.verify.Finding) per problem: a missing or
-unparseable descriptor, absent required parts or mouth shapes, a part that
-draws nothing, a prohibited construct, a letterboxed part, a joint name
-colliding with a part id, and an unpopulated `AssetSource`.
-
-* **Return type:**
-  [`VerificationReport`](_autosummary/an.verify.html.md#an.verify.VerificationReport)
-
-```pycon
->>> import tempfile, pathlib
->>> with tempfile.TemporaryDirectory() as d:
-...     report = validate_character(d, name="nobody")
->>> report.passed
-False
->>> any("character.json" in f.description for f in report.findings)
-True
-```
-
-
-# _autosummary/an.characters.vocabulary.html.md
-
-# an.characters.vocabulary
-
-The cut-out genre’s vocabulary entries: motion presets, expression presets, IR-field notes.
-
-ADR 0003’s first slice, the genre’s share (the core’s is
-[`an.semantic.seeds`](_autosummary/an.semantic.seeds.html.md#module-an.semantic.seeds)). Each entry is built FROM the table that already
-defines the thing — [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (with
-`an.motion.PRESET_VERSIONS`), `an.expression.presets.PRESETS`, the
-expression axes — never restated, so a preset added there is an entry here
-with nothing else to edit. The genre declares them through
-`an.genres.cutout.CUTOUT`’s `vocabulary` field; importing this module
-registers nothing.
-
-```pycon
->>> walk = next(e for e in MOTION_PRESET_ENTRIES if e.term == "walk")
->>> walk.id, walk.aspects, "gait" in walk.params["properties"]
-('motion.walk', ('locomotion',), True)
-```
-
-### Module Attributes
-
-| [`PRESET_ASPECTS`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.PRESET_ASPECTS)             | a `walk` picks a locomotion method; `speech_pulse` IS the speech aspect's last link.                                                                                          |
-|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`EXPRESSION_PRESET_VERSIONS`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS) | Each expression preset's vocabulary version (ADR 0003).                                                                                                                       |
-| [`CUTOUT_VOCABULARY`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.CUTOUT_VOCABULARY)          | Everything this genre contributes to the vocabulary except its methods ([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)). |
-
-### an.characters.vocabulary.CUTOUT_VOCABULARY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.shot.actions.swap_set', kind='field', version='1', name='shot.actions.swap_set', title='', description='a set action that swaps a drawing (replacement animation)', usage="A set/tween property may also be the name of a swap set the target character's descriptor declares in asset_sets (e.g. 'viseme', 'eyelid', 'hands'), used with a 'set' action whose 'value' is one of that set's declared KEYS (replacement animation). The compiler refuses any other name with the declared sets listed. Never invent a set or a key.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.actions.play', kind='field', version='1', name='shot.actions.play', title='', description='play a named animation of the target character, or a motion preset', usage="A 'play' action ({kind: play, target: <entity>, animation: <name>, [duration], [speed], [loop], [args]}) plays one of the target character's descriptor animations ('idle_breath', 'blink', or any it declares) or, for a name the descriptor does not declare, a motion preset (listed below) with 'args' as its parameters (e.g. {'height': 30}); a name in neither fails validation — never invent one. 'point' targets the arm node. A 'walk' picks its gait from the character's structure (its locomotion method, below) unless 'gait' is given.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('locomotion',)), Entry(id='field.shot.actions.expression', kind='field', version='1', name='shot.actions.expression', title='', description='hold a facial expression on a character', usage="An 'expression' action ({kind: expression, target: <entity>, preset: <name>, [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial expression on a character: brows, eyelids, and the mouth's set for any dialogue under it. 'preset' is an expression preset (listed below) — an unknown preset fails validation. Axes are offsets within their ranges: brow_height_l [-1, 1], brow_height_r [-1, 1], brow_angle_l [-1, 1], brow_angle_r [-1, 1], lid_open_l [-1, 0.5], lid_open_r [-1, 0.5], gaze_x [-1, 1], gaze_y [-1, 1]. 'duration' omitted = to the shot end. A character whose descriptor says face_overlay: false cannot take one.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue.emotion', kind='field', version='1', name='shot.dialogue.emotion', title='', description='the mood a line is said in', usage="A dialogue line's 'emotion' is an expression preset name ([happy] on a scene.md line): it sets the face for the line and the voice's mood. When a line's wording changes, update its emotion if the mood changed too.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('speech',)), Entry(id='motion.pop_in', kind='motion_preset', version='1', name='pop_in', title='pop in', description='Grow from nothing to full size, overshooting and settling (an entrance).', usage='', params={'type': 'object', 'properties': {'duration': {'type': 'number', 'default': 0.45}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'pop_in'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.hop', kind='motion_preset', version='1', name='hop', title='hop', description='Jump up by \`height\` scene pixels and land back where it started.', usage='', params={'type': 'object', 'properties': {'height': {'type': 'number', 'default': 40.0}, 'duration': {'type': 'number', 'default': 0.5}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'hop'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.shake', kind='motion_preset', version='1', name='shake', title='shake', description='Tremble side to side \`cycles\` times and come back to rest (on \`x\`).', usage='', params={'type': 'object', 'properties': {'amplitude': {'type': 'number', 'default': 8.0}, 'duration': {'type': 'number', 'default': 0.4}, 'cycles': {'type': 'integer', 'default': 3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'shake'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.nod', kind='motion_preset', version='1', name='nod', title='nod', description='Dip the head \`count\` times (a rotation of \`<target>/<part>\`).', usage='', params={'type': 'object', 'properties': {'part': {'type': 'string', 'default': 'head'}, 'angle': {'type': 'number', 'default': 0.18}, 'duration': {'type': 'number', 'default': 0.5}, 'count': {'type': 'integer', 'default': 2}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'nod'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.point', kind='motion_preset', version='1', name='point', title='point', description='Swing an arm out to point, hold it, and lower it again.', usage='', params={'type': 'object', 'properties': {'angle': {'type': 'number', 'default': -1.3}, 'raise_duration': {'type': 'number', 'default': 0.25}, 'hold': {'type': 'number', 'default': 0.6}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'point'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.slide_in', kind='motion_preset', version='1', name='slide_in', title='slide in', description='Whip in from \`distance\` pixels off to one side, overshoot, and settle.', usage='', params={'type': 'object', 'properties': {'from_side': {'type': 'string', 'default': 'left'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_in'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.slide_out', kind='motion_preset', version='1', name='slide_out', title='slide out', description='Exit \`distance\` pixels off to one side, accelerating (an exit).', usage='', params={'type': 'object', 'properties': {'to_side': {'type': 'string', 'default': 'right'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'type': 'string', 'default': 'ease_in'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_out'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.squash_stretch', kind='motion_preset', version='1', name='squash_stretch', title='squash stretch', description='Squash (wide and short), stretch (narrow and tall), then settle.', usage='', params={'type': 'object', 'properties': {'amount': {'type': 'number', 'default': 0.2}, 'duration': {'type': 'number', 'default': 0.36}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'squash_stretch'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.waddle', kind='motion_preset', version='1', name='waddle', title='waddle', description='A walk cycle for a rig with no legs to animate: rock and bob per step.', usage='', params={'type': 'object', 'properties': {'steps': {'type': 'integer', 'default': 4}, 'step_duration': {'type': 'number', 'default': 0.3}, 'angle': {'type': 'number', 'default': 0.1}, 'lift': {'type': 'number', 'default': 6.0}, 'travel': {'type': 'number', 'default': 0.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'waddle'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.turn', kind='motion_preset', version='1', name='turn', title='turn', description='Turn a character to the view \`to\` — the classic cut-out turn.', usage='', params={'type': 'object', 'properties': {'to': {'type': 'string', 'default': 'back'}, 'direction': {'type': 'string', 'default': 'right'}, 'from_direction': {'type': 'string', 'default': None}, 'duration': {'type': 'number', 'default': 0.3}, 'view_set': {'type': 'string', 'default': 'view'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'turn'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.walk', kind='motion_preset', version='1', name='walk', title='walk', description='Walk: the body travels on \`x\` and bobs once per step while the legs alternate and the arms swing against them.', usage='', params={'type': 'object', 'properties': {'to_x': {'type': 'number', 'default': None}, 'distance': {'type': 'number', 'default': None}, 'direction': {'type': 'string', 'default': None}, 'steps': {'type': 'integer', 'default': None}, 'step_s': {'type': 'number', 'default': 0.4}, 'step_length': {'type': 'number', 'default': 80.0}, 'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'rock': {'type': 'number', 'default': 0.06}, 'hem_tilt': {'type': 'number', 'default': 0.24}, 'view': {'type': 'string', 'default': None}, 'gait': {'type': 'string', 'default': None}, 'legs': {'type': 'array', 'default': None}, 'arms': {'type': 'array', 'default': None}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('locomotion',)), Entry(id='motion.speech_pulse', kind='motion_preset', version='1', name='speech_pulse', title='speech pulse', description='Pulse a part on each syllable: speech carried without a mouth.', usage='', params={'type': 'object', 'properties': {'beats': {'type': 'array', 'default': [0.0]}, 'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'speech_pulse'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('speech',)), Entry(id='expression.neutral', kind='expression_preset', version='1', name='neutral', title='', description='the rest face: every axis at its neutral value', usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'neutral'}, '[neutral] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.happy', kind='expression_preset', version='1', name='happy', title='', description="expression-sheet preset: brow_angle_l +0.1, brow_angle_r +0.1, brow_height_l +0.2, brow_height_r +0.2, lid_open_l -0.2, lid_open_r -0.2; mouth form 'happy'", usage='FACS cross-reference 6+12', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'happy'}, '[happy] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.sad', kind='expression_preset', version='1', name='sad', title='', description="expression-sheet preset: brow_angle_l +0.6, brow_angle_r +0.6, brow_height_l +0.3, brow_height_r +0.3, lid_open_l -0.3, lid_open_r -0.3; mouth form 'sad'", usage='FACS cross-reference 1+4+15', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'sad'}, '[sad] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.angry', kind='expression_preset', version='1', name='angry', title='', description="expression-sheet preset: brow_angle_l -0.8, brow_angle_r -0.8, brow_height_l -0.6, brow_height_r -0.6, lid_open_l +0.1, lid_open_r +0.1; mouth form 'angry'", usage='FACS cross-reference 4+5+7+23', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'angry'}, '[angry] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.surprised', kind='expression_preset', version='1', name='surprised', title='', description="expression-sheet preset: brow_angle_l +0, brow_angle_r +0, brow_height_l +1, brow_height_r +1, lid_open_l +0.4, lid_open_r +0.4; mouth form 'surprised'", usage='FACS cross-reference 1+2+5+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'}, '[surprised] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.afraid', kind='expression_preset', version='1', name='afraid', title='', description="expression-sheet preset: brow_angle_l +0.5, brow_angle_r +0.5, brow_height_l +0.7, brow_height_r +0.7, lid_open_l +0.5, lid_open_r +0.5; mouth form 'afraid'", usage='FACS cross-reference 1+2+4+5+7+20+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'afraid'}, '[afraid] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.disgusted', kind='expression_preset', version='1', name='disgusted', title='', description="expression-sheet preset: brow_angle_l -0.3, brow_angle_r -0.3, brow_height_l -0.3, brow_height_r -0.3, lid_open_l -0.4, lid_open_r -0.4; mouth form 'disgusted'", usage='FACS cross-reference 9+15+17', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'disgusted'}, '[disgusted] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.thinking', kind='expression_preset', version='1', name='thinking', title='', description='expression-sheet preset: brow_angle_l +0.3, brow_angle_r -0.1, brow_height_l +0.5, brow_height_r -0.2, lid_open_l -0.1, lid_open_r -0.1', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'thinking'}, '[thinking] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.skeptical', kind='expression_preset', version='1', name='skeptical', title='', description='expression-sheet preset: brow_angle_l +0, brow_angle_r -0.2, brow_height_l +0.6, brow_height_r -0.3, lid_open_l +0, lid_open_r -0.2', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'skeptical'}, '[skeptical] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.amused', kind='expression_preset', version='1', name='amused', title='', description="expression-sheet preset: brow_angle_l +0.05, brow_angle_r +0.05, brow_height_l +0.1, brow_height_r +0.1, lid_open_l -0.1, lid_open_r -0.1; mouth form 'happy'", usage='FACS cross-reference happy at ~0.6', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'amused'}, '[amused] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()))*
-
-Everything this genre contributes to the vocabulary except its methods
-([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)).
-
-### an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {}*
-
-Each expression preset’s vocabulary version (ADR 0003). Bump one in the same
-change that moves its axes or its mouth form.
-
-### an.characters.vocabulary.PRESET_ASPECTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]]* *= {'speech_pulse': ('speech',), 'walk': ('locomotion',)}*
-
-a `walk` picks a
-locomotion method; `speech_pulse` IS the speech aspect’s last link.
-
-* **Type:**
-  Which aspect a preset resolves when played (ADR 0002)
-
-
 # _autosummary/an.conftest.html.md
 
 # an.conftest
@@ -16219,19 +11372,11 @@ Collection rules for the package’s own doctests.
 
 `an` is in `testpaths` so CI’s `--doctest-modules` reaches the package (an#61).
 That flag **imports every module it scans**, which makes one module a problem:
-`an.genre` declares this package’s production genre to `nw`, and says so in its
-own docstring — it is opt-in, `an/__init__.py` never imports it, and `an` gains
-no hard dependency on `nw` as a result. CI installs no optional extras, so
-importing it there raises `ModuleNotFoundError`.
-
-So it is collected \*\*where `nw` is available and skipped where it is not\*\*,
-rather than excluded outright. It carries no doctests today, but a rule that
-silently drops a module whenever someone adds one is the an#22 failure in
-miniature, so the skip is conditional on the actual reason.
-
-`tests/test_doctest_gate.py` asserts that `an.genre` remains the *only* module
-under `an/` importing an undeclared dependency at module level — a new one would
-break CI collection the same way, and is much easier to catch here than there.
+`tests/test_doctest_gate.py` asserts that no module under `an/` imports an
+undeclared dependency at module level — one would break CI collection (which
+installs no optional extras) the same way, and is much easier to catch there than
+here. (The one such module, the `nw` declaration of the cut-out genre, moved to
+`cutan`, which skips it when `nw` is absent.)
 
 
 # _autosummary/an.credits.html.md
@@ -16738,11 +11883,12 @@ True
 
 ### Functions
 
-| [`as_contract_state`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.as_contract_state)(state)             | A state in the vectors' spelling: `"target:property"` keys.                                                             |
-|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| [`conformance_report`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.conformance_report)(open_case, cases) | Every mismatch over `cases`; `open_case(case)` is a context manager yielding a session loaded with the case's document. |
-| [`readback_mismatches`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.readback_mismatches)(state_at, case)  | `(case, t, expected, got)` for every sample whose read-back differs.                                                    |
-| [`vector_cases`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.vector_cases)(\*[, space])            | The golden cases, optionally only those of one property space.                                                          |
+| [`as_contract_state`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.as_contract_state)(state)             | A state in the vectors' spelling: `"target:property"` keys.                                                                                                                                                                                                                                                        |
+|---------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`case_document`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.case_document)(case)                  | The case's document, carrying its property space the way a compiled document does (an#287): `meta.entity_spaces` names the space for every entity the case animates and `meta.spaces` defines it, so an engine that reads only the DOCUMENT (`runtime.js` has no registry) evaluates the case in the case's space. |
+| [`conformance_report`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.conformance_report)(open_case, cases) | Every mismatch over `cases`; `open_case(case)` is a context manager yielding a session loaded with the case's document.                                                                                                                                                                                            |
+| [`readback_mismatches`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.readback_mismatches)(state_at, case)  | `(case, t, expected, got)` for every sample whose read-back differs.                                                                                                                                                                                                                                               |
+| [`vector_cases`](_autosummary/an.engines.conformance.html.md#an.engines.conformance.vector_cases)(\*[, space])            | The golden cases, optionally only those of one property space.                                                                                                                                                                                                                                                     |
 
 ### an.engines.conformance.VECTORS_RESOURCE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= ('an.data', 'timing/timing_vectors.json')*
 
@@ -16764,6 +11910,29 @@ runtime’s (`"target::property"`).
 ```pycon
 >>> as_contract_state({("a", "x"): 1.0, "b::y": 2})
 {'a:x': 1.0, 'b:y': 2}
+```
+
+### an.engines.conformance.case_document(case)
+
+The case’s document, carrying its property space the way a compiled
+document does (an#287): `meta.entity_spaces` names the space for every
+entity the case animates and `meta.spaces` defines it, so an engine that
+reads only the DOCUMENT (`runtime.js` has no registry) evaluates the case
+in the case’s space. A case in the default space is returned as it is.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> case = {"space": {"name": "inline", "fields": []}, "document": {
+...     "timeline": {"duration": 1.0, "tracks": []}, "animations": {"m": {
+...     "duration": 1.0, "channels": [{"target": "view/a", "property": "x",
+...     "keyframes": [{"time": 0.0, "value": 0}]}]}}}}
+>>> meta = case_document(case)["meta"]
+>>> meta["entity_spaces"], meta["spaces"]["inline"]["fields"]
+({'view': 'inline'}, [])
+>>> "meta" in case_document({"space": "stage.node", "document": case["document"]})
+False
 ```
 
 ### an.engines.conformance.conformance_report(open_case, cases)
@@ -17060,7 +12229,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](_autosummary/an.characters.html.md#an.characters.Attachment.width), height)
+  The DECLARED ([*width*](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment.width), height)
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
@@ -17422,7 +12591,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](_autosummary/an.characters.html.md#an.characters.Attachment.width), height)
+  The DECLARED ([*width*](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment.width), height)
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
@@ -17554,1001 +12723,6 @@ and rebinding one here (a bench lever, `monkeypatch`) rebinds it there, where
 the code runs (`an._shims.alias_module()`).
 
 
-# _autosummary/an.expression.axes.html.md
-
-# an.expression.axes
-
-The facial expression axes: what a cutout face can be asked to do (an#98).
-
-Ten axes ship in Wave 6 of epic #9 — eight numeric, one selection
-(`mouth_form`, which picks a `viseme@<preset>` set and is not a number),
-one scalar (`intensity`). Every numeric value is an \*\*offset over the built
-rest\*\* of the node it drives; rest is neutral. The ranges and the eyelid
-ladder below are the only numbers in the vocabulary (research
-`misc/docs/wave6_research.md` §4, §6).
-
-Deferred, named so nobody re-invents them: `brow_squeeze`, `squint`,
-`head_yaw` / `head_pitch` (Wave 7), `mouth_open` (the viseme set already
-opens monotonically `X → A → B → C → D`).
-
-```pycon
->>> AXES["brow_height_l"].clamp(3.0)
-1.0
->>> lid_key(-0.9, available={"OPEN", "CLOSED"})
-'CLOSED'
->>> lid_key(-0.5, available={"OPEN", "CLOSED"})          # no `half` art: stays open
-'OPEN'
->>> lid_key(-0.5, available={"OPEN", "CLOSED", "HALF"})
-'HALF'
-```
-
-### Module Attributes
-
-| [`AXES`](_autosummary/an.expression.axes.html.md#an.expression.axes.AXES)            |                                                                                    |
-|------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`MOUTH_FORM_AXIS`](_autosummary/an.expression.axes.html.md#an.expression.axes.MOUTH_FORM_AXIS) | which `viseme@<form>` set the mouth's key indexes.                                 |
-| [`INTENSITY_AXIS`](_autosummary/an.expression.axes.html.md#an.expression.axes.INTENSITY_AXIS)  | The scalar on every offset (MPEG-4 "excitation"); the blend ramp is a curve on it. |
-| [`LID_WIDE_ABOVE`](_autosummary/an.expression.axes.html.md#an.expression.axes.LID_WIDE_ABOVE)  | The eyelid ladder — one rule, stated once (research §6).                           |
-| [`LID_KEY_WIDE`](_autosummary/an.expression.axes.html.md#an.expression.axes.LID_KEY_WIDE)    | Eyelid set keys the ladder can name, by openness.                                  |
-
-### Functions
-
-| [`clamp_axes`](_autosummary/an.expression.axes.html.md#an.expression.axes.clamp_axes)(values)            | Clamp every numeric axis to its range; an unknown axis is an error.       |
-|--------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`lid_key`](_autosummary/an.expression.axes.html.md#an.expression.axes.lid_key)(value, \*, available) | The eyelid key a lid state selects, degraded to the art the rig declares. |
-
-### Classes
-
-| [`Axis`](_autosummary/an.expression.axes.html.md#an.expression.axes.Axis)(name, lo, hi[, rest])   | One numeric axis: its range and its rest (neutral) value.   |
-|-------------------------------------------------------------------------------|-------------------------------------------------------------|
-
-### an.expression.axes.AXES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Axis](_autosummary/an.expression.axes.html.md#an.expression.axes.Axis)]* *= {'brow_angle_l': Axis(name='brow_angle_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_angle_r': Axis(name='brow_angle_r', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_l': Axis(name='brow_height_l', lo=-1.0, hi=1.0, rest=0.0), 'brow_height_r': Axis(name='brow_height_r', lo=-1.0, hi=1.0, rest=0.0), 'gaze_x': Axis(name='gaze_x', lo=-1.0, hi=1.0, rest=0.0), 'gaze_y': Axis(name='gaze_y', lo=-1.0, hi=1.0, rest=0.0), 'lid_open_l': Axis(name='lid_open_l', lo=-1.0, hi=0.5, rest=0.0), 'lid_open_r': Axis(name='lid_open_r', lo=-1.0, hi=0.5, rest=0.0)}*
-
-+ raises the brow, scaled by the rig’s eye height.
-
-Brow angle, per side: + inner end up (worry), − inner end down (furrow);
-the binding’s per-side gain carries the screen sign.
-Lid openness, per side: − closes (`half`, then `closed`), + widens (`wide`).
-Gaze: pupil travel inside the eye, clamped by the rig’s declared travel.
-
-* **Type:**
-  Brow height, per side
-
-### *class* an.expression.axes.Axis(name, lo, hi, rest=0.0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One numeric axis: its range and its rest (neutral) value.
-
-### an.expression.axes.INTENSITY_AXIS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'intensity'*
-
-The scalar on every offset (MPEG-4 “excitation”); the blend ramp is a curve on it.
-
-### an.expression.axes.LID_KEY_WIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'WIDE'*
-
-Eyelid set keys the ladder can name, by openness.
-
-### an.expression.axes.LID_WIDE_ABOVE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
-
-The eyelid ladder — one rule, stated once (research §6). A lid state
-`min(lid_expr, lid_blink)` reads off these thresholds; a rig without the
-intermediate art degrades to the key it has.
-
-### an.expression.axes.MOUTH_FORM_AXIS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'mouth_form'*
-
-which `viseme@<form>` set the mouth’s key indexes.
-
-* **Type:**
-  The selection axis
-
-### an.expression.axes.clamp_axes(values)
-
-Clamp every numeric axis to its range; an unknown axis is an error.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> clamp_axes({"brow_height_l": 2.0, "lid_open_r": -3.0})
-{'brow_height_l': 1.0, 'lid_open_r': -1.0}
->>> clamp_axes({"eyebrow": 1.0})
-Traceback (most recent call last):
-...
-ValueError: unknown expression axis 'eyebrow' (known: brow_angle_l, ...)
-```
-
-### an.expression.axes.lid_key(value, , available)
-
-The eyelid key a lid state selects, degraded to the art the rig declares.
-
-`wide` above +0.25, `open`, `half` below −0.35, `closed` below −0.85;
-a rig without `half` stays open until the lower threshold and one without
-`wide` stays open above the upper one — never a blend of two drawings.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-
-# _autosummary/an.expression.binding.html.md
-
-# an.expression.binding
-
-How the axes reach a character: the binding and the mouth-set resolver (an#98).
-
-Renderer-free, like [`an.characters.play`](_autosummary/an.characters.play.html.md#module-an.characters.play) — `an validate`,
-`an character validate` and the cutout face solver all call the same
-functions here, so the three cannot disagree about whether an expression can
-resolve on a character.
-
-- A **channel binding** maps a numeric axis onto `(slot, property, gain)`:
-  the solver emits `rest + Σ axis·gain` on that slot’s node. The brow angle’s
-  per-side sign lives in the gain — the two sides rotate in opposite screen
-  directions for one axis sign.
-- A **set binding** maps a lid axis onto a slot’s swap set (`eyelid`); the
-  solver reads a key off the ladder in [`an.expression.axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes).
-- `resolve_mouth_set` is the ONE chain for “which mouth set does this line
-  use”: `viseme@<form>` if declared **and** it covers the keys the line
-  uses, else `viseme` with a warning naming the missing keys, else an
-  [`ExpressionResolutionError`](_autosummary/an.expression.binding.html.md#an.expression.binding.ExpressionResolutionError) (a speaking overlay face with no neutral
-  > mouth set).
-
-```pycon
->>> from an.characters.schema import CharacterDescriptor
->>> desc = CharacterDescriptor(name="m")
->>> sorted({b.axis for b in default_binding(desc)})
-['brow_angle_l', 'brow_angle_r', 'brow_height_l', 'brow_height_r', 'lid_open_l', 'lid_open_r']
->>> resolve_mouth_set(desc, None, keys_used=["A", "X"])
-'viseme'
->>> import warnings
->>> with warnings.catch_warnings(record=True) as w:
-...     warnings.simplefilter("always")
-...     resolve_mouth_set(desc, "happy", keys_used=["A", "X"])
-'viseme'
->>> "viseme@happy" in str(w[0].message)
-True
-```
-
-### Module Attributes
-
-| [`BROW_HEIGHT_TRAVEL`](_autosummary/an.expression.binding.html.md#an.expression.binding.BROW_HEIGHT_TRAVEL)   | Brow travel per unit of `brow_height_*`, in the rig's view-box units (scaled to scene pixels by the entity's rig factor).                             |
-|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`BROW_ANGLE_TRAVEL`](_autosummary/an.expression.binding.html.md#an.expression.binding.BROW_ANGLE_TRAVEL)    | Brow rotation per unit of `brow_angle_*`, radians.                                                                                                    |
-| [`GAZE_TRAVEL`](_autosummary/an.expression.binding.html.md#an.expression.binding.GAZE_TRAVEL)          | Pupil travel per unit of `gaze_*`, in view-box units — the default when a descriptor declares no travel of its own (`add_gaze` writes `gaze_travel`). |
-| [`LID_SQUASH_GAIN`](_autosummary/an.expression.binding.html.md#an.expression.binding.LID_SQUASH_GAIN)      | On a rig whose eye squashes instead of swapping art, a lid offset scales the eye by this much per unit.                                               |
-
-### Functions
-
-| [`binding_for`](_autosummary/an.expression.binding.html.md#an.expression.binding.binding_for)(desc)                              | The descriptor's declared `expression_binding` (additive field), else the default.                                               |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| [`declared_mouth_variants`](_autosummary/an.expression.binding.html.md#an.expression.binding.declared_mouth_variants)(desc)                  | `{form: set name}` for every `viseme@<form>` set the descriptor declares.                                                        |
-| [`default_binding`](_autosummary/an.expression.binding.html.md#an.expression.binding.default_binding)(desc)                          | The binding the default rig implies, from the slots it actually has.                                                             |
-| [`expression_problems`](_autosummary/an.expression.binding.html.md#an.expression.binding.expression_problems)(desc, \*, preset[, axes])  | Every reason an expression cannot resolve on `desc` — empty means it can.                                                        |
-| [`preset_axes`](_autosummary/an.expression.binding.html.md#an.expression.binding.preset_axes)(preset, \*[, axes, intensity])     | The numeric axis offsets an expression asks for: the preset's, with `axes` layered over them, scaled by `intensity` and clamped. |
-| [`resolve_mouth_set`](_autosummary/an.expression.binding.html.md#an.expression.binding.resolve_mouth_set)(desc, preset, \*, keys_used) | Which mouth set a line under `preset` uses — the one chain, shared.                                                              |
-| [`touches_gaze`](_autosummary/an.expression.binding.html.md#an.expression.binding.touches_gaze)(axes)                             | Whether any of `axes` is a gaze axis (a no-op on a rig without pupils).                                                          |
-| [`variant_set_name`](_autosummary/an.expression.binding.html.md#an.expression.binding.variant_set_name)(form)                         | The swap-set name for a mouth form (`@` is a legal set-name character).                                                          |
-
-### Classes
-
-| [`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding)(axis, slot, property, gain[, ...])   | A numeric axis driving one transform property of one slot's node.   |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)(axis, slot[, set_family])                | A lid axis driving one slot's swap set through the ladder.          |
-
-### Exceptions
-
-| [`ExpressionResolutionError`](_autosummary/an.expression.binding.html.md#an.expression.binding.ExpressionResolutionError)(who, problems)   | An expression that cannot resolve on a character; `problems` says why.   |
-|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-
-### an.expression.binding.BROW_ANGLE_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.35*
-
-Brow rotation per unit of `brow_angle_*`, radians. Art direction.
-
-### an.expression.binding.BROW_HEIGHT_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 10.0*
-
-Brow travel per unit of `brow_height_*`, in the rig’s view-box units
-(scaled to scene pixels by the entity’s rig factor). Art direction; about
-the synthesized eye’s half-height.
-
-### *class* an.expression.binding.ChannelBinding(axis, slot, property, gain, rig_scaled=False)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A numeric axis driving one transform property of one slot’s node.
-
-#### rig_scaled *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
-
-Whether the gain is a view-box length (scaled by the rig factor).
-
-### *exception* an.expression.binding.ExpressionResolutionError(who, problems)
-
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
-
-An expression that cannot resolve on a character; `problems` says why.
-
-### an.expression.binding.GAZE_TRAVEL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 6.0*
-
-Pupil travel per unit of `gaze_*`, in view-box units — the default when a
-descriptor declares no travel of its own (`add_gaze` writes `gaze_travel`).
-
-### an.expression.binding.LID_SQUASH_GAIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
-
-On a rig whose eye squashes instead of swapping art, a lid offset scales
-the eye by this much per unit.
-
-### *class* an.expression.binding.SetBinding(axis, slot, set_family='eyelid')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A lid axis driving one slot’s swap set through the ladder.
-
-### an.expression.binding.binding_for(desc)
-
-The descriptor’s declared `expression_binding` (additive field), else the default.
-
-A declared binding is a list of dicts in the two dataclasses’ shapes
-(`{"axis", "slot", "property", "gain"[, "rig_scaled"]}` or
-`{"axis", "slot", "set_family"}`). An unknown axis in it is an error.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
-
-### an.expression.binding.declared_mouth_variants(desc)
-
-`{form: set name}` for every `viseme@<form>` set the descriptor declares.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> declared_mouth_variants(CharacterDescriptor(name="m"))
-{}
-```
-
-### an.expression.binding.default_binding(desc)
-
-The binding the default rig implies, from the slots it actually has.
-
-The brow angle’s screen sign: PixiJS rotation is clockwise-positive with y
-down, so on the LEFT brow (screen-left) a clockwise turn drops the inner
-end while on the RIGHT brow it lifts it — the axis says “+ = inner end
-up”, hence `-travel` on the left and `+travel` on the right.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
-
-### an.expression.binding.expression_problems(desc, , preset, axes=(), who)
-
-Every reason an expression cannot resolve on `desc` — empty means it can.
-
-Shared by `an validate` (each becomes an error Finding) and the compiler
-(which raises [`ExpressionResolutionError`](_autosummary/an.expression.binding.html.md#an.expression.binding.ExpressionResolutionError) with the same list).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> expression_problems(CharacterDescriptor(name="m"), preset="joyful", who="m")
-["unknown expression preset 'joyful' (known: neutral, happy, sad, angry, surprised, afraid, disgusted, thinking, skeptical, amused)"]
->>> expression_problems(CharacterDescriptor(name="m", face_overlay=False), preset="happy", who="m")[0].startswith("'m' has its face baked")
-True
-```
-
-### an.expression.binding.preset_axes(preset, , axes=None, intensity=1.0)
-
-The numeric axis offsets an expression asks for: the preset’s, with
-`axes` layered over them, scaled by `intensity` and clamped. Only
-non-zero offsets are returned, so a neutral expression is `{}`.
-
-An unknown preset or axis is a `ValueError` — validate reports it as an
-error, the compiler refuses it.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-### an.expression.binding.resolve_mouth_set(desc, preset, , keys_used, who=None)
-
-Which mouth set a line under `preset` uses — the one chain, shared.
-
-`viseme@<form>` if the preset prefers a form the descriptor declares and
-that set covers `keys_used`; else `viseme` with a warning naming what
-was missing; else [`ExpressionResolutionError`](_autosummary/an.expression.binding.html.md#an.expression.binding.ExpressionResolutionError). A descriptor with no
-`viseme` set and no covering variant cannot speak at all — that is the
-error, not a fallback.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.expression.binding.touches_gaze(axes)
-
-Whether any of `axes` is a gaze axis (a no-op on a rig without pupils).
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
-```pycon
->>> touches_gaze(["gaze_x"]), touches_gaze(["brow_angle_l"])
-(True, False)
-```
-
-### an.expression.binding.variant_set_name(form)
-
-The swap-set name for a mouth form (`@` is a legal set-name character).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> variant_set_name("happy")
-'viseme@happy'
-```
-
-
-# _autosummary/an.expression.blendshapes.html.md
-
-# an.expression.blendshapes
-
-The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).
-
-Reproduced only from the MediaPipe “Blendshape V2” model card (Apache-2.0,
-[https://storage.googleapis.com/mediapipe-assets/Model%20Card%20Blendshape%20V2.pdf](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20Blendshape%20V2.pdf),
-sha256 `c8e9cf60a39998f4b341740623917590e050d1c97004e2de4568d84e026445ae`,
-appendix “List of predicted blendshapes”, transcribed from the rendered page —
-the text layer drops the “ft” ligature). Compatible with the ARKit-style
-52-coefficient convention; no identifier here carries that name, by rule
-(research `misc/docs/wave6_research.md` §3).
-
-These are **not rig channels**: most have no cutout meaning. They exist so a
-tracked or imported face can be mapped onto the axes in
-[`an.expression.axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes) and back, unipolar in `[0, 1]` with rest 0 and
-left/right split — the card’s contract.
-
-```pycon
->>> len(BLENDSHAPE_V2_NAMES)
-52
->>> from_blendshapes({"browInnerUp": 1.0, "eyeBlinkLeft": 1.0})
-{'brow_height_l': 1.0, 'brow_height_r': 1.0, 'brow_angle_l': 1.0, 'brow_angle_r': 1.0, 'lid_open_l': -1.0}
-```
-
-### Functions
-
-| [`from_blendshapes`](_autosummary/an.expression.blendshapes.html.md#an.expression.blendshapes.from_blendshapes)(coefficients)   | Fold unipolar coefficients onto the axes (summed, then clamped).   |
-|-----------------------------------------------------------------------------------|--------------------------------------------------------------------|
-
-### an.expression.blendshapes.from_blendshapes(coefficients)
-
-Fold unipolar coefficients onto the axes (summed, then clamped).
-
-Unknown names raise — a misspelt coefficient must not vanish quietly.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-
-# _autosummary/an.expression.html.md
-
-# an.expression
-
-Facial expression for the cutout face (an#98, epic #9 Wave 6).
-
-The vocabulary ([`axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes)), our presets
-([`presets`](_autosummary/an.expression.presets.html.md#module-an.expression.presets)), how they reach a character’s slots and which
-mouth set a line uses ([`binding`](_autosummary/an.expression.binding.html.md#module-an.expression.binding)), the provider seam that
-turns authored leaves and dialogue sugar into per-frame curves
-([`provider`](_autosummary/an.expression.provider.html.md#module-an.expression.provider)), and the 52-coefficient import/export
-mapping ([`blendshapes`](_autosummary/an.expression.blendshapes.html.md#module-an.expression.blendshapes)). Renderer-free throughout: the
-cutout compiler’s face solver consumes these; `an validate` and
-`an character validate` share the same resolution.
-
-### Functions
-
-| [`binding_for`](_autosummary/an.expression.html.md#an.expression.binding_for)(desc)                              | The descriptor's declared `expression_binding` (additive field), else the default.                                               |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| [`clamp_axes`](_autosummary/an.expression.html.md#an.expression.clamp_axes)(values)                             | Clamp every numeric axis to its range; an unknown axis is an error.                                                              |
-| [`declared_mouth_variants`](_autosummary/an.expression.html.md#an.expression.declared_mouth_variants)(desc)                  | `{form: set name}` for every `viseme@<form>` set the descriptor declares.                                                        |
-| [`default_binding`](_autosummary/an.expression.html.md#an.expression.default_binding)(desc)                          | The binding the default rig implies, from the slots it actually has.                                                             |
-| [`expression_problems`](_autosummary/an.expression.html.md#an.expression.expression_problems)(desc, \*, preset[, axes])  | Every reason an expression cannot resolve on `desc` — empty means it can.                                                        |
-| [`expression_spans`](_autosummary/an.expression.html.md#an.expression.expression_spans)(shot, entity_id)              | Every expression contributor on `entity_id`: authored leaves, then dialogue sugar.                                               |
-| [`from_blendshapes`](_autosummary/an.expression.html.md#an.expression.from_blendshapes)(coefficients)                 | Fold unipolar coefficients onto the axes (summed, then clamped).                                                                 |
-| [`known_presets`](_autosummary/an.expression.html.md#an.expression.known_presets)()                                | The preset names, in declaration order.                                                                                          |
-| [`lid_key`](_autosummary/an.expression.html.md#an.expression.lid_key)(value, \*, available)                  | The eyelid key a lid state selects, degraded to the art the rig declares.                                                        |
-| [`mouth_form_of`](_autosummary/an.expression.html.md#an.expression.mouth_form_of)(preset)                          | The `viseme@<form>` a preset prefers, or `None` for the neutral set.                                                             |
-| [`preset_axes`](_autosummary/an.expression.html.md#an.expression.preset_axes)(preset, \*[, axes, intensity])     | The numeric axis offsets an expression asks for: the preset's, with `axes` layered over them, scaled by `intensity` and clamped. |
-| [`resolve_mouth_set`](_autosummary/an.expression.html.md#an.expression.resolve_mouth_set)(desc, preset, \*, keys_used) | Which mouth set a line under `preset` uses — the one chain, shared.                                                              |
-| [`variant_set_name`](_autosummary/an.expression.html.md#an.expression.variant_set_name)(form)                         | The swap-set name for a mouth form (`@` is a legal set-name character).                                                          |
-
-### Classes
-
-| [`Axis`](_autosummary/an.expression.html.md#an.expression.Axis)(name, lo, hi[, rest])                        | One numeric axis: its range and its rest (neutral) value.                          |
-|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`AxisCurve`](_autosummary/an.expression.html.md#an.expression.AxisCurve)(axis, samples)                          | One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic). |
-| [`ChannelBinding`](_autosummary/an.expression.html.md#an.expression.ChannelBinding)(axis, slot, property, gain[, ...]) | A numeric axis driving one transform property of one slot's node.                  |
-| [`DefaultExpressionProvider`](_autosummary/an.expression.html.md#an.expression.DefaultExpressionProvider)()                       | Sum of the shot's expression spans on the entity, ramped, per frame.               |
-| [`ExpressionProvider`](_autosummary/an.expression.html.md#an.expression.ExpressionProvider)(\*args, \*\*kwargs)            | The seam: whatever produces per-axis curves for one entity of one shot.            |
-| [`ExpressionSpan`](_autosummary/an.expression.html.md#an.expression.ExpressionSpan)(start, end, preset[, axes, ...])   | One expression contributor on one entity, in absolute shot time.                   |
-| [`Preset`](_autosummary/an.expression.html.md#an.expression.Preset)(name[, axes, mouth_form, anchor])          | A named expression: axis offsets, the mouth form it prefers, its anchor.           |
-| [`SetBinding`](_autosummary/an.expression.html.md#an.expression.SetBinding)(axis, slot[, set_family])              | A lid axis driving one slot's swap set through the ladder.                         |
-
-### Exceptions
-
-| [`ExpressionResolutionError`](_autosummary/an.expression.html.md#an.expression.ExpressionResolutionError)(who, problems)   | An expression that cannot resolve on a character; `problems` says why.   |
-|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-
-### *class* an.expression.Axis(name, lo, hi, rest=0.0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One numeric axis: its range and its rest (neutral) value.
-
-### *class* an.expression.AxisCurve(axis, samples)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).
-
-### *class* an.expression.ChannelBinding(axis, slot, property, gain, rig_scaled=False)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A numeric axis driving one transform property of one slot’s node.
-
-#### rig_scaled *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
-
-Whether the gain is a view-box length (scaled by the rig factor).
-
-### *class* an.expression.DefaultExpressionProvider
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Sum of the shot’s expression spans on the entity, ramped, per frame.
-
-#### mouth_preset_at(shot, entity_id, t)
-
-The preset whose mouth form is in force at `t`: the heaviest span
-at `t` that prefers a form, or `None` (the neutral set).
-
-Whole-line by construction when called at a line’s start — the solver
-asks once per line, never per frame, so at most one mouth swap
-property is live per instant.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### *class* an.expression.ExpressionProvider(\*args, \*\*kwargs)
-
-Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
-
-The seam: whatever produces per-axis curves for one entity of one shot.
-
-### *exception* an.expression.ExpressionResolutionError(who, problems)
-
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
-
-An expression that cannot resolve on a character; `problems` says why.
-
-### *class* an.expression.ExpressionSpan(start, end, preset, axes=<factory>, intensity=1.0, blend=0.0, source='action')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One expression contributor on one entity, in absolute shot time.
-
-#### offsets()
-
-The unscaled axis offsets this span asks for.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'action'*
-
-`"action"` for an authored leaf, `"dialogue"` for the `[emotion]` sugar.
-
-#### weight_at(t)
-
-The ramped intensity at `t`: 0 outside, ramping over `blend` at each end.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-### *class* an.expression.Preset(name, axes=<factory>, mouth_form=None, anchor='')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A named expression: axis offsets, the mouth form it prefers, its anchor.
-
-#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
-
-FACS AU cross-reference (a comment, never a source).
-
-#### mouth_form *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
-
-The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
-
-### *class* an.expression.SetBinding(axis, slot, set_family='eyelid')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A lid axis driving one slot’s swap set through the ladder.
-
-### an.expression.binding_for(desc)
-
-The descriptor’s declared `expression_binding` (additive field), else the default.
-
-A declared binding is a list of dicts in the two dataclasses’ shapes
-(`{"axis", "slot", "property", "gain"[, "rig_scaled"]}` or
-`{"axis", "slot", "set_family"}`). An unknown axis in it is an error.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
-
-### an.expression.clamp_axes(values)
-
-Clamp every numeric axis to its range; an unknown axis is an error.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-```pycon
->>> clamp_axes({"brow_height_l": 2.0, "lid_open_r": -3.0})
-{'brow_height_l': 1.0, 'lid_open_r': -1.0}
->>> clamp_axes({"eyebrow": 1.0})
-Traceback (most recent call last):
-...
-ValueError: unknown expression axis 'eyebrow' (known: brow_angle_l, ...)
-```
-
-### an.expression.declared_mouth_variants(desc)
-
-`{form: set name}` for every `viseme@<form>` set the descriptor declares.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> declared_mouth_variants(CharacterDescriptor(name="m"))
-{}
-```
-
-### an.expression.default_binding(desc)
-
-The binding the default rig implies, from the slots it actually has.
-
-The brow angle’s screen sign: PixiJS rotation is clockwise-positive with y
-down, so on the LEFT brow (screen-left) a clockwise turn drops the inner
-end while on the RIGHT brow it lifts it — the axis says “+ = inner end
-up”, hence `-travel` on the left and `+travel` on the right.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`ChannelBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.ChannelBinding), [`SetBinding`](_autosummary/an.expression.binding.html.md#an.expression.binding.SetBinding)]]
-
-### an.expression.expression_problems(desc, , preset, axes=(), who)
-
-Every reason an expression cannot resolve on `desc` — empty means it can.
-
-Shared by `an validate` (each becomes an error Finding) and the compiler
-(which raises [`ExpressionResolutionError`](_autosummary/an.expression.html.md#an.expression.ExpressionResolutionError) with the same list).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-```pycon
->>> expression_problems(CharacterDescriptor(name="m"), preset="joyful", who="m")
-["unknown expression preset 'joyful' (known: neutral, happy, sad, angry, surprised, afraid, disgusted, thinking, skeptical, amused)"]
->>> expression_problems(CharacterDescriptor(name="m", face_overlay=False), preset="happy", who="m")[0].startswith("'m' has its face baked")
-True
-```
-
-### an.expression.expression_spans(shot, entity_id)
-
-Every expression contributor on `entity_id`: authored leaves, then
-dialogue sugar. `duration=None` runs to the shot end (the looping-play
-rule); a span never extends past the shot.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
-
-### an.expression.from_blendshapes(coefficients)
-
-Fold unipolar coefficients onto the axes (summed, then clamped).
-
-Unknown names raise — a misspelt coefficient must not vanish quietly.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-### an.expression.known_presets()
-
-The preset names, in declaration order.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
-```pycon
->>> known_presets()[:3]
-('neutral', 'happy', 'sad')
-```
-
-### an.expression.lid_key(value, , available)
-
-The eyelid key a lid state selects, degraded to the art the rig declares.
-
-`wide` above +0.25, `open`, `half` below −0.35, `closed` below −0.85;
-a rig without `half` stays open until the lower threshold and one without
-`wide` stays open above the upper one — never a blend of two drawings.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.expression.mouth_form_of(preset)
-
-The `viseme@<form>` a preset prefers, or `None` for the neutral set.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-```pycon
->>> mouth_form_of("amused"), mouth_form_of("thinking"), mouth_form_of(None)
-('happy', None, None)
-```
-
-### an.expression.preset_axes(preset, , axes=None, intensity=1.0)
-
-The numeric axis offsets an expression asks for: the preset’s, with
-`axes` layered over them, scaled by `intensity` and clamped. Only
-non-zero offsets are returned, so a neutral expression is `{}`.
-
-An unknown preset or axis is a `ValueError` — validate reports it as an
-error, the compiler refuses it.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-### an.expression.resolve_mouth_set(desc, preset, , keys_used, who=None)
-
-Which mouth set a line under `preset` uses — the one chain, shared.
-
-`viseme@<form>` if the preset prefers a form the descriptor declares and
-that set covers `keys_used`; else `viseme` with a warning naming what
-was missing; else [`ExpressionResolutionError`](_autosummary/an.expression.html.md#an.expression.ExpressionResolutionError). A descriptor with no
-`viseme` set and no covering variant cannot speak at all — that is the
-error, not a fallback.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.expression.variant_set_name(form)
-
-The swap-set name for a mouth form (`@` is a legal set-name character).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-```pycon
->>> variant_set_name("happy")
-'viseme@happy'
-```
-
-### Modules
-
-| [`axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes)                 | The facial expression axes: what a cutout face can be asked to do (an#98).           |
-|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`binding`](_autosummary/an.expression.binding.html.md#module-an.expression.binding)           | How the axes reach a character: the binding and the mouth-set resolver (an#98).      |
-| [`blendshapes`](_autosummary/an.expression.blendshapes.html.md#module-an.expression.blendshapes)   | The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).       |
-| [`presets`](_autosummary/an.expression.presets.html.md#module-an.expression.presets)           | Expression presets: our art direction on the axes (an#98).                           |
-| [`provider`](_autosummary/an.expression.provider.html.md#module-an.expression.provider)         | The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98). |
-| [`registration`](_autosummary/an.expression.registration.html.md#module-an.expression.registration) | The face side of the cut-out genre, as declarations: `expression` and `[emotion]`.   |
-
-
-# _autosummary/an.expression.presets.html.md
-
-# an.expression.presets
-
-Expression presets: our art direction on the axes (an#98).
-
-Every name the compiler’s retired brow-tilt table accepted is a preset here
-(`amused` included — live content authors it), plus the two the research
-added (`afraid`, `disgusted`). The FACS action-unit numbers in each `anchor` are cross-reference
-comments, not sources: no emotion table was transcribed (research
-`misc/docs/wave6_research.md` §3, §8). Gaze is absent from every preset so
-the two sources stay independent — “thinking looks up and away” is a gaze
-action, not a preset value.
-
-A preset’s `mouth_form` names the `viseme@<form>` set its mouth prefers;
-a character that declares none falls back to `viseme` with a warning
-([`an.expression.binding.resolve_mouth_set()`](_autosummary/an.expression.binding.html.md#an.expression.binding.resolve_mouth_set)).
-
-```pycon
->>> preset_axes("happy")["brow_height_l"]
-0.2
->>> preset_axes("happy", intensity=0.5)["brow_height_l"]
-0.1
->>> preset_axes("happy", axes={"brow_height_l": -1.0})["brow_height_l"]
--1.0
->>> preset_axes(None) == {}
-True
->>> PRESETS["skeptical"].mouth_form is None
-True
-```
-
-### Functions
-
-| [`known_presets`](_autosummary/an.expression.presets.html.md#an.expression.presets.known_presets)()                            | The preset names, in declaration order.                                                                                          |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| [`mouth_form_of`](_autosummary/an.expression.presets.html.md#an.expression.presets.mouth_form_of)(preset)                      | The `viseme@<form>` a preset prefers, or `None` for the neutral set.                                                             |
-| [`preset_axes`](_autosummary/an.expression.presets.html.md#an.expression.presets.preset_axes)(preset, \*[, axes, intensity]) | The numeric axis offsets an expression asks for: the preset's, with `axes` layered over them, scaled by `intensity` and clamped. |
-
-### Classes
-
-| [`Preset`](_autosummary/an.expression.presets.html.md#an.expression.presets.Preset)(name[, axes, mouth_form, anchor])   | A named expression: axis offsets, the mouth form it prefers, its anchor.   |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-
-### *class* an.expression.presets.Preset(name, axes=<factory>, mouth_form=None, anchor='')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A named expression: axis offsets, the mouth form it prefers, its anchor.
-
-#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
-
-FACS AU cross-reference (a comment, never a source).
-
-#### mouth_form *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
-
-The `viseme@<form>` set this preset’s mouth prefers; `None` = `viseme`.
-
-### an.expression.presets.known_presets()
-
-The preset names, in declaration order.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
-```pycon
->>> known_presets()[:3]
-('neutral', 'happy', 'sad')
-```
-
-### an.expression.presets.mouth_form_of(preset)
-
-The `viseme@<form>` a preset prefers, or `None` for the neutral set.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-```pycon
->>> mouth_form_of("amused"), mouth_form_of("thinking"), mouth_form_of(None)
-('happy', None, None)
-```
-
-### an.expression.presets.preset_axes(preset, , axes=None, intensity=1.0)
-
-The numeric axis offsets an expression asks for: the preset’s, with
-`axes` layered over them, scaled by `intensity` and clamped. Only
-non-zero offsets are returned, so a neutral expression is `{}`.
-
-An unknown preset or axis is a `ValueError` — validate reports it as an
-error, the compiler refuses it.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-
-# _autosummary/an.expression.provider.html.md
-
-# an.expression.provider
-
-The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98).
-
-The face solver in the cutout compiler sums contributors per `(node,
-property)` at compile time. It gets those contributors from an
-[`ExpressionProvider`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionProvider) — the seam an audio- or vision-driven source
-plugs into later. The default provider composes, for one entity of one shot:
-
-- every `expression` leaf action (flattened out of the shot’s composition
-  tree with its absolute times);
-- the **dialogue sugar**: a line’s `[emotion]` becomes an expression over
-  the line, **in memory only** — never written into `shot.actions` or the
-  scenes store, or the md writer would emit the emotion twice.
-
-Each span ramps its intensity in and out over `blend` seconds (0 = cut);
-two overlapping spans cross-fade because the sum is additive. Curves are
-sampled per frame, so the solver and this module agree on time by
-construction.
-
-```pycon
->>> from an.ir.schema import AssetRef, Dialogue, Shot
->>> from an.ir.compose import expression
->>> shot = Shot(id="s", renderer="cutout", duration=1.0,
-...             entities=[AssetRef(kind="character", id="c", store="characters", ref="c")],
-...             actions=[expression("c", "angry", blend=0.0)])
->>> [s.preset for s in expression_spans(shot, "c")]
-['angry']
->>> curves = {c.axis: c for c in DefaultExpressionProvider().curves(shot, "c", fps=4)}
->>> curves["brow_angle_l"].samples
-(-0.8, -0.8, -0.8, -0.8, -0.8)
-```
-
-### Module Attributes
-
-| [`DIALOGUE_EMOTION_BLEND_S`](_autosummary/an.expression.provider.html.md#an.expression.provider.DIALOGUE_EMOTION_BLEND_S)   | The `[emotion]` sugar ramps in and out over this; it is a comment on the line, not a cut.   |
-|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-
-### Functions
-
-| [`expression_spans`](_autosummary/an.expression.provider.html.md#an.expression.provider.expression_spans)(shot, entity_id)   | Every expression contributor on `entity_id`: authored leaves, then dialogue sugar.   |
-|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`flatten_expressions`](_autosummary/an.expression.provider.html.md#an.expression.provider.flatten_expressions)(shot)           | The shot's `expression` leaves with absolute times (other leaves dropped).           |
-
-### Classes
-
-| [`AxisCurve`](_autosummary/an.expression.provider.html.md#an.expression.provider.AxisCurve)(axis, samples)                        | One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).   |
-|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`DefaultExpressionProvider`](_autosummary/an.expression.provider.html.md#an.expression.provider.DefaultExpressionProvider)()                     | Sum of the shot's expression spans on the entity, ramped, per frame.                 |
-| [`ExpressionProvider`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionProvider)(\*args, \*\*kwargs)          | The seam: whatever produces per-axis curves for one entity of one shot.              |
-| [`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)(start, end, preset[, axes, ...]) | One expression contributor on one entity, in absolute shot time.                     |
-
-### *class* an.expression.provider.AxisCurve(axis, samples)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One axis sampled at the frame times `0, 1/fps, …, n/fps` (offline, deterministic).
-
-### an.expression.provider.DIALOGUE_EMOTION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
-
-The `[emotion]` sugar ramps in and out over this; it is a comment on the
-line, not a cut.
-
-### *class* an.expression.provider.DefaultExpressionProvider
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Sum of the shot’s expression spans on the entity, ramped, per frame.
-
-#### mouth_preset_at(shot, entity_id, t)
-
-The preset whose mouth form is in force at `t`: the heaviest span
-at `t` that prefers a form, or `None` (the neutral set).
-
-Whole-line by construction when called at a line’s start — the solver
-asks once per line, never per frame, so at most one mouth swap
-property is live per instant.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### *class* an.expression.provider.ExpressionProvider(\*args, \*\*kwargs)
-
-Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
-
-The seam: whatever produces per-axis curves for one entity of one shot.
-
-### *class* an.expression.provider.ExpressionSpan(start, end, preset, axes=<factory>, intensity=1.0, blend=0.0, source='action')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One expression contributor on one entity, in absolute shot time.
-
-#### offsets()
-
-The unscaled axis offsets this span asks for.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'action'*
-
-`"action"` for an authored leaf, `"dialogue"` for the `[emotion]` sugar.
-
-#### weight_at(t)
-
-The ramped intensity at `t`: 0 outside, ramping over `blend` at each end.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-### an.expression.provider.expression_spans(shot, entity_id)
-
-Every expression contributor on `entity_id`: authored leaves, then
-dialogue sugar. `duration=None` runs to the shot end (the looping-play
-rule); a span never extends past the shot.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExpressionSpan`](_autosummary/an.expression.provider.html.md#an.expression.provider.ExpressionSpan)]
-
-### an.expression.provider.flatten_expressions(shot)
-
-The shot’s `expression` leaves with absolute times (other leaves dropped).
-
-
-# _autosummary/an.expression.registration.html.md
-
-# an.expression.registration
-
-The face side of the cut-out genre, as declarations: `expression` and `[emotion]`.
-
-What the cut-out genre ([`an.genres.cutout`](_autosummary/an.genres.cutout.html.md#module-an.genres.cutout)) registers from here:
-
-- the **\`\`expression\`\` action kind** — [`an.ir.schema.ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
-  (hold a facial expression, an#98): zero-width in a `sequence` when it runs
-  to the shot end, and its `scene.md` spelling;
-- the **\`\`[emotion]\`\` dialogue sugar** — `maya [happy]: Hi!` fills
-  `an.ir.schema.Dialogue.emotion`, which the expression provider turns
-  > into an expression over the line, in memory only.
-
-Plain declarations: importing this module registers nothing.
-
-```pycon
->>> EXPRESSION.name, EMOTION.opener, EMOTION.parse(" Happy ")
-('expression', '[', 'happy')
-```
-
-### Module Attributes
-
-| [`EMOTION_NAME_RE`](_autosummary/an.expression.registration.html.md#an.expression.registration.EMOTION_NAME_RE)   | a preset name (`happy`, `wry-smile`).   |
-|--------------------------------------------------------------------|-----------------------------------------|
-
-### Functions
-
-| [`expression_duration`](_autosummary/an.expression.registration.html.md#an.expression.registration.expression_duration)(action, extent)   | An expression's span: its `duration`, else zero (it runs to the shot end).        |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`format_emotion`](_autosummary/an.expression.registration.html.md#an.expression.registration.format_emotion)(line)                  | The `[…]` content for `line`, or `None` when it carries no emotion.               |
-| [`parse_emotion`](_autosummary/an.expression.registration.html.md#an.expression.registration.parse_emotion)(content)                | `[happy]`'s content to the line's emotion, lower-cased; refuse a non-name.        |
-| [`read_expression_md`](_autosummary/an.expression.registration.html.md#an.expression.registration.read_expression_md)(item, \*, index)   | `{kind: expression, target, [preset], [axes], [intensity], [duration], [blend]}`. |
-| [`write_expression_md`](_autosummary/an.expression.registration.html.md#an.expression.registration.write_expression_md)(leaf)             | The `scene.md` entry for `leaf` (`read_expression_md`'s inverse).                 |
-
-### an.expression.registration.EMOTION_NAME_RE *= re.compile('[\\\\w-]+')*
-
-a preset name (`happy`, `wry-smile`).
-
-* **Type:**
-  What an emotion name may be
-
-### an.expression.registration.expression_duration(action, extent)
-
-An expression’s span: its `duration`, else zero (it runs to the shot end).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> expression_duration(ExpressionAction(target="a", duration=2.0), None)
-2.0
->>> expression_duration(ExpressionAction(target="a"), None)
-0.0
-```
-
-### an.expression.registration.format_emotion(line)
-
-The `[…]` content for `line`, or `None` when it carries no emotion.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.expression.registration.parse_emotion(content)
-
-`[happy]`’s content to the line’s emotion, lower-cased; refuse a non-name.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.expression.registration.read_expression_md(item, , index)
-
-`{kind: expression, target, [preset], [axes], [intensity], [duration], [blend]}`.
-
-Landed with its writer and round trip in one commit (an#98): the writer
-skips unknown leaves, so a parser-only entry would vanish from scene.md on
-the next sync and then from the JSON on the next md edit.
-
-* **Return type:**
-  [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
-
-### an.expression.registration.write_expression_md(leaf)
-
-The `scene.md` entry for `leaf` (`read_expression_md`’s inverse).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-
 # _autosummary/an.frame_clock.html.md
 
 # an.frame_clock
@@ -18560,7 +12734,7 @@ on a perfect grid. A real camera does neither: its shutter stays open for part
 of the frame period (so a moving object smears), and its capture instants
 wander around the nominal grid (so the timestamp a frame carries is not quite
 when it was taken). Anything that wants to *measure* motion from video — the
-sub-frame impact estimators [`an.impacts`](_autosummary/an.impacts.html.md#module-an.impacts) exists to score — needs both, and
+sub-frame impact estimators `an.impacts` exists to score — needs both, and
 needs to know exactly what was done.
 
 [`FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock) is that model as data. [`FrameClock.frames()`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock.frames) returns one
@@ -18744,57 +12918,6 @@ Frames in a render of `duration` seconds — the renderer’s own rule.
 ```
 
 
-# _autosummary/an.genres.cutout.html.md
-
-# an.genres.cutout
-
-The cut-out animation genre, declared as one object (still inside `an`).
-
-ADR 0001 §First slice: the cut-out genre’s IR extensions register through the
-same door any genre uses — the `an.genres` entry point (`pyproject.toml`
-declares `cutout_animation = "an.genres.cutout:CUTOUT"`) — instead of being
-wired into the core. `CUTOUT` lists:
-
-- **action kinds** `play` ([`an.characters.registration`](_autosummary/an.characters.registration.html.md#module-an.characters.registration)) and
-  `expression` ([`an.expression.registration`](_autosummary/an.expression.registration.html.md#module-an.expression.registration));
-- **entity kind** `character`, whose nodes are stage nodes (`stage.node`);
-- the **\`\`[emotion]\`\`** dialogue sugar;
-- its **semantic checks**: `play` and `expression` resolution, brow
-  acting on a character whose brows cannot act (an#252), the turn
-  checks (contradicted `from_direction`, a mouth hidden while speaking) and
-  view continuity across a cut, placed in the report where they always were;
-- its **capabilities** and the **character analyser** (ADR 0002:
-  [`an.library.character`](_autosummary/an.library.character.html.md#module-an.library.character)), its **vocabulary** (motion and expression
-  > presets, IR-field notes: [`an.characters.vocabulary`](_autosummary/an.characters.vocabulary.html.md#module-an.characters.vocabulary); the methods:
-
-  [`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)) and its **aspects**, `locomotion`,
-  : `speech` and `expression`, each with a default chain that ends in a
-    method requiring nothing.
-
-Its `name` is the persisted genre slug `cutout_animation`, the one
-`an.genre` declares to `nw` (ADR 0001 decision 9: persisted
-identifiers do not change). When the `cutan` package exists (P8), this object
-moves there and registers through the same entry point from that distribution;
-nothing in the core’s dispatch changes.
-
-Importing this module registers nothing: [`an.genres.load()`](_autosummary/an.genres.html.md#an.genres.load) (or
-[`an.genres.register_genre()`](_autosummary/an.genres.html.md#an.genres.register_genre)) does.
-
-```pycon
->>> CUTOUT.provides()["action kinds"]
-('play', 'expression')
-```
-
-### Module Attributes
-
-| [`CUTOUT_GENRE_NAME`](_autosummary/an.genres.cutout.html.md#an.genres.cutout.CUTOUT_GENRE_NAME)   | The genre's persisted slug (also `an.genre.CUTOUT_ANIMATION_SLUG`).   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------|
-
-### an.genres.cutout.CUTOUT_GENRE_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cutout_animation'*
-
-The genre’s persisted slug (also `an.genre.CUTOUT_ANIMATION_SLUG`).
-
-
 # _autosummary/an.genres.html.md
 
 # an.genres
@@ -18832,7 +12955,7 @@ the MCP entry call it, and anyone can. A package declares its genre as:
 
 ```default
 [project.entry-points."an.genres"]
-cutout_animation = "an.genres.cutout:CUTOUT"
+cutout_animation = "cutan.genre:CUTOUT"
 ```
 
 [`register_genre()`](_autosummary/an.genres.html.md#an.genres.register_genre) installs a genre object directly (a test, a notebook, a
@@ -18854,27 +12977,34 @@ genre defined in the same process).
 
 | [`ENTRY_POINT_GROUP`](_autosummary/an.genres.html.md#an.genres.ENTRY_POINT_GROUP)      | The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.   |
 |-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| [`API_LEVEL`](_autosummary/an.genres.html.md#an.genres.API_LEVEL)              | every hook, registry field and moved path a genre package may rely on.                                             |
 | [`IN_DISTRIBUTION_GENRES`](_autosummary/an.genres.html.md#an.genres.IN_DISTRIBUTION_GENRES) | Genres the `an` distribution itself ships, as entry-point values.                                                  |
 
 ### Functions
 
-| [`action_kind`](_autosummary/an.genres.html.md#an.genres.action_kind)(name)                                | The registered kind called `name`, or `None`.                                                                                                                                                                           |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`action_kind_names`](_autosummary/an.genres.html.md#an.genres.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.                                                                                                                                          |
-| [`available`](_autosummary/an.genres.html.md#an.genres.available)(\*[, entry_points, builtin])           | Every discoverable genre's declaration, by name — read, never registered.                                                                                                                                               |
-| `entity_kind`(name)                                                                               |                                                                                                                                                                                                                         |
-| `entity_kind_names`(\*[, owner])                                                                  |                                                                                                                                                                                                                         |
-| [`entity_space_resolver`](_autosummary/an.genres.html.md#an.genres.entity_space_resolver)(entities, \*[, default])   | `target -> PropertySpace`: the space its ENTITY's kind declares.                                                                                                                                                        |
-| [`discovered_entry_points`](_autosummary/an.genres.html.md#an.genres.discovered_entry_points)(\*[, entry_points, ...]) | The in-distribution genres (`builtin`) merged with `entry_points` (default: the installed ones), de-duplicated by name — the in-distribution declaration first, so a stale or missing installed entry cannot shadow it. |
-| [`genre_entry_points`](_autosummary/an.genres.html.md#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                           |
-| [`genres_declaring`](_autosummary/an.genres.html.md#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                   |
-| [`installed`](_autosummary/an.genres.html.md#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                              |
-| [`genre_library`](_autosummary/an.genres.html.md#an.genres.genre_library)(name, \*[, default])               | The package whose data root holds genre `name`'s library and projects.                                                                                                                                                  |
-| `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
-| [`load`](_autosummary/an.genres.html.md#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
-| [`providers_of`](_autosummary/an.genres.html.md#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](_autosummary/an.genres.html.md#an.genres.Genre.provides)).                                                                    |
-| [`register_genre`](_autosummary/an.genres.html.md#an.genres.register_genre)(genre, \*[, replace, ...])        | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
-| [`without_genres`](_autosummary/an.genres.html.md#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                    |
+| [`require_api_level`](_autosummary/an.genres.html.md#an.genres.require_api_level)(level, \*, package)            | Refuse, with an upgrade hint, when this `an` is older than `package` needs.                                                                                                                                            |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`hook_modules`](_autosummary/an.genres.html.md#an.genres.hook_modules)(\*[, exclude_owner])                | The modules whose code the genres' registered hooks run, sorted and unique.                                                                                                                                            |
+| [`register_service`](_autosummary/an.genres.html.md#an.genres.register_service)(name, target, \*[, owner, ...]) | Register a named service a genre offers the core (an#225).                                                                                                                                                             |
+| [`require_service`](_autosummary/an.genres.html.md#an.genres.require_service)(name, \*[, what, extra])         | The registered service `name`; a typed error naming the install when absent.                                                                                                                                           |
+| [`service`](_autosummary/an.genres.html.md#an.genres.service)(name[, default])                         | The registered service `name`, resolved, or `default` when none is.                                                                                                                                                    |
+| [`services`](_autosummary/an.genres.html.md#an.genres.services)(prefix)                                 | `{name without the prefix: resolved service}` for every service under `prefix`.                                                                                                                                        |
+| [`action_kind`](_autosummary/an.genres.html.md#an.genres.action_kind)(name)                                | The registered kind called `name`, or `None`.                                                                                                                                                                          |
+| [`action_kind_names`](_autosummary/an.genres.html.md#an.genres.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.                                                                                                                                         |
+| [`available`](_autosummary/an.genres.html.md#an.genres.available)(\*[, entry_points, builtin])           | Every discoverable genre's declaration, by name — read, never registered.                                                                                                                                              |
+| `entity_kind`(name)                                                                               |                                                                                                                                                                                                                        |
+| `entity_kind_names`(\*[, owner])                                                                  |                                                                                                                                                                                                                        |
+| [`entity_space_resolver`](_autosummary/an.genres.html.md#an.genres.entity_space_resolver)(entities, \*[, default])   | `target -> PropertySpace`: the space its ENTITY's kind declares.                                                                                                                                                       |
+| [`discovered_entry_points`](_autosummary/an.genres.html.md#an.genres.discovered_entry_points)(\*[, entry_points, ...]) | The in-distribution genres (`builtin`; none since the cut-out genre moved to `cutan`, an#225) merged with `entry_points` (default: the installed ones), de-duplicated by name — the in-distribution declaration first. |
+| [`genre_entry_points`](_autosummary/an.genres.html.md#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                          |
+| [`genres_declaring`](_autosummary/an.genres.html.md#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                  |
+| [`installed`](_autosummary/an.genres.html.md#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                             |
+| [`genre_library`](_autosummary/an.genres.html.md#an.genres.genre_library)(name, \*[, default])               | The package whose data root holds genre `name`'s library and projects.                                                                                                                                                 |
+| `installed_genre`(name)                                                                           |                                                                                                                                                                                                                        |
+| [`load`](_autosummary/an.genres.html.md#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                     |
+| [`providers_of`](_autosummary/an.genres.html.md#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](_autosummary/an.genres.html.md#an.genres.Genre.provides)).                                                                   |
+| [`register_genre`](_autosummary/an.genres.html.md#an.genres.register_genre)(genre, \*[, replace, ...])        | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                           |
+| [`without_genres`](_autosummary/an.genres.html.md#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                   |
 
 ### Classes
 
@@ -18882,6 +13012,7 @@ genre defined in the same process).
 |------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
 | [`RuntimeScript`](_autosummary/an.genres.html.md#an.genres.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
+| [`SwapDeclaration`](_autosummary/an.genres.html.md#an.genres.SwapDeclaration)(sets[, descriptor, ...])            | What one entity's descriptor declares for the stage compiler's swap vocabulary.                                                                                                                                                                              |
 | [`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
 | [`EntityKind`](_autosummary/an.genres.html.md#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                                                                                                                                                                                            |
@@ -18889,12 +13020,37 @@ genre defined in the same process).
 
 ### Exceptions
 
-| [`GenreError`](_autosummary/an.genres.html.md#an.genres.GenreError)                                   | A genre declaration is malformed, or its entry point does not resolve.   |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.           |
-| [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                      |
+| [`GenreAPILevelError`](_autosummary/an.genres.html.md#an.genres.GenreAPILevelError)                           | A genre package needs a newer `an` than the one installed.             |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [`ServiceMissingError`](_autosummary/an.genres.html.md#an.genres.ServiceMissingError)                          | The core asked a genre for a service nobody registered.                |
+| [`GenreError`](_autosummary/an.genres.html.md#an.genres.GenreError)                                   | A genre declaration is malformed, or its entry point does not resolve. |
+| [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
+| [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+
+every hook, registry
+field and moved path a genre package may rely on. Bumped by each change a
+genre needs (the P8 seam PRs and each move to `cutan`, an#225), never
+decremented. A genre states the lowest level it needs with
+[`require_api_level()`](_autosummary/an.genres.html.md#an.genres.require_api_level), which is how “the genre declares the lowest `an`
+it supports” (ADR 0001 decision 8) is said without a version pin: `an`’s
+version is assigned by CI at merge, so no PR can name the release it ships in.
+
+A genre package must also run against an `an` older than this constant:
+it reads `getattr(an.genres, "API_LEVEL", 0)` before calling
+[`require_api_level()`](_autosummary/an.genres.html.md#an.genres.require_api_level), and raises its own typed error when it is missing.
+
+Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
+
+1 = moved-module shims (`an._shims.moved_to_package`) and this check (an#296, P8 B0a).
+2 = the cut-out genre’s move (an#225): `Genre.services`, `ActionKind.lowering`,
+
+> `EntityKind.swap_declaration`, `an.stage.rig`.
+* **Type:**
+  The level of the genre-facing API this `an` provides
+
+### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1', lowering=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18915,6 +13071,17 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
   `read_md(item, index=i) -> action` (`start:` already removed when
   `md_start`) and `write_md(action) -> dict` (without `start`).
   A kind with no `read_md` has no `scene.md` form.
+
+#### lowering *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+How the STAGE compiler turns an action of this kind into clips, for a kind
+that is not a plain tween or set (the cut-out `play`): an object with
+`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
+default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+and `clip(action, *, anim_id, vocab, fps, view)` – see
+[`an.stage.compile.ActionLowering`](_autosummary/an.stage.compile.html.md#an.stage.compile.ActionLowering). `None`: the compiler has
+nothing kind-specific to do. (an#225: this is how the compiler stops
+naming `play`.)
 
 #### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
@@ -18982,7 +13149,7 @@ the line carries none). The cut-out genre’s `[emotion]` is one.
 
 The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1')
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18992,11 +13159,42 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
 
+#### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The `kind` tag of the descriptor document `store` holds for this kind
+(`"CharacterDescriptor"`): what makes the validator treat the entity as a
+rig whose declared asset sets it can check (an#246).
+
+#### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+A missing `ref` is NOT an error because the compiler draws a placeholder
+instead; the genre reports it with its own (warning) check.
+
+#### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+an object with
+`missing_set_hint(prop) -> str` (appended to “names no declared asset
+set”) and `whole_entity(action, desc, prop, keys, entity_id, *, where,
+report, art_exists) -> bool` (judge a swap on the entity ITSELF; `True`
+when handled). `None`: the generic per-node rule only.
+
+* **Type:**
+  Extra swap-reference checks for this kind
+
+#### swap_declaration *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [SwapDeclaration](_autosummary/an.genres.registry.html.md#an.genres.registry.SwapDeclaration) | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+what the entity’s descriptor
+declares for the stage compiler’s swap vocabulary (an#87). `None`: the
+kind declares nothing (its built nodes’ sets ARE its declaration).
+
+* **Type:**
+  `(entity, mall) -> SwapDeclaration | None`
+
 #### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
 
 The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](_autosummary/an.genres.html.md#an.genres.ActionKind.version).
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=())
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19051,22 +13249,35 @@ its visual kinds
 * **Type:**
   Code the genre adds to an engine’s runtime
 
+#### services *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [object](https://docs.python.org/3/builtins/functions.html#object)]*
+
+`{name: object or "module:attr"}` the genre offers the core by name
+([`register_service()`](_autosummary/an.genres.html.md#an.genres.register_service); an#225): the CLI namespaces it adds
+(`cli.<namespace>`), its lip-sync providers (`lipsync.<name>`), and the
+other places the core asks “is there a genre that does this?”.
+
+### *exception* an.genres.GenreAPILevelError
+
+Bases: [`GenreError`](_autosummary/an.genres.html.md#an.genres.GenreError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+A genre package needs a newer `an` than the one installed.
+
 ### *exception* an.genres.GenreError
 
 Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)
 
 A genre declaration is malformed, or its entry point does not resolve.
 
-### an.genres.IN_DISTRIBUTION_GENRES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], ...]* *= (('cutout_animation', 'an.genres.cutout:CUTOUT'),)*
+### an.genres.IN_DISTRIBUTION_GENRES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], ...]* *= ()*
 
 Genres the `an` distribution itself ships, as entry-point values. They are
 found by [`load()`](_autosummary/an.genres.html.md#an.genres.load) WITHOUT relying on installed metadata: an editable
 install made before the `an.genres` group existed never refreshes its
 `dist-info`, and a missing entry point must never silently drop a genre
 that ships in the same distribution as the core (review-244 S1). Still
-explicit discovery (only [`load()`](_autosummary/an.genres.html.md#an.genres.load) reads it, never an import). External
-genres (`cutan` after P8) come through the entry point alone; when the
-cut-out genre moves there, its line here goes.
+explicit discovery (only [`load()`](_autosummary/an.genres.html.md#an.genres.load) reads it, never an import). Every genre is
+external now: the cut-out genre moved to `cutan` (an#225) and comes through
+the `an.genres` entry point alone.
 
 ### *exception* an.genres.RegistryError
 
@@ -19110,6 +13321,24 @@ called once per shot with `ctx.shot` set. Within a stage, checks run by
 `order` (then registration order), so a genre’s check lands exactly where
 it belongs in the report.
 
+### *exception* an.genres.ServiceMissingError
+
+Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The core asked a genre for a service nobody registered.
+
+### *class* an.genres.SwapDeclaration(sets, descriptor=None, art_exists=None, scale=1.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one entity’s descriptor declares for the stage compiler’s swap vocabulary.
+
+`sets` is `{set name: {KEY: attachment name}}` as declared;
+`descriptor` is the (migrated) document the declaration came from, kept
+for the kind’s own lowering; `art_exists` answers `rel_path -> art on
+disk` (`None` when the store cannot say); `scale` is the factor from the
+entity’s view box to scene pixels.
+
 ### *exception* an.genres.UnregisteredKindError(what, name, , known=(), providers=(), where='')
 
 Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)
@@ -19147,16 +13376,16 @@ A genre whose entry point does not import is left out (its error is what
 
 ### an.genres.discovered_entry_points(, entry_points=None, builtin=True)
 
-The in-distribution genres (`builtin`) merged with `entry_points`
-(default: the installed ones), de-duplicated by name — the in-distribution
-declaration first, so a stale or missing installed entry cannot shadow it.
+The in-distribution genres (`builtin`; none since the cut-out genre moved to
+`cutan`, an#225) merged with `entry_points` (default: the installed ones),
+de-duplicated by name — the in-distribution declaration first.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ```pycon
 >>> [ep.name for ep in discovered_entry_points(entry_points=())]
-['cutout_animation']
+[]
 ```
 
 ### an.genres.entity_space_resolver(entities, , default=None)
@@ -19214,6 +13443,24 @@ genre modules but registers nothing.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
+### an.genres.hook_modules(, exclude_owner='an')
+
+The modules whose code the genres’ registered hooks run, sorted and unique.
+
+Compile passes, lowerings, entity hooks, checks, services and runtime scripts
+of every owner but `exclude_owner` (the core’s own are walked from the
+renderer already). The shot cache’s code key starts its walk here for the
+packages outside `an`, so a change to a genre’s code changes the key
+(an#294): the genre is reached by REGISTRATION, not by an import from `an`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> isinstance(hook_modules(), tuple)
+True
+```
+
 ### an.genres.installed()
 
 The names of the genres registered in this process, in registration order.
@@ -19259,6 +13506,69 @@ genres are in, so a genre extending another loads in any order).
 * **Return type:**
   [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)
 
+### an.genres.register_service(name, target, , owner='an', replace=False)
+
+Register a named service a genre offers the core (an#225).
+
+The seam for the places where the core needs a genre’s code only when that
+genre is installed: a CLI namespace (`cli.character`), a provider factory
+(`lipsync.offline`), a licence lookup. `target` is the object itself or
+`"module:attr"` (imported on first use, so declaring a service imports no
+engine). The names a genre may use are the core’s contract, listed with
+their callers in `misc/docs/architecture_as_built.md`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.genres.require_api_level(level, , package)
+
+Refuse, with an upgrade hint, when this `an` is older than `package` needs.
+
+A genre package calls it at import (`require_api_level(3, package="cutan")`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> require_api_level(1, package="demo")
+>>> try:
+...     require_api_level(API_LEVEL + 1, package="demo")
+... except GenreAPILevelError as e:
+...     print(str(e).startswith(f"demo needs an.genres API level {API_LEVEL + 1}"))
+True
+```
+
+### an.genres.require_service(name, , what='', extra='cutout')
+
+The registered service `name`; a typed error naming the install when absent.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.genres.service(name, default=None)
+
+The registered service `name`, resolved, or `default` when none is.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> service("no.such.service") is None
+True
+```
+
+### an.genres.services(prefix)
+
+`{name without the prefix: resolved service}` for every service under `prefix`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> services("no.such.")
+{}
+```
+
 ### an.genres.without_genres()
 
 Run a block with no genre registered (the core alone), then restore.
@@ -19274,9 +13584,8 @@ True
 
 ### Modules
 
-| [`cutout`](_autosummary/an.genres.cutout.html.md#module-an.genres.cutout)     | The cut-out animation genre, declared as one object (still inside `an`).                           |
-|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| [`registry`](_autosummary/an.genres.registry.html.md#module-an.genres.registry) | The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes. |
+| [`registry`](_autosummary/an.genres.registry.html.md#module-an.genres.registry)   | The core's open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.   |
+|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
 
 
 # _autosummary/an.genres.registry.html.md
@@ -19328,6 +13637,7 @@ False
 | [`entity_builders`](_autosummary/an.genres.registry.html.md#an.genres.registry.entity_builders)(compiler)                         | `{entity kind: builder}` registered for `compiler`.                               |
 | `entity_kind`(name)                                                                                |                                                                                   |
 | `entity_kind_names`(\*[, owner])                                                                   |                                                                                   |
+| [`hook_modules`](_autosummary/an.genres.registry.html.md#an.genres.registry.hook_modules)(\*[, exclude_owner])                 | The modules whose code the genres' registered hooks run, sorted and unique.       |
 | [`owners`](_autosummary/an.genres.registry.html.md#an.genres.registry.owners)()                                          | Every owner with at least one entry, the core first.                              |
 | [`register_action_kind`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_action_kind)(kind, \*[, owner, replace])  | Register an action kind.                                                          |
 | [`register_check`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)(check, \*[, owner, replace])       | Register a semantic-validation check (run by `an.ir.validate.validate_semantic`). |
@@ -19335,8 +13645,12 @@ False
 | [`register_dialogue_sugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_dialogue_sugar)(sugar, \*[, owner, ...])  | Register `scene.md` dialogue sugar.                                               |
 | [`register_entity_kind`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_entity_kind)(kind, \*[, owner, replace])  | Register an entity kind (a value `AssetRef.kind` may take).                       |
 | [`register_runtime_script`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_runtime_script)(script, \*[, owner, ...]) | Register runtime code for an engine (a genre's visual kinds).                     |
+| [`register_service`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_service)(name, target, \*[, owner, ...])  | Register a named service a genre offers the core (an#225).                        |
+| [`require_service`](_autosummary/an.genres.registry.html.md#an.genres.registry.require_service)(name, \*[, what, extra])          | The registered service `name`; a typed error naming the install when absent.      |
 | `restore`(state)                                                                                   |                                                                                   |
 | [`runtime_scripts`](_autosummary/an.genres.registry.html.md#an.genres.registry.runtime_scripts)(engine)                           | The scripts registered for `engine`, by name (a stable order).                    |
+| [`service`](_autosummary/an.genres.registry.html.md#an.genres.registry.service)(name[, default])                          | The registered service `name`, resolved, or `default` when none is.               |
+| [`services`](_autosummary/an.genres.registry.html.md#an.genres.registry.services)(prefix)                                  | `{name without the prefix: resolved service}` for every service under `prefix`.   |
 | [`snapshot`](_autosummary/an.genres.registry.html.md#an.genres.registry.snapshot)()                                        | The state of every table, for `restore()`.                                        |
 | [`unregister_owner`](_autosummary/an.genres.registry.html.md#an.genres.registry.unregister_owner)(owner)                           | Remove every entry `owner` registered, from every table.                          |
 
@@ -19349,14 +13663,16 @@ False
 | [`EntityKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`RuntimeScript`](_autosummary/an.genres.registry.html.md#an.genres.registry.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
 | [`SemanticCheck`](_autosummary/an.genres.registry.html.md#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
+| [`SwapDeclaration`](_autosummary/an.genres.registry.html.md#an.genres.registry.SwapDeclaration)(sets[, descriptor, ...])            | What one entity's descriptor declares for the stage compiler's swap vocabulary.                                                                                                                                                                              |
 
 ### Exceptions
 
 | [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)                                | A registration is malformed or collides with one already made.   |
 |-----------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| [`ServiceMissingError`](_autosummary/an.genres.registry.html.md#an.genres.registry.ServiceMissingError)                          | The core asked a genre for a service nobody registered.          |
 | [`UnregisteredKindError`](_autosummary/an.genres.registry.html.md#an.genres.registry.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.              |
 
-### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
+### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1', lowering=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19377,6 +13693,17 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
   `read_md(item, index=i) -> action` (`start:` already removed when
   `md_start`) and `write_md(action) -> dict` (without `start`).
   A kind with no `read_md` has no `scene.md` form.
+
+#### lowering *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+How the STAGE compiler turns an action of this kind into clips, for a kind
+that is not a plain tween or set (the cut-out `play`): an object with
+`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
+default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+and `clip(action, *, anim_id, vocab, fps, view)` – see
+[`an.stage.compile.ActionLowering`](_autosummary/an.stage.compile.html.md#an.stage.compile.ActionLowering). `None`: the compiler has
+nothing kind-specific to do. (an#225: this is how the compiler stops
+naming `play`.)
 
 #### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
@@ -19472,7 +13799,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1')
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19481,6 +13808,37 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The `kind` tag of the descriptor document `store` holds for this kind
+(`"CharacterDescriptor"`): what makes the validator treat the entity as a
+rig whose declared asset sets it can check (an#246).
+
+#### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+A missing `ref` is NOT an error because the compiler draws a placeholder
+instead; the genre reports it with its own (warning) check.
+
+#### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+an object with
+`missing_set_hint(prop) -> str` (appended to “names no declared asset
+set”) and `whole_entity(action, desc, prop, keys, entity_id, *, where,
+report, art_exists) -> bool` (judge a swap on the entity ITSELF; `True`
+when handled). `None`: the generic per-node rule only.
+
+* **Type:**
+  Extra swap-reference checks for this kind
+
+#### swap_declaration *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [SwapDeclaration](_autosummary/an.genres.registry.html.md#an.genres.registry.SwapDeclaration) | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+what the entity’s descriptor
+declares for the stage compiler’s swap vocabulary (an#87). `None`: the
+kind declares nothing (its built nodes’ sets ARE its declaration).
+
+* **Type:**
+  `(entity, mall) -> SwapDeclaration | None`
 
 #### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
 
@@ -19527,6 +13885,24 @@ One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.
 called once per shot with `ctx.shot` set. Within a stage, checks run by
 `order` (then registration order), so a genre’s check lands exactly where
 it belongs in the report.
+
+### *exception* an.genres.registry.ServiceMissingError
+
+Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The core asked a genre for a service nobody registered.
+
+### *class* an.genres.registry.SwapDeclaration(sets, descriptor=None, art_exists=None, scale=1.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one entity’s descriptor declares for the stage compiler’s swap vocabulary.
+
+`sets` is `{set name: {KEY: attachment name}}` as declared;
+`descriptor` is the (migrated) document the declaration came from, kept
+for the kind’s own lowering; `art_exists` answers `rel_path -> art on
+disk` (`None` when the store cannot say); `scale` is the factor from the
+entity’s view box to scene pixels.
 
 ### *exception* an.genres.registry.UnregisteredKindError(what, name, , known=(), providers=(), where='')
 
@@ -19587,6 +13963,24 @@ The sugar registered for the bracket `opener`, or `None`.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`CompilePass`](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass)]
 
+### an.genres.registry.hook_modules(, exclude_owner='an')
+
+The modules whose code the genres’ registered hooks run, sorted and unique.
+
+Compile passes, lowerings, entity hooks, checks, services and runtime scripts
+of every owner but `exclude_owner` (the core’s own are walked from the
+renderer already). The shot cache’s code key starts its walk here for the
+packages outside `an`, so a change to a genre’s code changes the key
+(an#294): the genre is reached by REGISTRATION, not by an import from `an`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> isinstance(hook_modules(), tuple)
+True
+```
+
 ### an.genres.registry.owners()
 
 Every owner with at least one entry, the core first.
@@ -19646,12 +14040,57 @@ Register runtime code for an engine (a genre’s visual kinds).
 * **Return type:**
   [`RuntimeScript`](_autosummary/an.genres.registry.html.md#an.genres.registry.RuntimeScript)
 
+### an.genres.registry.register_service(name, target, , owner='an', replace=False)
+
+Register a named service a genre offers the core (an#225).
+
+The seam for the places where the core needs a genre’s code only when that
+genre is installed: a CLI namespace (`cli.character`), a provider factory
+(`lipsync.offline`), a licence lookup. `target` is the object itself or
+`"module:attr"` (imported on first use, so declaring a service imports no
+engine). The names a genre may use are the core’s contract, listed with
+their callers in `misc/docs/architecture_as_built.md`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.genres.registry.require_service(name, , what='', extra='cutout')
+
+The registered service `name`; a typed error naming the install when absent.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.genres.registry.runtime_scripts(engine)
 
 The scripts registered for `engine`, by name (a stable order).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`RuntimeScript`](_autosummary/an.genres.registry.html.md#an.genres.registry.RuntimeScript), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.registry.service(name, default=None)
+
+The registered service `name`, resolved, or `default` when none is.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> service("no.such.service") is None
+True
+```
+
+### an.genres.registry.services(prefix)
+
+`{name without the prefix: resolved service}` for every service under `prefix`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> services("no.such.")
+{}
+```
 
 ### an.genres.registry.snapshot()
 
@@ -19689,7 +14128,6 @@ True
 | [`set_`](_autosummary/an.html.md#an.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).       |
 |---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
 | [`tween`](_autosummary/an.html.md#an.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.             |
-| [`play`](_autosummary/an.html.md#an.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).            |
 | [`sequence`](_autosummary/an.html.md#an.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](_autosummary/an.html.md#an.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`stagger`](_autosummary/an.html.md#an.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
@@ -20117,6 +14555,11 @@ True
 True
 ```
 
+This writes the WHOLE document in the writer’s own formatting, and keeps no
+prose but `meta.notes`. Updating an existing `scene.md` goes through
+`merge_markdown()`, which keeps the author’s text wherever the content
+did not change.
+
 ### an.load(project_dir, , check_kinds=True)
 
 Load an existing project. Reconciles scene.md / ir/scene.json first.
@@ -20183,44 +14626,6 @@ Run all children at once. Total duration = max of child durations.
 
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
-### an.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one. In a `sequence` a play with no `duration`
-occupies its **natural** length (a motion preset’s own length divided by
-`speed`; a non-looping descriptor animation’s likewise), so the sibling
-after it starts when it ends; a looping one runs to the shot end and
-occupies **zero**:
-
-* **Return type:**
-  [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
-[0.0, 1.0]
->>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
-[0.0, 2.0]
->>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
-[0.0, 0.5]
->>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
-[0.0, 0.25]
-```
-
-(Bare `flatten` knows only the presets, by name; `an validate` and the
-compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
-— so a descriptor animation that shares a preset’s name is measured as the
-descriptor’s.)
-
-A name the descriptor does not declare falls back to a motion preset of
-[`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
-
-```pycon
->>> play("charlie", "hop", args={"height": 30}).args
-{'height': 30}
-```
 
 ### an.save(project)
 
@@ -20357,17 +14762,14 @@ which decides how long a dissolve’s overlap is.
 | [`build`](_autosummary/an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                                                                                   |
 | [`capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities) | Capabilities: what an asset, an engine or the environment affords, and the one matcher.                                                                 |
 | [`captions`](_autosummary/an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                                                                            |
-| [`characters`](_autosummary/an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                                                                                           |
 | [`conftest`](_autosummary/an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                                                                                        |
 | [`credits`](_autosummary/an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                                                                                                |
 | [`data`](_autosummary/an.data.html.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                                                                                 |
 | [`determinism`](_autosummary/an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                                                                         |
 | [`engines`](_autosummary/an.engines.html.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.                                                             |
 | [`environments`](_autosummary/an.environments.html.md#module-an.environments) | Moved to [`an.stage.environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments) (an#247); this path is a LIVE alias of it. |
-| [`expression`](_autosummary/an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                                                                                          |
 | [`frame_clock`](_autosummary/an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                                                                             |
 | [`genres`](_autosummary/an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                                                                              |
-| [`impacts`](_autosummary/an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.                                                                           |
 | [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                                                                      |
 | [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.                                                                          |
 | [`library`](_autosummary/an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                                                                                |
@@ -20377,6 +14779,7 @@ which decides how long a dissolve’s overlap is.
 | [`media`](_autosummary/an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.                                                                   |
 | [`motion`](_autosummary/an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                                                                               |
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                                                                       |
+| [`paint`](_autosummary/an.paint.html.md#module-an.paint)               | Paint: what fills a shape when one flat colour is not enough -- a gradient.                                                                             |
 | [`paths`](_autosummary/an.paths.html.md#module-an.paths)               | Moved to [`an.stage.paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
 | [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Moved to [`an.stage.preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview) (an#247); this path is a LIVE alias of it.           |
 | [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |
@@ -20393,1323 +14796,6 @@ which decides how long a dissolve’s overlap is.
 | [`tools`](_autosummary/an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                                                                                     |
 | [`util`](_autosummary/an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                                                                             |
 | [`verify`](_autosummary/an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.                                                                               |
-
-
-# _autosummary/an.impacts.cli.html.md
-
-# an.impacts.cli
-
-`an impacts ...` — the impact harness from the shell.
-
-Thin string-typed wrappers over [`an.impacts.clip`](_autosummary/an.impacts.clip.html.md#module-an.impacts.clip), dispatched by typer the
-same way as `an character ...`: the business logic stays in plain functions
-that take real types, and these only parse the list-valued flags.
-
-> an impacts clip ~/.local/share/thoremin/synthetic –kind air –fps 30 –exposure 0.5
-> an impacts clip-set ~/.local/share/thoremin/synthetic/set-v1 –fps 24,30,60
-
-### Functions
-
-| [`clip`](_autosummary/an.impacts.cli.html.md#an.impacts.cli.clip)(out_dir[, object, kind, tempo, beats, ...])   | Write one impact clip (video + ground truth) under OUT_DIR.            |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`clip_set`](_autosummary/an.impacts.cli.html.md#an.impacts.cli.clip_set)(out_dir[, objects, kinds, fps, ...])      | Write a benchmark set (the product of the given axes) plus index.json. |
-
-### an.impacts.cli.clip(out_dir, object='stick', kind='surface', tempo='100', beats=16, subdivision=1, pattern='1', lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, fps=30.0, exposure=0.0, exposure_samples=0, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, seed=0, render=True)
-
-Write one impact clip (video + ground truth) under OUT_DIR.
-
-out_dir: parent directory; the clip gets its own sub-directory
-object: stick or ball
-kind: surface (contact) or air (the stroke turns with nothing to hit)
-tempo: a bpm, or beat:bpm pairs for a tempo change, e.g. 0:90,16:120
-beats: number of beats
-subdivision: grid steps per beat
-pattern: per-step stroke heights, cycled; 0 is a rest, e.g. 1,0.5,0.8,0.5
-lead_in: seconds before the first beat
-tail: seconds after the last beat
-jitter_sd: humanisation, seconds (standard deviation of the timing offset; 0 = metronome)
-jitter_rho: correlation of consecutive offsets (0 = independent)
-jitter_bias: constant lead (negative) or lag (positive), seconds
-fps: frame rate (need not be an integer)
-exposure: fraction of the frame period the shutter is open (0.5 = 180 degrees)
-exposure_samples: instants averaged per open exposure (0 = automatic)
-timestamp_jitter_sd: seconds of jitter in WHEN each frame is captured
-timestamp_noise_sd: seconds of noise on the REPORTED timestamp only
-phase: sub-frame offset of the camera clock, seconds
-timestamps: what keypoints.ndjson reports as t: nominal or actual
-width: frame width in pixels
-height: frame height in pixels
-seed: random seed (performance and camera streams derive from it)
-render: render the mp4; –no-render writes the truth and keypoints only
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.impacts.cli.clip_set(out_dir, objects='stick,ball', kinds='surface,air', fps='24,30,60', exposures='0,0.5', timestamp_jitter_sds='0', seeds='0', render=True)
-
-Write a benchmark set (the product of the given axes) plus index.json.
-
-Every clip shares one performance per seed — an accelerando from 96 to 132
-BPM over 24 beats, accented, with 12 ms of drifting human timing — so clips
-differ only in object, kind and camera.
-
-out_dir: directory for the set
-objects: comma-separated, from stick,ball
-kinds: comma-separated, from surface,air
-fps: comma-separated frame rates
-exposures: comma-separated shutter fractions
-timestamp_jitter_sds: comma-separated capture-jitter standard deviations (s)
-seeds: comma-separated performance seeds
-render: render the videos; –no-render writes the truth and keypoints only
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-
-# _autosummary/an.impacts.clip.html.md
-
-# an.impacts.clip
-
-One impact clip, end to end: spec -> scene -> ground truth -> (video) -> files.
-
-[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec) is the whole description of a clip as flat, JSON-able
-data — it is written verbatim into the sidecar, so any clip can be regenerated
-from its own `truth.json`. [`plan_impact_clip()`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.plan_impact_clip) turns it into the scene an
-animation would have (props + tweens, a normal `an` Shot) without touching
-disk; [`write_impact_clip()`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.write_impact_clip) compiles it, extracts the ground truth, renders
-the video (optional — the truth and keypoints need no browser), and writes:
-
-```pycon
->>> plan = plan_impact_clip(ImpactClipSpec(beats=4, tempo=120))
->>> [e.t_grid for e in plan.events]                        # intended
-[0.5, 1.0, 1.5, 2.0]
->>> [round(e.t_impact - e.t_grid, 3) for e in plan.events]  # executed: humanised
-[0.003, 0.013, -0.005, 0.006]
->>> len(plan.frames)
-75
-```
-
-### Module Attributes
-
-| [`DEFAULT_TAIL`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.DEFAULT_TAIL)          | Seconds after the last grid beat before the clip ends.           |
-|------------------------------------------------------------------------|------------------------------------------------------------------|
-| [`DEFAULT_JITTER_SD`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.DEFAULT_JITTER_SD)     | Default humanisation (seconds, standard deviation).              |
-| [`DEFAULT_TRAJECTORY_HZ`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.DEFAULT_TRAJECTORY_HZ) | Samples per second of the dense trajectory in `trajectory.csv`.  |
-| [`BENCHMARK_SPEC`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.BENCHMARK_SPEC)        | an accelerando with accents and human, slightly drifting timing. |
-
-### Functions
-
-| [`impact_set_specs`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.impact_set_specs)(\*[, base, objects, kinds, ...])   | The cartesian product of the given axes over `base`.                                                                          |
-|------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| [`plan_impact_clip`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.plan_impact_clip)(spec)                              | Resolve `spec` into events, a stroke, frames and a Scene IR.                                                                  |
-| [`write_impact_clip`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.write_impact_clip)(spec, out_dir, \*[, ...])         | Write one clip into `out_dir / (clip_dir or spec.clip_id)`; return that dir.                                                  |
-| [`write_impact_set`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.write_impact_set)(out_dir[, specs, render, ...])     | Write every clip in `specs` (default: [`impact_set_specs()`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.impact_set_specs)) plus `index.json`. |
-
-### Classes
-
-| [`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)([object, kind, tempo, beats, ...])   | Everything that determines a clip.                                       |
-|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`ImpactPlan`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactPlan)(spec, events, obj, stroke, ...)          | A clip before it touches disk: events, motion, camera, and the Scene IR. |
-
-### Exceptions
-
-| [`ImpactSpecError`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactSpecError)   | A clip spec that cannot describe a clip.   |
-|--------------------------------------------------------------------|--------------------------------------------|
-
-### an.impacts.clip.BENCHMARK_SPEC *= ImpactClipSpec(object='stick', kind='surface', tempo=((0.0, 96.0), (24.0, 132.0)), beats=24, subdivision=1, pattern=(1.0, 0.6, 0.8, 0.6), lead_in=0.5, tail=0.5, jitter_sd=0.012, jitter_rho=0.3, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)*
-
-an accelerando with accents and
-human, slightly drifting timing. What [`impact_set_specs()`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.impact_set_specs) varies the
-camera and the object over.
-
-* **Type:**
-  A harder default for scoring estimators
-
-### an.impacts.clip.DEFAULT_JITTER_SD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.008*
-
-Default humanisation (seconds, standard deviation). See `ImpactClipSpec`.
-
-### an.impacts.clip.DEFAULT_TAIL *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
-
-Seconds after the last grid beat before the clip ends.
-
-### an.impacts.clip.DEFAULT_TRAJECTORY_HZ *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1000.0*
-
-Samples per second of the dense trajectory in `trajectory.csv`.
-
-### *class* an.impacts.clip.ImpactClipSpec(object='stick', kind='surface', tempo=100.0, beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.
-
-Performance: `tempo` (a bpm, or `[(beat, bpm), ...]` for a tempo
-change), `beats`, `subdivision`, `pattern` (per-step stroke heights,
-`0` = rest), `lead_in`, `tail`, and the humanisation `jitter_sd` /
-`jitter_rho` / `jitter_bias` (seconds; see
-[`an.impacts.performance.gaussian_humanizer()`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.gaussian_humanizer)). Humanised by default
-(`jitter_sd` = [`DEFAULT_JITTER_SD`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.DEFAULT_JITTER_SD)): on a perfect grid every impact
-of a round tempo lands exactly on a frame at common rates, which is the one
-case a sub-frame estimator cannot be scored on. Set it to 0 for a metronome.
-
-Motion: `object` (`"stick"` or `"ball"`), `kind` (`"surface"` or
-`"air"`), the stroke timings `rise` / `fall` / `brake`, and
-`show_surface` (`None`: drawn for surface impacts only).
-
-Camera ([`an.frame_clock.FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock)): `fps`, `exposure`,
-`exposure_samples`, `timestamp_jitter_sd` (when frames are really
-taken), `timestamp_noise_sd` (noise on the reported timestamp only),
-`phase`, `timestamps`.
-
-`seed` drives two independent streams — the performance’s and the
-camera’s — so clips that differ only in camera settings share the exact same
-performance.
-
-#### *property* clip_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-A readable, deterministic directory name.
-
-```pycon
->>> ImpactClipSpec().clip_id[:-8]
-'stick-surface-30fps-e0-'
->>> ImpactClipSpec().clip_id == ImpactClipSpec().clip_id
-True
-```
-
-#### *classmethod* from_dict(d)
-
-The inverse of `to_dict()`. Refuses fields it does not know —
-dropping one would regenerate a different clip under the same spec.
-
-* **Return type:**
-  [`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)
-
-### *class* an.impacts.clip.ImpactPlan(spec, events, obj, stroke, frames, scene)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A clip before it touches disk: events, motion, camera, and the Scene IR.
-
-### *exception* an.impacts.clip.ImpactSpecError
-
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
-
-A clip spec that cannot describe a clip.
-
-### an.impacts.clip.impact_set_specs(, base=ImpactClipSpec(object='stick', kind='surface', tempo=((0.0, 96.0), (24.0, 132.0)), beats=24, subdivision=1, pattern=(1.0, 0.6, 0.8, 0.6), lead_in=0.5, tail=0.5, jitter_sd=0.012, jitter_rho=0.3, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0), objects=('stick', 'ball'), kinds=('surface', 'air'), fps=(24, 30, 60), exposures=(0.0, 0.5), timestamp_jitter_sds=(0.0,), seeds=(0,))
-
-The cartesian product of the given axes over `base`.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)]
-
-```pycon
->>> len(impact_set_specs())
-24
->>> {s.seed for s in impact_set_specs(seeds=(0, 1), fps=(30,))}
-{0, 1}
-```
-
-### an.impacts.clip.plan_impact_clip(spec)
-
-Resolve `spec` into events, a stroke, frames and a Scene IR. No I/O.
-
-* **Return type:**
-  [`ImpactPlan`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactPlan)
-
-### an.impacts.clip.write_impact_clip(spec, out_dir, , render=True, clip_dir=None)
-
-Write one clip into `out_dir / (clip_dir or spec.clip_id)`; return that dir.
-
-With `render=False` everything but `clip.mp4` is written, and no
-browser is needed: the keypoints and the truth come from the compiled
-document, not from the pixels.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.impacts.clip.write_impact_set(out_dir, specs=None, , render=True, progress=None)
-
-Write every clip in `specs` (default: [`impact_set_specs()`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.impact_set_specs)) plus `index.json`.
-
-`progress`, if given, is called with `(i, n, clip_dir)` after each clip.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-
-# _autosummary/an.impacts.html.md
-
-# an.impacts
-
-Synthetic impact clips with exact ground truth, for scoring sub-frame timing.
-
-Structured animations of simple objects — a stick or a ball — striking a
-surface, or striking “the air” (a stroke that reverses with no contact), on a
-known tempo grid. Each clip ships a sidecar that keeps three times apart:
-
-- the **intended** grid time of every event (`t_grid`),
-- the **executed** impact time in continuous seconds (`t_impact` — the grid
-  plus controllable humanisation, never snapped to a frame),
-- and **what the frames show**: every frame’s exposure interval and sample
-  instants ([`an.frame_clock.FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock): frame rate, shutter, capture
-  jitter), the 2D keypoints at each frame, and which frames bracket each impact.
-
-The clips are ordinary `an` scenes — props moved by tweens — rendered by the
-cutout backend, and the ground truth is read back from the same compiled
-document the renderer draws.
-
-Quick start:
-
-```default
-from an.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
-
-write_impact_clip(ImpactClipSpec(kind="air", fps=30, exposure=0.5,
-                                 jitter_sd=0.01), "~/clips")
-write_impact_set("~/clips/set")      # 24 clips: objects x kinds x fps x shutter
-```
-
-Or from the shell: `an impacts clip OUT_DIR` / `an impacts clip-set OUT_DIR`.
-
-```pycon
->>> plan = plan_impact_clip(ImpactClipSpec(kind="air", beats=2, tempo=60, jitter_sd=0))
->>> [(e.t_grid, e.t_impact) for e in plan.events]
-[(0.5, 0.5), (1.5, 1.5)]
-```
-
-### Functions
-
-| [`ball`](_autosummary/an.impacts.html.md#an.impacts.ball)(\*[, radius, x, floor_y, drop, color, ...])   | A ball moving vertically onto a floor whose top is at `floor_y`.                                                              |
-|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| [`build_stroke`](_autosummary/an.impacts.html.md#an.impacts.build_stroke)(events, \*[, kind, rise, fall, ...])  | Chain rise / hold / fall segments through every executed impact.                                                              |
-| [`gaussian_humanizer`](_autosummary/an.impacts.html.md#an.impacts.gaussian_humanizer)([sd, rho, bias])                | Offsets from an AR(1) Gaussian process: `o[k] = bias + rho*(o[k-1]-bias) + e`.                                                |
-| [`impact_object`](_autosummary/an.impacts.html.md#an.impacts.impact_object)(name, \*\*kwargs)                    | Build a registered object by name.                                                                                            |
-| [`impact_set_specs`](_autosummary/an.impacts.html.md#an.impacts.impact_set_specs)(\*[, base, objects, kinds, ...])  | The cartesian product of the given axes over `base`.                                                                          |
-| [`perform`](_autosummary/an.impacts.html.md#an.impacts.perform)([tempo, beats, subdivision, ...])          | The impacts of `beats` beats of `pattern`, on `tempo`'s grid.                                                                 |
-| [`plan_impact_clip`](_autosummary/an.impacts.html.md#an.impacts.plan_impact_clip)(spec)                             | Resolve `spec` into events, a stroke, frames and a Scene IR.                                                                  |
-| [`stick`](_autosummary/an.impacts.html.md#an.impacts.stick)(\*[, length, thickness, pivot, ...])         | A drumstick rotating about `pivot` (its butt — the hand).                                                                     |
-| [`tempo_map`](_autosummary/an.impacts.html.md#an.impacts.tempo_map)(tempo)                                   | Coerce a bpm, a `[(beat, bpm), ...]` list, or a [`TempoMap`](_autosummary/an.impacts.html.md#an.impacts.TempoMap).                    |
-| [`write_impact_clip`](_autosummary/an.impacts.html.md#an.impacts.write_impact_clip)(spec, out_dir, \*[, ...])        | Write one clip into `out_dir / (clip_dir or spec.clip_id)`; return that dir.                                                  |
-| [`write_impact_set`](_autosummary/an.impacts.html.md#an.impacts.write_impact_set)(out_dir[, specs, render, ...])    | Write every clip in `specs` (default: [`impact_set_specs()`](_autosummary/an.impacts.html.md#an.impacts.impact_set_specs)) plus `index.json`. |
-
-### Classes
-
-| [`CapturedFrame`](_autosummary/an.impacts.html.md#an.impacts.CapturedFrame)(index, t_nominal, t_open, ...)      | One output frame: when its exposure opened and closed, and what it saw.         |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`FrameClock`](_autosummary/an.impacts.html.md#an.impacts.FrameClock)([fps, exposure, samples, ...])         | A camera's timing, as data.                                                     |
-| [`ImpactClipSpec`](_autosummary/an.impacts.html.md#an.impacts.ImpactClipSpec)([object, kind, tempo, beats, ...]) | Everything that determines a clip.                                              |
-| [`ImpactEvent`](_autosummary/an.impacts.html.md#an.impacts.ImpactEvent)(index, beat, t_grid, t_impact, ...)   | One impact: where the grid put it and when it was executed.                     |
-| [`ImpactObject`](_autosummary/an.impacts.html.md#an.impacts.ImpactObject)(name, art, at, channels, ...[, ...]) | One striking object, its surface, and how the stroke moves it.                  |
-| [`ImpactPlan`](_autosummary/an.impacts.html.md#an.impacts.ImpactPlan)(spec, events, obj, stroke, ...)        | A clip before it touches disk: events, motion, camera, and the Scene IR.        |
-| [`Stroke`](_autosummary/an.impacts.html.md#an.impacts.Stroke)(kind, duration, segments, kinematics)      | The whole curve, plus the kinematics of every impact on it.                     |
-| [`StrokeSegment`](_autosummary/an.impacts.html.md#an.impacts.StrokeSegment)(t0, t1, h0, h1, easing)             | `h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.                      |
-| [`TempoMap`](_autosummary/an.impacts.html.md#an.impacts.TempoMap)(points)                                  | Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points. |
-
-### Exceptions
-
-| [`TruthMismatch`](_autosummary/an.impacts.html.md#an.impacts.TruthMismatch)   | The ground truth and the thing it describes disagree.   |
-|------------------------------------------------------------------|---------------------------------------------------------|
-
-### *class* an.impacts.CapturedFrame(index, t_nominal, t_open, t_close, samples, t_reported)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One output frame: when its exposure opened and closed, and what it saw.
-
-`t_nominal` is `index / fps` — what a constant-rate container (an mp4)
-says the frame’s time is. `samples` are the instants actually rendered
-and averaged into it; `t_mid` is the middle of the exposure, the single
-best instant to attribute a blurred frame to. `t_reported` is the
-timestamp a capture pipeline hands downstream: nominal or actual, per the
-clock’s `timestamps` setting.
-
-### *class* an.impacts.FrameClock(fps=30.0, exposure=0.0, samples=None, jitter_sd=0.0, phase=0.0, timestamps='nominal', report_noise_sd=0.0, seed=0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A camera’s timing, as data. Every field defaults to the ideal camera.
-
-`fps`: nominal frame rate (need not be an integer: 29.97 is a camera).
-`exposure`: fraction of the frame period the shutter is open, in
-`[0, 1]`; 0 is an instantaneous sample, 0.5 a 180-degree shutter.
-`samples`: instants integrated per open exposure (midpoint rule);
-`None` means 1 when `exposure == 0` and
-`DEFAULT_EXPOSURE_SAMPLES` otherwise.
-`jitter_sd`: standard deviation, in seconds, of each frame’s CAPTURE
-offset from the nominal grid — the frame really is taken early or late.
-Gaussian, clamped at [`max_jitter`](_autosummary/an.impacts.html.md#an.impacts.FrameClock.max_jitter) so frames never overlap; a
-`jitter_sd` above half that clamp is refused rather than silently
-shrunk (at `exposure=1` there is no room for any).
-`phase`: seconds added to every capture instant — the camera clock’s
-sub-frame offset from scene time, in `(-1/fps, 1/fps)`.
-`timestamps`: the base of `CapturedFrame.t_reported` —
-`"nominal"` (`index / fps`, what a naive tick loop or an mp4 reports)
-or `"actual"` (`t_open`, what a capture API with real timestamps
-reports).
-`report_noise_sd`: Gaussian noise, in seconds, added to the REPORTED
-timestamp only — regular capture, noisy clock (a browser frame callback).
-Clamped at `MAX_REPORT_NOISE_FRACTION` of a frame period, with the
-same refuse-rather-than-shrink rule as `jitter_sd`, and reported
-timestamps must still increase: a real frame clock never runs backwards.
-`seed`: the random streams (capture jitter and report noise are
-independent draws from it).
-
-Every instant is clipped into `[0, duration]`, because a render cannot
-sample a scene outside its own timeline; the clipped values are what
-[`frames()`](_autosummary/an.impacts.html.md#an.impacts.FrameClock.frames) returns and what gets rendered.
-
-#### frames(duration)
-
-One [`CapturedFrame`](_autosummary/an.impacts.html.md#an.impacts.CapturedFrame) per output frame of a `duration` render.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
-#### *property* max_jitter *: [float](https://docs.python.org/3/builtins/functions.html#float)*
-
-The clamp on a frame’s capture offset, in seconds.
-
-```pycon
->>> round(FrameClock(fps=10, exposure=0.5).max_jitter, 9)
-0.0245
-```
-
-#### sample_times(duration)
-
-Per frame, the scene instants to render and average — the render seam.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
-#### *property* samples_per_frame *: [int](https://docs.python.org/3/builtins/functions.html#int)*
-
-1 for an instantaneous shutter.
-
-```pycon
->>> FrameClock().samples_per_frame, FrameClock(exposure=0.5).samples_per_frame
-(1, 8)
-```
-
-* **Type:**
-  The resolved sample count
-
-### *class* an.impacts.ImpactClipSpec(object='stick', kind='surface', tempo=100.0, beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, tail=0.5, jitter_sd=0.008, jitter_rho=0.0, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Everything that determines a clip. Defaults: a stick hitting a table at 100 BPM.
-
-Performance: `tempo` (a bpm, or `[(beat, bpm), ...]` for a tempo
-change), `beats`, `subdivision`, `pattern` (per-step stroke heights,
-`0` = rest), `lead_in`, `tail`, and the humanisation `jitter_sd` /
-`jitter_rho` / `jitter_bias` (seconds; see
-[`an.impacts.performance.gaussian_humanizer()`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.gaussian_humanizer)). Humanised by default
-(`jitter_sd` = `DEFAULT_JITTER_SD`): on a perfect grid every impact
-of a round tempo lands exactly on a frame at common rates, which is the one
-case a sub-frame estimator cannot be scored on. Set it to 0 for a metronome.
-
-Motion: `object` (`"stick"` or `"ball"`), `kind` (`"surface"` or
-`"air"`), the stroke timings `rise` / `fall` / `brake`, and
-`show_surface` (`None`: drawn for surface impacts only).
-
-Camera ([`an.frame_clock.FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock)): `fps`, `exposure`,
-`exposure_samples`, `timestamp_jitter_sd` (when frames are really
-taken), `timestamp_noise_sd` (noise on the reported timestamp only),
-`phase`, `timestamps`.
-
-`seed` drives two independent streams — the performance’s and the
-camera’s — so clips that differ only in camera settings share the exact same
-performance.
-
-#### *property* clip_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-A readable, deterministic directory name.
-
-```pycon
->>> ImpactClipSpec().clip_id[:-8]
-'stick-surface-30fps-e0-'
->>> ImpactClipSpec().clip_id == ImpactClipSpec().clip_id
-True
-```
-
-#### *classmethod* from_dict(d)
-
-The inverse of `to_dict()`. Refuses fields it does not know —
-dropping one would regenerate a different clip under the same spec.
-
-* **Return type:**
-  [`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)
-
-### *class* an.impacts.ImpactEvent(index, beat, t_grid, t_impact, amplitude)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One impact: where the grid put it and when it was executed.
-
-#### *property* offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
-
-the humanisation actually applied (post-clamp).
-
-* **Type:**
-  `t_impact - t_grid`
-
-### *class* an.impacts.ImpactObject(name, art, at, channels, keypoints, impact_keypoint, keypoint_nodes=<factory>, surface_art=None, surface_at=None, params=<factory>)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One striking object, its surface, and how the stroke moves it.
-
-`channels` are the properties the stroke drives — one for a stick or a
-ball, two for a forearm-plus-stick limb (each affine in the SAME `h`, so
-the motion stays exact). `keypoints` are local points by name; each lives
-on the node `keypoint_nodes[name]` names, the entity itself by default.
-
-#### impact_keypoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-The keypoint that does the striking (a stick’s tip, a ball’s bottom).
-
-#### keypoints *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
-
-Local points by name. What a tracker would report.
-
-#### pose(h)
-
-`{(node path, property): value}` at stroke height `h`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-#### surface_at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Where the surface’s top edge is centred, in scene coordinates.
-
-### *class* an.impacts.ImpactPlan(spec, events, obj, stroke, frames, scene)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A clip before it touches disk: events, motion, camera, and the Scene IR.
-
-### *class* an.impacts.Stroke(kind, duration, segments, kinematics)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-The whole curve, plus the kinematics of every impact on it.
-
-#### h(t)
-
-Stroke height at scene time `t` (clamped to the clip).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-#### velocity(t)
-
-`dh/dt` at `t`; at a segment boundary, the LATER segment’s value.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-### *class* an.impacts.StrokeSegment(t0, t1, h0, h1, easing)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-`h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.
-
-### *class* an.impacts.TempoMap(points)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points.
-
-Constant before the first point and after the last. Linear in BEATS, not in
-seconds, which is how a score writes an accelerando (“speed up over these
-four bars”); the time of a beat is the exact integral of `60 / bpm`.
-
-```pycon
->>> TempoMap(((0, 120),)).time_of(3)
-1.5
->>> m = TempoMap(((0, 60), (4, 120)))
->>> round(m.time_of(4), 6)   # 4 * 60/(120-60) * ln(120/60)
-2.772589
->>> m.bpm_at(2), m.bpm_at(10)
-(90.0, 120.0)
-```
-
-#### time_of(beat)
-
-Seconds from beat 0 to `beat` (`beat >= 0`).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-### *exception* an.impacts.TruthMismatch
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-The ground truth and the thing it describes disagree.
-
-### an.impacts.ball(, radius=18.0, x=0.0, floor_y=90.0, drop=170.0, color='#111827', surface_color='#9ca3af', surface_size=(160.0, 24.0))
-
-A ball moving vertically onto a floor whose top is at `floor_y`.
-
-A full stroke lifts it `drop` pixels. Keypoints: `center` and
-`bottom` (its contact point).
-
-* **Return type:**
-  [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)
-
-### an.impacts.build_stroke(events, , kind='surface', duration, rise=0.18, fall=0.18, brake=0.03, rest_height=1.0)
-
-Chain rise / hold / fall segments through every executed impact.
-
-The object starts and ends at `rest_height`; before impact `k` it is
-raised to `events[k].amplitude` (a bigger preparation, a harder hit).
-Segments tile `[0, duration]` exactly, and every impact is a segment
-boundary at precisely `t_impact`.
-
-* **Return type:**
-  [`Stroke`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.Stroke)
-
-### an.impacts.gaussian_humanizer(sd=0.0, , rho=0.0, bias=0.0)
-
-Offsets from an AR(1) Gaussian process: `o[k] = bias + rho*(o[k-1]-bias) + e`.
-
-`sd` is the STATIONARY standard deviation of the offsets (seconds) — the
-innovation is scaled by `sqrt(1 - rho**2)` so changing `rho` changes how
-the timing wanders, not how far. `rho = 0` is independent jitter;
-`rho` near 1 is a player who drifts ahead or behind for several beats.
-`bias` is a constant lead (negative) or lag (positive).
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-```pycon
->>> import numpy as np
->>> h = gaussian_humanizer(0.01, rho=0.5)
->>> offs = h([0.0] * 20000, np.random.default_rng(0))
->>> round(float(np.std(offs)), 3)
-0.01
->>> gaussian_humanizer()([0.0, 1.0], None)
-[0.0, 0.0]
-```
-
-### an.impacts.impact_object(name, \*\*kwargs)
-
-Build a registered object by name.
-
-* **Return type:**
-  [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)
-
-```pycon
->>> impact_object("ball").name
-'ball'
->>> impact_object("hammer")
-Traceback (most recent call last):
-  ...
-KeyError: "no impact object 'hammer'; known: ['ball', 'stick']"
-```
-
-### an.impacts.impact_set_specs(, base=ImpactClipSpec(object='stick', kind='surface', tempo=((0.0, 96.0), (24.0, 132.0)), beats=24, subdivision=1, pattern=(1.0, 0.6, 0.8, 0.6), lead_in=0.5, tail=0.5, jitter_sd=0.012, jitter_rho=0.3, jitter_bias=0.0, rise=0.18, fall=0.18, brake=0.03, show_surface=None, fps=30.0, exposure=0.0, exposure_samples=None, timestamp_jitter_sd=0.0, timestamp_noise_sd=0.0, phase=0.0, timestamps='nominal', width=640, height=360, trajectory_hz=1000.0, seed=0), objects=('stick', 'ball'), kinds=('surface', 'air'), fps=(24, 30, 60), exposures=(0.0, 0.5), timestamp_jitter_sds=(0.0,), seeds=(0,))
-
-The cartesian product of the given axes over `base`.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec)]
-
-```pycon
->>> len(impact_set_specs())
-24
->>> {s.seed for s in impact_set_specs(seeds=(0, 1), fps=(30,))}
-{0, 1}
-```
-
-### an.impacts.perform(tempo=100.0, , beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, humanizer=None, seed=0)
-
-The impacts of `beats` beats of `pattern`, on `tempo`’s grid.
-
-`subdivision` grid steps per beat; `pattern` is cycled over the steps,
-one value per step: `0` is a rest, anything in `(0, 1]` is a hit of that
-relative stroke height (an accent is a bigger stroke). `lead_in` shifts
-beat 0 to that many seconds into the clip. `humanizer` turns grid times
-into offsets (default: none); each offset is then clamped to
-`MAX_OFFSET_FRACTION` of the gap to either neighbour, and the clamped
-value is what the event records — the ground truth is what was executed.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
-```pycon
->>> [e.beat for e in perform(120, beats=2, subdivision=2, pattern=(1, 0))]
-[0.0, 1.0]
->>> [e.amplitude for e in perform(120, beats=1, subdivision=4, pattern=(1, .5))]
-[1.0, 0.5, 1.0, 0.5]
-```
-
-### an.impacts.plan_impact_clip(spec)
-
-Resolve `spec` into events, a stroke, frames and a Scene IR. No I/O.
-
-* **Return type:**
-  [`ImpactPlan`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactPlan)
-
-### an.impacts.stick(, length=200.0, thickness=12.0, pivot=(-120.0, -30.0), contact_angle=0.35, swing=0.95, color='#111827', surface_color='#9ca3af', surface_size=(140.0, 24.0))
-
-A drumstick rotating about `pivot` (its butt — the hand).
-
-At contact it points `contact_angle` radians below horizontal; a full
-stroke raises it by `swing` radians. Keypoints: `pivot` and `tip`
-(the end of its axis). The surface’s top meets the lowest point of its
-rounded end.
-
-* **Return type:**
-  [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)
-
-### an.impacts.tempo_map(tempo)
-
-Coerce a bpm, a `[(beat, bpm), ...]` list, or a [`TempoMap`](_autosummary/an.impacts.html.md#an.impacts.TempoMap).
-
-* **Return type:**
-  [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap)
-
-```pycon
->>> tempo_map(90).points
-((0.0, 90.0),)
->>> tempo_map([(0, 90), (16, 120)]).points
-((0.0, 90.0), (16.0, 120.0))
-```
-
-### an.impacts.write_impact_clip(spec, out_dir, , render=True, clip_dir=None)
-
-Write one clip into `out_dir / (clip_dir or spec.clip_id)`; return that dir.
-
-With `render=False` everything but `clip.mp4` is written, and no
-browser is needed: the keypoints and the truth come from the compiled
-document, not from the pixels.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### an.impacts.write_impact_set(out_dir, specs=None, , render=True, progress=None)
-
-Write every clip in `specs` (default: [`impact_set_specs()`](_autosummary/an.impacts.html.md#an.impacts.impact_set_specs)) plus `index.json`.
-
-`progress`, if given, is called with `(i, n, clip_dir)` after each clip.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
-### Modules
-
-| [`cli`](_autosummary/an.impacts.cli.html.md#module-an.impacts.cli)                 | `an impacts ...` — the impact harness from the shell.                           |
-|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`clip`](_autosummary/an.impacts.clip.html.md#module-an.impacts.clip)               | One impact clip, end to end: spec -> scene -> ground truth -> (video) -> files. |
-| [`objects`](_autosummary/an.impacts.objects.html.md#module-an.impacts.objects)         | The things that strike: a stick and a ball, as ordinary `an` props.             |
-| [`performance`](_autosummary/an.impacts.performance.html.md#module-an.impacts.performance) | The performance: a tempo grid, and when each impact was intended and executed.  |
-| [`stroke`](_autosummary/an.impacts.stroke.html.md#module-an.impacts.stroke)           | The stroke: impact events -> one continuous height curve `h(t)`.                |
-| [`truth`](_autosummary/an.impacts.truth.html.md#module-an.impacts.truth)             | Ground truth: what was intended, what was executed, and what each frame shows.  |
-
-
-# _autosummary/an.impacts.objects.html.md
-
-# an.impacts.objects
-
-The things that strike: a stick and a ball, as ordinary `an` props.
-
-An [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject) is data: the prop to draw, where it stands, the ONE
-property the stroke animates and the affine map from stroke height `h` to
-that property’s value, and the named keypoints a tracker would report. Being
-affine is the whole contract — it is what lets [`an.impacts.stroke`](_autosummary/an.impacts.stroke.html.md#module-an.impacts.stroke) reason
-in `h` while the renderer tweens the property, with no approximation between
-them.
-
-The objects are real props (an#108), stored in a real props store and drawn by
-the real cutout rig builder, so the harness exercises the same path an
-animation does. Their art is generated here as plain SVG, sized so the rig’s
-view-box factor is exactly 1 (`view_box` height = the compiler’s
-`SCENE_PX_PER_VIEW_BOX`): one SVG pixel is one scene pixel, and a keypoint’s
-local coordinates are read straight off the drawing.
-
-Coordinates are scene pixels relative to the canvas centre, `y` down — the
-space `StagePlacement.at` and the camera use. Rotation is in radians,
-clockwise-positive on screen, as PixiJS applies it.
-
-```pycon
->>> s = stick()
->>> s.pose(0.0) == {("stick", "rotation"): 0.35}
-True
->>> (ch,) = s.channels
->>> round(ch.value(1.0) - ch.value(0.0), 6) == -ch.stroke_extent
-True
->>> list(ball().pose(1.0))
-[('ball', 'y')]
-```
-
-### Module Attributes
-
-| [`IMPACT_OBJECTS`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.IMPACT_OBJECTS)   | Name -> factory.   |
-|-------------------------------------------------------------------|--------------------|
-
-### Functions
-
-| [`ball`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ball)(\*[, radius, x, floor_y, drop, color, ...])   | A ball moving vertically onto a floor whose top is at `floor_y`.   |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| [`impact_object`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.impact_object)(name, \*\*kwargs)                    | Build a registered object by name.                                 |
-| [`stick`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.stick)(\*[, length, thickness, pivot, ...])         | A drumstick rotating about `pivot` (its butt — the hand).          |
-
-### Classes
-
-| [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)(name, art, at, channels, ...[, ...])   | One striking object, its surface, and how the stroke moves it.        |
-|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| [`PropArt`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.PropArt)(ref, descriptor, parts)                     | A prop's descriptor and its SVG parts — what goes into a props store. |
-| [`StrokeChannel`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.StrokeChannel)(target, property, ...)                | One animated property, AFFINE in stroke height `h`.                   |
-
-### an.impacts.objects.IMPACT_OBJECTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [ImpactObject](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)]]* *= {'ball': <function ball>, 'stick': <function stick>}*
-
-Name -> factory. The registry the clip spec and the CLI resolve names through.
-
-### *class* an.impacts.objects.ImpactObject(name, art, at, channels, keypoints, impact_keypoint, keypoint_nodes=<factory>, surface_art=None, surface_at=None, params=<factory>)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One striking object, its surface, and how the stroke moves it.
-
-`channels` are the properties the stroke drives — one for a stick or a
-ball, two for a forearm-plus-stick limb (each affine in the SAME `h`, so
-the motion stays exact). `keypoints` are local points by name; each lives
-on the node `keypoint_nodes[name]` names, the entity itself by default.
-
-#### impact_keypoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-The keypoint that does the striking (a stick’s tip, a ball’s bottom).
-
-#### keypoints *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
-
-Local points by name. What a tracker would report.
-
-#### pose(h)
-
-`{(node path, property): value}` at stroke height `h`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-#### surface_at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Where the surface’s top edge is centred, in scene coordinates.
-
-### *class* an.impacts.objects.PropArt(ref, descriptor, parts)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A prop’s descriptor and its SVG parts — what goes into a props store.
-
-### *class* an.impacts.objects.StrokeChannel(target, property, contact_value, stroke_extent)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One animated property, AFFINE in stroke height `h`.
-
-`value(h) = contact_value - stroke_extent * h`: `h = 0` is contact and
-`stroke_extent` is how far a full stroke moves the property away from it
-(radians, or pixels). Affine is the whole contract — it is what makes an
-eased tween of the property exactly the same easing of `h`.
-
-### an.impacts.objects.ball(, radius=18.0, x=0.0, floor_y=90.0, drop=170.0, color='#111827', surface_color='#9ca3af', surface_size=(160.0, 24.0))
-
-A ball moving vertically onto a floor whose top is at `floor_y`.
-
-A full stroke lifts it `drop` pixels. Keypoints: `center` and
-`bottom` (its contact point).
-
-* **Return type:**
-  [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)
-
-### an.impacts.objects.impact_object(name, \*\*kwargs)
-
-Build a registered object by name.
-
-* **Return type:**
-  [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)
-
-```pycon
->>> impact_object("ball").name
-'ball'
->>> impact_object("hammer")
-Traceback (most recent call last):
-  ...
-KeyError: "no impact object 'hammer'; known: ['ball', 'stick']"
-```
-
-### an.impacts.objects.stick(, length=200.0, thickness=12.0, pivot=(-120.0, -30.0), contact_angle=0.35, swing=0.95, color='#111827', surface_color='#9ca3af', surface_size=(140.0, 24.0))
-
-A drumstick rotating about `pivot` (its butt — the hand).
-
-At contact it points `contact_angle` radians below horizontal; a full
-stroke raises it by `swing` radians. Keypoints: `pivot` and `tip`
-(the end of its axis). The surface’s top meets the lowest point of its
-rounded end.
-
-* **Return type:**
-  [`ImpactObject`](_autosummary/an.impacts.objects.html.md#an.impacts.objects.ImpactObject)
-
-
-# _autosummary/an.impacts.performance.html.md
-
-# an.impacts.performance
-
-The performance: a tempo grid, and when each impact was intended and executed.
-
-Three times are kept apart on purpose, because scoring a sub-frame estimator is
-meaningless if they blur together:
-
-- `t_grid` — the INTENDED time: where the beat grid (a [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap)) put
-  the event. What a quantiser would snap to.
-- `t_impact` — the EXECUTED time, in continuous seconds: the grid time plus a
-  humanisation offset. This is when the object actually hits (or, in the air,
-  turns); the motion is built so it happens at exactly this float, never on a
-  frame.
-- what the frames show — not here at all; that is [`an.impacts.truth`](_autosummary/an.impacts.truth.html.md#module-an.impacts.truth),
-  after a [`an.frame_clock.FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock) has sampled the motion.
-
-```pycon
->>> events = perform(120, beats=4)
->>> [e.t_grid for e in events]
-[0.5, 1.0, 1.5, 2.0]
->>> all(e.t_impact == e.t_grid for e in events)   # no humanisation by default
-True
-```
-
-A tempo change is a [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap) with more than one point — here an
-accelerando from 60 to 120 BPM over four beats, so the gaps shrink:
-
-```pycon
->>> ts = [e.t_grid for e in perform([(0, 60), (4, 120)], beats=5, lead_in=0.0)]
->>> [round(b - a, 3) for a, b in zip(ts, ts[1:])]
-[0.893, 0.729, 0.617, 0.534]
-```
-
-### Module Attributes
-
-| [`DEFAULT_LEAD_IN`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.DEFAULT_LEAD_IN)     | Seconds before the first grid beat.                                                                                                                                                           |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`MAX_OFFSET_FRACTION`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.MAX_OFFSET_FRACTION) | A humanisation offset is clamped to this fraction of the gap to each neighbouring grid event, so executed impacts can never swap order or collide — whatever the jitter's standard deviation. |
-| [`Humanizer`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.Humanizer)           | `(grid_times, rng) -> offsets`, in seconds, one per grid time.                                                                                                                                |
-
-### Functions
-
-| [`gaussian_humanizer`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.gaussian_humanizer)([sd, rho, bias])       | Offsets from an AR(1) Gaussian process: `o[k] = bias + rho*(o[k-1]-bias) + e`.                             |
-|--------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| [`perform`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.perform)([tempo, beats, subdivision, ...]) | The impacts of `beats` beats of `pattern`, on `tempo`'s grid.                                              |
-| [`tempo_map`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.tempo_map)(tempo)                          | Coerce a bpm, a `[(beat, bpm), ...]` list, or a [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap). |
-
-### Classes
-
-| [`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent)(index, beat, t_grid, t_impact, ...)   | One impact: where the grid put it and when it was executed.                     |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap)(points)                                  | Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points. |
-
-### Exceptions
-
-| [`PerformanceError`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.PerformanceError)   | A performance description that cannot be played.   |
-|---------------------------------------------------------------------|----------------------------------------------------|
-
-### an.impacts.performance.DEFAULT_LEAD_IN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
-
-Seconds before the first grid beat. Long enough for the first stroke’s
-preparation and for any humanisation to pull the first impact early.
-
-### an.impacts.performance.Humanizer
-
-`(grid_times, rng) -> offsets`, in seconds, one per grid time. The seam for
-timing models richer than [`gaussian_humanizer()`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.gaussian_humanizer) (a learned groove, a
-drummer’s measured microtiming).
-
-alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-### *class* an.impacts.performance.ImpactEvent(index, beat, t_grid, t_impact, amplitude)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One impact: where the grid put it and when it was executed.
-
-#### *property* offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
-
-the humanisation actually applied (post-clamp).
-
-* **Type:**
-  `t_impact - t_grid`
-
-### an.impacts.performance.MAX_OFFSET_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
-
-A humanisation offset is clamped to this fraction of the gap to each
-neighbouring grid event, so executed impacts can never swap order or
-collide — whatever the jitter’s standard deviation.
-
-### *exception* an.impacts.performance.PerformanceError
-
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
-
-A performance description that cannot be played.
-
-### *class* an.impacts.performance.TempoMap(points)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Tempo as a function of beat: piecewise-linear BPM between `(beat, bpm)` points.
-
-Constant before the first point and after the last. Linear in BEATS, not in
-seconds, which is how a score writes an accelerando (“speed up over these
-four bars”); the time of a beat is the exact integral of `60 / bpm`.
-
-```pycon
->>> TempoMap(((0, 120),)).time_of(3)
-1.5
->>> m = TempoMap(((0, 60), (4, 120)))
->>> round(m.time_of(4), 6)   # 4 * 60/(120-60) * ln(120/60)
-2.772589
->>> m.bpm_at(2), m.bpm_at(10)
-(90.0, 120.0)
-```
-
-#### time_of(beat)
-
-Seconds from beat 0 to `beat` (`beat >= 0`).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-### an.impacts.performance.gaussian_humanizer(sd=0.0, , rho=0.0, bias=0.0)
-
-Offsets from an AR(1) Gaussian process: `o[k] = bias + rho*(o[k-1]-bias) + e`.
-
-`sd` is the STATIONARY standard deviation of the offsets (seconds) — the
-innovation is scaled by `sqrt(1 - rho**2)` so changing `rho` changes how
-the timing wanders, not how far. `rho = 0` is independent jitter;
-`rho` near 1 is a player who drifts ahead or behind for several beats.
-`bias` is a constant lead (negative) or lag (positive).
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`object`](https://docs.python.org/3/builtins/functions.html#object)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-```pycon
->>> import numpy as np
->>> h = gaussian_humanizer(0.01, rho=0.5)
->>> offs = h([0.0] * 20000, np.random.default_rng(0))
->>> round(float(np.std(offs)), 3)
-0.01
->>> gaussian_humanizer()([0.0, 1.0], None)
-[0.0, 0.0]
-```
-
-### an.impacts.performance.perform(tempo=100.0, , beats=16, subdivision=1, pattern=(1.0,), lead_in=0.5, humanizer=None, seed=0)
-
-The impacts of `beats` beats of `pattern`, on `tempo`’s grid.
-
-`subdivision` grid steps per beat; `pattern` is cycled over the steps,
-one value per step: `0` is a rest, anything in `(0, 1]` is a hit of that
-relative stroke height (an accent is a bigger stroke). `lead_in` shifts
-beat 0 to that many seconds into the clip. `humanizer` turns grid times
-into offsets (default: none); each offset is then clamped to
-[`MAX_OFFSET_FRACTION`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.MAX_OFFSET_FRACTION) of the gap to either neighbour, and the clamped
-value is what the event records — the ground truth is what was executed.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ImpactEvent`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.ImpactEvent), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
-```pycon
->>> [e.beat for e in perform(120, beats=2, subdivision=2, pattern=(1, 0))]
-[0.0, 1.0]
->>> [e.amplitude for e in perform(120, beats=1, subdivision=4, pattern=(1, .5))]
-[1.0, 0.5, 1.0, 0.5]
-```
-
-### an.impacts.performance.tempo_map(tempo)
-
-Coerce a bpm, a `[(beat, bpm), ...]` list, or a [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap).
-
-* **Return type:**
-  [`TempoMap`](_autosummary/an.impacts.performance.html.md#an.impacts.performance.TempoMap)
-
-```pycon
->>> tempo_map(90).points
-((0.0, 90.0),)
->>> tempo_map([(0, 90), (16, 120)]).points
-((0.0, 90.0), (16.0, 120.0))
-```
-
-
-# _autosummary/an.impacts.stroke.html.md
-
-# an.impacts.stroke
-
-The stroke: impact events -> one continuous height curve `h(t)`.
-
-`h` is the object’s height above its impact position, in units of a full
-stroke: `0` is contact (or, in the air, the turning point) and `1` a full
-preparation. Every object in [`an.impacts.objects`](_autosummary/an.impacts.objects.html.md#module-an.impacts.objects) maps `h` AFFINELY onto
-one animated property (a stick’s rotation, a ball’s `y`), which is what makes
-the curve below exactly the curve the renderer draws: an eased tween of the
-property IS the same easing of `h`.
-
-The curve is a chain of [`StrokeSegment`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.StrokeSegment)s built only from the
-quadratic easings the cutout runtime already has, and each is chosen for its
-physics:
-
-- **surface** — the object falls with `ease_in` (constant acceleration, like
-  gravity) and reaches `h = 0` at full speed, then leaves with `ease_out`: a
-  velocity reversal AT the impact. Contact is visible in position (the object
-  stops at the surface) and as a kink in velocity.
-- **air** — no surface. The fall is `ease_in` and then a short `ease_out`
-  **brake** of `brake` seconds that brings the object to rest at `h = 0`;
-  it then leaves with `ease_in_out`. The executed “impact” is that turning
-  point — the moment the stroke’s lowest point is reached — and the peak speed
-  comes `brake` seconds BEFORE it. The brake’s distance is chosen so velocity
-  is continuous into it (`d = apex * brake / fall`), so the only
-  discontinuity is in acceleration — a muscle stopping a limb, not a collision.
-
-In both kinds the speed at the peak is `2 * apex / fall`.
-
-```pycon
->>> from an.impacts.performance import perform
->>> events = perform(120, beats=3)
->>> s = build_stroke(events, kind="surface", duration=2.0)
->>> [s.h(e.t_impact) for e in events]
-[0.0, 0.0, 0.0]
->>> round(s.h(0.0), 6), round(s.h(0.75), 6)   # at rest, then the apex between hits
-(1.0, 1.0)
->>> a = build_stroke(events, kind="air", duration=2.0)
->>> [round(a.velocity(e.t_impact), 9) for e in events]   # the air stroke TURNS
-[0.0, 0.0, 0.0]
-```
-
-### Module Attributes
-
-| [`DEFAULT_RISE`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.DEFAULT_RISE)   | Longest rise after an impact, and longest fall into one (seconds).   |
-|-----------------------------------------------------------------|----------------------------------------------------------------------|
-| [`DEFAULT_BRAKE`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.DEFAULT_BRAKE)  | The air stroke's braking time before its turning point (seconds).    |
-
-### Functions
-
-| [`build_stroke`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.build_stroke)(events, \*[, kind, rise, fall, ...])   | Chain rise / hold / fall segments through every executed impact.   |
-|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-
-### Classes
-
-| [`Stroke`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.Stroke)(kind, duration, segments, kinematics)   | The whole curve, plus the kinematics of every impact on it.   |
-|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| [`StrokeKinematics`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.StrokeKinematics)(index, kind, t_impact, ...)   | How the object moved into one impact.                         |
-| [`StrokeSegment`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.StrokeSegment)(t0, t1, h0, h1, easing)          | `h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.    |
-
-### Exceptions
-
-| [`StrokeError`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.StrokeError)   | A stroke that cannot be built from these events.   |
-|----------------------------------------------------------------|----------------------------------------------------|
-
-### an.impacts.stroke.DEFAULT_BRAKE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.03*
-
-The air stroke’s braking time before its turning point (seconds).
-
-### an.impacts.stroke.DEFAULT_RISE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.18*
-
-Longest rise after an impact, and longest fall into one (seconds). A slower
-tempo holds at the apex between them instead of floating: a drummer’s stroke
-takes about as long at 60 BPM as at 120, it is the wait that changes.
-
-### *class* an.impacts.stroke.Stroke(kind, duration, segments, kinematics)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-The whole curve, plus the kinematics of every impact on it.
-
-#### h(t)
-
-Stroke height at scene time `t` (clamped to the clip).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-#### velocity(t)
-
-`dh/dt` at `t`; at a segment boundary, the LATER segment’s value.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-### *exception* an.impacts.stroke.StrokeError
-
-Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
-
-A stroke that cannot be built from these events.
-
-### *class* an.impacts.stroke.StrokeKinematics(index, kind, t_impact, t_peak_speed, peak_speed, apex, fall, brake)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-How the object moved into one impact.
-
-`t_peak_speed` equals `t_impact` for a surface impact and precedes it by
-`brake` for an air impact; `peak_speed` is in stroke heights per second
-(multiply by the object’s stroke extent for pixels or radians).
-
-### *class* an.impacts.stroke.StrokeSegment(t0, t1, h0, h1, easing)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-`h` goes from `h0` to `h1` over `[t0, t1]` under `easing`.
-
-### an.impacts.stroke.build_stroke(events, , kind='surface', duration, rise=0.18, fall=0.18, brake=0.03, rest_height=1.0)
-
-Chain rise / hold / fall segments through every executed impact.
-
-The object starts and ends at `rest_height`; before impact `k` it is
-raised to `events[k].amplitude` (a bigger preparation, a harder hit).
-Segments tile `[0, duration]` exactly, and every impact is a segment
-boundary at precisely `t_impact`.
-
-* **Return type:**
-  [`Stroke`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.Stroke)
-
-
-# _autosummary/an.impacts.truth.html.md
-
-# an.impacts.truth
-
-Ground truth: what was intended, what was executed, and what each frame shows.
-
-Every position here comes from one of two sources, and they are checked against
-each other at every instant the renderer captures:
-
-- **the compiled document**, evaluated by `an.stage.timeline` — the
-  executable spec of the JS runtime (parity-tested under node) — and projected
-  to canvas pixels by `screen_position`. The per-frame keypoints come from
-  here, at exactly the instants the renderer captured;
-- **the analytic stroke** ([`an.impacts.stroke.Stroke`](_autosummary/an.impacts.stroke.html.md#an.impacts.stroke.Stroke)), mapped through
-  the object’s affine channels. The dense trajectory comes from here, because
-  it is exact at any instant and cheap.
-
-A frame with an open shutter is the AVERAGE of its sample instants, so what it
-shows is the average of the keypoint’s positions over them — not the position
-at mid-exposure. The two differ most exactly where estimators are scored: a
-surface contact is a V in position, and its average sits above contact (by
-~6 px at 30 fps and a 180-degree shutter). So each frame records both, and the
-observation stream carries the average.
-
-[`ground_truth()`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.ground_truth) refuses ([`TruthMismatch`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.TruthMismatch)) if the two sources
-disagree at any sample instant, or if the compiled document does not put the
-object at contact at every executed impact; `write_impact_clip` additionally
-refuses if the document the renderer staged is not the one the truth was read
-from. A sidecar that could silently drift from its video would be worse than
-none.
-
-\*\*The `truth.json` schema\*\* (`schema: "an.impacts/truth"`, version
-[`TRUTH_SCHEMA_VERSION`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.TRUTH_SCHEMA_VERSION); every time is scene seconds, every position canvas
-pixels with the origin at the top-left and `y` down; objects are a LIST so a
-clip with two can be described without changing any reader):
-
-- `generator` — `{package, version, module}`.
-- `spec` — the [`an.impacts.clip.ImpactClipSpec`](_autosummary/an.impacts.clip.html.md#an.impacts.clip.ImpactClipSpec), verbatim;
-  `ImpactClipSpec.from_dict(truth["spec"])` regenerates the clip (byte for
-  byte under the same `an` version).
-- `clock` — the resolved [`an.frame_clock.FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock).
-- `tempo` — `{points: [[beat, bpm], ...]}`, piecewise-linear in beats.
-- `clip` — `{duration, fps, width, height, frame_count, rendered, files}`.
-- `objects` — one entry per striking object: `{name, keypoints: [names],
-  impact_keypoint, params, surface_xy (top-centre of the surface, or null),
-  stroke: {kind, segments: [{t0, t1, h0, h1, easing}], channels: [{target,
-  property, contact_value, stroke_extent}]}}`. `h` is exact and
-  continuous; each channel’s value is `contact_value - stroke_extent * h`.
-- `events` — one per impact:
-  - `object` (a name from `objects`), `index`, `beat`, `amplitude`;
-  - `t_grid` — INTENDED time (the tempo grid);
-  - `t_impact` — EXECUTED time, continuous; `offset = t_impact - t_grid`;
-  - `kind` — `surface` (contact; velocity reverses at `t_impact`) or
-    `air` (turning point; velocity is zero at `t_impact`);
-  - `t_peak_speed` (`= t_impact` for surface, `t_impact - brake` for
-    air), `peak_speed` (stroke heights/s), `peak_speed_px` (the impact
-    keypoint’s px/s), `fall`, `brake` (seconds);
-  - `impact_xy` — the impact keypoint at `t_impact`;
-  - `frames` — what the frames show: `before` (last frame whose exposure
-    closed at or before the impact), `after` (first to open at or after it),
-    `during` (the frame whose exposure contains it, else `null`),
-    `nearest` (+ `nearest_error`, by exposure midpoint), and `lowest` —
-    the frame a naive “lowest point” detector picks, by the stroke height the
-    frame SHOWS (averaged over its samples) — with `lowest_h`,
-    `lowest_t_reported` and `lowest_error` (its reported time minus
-    `t_impact`: the frame-snapped baseline’s error).
-- `frames` — one per video frame: `index`, `t_nominal` (`index / fps`,
-  what the mp4 says), `t_open`, `t_close`, `t_mid`, `samples` (the
-  instants rendered and averaged), `t_reported` (what `keypoints.ndjson`
-  carries as `t`), `keypoints` (`{object: {name: [x, y]}}`, averaged
-  over the samples — what the frame shows) and `keypoints_mid` (at
-  `t_mid`; equal to `keypoints` when the shutter is instantaneous).
-
-`keypoints.ndjson` is one line per frame,
-`{"tick", "t", "value": {"width", "height", "keypoints": [{"object", "name",
-"x", "y"}]}}` — observations only (the frame’s `keypoints`, at its reported
-time). `trajectory.csv` is `t, h, <object>.<kp>_x, <object>.<kp>_y, ...` at
-`spec.trajectory_hz`.
-
-### Module Attributes
-
-| [`TRUTH_SCHEMA_VERSION`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.TRUTH_SCHEMA_VERSION)   | Bumped on any change a reader must know about; additive fields bump MINOR.   |
-|-------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`KEYPOINT_TOLERANCE_PX`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.KEYPOINT_TOLERANCE_PX)  | The analytic and compiled keypoints must agree to this many pixels.          |
-
-### Functions
-
-| [`ground_truth`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.ground_truth)(\*, scene, obj, stroke, events, ...)   | The truth document for one clip (see the module docstring for its schema).   |
-|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`keypoint_lines`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.keypoint_lines)(truth, \*[, digits])                 | One observation per frame, in thoremin's recorder shape.                     |
-| [`trajectory_rows`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.trajectory_rows)(\*, scene, obj, stroke, hz[, ...])  | The dense continuous trajectory: a header row, then one row per `1/hz` s.    |
-
-### Exceptions
-
-| [`TruthMismatch`](_autosummary/an.impacts.truth.html.md#an.impacts.truth.TruthMismatch)   | The ground truth and the thing it describes disagree.   |
-|------------------------------------------------------------------|---------------------------------------------------------|
-
-### an.impacts.truth.KEYPOINT_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-06*
-
-The analytic and compiled keypoints must agree to this many pixels. Both are
-double-precision evaluations of the same easing, so any real disagreement is
-orders of magnitude larger.
-
-### an.impacts.truth.TRUTH_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1.0.0'*
-
-Bumped on any change a reader must know about; additive fields bump MINOR.
-
-### *exception* an.impacts.truth.TruthMismatch
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-The ground truth and the thing it describes disagree.
-
-### an.impacts.truth.ground_truth(, scene, obj, stroke, events, frames, header)
-
-The truth document for one clip (see the module docstring for its schema).
-
-`header` is merged in first (spec, clock, tempo, clip, generator); this
-function owns `objects`, `events` and `frames`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-### an.impacts.truth.keypoint_lines(truth, , digits=4)
-
-One observation per frame, in thoremin’s recorder shape.
-
-`{"tick", "t", "value": {"width", "height", "keypoints": [{"object",
-"name", "x", "y"}]}}` — `t` is the frame’s REPORTED timestamp and the
-points are what the frame shows; nothing else from the truth leaks in.
-
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
-### an.impacts.truth.trajectory_rows(, scene, obj, stroke, hz, digits=6)
-
-The dense continuous trajectory: a header row, then one row per `1/hz` s.
-
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 
 # _autosummary/an.ir.assets.html.md
@@ -22074,17 +15160,14 @@ what tooling reasons about.
 
 ### Functions
 
-| [`default_play_extent`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)(action)                      | A duration-less play's extent when no descriptor is known: a motion preset's natural length over `speed`, else `0.0`.          |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                              |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                            |
-| [`expression`](_autosummary/an.ir.compose.html.md#an.ir.compose.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                                                                                 |
 | [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                            |
 | [`iter_actions`](_autosummary/an.ir.compose.html.md#an.ir.compose.iter_actions)(action)                             | `action` and every action under it, depth first (composites through their kind's `children` hook).                             |
 | [`kind_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.kind_of)(action)                                  | The registered [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind) that governs `action`.         |
 | [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                                 |
 | [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                                      |
-| [`play`](_autosummary/an.ir.compose.html.md#an.ir.compose.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).                                                               |
 | [`resolve_action`](_autosummary/an.ir.compose.html.md#an.ir.compose.resolve_action)(action)                           | `action` as its registered model (an `ExtensionAction` left open by a document read before its genre loaded is validated now). |
 | [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                              |
 | [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                          |
@@ -22132,31 +15215,13 @@ A sentinel rather than `None` because `None` already means linear.
 ### an.ir.compose.PlayExtent
 
 `PlayAction -> seconds` a play WITHOUT an explicit `duration` occupies in
-a `sequence`. The default is [`default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent); the compiler and
+a `sequence`. The default is `default_play_extent()`; the compiler and
 `an validate` pass one bound to the entity’s descriptor. Generically, it is
 the caller’s **extent resolver**: it is handed to every leaf kind’s
 `duration` hook ([`an.genres.ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)), and the kinds that have an
 open-ended length (the cut-out genre’s `play`) consult it.
 
-alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
-### an.ir.compose.default_play_extent(action)
-
-A duration-less play’s extent when no descriptor is known: a motion
-preset’s natural length over `speed`, else `0.0`.
-
-The one resolver is `an.characters.play.play_extent()`; this is it with
-`desc=None`.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> default_play_extent(PlayAction(target="a", animation="hop"))
-0.5
->>> default_play_extent(PlayAction(target="a", animation="not_a_preset"))
-0.0
-```
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.ir.compose.delay(duration)
 
@@ -22187,29 +15252,12 @@ Compute the total duration of an action tree without evaluating it.
 0.0
 ```
 
-### an.ir.compose.expression(target, preset=None, , axes=None, intensity=1.0, duration=None, blend=0.15)
-
-Hold a facial expression on an entity (an#98).
-
-`duration=None` runs to the shot end and counts as **zero** in a
-`sequence`, as a looping `play` does:
-
-* **Return type:**
-  [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(expression("a", "happy"), delay(1.0), expression("a", "sad")))]
-[0.0, 1.0]
->>> flatten(expression("a", "angry", duration=2.0))[0].end
-2.0
-```
-
 ### an.ir.compose.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
 
 A `play` without `duration` advances a `sequence` by `play_extent`
-(default [`default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)): its natural length, or zero for a
+(default `default_play_extent()`): its natural length, or zero for a
 looping animation, which runs to the shot end.
 
 Delays are absorbed into the timeline (they don’t appear in the output).
@@ -22264,44 +15312,6 @@ Run all children at once. Total duration = max of child durations.
 
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
-### an.ir.compose.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one. In a `sequence` a play with no `duration`
-occupies its **natural** length (a motion preset’s own length divided by
-`speed`; a non-looping descriptor animation’s likewise), so the sibling
-after it starts when it ends; a looping one runs to the shot end and
-occupies **zero**:
-
-* **Return type:**
-  [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
-[0.0, 1.0]
->>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
-[0.0, 2.0]
->>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
-[0.0, 0.5]
->>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
-[0.0, 0.25]
-```
-
-(Bare `flatten` knows only the presets, by name; `an validate` and the
-compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
-— so a descriptor animation that shares a preset’s name is measured as the
-descriptor’s.)
-
-A name the descriptor does not declare falls back to a motion preset of
-[`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
-
-```pycon
->>> play("charlie", "hop", args={"height": 30}).args
-{'height': 30}
-```
 
 ### an.ir.compose.resolve_action(action)
 
@@ -22403,8 +15413,6 @@ authoring-time DSL to canonical-form actions.
 | [`set_`](_autosummary/an.ir.html.md#an.ir.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).       |
 |---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
 | [`tween`](_autosummary/an.ir.html.md#an.ir.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.             |
-| [`play`](_autosummary/an.ir.html.md#an.ir.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).            |
-| [`expression`](_autosummary/an.ir.html.md#an.ir.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                              |
 | [`sequence`](_autosummary/an.ir.html.md#an.ir.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`stagger`](_autosummary/an.ir.html.md#an.ir.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
@@ -22793,23 +15801,6 @@ An empty span that consumes time. Useful inside `sequence`.
 * **Return type:**
   [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)
 
-### an.ir.expression(target, preset=None, , axes=None, intensity=1.0, duration=None, blend=0.15)
-
-Hold a facial expression on an entity (an#98).
-
-`duration=None` runs to the shot end and counts as **zero** in a
-`sequence`, as a looping `play` does:
-
-* **Return type:**
-  [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(expression("a", "happy"), delay(1.0), expression("a", "sad")))]
-[0.0, 1.0]
->>> flatten(expression("a", "angry", duration=2.0))[0].end
-2.0
-```
-
 ### an.ir.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
@@ -22848,6 +15839,11 @@ True
 >>> "## Shot s1 (cutout)" in md
 True
 ```
+
+This writes the WHOLE document in the writer’s own formatting, and keeps no
+prose but `meta.notes`. Updating an existing `scene.md` goes through
+`merge_markdown()`, which keeps the author’s text wherever the content
+did not change.
 
 ### an.ir.kind_of(doc, , kind=None)
 
@@ -22926,44 +15922,6 @@ Run all children at once. Total duration = max of child durations.
 
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
-### an.ir.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one. In a `sequence` a play with no `duration`
-occupies its **natural** length (a motion preset’s own length divided by
-`speed`; a non-looping descriptor animation’s likewise), so the sibling
-after it starts when it ends; a looping one runs to the shot end and
-occupies **zero**:
-
-* **Return type:**
-  [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
-[0.0, 1.0]
->>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
-[0.0, 2.0]
->>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
-[0.0, 0.5]
->>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
-[0.0, 0.25]
-```
-
-(Bare `flatten` knows only the presets, by name; `an validate` and the
-compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
-— so a descriptor animation that shares a preset’s name is measured as the
-descriptor’s.)
-
-A name the descriptor does not declare falls back to a motion preset of
-[`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
-
-```pycon
->>> play("charlie", "hop", args={"height": 30}).args
-{'height': 30}
-```
 
 ### an.ir.register_kind(kind)
 
@@ -23176,9 +16134,8 @@ True
 
 ### Module Attributes
 
-| [`DFLT_EXPRESSION_BLEND_S`](_autosummary/an.ir.schema.html.md#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                                                   |
-|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`CORE_ACTION_KINDS`](_autosummary/an.ir.schema.html.md#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                    |
+|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`EXTENSION_TAG`](_autosummary/an.ir.schema.html.md#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                          |
 | [`Action`](_autosummary/an.ir.schema.html.md#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it). |
 | [`DEFAULT_CAPTION_MAX_CHARS`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
@@ -23193,32 +16150,30 @@ True
 
 ### Classes
 
-| [`AssetRef`](_autosummary/an.ir.schema.html.md#an.ir.schema.AssetRef)(\*\*data)         | Reference to an entry in a project store.                                                                                                                           |
-|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Camera`](_autosummary/an.ir.schema.html.md#an.ir.schema.Camera)(\*\*data)           | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
-| [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*\*data)        | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
-| [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*\*data)         | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
-| [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*\*data)      | Composition: an empty span that consumes time.                                                                                                                      |
-| [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*\*data)         | One line of spoken dialogue.                                                                                                                                        |
-| [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)(\*\*data) | Hold a facial expression on an entity (an#98, epic #9 Wave 6).                                                                                                      |
-| [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)(\*\*data)  | An action of a kind the core does not define: the IR's one open member.                                                                                             |
-| [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)(\*\*data)       | Composition: repeat `child` `count` times.                                                                                                                          |
-| [`Meta`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta)(\*\*data)             | Scene metadata.                                                                                                                                                     |
-| [`Narration`](_autosummary/an.ir.schema.html.md#an.ir.schema.Narration)(\*\*data)        | Off-screen narration.                                                                                                                                               |
-| [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)(\*\*data)   | Composition: run all children simultaneously starting at the same time.                                                                                             |
-| [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)(\*\*data)       | Play a named animation of the target entity's descriptor (an#7).                                                                                                    |
-| [`Resolution`](_autosummary/an.ir.schema.html.md#an.ir.schema.Resolution)(\*\*data)       | Pixel dimensions of the rendered output.                                                                                                                            |
-| [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)(\*\*data)          | Top-level Scene IR document.                                                                                                                                        |
-| [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction)(\*\*data)   | Composition: run children one after the other.                                                                                                                      |
-| [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)(\*\*data)        | Set a property to a value at a specific time.                                                                                                                       |
-| [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)(\*\*data)             | A single rendered unit.                                                                                                                                             |
-| [`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)(\*\*data)         | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
-| [`StagePlacement`](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement)(\*\*data)   | Where an entity stands on the stage, and how big it is.                                                                                                             |
-| [`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)(\*\*data)       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
-| [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)(\*\*data)      | Animate a property from a start value to an end value over a duration.                                                                                              |
-| [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe)(\*\*data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
-| [`VisemeTrack`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeTrack)(\*\*data)      | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
-| [`WordTimingIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)(\*\*data)     | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe), never absolute). |
+| [`AssetRef`](_autosummary/an.ir.schema.html.md#an.ir.schema.AssetRef)(\*\*data)        | Reference to an entry in a project store.                                                                                                                           |
+|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Camera`](_autosummary/an.ir.schema.html.md#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
+| [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
+| [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*\*data)     | Composition: an empty span that consumes time.                                                                                                                      |
+| [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*\*data)        | One line of spoken dialogue.                                                                                                                                        |
+| [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)(\*\*data) | An action of a kind the core does not define: the IR's one open member.                                                                                             |
+| [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)(\*\*data)      | Composition: repeat `child` `count` times.                                                                                                                          |
+| [`Meta`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta)(\*\*data)            | Scene metadata.                                                                                                                                                     |
+| [`Narration`](_autosummary/an.ir.schema.html.md#an.ir.schema.Narration)(\*\*data)       | Off-screen narration.                                                                                                                                               |
+| [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)(\*\*data)  | Composition: run all children simultaneously starting at the same time.                                                                                             |
+| [`Resolution`](_autosummary/an.ir.schema.html.md#an.ir.schema.Resolution)(\*\*data)      | Pixel dimensions of the rendered output.                                                                                                                            |
+| [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)(\*\*data)         | Top-level Scene IR document.                                                                                                                                        |
+| [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction)(\*\*data)  | Composition: run children one after the other.                                                                                                                      |
+| [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)(\*\*data)       | Set a property to a value at a specific time.                                                                                                                       |
+| [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)(\*\*data)            | A single rendered unit.                                                                                                                                             |
+| [`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)(\*\*data)        | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
+| [`StagePlacement`](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement)(\*\*data)  | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)(\*\*data)      | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
+| [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)(\*\*data)     | Animate a property from a start value to an end value over a duration.                                                                                              |
+| [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe)(\*\*data)  | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
+| [`VisemeTrack`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeTrack)(\*\*data)     | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
+| [`WordTimingIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)(\*\*data)    | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe), never absolute). |
 
 ### an.ir.schema.Action
 
@@ -23451,11 +16406,6 @@ convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
 Caption type size as a fraction of frame height — a little under the title
 default, as captions are read while something else is watched.
 
-### an.ir.schema.DFLT_EXPRESSION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
-
-Default ramp in/out of an expression, seconds (0 = cut). The dialogue
-`[emotion]` sugar uses its own in `an.expression.provider`.
-
 ### *class* an.ir.schema.DelayAction(\*\*data)
 
 Bases: `_ActionBase`
@@ -23530,33 +16480,6 @@ has none (offline, Rhubarb) or the line was stamped before an#96.
 ### an.ir.schema.EXTENSION_TAG *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'extension'*
 
 The union tag of the open member.
-
-### *class* an.ir.schema.ExpressionAction(\*\*data)
-
-Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
-
-Hold a facial expression on an entity (an#98, epic #9 Wave 6).
-
-`preset` names one of `an.expression.presets.PRESETS`; `axes`
-are per-axis overrides layered on it (axis units, see
-[`an.expression.axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes)); `None` + no axes is a cheap “return to
-rest”. `duration=None` runs to the shot end (the looping-play rule) and
-is **zero-width in a sequence**, like a looping `play`. `blend` ramps the
-intensity in and out; two overlapping expressions cross-fade because the
-face solver sums offsets. The dialogue `speaker [emotion]: …` bracket is
-sugar for one of these over the line, desugared in memory only.
-
-A leaf action, flattened like `play`: the compiler resolves it in the
-face solver (one channel per `(node, property)`), never per action.
-
-The ramp is a min over the two ends, so a span shorter than `2·blend`
-never reaches full intensity (a 0.2 s expression at the default 0.15 s
-blend peaks at 0.67) and a `duration=0` expression shows only where a
-frame lands on it with `blend=0` — cut the blend for a flash.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.ExtensionAction(\*\*data)
 
@@ -23693,46 +16616,6 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 Bases: `_ActionBase`
 
 Composition: run all children simultaneously starting at the same time.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.ir.schema.PlayAction(\*\*data)
-
-Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`animation` names an entry of `CharacterDescriptor.animations` (the
-seeded `idle_breath` and `blink`, or anything an author adds); the
-compiler resolves its tracks into channels on the entity’s nodes. A name
-the descriptor does NOT declare — or any name on an entity with no
-descriptor (a procedural rig, a prop) — falls back to the motion presets
-of [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (`hop`, `nod`, …), which expand to
-ordinary tweens at the target’s built rest pose; a descriptor animation of
-the same name wins (an#166). Both halves are decided by
-[`an.characters.play.play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems), the one resolver `an validate`
-and the compiler share. For a preset, `args` are its parameters,
-`duration` stretches the whole move to that length, `speed` divides
-it, and `loop: true` is refused (a preset is a one-shot).
-`duration` widens/narrows the placement window; `None` means the
-animation’s own duration — or, when the resolved `loop` is true, the
-rest of the shot, because a loop bounded by its own natural duration
-never loops. `loop` overrides the animation’s declared `loop`
-(`None` = use the descriptor’s). Inside a `sequence` a play with
-`duration=None` occupies its NATURAL length — a motion preset’s own
-length, a non-looping descriptor animation’s `duration`, both over
-`speed` — so the next sibling starts when it ends; a looping one runs to
-the shot end and occupies ZERO (`an.characters.play.play_extent()`).
-
-#### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Parameters of a MOTION PRESET (an#166) — `{"height": 30}` for a
-`hop` — passed to its [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) function as keyword
-arguments. `None` (the default, omitted from JSON) means the preset’s
-own defaults. A descriptor animation takes none, and one given to it is
-refused; `rest` is never one — it is read off the built scene.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -24111,28 +16994,22 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Module Attributes
 
-| [`RIG_STORES`](_autosummary/an.ir.validate.html.md#an.ir.validate.RIG_STORES)                   | Entity kind → (the mall store holding its rig, the descriptor `kind` tag that store's documents carry).                                                                                                                                                                                                                                                      |
-|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_KEYS`](_autosummary/an.ir.validate.html.md#an.ir.validate.RETIRED_KEYS)                 | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
+|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_CAMERA_KEYS`](_autosummary/an.ir.validate.html.md#an.ir.validate.RETIRED_CAMERA_KEYS)          | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](_autosummary/an.ir.validate.html.md#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S) | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](_autosummary/an.ir.validate.html.md#an.ir.validate.POST_SYNTHESIS_CHECKS)        | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
 
 ### Functions
 
-| [`check_character_refs`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_character_refs)(ctx)                         | The cut-out genre's missing-character warning.                                                                                                                                                                |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`check_expression_actions`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_expression_actions)(ctx)                     | The cut-out genre's `expression` / `[emotion]` check.                                                                                                                                                         |
-| [`check_hidden_mouth_while_speaking`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_hidden_mouth_while_speaking)(ctx)            | The cut-out genre's mouth-hidden-by-a-view warning.                                                                                                                                                           |
-| [`check_play_actions`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_play_actions)(ctx)                           | The cut-out genre's `play` check (`_check_play_actions()`).                                                                                                                                                   |
-| [`check_turns`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_turns)(ctx)                                  | The cut-out genre's contradicted-turn warning (`_check_turns()`).                                                                                                                                             |
-| [`check_view_continuity`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_view_continuity)(ctx)                        | The cut-out genre's view-across-a-cut warning (`_check_view_continuity()`).                                                                                                                                   |
-| [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
-| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
-| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
-| [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
-| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
-| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                                  |
+| [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks])   | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
+|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                     | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])        | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_stores`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_stores)()                                        | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
+| [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])             | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
+| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                                | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])                 | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
@@ -24184,12 +17061,6 @@ renderer. The migration rewrites stored 0.1.x documents, but nothing rewrites
 a document that is already 0.2.0: an agent patch, a hand edit, or a caller
 passing `style=` to `Shot(...)` all produce a permanently dead key that no
 later migration will touch. So it is caught here, at ERROR, by name.
-
-### an.ir.validate.RIG_STORES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'character': ('characters', 'CharacterDescriptor'), 'prop': ('props', 'PropDescriptor')}*
-
-Entity kind → (the mall store holding its rig, the descriptor `kind` tag
-that store’s documents carry). `environment` and `voice` are absent because
-neither has a rig to declare asset sets on.
 
 ### *exception* an.ir.validate.UnregisteredInSceneError(findings, , where='')
 
@@ -24250,51 +17121,6 @@ Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
 
-### an.ir.validate.check_character_refs(ctx)
-
-The cut-out genre’s missing-character warning. A WARNING: the compiler
-falls back to the built-in placeholder rig and the scene still renders.
-Deliberately not escalated — an asset-less project rendering placeholders
-is a supported way to work.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_expression_actions(ctx)
-
-The cut-out genre’s `expression` / `[emotion]` check.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_hidden_mouth_while_speaking(ctx)
-
-The cut-out genre’s mouth-hidden-by-a-view warning.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_play_actions(ctx)
-
-The cut-out genre’s `play` check (`_check_play_actions()`).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_turns(ctx)
-
-The cut-out genre’s contradicted-turn warning (`_check_turns()`).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.ir.validate.check_view_continuity(ctx)
-
-The cut-out genre’s view-across-a-cut warning (`_check_view_continuity()`).
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ### an.ir.validate.post_synthesis_findings(scene, , fps=None, checks=('dialogue_fits', 'dialogue_in_dissolve', 'cutout.hidden_mouth_while_speaking'), \*\*stores)
 
 `(check, finding)` for each finding the synthesized timing gives.
@@ -24328,6 +17154,22 @@ kind, entity kind and renderer it uses that is not registered.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.ir.validate.rig_stores()
+
+`{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.
+
+The core’s own (`prop`) plus the kinds genres register with a
+`descriptor_kind` (the cut-out genre’s `character`): derived from the
+registry, not a table the core edits (an#246).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> rig_stores()["prop"]
+('props', 'PropDescriptor')
+```
 
 ### an.ir.validate.shot_dialogue_overruns(shot, , effects_of=None, synthesized_only=False, tolerance_s=0.016666666666666666)
 
@@ -25256,106 +18098,8 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> v = vocabulary(lib)
 >>> sorted(v)
 ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
->>> "limbs.legs" in v["capabilities"]
+>>> isinstance(v["capabilities"], (dict, list, tuple))
 True
-```
-
-
-# _autosummary/an.library.character.html.md
-
-# an.library.character
-
-The character analyser: legs, arms, views and mouth chart, derived from the rig.
-
-The first analyser (ADR 0005 first slice, item 2), shared with ADR 0002’s first
-slice: P7’s capability registry adopts [`character_affordances()`](_autosummary/an.library.character.html.md#an.library.character.character_affordances) as
-`affordances(asset)` for characters instead of deriving a second time.
-
-**What it reads is what the compiler reads**, or the facets would lie (ADR 0005,
-Risks): the limb pairs `walk` resolves (`an.motion.WALK_LEG_NAMES`,
-`an.motion.WALK_ARM_NAMES`), the `view` and `viseme` swap sets
-(`asset_sets`), the declared facts `rest_view`,
-`face_overlay` and `occluded`. And **art must be present**: a slot or swap key counts only
-when an attachment it names has its file among the asset’s files — a descriptor
-promising a side view whose drawing is missing does not afford one.
-
-It is genre code (cut-out characters). It lives here until the genre package
-exists (plan P8) and imports the cut-out modules lazily so `import an.library`
-stays free of them. **Importing it registers nothing** (P7): the cut-out genre
-declares [`CHARACTER_CAPABILITIES`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_CAPABILITIES) and [`CHARACTER_ANALYSER`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER) in its
-`capabilities` and `analysers` fields (`an.genres.cutout.CUTOUT`), so
-they register with the genre, owned by it, and come out with it.
-
-| capability   | afforded when                                                                                           | `keys`                                 |
-|--------------|---------------------------------------------------------------------------------------------------------|----------------------------------------|
-| `limbs.legs` | a leg pair `walk` resolves, both with art                                                               | —                                      |
-| `limbs.arms` | an arm pair `walk` resolves, both with art                                                              | —                                      |
-| `swap.view`  | always: the rest view, plus every `view` key with<br/>art (`swappable`: whether it can turn at all)     | the views it can show                  |
-| `face.mouth` | an overlay face (`face_overlay`) whose `viseme`<br/>set has drawings                                    | the chart (`rhubarb9`<br/>or `custom`) |
-| `face.brows` | an overlay face whose two brow slots have art, with<br/>nothing recorded over them (`occluded`, an#252) | —                                      |
-
-### Module Attributes
-
-| [`CHARACTER_ANALYSER_VERSION`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER_VERSION)   | Bump when the derivation can answer differently for the same input.              |
-|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`MOUTH_CHART_RHUBARB`](_autosummary/an.library.character.html.md#an.library.character.MOUTH_CHART_RHUBARB)          | The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`'s default.       |
-| [`CHARACTER_CAPABILITIES`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_CAPABILITIES)       | The capabilities the character analyser derives (declared by the cut-out genre). |
-| [`CHARACTER_ANALYSER`](_autosummary/an.library.character.html.md#an.library.character.CHARACTER_ANALYSER)           | The character analyser (declared by the cut-out genre, registered with it).      |
-
-### Functions
-
-| [`character_affordances`](_autosummary/an.library.character.html.md#an.library.character.character_affordances)(doc, art)   | The capabilities a character descriptor and its art afford.                      |
-|------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`renders_as_placeholder`](_autosummary/an.library.character.html.md#an.library.character.renders_as_placeholder)(doc)       | Whether the compiler would draw this character only as its placeholder stand-in. |
-
-### an.library.character.CHARACTER_ANALYSER *: [Analyser](_autosummary/an.capabilities.html.md#an.capabilities.Analyser)* *= Analyser(kind='character', version='0.2.0', subject='asset', declares=('rest_view', 'face_overlay', 'gait', 'speech', 'occluded'))*
-
-The character analyser (declared by the cut-out genre, registered with it).
-
-### an.library.character.CHARACTER_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.2.0'*
-
-Bump when the derivation can answer differently for the same input.
-0.2.0: `face.brows` (an#252).
-
-### an.library.character.CHARACTER_CAPABILITIES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability), ...]* *= (Capability(name='limbs.legs', description='a pair of leg slots with art that a legged walk swings', remedy='add two leg slots named leg_l/leg_r (or left_leg/right_leg) with their art, pivoted at the hip; \`an character new\` builds them (an-art-package skill)', subject='asset', command=None, version='1'), Capability(name='limbs.arms', description='a pair of arm slots with art that a walk swings and gestures move', remedy='add two arm slots named arm_l/arm_r (or left_arm/right_arm) with their art, pivoted at the shoulder (an-art-package skill)', subject='asset', command=None, version='1'), Capability(name='swap.view', description='the turnaround views the character can show (keys); swappable=true when a \`view\` swap set lets it turn', remedy='add turnaround art and list it in the \`view\` swap set: \`an character add-views <dir>\` for an offline character, else draw the views', subject='asset', command='an character add-views', version='1'), Capability(name='face.mouth', description='an overlay mouth with a viseme chart that lip-sync drives (keys: the chart)', remedy="give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\` writes the default nine) and face_overlay: true — a face baked into the head art cannot lip-sync", subject='asset', command='an character mouths', version='1'), Capability(name='face.brows', description='two brows on an overlay face that an expression raises, lowers and angles, with nothing recorded over their acting range (slots: the brow slots)', remedy="give the overlay face two brow slots (left_brow/right_brow) with their art, and keep hats off the brows' acting range: a factory hat that cannot sit above them is recorded in character.json's \`occluded\` — \`an character new\` with a larger --head-scale, another --hat or --hat none; for drawn art, redraw the cover above the brows and remove its \`occluded\` entry", subject='asset', command=None, version='1'))*
-
-The capabilities the character analyser derives (declared by the cut-out genre).
-
-### an.library.character.MOUTH_CHART_RHUBARB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rhubarb9'*
-
-The chart name of the nine Rhubarb mouth shapes (A–H, X) — `an`’s default.
-
-### an.library.character.character_affordances(doc, art)
-
-The capabilities a character descriptor and its art afford.
-
-doc: the character descriptor document (any schema version; migrated first)
-art: the files present, `{relative path: ContentRef JSON}` (`parts/head.svg`, …)
-
-Gait is deliberately not here: which walk methods apply is the capability
-matcher’s answer (`applicable("locomotion", asset)`, ADR 0002), derived from
-`limbs.legs`, not a second fact about the asset.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
-```pycon
->>> from an.characters.schema import CharacterDescriptor
->>> doc = CharacterDescriptor(name="blob").model_dump(mode="json")
->>> sorted(character_affordances(doc, art={}))   # a descriptor with no art
-['swap.view']
-```
-
-### an.library.character.renders_as_placeholder(doc)
-
-Whether the compiler would draw this character only as its placeholder stand-in.
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
-```pycon
->>> renders_as_placeholder({"name": "alice"}), renders_as_placeholder({"parts": ["head"]})
-(True, False)
 ```
 
 
@@ -25838,9 +18582,12 @@ assets out of it. Each package has its own library root (`an` →
 `~/.local/share/an`, a genre such as `cutan` → `~/.local/share/cutan`),
 read together as an ordered search path.
 
+The example publishes a character, which is the cut-out genre’s asset (`pip install
+"an[cutout]"`), so it is not run where that package is absent:
+
 ```pycon
 >>> import tempfile
->>> from an.characters.schema import CharacterDescriptor
+>>> from cutan.characters.schema import CharacterDescriptor
 >>> with tempfile.TemporaryDirectory() as d:
 ...     lib = open_library("an", root=d)
 ...     doc = CharacterDescriptor(name="blob")
@@ -25858,7 +18605,7 @@ What lives where:
   `MutableMapping` s;
 - [`an.library.federation`](_autosummary/an.library.federation.html.md#module-an.library.federation) — [`Library`](_autosummary/an.library.html.md#an.library.Library) and the search path;
 - [`an.library.affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances) — capabilities and per-kind analysers (the seed
-  of ADR 0002’s registry); [`an.library.character`](_autosummary/an.library.character.html.md#module-an.library.character) — the character analyser;
+  of ADR 0002’s registry); `an.library.character` — the character analyser;
 - [`an.library.rights`](_autosummary/an.library.rights.html.md#module-an.library.rights) — the most-restrictive roll-up over `AssetSource`;
   [`an.library.floor`](_autosummary/an.library.floor.html.md#module-an.library.floor) — the strictest statement any library on the machine
   > makes about a blob; [`an.library.registry`](_autosummary/an.library.registry.html.md#module-an.library.registry) — the machine’s registry of
@@ -26736,7 +19483,7 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> v = vocabulary(lib)
 >>> sorted(v)
 ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
->>> "limbs.legs" in v["capabilities"]
+>>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```
 
@@ -26745,7 +19492,6 @@ True
 | [`affordances`](_autosummary/an.library.affordances.html.md#module-an.library.affordances)   | Affordances for the library: the capability registry, re-exported from [`an.capabilities`](_autosummary/an.capabilities.html.md#module-an.capabilities).              |
 |----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`api`](_autosummary/an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`, `retire`.                                                                                           |
-| [`character`](_autosummary/an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |
 | [`cli`](_autosummary/an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                                                                                        |
 | [`federation`](_autosummary/an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).                                                                               |
 | [`floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.                                                                       |
@@ -27903,7 +20649,10 @@ provider.
 *auto-detection* — code that picks a paid provider because a key happened to be
 in the environment. It is not a ban on paid work, and two shipped paths reach
 paid APIs without consulting this predicate because the caller named them:
-`an iterate` (Anthropic) and the vision verifier’s default judge. If you add a
+`an iterate` (Anthropic) and the vision verifier’s default judge — and a third
+whose project named it: `an render` speaks a voice whose document declares
+`provider: elevenlabs` with ElevenLabs (an#305), printing the requests and
+characters it will bill before the first one, and never billing a cached line. If you add a
 path that CHOOSES a provider rather than being told one, it belongs here — an example is not a test, but it is the file with the most footfall,
 and a clean checkout has a cold audio cache, so every line it speaks is a new
 charge.
@@ -29344,7 +22093,7 @@ sets and tweens before it (an#212) — so no `rest=`, and a preset after a move
 starts where the move left it (an entrance in [`HOME_PRESETS`](_autosummary/an.motion.html.md#an.motion.HOME_PRESETS) lands on the
 built pose instead); `args` are the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; `an validate` and the compiler
-decide both through [`an.characters.play.play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems). `duration`
+decide both through `an.characters.play.play_problems()`. `duration`
 stretches the move and `speed` divides it; `loop` is refused. In a
 `sequence` a `play` without a `duration` occupies the preset’s own
 length divided by `speed`, so two in a row run one after the other.
@@ -29354,11 +22103,10 @@ too since an#241, but verbatim, as its JSON form).
 
 ### Module Attributes
 
-| [`OVERSHOOT`](_autosummary/an.motion.html.md#an.motion.OVERSHOOT)     | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").                                                                                                                     |
-|----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`IDENTITY_POSE`](_autosummary/an.motion.html.md#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                                                                                                                                         |
-| [`PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and the `play` fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read. |
-| [`HOME_PRESETS`](_autosummary/an.motion.html.md#an.motion.HOME_PRESETS)  | Presets whose `rest` is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.                                                                                          |
+| [`OVERSHOOT`](_autosummary/an.motion.html.md#an.motion.OVERSHOOT)    | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").                                       |
+|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| [`PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS)      | Every preset by name — the one list the skill, the demo and the `play` fallback (`an.characters.play.play_source()`, an#166) read. |
+| [`HOME_PRESETS`](_autosummary/an.motion.html.md#an.motion.HOME_PRESETS) | Presets whose `rest` is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.            |
 
 ### Functions
 
@@ -29387,10 +22135,6 @@ BUILT pose (`slide_out` then `slide_in` comes back home; `pop_in` after a
 `set` of the scales to 0 grows to full size); every other preset moves
 relative to where the node IS at its start (an#212).
 
-### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
-
-`x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.
-
 ### an.motion.OVERSHOOT *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.34, 1.56, 0.64, 1.0)*
 
 A cubic-Bézier that overshoots its target by about 10% and settles back
@@ -29400,7 +22144,7 @@ Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 ### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'speech_pulse': <function speech_pulse>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
-fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read.
+fallback (`an.characters.play.play_source()`, an#166) read.
 
 ### an.motion.as_leaves(action, , start=0.0)
 
@@ -29430,6 +22174,8 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 [`turn()`](_autosummary/an.motion.html.md#an.motion.turn) `who` to `view`, facing `other` — the direction read
 off the stage, so a profile looks at the other character wherever the
 layout put them.
+
+(These examples build character entities, the cut-out genre’s; they are not run here.)
 
 * **Return type:**
   `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
@@ -29513,6 +22259,8 @@ camera — through the cutout compiler’s own scene builder, so the layout
 scale are read, never restated. Pass the same `mall` you render with:
 a descriptor rig is built from its character store.
 
+(These examples build character entities, the cut-out genre’s; they are not run here.)
+
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
@@ -29588,6 +22336,8 @@ centre). Volume is roughly kept: one axis grows by what the other loses.
 target against (an#166, an#193). `width`/`height` (default: the
 compiler’s) matter to text, whose line breaks depend on the frame.
 
+(These examples build character entities, the cut-out genre’s; they are not run here.)
+
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
@@ -29612,7 +22362,7 @@ the rest `scale_x` (a character staged mirrored faces left). Called from
 Python the preset cannot see an EARLIER turn, so turning back from a
 left-facing profile is `turn(to="front", from_direction="left")`; PLAYED
 by name (`{kind: play, animation: turn}`) the compiler fills it in from
-the timeline before it ([`an.characters.play.resolve_turns()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_turns), an#203).
+the timeline before it (`an.characters.play.resolve_turns()`, an#203).
 
 `to` is a key of the character’s `view` set — `front`, `back`,
 `side` or `three_quarter` on a factory character
@@ -29681,7 +22431,7 @@ at the start, filled in by the compiler). Played by name with no view on
 the timeline, the view is the descriptor’s `rest_view` (an#220) — a
 character carved in profile swings its legs with nothing passed.
 
-**Gait** (`gait`, one of [`an.characters.schema.GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS), an#220).
+**Gait** (`gait`, one of `an.characters.schema.GAITS`, an#220).
 `legs` is the above. `hem` is a robe whose leg slots are the two
 halves of its hem: facing the camera the halves TILT in turn by
 `hem_tilt` radians about the hip while the body sways by `rock` and
@@ -29762,7 +22512,7 @@ Apply a free-text edit instruction. Returns an IterateResult.
 Thin re-export for consistency with the rest of the orchestrator surface;
 the real implementation lives in `an.iterate`.
 
-### an.orchestrate.orchestrate(project_dir, , output_name='main', verifiers=None, skip_render=False, tts='offline', lipsync='offline', parallel=None, language='en')
+### an.orchestrate.orchestrate(project_dir, , output_name='main', verifiers=None, skip_render=False, tts=None, lipsync='offline', parallel=None, language='en')
 
 Run the full pipeline. Returns a structured outcome.
 
@@ -29781,8 +22531,9 @@ to skip verification, or include `HumanInTheLoopVerifier()` to prompt.
 
 `tts` and `lipsync` accept either a provider name string or a
 provider instance — useful for callers (e.g. `muvid`) that want
-to inject a [`an.audio.WordTimingsLipSync`](_autosummary/an.audio.html.md#an.audio.WordTimingsLipSync) driven by their
-own alignment store, instead of letting `an` re-transcribe.
+to inject a `an.audio.WordTimingsLipSync` driven by their
+own alignment store, instead of letting `an` re-transcribe. `tts`
+defaults to each voice’s own provider (an#305), as `an render` does.
 
 * **Return type:**
   [`OrchestratorReport`](_autosummary/an.orchestrate.html.md#an.orchestrate.OrchestratorReport)
@@ -29813,6 +22564,131 @@ stack-dumped on the error it should report.
 
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
+
+
+# _autosummary/an.paint.html.md
+
+# an.paint
+
+Paint: what fills a shape when one flat colour is not enough – a gradient.
+
+A **gradient** blends colour **stops** (CSS’s *color stops*: a colour at an
+offset from 0 to 1 along the gradient) either along a line (**linear**) or
+outward from a centre (**radial**). The vocabulary is CSS’s
+(`linear-gradient` / `radial-gradient`), so an author who knows one knows
+the other:
+
+- `angle` (linear) is the CSS gradient angle in degrees: `0` runs to the
+  top, `90` to the right, `180` (the default) to the bottom. As in CSS the
+  gradient line is as long as it must be for the box’s corners to sit on the
+  first and last stop.
+- `center` and `radius` (radial) are fractions of the box. In a box that is
+  not square the gradient is an ellipse with the box’s proportions (CSS’s
+  `ellipse`); `radius: 0.5` touches the sides of a centred box.
+- Colours between stops are interpolated in sRGB, as CSS and SVG do by default;
+  beyond the first and last stop the end colours hold.
+
+Colours are hex strings (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), the
+representation the StylePack uses everywhere. Stops may be written as plain
+colours, which are spread evenly:
+
+```pycon
+>>> g = Gradient(stops=["#101030", "#f0d090"])
+>>> [(s.offset, s.color) for s in g.stops]
+[(0.0, '#101030'), (1.0, '#f0d090')]
+>>> Gradient(type="radial", stops=["#fff", "#0000"], radius=0.75).radius
+0.75
+```
+
+A field that would do nothing is refused rather than ignored:
+
+```pycon
+>>> Gradient(type="radial", stops=["#fff", "#000"], angle=90)
+Traceback (most recent call last):
+...
+pydantic_core._pydantic_core.ValidationError: ...
+```
+
+This is genre-neutral core vocabulary: a plane of the 2D stage draws one
+([`an.stage.environments.PlaneArt`](_autosummary/an.stage.environments.html.md#an.stage.environments.PlaneArt)), and a StylePack names them as
+**gradient roles** ([`an.styles.StylePack.gradients`](_autosummary/an.styles.html.md#an.styles.StylePack.gradients)).
+
+### Module Attributes
+
+| [`DFLT_GRADIENT_ANGLE`](_autosummary/an.paint.html.md#an.paint.DFLT_GRADIENT_ANGLE)   | top to bottom.   |
+|------------------------------------------------------------------------|------------------|
+
+### Functions
+
+| [`rgba_of`](_autosummary/an.paint.html.md#an.paint.rgba_of)(color)   | A hex colour as `(r, g, b, a)` in `0..1`.   |
+|-------------------------------------------------------------------|---------------------------------------------|
+
+### Classes
+
+| [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient)(\*\*data)     | A linear or radial gradient between colour stops (see the module docstring).   |
+|-------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`GradientStop`](_autosummary/an.paint.html.md#an.paint.GradientStop)(\*\*data) | A colour at an offset along the gradient (`0` start, `1` end).                 |
+
+### an.paint.DFLT_GRADIENT_ANGLE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 180.0*
+
+top to bottom.
+
+* **Type:**
+  CSS’s default gradient direction
+
+### *class* an.paint.Gradient(\*\*data)
+
+Bases: `BaseModel`
+
+A linear or radial gradient between colour stops (see the module docstring).
+
+#### angle *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+the CSS gradient angle, degrees (0 up, 90 right, 180 down).
+
+* **Type:**
+  Linear only
+
+#### center *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+
+the centre, in fractions of the box.
+
+* **Type:**
+  Radial only
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### radius *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+the radius, in fractions of the box (an ellipse in a
+non-square box).
+
+* **Type:**
+  Radial only
+
+### *class* an.paint.GradientStop(\*\*data)
+
+Bases: `BaseModel`
+
+A colour at an offset along the gradient (`0` start, `1` end).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.paint.rgba_of(color)
+
+A hex colour as `(r, g, b, a)` in `0..1`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> rgba_of("#ff000080")
+(1.0, 0.0, 0.0, 0.5019607843137255)
+```
 
 
 # _autosummary/an.paths.html.md
@@ -29987,7 +22863,7 @@ adapters and the same flow handles them.
 | [`RenderError`](_autosummary/an.render.html.md#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
+### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'VoiceStandInWarning': 'voices spoken by another provider than they declare', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
 
 How `an render`’s summary heads each `kind` of finding, in this order; a
 kind not listed (another warning category) is headed by its own name, after.
@@ -30029,7 +22905,7 @@ Where a run’s process cannot be asked whether it lives (Windows), a run
 unfinished after this long is taken for one that crashed: otherwise it would
 shield every cache entry written since, from `an cache gc`, for ever.
 
-### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts='offline', lipsync='offline', language='en')
+### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts=None, lipsync='offline', language='en')
 
 The shot-cache entry ids a render of `project`’s CURRENT scene under
 these knobs would read — computed by the render’s own setup and the
@@ -30097,7 +22973,7 @@ share, and an agent may pass on) names no user, host folder or temp dir.
 'rendered in .'
 ```
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
 
 Lower-level: render a loaded `Project` to mp4.
 
@@ -30184,7 +23060,7 @@ from `render_reports/<output_name>.json`; `[]` before any render.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
 
@@ -30199,10 +23075,17 @@ shot afterwards from its `report` — the same summary is logged on the
 `an.build` logger. See [`render()`](_autosummary/an.render.html.md#an.render.render).
 
 `tts` and `lipsync` may be provider name strings (`"offline"`,
-`"elevenlabs"`, `"rhubarb"`) or provider instances. Defaults are
-offline so no API keys are required. Switching providers triggers a
-re-synthesis on dialogue lines whose stamped audio_ref / viseme_ref
-no longer match the current configuration.
+`"elevenlabs"`, `"rhubarb"`) or provider instances. **\`\`tts\`\` defaults
+to each voice’s own provider** (an#305): a line whose voice document
+declares `provider: elevenlabs` is spoken by ElevenLabs — its cost
+announced before the first request, a cached line never billed — and a
+voice that declares none by the offline provider, so a project that
+declares no provider needs no API key and renders exactly as before. A
+`tts` given overrides every voice; a line spoken by another provider than
+its voice declares (`--tts offline` for an ElevenLabs voice: silence) is a
+finding, and refused under `strict_assets`. `lipsync` defaults to
+offline. Switching providers triggers a re-synthesis on dialogue lines whose
+stamped audio_ref / viseme_ref no longer match the current configuration.
 
 `parallel` controls per-shot concurrency:
 
@@ -31251,7 +24134,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, pivot_x, pivot_y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, pivot_x, pivot_y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -31581,20 +24464,21 @@ font set ([`system_fonts_digest()`](_autosummary/an.stage.cache_key.html.md#an.s
 
 ### Functions
 
-| [`compiled_document`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)(shot, ctx)          | The document the stage engine (`StageEngine.open`) will compile for `shot` under `ctx`.                                                                                                                |
-|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`cutout_environment`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.cutout_environment)()                  | The cut-out render's machine: the bench's own probes, minus what is not identity.                                                                                                                      |
-| [`cutout_shot_inputs`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.cutout_shot_inputs)(shot, ctx)         | The cut-out renderer's [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer).                                                                                             |
-| [`easing_versions`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.easing_versions)(doc)                  | `{name: version}` for every registered easing the compiled document names.                                                                                                                             |
-| [`ffmpeg_build`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.ffmpeg_build)()                        | The whole `ffmpeg -version` (every library's version and the configure line), not its first line: the banner is unchanged by `brew upgrade x264`, which swaps the dynamically linked encoder under it. |
-| [`muxed_audio`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.muxed_audio)(shot, ctx)                | What `_mux_shot` lays under the picture, as data: one entry per muxed line.                                                                                                                            |
-| [`render_code_digest`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_code_digest)()                  | sha256 over the source of every module on the render path (by module name).                                                                                                                            |
-| [`render_knobs`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_knobs)(shot, ctx)               | Every `RenderContext` knob, resolved the way the frame stage resolves it.                                                                                                                              |
-| [`render_path_modules`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_path_modules)([root, excluded]) | `{module: source path}` for every `an` module the render path reaches.                                                                                                                                 |
-| [`render_path_roots`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_path_roots)([renderer_type])    | The modules a renderer's render path starts from, read off the renderer itself.                                                                                                                        |
-| [`system_fonts_digest`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.system_fonts_digest)()                 | A digest of the fonts this machine can draw SVG `<text>` with; once per process.                                                                                                                       |
-| [`texture_digests`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.texture_digests)(scene_json, mall)     | `{alias: sha256 of the bytes staged for it}` for every texture the document declares.                                                                                                                  |
-| [`x264_build`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.x264_build)()                          | The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.                                                                                                                              |
+| [`compiled_document`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)(shot, ctx)                 | The document the stage engine (`StageEngine.open`) will compile for `shot` under `ctx`.                                                                                                                |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cutout_environment`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.cutout_environment)()                         | The cut-out render's machine: the bench's own probes, minus what is not identity.                                                                                                                      |
+| [`cutout_shot_inputs`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.cutout_shot_inputs)(shot, ctx)                | The cut-out renderer's [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer).                                                                                             |
+| [`easing_versions`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.easing_versions)(doc)                         | `{name: version}` for every registered easing the compiled document names.                                                                                                                             |
+| [`ffmpeg_build`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.ffmpeg_build)()                               | The whole `ffmpeg -version` (every library's version and the configure line), not its first line: the banner is unchanged by `brew upgrade x264`, which swaps the dynamically linked encoder under it. |
+| [`genre_code_modules`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.genre_code_modules)()                         | `{module: source path}` for every module of every package a loaded genre runs code from.                                                                                                               |
+| [`muxed_audio`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.muxed_audio)(shot, ctx)                       | What `_mux_shot` lays under the picture, as data: one entry per muxed line.                                                                                                                            |
+| [`render_code_digest`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_code_digest)()                         | sha256 over the source of every module on the render path (by module name).                                                                                                                            |
+| [`render_knobs`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_knobs)(shot, ctx)                      | Every `RenderContext` knob, resolved the way the frame stage resolves it.                                                                                                                              |
+| [`render_path_modules`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_path_modules)([root, excluded, moves]) | `{module: source path}` for every module the render path reaches.                                                                                                                                      |
+| [`render_path_roots`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_path_roots)([renderer_type])           | The modules a renderer's render path starts from, read off the renderer itself.                                                                                                                        |
+| [`system_fonts_digest`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.system_fonts_digest)()                        | A digest of the fonts this machine can draw SVG `<text>` with; once per process.                                                                                                                       |
+| [`texture_digests`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.texture_digests)(scene_json, mall)            | `{alias: sha256 of the bytes staged for it}` for every texture the document declares.                                                                                                                  |
+| [`x264_build`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.x264_build)()                                 | The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.                                                                                                                              |
 
 ### an.stage.cache_key.EASING_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'easing'})*
 
@@ -31604,7 +24488,7 @@ Keys in the compiled document whose string value names an easing.
 
 Font folders listed when `fc-list` is absent.
 
-### an.stage.cache_key.FORWARDING_CALLS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alias_module', 'forward_module_attributes'})*
+### an.stage.cache_key.FORWARDING_CALLS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alias_module', 'forward_module_attributes', 'moved_to_package'})*
 
 The calls that make an old module’s names LIVE aliases of another module’s
 (`an._shims`). Their target is a STRING, invisible to an import walk.
@@ -31690,6 +24574,26 @@ which swaps the dynamically linked encoder under it.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
+### an.stage.cache_key.genre_code_modules()
+
+`{module: source path}` for every module of every package a loaded genre runs code from.
+
+The stage reaches a genre’s code by REGISTRATION (compile passes, lowerings,
+entity hooks, services, runtime scripts), never by an import from `an`, so
+the static walk from the renderer cannot find it. A package that registers a
+hook is therefore keyed WHOLE – every module under it, tests excluded –
+which is over-inclusive on purpose: a stale shot-cache hit after a genre
+upgrade is the failure (an#294), and a genre’s edit to a module that cannot
+reach a pixel costs one re-render. `an` itself is walked from the renderer.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
+```pycon
+>>> isinstance(genre_code_modules(), dict)
+True
+```
+
 ### an.stage.cache_key.muxed_audio(shot, ctx)
 
 What `_mux_shot` lays under the picture, as data: one entry per muxed line.
@@ -31719,11 +24623,19 @@ the render’s own error before anything launches.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.stage.cache_key.render_path_modules(root=None, , excluded={'an.adapters._base': 'the RenderContext/RenderResult types; their values are \`knobs\`', 'an.ir.schema': 'the IR model; what it means for a render reaches \`compiled\`/\`knobs\`', 'an.stage.compile': 'its output is the \`compiled\` part', 'an.stage.serialize': 'its output is the \`compiled\` part', 'an.stage.text_layout': 'compile-side; only INLINE_SRC_PREFIX is read at render'})
+### an.stage.cache_key.render_path_modules(root=None, , excluded={'an.adapters._base': 'the RenderContext/RenderResult types; their values are \`knobs\`', 'an.ir.schema': 'the IR model; what it means for a render reaches \`compiled\`/\`knobs\`', 'an.stage.compile': 'its output is the \`compiled\` part', 'an.stage.serialize': 'its output is the \`compiled\` part', 'an.stage.text_layout': 'compile-side; only INLINE_SRC_PREFIX is read at render'}, moves=None)
 
-`{module: source path}` for every `an` module the render path reaches.
+`{module: source path}` for every module the render path reaches.
 
 `root` is one module name or several; `None` is [`render_path_roots()`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.render_path_roots).
+
+The walk enters `an` and every package a module MOVED to
+(`moves`: `{old: new}`, default `an._shims.declared_moves()`, read
+from source). A name under a moved prefix is keyed under its NEW name –
+the code that runs – never imported through the old path, and the old
+path’s shim file is keyed too (an edit to it changes what the name serves).
+So a module that leaves for `cutan` (P8, an#225) stays in the key, under
+any warnings filter (review of an#298, S2; an#294).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
@@ -31998,33 +24910,26 @@ mall). It reads only.
 
 ### Module Attributes
 
-| [`DFLT_LEG_COLOUR`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_LEG_COLOUR)            | The procedural rig's leg colour — a literal the palette table never carried, which is why it is a named constant rather than two copies of a string.                                                                                                                                                         |
-|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_PUPIL_COLOUR`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_PUPIL_COLOUR)          | The procedural rig's pupil colour.                                                                                                                                                                                                                                                                           |
-| [`COARTICULATION_ENABLED`](_autosummary/an.stage.compile.html.md#an.stage.compile.COARTICULATION_ENABLED)     | Co-articulation on/off (an#97).                                                                                                                                                                                                                                                                              |
-| [`PROCEDURAL_MOUTH_KEYS`](_autosummary/an.stage.compile.html.md#an.stage.compile.PROCEDURAL_MOUTH_KEYS)      | The procedural (drawn) mouth's swap vocabulary, DECLARED as data on its visual exactly as the runtime declares it (`g._anDrawSets = {viseme: ...}`) and as an SVG mouth carries its projection.                                                                                                              |
-| [`EYE_NODE_NAMES`](_autosummary/an.stage.compile.html.md#an.stage.compile.EYE_NODE_NAMES)             | the default rig's eye slots ARE its node names, on both the procedural and the descriptor path.                                                                                                                                                                                                              |
-| [`PUPIL_NODE_NAMES`](_autosummary/an.stage.compile.html.md#an.stage.compile.PUPIL_NODE_NAMES)           | The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.                                                                                                                                                                                                                         |
-| [`GAZE_ELLIPSE_MARGIN`](_autosummary/an.stage.compile.html.md#an.stage.compile.GAZE_ELLIPSE_MARGIN)        | The summed gaze (x, y), in axis units, is clamped to a circle of this radius — the declared travel maps the unit circle onto the sclera's inner ellipse, and 0.95 keeps the whole pupil disc inside it at every angle (measured on the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal). |
-| [`RUNTIME_APPLIED_PROPERTIES`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_APPLIED_PROPERTIES) | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                                                                                                        |
-| [`DFLT_TARGET_SUGGESTIONS`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_TARGET_SUGGESTIONS)    | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                                                                                                              |
-| [`CAMERA_NODE`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_NODE)                | indexed by the runtime, absent from the tree.                                                                                                                                                                                                                                                                |
-| [`STAGE_COMPILE_PASSES`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_COMPILE_PASSES)       | The STAGE's own compile passes, in order.                                                                                                                                                                                                                                                                    |
-| [`STAGE_SCENE_BUILDERS`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_SCENE_BUILDERS)       | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                                                                                                      |
-| [`ENVIRONMENT_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.ENVIRONMENT_ART_PREFIX)     | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                                                                                                                  |
-| [`PLANE_FILL_SPAN`](_autosummary/an.stage.compile.html.md#an.stage.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here.                                                                                    |
-| [`FOREGROUND_SUFFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.FOREGROUND_SUFFIX)          | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                                                                                                         |
-| [`SCENE_PX_PER_VIEW_BOX`](_autosummary/an.stage.compile.html.md#an.stage.compile.SCENE_PX_PER_VIEW_BOX)      | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                         |
-| [`CONTAIN_FIT`](_autosummary/an.stage.compile.html.md#an.stage.compile.CONTAIN_FIT)                | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                |
-| [`CHARACTER_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.CHARACTER_ART_PREFIX)       | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                       |
-| [`PROP_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.PROP_ART_PREFIX)            | The same, for props.                                                                                                                                                                                                                                                                                         |
-| [`STAGE_NODE_SPACE`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_NODE_SPACE)           | The property space every compiled node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                                                                                                                                                                 |
+| [`RUNTIME_APPLIED_PROPERTIES`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_APPLIED_PROPERTIES)   | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                     |
+|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_TARGET_SUGGESTIONS`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_TARGET_SUGGESTIONS)      | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                           |
+| [`CAMERA_NODE`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_NODE)                  | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
+| [`STAGE_COMPILE_PASSES`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_COMPILE_PASSES)         | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
+| [`RUNTIME_FIELD_KINDS`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_FIELD_KINDS)          | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
+| [`STAGE_SCENE_BUILDERS`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_SCENE_BUILDERS)         | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                   |
+| [`ENVIRONMENT_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.ENVIRONMENT_ART_PREFIX)       | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                               |
+| [`PLANE_FILL_SPAN`](_autosummary/an.stage.compile.html.md#an.stage.compile.PLANE_FILL_SPAN)              | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here. |
+| [`FOREGROUND_SUFFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.FOREGROUND_SUFFIX)            | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                      |
+| [`SCENE_PX_PER_VIEW_BOX`](_autosummary/an.stage.compile.html.md#an.stage.compile.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                      |
+| [`CONTAIN_FIT`](_autosummary/an.stage.compile.html.md#an.stage.compile.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                             |
+| [`CHARACTER_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                    |
+| [`PROP_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.PROP_ART_PREFIX)              | The same, for props.                                                                                                                                                                                                      |
+| [`STAGE_NODE_SPACE`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_NODE_SPACE)             | The property space every compiled node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                                                                              |
 
 ### Functions
 
-| [`blink_phase`](_autosummary/an.stage.compile.html.md#an.stage.compile.blink_phase)(entity_id)                        | The entity's blink phase in [0, 1): the runtime's rule, ported exactly.                                                                                                                                  |
-|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)          | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`compile_passes_for_stage`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_passes_for_stage)()                    | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
 | [`compile_shot`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])   | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
 | [`entity_spaces_of`](_autosummary/an.stage.compile.html.md#an.stage.compile.entity_spaces_of)(shot)                        | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245). |
@@ -32033,6 +24938,7 @@ mall). It reads only.
 | [`parse_tint`](_autosummary/an.stage.compile.html.md#an.stage.compile.parse_tint)(value, \*, where)                  | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
 | [`plane_parents`](_autosummary/an.stage.compile.html.md#an.stage.compile.plane_parents)(env, entity_id)                 | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
 | [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                              | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
+| [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)              | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
 | [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                          | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
 | [`step_times`](_autosummary/an.stage.compile.html.md#an.stage.compile.step_times)(start, duration, step_hz)          | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                      |
 | [`style_pack_for`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for)(scene_meta, styles_store)      | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                    |
@@ -32040,9 +24946,10 @@ mall). It reads only.
 
 ### Classes
 
-| [`CompileState`](_autosummary/an.stage.compile.html.md#an.stage.compile.CompileState)(shot, mall, fps, width, height)   | What the stage compiler's passes read and write, for one shot (an#247).   |
-|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`SceneBuild`](_autosummary/an.stage.compile.html.md#an.stage.compile.SceneBuild)(shot, mall, textures, ...[, ...])   | The scene being built, as an entity builder sees it (an#247).             |
+| [`ActionLowering`](_autosummary/an.stage.compile.html.md#an.stage.compile.ActionLowering)(\*args, \*\*kwargs)           | How a genre's action kind becomes clips in the stage compiler (an#225).   |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`CompileState`](_autosummary/an.stage.compile.html.md#an.stage.compile.CompileState)(shot, mall, fps, width, height) | What the stage compiler's passes read and write, for one shot (an#247).   |
+| [`SceneBuild`](_autosummary/an.stage.compile.html.md#an.stage.compile.SceneBuild)(shot, mall, textures, ...[, ...]) | The scene being built, as an entity builder sees it (an#247).             |
 
 ### Exceptions
 
@@ -32050,6 +24957,24 @@ mall). It reads only.
 |-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.compile.CutoutCompileError)     | A shot cannot be compiled to a cutout scene.                                              |
 | [`CutoutCompileWarning`](_autosummary/an.stage.compile.html.md#an.stage.compile.CutoutCompileWarning)   | A shot compiles, but something in it will not reach the screen.                           |
+
+### *class* an.stage.compile.ActionLowering(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+How a genre’s action kind becomes clips in the stage compiler (an#225).
+
+Registered as [`an.genres.ActionKind.lowering`](_autosummary/an.genres.html.md#an.genres.ActionKind.lowering). The stage knows no
+kind by name beyond its own (`tween`, `set`); a genre’s kind supplies:
+
+- `extent_resolver(vocab)`: `action -> seconds` for a leaf that names no
+  duration (or `None`);
+- `expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions)`:
+  the flat list with this kind’s leaves replaced by what they stand for;
+- `view_of(entity_swaps, vocab, *, duration)`: `flat -> view name | None`
+  (or `None`), for kinds whose clips depend on the view in force;
+- `clip(action, *, anim_id, vocab, fps, view)`: the animation clip of one
+  leaf that survived `expand`.
 
 ### an.stage.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
 
@@ -32068,16 +24993,6 @@ about where their art lives. Two hardcoded copies of `"characters/"` — the
 `src` builder and the probe’s own — reached three call sites, and that is
 what made “a prop is a rig too” read as a rewrite instead of an argument
 (an#108).
-
-### an.stage.compile.COARTICULATION_ENABLED *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
-
-Co-articulation on/off (an#97). ON is the product; OFF reproduces the
-pre-#97 mouth CHOICE — the raw provider track thinned by the old drop-not-hold
-condenser — over the new frame-ceiled clip window (so not byte-for-byte the
-old emission: OFF still closes the mouth after a line) and exists so the `lipsync-coarticulation` demo and a test can
-render the two side by side. Not a RenderContext knob: nobody should ship
-the old behaviour, and a module flag rebound for one render is the shape
-the bench’s levers already use.
 
 ### an.stage.compile.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
 
@@ -32146,18 +25061,6 @@ mistake, so it raises. A speaker with no mouth is usually an off-screen
 narrator and occasionally a typo — refusing it would break the documented
 idiom, and passing in silence is what this whole change is against.
 
-### an.stage.compile.DFLT_LEG_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#2c3e50'*
-
-The procedural rig’s leg colour — a literal the palette table never
-carried, which is why it is a named constant rather than two copies of a
-string. A `StylePack`’s `leg` role replaces it.
-
-### an.stage.compile.DFLT_PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
-
-The procedural rig’s pupil colour. `makeEye` reads it from the document —
-the eye WHITE beside it is a literal and cannot be reached, which is the
-split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
-
 ### an.stage.compile.DFLT_TARGET_SUGGESTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 How many “did you mean” paths an unknown-target message offers.
@@ -32165,14 +25068,6 @@ How many “did you mean” paths an unknown-target message offers.
 ### an.stage.compile.ENVIRONMENT_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'environments/'*
 
 The `assets.textures` `src` prefix an environment plate is addressed under.
-
-### an.stage.compile.EYE_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_eye', 'right_eye'})*
-
-the default rig’s eye slots ARE its node
-names, on both the procedural and the descriptor path.
-
-* **Type:**
-  The nodes that blink, by name
 
 ### an.stage.compile.FOREGROUND_SUFFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_front'*
 
@@ -32188,36 +25083,16 @@ and the runtime’s unknown-target throw does not fire because the name IS
 known, just bound to the wrong one of two. The determinism report’s
 `node_count` under-counted by one per split environment too.
 
-### an.stage.compile.GAZE_ELLIPSE_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.95*
-
-The summed gaze (x, y), in axis units, is clamped to a circle of this radius
-— the declared travel maps the unit circle onto the sclera’s inner ellipse,
-and 0.95 keeps the whole pupil disc inside it at every angle (measured on
-the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).
-
 ### an.stage.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale
 — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR
 layer’s framing check reads the same number, re-exported here.
 
-### an.stage.compile.PROCEDURAL_MOUTH_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
-
-The procedural (drawn) mouth’s swap vocabulary, DECLARED as data on its
-visual exactly as the runtime declares it (`g._anDrawSets = {viseme: ...}`)
-and as an SVG mouth carries its projection. A drawn mouth has no textures,
-so each key maps to itself — the code the runtime’s shape table draws. The
-compiler never branches on the set’s NAME: the drawn mouth is just a node
-whose visual carries a `viseme` set (an#87).
-
 ### an.stage.compile.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
 
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
-
-### an.stage.compile.PUPIL_NODE_NAMES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'left_pupil', 'right_pupil'})*
-
-The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.
 
 ### an.stage.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
@@ -32231,6 +25106,12 @@ Any OTHER property is a swap-set name, applied dynamically through the
 node’s `asset_sets` projection (an#87) — `viseme` left the static
 switch when that landed, which is precisely what makes it a conventional
 set name rather than control flow.
+
+### an.stage.compile.RUNTIME_FIELD_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'angle', 'color', 'discrete', 'number', 'orbit', 'quaternion', 'vector'})*
+
+The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
+pins the two). A declared space using any other kind cannot be drawn by the
+stage, so the compiler refuses it instead of the browser failing mid-render.
 
 ### an.stage.compile.SCENE_PX_PER_VIEW_BOX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 345.0*
 
@@ -32279,18 +25160,6 @@ entity’s subtree to `children` (or `overlay`, or `in_front`) and
 records its textures and resolutions here, exactly as the scene pass did
 by hand.
 
-### an.stage.compile.blink_phase(entity_id)
-
-The entity’s blink phase in [0, 1): the runtime’s rule, ported exactly.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
-```pycon
->>> blink_phase("charlie")
-0.762
-```
-
 ### an.stage.compile.camera_keys(shot, , width, height)
 
 [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.
@@ -32321,7 +25190,7 @@ curve of every authored tween that names none (tween > this > the built-in
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis
-curves for the face solver; `None` is `DefaultExpressionProvider`.
+curves for the face solver; `None` is the genre’s default provider.
 
 `step_hz` (an#89) resamples every authored **tween** onto a SHOT-wide
 pose grid of that many updates per second (multiples of `1/step_hz` on
@@ -32438,6 +25307,27 @@ which is the class of drift this wave keeps closing.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`CompilePass`](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass)]
+
+### an.stage.compile.space_definitions(entity_spaces)
+
+`{space name: definition}` for every space `entity_spaces` names –
+what the compiled document embeds as `meta.spaces` so `runtime.js`
+evaluates each declared entity in its space (an#287).
+
+The definition is `to_json()` without
+its prose (a reworded description must not move a contract hash; a
+space’s `version` does). A space using a field kind the runtime does not
+implement is refused here ([`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.compile.CutoutCompileError)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+```pycon
+>>> space_definitions({})
+{}
+>>> space_definitions({"cam": "stage.camera"})["stage.camera"]["fields"][0]
+{'pattern': 'x', 'spec': {'kind': 'number'}, 'unit': 'px'}
+```
 
 ### an.stage.compile.stage_replacements()
 
@@ -32857,11 +25747,31 @@ What a plane is made of.
 An `image` is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
 sizes it from its header and PixiJS loads it natively.
 
-Two kinds ship, and the omission is deliberate rather than partial:
-`gradient` and `generated` would each need a runtime that can draw them,
-and this package’s standing rule is that schema without a consumer is
-worse than an absent field — the `repeat`/`TilingSprite` decision in
-an#110 is the same call made the same way.
+A `gradient` (an#275) is a linear or radial blend of colour stops
+([`an.paint.Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient), CSS’s vocabulary), compiled into an inline SVG
+texture ([`an.stage.gradients`](_autosummary/an.stage.gradients.html.md#module-an.stage.gradients)) – a backlit-glass plate or a sky
+without hand-drawing one:
+
+```pycon
+>>> PlaneArt(kind="gradient", gradient={"type": "radial",
+...          "stops": ["#fff3d0", "#3a2a18"]}).gradient.type
+'radial'
+```
+
+A `role` names the plane’s paint for a StylePack: under a pack whose
+`gradients` sets that role, the plane is drawn with the pack’s gradient (a
+`fill` plane included); with no pack, or a pack that does not set it, the
+plane draws exactly as authored.
+
+```pycon
+>>> PlaneArt(kind="fill", color="#202830", role="glass").role
+'glass'
+```
+
+`generated` art is still not a kind: it needs a generator, and this
+package’s standing rule is that schema without a consumer is worse than an
+absent field — the `repeat`/`TilingSprite` decision in an#110 is the same
+call made the same way.
 
 #### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -32870,9 +25780,25 @@ a CSS colour.
 * **Type:**
   `fill` only
 
+#### gradient *: [Gradient](_autosummary/an.paint.html.md#an.paint.Gradient) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the gradient (an#275). Omitted from the stored document
+when unset.
+
+* **Type:**
+  `gradient` only
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### role *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the gradient role a StylePack may set for this
+plane (an#275). Omitted from the stored document when unset.
+
+* **Type:**
+  `fill` or `gradient`
 
 #### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -33069,6 +25995,96 @@ missing part is #76’s problem, not this function’s.
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`PartFidelity`](_autosummary/an.stage.fidelity.html.md#an.stage.fidelity.PartFidelity)]
 
 
+# _autosummary/an.stage.gradients.html.md
+
+# an.stage.gradients
+
+Gradient fills on the stage: a [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) drawn as an inline SVG texture.
+
+The stage draws a gradient the way it already draws a glow (an#163): as ordinary
+document content – a `data:` SVG texture under a content-addressed alias,
+on an `svg_sprite` visual – not as a runtime feature. So `runtime.js` does
+not change, staging skips the inline source, and the bytes of the texture are a
+pure function of the gradient and its box.
+
+Two boxes matter:
+
+- the **box** the sprite covers (a plane’s declared `size`, or the fill span
+  that covers the canvas at any camera position), and
+- the **frame** the gradient is laid out over (the declared `size`, or the
+  canvas): a gradient without a declared size is shaped by what the camera
+  shows, and beyond the frame its end colours hold (SVG’s `spreadMethod`
+  `pad`, CSS’s behaviour), so a pan never runs off the edge of the paint.
+
+The SVG is rasterised at most [`GRADIENT_RASTER_MAX`](_autosummary/an.stage.gradients.html.md#an.stage.gradients.GRADIENT_RASTER_MAX) pixels on its longer
+side and stretched to the box – a smooth ramp loses nothing to that, and a
+4000-pixel backdrop does not cost a 64 MB texture.
+
+```pycon
+>>> from an.paint import Gradient
+>>> svg = gradient_svg(Gradient(stops=["#000", "#fff"]), box=(100.0, 50.0), frame=(100.0, 50.0))
+>>> svg.startswith('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"')
+True
+>>> 'x1="50" y1="0" x2="50" y2="50"' in svg  # CSS's default: top to bottom
+True
+```
+
+### Module Attributes
+
+| [`GRADIENT_RASTER_MAX`](_autosummary/an.stage.gradients.html.md#an.stage.gradients.GRADIENT_RASTER_MAX)   | The longest side, in texture pixels, a gradient is rasterised at.   |
+|------------------------------------------------------------------------|---------------------------------------------------------------------|
+
+### Functions
+
+| [`gradient_svg`](_autosummary/an.stage.gradients.html.md#an.stage.gradients.gradient_svg)(gradient, \*, box, frame[, ...])   | The SVG that paints `gradient` over `box`, laid out on the centred `frame`.   |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`gradient_src`](_autosummary/an.stage.gradients.html.md#an.stage.gradients.gradient_src)(svg)                               | `svg` as the inline (`data:`) texture source the runtime loads.               |
+| [`gradient_alias`](_autosummary/an.stage.gradients.html.md#an.stage.gradients.gradient_alias)(prefix, src)                     | A content-addressed texture alias: the same gradient, the same alias.         |
+
+### an.stage.gradients.GRADIENT_RASTER_MAX *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1024*
+
+The longest side, in texture pixels, a gradient is rasterised at.
+
+### an.stage.gradients.gradient_alias(prefix, src)
+
+A content-addressed texture alias: the same gradient, the same alias.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> gradient_alias("glass.sky", "data:x") == gradient_alias("glass.sky", "data:x")
+True
+```
+
+### an.stage.gradients.gradient_src(svg)
+
+`svg` as the inline (`data:`) texture source the runtime loads.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.gradients.gradient_svg(gradient, , box, frame, raster_max=1024)
+
+The SVG that paints `gradient` over `box`, laid out on the centred `frame`.
+
+Coordinates are scene pixels (the `viewBox`); `width`/`height` are the
+raster size, at most `raster_max` on the longer side.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> from an.paint import Gradient
+>>> svg = gradient_svg(Gradient(type="radial", stops=["#fff", "#000"]),
+...                    box=(4000.0, 4000.0), frame=(1920.0, 1080.0))
+>>> 'width="1024" height="1024"' in svg
+True
+>>> 'gradientTransform="translate(2000 2000) scale(960 540)"' in svg
+True
+```
+
+
 # _autosummary/an.stage.html.md
 
 # an.stage
@@ -33123,12 +26139,14 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`easing`](_autosummary/an.stage.easing.html.md#module-an.stage.easing)                 | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing). |
 | [`environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments)     | Environments: a stage made of planes, at declared depths.                                                                                   |
 | [`fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                       |
+| [`gradients`](_autosummary/an.stage.gradients.html.md#module-an.stage.gradients)           | Gradient fills on the stage: a [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) drawn as an inline SVG texture.  |
 | [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                  |
 | [`paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths)                   | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                                                                     |
 | [`preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview)               | Live preview server: render a project's current scene in a browser, reloading on edit.                                                      |
 | [`props`](_autosummary/an.stage.props.html.md#module-an.stage.props)                   | Props: a rig whose art is not a person.                                                                                                     |
 | [`raster`](_autosummary/an.stage.raster.html.md#module-an.stage.raster)                 | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                                                                     |
 | [`render`](_autosummary/an.stage.render.html.md#module-an.stage.render)                 | The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.                                              |
+| [`rig`](_autosummary/an.stage.rig.html.md#module-an.stage.rig)                       | The rig model the stage draws: bones, slots, skins and attachments.                                                                         |
 | [`runtime`](_autosummary/an.stage.runtime.html.md#module-an.stage.runtime)               | Cutout JS runtime — see README.md in this directory.                                                                                        |
 | [`runtime_files`](_autosummary/an.stage.runtime_files.html.md#module-an.stage.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                 |
 | [`serialize`](_autosummary/an.stage.serialize.html.md#module-an.stage.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                      |
@@ -33607,7 +26625,7 @@ differently is exactly the collision an#77 fixed.
 
 ### *class* an.stage.props.PropDescriptor(\*\*data)
 
-Bases: `_CharModel`
+Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
 
 The on-disk prop schema. Saved as `prop.json`.
 
@@ -33693,7 +26711,7 @@ Optional source SVG the `parts/` folder was sliced from.
 One bone at the origin.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](_autosummary/an.characters.schema.html.md#an.characters.schema.Bone)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)]
 
 ```pycon
 >>> [b.name for b in default_prop_bones()]
@@ -33705,7 +26723,7 @@ One bone at the origin.
 One slot on that bone.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](_autosummary/an.characters.schema.html.md#an.characters.schema.Slot)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)]
 
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]
@@ -33720,7 +26738,7 @@ One slot on that bone.
 Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 
 Every piece of art the cutout renderer drew was SVG, and the size probe said
-so: `an.characters.svg_utils.raster_size` parses its input as XML, so a PNG
+so: `svg_raster_size` parses its input as XML, so a PNG
 plate died in the compiler with `ParseError: not well-formed (invalid token):
 line 1, column 0` — the error a user sees for “I gave it a picture”. Art carved
 out of footage, a scanned drawing, a photographed paper cut-out: those are
@@ -33799,7 +26817,7 @@ silently dropped.
 The size a piece of art rasterises at, whatever format it is.
 
 SVG: its declared `width`/`height` (else its viewBox), as the browser
-does — [`an.characters.svg_utils.raster_size()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.raster_size). Raster: its pixel size.
+does — `svg_raster_size()`. Raster: its pixel size.
 The ONE probe the compiler, the fidelity check and `an validate` share, so
 none of them can size a PNG as if it were XML again.
 
@@ -34196,6 +27214,222 @@ Part of the shot cache’s key when non-empty: it can change pixels.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
+# _autosummary/an.stage.rig.html.md
+
+# an.stage.rig
+
+The rig model the stage draws: bones, slots, skins and attachments.
+
+A *rig* is the stage’s own idea (a skeleton of bones, draw-ordered slots bound to
+them, and skins mapping slots to drawable attachments); props use it as well as
+characters. It lives in `an.stage` so the stage compiler can build a rig
+without importing any genre; a genre’s descriptor (`cutan`’s
+`CharacterDescriptor`) is composed from these types.
+
+### Module Attributes
+
+| [`DEFAULT_VIEW_BOX`](_autosummary/an.stage.rig.html.md#an.stage.rig.DEFAULT_VIEW_BOX)   | 1024x1024 with feet near y≈980.   |
+|---------------------------------------------------------------------|-----------------------------------|
+
+### Functions
+
+| [`attachment_box`](_autosummary/an.stage.rig.html.md#an.stage.rig.attachment_box)(width, height, art)   | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).   |
+|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| [`drawn_attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.drawn_attachment)(desc, skin, slot)   | The `(name, attachment)` a slot draws by default, or `None`.                                             |
+| [`primary_slot_per_bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.primary_slot_per_bone)(desc)          | `{bone name: the slot that IS that bone}`, when one exists.                                              |
+
+### Classes
+
+| [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)(\*\*data)   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).        |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)(\*\*data)         | A skeleton joint with a local transform relative to its parent.         |
+| [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)(\*\*data)     | Common config: forward-compatible reads, strict writes.                 |
+| [`Skin`](_autosummary/an.stage.rig.html.md#an.stage.rig.Skin)(\*\*data)         | A named outfit/variant: maps slot → {attachment_name → Attachment}.     |
+| [`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)(\*\*data)         | A draw-order slot bound to a bone, displaying one attachment at a time. |
+
+### *class* an.stage.rig.Attachment(\*\*data)
+
+Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
+
+A drawable: an SVG path + anchor point (in 0..1 per-axis units).
+
+```pycon
+>>> a = Attachment(path="parts/head.svg", anchor=(0.5, 0.78))
+>>> a.anchor
+(0.5, 0.78)
+```
+
+#### anchor *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+
+Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS part’s art came from, when it is not the descriptor’s
+`source` — a character composed from several clips, or a carved head
+on a CC0 body, credits each (an#220). `None` = the descriptor’s
+`source` covers it. `an credits` lists every one; an all-rights-
+reserved part makes the render NOT PUBLISHABLE like any other.
+Omitted from the stored document when unset.
+
+#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The size the part draws at, in **view_box units** — the rig’s units,
+the ones `x`/`y` and the bones use (an#220). \*\*A declared size
+wins\*\* over the art’s own extent, as `Plane.size` does for plates.
+Unset, the art’s own extent is the size: an SVG’s `width`/`height`
+(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
+pixel per unit needs nothing, and one carved at any other scale
+declares its size here instead of being resampled. The aspect is the
+art’s, always (an#74): with ONE of the two declared the other follows
+the art’s aspect; with both, the art is contained in the box
+(uniformly scaled to fit, never stretched) and `an character
+validate` says when the two aspects disagree. See
+[`attachment_box()`](_autosummary/an.stage.rig.html.md#an.stage.rig.attachment_box).
+
+#### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Offset from the slot’s bone, in view_box units.
+
+**This is where a part’s position lives**, and it is the reference data
+model’s answer, not an invention: DragonBones puts it in
+`display.transform`, Spine in the region attachment’s `{x, y}`, and
+in both the *slot* carries no transform at all. It is what lets five face
+parts share one `head` bone and still land in different places — before
+this field they all stacked on the bone, because the descriptor had no
+way to say otherwise and the compiler used hardcoded literals instead.
+
+### *class* an.stage.rig.Bone(\*\*data)
+
+Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
+
+A skeleton joint with a local transform relative to its parent.
+
+```pycon
+>>> b = Bone(name="head", parent="torso", x=0, y=-260, pivot="neck")
+>>> b.parent
+'torso'
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Optional pivot name — must match a circle in the SVG `skeleton` group.
+
+### an.stage.rig.DEFAULT_VIEW_BOX *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (0, 0, 1024, 1024)*
+
+1024x1024 with feet near y≈980. All parts
+inherit this viewBox at export so PixiJS can use the SVG’s intrinsic
+viewBox without a calibration step.
+
+* **Type:**
+  Canonical character viewBox
+
+### *class* an.stage.rig.RigModel(\*\*data)
+
+Bases: `BaseModel`
+
+Common config: forward-compatible reads, strict writes.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.stage.rig.Skin(\*\*data)
+
+Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
+
+A named outfit/variant: maps slot → {attachment_name → Attachment}.
+
+```pycon
+>>> skin = Skin(name="default", slots={"mouth": {"mouth_a": Attachment(path="parts/mouth/mouth_a.svg")}})
+>>> skin.slots["mouth"]["mouth_a"].path
+'parts/mouth/mouth_a.svg'
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.stage.rig.Slot(\*\*data)
+
+Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
+
+A draw-order slot bound to a bone, displaying one attachment at a time.
+
+```pycon
+>>> s = Slot(name="mouth", bone="head", draw_order=7, attachment="mouth_x")
+>>> s.attachment
+'mouth_x'
+```
+
+#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Default attachment name; the active attachment can change at runtime
+via animation tracks targeting `slot:<name>.attachment`.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.stage.rig.attachment_box(width, height, art)
+
+The box a part draws in, in view_box units: the declared size wins, the
+art’s aspect is kept (an#220).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> attachment_box(None, None, (40, 20))       # the art's own extent
+(40.0, 20.0)
+>>> attachment_box(120, None, (40, 20))        # width declared: height follows
+(120.0, 60.0)
+>>> attachment_box(None, 30, (40, 20))
+(60.0, 30.0)
+>>> attachment_box(120, 120, (40, 20))         # both: contained, never stretched
+(120.0, 60.0)
+>>> attachment_box(120, 90, None)              # unmeasurable art: the box as declared
+(120.0, 90.0)
+>>> attachment_box(120, None, None) is None    # nothing to take the aspect from
+True
+```
+
+### an.stage.rig.drawn_attachment(desc, skin, slot)
+
+The `(name, attachment)` a slot draws by default, or `None`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stage.rig.primary_slot_per_bone(desc)
+
+`{bone name: the slot that IS that bone}`, when one exists.
+
+Used for node nesting, which is deliberately **not** the bone hierarchy.
+The rigs here are flat by design — arms are siblings of the torso, not
+children (CLAUDE.md pillar 4) — so bone parentage decides *position* only.
+A slot nests under the primary slot of its bone when it is not that slot
+itself, which is what puts eyes and mouth under `head` and leaves every
+limb a direct child of the entity.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> primary_slot_per_bone(NS(slots=[NS(name="head", bone="head"), NS(name="mouth", bone="head")]))["head"]
+'head'
+```
+
+
 # _autosummary/an.stage.runtime.html.md
 
 # an.stage.runtime
@@ -34394,7 +27628,7 @@ Map of asset id → AssetJSON, split by kind.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.stage.serialize.BUILTIN_VISUAL_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sprite', 'rect', 'ellipse', 'mouth', 'eye', 'svg_sprite', 'path')*
+### an.stage.serialize.BUILTIN_VISUAL_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sprite', 'rect', 'ellipse', 'svg_sprite', 'path')*
 
 The visual kinds `runtime.js` draws itself. Any other kind must be
 registered by a genre’s runtime script (an#247), or it draws as a rect.
@@ -34493,6 +27727,16 @@ its compiled document, the bench’s scene contract, must not move.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### spaces *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+The definition of each space `entity_spaces` names, in the timing
+contract’s `kinds.json` form (`PropertySpace.to_json`), so the
+document is self-describing: `runtime.js` has no registry and evaluates
+a declared entity’s targets by THESE field kinds and write groups
+(an#287), and [`an.timing.timeline.timeline_from_compiled()`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled) reads the
+same definitions back. **Serialized only when non-empty** (it is empty
+exactly when `entity_spaces` is).
 
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -36374,7 +29618,9 @@ exposes only the `"main"` key. Future versions can support multi-scene
 projects by promoting siblings inside a `scenes/` directory.
 
 Reading returns a `SceneIR`. Writing accepts a `SceneIR` (or a dict that
-validates as one) and persists both the JSON and the regenerated Markdown.
+validates as one) and persists the JSON and the Markdown – the Markdown UPDATED
+rather than regenerated (an#275): unchanged content leaves the author’s file as it
+was, and a change rewrites only the blocks it touches (`an.ir.sync.merge_markdown`).
 
 ### Functions
 
@@ -36580,7 +29826,7 @@ word was reserved for.
 
 **A pack recolours SVG art only where the art says what its colours are.**
 The character factory records, per part, which literal it drew as which role
-(`CharacterDescriptor.colour_roles`, see [`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)),
+(`CharacterDescriptor.colour_roles`, see `an.characters.colour_roles`),
 and the compiler rewrites exactly those literals into a new, content-addressed
 inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left
 alone and the compiler warns once, naming it: a pack would otherwise have to
@@ -36799,6 +30045,32 @@ which is what keeps a scene with no pack byte-identical.
 `{entity id: SurfaceTreatment}` — per-entity, key-by-key override of
 `surface`.
 
+#### gradient_for(role)
+
+The pack’s gradient for `role`, or `None` (the plane keeps its own paint).
+
+* **Return type:**
+  [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> pack = StylePack(name="reiniger", gradients={"glass": {
+...     "type": "radial", "stops": ["#fff4d6", "#e0a050"]}})
+>>> pack.gradient_for("glass").type, pack.gradient_for("sky"), pack.gradient_for(None)
+('radial', None, None)
+```
+
+#### gradients *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Gradient](_autosummary/an.paint.html.md#an.paint.Gradient)]*
+
+`{role: Gradient}`. A stage plane that
+names a `role` (`PlaneArt.role`) is drawn with the pack’s gradient
+for it – how a style paints every environment’s backdrop as backlit
+glass or a dusk sky without editing the environments. Role names are the
+environments’ own, so they are free-form; a role no plane names simply
+paints nothing in that scene.
+
+* **Type:**
+  **Gradient roles** (an#275)
+
 #### grain *: [Grain](_autosummary/an.styles.html.md#an.styles.Grain) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 One static paper grain over the frame; `None` = none.
@@ -36841,7 +30113,7 @@ to store.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
+### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': "cutan's runtime script \`_LIP_COLOR\`, drawn by makeMouth and never read from the document", 'mouth_fill': "cutan's runtime script \`_MOUTH_FILL\`", 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
 
 Roles a pack must NOT declare, with what makes each unreachable. These are
 `runtime.js` literals: `_LIP_COLOR`, `_MOUTH_FILL`, `_TEETH_COLOR`,
@@ -39451,6 +32723,7 @@ without touching these functions, so they stay plain Python.
 | [`init`](_autosummary/an.tools.html.md#an.tools.init)(project_dir[, name, force, id, genre, ...]) | Create a fresh an project at `project_dir` — or, with --id, at the default location. |
 | [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
 | [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
+| [`registered_namespaces`](_autosummary/an.tools.html.md#an.tools.registered_namespaces)()                          | The sub-namespaces installed genres added (`cli.<namespace>` services).              |
 | [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
 | [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir[, accept_measured])             | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
 | [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
@@ -39607,7 +32880,19 @@ no_browser: don’t auto-open the default browser
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
+### an.tools.registered_namespaces()
+
+The sub-namespaces installed genres added (`cli.<namespace>` services).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]
+
+```pycon
+>>> registered_namespaces() == {} or all(isinstance(v, list) for v in registered_namespaces().values())
+True
+```
+
+### an.tools.render(project_dir, output_name='main', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
 Render the project at `project_dir` to a single mp4.
 
@@ -39623,10 +32908,16 @@ holds them all).
 
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
-tts: TTS provider — “offline” (silent) or “elevenlabs” (needs ELEVEN_API_KEY)
-lipsync: lip-sync provider — “offline” (deterministic), “rhubarb”
+tts: TTS provider for EVERY line — “offline” (silent), “elevenlabs” (needs
 
-> (needs the rhubarb binary), or “whisper” (needs faster-whisper)
+> ELEVEN_API_KEY) or “mac_say”. Omitted (the default): each voice’s own
+> `provider` speaks its lines, a voice naming none is offline, and what a
+> paid provider will bill is printed before the first request. A line
+> spoken by another provider than its voice declares is a finding (an
+> error under –strict-assets)
+
+lipsync: lip-sync provider — “offline” (deterministic), “rhubarb”
+: (needs the rhubarb binary), or “whisper” (needs faster-whisper)
 
 parallel: per-shot concurrency. “” or “1” = serial (default); “auto” =
 : min(shots, cpu, 4); a number ≥ 2 caps the thread pool.
@@ -39728,7 +33019,6 @@ already in `sys.modules`.
 | [`HumanInTheLoopVerifier`](_autosummary/an.verify.html.md#an.verify.HumanInTheLoopVerifier)(\*[, prompt])            | Open the mp4, prompt the user to approve.      |
 | [`MediaQualityVerifier`](_autosummary/an.verify.html.md#an.verify.MediaQualityVerifier)(\*[, max_db_floor, ...])   | Post-render quality checks.                    |
 | [`VisionLMVerifier`](_autosummary/an.verify.html.md#an.verify.VisionLMVerifier)(\*[, model, frame_count, ...]) | Claude vision Verifier (skip-if-missing-deps). |
-| `StyleLintVerifier`(spec_or_targets, \*[, ...])                                                  | Compare a render to a style spec's `targets`.  |
 
 ### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None, location=None)
 
@@ -39801,14 +33091,13 @@ object, differing only in what the store returns.
 
 ### Modules
 
-| [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                               |
-|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                              |
-| [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                         |
-| [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                                 |
-| [`prosody`](_autosummary/an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.         |
-| [`style`](_autosummary/an.verify.style.html.md#module-an.verify.style)                 | Style lint: measure a render's cadence, cut rate and palette, and compare them to a style's targets. |
-| [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                         |
+| [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
+|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |
+| [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
+| [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |
+| [`prosody`](_autosummary/an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check. |
+| [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                 |
 
 
 # _autosummary/an.verify.human.html.md
@@ -40010,7 +33299,7 @@ Prosody measurement: how a recorded voice delivers its words, as numbers a targe
 “Read it like a deadpan narrator” is only checkable if the delivery is a set of
 numbers. This module measures one spoken clip — a synthesized dialogue line, a
 narration take, a reference recording studied privately — and compares the
-measurement to `[low, high]` targets, the way [`an.verify.style`](_autosummary/an.verify.style.html.md#module-an.verify.style) does for
+measurement to `[low, high]` targets, the way `an.verify.style` does for
 a render’s cadence. It knows nothing about characters, faces or genres: any
 narrated video (cut-out, data-viz, math-viz) has a voice to measure.
 
@@ -40315,306 +33604,6 @@ an.verify.prosody.ProsodyTargetError: prosody target 'f0_sd_st' must be [low, hi
 ```
 
 
-# _autosummary/an.verify.style.html.md
-
-# an.verify.style
-
-Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
-
-“Make it in the style of X” is only checkable if X is a set of numbers. The
-cut-out styles research (`misc/docs/cutout_styles_research.md`) measured six
-styles with one fixed set of statistics; this module is that measurement,
-ported, so an agent can render, measure the same statistics on its own output,
-and adjust. The style specs that carry the `targets` live with the downstream
-skill (`.claude/skills/an-style/styles/*.yaml`).
-
-\*\*The estimators are the research’s estimators, on purpose — with one
-measured exception.\*\* Every threshold below is the one the six styles were
-measured with, including the ones that are crude (a noise floor at the 10th
-percentile of frame differences, a cut as a colour-histogram jump). A better
-estimator measures a different quantity from the one the targets were
-calibrated on, and a render would then pass or miss for a reason nobody
-measured. Change an estimator only together with re-measuring the targets: the
-local-change rule (an#255) did, and the cadence targets of every style spec
-were re-measured on the six study clips with it (the table in
-`misc/docs/cutout_styles_research.md` §3). `min_changed_pixels=0` is the
-research’s original estimator, unchanged.
-
-What is measured (see [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) for the vocabulary a spec’s `targets`
-may use):
-
-- **Holds and cadence.** A frame “changes” when its mean absolute grey
-  difference from the previous frame exceeds `max(0.25, 2.5 × p10)`, where
-  p10 is the clip’s own 10th-percentile difference (compression noise, capped
-  at 1.0 — see `NOISE_FLOOR_CAP`), **or** when at least
-  `MIN_CHANGED_PIXELS` of its pixels moved by more than
-  `PIXEL_CHANGE_DELTA` grey levels — a change measured on the area of
-  > the moving part, not the whole frame (an#255): a frame-wide mean cannot see
-  > a stick figure’s shrug or a blink in a close-up, whose few changed pixels
-  > average to nothing. From
-  > that: the share of frames identical to the previous one, pose changes per
-  > second, and the histogram of gaps between successive changes (one frame = on
-  > ones, two = on twos, three or more = threes and holds, gaps above 12 frames
-  > ignored as holds rather than cadence).
-- **Cuts and shot length.** For an `an` render the cuts are KNOWN — every shot
-  boundary in the IR is a hard cut, because shots are concatenated — so the
-  verifier takes them from the IR. Without an IR (any mp4), a cut is a frame
-  whose 8×8×8 colour-histogram L1 distance exceeds 0.6 and whose mean
-  difference exceeds 8; dissolves and morphs are missed, so on such footage the
-  count is a floor.
-- **Palette.** Mean HSV saturation, the share of dark pixels (every channel
-  below 60, an outline proxy), and the coverage of the 16 most common colours
-  after 4-bit quantisation (flatness), all on every 15th frame.
-
-Not ported, deliberately: the research also measured global camera motion
-(`cv2.phaseCorrelate`) and a k-means palette. Both need OpenCV or
-scikit-learn, and this module adds no dependency — numpy and the ffmpeg binary
-are already what `an.verify.media` uses.
-
-A pure function over frames — [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) — is the core, so it is
-testable without ffmpeg:
-
-```pycon
->>> import numpy as np
->>> still = np.zeros((4, 8, 8, 3), np.uint8)
->>> frames = np.concatenate([still, still + 200, still + 200, still])  # 16 frames, changes at 4 and 12
->>> m = measure_style(frames, fps=4.0, shot_durations=[4.0])
->>> m.identical_frame_share, m.pose_changes_per_s
-(0.867, 0.5)
-```
-
-A target is a `[low, high]` range; a miss is a warning naming the knob that
-moves it:
-
-```pycon
->>> findings = check_targets(m, {"identical_frame_share": [0.2, 0.5]})
->>> findings[0].severity, findings[0].ir_path
-('warning', '<style>/identical_frame_share')
->>> check_targets(m, {"identical_frame_share": [0.5, 0.9]})
-[]
-```
-
-A target nothing measures is refused, not ignored — a spec that silently checks
-less than it says is worse than one that fails to load:
-
-```pycon
->>> check_targets(m, {"camera_shake": [0, 1]})
-Traceback (most recent call last):
-...
-ValueError: unknown style target 'camera_shake'; measurable targets are [...]
-```
-
-### Module Attributes
-
-| [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS)      | every key a spec's `targets` may use, and what it is.                                                |
-|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| [`SHOT_METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.SHOT_METRICS) | the cadence ones, which a single static shot (a date card, a held map) can swing for the whole clip. |
-
-### Functions
-
-| [`measure_style`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style)(frames, \*, fps[, ...])         | Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.                      |
-|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [`measure_shots`](_autosummary/an.verify.style.html.md#an.verify.style.measure_shots)(frames, \*, fps[, ...])         | Per-shot cadence ([`SHOT_METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.                           |
-| [`measure_video`](_autosummary/an.verify.style.html.md#an.verify.style.measure_video)(mp4, \*[, shot_durations, ...]) | Decode `mp4` at the research's scale and [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) it.                             |
-| [`film_shots`](_autosummary/an.verify.style.html.md#an.verify.style.film_shots)(scene)                             | `(shot id, seconds on screen)` per shot of an `an` render, in order.                                                                      |
-| [`project_of_render`](_autosummary/an.verify.style.html.md#an.verify.style.project_of_render)(mp4)                        | The project directory an `an` render sits in — `<project>/output/x.mp4` beside `<project>/ir/scene.json` — or `None` for any other video. |
-| [`check_targets`](_autosummary/an.verify.style.html.md#an.verify.style.check_targets)(metrics, targets, \*[, ...])    | One `Finding` per target the metrics miss; `[]` when all hit.                                                                             |
-| [`load_style_spec`](_autosummary/an.verify.style.html.md#an.verify.style.load_style_spec)(spec)                         | A style spec as a dict: a mapping is passed through, a path is read as YAML.                                                              |
-| [`style_lint`](_autosummary/an.verify.style.html.md#an.verify.style.style_lint)(mp4, spec_or_targets, \*[, ...])   | Measure `mp4` and compare it to a style spec's `targets`.                                                                                 |
-
-### Classes
-
-| [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)(fps, frames, duration_s, ...)    | The statistics [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) names, measured on one clip.               |
-|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| [`StyleLintResult`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintResult)(metrics, report[, per_shot])  | What one lint run measured, and what it found.                                                                     |
-| [`StyleLintVerifier`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintVerifier)(spec_or_targets, \*[, ...]) | Compare a render to a style spec's `targets`.                                                                      |
-| [`ShotMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.ShotMetrics)(shot, start_s, duration_s, ...)   | The cadence of one shot, measured with the WHOLE clip's change threshold so a shot's numbers add up to the clip's. |
-
-### an.verify.style.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'cuts_per_min': 'hard cuts per minute', 'dark_pixel_share': 'share of pixels with every channel below 60', 'identical_frame_share': 'share of frames identical to the previous one (holds)', 'max_hold_frames': 'longest run of identical frames', 'mean_saturation': 'mean HSV saturation, 0..1', 'mean_shot_s': 'mean shot length in seconds', 'one_frame_interval_share': 'share of change gaps of one frame (on ones)', 'pose_changes_per_s': 'changed frames per second', 'three_plus_interval_share': 'share of change gaps of three to twelve frames', 'top16_colour_coverage': 'coverage of the 16 commonest 4-bit colours (flatness)', 'two_frame_interval_share': 'share of change gaps of two frames (on twos)'}*
-
-every key a spec’s `targets` may use, and what it is.
-
-* **Type:**
-  The target vocabulary
-
-### an.verify.style.SHOT_METRICS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('identical_frame_share', 'pose_changes_per_s', 'one_frame_interval_share', 'two_frame_interval_share', 'three_plus_interval_share', 'max_hold_frames')*
-
-the cadence ones, which a single static shot (a date
-card, a held map) can swing for the whole clip.
-
-* **Type:**
-  The per-shot statistics
-
-### *class* an.verify.style.ShotMetrics(shot, start_s, duration_s, frames, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-The cadence of one shot, measured with the WHOLE clip’s change
-threshold so a shot’s numbers add up to the clip’s.
-
-### *class* an.verify.style.StyleLintResult(metrics, report, per_shot=<factory>)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-What one lint run measured, and what it found.
-
-`per_shot` is the cadence of each shot ([`ShotMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.ShotMetrics)) — the
-breakdown that finds which shot is holding a whole clip’s share up (a
-static date card is 90% identical frames on its own).
-
-### *class* an.verify.style.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Compare a render to a style spec’s `targets`. Implements `Verifier`.
-
-Shot boundaries come from the IR (every shot boundary is a cut in an `an`
-render, and a dissolve’s overlap is accounted for), so `cuts_per_min` and
-`mean_shot_s` are exact rather than detected. Pre-render
-(`render is None`) it reports `info` and passes: it has nothing to
-measure yet.
-
-### *class* an.verify.style.StyleMetrics(fps, frames, duration_s, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames, cuts, cuts_per_min, mean_shot_s, mean_saturation, dark_pixel_share, top16_colour_coverage, cut_source, change_threshold)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-The statistics [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) names, measured on one clip.
-
-#### cut_source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-`"shots"` (a shot list, exact) or `"pixels"`.
-
-* **Type:**
-  Where the cuts came from
-
-### an.verify.style.check_targets(metrics, targets, , miss_severity='warning', live=None)
-
-One `Finding` per target the metrics miss; `[]` when all hit.
-
-`live` is the style spec’s `live` section. Given, each suggested fix
-respects it — a style that sets `step_hz` is never told to drop it, one
-that leaves it unset is never told to set it:
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]
-
-```pycon
->>> m = measure_style(np.zeros((8, 4, 4, 3), np.uint8), fps=8.0, shot_durations=[1.0])
->>> (f,) = check_targets(m, {"identical_frame_share": [0.5, 0.7]},
-...                      live={"meta": {"fps": 24, "step_hz": 12}})
->>> "drop `step_hz`" in f.suggested_fix, "keep `step_hz` at the style's 12" in f.suggested_fix
-(False, True)
-```
-
-Raises `ValueError` for a target [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) does not name, or a range
-that is not `[low, high]` with `low <= high`.
-
-### an.verify.style.film_shots(scene)
-
-`(shot id, seconds on screen)` per shot of an `an` render, in order.
-
-What the lint needs to place the cuts exactly. It is the shot durations,
-except where a dissolve overlaps two shots: the film is that much shorter
-than their sum ([`an.assemble.film_timeline()`](_autosummary/an.assemble.html.md#an.assemble.film_timeline)), and each shot is
-counted from where its frames start in the film.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
-```pycon
->>> from an.ir.schema import Shot, Transition
->>> film_shots(SceneIR(timeline=[
-...     Shot(id="a", duration=2.0),
-...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))
-[('a', 1.5), ('b', 2.0)]
-```
-
-### an.verify.style.load_style_spec(spec)
-
-A style spec as a dict: a mapping is passed through, a path is read as YAML.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None, min_changed_pixels=8)
-
-Per-shot cadence ([`SHOT_METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.
-
-The shots are `shot_durations` (seconds, in order) when given, else the
-pixel cut detector’s. The step INTO each shot is the cut, not a pose
-change, so it belongs to no shot. A one-frame shot has no step of its own
-and measures as all-identical.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ShotMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.ShotMetrics)]
-
-```pycon
->>> import numpy as np
->>> still = np.zeros((4, 8, 8, 3), np.uint8)
->>> moving = np.stack([still[0] + 10 * i for i in range(4)])
->>> rows = measure_shots(np.concatenate([still, moving]), fps=4.0,
-...                      shot_durations=[1.0, 1.0], shot_ids=["card", "map"])
->>> [(r.shot, r.identical_frame_share) for r in rows]
-[('card', 1.0), ('map', 0.0)]
-```
-
-### an.verify.style.measure_style(frames, , fps, shot_durations=None, min_changed_pixels=8)
-
-Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.
-
-`shot_durations` (seconds, in order) gives the cuts exactly; without it the
-pixel cut detector is used. Ratios are rounded to three decimals.
-`min_changed_pixels` is the local-change rule’s size (`0`: the research’s
-frame-wide estimator alone, which the targets were first measured with).
-
-* **Return type:**
-  [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)
-
-```pycon
->>> import numpy as np
->>> f = np.zeros((6, 4, 4, 3), np.uint8)
->>> f[1::2] = 255                       # a change on every frame
->>> m = measure_style(f, fps=6.0, shot_durations=[1.0])
->>> m.identical_frame_share, m.one_frame_interval_share, m.cuts
-(0.0, 1.0, 0)
-```
-
-### an.verify.style.measure_video(mp4, , shot_durations=None, width=320, height=180)
-
-Decode `mp4` at the research’s scale and [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) it.
-
-* **Return type:**
-  [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)
-
-### an.verify.style.project_of_render(mp4)
-
-The project directory an `an` render sits in — `<project>/output/x.mp4`
-beside `<project>/ir/scene.json` — or `None` for any other video.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.verify.style.style_lint(mp4, spec_or_targets, , shot_durations=None, scene=None, miss_severity='warning')
-
-Measure `mp4` and compare it to a style spec’s `targets`.
-
-The cuts are exact when the shots are known: pass `scene` (a project
-directory, a `scene.json`, or a `SceneIR`; dissolve overlaps are
-accounted for) or `shot_durations`. Without either, cuts are detected
-from pixels, which misses a cut between two shots on the same backdrop and
-every dissolve — the lint says so in its report.
-
-Suggested fixes respect the spec’s `live` settings ([`check_targets()`](_autosummary/an.verify.style.html.md#an.verify.style.check_targets)).
-
-A decode or probe failure is reported at
-[`an.verify.vision.FAILURE_SEVERITY`](_autosummary/an.verify.vision.html.md#an.verify.vision.FAILURE_SEVERITY), never as `info` — a lint that
-could not run must not read as a clean one. A malformed spec raises: that is
-the caller’s error, not the video’s.
-
-* **Return type:**
-  [`StyleLintResult`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintResult)
-
-
 # _autosummary/an.verify.vision.html.md
 
 # an.verify.vision
@@ -40753,7 +33742,8 @@ True
 Name the emotion a frame (or short strip) shows, or `None` if the
 reply named nothing in `labels` (an#98).
 
-`labels` defaults to every preset in [`an.expression`](_autosummary/an.expression.html.md#module-an.expression). `judge` is
+`labels` defaults to every expression preset the loaded genre knows (the
+`expression.known_presets` service; `cutan` in practice). `judge` is
 the `judge_frames`-shaped seam; parsing stays outside the recording.
 
 * **Return type:**
@@ -40835,7 +33825,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 23:47 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/4ca55fd2e32a96969fdf43e2382d4ce09ef1ffa8"><code>4ca55fd</code></a> on branch <code>main</code>, for **an 0.1.154** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-02 04:05 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b71ea7f3600254caae5f66a2def8ada4529043a8"><code>b71ea7f</code></a> on branch <code>main</code>, for **an 0.1.155** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -40844,9 +33834,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/4ca55fd2e32a96969fdf43e2382d4ce09ef1ffa8"><code>4ca55fd2e32a96969fdf43e2382d4ce09ef1ffa8</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/b71ea7f3600254caae5f66a2def8ada4529043a8"><code>b71ea7f3600254caae5f66a2def8ada4529043a8</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.154</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.155</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -40855,9 +33845,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36941802338">36941802338</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36962654403">36962654403</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>d759f441bacc4ee5c578bd06b5fa18a611f8821d</code> (in the history of the built commit) |
+| Event commit | <code>5d79cff83e6f78884a7c879d996af92d20608582</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -40882,13 +33872,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.154/">0.1.154</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.155/">0.1.155</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 4ca55fd2e32a96969fdf43e2382d4ce09ef1ffa8
+git checkout b71ea7f3600254caae5f66a2def8ada4529043a8
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -40918,7 +33908,7 @@ Source: [`.claude/skills/an`](https://github.com/thorwhalen/an/tree/HEAD/.claude
 
 ### `an-art-package`
 
-The artist-facing contract for an `an` character — folder layout, the skeleton, required parts, slot and attachment conventions, licence fields — and how to check a delivery offline before anyone is paid for it. Use when commissioning, reviewing, receiving, or authoring character art; when writing a brief for an illustrator; or when `an character validate` reports something. Triggers on “art package”, “commission a character”, “the artist delivered”, “character contract”, “brief for an illustrator”, “an character validate”, “an character contract”, “rig an SVG”, “skeleton”, “pivots”.
+Moved to the `cutan-art-package` skill in the cutan repository (an#225). Use `cutan-art-package` for the artist-facing contract for a cut-out character and how to check a delivery. Triggers on the old name.
 
 Source: [`.claude/skills/an-art-package`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-art-package).
 
@@ -40936,7 +33926,7 @@ Source: [`.claude/skills/an-dev-bench`](https://github.com/thorwhalen/an/tree/HE
 
 ### `an-dev-expression`
 
-The facial expression vocabulary of the `an` repo — the axes and their ranges, additive-over-rest composition in the compile-time face solver, emotion × viseme by set selection, the `expression` leaf action and its dialogue sugar, gaze, baked-face refusal, and the licence boundary. Load before touching `an/expression/`, `_add_face_clips`, the `viseme@<preset>` sets, presets, `Dialogue.emotion`, brows, eyelids, pupils, or any demo/corpus scene that authors a face. Triggers on “expression”, “emotion”, “preset”, “gaze”, “saccade”, “brow”, “eyelid”, “pupil”, “face solver”, “blendshape”.
+Moved to the `cutan-dev-expression` skill in the cutan repository (an#225). Use `cutan-dev-expression` for the cut-out face: expression presets, bindings, blinks, gaze. Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-expression`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-expression).
 
@@ -40948,7 +33938,7 @@ Source: [`.claude/skills/an-dev-licensing`](https://github.com/thorwhalen/an/tre
 
 ### `an-dev-lipsync`
 
-Lip sync in the `an` repo — where co-articulation sits (in the compiler, over the provider’s raw track), the pass order (symbolic → lead → decay → a minimum hold that votes by dominance), the condenser that HOLDS and votes instead of dropping, the Rhubarb recognizer rule, word-timing retention and its cache rule, the alignment-model licence trap, and the two standing measurements. Load before touching `an/audio/*lipsync*`, `an/audio/pipeline.py`, `_add_viseme_clips`, `_LEGACY_MIN_VISEME_GAP_S`, `an/adapters/cutout/coarticulate.py`, any viseme test, or a dialogue corpus scene. Triggers on “lip sync”, “viseme”, “Rhubarb”, “whisper”, “word timings”, “co-articulation”, “condenser”, “aligner”.
+Moved to the `cutan-dev-lipsync` skill in the cutan repository (an#225). Use `cutan-dev-lipsync` for cut-out lip-sync: providers, visemes and coarticulation. Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-lipsync`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-lipsync).
 
@@ -40966,7 +33956,7 @@ Source: [`.claude/skills/an-dev-render-pipeline`](https://github.com/thorwhalen/
 
 ### `an-dev-rig-contract`
 
-How a character descriptor becomes a scene tree in the `an` repo — which fields are load-bearing, which are declared and dead, and the invariants that broke when they were ignored. Use when touching `_build_svg_character_subtree`, `an/characters/schema.py`, `extract_part`/`promote`, the descriptor→scene mapping, part sizing or placement, `viseme_map`/`asset_sets`, the character migration, or anything that decides what an illustrator’s art does on screen. Triggers on “the art doesn’t change anything”, “part is stretched”, “aspect ratio”, “bones”, “slots”, “skins”, “attachment”, “view_box”, “descriptor”, “rig”, “missing part”, “white rectangle”, “an character validate”.
+Moved to the `cutan-dev-rig-contract` skill in the cutan repository (an#225). Use `cutan-dev-rig-contract` for the cut-out rig contract: descriptor, skeleton, slots and skins. Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-rig-contract`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-rig-contract).
 
@@ -40984,7 +33974,7 @@ Source: [`.claude/skills/an-dev-stage`](https://github.com/thorwhalen/an/tree/HE
 
 ### `an-dev-swap-channels`
 
-How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing, view and every future set ride, plus whole-character swaps and `swap_poses` (an#197). Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on “swap channel”, “asset set”, “attachment swap”, “texture swap”, “viseme special case”, “the mouth doesn’t change”, “unknown swap key”, “add a hands set”, “turnaround”, “body_facing”, “eyelid”.
+Moved to the `cutan-dev-swap-channels` skill in the cutan repository (an#225). Use `cutan-dev-swap-channels` for whole-character swaps, `swap_poses`, and the view/eyelid/viseme conventions (the generic swap mechanism itself is in `an-dev-stage`). Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-swap-channels).
 
@@ -41002,7 +33992,7 @@ Source: [`.claude/skills/an-spec`](https://github.com/thorwhalen/an/tree/HEAD/.c
 
 ### `an-style`
 
-Use when the user wants a script or scene made “in the style of” a named cut-out animation look — South Park, OverSimplified, Kurzgesagt, Terry Gilliam / Monty Python, Lotte Reiniger silhouettes, Yuri Norstein / Hedgehog in the Fog — or asks what a style needs, how expensive it is, or whether a render looks like the style. Triggers on “in the style of”, “make it look like South Park”, “OverSimplified-style”, “Kurzgesagt look”, “silhouette film”, “Monty Python cut-outs”, “does this match the style”, “style lint”. Applies a style spec to an `an` scene, renders, measures the render against the spec’s targets, and adjusts.
+Moved to the `cutan-style` skill in the cutan repository (an#225). Use `cutan-style` for applying a named cut-out style (South Park, OverSimplified, Kurzgesagt, Gilliam, Reiniger, Norstein) to a scene and linting the render. Triggers on the old name.
 
 Source: [`.claude/skills/an-style`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-style).
 

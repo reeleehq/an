@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -713,7 +713,7 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="sd">"""Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).</span>
 
 <span class="sd">Every piece of art the cutout renderer drew was SVG, and the size probe said</span>
-<span class="sd">so: `an.characters.svg_utils.raster_size` parses its input as XML, so a PNG</span>
+<span class="sd">so: `svg_raster_size` parses its input as XML, so a PNG</span>
 <span class="sd">plate died in the compiler with ``ParseError: not well-formed (invalid token):</span>
 <span class="sd">line 1, column 0`` — the error a user sees for "I gave it a picture". Art carved</span>
 <span class="sd">out of footage, a scanned drawing, a photographed paper cut-out: those are</span>
@@ -755,6 +755,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xml.etree</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElementTree</span> <span class="k">as</span> <span class="n">ET</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"RASTER_SUFFIXES"</span><span class="p">,</span>
@@ -884,21 +885,85 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="kc">None</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_svg</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Parse ``source`` (path, file-like, or already-parsed ``ElementTree``)."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">source</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source</span><span class="p">))</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no SVG at </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unsupported svg source: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="c1">#: Attributes an SVG root may use to declare its rasterised size.</span>
+<span class="n">_SIZE_ATTRS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"width"</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">)</span>
+
+<span class="c1">#: Trailing units we accept on a width/height and ignore (SVG user units).</span>
+<span class="n">_UNIT_SUFFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"px"</span><span class="p">,</span> <span class="s2">"pt"</span><span class="p">,</span> <span class="s2">"cm"</span><span class="p">,</span> <span class="s2">"mm"</span><span class="p">,</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"pc"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strip_units</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Parse an SVG length, tolerating a unit suffix. Percentages are refused."""</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"%"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"percentage length </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> has no intrinsic size"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">_UNIT_SUFFIXES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">suffix</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">suffix</span><span class="p">)]</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">svg_raster_size</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the ``(width, height)`` an SVG declares for its own raster.</span>
+
+<span class="sd">    This is the size the browser rasterises the file at, which is what a</span>
+<span class="sd">    ``Sprite`` then scales — **not** the extent of the drawn art. The two differ</span>
+<span class="sd">    whenever `cutan.characters.svg_utils.extract_part` has cropped the viewBox while copying the</span>
+<span class="sd">    parent's dimensions, which is the defect behind #75.</span>
+
+<span class="sd">    Falls back to the viewBox extent when no ``width``/``height`` is declared,</span>
+<span class="sd">    matching the browser.</span>
+
+<span class="sd">    &gt;&gt;&gt; svg_raster_size('&lt;svg xmlns="http://www.w3.org/2000/svg" '</span>
+<span class="sd">    ...             'viewBox="0 0 10 20" width="100" height="100"/&gt;')</span>
+<span class="sd">    (100.0, 100.0)</span>
+<span class="sd">    &gt;&gt;&gt; svg_raster_size('&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 20"/&gt;')</span>
+<span class="sd">    (10.0, 20.0)</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">_parse_svg</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_SIZE_ATTRS</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">declared</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">_strip_units</span><span class="p">(</span><span class="n">declared</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">_strip_units</span><span class="p">(</span><span class="n">declared</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">view_box</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"viewBox"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">view_box</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"SVG declares neither width/height nor a viewBox"</span><span class="p">)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">view_box</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"malformed viewBox </span><span class="si">{</span><span class="n">view_box</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+
+
 <div class="viewcode-block" id="art_size">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.raster.html#an.stage.raster.art_size">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">art_size</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The size a piece of art rasterises at, whatever format it is.</span>
 
 <span class="sd">    SVG: its declared ``width``/``height`` (else its viewBox), as the browser</span>
-<span class="sd">    does — :func:`an.characters.svg_utils.raster_size`. Raster: its pixel size.</span>
+<span class="sd">    does — :func:`svg_raster_size`. Raster: its pixel size.</span>
 <span class="sd">    The ONE probe the compiler, the fidelity check and `an validate` share, so</span>
 <span class="sd">    none of them can size a PNG as if it were XML again.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">image_size</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.svg_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">raster_size</span>
-
-    <span class="k">return</span> <span class="n">raster_size</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">svg_raster_size</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div>
 
 
 

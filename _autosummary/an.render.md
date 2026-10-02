@@ -35,7 +35,7 @@ adapters and the same flow handles them.
 | [`RenderError`](#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
+### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'VoiceStandInWarning': 'voices spoken by another provider than they declare', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
 
 How `an render`’s summary heads each `kind` of finding, in this order; a
 kind not listed (another warning category) is headed by its own name, after.
@@ -77,7 +77,7 @@ Where a run’s process cannot be asked whether it lives (Windows), a run
 unfinished after this long is taken for one that crashed: otherwise it would
 shield every cache entry written since, from `an cache gc`, for ever.
 
-### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts='offline', lipsync='offline', language='en')
+### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts=None, lipsync='offline', language='en')
 
 The shot-cache entry ids a render of `project`’s CURRENT scene under
 these knobs would read — computed by the render’s own setup and the
@@ -145,7 +145,7 @@ share, and an agent may pass on) names no user, host folder or temp dir.
 'rendered in .'
 ```
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
 
 Lower-level: render a loaded `Project` to mp4.
 
@@ -232,7 +232,7 @@ from `render_reports/<output_name>.json`; `[]` before any render.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
 
@@ -247,10 +247,17 @@ shot afterwards from its `report` — the same summary is logged on the
 `an.build` logger. See [`render()`](#an.render.render).
 
 `tts` and `lipsync` may be provider name strings (`"offline"`,
-`"elevenlabs"`, `"rhubarb"`) or provider instances. Defaults are
-offline so no API keys are required. Switching providers triggers a
-re-synthesis on dialogue lines whose stamped audio_ref / viseme_ref
-no longer match the current configuration.
+`"elevenlabs"`, `"rhubarb"`) or provider instances. **\`\`tts\`\` defaults
+to each voice’s own provider** (an#305): a line whose voice document
+declares `provider: elevenlabs` is spoken by ElevenLabs — its cost
+announced before the first request, a cached line never billed — and a
+voice that declares none by the offline provider, so a project that
+declares no provider needs no API key and renders exactly as before. A
+`tts` given overrides every voice; a line spoken by another provider than
+its voice declares (`--tts offline` for an ElevenLabs voice: silence) is a
+finding, and refused under `strict_assets`. `lipsync` defaults to
+offline. Switching providers triggers a re-synthesis on dialogue lines whose
+stamped audio_ref / viseme_ref no longer match the current configuration.
 
 `parallel` controls per-shot concurrency:
 

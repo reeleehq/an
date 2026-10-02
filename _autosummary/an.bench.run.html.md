@@ -161,7 +161,7 @@ single frame, which the fixture rule forbids.
 * **Return type:**
   [`Value`](an.bench.ledger.html.md#an.bench.ledger.Value)
 
-### an.bench.run.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None)
+### an.bench.run.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None, root=None)
 
 Render the corpus, compute the panel, and (by default) write the row.
 
@@ -180,6 +180,9 @@ because without it a test of the bless path has no choice but to overwrite
 the committed corpus. That is not hypothetical: the first version of an#38’s
 bless test did exactly that, replacing a real bless record’s reason with the
 test’s own.
+
+`root` is the source checkout whose corpus `scenes` names (default: `an`’s
+own); a genre package runs its own corpus with its own checkout (`cutan.bench`).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)

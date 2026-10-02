@@ -9,6 +9,8 @@ an.audio.providers
    .. autosummary::
    
       DEFAULT_LANGUAGE
+      LIPSYNC_FACTORIES
+      DFLT_LIPSYNC
    
    .. rubric:: Functions
 
@@ -16,6 +18,7 @@ an.audio.providers
    
       known_lipsync_names
       known_tts_names
+      lipsync_factories
       make_lipsync
       make_tts
    

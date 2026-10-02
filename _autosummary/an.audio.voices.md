@@ -23,6 +23,12 @@ failing on a foreign voice id. Nothing declared anywhere
 resolves every line to `"default"` handed to the provider as `"default"` —
 exactly what the pipeline did before this module, so no cache key moves.
 
+The document’s `provider` also DECIDES who speaks the line when the render
+names no provider (an#305): [`declared_provider()`](#an.audio.voices.declared_provider) reads it, and
+[`an.audio.pipeline.tts_chooser()`](an.audio.pipeline.md#an.audio.pipeline.tts_chooser) turns it into the provider — so a voice
+written for ElevenLabs is spoken by ElevenLabs by a plain `an render`, and
+`--tts` is an override for every line.
+
 ```pycon
 >>> from an.ir.schema import AssetRef, Dialogue, Shot
 >>> shot = Shot(id="s", entities=[
@@ -40,6 +46,8 @@ exactly what the pipeline did before this module, so no cache key moves.
 >>> mall["voices"]["bob"] = {"provider": "elevenlabs", "voice_id": "abc123"}
 >>> provider_voice(mall, "bob", tts_name="elevenlabs"), provider_voice(mall, "bob", tts_name="mac_say")
 ('abc123', 'default')
+>>> declared_provider(mall, "bob"), declared_provider(mall, "carl_kid")
+('elevenlabs', None)
 ```
 
 ### Module Attributes
@@ -52,12 +60,13 @@ exactly what the pipeline did before this module, so no cache key moves.
 
 ### Functions
 
-| [`line_voice_id`](#an.audio.voices.line_voice_id)(line, shot, mall, \*[, default])   | The `voices`-store key `line` is spoken with (see the module doc).     |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`provider_voice`](#an.audio.voices.provider_voice)(mall, voice_id, \*[, tts_name])   | The provider voice `mall["voices"][voice_id]` names, or `None`.        |
-| [`speaker_voice_ref`](#an.audio.voices.speaker_voice_ref)(speaker, shot, mall)           | The voice the speaking character is bound to in `shot`, or `None`.     |
-| [`voice_applies`](#an.audio.voices.voice_applies)(doc, tts_name)                     | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`. |
-| [`voice_document`](#an.audio.voices.voice_document)(mall, voice_id)                   | `mall["voices"][voice_id]` when it is a mapping, else `{}`.            |
+| [`declared_provider`](#an.audio.voices.declared_provider)(mall, voice_id)              | The TTS provider `mall["voices"][voice_id]` is written for, lower-cased, or `None` when the voice declares none (or has no document).   |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`line_voice_id`](#an.audio.voices.line_voice_id)(line, shot, mall, \*[, default]) | The `voices`-store key `line` is spoken with (see the module doc).                                                                      |
+| [`provider_voice`](#an.audio.voices.provider_voice)(mall, voice_id, \*[, tts_name]) | The provider voice `mall["voices"][voice_id]` names, or `None`.                                                                         |
+| [`speaker_voice_ref`](#an.audio.voices.speaker_voice_ref)(speaker, shot, mall)         | The voice the speaking character is bound to in `shot`, or `None`.                                                                      |
+| [`voice_applies`](#an.audio.voices.voice_applies)(doc, tts_name)                   | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`.                                                                  |
+| [`voice_document`](#an.audio.voices.voice_document)(mall, voice_id)                 | `mall["voices"][voice_id]` when it is a mapping, else `{}`.                                                                             |
 
 ### an.audio.voices.CHARACTER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_ref'*
 
@@ -75,6 +84,21 @@ The key, in a voice document, naming the TTS provider it is written for.
 ### an.audio.voices.PROVIDER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_id'*
 
 The key, in a voice document, naming the TTS provider’s own voice.
+
+### an.audio.voices.declared_provider(mall, voice_id)
+
+The TTS provider `mall["voices"][voice_id]` is written for, lower-cased,
+or `None` when the voice declares none (or has no document).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> declared_provider({"voices": {"v": {"provider": " ElevenLabs "}}}, "v")
+'elevenlabs'
+>>> declared_provider({"voices": {"v": {"provider": ""}}}, "v") is None
+True
+```
 
 ### an.audio.voices.line_voice_id(line, shot, mall, , default='default')
 

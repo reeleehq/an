@@ -9,12 +9,19 @@ an.genres
    .. autosummary::
    
       ENTRY_POINT_GROUP
+      API_LEVEL
       IN_DISTRIBUTION_GENRES
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      require_api_level
+      hook_modules
+      register_service
+      require_service
+      service
+      services
       action_kind
       action_kind_names
       available
@@ -39,6 +46,7 @@ an.genres
       ActionKind
       CompilePass
       RuntimeScript
+      SwapDeclaration
       DialogueSugar
       EntityKind
       Genre
@@ -48,6 +56,8 @@ an.genres
 
    .. autosummary::
    
+      GenreAPILevelError
+      ServiceMissingError
       GenreError
       RegistryError
       UnregisteredKindError

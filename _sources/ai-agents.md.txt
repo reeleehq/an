@@ -19,7 +19,7 @@ Source: [`.claude/skills/an`](https://github.com/thorwhalen/an/tree/HEAD/.claude
 
 ### `an-art-package`
 
-The artist-facing contract for an `an` character — folder layout, the skeleton, required parts, slot and attachment conventions, licence fields — and how to check a delivery offline before anyone is paid for it. Use when commissioning, reviewing, receiving, or authoring character art; when writing a brief for an illustrator; or when `an character validate` reports something. Triggers on "art package", "commission a character", "the artist delivered", "character contract", "brief for an illustrator", "an character validate", "an character contract", "rig an SVG", "skeleton", "pivots".
+Moved to the `cutan-art-package` skill in the cutan repository (an#225). Use `cutan-art-package` for the artist-facing contract for a cut-out character and how to check a delivery. Triggers on the old name.
 
 Source: [`.claude/skills/an-art-package`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-art-package).
 
@@ -37,7 +37,7 @@ Source: [`.claude/skills/an-dev-bench`](https://github.com/thorwhalen/an/tree/HE
 
 ### `an-dev-expression`
 
-The facial expression vocabulary of the `an` repo — the axes and their ranges, additive-over-rest composition in the compile-time face solver, emotion × viseme by set selection, the `expression` leaf action and its dialogue sugar, gaze, baked-face refusal, and the licence boundary. Load before touching `an/expression/`, `_add_face_clips`, the `viseme@<preset>` sets, presets, `Dialogue.emotion`, brows, eyelids, pupils, or any demo/corpus scene that authors a face. Triggers on "expression", "emotion", "preset", "gaze", "saccade", "brow", "eyelid", "pupil", "face solver", "blendshape".
+Moved to the `cutan-dev-expression` skill in the cutan repository (an#225). Use `cutan-dev-expression` for the cut-out face: expression presets, bindings, blinks, gaze. Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-expression`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-expression).
 
@@ -49,7 +49,7 @@ Source: [`.claude/skills/an-dev-licensing`](https://github.com/thorwhalen/an/tre
 
 ### `an-dev-lipsync`
 
-Lip sync in the `an` repo — where co-articulation sits (in the compiler, over the provider's raw track), the pass order (symbolic → lead → decay → a minimum hold that votes by dominance), the condenser that HOLDS and votes instead of dropping, the Rhubarb recognizer rule, word-timing retention and its cache rule, the alignment-model licence trap, and the two standing measurements. Load before touching `an/audio/*lipsync*`, `an/audio/pipeline.py`, `_add_viseme_clips`, `_LEGACY_MIN_VISEME_GAP_S`, `an/adapters/cutout/coarticulate.py`, any viseme test, or a dialogue corpus scene. Triggers on "lip sync", "viseme", "Rhubarb", "whisper", "word timings", "co-articulation", "condenser", "aligner".
+Moved to the `cutan-dev-lipsync` skill in the cutan repository (an#225). Use `cutan-dev-lipsync` for cut-out lip-sync: providers, visemes and coarticulation. Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-lipsync`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-lipsync).
 
@@ -67,7 +67,7 @@ Source: [`.claude/skills/an-dev-render-pipeline`](https://github.com/thorwhalen/
 
 ### `an-dev-rig-contract`
 
-How a character descriptor becomes a scene tree in the `an` repo — which fields are load-bearing, which are declared and dead, and the invariants that broke when they were ignored. Use when touching `_build_svg_character_subtree`, `an/characters/schema.py`, `extract_part`/`promote`, the descriptor→scene mapping, part sizing or placement, `viseme_map`/`asset_sets`, the character migration, or anything that decides what an illustrator's art does on screen. Triggers on "the art doesn't change anything", "part is stretched", "aspect ratio", "bones", "slots", "skins", "attachment", "view_box", "descriptor", "rig", "missing part", "white rectangle", "an character validate".
+Moved to the `cutan-dev-rig-contract` skill in the cutan repository (an#225). Use `cutan-dev-rig-contract` for the cut-out rig contract: descriptor, skeleton, slots and skins. Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-rig-contract`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-rig-contract).
 
@@ -85,7 +85,7 @@ Source: [`.claude/skills/an-dev-stage`](https://github.com/thorwhalen/an/tree/HE
 
 ### `an-dev-swap-channels`
 
-How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing, view and every future set ride, plus whole-character swaps and `swap_poses` (an#197). Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on "swap channel", "asset set", "attachment swap", "texture swap", "viseme special case", "the mouth doesn't change", "unknown swap key", "add a hands set", "turnaround", "body_facing", "eyelid".
+Moved to the `cutan-dev-swap-channels` skill in the cutan repository (an#225). Use `cutan-dev-swap-channels` for whole-character swaps, `swap_poses`, and the view/eyelid/viseme conventions (the generic swap mechanism itself is in `an-dev-stage`). Triggers on the old name.
 
 Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-swap-channels).
 
@@ -103,7 +103,7 @@ Source: [`.claude/skills/an-spec`](https://github.com/thorwhalen/an/tree/HEAD/.c
 
 ### `an-style`
 
-Use when the user wants a script or scene made "in the style of" a named cut-out animation look — South Park, OverSimplified, Kurzgesagt, Terry Gilliam / Monty Python, Lotte Reiniger silhouettes, Yuri Norstein / Hedgehog in the Fog — or asks what a style needs, how expensive it is, or whether a render looks like the style. Triggers on "in the style of", "make it look like South Park", "OverSimplified-style", "Kurzgesagt look", "silhouette film", "Monty Python cut-outs", "does this match the style", "style lint". Applies a style spec to an `an` scene, renders, measures the render against the spec's targets, and adjusts.
+Moved to the `cutan-style` skill in the cutan repository (an#225). Use `cutan-style` for applying a named cut-out style (South Park, OverSimplified, Kurzgesagt, Gilliam, Reiniger, Norstein) to a scene and linting the render. Triggers on the old name.
 
 Source: [`.claude/skills/an-style`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-style).
 

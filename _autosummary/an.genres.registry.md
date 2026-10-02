@@ -45,6 +45,7 @@ False
 | [`entity_builders`](#an.genres.registry.entity_builders)(compiler)                         | `{entity kind: builder}` registered for `compiler`.                               |
 | `entity_kind`(name)                                                                                |                                                                                   |
 | `entity_kind_names`(\*[, owner])                                                                   |                                                                                   |
+| [`hook_modules`](#an.genres.registry.hook_modules)(\*[, exclude_owner])                 | The modules whose code the genres' registered hooks run, sorted and unique.       |
 | [`owners`](#an.genres.registry.owners)()                                          | Every owner with at least one entry, the core first.                              |
 | [`register_action_kind`](#an.genres.registry.register_action_kind)(kind, \*[, owner, replace])  | Register an action kind.                                                          |
 | [`register_check`](#an.genres.registry.register_check)(check, \*[, owner, replace])       | Register a semantic-validation check (run by `an.ir.validate.validate_semantic`). |
@@ -52,8 +53,12 @@ False
 | [`register_dialogue_sugar`](#an.genres.registry.register_dialogue_sugar)(sugar, \*[, owner, ...])  | Register `scene.md` dialogue sugar.                                               |
 | [`register_entity_kind`](#an.genres.registry.register_entity_kind)(kind, \*[, owner, replace])  | Register an entity kind (a value `AssetRef.kind` may take).                       |
 | [`register_runtime_script`](#an.genres.registry.register_runtime_script)(script, \*[, owner, ...]) | Register runtime code for an engine (a genre's visual kinds).                     |
+| [`register_service`](#an.genres.registry.register_service)(name, target, \*[, owner, ...])  | Register a named service a genre offers the core (an#225).                        |
+| [`require_service`](#an.genres.registry.require_service)(name, \*[, what, extra])          | The registered service `name`; a typed error naming the install when absent.      |
 | `restore`(state)                                                                                   |                                                                                   |
 | [`runtime_scripts`](#an.genres.registry.runtime_scripts)(engine)                           | The scripts registered for `engine`, by name (a stable order).                    |
+| [`service`](#an.genres.registry.service)(name[, default])                          | The registered service `name`, resolved, or `default` when none is.               |
+| [`services`](#an.genres.registry.services)(prefix)                                  | `{name without the prefix: resolved service}` for every service under `prefix`.   |
 | [`snapshot`](#an.genres.registry.snapshot)()                                        | The state of every table, for `restore()`.                                        |
 | [`unregister_owner`](#an.genres.registry.unregister_owner)(owner)                           | Remove every entry `owner` registered, from every table.                          |
 
@@ -66,14 +71,16 @@ False
 | [`EntityKind`](#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`RuntimeScript`](#an.genres.registry.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
 | [`SemanticCheck`](#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
+| [`SwapDeclaration`](#an.genres.registry.SwapDeclaration)(sets[, descriptor, ...])            | What one entity's descriptor declares for the stage compiler's swap vocabulary.                                                                                                                                                                              |
 
 ### Exceptions
 
 | [`RegistryError`](#an.genres.registry.RegistryError)                                | A registration is malformed or collides with one already made.   |
 |-----------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| [`ServiceMissingError`](#an.genres.registry.ServiceMissingError)                          | The core asked a genre for a service nobody registered.          |
 | [`UnregisteredKindError`](#an.genres.registry.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.              |
 
-### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1')
+### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='', version='1', lowering=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -94,6 +101,17 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
   `read_md(item, index=i) -> action` (`start:` already removed when
   `md_start`) and `write_md(action) -> dict` (without `start`).
   A kind with no `read_md` has no `scene.md` form.
+
+#### lowering *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+How the STAGE compiler turns an action of this kind into clips, for a kind
+that is not a plain tween or set (the cut-out `play`): an object with
+`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
+default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+and `clip(action, *, anim_id, vocab, fps, view)` – see
+[`an.stage.compile.ActionLowering`](an.stage.compile.md#an.stage.compile.ActionLowering). `None`: the compiler has
+nothing kind-specific to do. (an#225: this is how the compiler stops
+naming `play`.)
 
 #### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
@@ -189,7 +207,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1')
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -198,6 +216,37 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](an.timing.spaces.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The `kind` tag of the descriptor document `store` holds for this kind
+(`"CharacterDescriptor"`): what makes the validator treat the entity as a
+rig whose declared asset sets it can check (an#246).
+
+#### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+A missing `ref` is NOT an error because the compiler draws a placeholder
+instead; the genre reports it with its own (warning) check.
+
+#### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+an object with
+`missing_set_hint(prop) -> str` (appended to “names no declared asset
+set”) and `whole_entity(action, desc, prop, keys, entity_id, *, where,
+report, art_exists) -> bool` (judge a swap on the entity ITSELF; `True`
+when handled). `None`: the generic per-node rule only.
+
+* **Type:**
+  Extra swap-reference checks for this kind
+
+#### swap_declaration *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [SwapDeclaration](#an.genres.registry.SwapDeclaration) | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+what the entity’s descriptor
+declares for the stage compiler’s swap vocabulary (an#87). `None`: the
+kind declares nothing (its built nodes’ sets ARE its declaration).
+
+* **Type:**
+  `(entity, mall) -> SwapDeclaration | None`
 
 #### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
 
@@ -244,6 +293,24 @@ One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.
 called once per shot with `ctx.shot` set. Within a stage, checks run by
 `order` (then registration order), so a genre’s check lands exactly where
 it belongs in the report.
+
+### *exception* an.genres.registry.ServiceMissingError
+
+Bases: [`RegistryError`](#an.genres.registry.RegistryError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The core asked a genre for a service nobody registered.
+
+### *class* an.genres.registry.SwapDeclaration(sets, descriptor=None, art_exists=None, scale=1.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one entity’s descriptor declares for the stage compiler’s swap vocabulary.
+
+`sets` is `{set name: {KEY: attachment name}}` as declared;
+`descriptor` is the (migrated) document the declaration came from, kept
+for the kind’s own lowering; `art_exists` answers `rel_path -> art on
+disk` (`None` when the store cannot say); `scale` is the factor from the
+entity’s view box to scene pixels.
 
 ### *exception* an.genres.registry.UnregisteredKindError(what, name, , known=(), providers=(), where='')
 
@@ -304,6 +371,24 @@ The sugar registered for the bracket `opener`, or `None`.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`CompilePass`](#an.genres.registry.CompilePass)]
 
+### an.genres.registry.hook_modules(, exclude_owner='an')
+
+The modules whose code the genres’ registered hooks run, sorted and unique.
+
+Compile passes, lowerings, entity hooks, checks, services and runtime scripts
+of every owner but `exclude_owner` (the core’s own are walked from the
+renderer already). The shot cache’s code key starts its walk here for the
+packages outside `an`, so a change to a genre’s code changes the key
+(an#294): the genre is reached by REGISTRATION, not by an import from `an`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> isinstance(hook_modules(), tuple)
+True
+```
+
 ### an.genres.registry.owners()
 
 Every owner with at least one entry, the core first.
@@ -363,12 +448,57 @@ Register runtime code for an engine (a genre’s visual kinds).
 * **Return type:**
   [`RuntimeScript`](#an.genres.registry.RuntimeScript)
 
+### an.genres.registry.register_service(name, target, , owner='an', replace=False)
+
+Register a named service a genre offers the core (an#225).
+
+The seam for the places where the core needs a genre’s code only when that
+genre is installed: a CLI namespace (`cli.character`), a provider factory
+(`lipsync.offline`), a licence lookup. `target` is the object itself or
+`"module:attr"` (imported on first use, so declaring a service imports no
+engine). The names a genre may use are the core’s contract, listed with
+their callers in `misc/docs/architecture_as_built.md`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.genres.registry.require_service(name, , what='', extra='cutout')
+
+The registered service `name`; a typed error naming the install when absent.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.genres.registry.runtime_scripts(engine)
 
 The scripts registered for `engine`, by name (a stable order).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`RuntimeScript`](#an.genres.registry.RuntimeScript), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.registry.service(name, default=None)
+
+The registered service `name`, resolved, or `default` when none is.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> service("no.such.service") is None
+True
+```
+
+### an.genres.registry.services(prefix)
+
+`{name without the prefix: resolved service}` for every service under `prefix`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> services("no.such.")
+{}
+```
 
 ### an.genres.registry.snapshot()
 

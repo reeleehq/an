@@ -17,6 +17,7 @@ an.audio.voices
 
    .. autosummary::
    
+      declared_provider
       line_voice_id
       provider_voice
       speaker_voice_ref

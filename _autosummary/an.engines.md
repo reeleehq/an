@@ -118,7 +118,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](an.characters.md#an.characters.Attachment.width), height)
+  The DECLARED ([*width*](an.stage.rig.md#an.stage.rig.Attachment.width), height)
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 

@@ -15,6 +15,7 @@ an.engines.conformance
    .. autosummary::
    
       as_contract_state
+      case_document
       conformance_report
       readback_mismatches
       vector_cases

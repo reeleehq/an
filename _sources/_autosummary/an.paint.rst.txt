@@ -1,0 +1,25 @@
+an.paint
+========
+
+.. automodule:: an.paint
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_GRADIENT_ANGLE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      rgba_of
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Gradient
+      GradientStop
+   

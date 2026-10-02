@@ -28,11 +28,12 @@ Two protocols live here:
 
 ### Classes
 
-| [`LipSyncProvider`](#an.audio.lipsync.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.             |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| [`Viseme`](#an.audio.lipsync.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                         |
-| [`VisemeTrack`](#an.audio.lipsync.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider. |
-| [`WordTimingProvider`](#an.audio.lipsync.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.               |
+| [`LipSyncProvider`](#an.audio.lipsync.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                               |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`NullLipSync`](#an.audio.lipsync.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
+| [`Viseme`](#an.audio.lipsync.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                           |
+| [`VisemeTrack`](#an.audio.lipsync.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                   |
+| [`WordTimingProvider`](#an.audio.lipsync.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
 
 ### *class* an.audio.lipsync.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -53,6 +54,21 @@ Produce a viseme track for `audio` given its `transcript`.
 * **Return type:**
   [`VisemeTrack`](#an.audio.lipsync.VisemeTrack)
 
+### *class* an.audio.lipsync.NullLipSync
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The lip-sync provider of a core without a genre: no mouth shapes at all.
+
+A genre that animates mouths (`cutan`) registers real providers
+(`offline`, `rhubarb`, `whisper`); without one, a line’s audio is still
+synthesized and the track it gets is empty – nothing draws a mouth anyway.
+
+```pycon
+>>> NullLipSync().align(AudioClip(bytes_=b"", duration=0.5), "hi").duration
+0.5
+```
+
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -66,7 +82,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Aligned viseme sequence produced by a LipSyncProvider.
 
 `words` carries the word timings the provider aligned from, when it had
-any (whisper, [`WordTimingsLipSync`](an.audio.injectable_lipsync.html.md#an.audio.injectable_lipsync.WordTimingsLipSync));
+any (whisper, `WordTimingsLipSync`);
 `None` for providers that never see words (offline, Rhubarb — whose JSON
 is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know

@@ -8,6 +8,8 @@ an.audio.pipeline
 
    .. autosummary::
    
+      VOICE_TTS
+      DEFAULT_TTS_NAME
       TakeScorerFactory
       OVERRUN_TOLERANCE_S
       REROLL_ONLY_HINT
@@ -21,6 +23,7 @@ an.audio.pipeline
       default_lipsync
       default_tts
       dialogue_overruns
+      is_voice_tts
       produce_audio_for_dialogue
       produce_audio_for_scene
       retake_lines
@@ -28,7 +31,9 @@ an.audio.pipeline
       stamp_from_stores
       synthesis_options
       takes_cost_message
+      tts_chooser
       viseme_key
+      voice_stand_ins
    
    .. rubric:: Exceptions
 
@@ -38,4 +43,6 @@ an.audio.pipeline
       AudioPipelineError
       DialogueOverrunWarning
       TakeDigestWarning
+      VoiceStandInError
+      VoiceStandInWarning
    

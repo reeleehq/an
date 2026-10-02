@@ -41,7 +41,7 @@ Apply a free-text edit instruction. Returns an IterateResult.
 Thin re-export for consistency with the rest of the orchestrator surface;
 the real implementation lives in `an.iterate`.
 
-### an.orchestrate.orchestrate(project_dir, , output_name='main', verifiers=None, skip_render=False, tts='offline', lipsync='offline', parallel=None, language='en')
+### an.orchestrate.orchestrate(project_dir, , output_name='main', verifiers=None, skip_render=False, tts=None, lipsync='offline', parallel=None, language='en')
 
 Run the full pipeline. Returns a structured outcome.
 
@@ -60,8 +60,9 @@ to skip verification, or include `HumanInTheLoopVerifier()` to prompt.
 
 `tts` and `lipsync` accept either a provider name string or a
 provider instance — useful for callers (e.g. `muvid`) that want
-to inject a [`an.audio.WordTimingsLipSync`](an.audio.md#an.audio.WordTimingsLipSync) driven by their
-own alignment store, instead of letting `an` re-transcribe.
+to inject a `an.audio.WordTimingsLipSync` driven by their
+own alignment store, instead of letting `an` re-transcribe. `tts`
+defaults to each voice’s own provider (an#305), as `an render` does.
 
 * **Return type:**
   [`OrchestratorReport`](#an.orchestrate.OrchestratorReport)

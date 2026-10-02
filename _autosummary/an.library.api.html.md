@@ -520,6 +520,6 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> v = vocabulary(lib)
 >>> sorted(v)
 ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
->>> "limbs.legs" in v["capabilities"]
+>>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```

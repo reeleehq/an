@@ -8,7 +8,6 @@ an.ir.schema
 
    .. autosummary::
    
-      DFLT_EXPRESSION_BLEND_S
       CORE_ACTION_KINDS
       EXTENSION_TAG
       Action
@@ -33,13 +32,11 @@ an.ir.schema
       Captions
       DelayAction
       Dialogue
-      ExpressionAction
       ExtensionAction
       LoopAction
       Meta
       Narration
       ParallelAction
-      PlayAction
       Resolution
       SceneIR
       SequenceAction

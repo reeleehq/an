@@ -1,0 +1,20 @@
+an.stage.gradients
+==================
+
+.. automodule:: an.stage.gradients
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      GRADIENT_RASTER_MAX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gradient_svg
+      gradient_src
+      gradient_alias
+   

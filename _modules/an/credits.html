@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -803,10 +803,17 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_own_work_providers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The providers of the sources ``an`` writes on what it generates itself."""</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SYNTH_SOURCE</span>
 
     <span class="k">return</span> <span class="nb">frozenset</span><span class="p">({</span><span class="n">FACTORY_PROVIDER</span><span class="p">,</span> <span class="n">SYNTH_SOURCE</span><span class="o">.</span><span class="n">provider</span><span class="p">})</span>
+
+
+<span class="c1">#: The provider and licence the cut-out genre's character factory stamps on every</span>
+<span class="c1">#: part it draws itself (persisted in descriptors and the asset library: do not</span>
+<span class="c1">#: rename). Core vocabulary, because "``an``'s own generated work: nothing owed"</span>
+<span class="c1">#: is the credits report's rule; the factory (``cutan``) imports them from here.</span>
+<span class="n">FACTORY_PROVIDER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an character factory"</span>
+<span class="n">FACTORY_LICENSE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cc0-1.0"</span>
 
 
 <div class="viewcode-block" id="CreditsReport">
@@ -1592,7 +1599,6 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    descriptor counts as the factory's only when the record confirms it</span>
 <span class="sd">    (review-288 B1). Read fail-safe: unreadable is unconfirmed.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">generated_by</span>
 
     <span class="k">return</span> <span class="n">FACTORY_PROVIDER</span> <span class="ow">in</span> <span class="n">generated_by</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"sha256:"</span><span class="p">))</span>
@@ -1630,8 +1636,6 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    credits report lists what is OWED, and listing fifty generated parts per</span>
 <span class="sd">    character would bury the one carved head.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_LICENSE</span><span class="p">,</span> <span class="n">FACTORY_PROVIDER</span>
-
     <span class="c1"># Both fields: a record naming the factory but another licence is not the</span>
     <span class="c1"># factory's stamp — it is a claim, and is reported (and counted) as one.</span>
     <span class="k">return</span> <span class="p">(</span>
@@ -1802,35 +1806,16 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_reconstruct_legacy_source</span><span class="p">(</span><span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Recover provenance from a descriptor written before ``source`` existed.</span>
 
-<span class="sd">    **The users most at risk are the ones with no ``source`` field**, because</span>
-<span class="sd">    every character created before it existed used a CC BY default. Reporting</span>
-<span class="sd">    those as "no third-party assets recorded" is not an absence of information —</span>
-<span class="sd">    it is an affirmative, false compliance statement, made to exactly the people</span>
-<span class="sd">    who need the opposite.</span>
-
-<span class="sd">    The evidence is right there in the same file: `new_character` has always</span>
-<span class="sd">    written ``metadata.dicebear_style`` and ``metadata.dicebear_seed``. So this</span>
-<span class="sd">    reconstructs the record rather than shrugging.</span>
-
-<span class="sd">    Returns ``None`` only when the art genuinely was not third-party (the</span>
-<span class="sd">    offline geometric fallback), which is the one case where "nothing owed" is</span>
-<span class="sd">    the true answer.</span>
+<span class="sd">    Only a genre's descriptors can be that old, so the genre answers</span>
+<span class="sd">    (the ``credits.legacy_source`` service; the cut-out genre reads the</span>
+<span class="sd">    DiceBear style its old ``new_character`` recorded). Without a genre that</span>
+<span class="sd">    knows the document: ``None``, which callers read as "no record", never as</span>
+<span class="sd">    "nothing owed".</span>
 <span class="sd">    """</span>
-    <span class="n">metadata</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="s2">"metadata"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">style</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dicebear_style"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">style</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># fallback_geometric — we made it, nothing is owed</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.licenses</span><span class="w"> </span><span class="kn">import</span> <span class="n">DICEBEAR_STYLE_LICENSES</span><span class="p">,</span> <span class="n">dicebear_source</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">service</span>
 
-    <span class="n">seed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dicebear_seed"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">style</span> <span class="ow">in</span> <span class="n">DICEBEAR_STYLE_LICENSES</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">dicebear_source</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
-    <span class="c1"># An unrecognised style is UNKNOWN, never "nothing owed".</span>
-    <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"dicebear"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">style</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">reconstruct</span> <span class="o">=</span> <span class="n">service</span><span class="p">(</span><span class="s2">"credits.legacy_source"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span> <span class="k">if</span> <span class="n">reconstruct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
 
 
 <div class="viewcode-block" id="credits_for_project">

@@ -17,7 +17,6 @@ True
 | [`set_`](#an.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).       |
 |---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
 | [`tween`](#an.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.             |
-| [`play`](#an.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).            |
 | [`sequence`](#an.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](#an.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`stagger`](#an.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
@@ -445,6 +444,11 @@ True
 True
 ```
 
+This writes the WHOLE document in the writer’s own formatting, and keeps no
+prose but `meta.notes`. Updating an existing `scene.md` goes through
+`merge_markdown()`, which keeps the author’s text wherever the content
+did not change.
+
 ### an.load(project_dir, , check_kinds=True)
 
 Load an existing project. Reconciles scene.md / ir/scene.json first.
@@ -511,44 +515,6 @@ Run all children at once. Total duration = max of child durations.
 
 * **Return type:**
   [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
-### an.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one. In a `sequence` a play with no `duration`
-occupies its **natural** length (a motion preset’s own length divided by
-`speed`; a non-looping descriptor animation’s likewise), so the sibling
-after it starts when it ends; a looping one runs to the shot end and
-occupies **zero**:
-
-* **Return type:**
-  [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction)
-
-```pycon
->>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
-[0.0, 1.0]
->>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
-[0.0, 2.0]
->>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
-[0.0, 0.5]
->>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
-[0.0, 0.25]
-```
-
-(Bare `flatten` knows only the presets, by name; `an validate` and the
-compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
-— so a descriptor animation that shares a preset’s name is measured as the
-descriptor’s.)
-
-A name the descriptor does not declare falls back to a motion preset of
-[`an.motion.PRESETS`](an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
-
-```pycon
->>> play("charlie", "hop", args={"height": 30}).args
-{'height': 30}
-```
 
 ### an.save(project)
 
@@ -685,17 +651,14 @@ which decides how long a dissolve’s overlap is.
 | [`build`](an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                                                                                   |
 | [`capabilities`](an.capabilities.html.md#module-an.capabilities) | Capabilities: what an asset, an engine or the environment affords, and the one matcher.                                                                 |
 | [`captions`](an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                                                                            |
-| [`characters`](an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                                                                                           |
 | [`conftest`](an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                                                                                        |
 | [`credits`](an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                                                                                                |
 | [`data`](an.data.html.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                                                                                 |
 | [`determinism`](an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                                                                         |
 | [`engines`](an.engines.html.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.                                                             |
 | [`environments`](an.environments.html.md#module-an.environments) | Moved to [`an.stage.environments`](an.stage.environments.html.md#module-an.stage.environments) (an#247); this path is a LIVE alias of it. |
-| [`expression`](an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                                                                                          |
 | [`frame_clock`](an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                                                                             |
 | [`genres`](an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                                                                              |
-| [`impacts`](an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.                                                                           |
 | [`ir`](an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                                                                      |
 | [`iterate`](an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.                                                                          |
 | [`library`](an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                                                                                |
@@ -705,6 +668,7 @@ which decides how long a dissolve’s overlap is.
 | [`media`](an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.                                                                   |
 | [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                                                                               |
 | [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                                                                       |
+| [`paint`](an.paint.html.md#module-an.paint)               | Paint: what fills a shape when one flat colour is not enough -- a gradient.                                                                             |
 | [`paths`](an.paths.html.md#module-an.paths)               | Moved to [`an.stage.paths`](an.stage.paths.html.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
 | [`preview`](an.preview.html.md#module-an.preview)           | Moved to [`an.stage.preview`](an.stage.preview.html.md#module-an.stage.preview) (an#247); this path is a LIVE alias of it.           |
 | [`project`](an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |

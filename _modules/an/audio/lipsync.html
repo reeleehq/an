@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -817,6 +817,29 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Return the word timings for ``audio``."""</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="NullLipSync">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.lipsync.html#an.audio.NullLipSync">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NullLipSync</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The lip-sync provider of a core without a genre: no mouth shapes at all.</span>
+
+<span class="sd">    A genre that animates mouths (``cutan``) registers real providers</span>
+<span class="sd">    (``offline``, ``rhubarb``, ``whisper``); without one, a line's audio is still</span>
+<span class="sd">    synthesized and the track it gets is empty -- nothing draws a mouth anyway.</span>
+
+<span class="sd">    &gt;&gt;&gt; NullLipSync().align(AudioClip(bytes_=b"", duration=0.5), "hi").duration</span>
+<span class="sd">    0.5</span>
+<span class="sd">    """</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span>
+    <span class="n">convention</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisemeTrack</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">VisemeTrack</span><span class="p">(</span>
+            <span class="n">visemes</span><span class="o">=</span><span class="p">[],</span> <span class="n">convention</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">convention</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">audio</span><span class="o">.</span><span class="n">duration</span>
+        <span class="p">)</span></div>
 
 
 

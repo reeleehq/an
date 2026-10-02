@@ -19,6 +19,7 @@ without touching these functions, so they stay plain Python.
 | [`init`](#an.tools.init)(project_dir[, name, force, id, genre, ...]) | Create a fresh an project at `project_dir` — or, with --id, at the default location. |
 | [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
 | [`preview`](#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
+| [`registered_namespaces`](#an.tools.registered_namespaces)()                          | The sub-namespaces installed genres added (`cli.<namespace>` services).              |
 | [`render`](#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
 | [`sync`](#an.tools.sync)(project_dir[, accept_measured])             | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
 | [`validate`](#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
@@ -175,7 +176,19 @@ no_browser: don’t auto-open the default browser
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
+### an.tools.registered_namespaces()
+
+The sub-namespaces installed genres added (`cli.<namespace>` services).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]
+
+```pycon
+>>> registered_namespaces() == {} or all(isinstance(v, list) for v in registered_namespaces().values())
+True
+```
+
+### an.tools.render(project_dir, output_name='main', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
 Render the project at `project_dir` to a single mp4.
 
@@ -191,10 +204,16 @@ holds them all).
 
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
-tts: TTS provider — “offline” (silent) or “elevenlabs” (needs ELEVEN_API_KEY)
-lipsync: lip-sync provider — “offline” (deterministic), “rhubarb”
+tts: TTS provider for EVERY line — “offline” (silent), “elevenlabs” (needs
 
-> (needs the rhubarb binary), or “whisper” (needs faster-whisper)
+> ELEVEN_API_KEY) or “mac_say”. Omitted (the default): each voice’s own
+> `provider` speaks its lines, a voice naming none is offline, and what a
+> paid provider will bill is printed before the first request. A line
+> spoken by another provider than its voice declares is a finding (an
+> error under –strict-assets)
+
+lipsync: lip-sync provider — “offline” (deterministic), “rhubarb”
+: (needs the rhubarb binary), or “whisper” (needs faster-whisper)
 
 parallel: per-shot concurrency. “” or “1” = serial (default); “auto” =
 : min(shots, cpu, 4); a number ≥ 2 caps the thread pool.

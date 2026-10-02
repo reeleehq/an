@@ -40,9 +40,8 @@ True
 
 ### Module Attributes
 
-| [`DFLT_EXPRESSION_BLEND_S`](#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                                                   |
-|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                    |
+|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                          |
 | [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it). |
 | [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
@@ -57,32 +56,30 @@ True
 
 ### Classes
 
-| [`AssetRef`](#an.ir.schema.AssetRef)(\*\*data)         | Reference to an entry in a project store.                                                                                                                           |
-|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Camera`](#an.ir.schema.Camera)(\*\*data)           | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
-| [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)        | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
-| [`Captions`](#an.ir.schema.Captions)(\*\*data)         | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
-| [`DelayAction`](#an.ir.schema.DelayAction)(\*\*data)      | Composition: an empty span that consumes time.                                                                                                                      |
-| [`Dialogue`](#an.ir.schema.Dialogue)(\*\*data)         | One line of spoken dialogue.                                                                                                                                        |
-| [`ExpressionAction`](#an.ir.schema.ExpressionAction)(\*\*data) | Hold a facial expression on an entity (an#98, epic #9 Wave 6).                                                                                                      |
-| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*\*data)  | An action of a kind the core does not define: the IR's one open member.                                                                                             |
-| [`LoopAction`](#an.ir.schema.LoopAction)(\*\*data)       | Composition: repeat `child` `count` times.                                                                                                                          |
-| [`Meta`](#an.ir.schema.Meta)(\*\*data)             | Scene metadata.                                                                                                                                                     |
-| [`Narration`](#an.ir.schema.Narration)(\*\*data)        | Off-screen narration.                                                                                                                                               |
-| [`ParallelAction`](#an.ir.schema.ParallelAction)(\*\*data)   | Composition: run all children simultaneously starting at the same time.                                                                                             |
-| [`PlayAction`](#an.ir.schema.PlayAction)(\*\*data)       | Play a named animation of the target entity's descriptor (an#7).                                                                                                    |
-| [`Resolution`](#an.ir.schema.Resolution)(\*\*data)       | Pixel dimensions of the rendered output.                                                                                                                            |
-| [`SceneIR`](#an.ir.schema.SceneIR)(\*\*data)          | Top-level Scene IR document.                                                                                                                                        |
-| [`SequenceAction`](#an.ir.schema.SequenceAction)(\*\*data)   | Composition: run children one after the other.                                                                                                                      |
-| [`SetAction`](#an.ir.schema.SetAction)(\*\*data)        | Set a property to a value at a specific time.                                                                                                                       |
-| [`Shot`](#an.ir.schema.Shot)(\*\*data)             | A single rendered unit.                                                                                                                                             |
-| [`SoundCue`](#an.ir.schema.SoundCue)(\*\*data)         | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
-| [`StagePlacement`](#an.ir.schema.StagePlacement)(\*\*data)   | Where an entity stands on the stage, and how big it is.                                                                                                             |
-| [`Transition`](#an.ir.schema.Transition)(\*\*data)       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
-| [`TweenAction`](#an.ir.schema.TweenAction)(\*\*data)      | Animate a property from a start value to an end value over a duration.                                                                                              |
-| [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*\*data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
-| [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*\*data)      | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
-| [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*\*data)     | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
+| [`AssetRef`](#an.ir.schema.AssetRef)(\*\*data)        | Reference to an entry in a project store.                                                                                                                           |
+|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Camera`](#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
+| [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`Captions`](#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
+| [`DelayAction`](#an.ir.schema.DelayAction)(\*\*data)     | Composition: an empty span that consumes time.                                                                                                                      |
+| [`Dialogue`](#an.ir.schema.Dialogue)(\*\*data)        | One line of spoken dialogue.                                                                                                                                        |
+| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*\*data) | An action of a kind the core does not define: the IR's one open member.                                                                                             |
+| [`LoopAction`](#an.ir.schema.LoopAction)(\*\*data)      | Composition: repeat `child` `count` times.                                                                                                                          |
+| [`Meta`](#an.ir.schema.Meta)(\*\*data)            | Scene metadata.                                                                                                                                                     |
+| [`Narration`](#an.ir.schema.Narration)(\*\*data)       | Off-screen narration.                                                                                                                                               |
+| [`ParallelAction`](#an.ir.schema.ParallelAction)(\*\*data)  | Composition: run all children simultaneously starting at the same time.                                                                                             |
+| [`Resolution`](#an.ir.schema.Resolution)(\*\*data)      | Pixel dimensions of the rendered output.                                                                                                                            |
+| [`SceneIR`](#an.ir.schema.SceneIR)(\*\*data)         | Top-level Scene IR document.                                                                                                                                        |
+| [`SequenceAction`](#an.ir.schema.SequenceAction)(\*\*data)  | Composition: run children one after the other.                                                                                                                      |
+| [`SetAction`](#an.ir.schema.SetAction)(\*\*data)       | Set a property to a value at a specific time.                                                                                                                       |
+| [`Shot`](#an.ir.schema.Shot)(\*\*data)            | A single rendered unit.                                                                                                                                             |
+| [`SoundCue`](#an.ir.schema.SoundCue)(\*\*data)        | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
+| [`StagePlacement`](#an.ir.schema.StagePlacement)(\*\*data)  | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Transition`](#an.ir.schema.Transition)(\*\*data)      | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
+| [`TweenAction`](#an.ir.schema.TweenAction)(\*\*data)     | Animate a property from a start value to an end value over a duration.                                                                                              |
+| [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*\*data)  | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
+| [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*\*data)     | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
+| [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*\*data)    | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
 
 ### an.ir.schema.Action
 
@@ -315,11 +312,6 @@ convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
 Caption type size as a fraction of frame height — a little under the title
 default, as captions are read while something else is watched.
 
-### an.ir.schema.DFLT_EXPRESSION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
-
-Default ramp in/out of an expression, seconds (0 = cut). The dialogue
-`[emotion]` sugar uses its own in `an.expression.provider`.
-
 ### *class* an.ir.schema.DelayAction(\*\*data)
 
 Bases: `_ActionBase`
@@ -394,33 +386,6 @@ has none (offline, Rhubarb) or the line was stamped before an#96.
 ### an.ir.schema.EXTENSION_TAG *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'extension'*
 
 The union tag of the open member.
-
-### *class* an.ir.schema.ExpressionAction(\*\*data)
-
-Bases: [`ExtensionAction`](#an.ir.schema.ExtensionAction)
-
-Hold a facial expression on an entity (an#98, epic #9 Wave 6).
-
-`preset` names one of `an.expression.presets.PRESETS`; `axes`
-are per-axis overrides layered on it (axis units, see
-[`an.expression.axes`](an.expression.axes.md#module-an.expression.axes)); `None` + no axes is a cheap “return to
-rest”. `duration=None` runs to the shot end (the looping-play rule) and
-is **zero-width in a sequence**, like a looping `play`. `blend` ramps the
-intensity in and out; two overlapping expressions cross-fade because the
-face solver sums offsets. The dialogue `speaker [emotion]: …` bracket is
-sugar for one of these over the line, desugared in memory only.
-
-A leaf action, flattened like `play`: the compiler resolves it in the
-face solver (one channel per `(node, property)`), never per action.
-
-The ramp is a min over the two ends, so a span shorter than `2·blend`
-never reaches full intensity (a 0.2 s expression at the default 0.15 s
-blend peaks at 0.67) and a `duration=0` expression shows only where a
-frame lands on it with `blend=0` — cut the blend for a flash.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.ExtensionAction(\*\*data)
 
@@ -557,46 +522,6 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 Bases: `_ActionBase`
 
 Composition: run all children simultaneously starting at the same time.
-
-#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
-
-Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### *class* an.ir.schema.PlayAction(\*\*data)
-
-Bases: [`ExtensionAction`](#an.ir.schema.ExtensionAction)
-
-Play a named animation of the target entity’s descriptor (an#7).
-
-`animation` names an entry of `CharacterDescriptor.animations` (the
-seeded `idle_breath` and `blink`, or anything an author adds); the
-compiler resolves its tracks into channels on the entity’s nodes. A name
-the descriptor does NOT declare — or any name on an entity with no
-descriptor (a procedural rig, a prop) — falls back to the motion presets
-of [`an.motion.PRESETS`](an.motion.md#an.motion.PRESETS) (`hop`, `nod`, …), which expand to
-ordinary tweens at the target’s built rest pose; a descriptor animation of
-the same name wins (an#166). Both halves are decided by
-[`an.characters.play.play_problems()`](an.characters.play.md#an.characters.play.play_problems), the one resolver `an validate`
-and the compiler share. For a preset, `args` are its parameters,
-`duration` stretches the whole move to that length, `speed` divides
-it, and `loop: true` is refused (a preset is a one-shot).
-`duration` widens/narrows the placement window; `None` means the
-animation’s own duration — or, when the resolved `loop` is true, the
-rest of the shot, because a loop bounded by its own natural duration
-never loops. `loop` overrides the animation’s declared `loop`
-(`None` = use the descriptor’s). Inside a `sequence` a play with
-`duration=None` occupies its NATURAL length — a motion preset’s own
-length, a non-looping descriptor animation’s `duration`, both over
-`speed` — so the next sibling starts when it ends; a looping one runs to
-the shot end and occupies ZERO (`an.characters.play.play_extent()`).
-
-#### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Parameters of a MOTION PRESET (an#166) — `{"height": 30}` for a
-`hop` — passed to its [`an.motion.PRESETS`](an.motion.md#an.motion.PRESETS) function as keyword
-arguments. `None` (the default, omitted from JSON) means the preset’s
-own defaults. A descriptor animation takes none, and one given to it is
-refused; `rest` is never one — it is read off the built scene.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 

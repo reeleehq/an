@@ -30,6 +30,7 @@ an.genres.registry
       entity_builders
       entity_kind
       entity_kind_names
+      hook_modules
       owners
       register_action_kind
       register_check
@@ -37,8 +38,12 @@ an.genres.registry
       register_dialogue_sugar
       register_entity_kind
       register_runtime_script
+      register_service
+      require_service
       restore
       runtime_scripts
+      service
+      services
       snapshot
       unregister_owner
    
@@ -52,11 +57,13 @@ an.genres.registry
       EntityKind
       RuntimeScript
       SemanticCheck
+      SwapDeclaration
    
    .. rubric:: Exceptions
 
    .. autosummary::
    
       RegistryError
+      ServiceMissingError
       UnregisteredKindError
    

@@ -25,8 +25,8 @@ Never deletes a reachable entry, nor anything written since a render of this pro
 project_dir: path to an an project
 dry_run: report what would be deleted, delete nothing
 max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB); reachable entries are never removed, so the cache can stay above it
-max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept
-force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches
+max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept (and when the current scene cannot be keyed under its settings, a line’s audio not cached under them, its entries are kept whatever its age)
+force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches (a setting whose audio is no longer cached is not kept; an#311)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -840,7 +840,36 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: The kind's vocabulary version (ADR 0003): bump when what an action of</span>
     <span class="c1">#: this kind compiles to changes for the same fields, so the shots that use</span>
     <span class="c1">#: it re-render visibly (:mod:`an.semantic` folds it into the shot digest).</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1"</span></div>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1"</span>
+    <span class="c1">#: How the STAGE compiler turns an action of this kind into clips, for a kind</span>
+    <span class="c1">#: that is not a plain tween or set (the cut-out ``play``): an object with</span>
+    <span class="c1">#: ``extent_resolver(vocab)``, ``expand(flat_list, *, vocab, fps, step_hz,</span>
+    <span class="c1">#: default_easing, resolutions)``, ``view_of(entity_swaps, vocab, *, duration)``</span>
+    <span class="c1">#: and ``clip(action, *, anim_id, vocab, fps, view)`` -- see</span>
+    <span class="c1">#: :class:`an.stage.compile.ActionLowering`. ``None``: the compiler has</span>
+    <span class="c1">#: nothing kind-specific to do. (an#225: this is how the compiler stops</span>
+    <span class="c1">#: naming ``play``.)</span>
+    <span class="n">lowering</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="SwapDeclaration">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.SwapDeclaration">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SwapDeclaration</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What one entity's descriptor declares for the stage compiler's swap vocabulary.</span>
+
+<span class="sd">    ``sets`` is ``{set name: {KEY: attachment name}}`` as declared;</span>
+<span class="sd">    ``descriptor`` is the (migrated) document the declaration came from, kept</span>
+<span class="sd">    for the kind's own lowering; ``art_exists`` answers ``rel_path -&gt; art on</span>
+<span class="sd">    disk`` (``None`` when the store cannot say); ``scale`` is the factor from the</span>
+<span class="sd">    entity's view box to scene pixels.</span>
+<span class="sd">    """</span>
+
+    <span class="n">sets</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">art_exists</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span></div>
 
 
 
@@ -860,7 +889,24 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="c1">#: The kind's vocabulary version (ADR 0003), as :attr:`ActionKind.version`.</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1"</span></div>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1"</span>
+    <span class="c1">#: ``(entity, mall) -&gt; SwapDeclaration | None``: what the entity's descriptor</span>
+    <span class="c1">#: declares for the stage compiler's swap vocabulary (an#87). ``None``: the</span>
+    <span class="c1">#: kind declares nothing (its built nodes' sets ARE its declaration).</span>
+    <span class="n">swap_declaration</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="s2">"SwapDeclaration | None"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The ``kind`` tag of the descriptor document ``store`` holds for this kind</span>
+    <span class="c1">#: (``"CharacterDescriptor"``): what makes the validator treat the entity as a</span>
+    <span class="c1">#: rig whose declared asset sets it can check (an#246).</span>
+    <span class="n">descriptor_kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: A missing ``ref`` is NOT an error because the compiler draws a placeholder</span>
+    <span class="c1">#: instead; the genre reports it with its own (warning) check.</span>
+    <span class="n">placeholder_on_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1">#: Extra swap-reference checks for this kind: an object with</span>
+    <span class="c1">#: ``missing_set_hint(prop) -&gt; str`` (appended to "names no declared asset</span>
+    <span class="c1">#: set") and ``whole_entity(action, desc, prop, keys, entity_id, *, where,</span>
+    <span class="c1">#: report, art_exists) -&gt; bool`` (judge a swap on the entity ITSELF; ``True``</span>
+    <span class="c1">#: when handled). ``None``: the generic per-node rule only.</span>
+    <span class="n">swap_checks</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -976,7 +1022,9 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_DIALOGUE_SUGAR</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"dialogue sugar"</span><span class="p">)</span>
 <span class="n">_COMPILE_PASSES</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"compile pass"</span><span class="p">)</span>
 <span class="n">_RUNTIME_SCRIPTS</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"runtime script"</span><span class="p">)</span>
+<span class="n">_SERVICES</span> <span class="o">=</span> <span class="n">_Table</span><span class="p">(</span><span class="s2">"service"</span><span class="p">)</span>
 <span class="n">_TABLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Table</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">_SERVICES</span><span class="p">,</span>
     <span class="n">_ACTION_KINDS</span><span class="p">,</span>
     <span class="n">_ENTITY_KINDS</span><span class="p">,</span>
     <span class="n">_CHECKS</span><span class="p">,</span>
@@ -1264,6 +1312,141 @@ window.runMermaid = runMermaid;</script>
             <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ServiceMissingError">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.ServiceMissingError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ServiceMissingError</span><span class="p">(</span><span class="n">RegistryError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The core asked a genre for a service nobody registered."""</span></div>
+
+
+
+<div class="viewcode-block" id="register_service">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.register_service">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_service</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CORE_OWNER</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register a named service a genre offers the core (an#225).</span>
+
+<span class="sd">    The seam for the places where the core needs a genre's code only when that</span>
+<span class="sd">    genre is installed: a CLI namespace (``cli.character``), a provider factory</span>
+<span class="sd">    (``lipsync.offline``), a licence lookup. ``target`` is the object itself or</span>
+<span class="sd">    ``"module:attr"`` (imported on first use, so declaring a service imports no</span>
+<span class="sd">    engine). The names a genre may use are the core's contract, listed with</span>
+<span class="sd">    their callers in ``misc/docs/architecture_as_built.md``.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_SERVICES</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="n">replace</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_target</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span>
+
+        <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)):</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">return</span> <span class="n">target</span>
+
+
+<div class="viewcode-block" id="service">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.service">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">service</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The registered service ``name``, resolved, or ``default`` when none is.</span>
+
+<span class="sd">    &gt;&gt;&gt; service("no.such.service") is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_SERVICES</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">return</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">_SERVICES</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">name</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="require_service">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.require_service">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">require_service</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cutout"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The registered service ``name``; a typed error naming the install when absent."""</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_SERVICES</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ServiceMissingError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">name</span><span class="si">}</span><span class="s2"> needs a genre package that is not loaded "</span>
+            <span class="sa">f</span><span class="s2">"(no genre registered the service </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">). Install it with "</span>
+            <span class="sa">f</span><span class="s1">'pip install "an[</span><span class="si">{</span><span class="n">extra</span><span class="si">}</span><span class="s1">]" and load genres (an.genres.load() or '</span>
+            <span class="s2">"an.load(project))."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">_SERVICES</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">name</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="services">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.services">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">services</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{name without the prefix: resolved service}`` for every service under ``prefix``.</span>
+
+<span class="sd">    &gt;&gt;&gt; services("no.such.")</span>
+<span class="sd">    {}</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">n</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]:</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_SERVICES</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_module_of</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The module a registered hook lives in: a ``"module:attr"`` string's, else the object's."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"__module__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> <span class="s2">"__module__"</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="hook_modules">
+<a class="viewcode-back" href="../../../_autosummary/an.genres.registry.html#an.genres.hook_modules">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">hook_modules</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">exclude_owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CORE_OWNER</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The modules whose code the genres' registered hooks run, sorted and unique.</span>
+
+<span class="sd">    Compile passes, lowerings, entity hooks, checks, services and runtime scripts</span>
+<span class="sd">    of every owner but ``exclude_owner`` (the core's own are walked from the</span>
+<span class="sd">    renderer already). The shot cache's code key starts its walk here for the</span>
+<span class="sd">    packages outside ``an``, so a change to a genre's code changes the key</span>
+<span class="sd">    (an#294): the genre is reached by REGISTRATION, not by an import from ``an``.</span>
+
+<span class="sd">    &gt;&gt;&gt; isinstance(hook_modules(), tuple)</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">_module_of</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">module</span><span class="p">:</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">owned</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="n">_Table</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">owners</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">!=</span> <span class="n">exclude_owner</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_ACTION_KINDS</span><span class="p">):</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">lowering</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">read_md</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">write_md</span><span class="p">):</span>
+            <span class="n">add</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_ENTITY_KINDS</span><span class="p">):</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">swap_declaration</span><span class="p">)</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">swap_checks</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_CHECKS</span><span class="p">):</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">check</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">compile_pass</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_COMPILE_PASSES</span><span class="p">):</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">compile_pass</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">script</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_RUNTIME_SCRIPTS</span><span class="p">):</span>
+        <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">script</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_SERVICES</span><span class="p">):</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">found</span><span class="p">))</span></div>
 
 
 

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="_static/documentation_options.js?v=29d58b84"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="next" title="API reference" href="api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -543,10 +543,10 @@ name strings or instances. Plug in any <code class="docutils literal notranslate
 this hook to feed <code class="docutils literal notranslate"><span class="pre">lacing</span></code> alignment-store timings straight into the
 cutout pipeline.</p>
 </section>
-<section id="synthetic-impact-clips-an-impacts">
-<h3>Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">an.impacts</span></code>)<a class="headerlink" href="#synthetic-impact-clips-an-impacts" title="Link to this heading">#</a></h3>
+<section id="synthetic-impact-clips-cutan-impacts">
+<h3>Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">cutan.impacts</span></code>)<a class="headerlink" href="#synthetic-impact-clips-cutan-impacts" title="Link to this heading">#</a></h3>
 <p>Structured animations of a stick or a ball striking a surface — or striking <em>the air</em>, a stroke that turns with nothing to hit — on a known tempo grid, filmed by a camera whose frame rate, shutter and capture jitter you choose. Each clip ships a sidecar that keeps three times apart, which is what makes it useful for scoring estimators that try to recover an impact <em>between</em> two frames: the <strong>intended</strong> grid time, the <strong>executed</strong> impact time (grid plus humanisation, in continuous seconds — never snapped to a frame), and <strong>what the frames show</strong> (each frame’s exposure interval and sample instants, per-frame keypoints, and which frames bracket each impact).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">an.impacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImpactClipSpec</span><span class="p">,</span> <span class="n">write_impact_clip</span><span class="p">,</span> <span class="n">write_impact_set</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cutan.impacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImpactClipSpec</span><span class="p">,</span> <span class="n">write_impact_clip</span><span class="p">,</span> <span class="n">write_impact_set</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">ImpactClipSpec</span><span class="p">(</span>
     <span class="nb">object</span><span class="o">=</span><span class="s2">"stick"</span><span class="p">,</span>
@@ -569,7 +569,7 @@ cutout pipeline.</p>
 <span class="n">write_impact_set</span><span class="p">(</span><span class="s2">"~/clips/set"</span><span class="p">)</span>  <span class="c1"># 24 clips sharing one performance</span>
 </pre></div>
 </div>
-<p>The clips are ordinary <code class="docutils literal notranslate"><span class="pre">an</span></code> scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — <code class="docutils literal notranslate"><span class="pre">write_impact_clip</span></code> refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame’s keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The <code class="docutils literal notranslate"><span class="pre">truth.json</span></code> schema is documented in <code class="docutils literal notranslate"><span class="pre">an/impacts/truth.py</span></code>. The camera model is <code class="docutils literal notranslate"><span class="pre">an.frame_clock.FrameClock</span></code>, which reaches the renderer through <code class="docutils literal notranslate"><span class="pre">RenderContext.frame_samples</span></code>: several instants averaged per frame are an open shutter, instants off the <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">fps</span></code> grid are capture jitter, and a render without it is byte-identical to before.</p>
+<p>The clips are ordinary <code class="docutils literal notranslate"><span class="pre">an</span></code> scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — <code class="docutils literal notranslate"><span class="pre">write_impact_clip</span></code> refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame’s keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The <code class="docutils literal notranslate"><span class="pre">truth.json</span></code> schema is documented in <code class="docutils literal notranslate"><span class="pre">cutan/impacts/truth.py</span></code>. The camera model is <code class="docutils literal notranslate"><span class="pre">an.frame_clock.FrameClock</span></code>, which reaches the renderer through <code class="docutils literal notranslate"><span class="pre">RenderContext.frame_samples</span></code>: several instants averaged per frame are an open shutter, instants off the <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">fps</span></code> grid are capture jitter, and a render without it is byte-identical to before.</p>
 </section>
 </section>
 <hr class="docutils" />
@@ -612,7 +612,7 @@ thing that renders; <code class="docutils literal notranslate"><span class="pre"
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-01 23:47 UTC from <a href="https://github.com/thorwhalen/an/commit/4ca55fd2e32a96969fdf43e2382d4ce09ef1ffa8">4ca55fd</a> (main) · an 0.1.154 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-02 04:05 UTC from <a href="https://github.com/thorwhalen/an/commit/b71ea7f3600254caae5f66a2def8ada4529043a8">b71ea7f</a> (main) · an 0.1.155 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               
@@ -662,7 +662,7 @@ thing that renders; <code class="docutils literal notranslate"><span class="pre"
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#injecting-word-timings-no-whisper-redundancy">Injecting word timings (no whisper redundancy)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#synthetic-impact-clips-an-impacts">Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">an.impacts</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#synthetic-impact-clips-cutan-impacts">Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">cutan.impacts</span></code>)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-s-not-in-v0-1">What’s not in v0.1</a></li>

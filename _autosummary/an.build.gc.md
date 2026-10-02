@@ -9,8 +9,8 @@ separate, explicit command, and this module is it.
 
 **What is kept (reachable).** An entry is reachable when either
 
-- a render of the project’s CURRENT scene would read it — under the default
-  render knobs, or under any knob set a recorded render ever used — computed
+- a render of the project’s CURRENT scene would read it — under any knob set
+  a recorded render ever used, or under a plain `an render`’s — computed
   by the render loop’s own setup and the engine’s own key code, with the
   dialogue stamped from the audio stores as the render stamps it
   ([`an.render.cache_entries()`](an.render.md#an.render.cache_entries)); or
@@ -23,6 +23,17 @@ A cache no render of the project has recorded a root in (one written before
 an#274) is refused unless `force`: the current scene’s keys alone are then
 the only evidence, and a render’s knobs or providers that differ from the
 defaults would leave its entries looking unreachable.
+
+**A knob set under which the current scene has a line with no audio** (an#306)
+— a line edited since the last render under it, or the plain render’s
+hypothetical knobs for a project only ever spoken by ElevenLabs — has no keys
+to compute until that line is synthesised, so nothing in the cache can be its
+entry for that shot. It is skipped rather than refused, and what each root
+recorded under it is kept whatever `--max-age` says, so its unchanged shots
+stay. Only when the current scene can be keyed under NO knob set (every one
+lacks some line’s audio: the scene has lines nothing has synthesised) is the
+collection refused — render first. Each knob set is replayed with its OWN
+providers (a root’s recorded `tts`), never with a command line’s defaults.
 
 Everything else is unreachable: the entries of shots as they were before an
 edit, parts cut for an old neighbour, whole-frame entries (`<key>.frames`)
@@ -54,9 +65,10 @@ layout `lacing.ArtifactStore.from_directory` documents.
 
 ### Module Attributes
 
-| [`CLOCK_SLACK_S`](#an.build.gc.CLOCK_SLACK_S)   | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.           |
-|------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| [`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE) | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them. |
+| [`CLOCK_SLACK_S`](#an.build.gc.CLOCK_SLACK_S)         | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.                                                                                      |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)       | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them: `tts` is each voice's own provider (an#305).                               |
+| [`HYPOTHETICAL_PROFILES`](#an.build.gc.HYPOTHETICAL_PROFILES) | today's ([`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)) and the one before an#305, which spoke every line offline — what a cache written before roots existed was rendered with. |
 
 ### Functions
 
@@ -102,18 +114,19 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The collection cannot be done safely; nothing was deleted.
 
-### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='')
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The shot cache’s size, what it holds, and how much of it is reachable.
 
-### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'}*
+### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}*
 
 The render knobs of a plain `an render` (and of `render_project`’s
-defaults), as `ShotCache.record_root()` records them. Always among the
-profiles the current scene is keyed under, so a cache written before roots
-existed keeps what a plain render of the current scene reads.
+defaults), as `ShotCache.record_root()` records them: `tts` is each
+voice’s own provider (an#305). Always among the profiles the current scene
+is keyed under, so a cache written before roots existed keeps what a plain
+render of the current scene reads.
 
 ### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None)
 
@@ -122,11 +135,24 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 What a collection deleted (or, with `dry_run`, would delete), and why
 the rest was kept.
 
-### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>)
+### an.build.gc.HYPOTHETICAL_PROFILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], ...]* *= ({'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}, {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'})*
+
+today’s
+([`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)) and the one before an#305, which spoke every line
+offline — what a cache written before roots existed was rendered with.
+
+* **Type:**
+  The knob sets a plain render used or uses, recorded by a root or not
+
+### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What the current scene and the recorded roots keep, and why.
+
+`profiles` are the knob sets the current scene was keyed under;
+`skipped` the ones it could not be (`(profile, why)`: a line’s audio
+is not cached under it — an#306), whose roots keep what they recorded.
 
 ### an.build.gc.cache_info(project_dir, , reachability=True, engine=None, now=None)
 
@@ -190,18 +216,24 @@ listed with role `"unreadable"` and, on disk, its file’s mtime.
 
 What the project’s current scene and its recorded roots reach.
 
-The current scene is keyed under the default knobs and under the knobs of
-EVERY recorded root (of any project, any age: a knob set is a few values,
-and dropping one would orphan that render’s entries of the unchanged scene).
-A root younger than `root_max_age` seconds (all, when `None`) also
-keeps the entries it names; roots themselves are always kept.
+The current scene is keyed under the knobs of EVERY recorded root (of any
+project, any age: a knob set is a few values, and dropping one would orphan
+that render’s entries of the unchanged scene), each with its own recorded
+providers, and under [`HYPOTHETICAL_PROFILES`](#an.build.gc.HYPOTHETICAL_PROFILES) (a plain render’s). A
+root younger than `root_max_age` seconds (all, when `None`) also keeps
+the entries it names; roots themselves are always kept.
+
+A knob set under which some line’s audio is not cached cannot be keyed
+without a synthesis (an#306): it is skipped, listed in `skipped`, and
+every root recorded under it keeps its entries whatever `root_max_age`.
 
 `engine` computes the keys (its environment seam included); `None` is
 a default [`ShotCache`](an.build.md#an.build.ShotCache) over `store`, which probes this
 machine like a render does. Raises [`CacheGcError`](#an.build.gc.CacheGcError) when the current
-scene’s keys cannot be computed (guessing is never safe), and when no render
-of THIS project has recorded a root yet — a cache written before roots
-existed (an#274) — unless `force`.
+scene’s keys cannot be computed for any other reason, or under no knob set
+at all (guessing is never safe), and when no render of THIS project has
+recorded a root yet — a cache written before roots existed (an#274) —
+unless `force`.
 
 * **Return type:**
   [`Reachability`](#an.build.gc.Reachability)

@@ -10,7 +10,6 @@
    
       set_
       tween
-      play
       sequence
       parallel
       stagger
@@ -76,6 +75,7 @@
    media
    motion
    orchestrate
+   paint
    paths
    preview
    project

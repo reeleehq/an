@@ -41,8 +41,8 @@ Entry points: [`an.bench.run.run_bench()`](an.bench.run.md#an.bench.run.run_benc
 | [`build_ledger`](#an.bench.build_ledger)(\*, provenance, scenes)              | The whole row.                                                                |
 | [`build_scene_block`](#an.bench.build_scene_block)(\*, provenance, metrics, ...)   | Assemble one scene's three blocks, refusing anything unreadable.              |
 | [`witnesses`](#an.bench.witnesses)(ledger_scene, mutation)                 | Which metrics would count for `mutation`, grouped by family.                  |
-| [`run_bench`](#an.bench.run_bench)(\*[, scenes, out, keep_render, ...])    | Render the corpus, compute the panel, and (by default) write the row.         |
-| [`format_panel`](#an.bench.format_panel)(ledger)                              | A human-readable digest of a row — the thing `an bench` prints.               |
+| `run_bench`(\*[, scenes, out, keep_render, ...])                                                   | Render the corpus, compute the panel, and (by default) write the row.         |
+| `format_panel`(ledger)                                                                             | A human-readable digest of a row — the thing `an bench` prints.               |
 
 ### Classes
 
@@ -58,13 +58,7 @@ Entry points: [`an.bench.run.run_bench()`](an.bench.run.md#an.bench.run.run_benc
 | [`PngFormatError`](#an.bench.PngFormatError)    | A PNG this module deliberately does not decode, or a malformed one. |
 | [`RegistryError`](#an.bench.RegistryError)     | A metric declaration violates one of the table's invariants.        |
 | [`LedgerSchemaError`](#an.bench.LedgerSchemaError) | A ledger row violates an invariant that would make it misreadable.  |
-| [`BenchError`](#an.bench.BenchError)        | The bench could not produce a row it would be honest to file.       |
-
-### *exception* an.bench.BenchError
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-The bench could not produce a row it would be honest to file.
+| `BenchError`                                                       | The bench could not produce a row it would be honest to file.       |
 
 ### *exception* an.bench.GoldenError
 
@@ -222,13 +216,6 @@ True
 (2, 3, 3)
 ```
 
-### an.bench.format_panel(ledger)
-
-A human-readable digest of a row — the thing `an bench` prints.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ### an.bench.frame_key(index)
 
 The filename stem for a frame, zero-padded so a directory listing sorts.
@@ -308,29 +295,6 @@ free rather than a second full decode of the corpus.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
-### an.bench.run_bench(, scenes=None, out=None, keep_render=None, write=True, bless='', golden_root=None, lossless_scratch_root=None)
-
-Render the corpus, compute the panel, and (by default) write the row.
-
-`bless` is the **reason** a re-bless is being made, and passing it is what
-turns the run into a bless. One argument rather than a `--bless` flag plus
-a `--reason` string, so “blessed with no recorded reason” — the failure
-this rule exists to prevent — is not expressible.
-
-`lossless_scratch_root` is forwarded to `_lossless_scratch_dir()` for
-every scene (an#143) — a caller may point it at a shared parent to prove
-that two concurrent lossless-leg encodes still get distinct scratch
-directories under it; production code has no reason to pass it.
-
-`golden_root` redirects where goldens are read and written, and it exists
-because without it a test of the bless path has no choice but to overwrite
-the committed corpus. That is not hypothetical: the first version of an#38’s
-bless test did exactly that, replacing a real bless record’s reason with the
-test’s own.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.bench.witnesses(ledger_scene, mutation)
 

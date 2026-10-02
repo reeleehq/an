@@ -7,7 +7,7 @@ on a perfect grid. A real camera does neither: its shutter stays open for part
 of the frame period (so a moving object smears), and its capture instants
 wander around the nominal grid (so the timestamp a frame carries is not quite
 when it was taken). Anything that wants to *measure* motion from video — the
-sub-frame impact estimators [`an.impacts`](an.impacts.html.md#module-an.impacts) exists to score — needs both, and
+sub-frame impact estimators `an.impacts` exists to score — needs both, and
 needs to know exactly what was done.
 
 [`FrameClock`](#an.frame_clock.FrameClock) is that model as data. [`FrameClock.frames()`](#an.frame_clock.FrameClock.frames) returns one

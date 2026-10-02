@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="_static/documentation_options.js?v=29d58b84"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="an.verify.vision" href="_autosummary/an.verify.vision.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -387,7 +387,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-art-package">
 <h3><code class="docutils literal notranslate"><span class="pre">an-art-package</span></code><a class="headerlink" href="#an-art-package" title="Link to this heading">#</a></h3>
-<p>The artist-facing contract for an <code class="docutils literal notranslate"><span class="pre">an</span></code> character — folder layout, the skeleton, required parts, slot and attachment conventions, licence fields — and how to check a delivery offline before anyone is paid for it. Use when commissioning, reviewing, receiving, or authoring character art; when writing a brief for an illustrator; or when <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">validate</span></code> reports something. Triggers on “art package”, “commission a character”, “the artist delivered”, “character contract”, “brief for an illustrator”, “an character validate”, “an character contract”, “rig an SVG”, “skeleton”, “pivots”.</p>
+<p>Moved to the <code class="docutils literal notranslate"><span class="pre">cutan-art-package</span></code> skill in the cutan repository (an#225). Use <code class="docutils literal notranslate"><span class="pre">cutan-art-package</span></code> for the artist-facing contract for a cut-out character and how to check a delivery. Triggers on the old name.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-art-package"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-art-package</span></code></a>.</p>
 </section>
 <section id="an-dev">
@@ -402,7 +402,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-expression">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-expression</span></code><a class="headerlink" href="#an-dev-expression" title="Link to this heading">#</a></h3>
-<p>The facial expression vocabulary of the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — the axes and their ranges, additive-over-rest composition in the compile-time face solver, emotion × viseme by set selection, the <code class="docutils literal notranslate"><span class="pre">expression</span></code> leaf action and its dialogue sugar, gaze, baked-face refusal, and the licence boundary. Load before touching <code class="docutils literal notranslate"><span class="pre">an/expression/</span></code>, <code class="docutils literal notranslate"><span class="pre">_add_face_clips</span></code>, the <code class="docutils literal notranslate"><span class="pre">viseme&#64;&lt;preset&gt;</span></code> sets, presets, <code class="docutils literal notranslate"><span class="pre">Dialogue.emotion</span></code>, brows, eyelids, pupils, or any demo/corpus scene that authors a face. Triggers on “expression”, “emotion”, “preset”, “gaze”, “saccade”, “brow”, “eyelid”, “pupil”, “face solver”, “blendshape”.</p>
+<p>Moved to the <code class="docutils literal notranslate"><span class="pre">cutan-dev-expression</span></code> skill in the cutan repository (an#225). Use <code class="docutils literal notranslate"><span class="pre">cutan-dev-expression</span></code> for the cut-out face: expression presets, bindings, blinks, gaze. Triggers on the old name.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-expression"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-expression</span></code></a>.</p>
 </section>
 <section id="an-dev-licensing">
@@ -412,7 +412,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-lipsync">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-lipsync</span></code><a class="headerlink" href="#an-dev-lipsync" title="Link to this heading">#</a></h3>
-<p>Lip sync in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — where co-articulation sits (in the compiler, over the provider’s raw track), the pass order (symbolic → lead → decay → a minimum hold that votes by dominance), the condenser that HOLDS and votes instead of dropping, the Rhubarb recognizer rule, word-timing retention and its cache rule, the alignment-model licence trap, and the two standing measurements. Load before touching <code class="docutils literal notranslate"><span class="pre">an/audio/*lipsync*</span></code>, <code class="docutils literal notranslate"><span class="pre">an/audio/pipeline.py</span></code>, <code class="docutils literal notranslate"><span class="pre">_add_viseme_clips</span></code>, <code class="docutils literal notranslate"><span class="pre">_LEGACY_MIN_VISEME_GAP_S</span></code>, <code class="docutils literal notranslate"><span class="pre">an/adapters/cutout/coarticulate.py</span></code>, any viseme test, or a dialogue corpus scene. Triggers on “lip sync”, “viseme”, “Rhubarb”, “whisper”, “word timings”, “co-articulation”, “condenser”, “aligner”.</p>
+<p>Moved to the <code class="docutils literal notranslate"><span class="pre">cutan-dev-lipsync</span></code> skill in the cutan repository (an#225). Use <code class="docutils literal notranslate"><span class="pre">cutan-dev-lipsync</span></code> for cut-out lip-sync: providers, visemes and coarticulation. Triggers on the old name.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-lipsync"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-lipsync</span></code></a>.</p>
 </section>
 <section id="an-dev-path">
@@ -427,7 +427,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-rig-contract">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-rig-contract</span></code><a class="headerlink" href="#an-dev-rig-contract" title="Link to this heading">#</a></h3>
-<p>How a character descriptor becomes a scene tree in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — which fields are load-bearing, which are declared and dead, and the invariants that broke when they were ignored. Use when touching <code class="docutils literal notranslate"><span class="pre">_build_svg_character_subtree</span></code>, <code class="docutils literal notranslate"><span class="pre">an/characters/schema.py</span></code>, <code class="docutils literal notranslate"><span class="pre">extract_part</span></code>/<code class="docutils literal notranslate"><span class="pre">promote</span></code>, the descriptor→scene mapping, part sizing or placement, <code class="docutils literal notranslate"><span class="pre">viseme_map</span></code>/<code class="docutils literal notranslate"><span class="pre">asset_sets</span></code>, the character migration, or anything that decides what an illustrator’s art does on screen. Triggers on “the art doesn’t change anything”, “part is stretched”, “aspect ratio”, “bones”, “slots”, “skins”, “attachment”, “view_box”, “descriptor”, “rig”, “missing part”, “white rectangle”, “an character validate”.</p>
+<p>Moved to the <code class="docutils literal notranslate"><span class="pre">cutan-dev-rig-contract</span></code> skill in the cutan repository (an#225). Use <code class="docutils literal notranslate"><span class="pre">cutan-dev-rig-contract</span></code> for the cut-out rig contract: descriptor, skeleton, slots and skins. Triggers on the old name.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-rig-contract"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-rig-contract</span></code></a>.</p>
 </section>
 <section id="an-dev-runtime-assets">
@@ -442,7 +442,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-swap-channels">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-swap-channels</span></code><a class="headerlink" href="#an-dev-swap-channels" title="Link to this heading">#</a></h3>
-<p>How swap channels work in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing, view and every future set ride, plus whole-character swaps and <code class="docutils literal notranslate"><span class="pre">swap_poses</span></code> (an#197). Use when touching <code class="docutils literal notranslate"><span class="pre">asset_sets</span></code>, the per-slot projection in <code class="docutils literal notranslate"><span class="pre">compile.py</span></code>, <code class="docutils literal notranslate"><span class="pre">applySwap</span></code>/<code class="docutils literal notranslate"><span class="pre">applyProperty</span></code> in <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualJSON.asset_sets</span></code>, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on “swap channel”, “asset set”, “attachment swap”, “texture swap”, “viseme special case”, “the mouth doesn’t change”, “unknown swap key”, “add a hands set”, “turnaround”, “body_facing”, “eyelid”.</p>
+<p>Moved to the <code class="docutils literal notranslate"><span class="pre">cutan-dev-swap-channels</span></code> skill in the cutan repository (an#225). Use <code class="docutils literal notranslate"><span class="pre">cutan-dev-swap-channels</span></code> for whole-character swaps, <code class="docutils literal notranslate"><span class="pre">swap_poses</span></code>, and the view/eyelid/viseme conventions (the generic swap mechanism itself is in <code class="docutils literal notranslate"><span class="pre">an-dev-stage</span></code>). Triggers on the old name.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-swap-channels"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-swap-channels</span></code></a>.</p>
 </section>
 <section id="an-dev-text">
@@ -457,7 +457,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-style">
 <h3><code class="docutils literal notranslate"><span class="pre">an-style</span></code><a class="headerlink" href="#an-style" title="Link to this heading">#</a></h3>
-<p>Use when the user wants a script or scene made “in the style of” a named cut-out animation look — South Park, OverSimplified, Kurzgesagt, Terry Gilliam / Monty Python, Lotte Reiniger silhouettes, Yuri Norstein / Hedgehog in the Fog — or asks what a style needs, how expensive it is, or whether a render looks like the style. Triggers on “in the style of”, “make it look like South Park”, “OverSimplified-style”, “Kurzgesagt look”, “silhouette film”, “Monty Python cut-outs”, “does this match the style”, “style lint”. Applies a style spec to an <code class="docutils literal notranslate"><span class="pre">an</span></code> scene, renders, measures the render against the spec’s targets, and adjusts.</p>
+<p>Moved to the <code class="docutils literal notranslate"><span class="pre">cutan-style</span></code> skill in the cutan repository (an#225). Use <code class="docutils literal notranslate"><span class="pre">cutan-style</span></code> for applying a named cut-out style (South Park, OverSimplified, Kurzgesagt, Gilliam, Reiniger, Norstein) to a scene and linting the render. Triggers on the old name.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-style"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-style</span></code></a>.</p>
 </section>
 </section>

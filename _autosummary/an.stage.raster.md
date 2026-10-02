@@ -3,7 +3,7 @@
 Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 
 Every piece of art the cutout renderer drew was SVG, and the size probe said
-so: `an.characters.svg_utils.raster_size` parses its input as XML, so a PNG
+so: `svg_raster_size` parses its input as XML, so a PNG
 plate died in the compiler with `ParseError: not well-formed (invalid token):
 line 1, column 0` — the error a user sees for “I gave it a picture”. Art carved
 out of footage, a scanned drawing, a photographed paper cut-out: those are
@@ -82,7 +82,7 @@ silently dropped.
 The size a piece of art rasterises at, whatever format it is.
 
 SVG: its declared `width`/`height` (else its viewBox), as the browser
-does — [`an.characters.svg_utils.raster_size()`](an.characters.svg_utils.md#an.characters.svg_utils.raster_size). Raster: its pixel size.
+does — `svg_raster_size()`. Raster: its pixel size.
 The ONE probe the compiler, the fidelity check and `an validate` share, so
 none of them can size a PNG as if it were XML again.
 

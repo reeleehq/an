@@ -8,17 +8,11 @@ an.stage.compile
 
    .. autosummary::
    
-      DFLT_LEG_COLOUR
-      DFLT_PUPIL_COLOUR
-      COARTICULATION_ENABLED
-      PROCEDURAL_MOUTH_KEYS
-      EYE_NODE_NAMES
-      PUPIL_NODE_NAMES
-      GAZE_ELLIPSE_MARGIN
       RUNTIME_APPLIED_PROPERTIES
       DFLT_TARGET_SUGGESTIONS
       CAMERA_NODE
       STAGE_COMPILE_PASSES
+      RUNTIME_FIELD_KINDS
       STAGE_SCENE_BUILDERS
       ENVIRONMENT_ART_PREFIX
       PLANE_FILL_SPAN
@@ -33,7 +27,6 @@ an.stage.compile
 
    .. autosummary::
    
-      blink_phase
       camera_keys
       compile_passes_for_stage
       compile_shot
@@ -43,6 +36,7 @@ an.stage.compile
       parse_tint
       plane_parents
       scene_builders
+      space_definitions
       stage_replacements
       step_times
       style_pack_for
@@ -52,6 +46,7 @@ an.stage.compile
 
    .. autosummary::
    
+      ActionLowering
       CompileState
       SceneBuild
    

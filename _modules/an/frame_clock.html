@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -807,7 +807,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="CapturedFrame">
-<a class="viewcode-back" href="../../_autosummary/an.impacts.html#an.frame_clock.CapturedFrame">[docs]</a>
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.CapturedFrame">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CapturedFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""One output frame: when its exposure opened and closed, and what it saw.</span>
@@ -840,7 +840,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="FrameClock">
-<a class="viewcode-back" href="../../_autosummary/an.impacts.html#an.frame_clock.FrameClock">[docs]</a>
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.FrameClock">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">FrameClock</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A camera's timing, as data. Every field defaults to the ideal camera.</span>
@@ -954,7 +954,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">MAX_JITTER_FRACTION</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">exposure</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span>
 
 <div class="viewcode-block" id="FrameClock.frames">
-<a class="viewcode-back" href="../../_autosummary/an.impacts.html#an.frame_clock.FrameClock.frames">[docs]</a>
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.FrameClock.frames">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CapturedFrame</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""One :class:`CapturedFrame` per output frame of a ``duration`` render."""</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
@@ -1004,7 +1004,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="FrameClock.sample_times">
-<a class="viewcode-back" href="../../_autosummary/an.impacts.html#an.frame_clock.FrameClock.sample_times">[docs]</a>
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.FrameClock.sample_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Per frame, the scene instants to render and average — the render seam."""</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">samples</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span></div>

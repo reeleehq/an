@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -739,6 +739,7 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"VECTORS_RESOURCE"</span><span class="p">,</span>
     <span class="s2">"as_contract_state"</span><span class="p">,</span>
+    <span class="s2">"case_document"</span><span class="p">,</span>
     <span class="s2">"conformance_report"</span><span class="p">,</span>
     <span class="s2">"readback_mismatches"</span><span class="p">,</span>
     <span class="s2">"vector_cases"</span><span class="p">,</span>
@@ -757,6 +758,53 @@ window.runMermaid = runMermaid;</script>
     <span class="n">package</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">VECTORS_RESOURCE</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">files</span><span class="p">(</span><span class="n">package</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"cases"</span><span class="p">]</span> <span class="k">if</span> <span class="n">space</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"space"</span><span class="p">)</span> <span class="o">==</span> <span class="n">space</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="case_document">
+<a class="viewcode-back" href="../../../_autosummary/an.engines.conformance.html#an.engines.conformance.case_document">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">case_document</span><span class="p">(</span><span class="n">case</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The case's document, carrying its property space the way a compiled</span>
+<span class="sd">    document does (an#287): ``meta.entity_spaces`` names the space for every</span>
+<span class="sd">    entity the case animates and ``meta.spaces`` defines it, so an engine that</span>
+<span class="sd">    reads only the DOCUMENT (``runtime.js`` has no registry) evaluates the case</span>
+<span class="sd">    in the case's space. A case in the default space is returned as it is.</span>
+
+<span class="sd">    &gt;&gt;&gt; case = {"space": {"name": "inline", "fields": []}, "document": {</span>
+<span class="sd">    ...     "timeline": {"duration": 1.0, "tracks": []}, "animations": {"m": {</span>
+<span class="sd">    ...     "duration": 1.0, "channels": [{"target": "view/a", "property": "x",</span>
+<span class="sd">    ...     "keyframes": [{"time": 0.0, "value": 0}]}]}}}}</span>
+<span class="sd">    &gt;&gt;&gt; meta = case_document(case)["meta"]</span>
+<span class="sd">    &gt;&gt;&gt; meta["entity_spaces"], meta["spaces"]["inline"]["fields"]</span>
+<span class="sd">    ({'view': 'inline'}, [])</span>
+<span class="sd">    &gt;&gt;&gt; "meta" in case_document({"space": "stage.node", "document": case["document"]})</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">spaces</span>
+
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s2">"document"</span><span class="p">]))</span>
+    <span class="n">space</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"space"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">space</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">space</span> <span class="o">==</span> <span class="n">spaces</span><span class="o">.</span><span class="n">DFLT_TIMELINE_SPACE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">doc</span>
+    <span class="n">definition</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">spaces</span><span class="o">.</span><span class="n">get_space</span><span class="p">(</span><span class="n">space</span><span class="p">)</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">space</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">space</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"inline"</span><span class="p">)</span>
+    <span class="n">entities</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">ch</span><span class="p">[</span><span class="s2">"target"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">anim</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"animations"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">anim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"channels"</span><span class="p">,</span> <span class="p">())</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">doc</span><span class="p">[</span><span class="s2">"meta"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"meta"</span><span class="p">,</span> <span class="p">{})),</span>
+        <span class="s2">"entity_spaces"</span><span class="p">:</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">entities</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span>
+        <span class="s2">"spaces"</span><span class="p">:</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">definition</span><span class="p">},</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">doc</span></div>
 
 
 

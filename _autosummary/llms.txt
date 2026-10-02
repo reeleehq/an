@@ -12,11 +12,9 @@
 - [an.adapters.cutout.canvas_capture](an.adapters.cutout.canvas_capture.html.md): Moved to &#96;an.stage.canvas_capture&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.channel](an.adapters.cutout.channel.html.md): Channel evaluation — moved to &#96;an.timing.channel&#96; (the timing kernel).
 - [an.adapters.cutout.clip](an.adapters.cutout.clip.html.md): Clips, loop modes and poses — moved to &#96;an.timing.clip&#96; (the timing kernel).
-- [an.adapters.cutout.coarticulate](an.adapters.cutout.coarticulate.html.md): Co-articulation for a swap mouth: the passes between a provider’s raw viseme
 - [an.adapters.cutout.compile](an.adapters.cutout.compile.html.md): Moved to &#96;an.stage.compile&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.easing](an.adapters.cutout.easing.html.md): Moved to &#96;an.stage.easing&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.fidelity](an.adapters.cutout.fidelity.html.md): Moved to &#96;an.stage.fidelity&#96; (an#247); this path is a LIVE alias of it.
-- [an.adapters.cutout.gaze](an.adapters.cutout.gaze.html.md): Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
 - [an.adapters.cutout.path](an.adapters.cutout.path.html.md): Moved to &#96;an.stage.path_geometry&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.render](an.adapters.cutout.render.html.md): Moved to &#96;an.stage.render&#96; (an#247); this path is a LIVE alias of it.
 - [an.adapters.cutout.runtime_files](an.adapters.cutout.runtime_files.html.md): Moved to &#96;an.stage.runtime_files&#96; (an#247); this path is a LIVE alias of it.
@@ -34,18 +32,14 @@
 - [an.audio.cli](an.audio.cli.html.md): &#96;an voices ...&#96; — browse a TTS provider’s voices from the shell (an#209).
 - [an.audio.effects](an.audio.effects.html.md): Voice effects: a deterministic transform applied to a synthesized line (an#163).
 - [an.audio.elevenlabs_tts](an.audio.elevenlabs_tts.html.md): ElevenLabsTTS — real speech via the ElevenLabs API. Requires ELEVEN_API_KEY.
-- [an.audio.injectable_lipsync](an.audio.injectable_lipsync.html.md): Lip-sync provider that consumes pre-computed word timings.
 - [an.audio.lipsync](an.audio.lipsync.html.md): Lip-sync provider protocol + viseme dataclasses.
 - [an.audio.mac_say_tts](an.audio.mac_say_tts.html.md): MacSayTTS — audible offline speech via macOS’s built-in &#96;say&#96; command.
-- [an.audio.offline_lipsync](an.audio.offline_lipsync.html.md): OfflineLipSync — deterministic transcript → viseme track. No network, no binary.
 - [an.audio.offline_tts](an.audio.offline_tts.html.md): OfflineTTS — produces silent audio of plausible duration. No network, no keys.
 - [an.audio.pipeline](an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
 - [an.audio.providers](an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
-- [an.audio.rhubarb_lipsync](an.audio.rhubarb_lipsync.html.md): RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.
 - [an.audio.takes](an.audio.takes.html.md): Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.
 - [an.audio.tts](an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.
 - [an.audio.voices](an.audio.voices.html.md): Which voice speaks a dialogue line: the character → voice binding (an#194).
-- [an.audio.whisper_lipsync](an.audio.whisper_lipsync.html.md): WhisperLipSync — faster-whisper word timestamps → viseme keyframes.
 - [an.base](an.base.html.md): Core types, constants, and re-exports for an.
 - [an.bench](an.bench.html.md): &#96;an bench&#96; — render a fixed corpus, compute a metrics panel, write one ledger row.
 - [an.bench.capture](an.bench.capture.html.md): Render one corpus fixture into a throwaway copy, and hand back its artifacts.
@@ -75,25 +69,6 @@
 - [an.capabilities](an.capabilities.html.md): Capabilities: what an asset, an engine or the environment affords, and the one matcher.
 - [an.capabilities.subjects](an.capabilities.subjects.html.md): The core’s two non-asset subjects: the engine (a renderer) and the environment.
 - [an.captions](an.captions.html.md): Captions from the word timings the audio pipeline already computes (an#175).
-- [an.characters](an.characters.html.md): Character art system: Spine-shaped descriptor + SVG sidecars.
-- [an.characters.brows](an.characters.brows.html.md): Brow acting: where the brows can go, what may not draw there, and the &#96;face.brows&#96; capability.
-- [an.characters.cli](an.characters.cli.html.md): User-facing character CLI subcommands.
-- [an.characters.colour_roles](an.characters.colour_roles.html.md): Colour roles: which colour literal in which part is skin, clothing, hair…
-- [an.characters.dicebear](an.characters.dicebear.html.md): DiceBear HTTP API client + best-effort post-processing.
-- [an.characters.drawn](an.characters.drawn.html.md): What the character factory wrote, as it wrote it: the in-memory log behind its record of drawn bytes...
-- [an.characters.factory](an.characters.factory.html.md): High-level entry points: build and inspect a character.
-- [an.characters.idle](an.characters.idle.html.md): Idle animation factories: breath, blink, weight-shift.
-- [an.characters.licenses](an.characters.licenses.html.md): DiceBear per-style licences, as data.
-- [an.characters.methods](an.characters.methods.html.md): The cut-out genre’s methods and aspects, and their compile-time resolution (ADR 0002).
-- [an.characters.mouth_set](an.characters.mouth_set.html.md): Generate the 9-shape default mouth set as parametric SVGs.
-- [an.characters.play](an.characters.play.html.md): Resolve a &#96;play&#96; against a character descriptor — the renderer-free half (an#7).
-- [an.characters.record](an.characters.record.html.md): Record a character’s preview HTML to an mp4.
-- [an.characters.registration](an.characters.registration.html.md): The character side of the cut-out genre, as declarations: &#96;play&#96; and &#96;character&#96;.
-- [an.characters.schema](an.characters.schema.html.md): Character descriptor schema (Spine-shaped, Pydantic v2).
-- [an.characters.silhouette](an.characters.silhouette.html.md): Silhouette rendering and comparison for the silhouette test.
-- [an.characters.svg_utils](an.characters.svg_utils.html.md): SVG manipulation: namespace-aware DOM helpers using stdlib &#96;xml.etree&#96;.
-- [an.characters.validate](an.characters.validate.html.md): Whether an art package is one the compiler can actually render.
-- [an.characters.vocabulary](an.characters.vocabulary.html.md): The cut-out genre’s vocabulary entries: motion presets, expression presets, IR-field notes.
 - [an.conftest](an.conftest.html.md): Collection rules for the package’s own doctests.
 - [an.credits](an.credits.html.md): What a rendered video owes, and to whom.
 - [an.data](an.data.html.md): Bundled non-Python resources (cutout JS runtime, etc.).
@@ -105,24 +80,9 @@
 - [an.engines.frame_stage](an.engines.frame_stage.html.md): &#96;frame_stage_renderer(engine)&#96;: any seekable engine becomes a &#96;Renderer&#96;.
 - [an.engines.protocol](an.engines.protocol.html.md): The &#96;Engine&#96; protocol: a seekable thing that turns a time, or a state, into a frame.
 - [an.environments](an.environments.html.md): Moved to &#96;an.stage.environments&#96; (an#247); this path is a LIVE alias of it.
-- [an.expression](an.expression.html.md): Facial expression for the cutout face (an#98, epic #9 Wave 6).
-- [an.expression.axes](an.expression.axes.html.md): The facial expression axes: what a cutout face can be asked to do (an#98).
-- [an.expression.binding](an.expression.binding.html.md): How the axes reach a character: the binding and the mouth-set resolver (an#98).
-- [an.expression.blendshapes](an.expression.blendshapes.html.md): The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).
-- [an.expression.presets](an.expression.presets.html.md): Expression presets: our art direction on the axes (an#98).
-- [an.expression.provider](an.expression.provider.html.md): The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98).
-- [an.expression.registration](an.expression.registration.html.md): The face side of the cut-out genre, as declarations: &#96;expression&#96; and &#96;&#91;emotion&#93;&#96;.
 - [an.frame_clock](an.frame_clock.html.md): The frame clock: WHEN each output frame samples scene time.
 - [an.genres](an.genres.html.md): Genres: what a kind of animation adds to the core, declared as one object.
-- [an.genres.cutout](an.genres.cutout.html.md): The cut-out animation genre, declared as one object (still inside &#96;an&#96;).
 - [an.genres.registry](an.genres.registry.html.md): The core’s open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.
-- [an.impacts](an.impacts.html.md): Synthetic impact clips with exact ground truth, for scoring sub-frame timing.
-- [an.impacts.cli](an.impacts.cli.html.md): &#96;an impacts ...&#96; — the impact harness from the shell.
-- [an.impacts.clip](an.impacts.clip.html.md): One impact clip, end to end: spec -&gt; scene -&gt; ground truth -&gt; (video) -&gt; files.
-- [an.impacts.objects](an.impacts.objects.html.md): The things that strike: a stick and a ball, as ordinary &#96;an&#96; props.
-- [an.impacts.performance](an.impacts.performance.html.md): The performance: a tempo grid, and when each impact was intended and executed.
-- [an.impacts.stroke](an.impacts.stroke.html.md): The stroke: impact events -&gt; one continuous height curve &#96;h(t)&#96;.
-- [an.impacts.truth](an.impacts.truth.html.md): Ground truth: what was intended, what was executed, and what each frame shows.
 - [an.ir](an.ir.html.md): Scene IR — the single source of truth for a scene.
 - [an.ir.assets](an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
 - [an.ir.camera](an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
@@ -133,7 +93,6 @@
 - [an.library](an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
 - [an.library.affordances](an.library.affordances.html.md): Affordances for the library: the capability registry, re-exported from &#96;an.capabilities&#96;.
 - [an.library.api](an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;, &#96;retire&#96;.
-- [an.library.character](an.library.character.html.md): The character analyser: legs, arms, views and mouth chart, derived from the rig.
 - [an.library.cli](an.library.cli.html.md): &#96;an library …&#96; — the asset library from the shell, over the same functions as Python.
 - [an.library.federation](an.library.federation.html.md): Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).
 - [an.library.floor](an.library.floor.html.md): The rights floor of a blob: the strictest statement any library on this machine makes about its byte...
@@ -158,6 +117,7 @@
 - [an.media.supersample](an.media.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
 - [an.motion](an.motion.html.md): Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 - [an.orchestrate](an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
+- [an.paint](an.paint.html.md): Paint: what fills a shape when one flat colour is not enough – a gradient.
 - [an.paths](an.paths.html.md): Moved to &#96;an.stage.paths&#96; (an#247); this path is a LIVE alias of it.
 - [an.preview](an.preview.html.md): Moved to &#96;an.stage.preview&#96; (an#247); this path is a LIVE alias of it.
 - [an.project](an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
@@ -182,12 +142,14 @@
 - [an.stage.easing](an.stage.easing.html.md): The stage engine’s easing vocabulary — a view of &#96;an.timing.easing&#96;.
 - [an.stage.environments](an.stage.environments.html.md): Environments: a stage made of planes, at declared depths.
 - [an.stage.fidelity](an.stage.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
+- [an.stage.gradients](an.stage.gradients.html.md): Gradient fills on the stage: a &#96;Gradient&#96; drawn as an inline SVG texture.
 - [an.stage.path_geometry](an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
 - [an.stage.paths](an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
 - [an.stage.preview](an.stage.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
 - [an.stage.props](an.stage.props.html.md): Props: a rig whose art is not a person.
 - [an.stage.raster](an.stage.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 - [an.stage.render](an.stage.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.
+- [an.stage.rig](an.stage.rig.html.md): The rig model the stage draws: bones, slots, skins and attachments.
 - [an.stage.runtime](an.stage.runtime.html.md): Cutout JS runtime — see README.md in this directory.
 - [an.stage.runtime_files](an.stage.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.stage.serialize](an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
@@ -227,7 +189,6 @@
 - [an.verify.media](an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
 - [an.verify.media_quality](an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
 - [an.verify.prosody](an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
-- [an.verify.style](an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 
 ## Optional

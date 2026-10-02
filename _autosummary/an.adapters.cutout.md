@@ -6,8 +6,8 @@ The render path is `an.stage.compile` -> `an.stage.serialize` ->
 `an.stage.render` (the stage engine, driven by the core frame stage) ->
 `runtime.js`. Every module that moved keeps a LIVE alias here
 (`an.adapters.cutout.render` is `an.stage.render` for reading and for
-rebinding, `an._shims.alias_module()`). What stays here is cut-out genre
-code on its way to `cutan` (an#225): `coarticulate`, `gaze`, and the
+rebinding, `an._shims.alias_module()`). `coarticulate` and `gaze` moved to `cutan` (an#225; live aliases with a
+warning). What stays here is the
 timing re-exports (`channel`, `clip`, `timeline`).
 
 The names this package used to export are resolved LAZILY, on first access:
@@ -329,7 +329,7 @@ curve of every authored tween that names none (tween > this > the built-in
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis
-curves for the face solver; `None` is `DefaultExpressionProvider`.
+curves for the face solver; `None` is the genre’s default provider.
 
 `step_hz` (an#89) resamples every authored **tween** onto a SHOT-wide
 pose grid of that many updates per second (multiples of `1/step_hz` on
@@ -368,11 +368,9 @@ clothes (an#33).
 | [`canvas_capture`](an.adapters.cutout.canvas_capture.md#module-an.adapters.cutout.canvas_capture) | Moved to [`an.stage.canvas_capture`](an.stage.canvas_capture.md#module-an.stage.canvas_capture) (an#247); this path is a LIVE alias of it. |
 | [`channel`](an.adapters.cutout.channel.md#module-an.adapters.cutout.channel)               | Channel evaluation — moved to [`an.timing.channel`](an.timing.channel.md#module-an.timing.channel) (the timing kernel).              |
 | [`clip`](an.adapters.cutout.clip.md#module-an.adapters.cutout.clip)                     | Clips, loop modes and poses — moved to [`an.timing.clip`](an.timing.clip.md#module-an.timing.clip) (the timing kernel).           |
-| [`coarticulate`](an.adapters.cutout.coarticulate.md#module-an.adapters.cutout.coarticulate)     | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6).             |
 | [`compile`](an.adapters.cutout.compile.md#module-an.adapters.cutout.compile)               | Moved to [`an.stage.compile`](an.stage.compile.md#module-an.stage.compile) (an#247); this path is a LIVE alias of it.               |
 | [`easing`](an.adapters.cutout.easing.md#module-an.adapters.cutout.easing)                 | Moved to [`an.stage.easing`](an.stage.easing.md#module-an.stage.easing) (an#247); this path is a LIVE alias of it.                 |
 | [`fidelity`](an.adapters.cutout.fidelity.md#module-an.adapters.cutout.fidelity)             | Moved to [`an.stage.fidelity`](an.stage.fidelity.md#module-an.stage.fidelity) (an#247); this path is a LIVE alias of it.             |
-| [`gaze`](an.adapters.cutout.gaze.md#module-an.adapters.cutout.gaze)                     | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                                     |
 | [`path`](an.adapters.cutout.path.md#module-an.adapters.cutout.path)                     | Moved to [`an.stage.path_geometry`](an.stage.path_geometry.md#module-an.stage.path_geometry) (an#247); this path is a LIVE alias of it.   |
 | [`render`](an.adapters.cutout.render.md#module-an.adapters.cutout.render)                 | Moved to [`an.stage.render`](an.stage.render.md#module-an.stage.render) (an#247); this path is a LIVE alias of it.                 |
 | [`runtime_files`](an.adapters.cutout.runtime_files.md#module-an.adapters.cutout.runtime_files)   | Moved to [`an.stage.runtime_files`](an.stage.runtime_files.md#module-an.stage.runtime_files) (an#247); this path is a LIVE alias of it.   |

@@ -41,6 +41,14 @@ Implements the `TTSProvider` protocol.
 The same request gives the same audio, so best-of-N takes never apply
 ([`an.audio.takes.voice_takes()`](an.audio.takes.md#an.audio.takes.voice_takes)) and nothing is billed.
 
+#### silent *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+a line it speaks for a voice written for a real
+provider is a stand-in the render says so loudly (an#305).
+
+* **Type:**
+  Its audio is silence
+
 ### an.audio.offline_tts.estimate_speech_duration(text, , seconds_per_char=0.06)
 
 Seconds the offline voice takes to say `text` — a leading pad plus a

@@ -66,7 +66,7 @@ differently is exactly the collision an#77 fixed.
 
 ### *class* an.stage.props.PropDescriptor(\*\*data)
 
-Bases: `_CharModel`
+Bases: [`RigModel`](an.stage.rig.html.md#an.stage.rig.RigModel)
 
 The on-disk prop schema. Saved as `prop.json`.
 
@@ -152,7 +152,7 @@ Optional source SVG the `parts/` folder was sliced from.
 One bone at the origin.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](an.characters.schema.html.md#an.characters.schema.Bone)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](an.stage.rig.html.md#an.stage.rig.Bone)]
 
 ```pycon
 >>> [b.name for b in default_prop_bones()]
@@ -164,7 +164,7 @@ One bone at the origin.
 One slot on that bone.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](an.characters.schema.html.md#an.characters.schema.Slot)]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](an.stage.rig.html.md#an.stage.rig.Slot)]
 
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]

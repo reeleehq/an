@@ -28,11 +28,12 @@ True
 
 ### Functions
 
-| [`as_contract_state`](#an.engines.conformance.as_contract_state)(state)             | A state in the vectors' spelling: `"target:property"` keys.                                                             |
-|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| [`conformance_report`](#an.engines.conformance.conformance_report)(open_case, cases) | Every mismatch over `cases`; `open_case(case)` is a context manager yielding a session loaded with the case's document. |
-| [`readback_mismatches`](#an.engines.conformance.readback_mismatches)(state_at, case)  | `(case, t, expected, got)` for every sample whose read-back differs.                                                    |
-| [`vector_cases`](#an.engines.conformance.vector_cases)(\*[, space])            | The golden cases, optionally only those of one property space.                                                          |
+| [`as_contract_state`](#an.engines.conformance.as_contract_state)(state)             | A state in the vectors' spelling: `"target:property"` keys.                                                                                                                                                                                                                                                        |
+|---------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`case_document`](#an.engines.conformance.case_document)(case)                  | The case's document, carrying its property space the way a compiled document does (an#287): `meta.entity_spaces` names the space for every entity the case animates and `meta.spaces` defines it, so an engine that reads only the DOCUMENT (`runtime.js` has no registry) evaluates the case in the case's space. |
+| [`conformance_report`](#an.engines.conformance.conformance_report)(open_case, cases) | Every mismatch over `cases`; `open_case(case)` is a context manager yielding a session loaded with the case's document.                                                                                                                                                                                            |
+| [`readback_mismatches`](#an.engines.conformance.readback_mismatches)(state_at, case)  | `(case, t, expected, got)` for every sample whose read-back differs.                                                                                                                                                                                                                                               |
+| [`vector_cases`](#an.engines.conformance.vector_cases)(\*[, space])            | The golden cases, optionally only those of one property space.                                                                                                                                                                                                                                                     |
 
 ### an.engines.conformance.VECTORS_RESOURCE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= ('an.data', 'timing/timing_vectors.json')*
 
@@ -54,6 +55,29 @@ runtime’s (`"target::property"`).
 ```pycon
 >>> as_contract_state({("a", "x"): 1.0, "b::y": 2})
 {'a:x': 1.0, 'b:y': 2}
+```
+
+### an.engines.conformance.case_document(case)
+
+The case’s document, carrying its property space the way a compiled
+document does (an#287): `meta.entity_spaces` names the space for every
+entity the case animates and `meta.spaces` defines it, so an engine that
+reads only the DOCUMENT (`runtime.js` has no registry) evaluates the case
+in the case’s space. A case in the default space is returned as it is.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> case = {"space": {"name": "inline", "fields": []}, "document": {
+...     "timeline": {"duration": 1.0, "tracks": []}, "animations": {"m": {
+...     "duration": 1.0, "channels": [{"target": "view/a", "property": "x",
+...     "keyframes": [{"time": 0.0, "value": 0}]}]}}}}
+>>> meta = case_document(case)["meta"]
+>>> meta["entity_spaces"], meta["spaces"]["inline"]["fields"]
+({'view': 'inline'}, [])
+>>> "meta" in case_document({"space": "stage.node", "document": case["document"]})
+False
 ```
 
 ### an.engines.conformance.conformance_report(open_case, cases)

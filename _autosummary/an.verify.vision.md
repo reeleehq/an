@@ -134,7 +134,8 @@ True
 Name the emotion a frame (or short strip) shows, or `None` if the
 reply named nothing in `labels` (an#98).
 
-`labels` defaults to every preset in [`an.expression`](an.expression.md#module-an.expression). `judge` is
+`labels` defaults to every expression preset the loaded genre knows (the
+`expression.known_presets` service; `cutan` in practice). `judge` is
 the `judge_frames`-shaped seam; parsing stays outside the recording.
 
 * **Return type:**

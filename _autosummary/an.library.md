@@ -8,9 +8,12 @@ assets out of it. Each package has its own library root (`an` →
 `~/.local/share/an`, a genre such as `cutan` → `~/.local/share/cutan`),
 read together as an ordered search path.
 
+The example publishes a character, which is the cut-out genre’s asset (`pip install
+"an[cutout]"`), so it is not run where that package is absent:
+
 ```pycon
 >>> import tempfile
->>> from an.characters.schema import CharacterDescriptor
+>>> from cutan.characters.schema import CharacterDescriptor
 >>> with tempfile.TemporaryDirectory() as d:
 ...     lib = open_library("an", root=d)
 ...     doc = CharacterDescriptor(name="blob")
@@ -28,7 +31,7 @@ What lives where:
   `MutableMapping` s;
 - [`an.library.federation`](an.library.federation.md#module-an.library.federation) — [`Library`](#an.library.Library) and the search path;
 - [`an.library.affordances`](an.library.affordances.md#module-an.library.affordances) — capabilities and per-kind analysers (the seed
-  of ADR 0002’s registry); [`an.library.character`](an.library.character.md#module-an.library.character) — the character analyser;
+  of ADR 0002’s registry); `an.library.character` — the character analyser;
 - [`an.library.rights`](an.library.rights.md#module-an.library.rights) — the most-restrictive roll-up over `AssetSource`;
   [`an.library.floor`](an.library.floor.md#module-an.library.floor) — the strictest statement any library on the machine
   > makes about a blob; [`an.library.registry`](an.library.registry.md#module-an.library.registry) — the machine’s registry of
@@ -906,7 +909,7 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> v = vocabulary(lib)
 >>> sorted(v)
 ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
->>> "limbs.legs" in v["capabilities"]
+>>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```
 
@@ -915,7 +918,6 @@ True
 | [`affordances`](an.library.affordances.md#module-an.library.affordances)   | Affordances for the library: the capability registry, re-exported from [`an.capabilities`](an.capabilities.md#module-an.capabilities).              |
 |----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`api`](an.library.api.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`, `retire`.                                                                                           |
-| [`character`](an.library.character.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |
 | [`cli`](an.library.cli.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                                                                                        |
 | [`federation`](an.library.federation.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).                                                                               |
 | [`floor`](an.library.floor.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.                                                                       |

@@ -9,7 +9,6 @@ an.motion
    .. autosummary::
    
       OVERSHOOT
-      IDENTITY_POSE
       PRESETS
       HOME_PRESETS
    

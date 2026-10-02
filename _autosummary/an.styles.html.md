@@ -11,7 +11,7 @@ word was reserved for.
 
 **A pack recolours SVG art only where the art says what its colours are.**
 The character factory records, per part, which literal it drew as which role
-(`CharacterDescriptor.colour_roles`, see [`an.characters.colour_roles`](an.characters.colour_roles.html.md#module-an.characters.colour_roles)),
+(`CharacterDescriptor.colour_roles`, see `an.characters.colour_roles`),
 and the compiler rewrites exactly those literals into a new, content-addressed
 inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left
 alone and the compiler warns once, naming it: a pack would otherwise have to
@@ -230,6 +230,32 @@ which is what keeps a scene with no pack byte-identical.
 `{entity id: SurfaceTreatment}` — per-entity, key-by-key override of
 `surface`.
 
+#### gradient_for(role)
+
+The pack’s gradient for `role`, or `None` (the plane keeps its own paint).
+
+* **Return type:**
+  [`Gradient`](an.paint.html.md#an.paint.Gradient) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> pack = StylePack(name="reiniger", gradients={"glass": {
+...     "type": "radial", "stops": ["#fff4d6", "#e0a050"]}})
+>>> pack.gradient_for("glass").type, pack.gradient_for("sky"), pack.gradient_for(None)
+('radial', None, None)
+```
+
+#### gradients *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Gradient](an.paint.html.md#an.paint.Gradient)]*
+
+`{role: Gradient}`. A stage plane that
+names a `role` (`PlaneArt.role`) is drawn with the pack’s gradient
+for it – how a style paints every environment’s backdrop as backlit
+glass or a dusk sky without editing the environments. Role names are the
+environments’ own, so they are free-form; a role no plane names simply
+paints nothing in that scene.
+
+* **Type:**
+  **Gradient roles** (an#275)
+
 #### grain *: [Grain](#an.styles.Grain) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 One static paper grain over the frame; `None` = none.
@@ -272,7 +298,7 @@ to store.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
+### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': "cutan's runtime script \`_LIP_COLOR\`, drawn by makeMouth and never read from the document", 'mouth_fill': "cutan's runtime script \`_MOUTH_FILL\`", 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
 
 Roles a pack must NOT declare, with what makes each unreachable. These are
 `runtime.js` literals: `_LIP_COLOR`, `_MOUTH_FILL`, `_TEETH_COLOR`,

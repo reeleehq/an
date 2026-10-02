@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -857,7 +857,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"main"</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
     <span class="n">parallel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -883,10 +883,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``an.build`` logger. See :func:`render`.</span>
 
 <span class="sd">    ``tts`` and ``lipsync`` may be provider name strings (``"offline"``,</span>
-<span class="sd">    ``"elevenlabs"``, ``"rhubarb"``) or provider instances. Defaults are</span>
-<span class="sd">    offline so no API keys are required. Switching providers triggers a</span>
-<span class="sd">    re-synthesis on dialogue lines whose stamped audio_ref / viseme_ref</span>
-<span class="sd">    no longer match the current configuration.</span>
+<span class="sd">    ``"elevenlabs"``, ``"rhubarb"``) or provider instances. **``tts`` defaults</span>
+<span class="sd">    to each voice's own provider** (an#305): a line whose voice document</span>
+<span class="sd">    declares ``provider: elevenlabs`` is spoken by ElevenLabs — its cost</span>
+<span class="sd">    announced before the first request, a cached line never billed — and a</span>
+<span class="sd">    voice that declares none by the offline provider, so a project that</span>
+<span class="sd">    declares no provider needs no API key and renders exactly as before. A</span>
+<span class="sd">    ``tts`` given overrides every voice; a line spoken by another provider than</span>
+<span class="sd">    its voice declares (``--tts offline`` for an ElevenLabs voice: silence) is a</span>
+<span class="sd">    finding, and refused under ``strict_assets``. ``lipsync`` defaults to</span>
+<span class="sd">    offline. Switching providers triggers a re-synthesis on dialogue lines whose</span>
+<span class="sd">    stamped audio_ref / viseme_ref no longer match the current configuration.</span>
 
 <span class="sd">    ``parallel`` controls per-shot concurrency:</span>
 
@@ -973,7 +980,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">auto_audio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
     <span class="n">parallel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -1140,9 +1147,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">auto_audio</span> <span class="ow">and</span> <span class="n">_has_any_audio_content</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
         <span class="c1"># Lazy import to keep render.py importable without audio extras.</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">produce_audio_for_scene</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_lipsync</span><span class="p">,</span> <span class="n">make_tts</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_lipsync</span>
 
-        <span class="n">tts_provider</span> <span class="o">=</span> <span class="n">make_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span>
         <span class="n">lipsync_provider</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">make_lipsync</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
@@ -1152,10 +1158,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">produce_audio_for_scene</span><span class="p">(</span>
             <span class="n">scene</span><span class="p">,</span>
             <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
-            <span class="n">tts</span><span class="o">=</span><span class="n">tts_provider</span><span class="p">,</span>
+            <span class="c1"># A name, an instance, or None: each voice's own provider (an#305).</span>
+            <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span>
             <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync_provider</span><span class="p">,</span>
             <span class="c1"># Reported with every other post-synthesis finding, below (an#254).</span>
             <span class="n">overruns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># A voice spoken by another provider than it declares is a stand-in.</span>
+            <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># Persist the now-stamped scene back to disk so subsequent loads see it.</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"scenes"</span><span class="p">][</span><span class="s2">"main"</span><span class="p">]</span> <span class="o">=</span> <span class="n">scene</span>
@@ -1302,7 +1311,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">profile</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
                 <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span> <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
-                <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">_provider_name</span><span class="p">(</span><span class="n">tts</span><span class="p">),</span>
+                <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">_tts_name</span><span class="p">(</span><span class="n">tts</span><span class="p">),</span>
                 <span class="n">lipsync</span><span class="o">=</span><span class="n">_provider_name</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">output</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
@@ -1383,6 +1392,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: How ``an render``'s summary heads each ``kind`` of finding, in this order; a</span>
 <span class="c1">#: kind not listed (another warning category) is headed by its own name, after.</span>
 <span class="n">FINDING_GROUPS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"VoiceStandInWarning"</span><span class="p">:</span> <span class="s2">"voices spoken by another provider than they declare"</span><span class="p">,</span>
     <span class="s2">"dialogue_fits"</span><span class="p">:</span> <span class="s2">"dialogue that does not fit its shot"</span><span class="p">,</span>
     <span class="s2">"dialogue_in_dissolve"</span><span class="p">:</span> <span class="s2">"dialogue heard during a dissolve"</span><span class="p">,</span>
     <span class="s2">"measurement"</span><span class="p">:</span> <span class="s2">"shots whose renderer measured their length"</span><span class="p">,</span>
@@ -1772,6 +1782,14 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">provider</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_tts_name</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``tts`` a root records: :func:`_provider_name`, and ``"voice"``</span>
+<span class="sd">    (:data:`an.audio.pipeline.VOICE_TTS`) for each voice's own provider (an#305)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOICE_TTS</span><span class="p">,</span> <span class="n">is_voice_tts</span>
+
+    <span class="k">return</span> <span class="n">VOICE_TTS</span> <span class="k">if</span> <span class="n">is_voice_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">else</span> <span class="n">_provider_name</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_film_parts</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="n">plans</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Each shot's `ShotParts` for an assembled film: a reused shot's from the</span>
 <span class="sd">    cache, a rendered shot's built from its frames once and recorded."""</span>
@@ -1806,7 +1824,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -1827,12 +1845,12 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
     <span class="k">if</span> <span class="n">_has_any_audio_content</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_lipsync</span><span class="p">,</span> <span class="n">make_tts</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_lipsync</span>
 
         <span class="n">stamp_from_stores</span><span class="p">(</span>
             <span class="n">scene</span><span class="p">,</span>
             <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
-            <span class="n">tts</span><span class="o">=</span><span class="n">make_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span><span class="p">,</span>
+            <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span>  <span class="c1"># None: each voice's own provider, as the render (an#305)</span>
             <span class="n">lipsync</span><span class="o">=</span><span class="p">(</span>
                 <span class="n">make_lipsync</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -751,6 +751,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">posixpath</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">unicodedata</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">service</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">replace</span>
@@ -771,7 +773,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">same_source</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span><span class="p">,</span> <span class="n">omit_unset</span><span class="p">,</span> <span class="n">register_kind</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">character</span> <span class="k">as</span> <span class="n">_character</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.affordances</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CAPABILITIES</span><span class="p">,</span>
     <span class="n">KEY_SEP</span><span class="p">,</span>
@@ -1311,7 +1312,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">stamp</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">stamp</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">stamp</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)):</span>
         <span class="k">return</span> <span class="kc">False</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
 
     <span class="k">return</span> <span class="n">FACTORY_PROVIDER</span> <span class="ow">in</span> <span class="n">generated_by</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span>
 
@@ -2497,14 +2498,10 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
     <span class="n">_load_genres</span><span class="p">()</span>  <span class="c1"># the analysers are the genres' (P7): never an empty facet by accident</span>
     <span class="n">affordances</span><span class="p">,</span> <span class="n">analysers</span> <span class="o">=</span> <span class="n">analyse</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">file_refs</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"character"</span> <span class="ow">and</span> <span class="n">_character</span><span class="o">.</span><span class="n">renders_as_placeholder</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2"> is neither a CharacterDescriptor nor a rig with 'parts': the "</span>
-            <span class="s2">"compiler would draw only its placeholder stand-in (fatal under "</span>
-            <span class="s2">"--strict-assets), so it affords nothing but its rest view"</span><span class="p">,</span>
-            <span class="n">PlaceholderRigWarning</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="p">)</span>
+    <span class="n">publish_warning</span> <span class="o">=</span> <span class="n">service</span><span class="p">(</span><span class="s2">"library.publish_warning"</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">publish_warning</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span> <span class="k">if</span> <span class="n">publish_warning</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">PlaceholderRigWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="n">created</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">head</span>
@@ -3181,7 +3178,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; v = vocabulary(lib)</span>
 <span class="sd">    &gt;&gt;&gt; sorted(v)</span>
 <span class="sd">    ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']</span>
-<span class="sd">    &gt;&gt;&gt; "limbs.legs" in v["capabilities"]</span>
+<span class="sd">    &gt;&gt;&gt; isinstance(v["capabilities"], (dict, list, tuple))</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="n">libs</span> <span class="o">=</span> <span class="n">as_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span>

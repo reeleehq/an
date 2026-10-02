@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -719,8 +719,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">&gt;&gt;&gt; from an.audio.providers import make_tts, make_lipsync</span>
 <span class="sd">&gt;&gt;&gt; make_tts("offline").name</span>
 <span class="sd">'offline'</span>
-<span class="sd">&gt;&gt;&gt; make_lipsync("offline").name</span>
-<span class="sd">'offline'</span>
+<span class="sd">&gt;&gt;&gt; make_lipsync("none").name</span>
+<span class="sd">'none'</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -728,13 +728,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.elevenlabs_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabsTTS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipSyncProvider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipSyncProvider</span><span class="p">,</span> <span class="n">NullLipSync</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.mac_say_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">MacSayTTS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineLipSync</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.rhubarb_lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">RhubarbLipSync</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTSProvider</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.whisper_lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">WhisperLipSync</span>
 
 
 <span class="n">TTS_FACTORIES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">TTSProvider</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -747,11 +744,25 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Rhubarb reads it today (its recognizer follows the language, an#96).</span>
 <span class="n">DEFAULT_LANGUAGE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span>
 
+<span class="c1">#: The lip-sync providers the core itself offers. A genre adds its own through</span>
+<span class="c1">#: the ``lipsync.&lt;name&gt;`` service (``cutan``: ``offline``, ``rhubarb``,</span>
+<span class="c1">#: ``whisper``); see :func:`lipsync_factories`.</span>
 <span class="n">LIPSYNC_FACTORIES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">LipSyncProvider</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"offline"</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="n">OfflineLipSync</span><span class="p">(),</span>
-    <span class="s2">"rhubarb"</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">*</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">DEFAULT_LANGUAGE</span><span class="p">:</span> <span class="n">RhubarbLipSync</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">),</span>
-    <span class="s2">"whisper"</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="n">WhisperLipSync</span><span class="p">(),</span>
+    <span class="s2">"none"</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="n">NullLipSync</span><span class="p">(),</span>
 <span class="p">}</span>
+
+<span class="c1">#: The provider :func:`default_lipsync` prefers when a genre registered it.</span>
+<span class="n">DFLT_LIPSYNC</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"offline"</span>
+
+
+<div class="viewcode-block" id="lipsync_factories">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.providers.html#an.audio.lipsync_factories">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lipsync_factories</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">LipSyncProvider</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Every lip-sync factory by name: the core's, then the loaded genres' services."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">services</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">services</span><span class="p">(</span><span class="s2">"lipsync."</span><span class="p">),</span> <span class="o">**</span><span class="n">LIPSYNC_FACTORIES</span><span class="p">}</span></div>
+
 
 
 <div class="viewcode-block" id="make_tts">
@@ -777,13 +788,32 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    ``language`` (BCP-47) reaches providers that select behaviour by language —</span>
 <span class="sd">    Rhubarb's recognizer today; a future aligner's weight allowlist.</span>
+
+<span class="sd">    The default name (``"offline"``) resolves to :class:`~an.audio.lipsync.NullLipSync`</span>
+<span class="sd">    when no loaded genre provides it, so voicing a line needs no genre; any other</span>
+<span class="sd">    name that nothing provides is an error that says how to get it.</span>
+
+<span class="sd">    &gt;&gt;&gt; make_lipsync("offline").name in {"offline", "none"}</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
+    <span class="n">factories</span> <span class="o">=</span> <span class="n">lipsync_factories</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">DFLT_LIPSYNC</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">factories</span><span class="p">:</span>
+        <span class="c1"># The default name, with no genre that draws mouths loaded: a line is still</span>
+        <span class="c1"># voiced, and gets no viseme track (the out-of-the-box path must not need a genre).</span>
+        <span class="k">return</span> <span class="n">NullLipSync</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">LIPSYNC_FACTORIES</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
+        <span class="n">factory</span> <span class="o">=</span> <span class="n">factories</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">hint</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">' The cut-out genre provides "offline", "rhubarb" and "whisper": '</span>
+            <span class="s1">'pip install "an[cutout]" and load genres (an.genres.load()).'</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"rhubarb"</span><span class="p">,</span> <span class="s2">"whisper"</span><span class="p">}</span>
+            <span class="k">else</span> <span class="s2">""</span>
+        <span class="p">)</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"unknown LipSync provider </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">LIPSYNC_FACTORIES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span></div>
+            <span class="sa">f</span><span class="s2">"unknown LipSync provider </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">factories</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span></div>
 
 
 
@@ -799,7 +829,7 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.audio.providers.html#an.audio.known_lipsync_names">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">known_lipsync_names</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Return the registered LipSync provider names."""</span>
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">LIPSYNC_FACTORIES</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lipsync_factories</span><span class="p">())</span></div>
 
 </pre></div>
 

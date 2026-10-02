@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -842,7 +842,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"main"</span><span class="p">,</span>
     <span class="n">verifiers</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Verifier</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">skip_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
     <span class="n">parallel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
@@ -864,7 +864,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``tts`` and ``lipsync`` accept either a provider name string or a</span>
 <span class="sd">    provider instance — useful for callers (e.g. ``muvid``) that want</span>
 <span class="sd">    to inject a :class:`an.audio.WordTimingsLipSync` driven by their</span>
-<span class="sd">    own alignment store, instead of letting ``an`` re-transcribe.</span>
+<span class="sd">    own alignment store, instead of letting ``an`` re-transcribe. ``tts``</span>
+<span class="sd">    defaults to each voice's own provider (an#305), as ``an render`` does.</span>
 <span class="sd">    """</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">OrchestratorReport</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">verifiers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

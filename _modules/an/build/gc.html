@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -719,8 +719,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">**What is kept (reachable).** An entry is reachable when either</span>
 
-<span class="sd">- a render of the project's CURRENT scene would read it — under the default</span>
-<span class="sd">  render knobs, or under any knob set a recorded render ever used — computed</span>
+<span class="sd">- a render of the project's CURRENT scene would read it — under any knob set</span>
+<span class="sd">  a recorded render ever used, or under a plain ``an render``'s — computed</span>
 <span class="sd">  by the render loop's own setup and the engine's own key code, with the</span>
 <span class="sd">  dialogue stamped from the audio stores as the render stamps it</span>
 <span class="sd">  (:func:`an.render.cache_entries`); or</span>
@@ -733,6 +733,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">an#274) is refused unless ``force``: the current scene's keys alone are then</span>
 <span class="sd">the only evidence, and a render's knobs or providers that differ from the</span>
 <span class="sd">defaults would leave its entries looking unreachable.</span>
+
+<span class="sd">**A knob set under which the current scene has a line with no audio** (an#306)</span>
+<span class="sd">— a line edited since the last render under it, or the plain render's</span>
+<span class="sd">hypothetical knobs for a project only ever spoken by ElevenLabs — has no keys</span>
+<span class="sd">to compute until that line is synthesised, so nothing in the cache can be its</span>
+<span class="sd">entry for that shot. It is skipped rather than refused, and what each root</span>
+<span class="sd">recorded under it is kept whatever ``--max-age`` says, so its unchanged shots</span>
+<span class="sd">stay. Only when the current scene can be keyed under NO knob set (every one</span>
+<span class="sd">lacks some line's audio: the scene has lines nothing has synthesised) is the</span>
+<span class="sd">collection refused — render first. Each knob set is replayed with its OWN</span>
+<span class="sd">providers (a root's recorded ``tts``), never with a command line's defaults.</span>
 
 <span class="sd">Everything else is unreachable: the entries of shots as they were before an</span>
 <span class="sd">edit, parts cut for an old neighbour, whole-frame entries (``&lt;key&gt;.frames``)</span>
@@ -772,6 +783,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOICE_TTS</span><span class="p">,</span> <span class="n">AudioNotCachedError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SUPERSAMPLE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">FRAMES_SUFFIX</span><span class="p">,</span>
@@ -785,6 +797,7 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CLOCK_SLACK_S"</span><span class="p">,</span>
     <span class="s2">"DEFAULT_PROFILE"</span><span class="p">,</span>
+    <span class="s2">"HYPOTHETICAL_PROFILES"</span><span class="p">,</span>
     <span class="s2">"CacheEntry"</span><span class="p">,</span>
     <span class="s2">"CacheGcError"</span><span class="p">,</span>
     <span class="s2">"CacheInfo"</span><span class="p">,</span>
@@ -804,9 +817,10 @@ window.runMermaid = runMermaid;</script>
 <span class="n">CLOCK_SLACK_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
 
 <span class="c1">#: The render knobs of a plain ``an render`` (and of ``render_project``'s</span>
-<span class="c1">#: defaults), as :meth:`ShotCache.record_root` records them. Always among the</span>
-<span class="c1">#: profiles the current scene is keyed under, so a cache written before roots</span>
-<span class="c1">#: existed keeps what a plain render of the current scene reads.</span>
+<span class="c1">#: defaults), as :meth:`ShotCache.record_root` records them: ``tts`` is each</span>
+<span class="c1">#: voice's own provider (an#305). Always among the profiles the current scene</span>
+<span class="c1">#: is keyed under, so a cache written before roots existed keeps what a plain</span>
+<span class="c1">#: render of the current scene reads.</span>
 <span class="n">DEFAULT_PROFILE</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"fps"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="s2">"resolution"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -815,10 +829,18 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"pix_fmt"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="s2">"capture"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="s2">"step_hz"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">"tts"</span><span class="p">:</span> <span class="s2">"offline"</span><span class="p">,</span>
+    <span class="s2">"tts"</span><span class="p">:</span> <span class="n">VOICE_TTS</span><span class="p">,</span>
     <span class="s2">"lipsync"</span><span class="p">:</span> <span class="s2">"offline"</span><span class="p">,</span>
     <span class="s2">"language"</span><span class="p">:</span> <span class="s2">"en"</span><span class="p">,</span>
 <span class="p">}</span>
+
+<span class="c1">#: The knob sets a plain render used or uses, recorded by a root or not: today's</span>
+<span class="c1">#: (:data:`DEFAULT_PROFILE`) and the one before an#305, which spoke every line</span>
+<span class="c1">#: offline — what a cache written before roots existed was rendered with.</span>
+<span class="n">HYPOTHETICAL_PROFILES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">DEFAULT_PROFILE</span><span class="p">,</span>
+    <span class="p">{</span><span class="o">**</span><span class="n">DEFAULT_PROFILE</span><span class="p">,</span> <span class="s2">"tts"</span><span class="p">:</span> <span class="s2">"offline"</span><span class="p">},</span>
+<span class="p">)</span>
 
 <span class="n">_SIZE_UNITS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">""</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"K"</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span> <span class="s2">"M"</span><span class="p">:</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">:</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">:</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">4</span><span class="p">}</span>
 <span class="n">_AGE_UNITS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"s"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">"h"</span><span class="p">:</span> <span class="mi">3600</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">:</span> <span class="mi">86400</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">:</span> <span class="mi">7</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">}</span>
@@ -967,12 +989,17 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.build.gc.html#an.build.Reachability">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Reachability</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""What the current scene and the recorded roots keep, and why."""</span>
+<span class="w">    </span><span class="sd">"""What the current scene and the recorded roots keep, and why.</span>
+
+<span class="sd">    ``profiles`` are the knob sets the current scene was keyed under;</span>
+<span class="sd">    ``skipped`` the ones it could not be (``(profile, why)``: a line's audio</span>
+<span class="sd">    is not cached under it — an#306), whose roots keep what they recorded."""</span>
 
     <span class="n">from_scene</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
     <span class="n">from_roots</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
     <span class="n">profiles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">skipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -1018,18 +1045,24 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Reachability</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What the project's current scene and its recorded roots reach.</span>
 
-<span class="sd">    The current scene is keyed under the default knobs and under the knobs of</span>
-<span class="sd">    EVERY recorded root (of any project, any age: a knob set is a few values,</span>
-<span class="sd">    and dropping one would orphan that render's entries of the unchanged scene).</span>
-<span class="sd">    A root younger than ``root_max_age`` seconds (all, when ``None``) also</span>
-<span class="sd">    keeps the entries it names; roots themselves are always kept.</span>
+<span class="sd">    The current scene is keyed under the knobs of EVERY recorded root (of any</span>
+<span class="sd">    project, any age: a knob set is a few values, and dropping one would orphan</span>
+<span class="sd">    that render's entries of the unchanged scene), each with its own recorded</span>
+<span class="sd">    providers, and under :data:`HYPOTHETICAL_PROFILES` (a plain render's). A</span>
+<span class="sd">    root younger than ``root_max_age`` seconds (all, when ``None``) also keeps</span>
+<span class="sd">    the entries it names; roots themselves are always kept.</span>
+
+<span class="sd">    A knob set under which some line's audio is not cached cannot be keyed</span>
+<span class="sd">    without a synthesis (an#306): it is skipped, listed in ``skipped``, and</span>
+<span class="sd">    every root recorded under it keeps its entries whatever ``root_max_age``.</span>
 
 <span class="sd">    ``engine`` computes the keys (its environment seam included); ``None`` is</span>
 <span class="sd">    a default :class:`~an.build.ShotCache` over ``store``, which probes this</span>
 <span class="sd">    machine like a render does. Raises :class:`CacheGcError` when the current</span>
-<span class="sd">    scene's keys cannot be computed (guessing is never safe), and when no render</span>
-<span class="sd">    of THIS project has recorded a root yet — a cache written before roots</span>
-<span class="sd">    existed (an#274) — unless ``force``.</span>
+<span class="sd">    scene's keys cannot be computed for any other reason, or under no knob set</span>
+<span class="sd">    at all (guessing is never safe), and when no render of THIS project has</span>
+<span class="sd">    recorded a root yet — a cache written before roots existed (an#274) —</span>
+<span class="sd">    unless ``force``.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">project_id</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache_entries</span>
@@ -1045,7 +1078,8 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"recorded ones"</span>
         <span class="p">)</span>
     <span class="n">reach</span> <span class="o">=</span> <span class="n">Reachability</span><span class="p">()</span>
-    <span class="n">profiles</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">DEFAULT_PROFILE</span><span class="p">)]</span>
+    <span class="c1"># Each knob set, with the roots recorded under it (none: hypothetical).</span>
+    <span class="n">candidates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CacheEntry</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">is_root</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -1057,25 +1091,50 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expired</span><span class="p">:</span>
             <span class="n">reach</span><span class="o">.</span><span class="n">from_roots</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"entries"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
         <span class="n">profile</span> <span class="o">=</span> <span class="n">_profile_kwargs</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"profile"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
-        <span class="k">if</span> <span class="n">profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">profile</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">:</span>
-            <span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
-    <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span> <span class="o">=</span> <span class="n">profiles</span>
+        <span class="k">if</span> <span class="n">profile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">known</span><span class="p">,</span> <span class="n">roots</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">known</span> <span class="o">==</span> <span class="n">profile</span><span class="p">:</span>
+                <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">profile</span><span class="p">,</span> <span class="p">[</span><span class="n">e</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">hypothetical</span> <span class="ow">in</span> <span class="n">HYPOTHETICAL_PROFILES</span><span class="p">:</span>
+        <span class="n">profile</span> <span class="o">=</span> <span class="n">_profile_kwargs</span><span class="p">(</span><span class="n">hypothetical</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">known</span> <span class="o">!=</span> <span class="n">profile</span> <span class="k">for</span> <span class="n">known</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">):</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">profile</span><span class="p">,</span> <span class="p">[]))</span>
     <span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span> <span class="ow">or</span> <span class="n">ShotCache</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">profile</span><span class="p">,</span> <span class="n">roots</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
                 <span class="c1"># A stand-in or a missing font warns at compile time; that is</span>
                 <span class="c1"># the render's message to give, not the collector's.</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
-                <span class="n">reach</span><span class="o">.</span><span class="n">from_scene</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cache_entries</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">profile</span><span class="p">))</span>
+                <span class="n">ids</span> <span class="o">=</span> <span class="n">cache_entries</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">profile</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">AudioNotCachedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># No key until that line is synthesised: nothing cached can be its</span>
+            <span class="c1"># shot's entry. What the renders under it used stays, whatever age.</span>
+            <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">profile</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+                <span class="n">rp</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">render_provenance</span> <span class="ow">or</span> <span class="p">{}</span>
+                <span class="n">reach</span><span class="o">.</span><span class="n">from_roots</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"entries"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
+            <span class="k">continue</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — refuse rather than guess</span>
             <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"cannot compute what the current scene reaches under </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2"> "</span>
-                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing was deleted. Render the "</span>
-                <span class="s2">"project first (a line whose audio is not cached yet has no key "</span>
-                <span class="s2">"until it is synthesised), or fix what keeps it from rendering "</span>
-                <span class="s2">"(`an validate`)"</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing was deleted. Fix what keeps "</span>
+                <span class="s2">"it from rendering (`an validate`)"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
+        <span class="n">reach</span><span class="o">.</span><span class="n">from_scene</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="p">:</span>
+        <span class="n">why</span> <span class="o">=</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">({</span><span class="n">why</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">}))</span>
+        <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
+            <span class="s2">"cannot compute what the current scene reaches under any setting a "</span>
+            <span class="sa">f</span><span class="s2">"render used or a plain render uses (</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">); nothing was deleted. "</span>
+            <span class="s2">"Render the project first: a line whose audio is not cached yet has "</span>
+            <span class="s2">"no key until it is synthesised"</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">reach</span></div>
 
 
@@ -1127,6 +1186,8 @@ window.runMermaid = runMermaid;</script>
             <span class="o">+</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_retained</span><span class="si">}</span><span class="s2"> within --max-size/--max-age"</span>
             <span class="o">+</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_protected</span><span class="p">)</span><span class="si">}</span><span class="s2"> written during a render or this collection"</span><span class="p">,</span>
         <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reach</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_skipped_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">failed</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"could not delete </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span><span class="si">}</span><span class="s2"> (in use, or already gone): "</span>
@@ -1135,6 +1196,16 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_skipped_line</span><span class="p">(</span><span class="n">skipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One line on the knob sets the current scene could not be keyed under."""</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">({</span><span class="sa">f</span><span class="s2">"tts=</span><span class="si">{</span><span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tts'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">profile</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">skipped</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"not keyed under </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">skipped</span><span class="p">)</span><span class="si">}</span><span class="s2"> knob set(s) (</span><span class="si">{</span><span class="n">names</span><span class="si">}</span><span class="s2">): a line's audio is "</span>
+        <span class="s2">"not cached under it, so it has no key until synthesised; what renders "</span>
+        <span class="s2">"under it recorded is kept"</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_remove_record</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">entry_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1320,6 +1391,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">orphan_blobs</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">reachability_error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">skipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"shot cache: </span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_bytes</span><span class="p">)</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
@@ -1336,6 +1408,8 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"reachable: unknown (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reachability_error</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">skipped</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_skipped_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skipped</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roots</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"  render of </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'output'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'age'</span><span class="p">]</span><span class="si">}</span><span class="s2"> ago, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'entries'</span><span class="p">]</span><span class="si">}</span><span class="s2"> entries"</span>
@@ -1403,12 +1477,13 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
     <span class="k">if</span> <span class="n">reachability</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">keep</span> <span class="o">=</span> <span class="n">reachable_entries</span><span class="p">(</span>
+            <span class="n">reach</span> <span class="o">=</span> <span class="n">reachable_entries</span><span class="p">(</span>
                 <span class="n">project</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">entries</span><span class="o">=</span><span class="n">entries</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">ids</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="n">CacheGcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">info</span><span class="o">.</span><span class="n">reachability_error</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">info</span>
+        <span class="n">keep</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">skipped</span> <span class="o">=</span> <span class="n">reach</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span>
         <span class="n">kept</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">]</span>
         <span class="n">gone</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">]</span>
         <span class="n">info</span><span class="o">.</span><span class="n">reachable</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kept</span><span class="p">),</span> <span class="n">_unique_size</span><span class="p">(</span><span class="n">kept</span><span class="p">,</span> <span class="n">blobs</span><span class="p">))</span>

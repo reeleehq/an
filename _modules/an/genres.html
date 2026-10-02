@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
+    <script src="../../_static/documentation_options.js?v=29d58b84"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.154" />
+  <meta name="docsearch:version" content="0.1.155" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -742,7 +742,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">the MCP entry call it, and anyone can. A package declares its genre as::</span>
 
 <span class="sd">    [project.entry-points."an.genres"]</span>
-<span class="sd">    cutout_animation = "an.genres.cutout:CUTOUT"</span>
+<span class="sd">    cutout_animation = "cutan.genre:CUTOUT"</span>
 
 <span class="sd">:func:`register_genre` installs a genre object directly (a test, a notebook, a</span>
 <span class="sd">genre defined in the same process).</span>
@@ -762,7 +762,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">EntryPoint</span><span class="p">,</span> <span class="n">entry_points</span> <span class="k">as</span> <span class="n">_entry_points</span>
 
@@ -771,6 +771,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">ActionKind</span><span class="p">,</span>
     <span class="n">CompilePass</span><span class="p">,</span>
     <span class="n">RuntimeScript</span><span class="p">,</span>
+    <span class="n">ServiceMissingError</span><span class="p">,</span>
+    <span class="n">SwapDeclaration</span><span class="p">,</span>
     <span class="n">DialogueSugar</span><span class="p">,</span>
     <span class="n">EntityKind</span><span class="p">,</span>
     <span class="n">RegistryError</span><span class="p">,</span>
@@ -784,6 +786,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">register_check</span><span class="p">,</span>
     <span class="n">register_compile_pass</span><span class="p">,</span>
     <span class="n">register_runtime_script</span><span class="p">,</span>
+    <span class="n">hook_modules</span><span class="p">,</span>
+    <span class="n">register_service</span><span class="p">,</span>
+    <span class="n">require_service</span><span class="p">,</span>
+    <span class="n">service</span><span class="p">,</span>
+    <span class="n">services</span><span class="p">,</span>
     <span class="n">register_dialogue_sugar</span><span class="p">,</span>
     <span class="n">register_entity_kind</span><span class="p">,</span>
     <span class="n">restore</span><span class="p">,</span>
@@ -799,6 +806,56 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.GenreError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GenreError</span><span class="p">(</span><span class="n">RegistryError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A genre declaration is malformed, or its entry point does not resolve."""</span></div>
+
+
+
+<span class="c1">#: The level of the genre-facing API this ``an`` provides: every hook, registry</span>
+<span class="c1">#: field and moved path a genre package may rely on. Bumped by each change a</span>
+<span class="c1">#: genre needs (the P8 seam PRs and each move to ``cutan``, an#225), never</span>
+<span class="c1">#: decremented. A genre states the lowest level it needs with</span>
+<span class="c1">#: :func:`require_api_level`, which is how "the genre declares the lowest ``an``</span>
+<span class="c1">#: it supports" (ADR 0001 decision 8) is said without a version pin: ``an``'s</span>
+<span class="c1">#: version is assigned by CI at merge, so no PR can name the release it ships in.</span>
+<span class="c1">#:</span>
+<span class="c1">#: A genre package must also run against an ``an`` older than this constant:</span>
+<span class="c1">#: it reads ``getattr(an.genres, "API_LEVEL", 0)`` before calling</span>
+<span class="c1">#: :func:`require_api_level`, and raises its own typed error when it is missing.</span>
+<span class="c1">#:</span>
+<span class="c1">#: Levels (one line each; ``tests/test_genre_gate.py`` holds the list complete):</span>
+<span class="c1">#:</span>
+<span class="c1">#: 1 = moved-module shims (``an._shims.moved_to_package``) and this check (an#296, P8 B0a).</span>
+<span class="c1">#: 2 = the cut-out genre's move (an#225): ``Genre.services``, ``ActionKind.lowering``,</span>
+<span class="c1">#:     ``EntityKind.swap_declaration``, ``an.stage.rig``.</span>
+<span class="n">API_LEVEL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<div class="viewcode-block" id="GenreAPILevelError">
+<a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.GenreAPILevelError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenreAPILevelError</span><span class="p">(</span><span class="n">GenreError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A genre package needs a newer ``an`` than the one installed."""</span></div>
+
+
+
+<div class="viewcode-block" id="require_api_level">
+<a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.require_api_level">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">require_api_level</span><span class="p">(</span><span class="n">level</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse, with an upgrade hint, when this ``an`` is older than ``package`` needs.</span>
+
+<span class="sd">    A genre package calls it at import (``require_api_level(3, package="cutan")``).</span>
+
+<span class="sd">    &gt;&gt;&gt; require_api_level(1, package="demo")</span>
+<span class="sd">    &gt;&gt;&gt; try:</span>
+<span class="sd">    ...     require_api_level(API_LEVEL + 1, package="demo")</span>
+<span class="sd">    ... except GenreAPILevelError as e:</span>
+<span class="sd">    ...     print(str(e).startswith(f"demo needs an.genres API level {API_LEVEL + 1}"))</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">API_LEVEL</span> <span class="o">&lt;</span> <span class="n">level</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">GenreAPILevelError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">package</span><span class="si">}</span><span class="s2"> needs an.genres API level </span><span class="si">{</span><span class="n">level</span><span class="si">}</span><span class="s2"> or higher; this an "</span>
+            <span class="sa">f</span><span class="s2">"provides </span><span class="si">{</span><span class="n">API_LEVEL</span><span class="si">}</span><span class="s2">. Upgrade an (pip install -U an), or install "</span>
+            <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">package</span><span class="si">}</span><span class="s2"> release that matches it."</span>
+        <span class="p">)</span></div>
 
 
 
@@ -854,6 +911,11 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Code the genre adds to an engine's runtime: its visual kinds</span>
     <span class="c1">#: (:class:`RuntimeScript`; an#247).</span>
     <span class="n">runtime_scripts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">RuntimeScript</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="c1">#: ``{name: object or "module:attr"}`` the genre offers the core by name</span>
+    <span class="c1">#: (:func:`register_service`; an#225): the CLI namespaces it adds</span>
+    <span class="c1">#: (``cli.&lt;namespace&gt;``), its lip-sync providers (``lipsync.&lt;name&gt;``), and the</span>
+    <span class="c1">#: other places the core asks "is there a genre that does this?".</span>
+    <span class="n">services</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Genre.provides">
 <a class="viewcode-back" href="../../_autosummary/an.genres.html#an.genres.Genre.provides">[docs]</a>
@@ -876,6 +938,7 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"aspects"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspects</span><span class="p">),</span>
             <span class="s2">"compile passes"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_passes</span><span class="p">),</span>
             <span class="s2">"runtime scripts"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_scripts</span><span class="p">),</span>
+            <span class="s2">"services"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">services</span><span class="p">),</span>
         <span class="p">}</span></div>
 </div>
 
@@ -952,6 +1015,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">register_compile_pass</span><span class="p">(</span><span class="n">compile_pass</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">script</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">runtime_scripts</span><span class="p">:</span>
         <span class="n">register_runtime_script</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">genre</span><span class="o">.</span><span class="n">services</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">register_service</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">genre</span><span class="o">.</span><span class="n">capabilities</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">analysers</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">vocabulary</span> <span class="ow">or</span> <span class="n">genre</span><span class="o">.</span><span class="n">aspects</span><span class="p">:</span>
         <span class="n">_install_semantics</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">check_capabilities</span><span class="o">=</span><span class="n">check_capabilities</span><span class="p">)</span>
 
@@ -1075,12 +1140,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: install made before the ``an.genres`` group existed never refreshes its</span>
 <span class="c1">#: ``dist-info``, and a missing entry point must never silently drop a genre</span>
 <span class="c1">#: that ships in the same distribution as the core (review-244 S1). Still</span>
-<span class="c1">#: explicit discovery (only :func:`load` reads it, never an import). External</span>
-<span class="c1">#: genres (``cutan`` after P8) come through the entry point alone; when the</span>
-<span class="c1">#: cut-out genre moves there, its line here goes.</span>
-<span class="n">IN_DISTRIBUTION_GENRES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="p">(</span><span class="s2">"cutout_animation"</span><span class="p">,</span> <span class="s2">"an.genres.cutout:CUTOUT"</span><span class="p">),</span>
-<span class="p">)</span>
+<span class="c1">#: explicit discovery (only :func:`load` reads it, never an import). Every genre is</span>
+<span class="c1">#: external now: the cut-out genre moved to ``cutan`` (an#225) and comes through</span>
+<span class="c1">#: the ``an.genres`` entry point alone.</span>
+<span class="n">IN_DISTRIBUTION_GENRES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
 
 <div class="viewcode-block" id="genre_library">
@@ -1113,12 +1176,12 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">discovered_entry_points</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span> <span class="n">entry_points</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">EntryPoint</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">builtin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EntryPoint</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The in-distribution genres (``builtin``) merged with ``entry_points``</span>
-<span class="sd">    (default: the installed ones), de-duplicated by name — the in-distribution</span>
-<span class="sd">    declaration first, so a stale or missing installed entry cannot shadow it.</span>
+<span class="w">    </span><span class="sd">"""The in-distribution genres (``builtin``; none since the cut-out genre moved to</span>
+<span class="sd">    ``cutan``, an#225) merged with ``entry_points`` (default: the installed ones),</span>
+<span class="sd">    de-duplicated by name — the in-distribution declaration first.</span>
 
 <span class="sd">    &gt;&gt;&gt; [ep.name for ep in discovered_entry_points(entry_points=())]</span>
-<span class="sd">    ['cutout_animation']</span>
+<span class="sd">    []</span>
 <span class="sd">    """</span>
     <span class="n">eps</span> <span class="o">=</span> <span class="n">genre_entry_points</span><span class="p">()</span> <span class="k">if</span> <span class="n">entry_points</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">entry_points</span><span class="p">)</span>
     <span class="n">builtins</span> <span class="o">=</span> <span class="p">(</span>
@@ -1326,10 +1389,20 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"API_LEVEL"</span><span class="p">,</span>
     <span class="s2">"ENTRY_POINT_GROUP"</span><span class="p">,</span>
+    <span class="s2">"GenreAPILevelError"</span><span class="p">,</span>
+    <span class="s2">"require_api_level"</span><span class="p">,</span>
     <span class="s2">"ActionKind"</span><span class="p">,</span>
     <span class="s2">"CompilePass"</span><span class="p">,</span>
     <span class="s2">"RuntimeScript"</span><span class="p">,</span>
+    <span class="s2">"ServiceMissingError"</span><span class="p">,</span>
+    <span class="s2">"SwapDeclaration"</span><span class="p">,</span>
+    <span class="s2">"hook_modules"</span><span class="p">,</span>
+    <span class="s2">"register_service"</span><span class="p">,</span>
+    <span class="s2">"require_service"</span><span class="p">,</span>
+    <span class="s2">"service"</span><span class="p">,</span>
+    <span class="s2">"services"</span><span class="p">,</span>
     <span class="s2">"DialogueSugar"</span><span class="p">,</span>
     <span class="s2">"EntityKind"</span><span class="p">,</span>
     <span class="s2">"Genre"</span><span class="p">,</span>

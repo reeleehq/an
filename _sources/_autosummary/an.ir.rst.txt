@@ -10,8 +10,6 @@ an.ir
    
       set_
       tween
-      play
-      expression
       sequence
       parallel
       stagger
