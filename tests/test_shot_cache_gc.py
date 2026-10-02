@@ -158,6 +158,7 @@ def _speaking(root):
     _set_shots(root, shot, _shot("b", 20.0))
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_md_edit_that_drops_the_audio_stamps_keeps_what_the_next_render_reuses(
     tmp_path, fake_render
 ):
@@ -176,6 +177,7 @@ def test_an_md_edit_that_drops_the_audio_stamps_keeps_what_the_next_render_reuse
     assert rendered == []
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_line_whose_audio_is_not_cached_makes_gc_refuse(tmp_path, fake_render):
     root = _project(tmp_path, _shot("a", 10.0))
     _speaking(root)

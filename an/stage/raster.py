@@ -1,7 +1,7 @@
 """Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 
 Every piece of art the cutout renderer drew was SVG, and the size probe said
-so: `an.characters.svg_utils.raster_size` parses its input as XML, so a PNG
+so: `svg_raster_size` parses its input as XML, so a PNG
 plate died in the compiler with ``ParseError: not well-formed (invalid token):
 line 1, column 0`` — the error a user sees for "I gave it a picture". Art carved
 out of footage, a scanned drawing, a photographed paper cut-out: those are
@@ -43,6 +43,7 @@ import struct
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree as ET
 
 __all__ = [
     "RASTER_SUFFIXES",
@@ -160,19 +161,83 @@ def _has_alpha(source: Any) -> bool | None:
     return None
 
 
+def _parse_svg(source: Any) -> ET.ElementTree:
+    """Parse ``source`` (path, file-like, or already-parsed ``ElementTree``)."""
+    if isinstance(source, ET.ElementTree):
+        return source
+    if isinstance(source, ET.Element):
+        return ET.ElementTree(source)
+    if isinstance(source, (str, Path)) and Path(str(source)).exists():
+        return ET.parse(str(source))
+    if hasattr(source, "read"):
+        return ET.parse(source)
+    if isinstance(source, str):
+        return ET.ElementTree(ET.fromstring(source))
+    if isinstance(source, Path):
+        raise FileNotFoundError(f"no SVG at {source}")
+    raise TypeError(f"unsupported svg source: {type(source).__name__}")
+
+
+#: Attributes an SVG root may use to declare its rasterised size.
+_SIZE_ATTRS: tuple[str, str] = ("width", "height")
+
+#: Trailing units we accept on a width/height and ignore (SVG user units).
+_UNIT_SUFFIXES: tuple[str, ...] = ("px", "pt", "cm", "mm", "in", "pc")
+
+
+def _strip_units(value: str) -> float:
+    """Parse an SVG length, tolerating a unit suffix. Percentages are refused."""
+    text = value.strip()
+    if text.endswith("%"):
+        raise ValueError(f"percentage length {value!r} has no intrinsic size")
+    for suffix in _UNIT_SUFFIXES:
+        if text.endswith(suffix):
+            text = text[: -len(suffix)]
+            break
+    return float(text)
+
+
+def svg_raster_size(source: Any) -> tuple[float, float]:
+    """Return the ``(width, height)`` an SVG declares for its own raster.
+
+    This is the size the browser rasterises the file at, which is what a
+    ``Sprite`` then scales — **not** the extent of the drawn art. The two differ
+    whenever `cutan.characters.svg_utils.extract_part` has cropped the viewBox while copying the
+    parent's dimensions, which is the defect behind #75.
+
+    Falls back to the viewBox extent when no ``width``/``height`` is declared,
+    matching the browser.
+
+    >>> svg_raster_size('<svg xmlns="http://www.w3.org/2000/svg" '
+    ...             'viewBox="0 0 10 20" width="100" height="100"/>')
+    (100.0, 100.0)
+    >>> svg_raster_size('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 20"/>')
+    (10.0, 20.0)
+    """
+    root = _parse_svg(source).getroot()
+    declared = [root.get(name) for name in _SIZE_ATTRS]
+    if all(declared):
+        return (_strip_units(declared[0]), _strip_units(declared[1]))
+    view_box = root.get("viewBox")
+    if not view_box:
+        raise ValueError("SVG declares neither width/height nor a viewBox")
+    parts = view_box.split()
+    if len(parts) != 4:
+        raise ValueError(f"malformed viewBox {view_box!r}")
+    return (float(parts[2]), float(parts[3]))
+
+
 def art_size(source: str | Path) -> tuple[float, float]:
     """The size a piece of art rasterises at, whatever format it is.
 
     SVG: its declared ``width``/``height`` (else its viewBox), as the browser
-    does — :func:`an.characters.svg_utils.raster_size`. Raster: its pixel size.
+    does — :func:`svg_raster_size`. Raster: its pixel size.
     The ONE probe the compiler, the fidelity check and `an validate` share, so
     none of them can size a PNG as if it were XML again.
     """
     if is_raster(source):
         return image_size(source)
-    from an.characters.svg_utils import raster_size
-
-    return raster_size(source)
+    return svg_raster_size(source)
 
 
 #: The query key a raster texture's ``src`` carries its digest under. The

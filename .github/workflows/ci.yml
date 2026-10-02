@@ -46,6 +46,10 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: setup
     runs-on: ubuntu-latest
+    # The main leg installs no genre: the tests marked `genre` are skipped AND COUNTED here
+    # (tests/conftest.py) and run in genre-tests.yml with cutan installed (an#225).
+    env:
+      AN_GENRE_TESTS: "0"
     strategy:
       matrix:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
@@ -135,6 +139,10 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]') && needs.setup.outputs.test-on-windows == 'true'"
     needs: setup
     runs-on: windows-latest
+    # The main leg installs no genre: the tests marked `genre` are skipped AND COUNTED here
+    # (tests/conftest.py) and run in genre-tests.yml with cutan installed (an#225).
+    env:
+      AN_GENRE_TESTS: "0"
 
     steps:
       - uses: actions/checkout@v6

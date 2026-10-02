@@ -81,9 +81,11 @@ AN = PYPROJECT.parent / "an"
 _IMPORT_TO_DIST: dict[str, str] = {"yaml": "pyyaml"}
 
 #: The one module allowed to import an undeclared dependency at module level.
-#: `an.genre` declares this package's genre to `nw` and is opt-in by design:
+#: `nw` is imported by no module of `an` since the genre moved: `cutan.nw` declares the
+#: cut-out genre to `nw` (opt-in by design, and cutan's own conftest skips it when `nw` is
+#: absent). A new module here would break CI collection, so it needs a conscious entry:
 #: `an/__init__.py` never imports it, so `import an` stays nw-free.
-KNOWN_OPTIONAL_MODULE_IMPORTS: dict[str, str] = {"an/genre.py": "nw"}
+KNOWN_OPTIONAL_MODULE_IMPORTS: dict[str, str] = {}
 
 
 def _declared_distributions() -> set[str]:

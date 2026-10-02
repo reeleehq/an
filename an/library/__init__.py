@@ -6,9 +6,12 @@ assets out of it. Each package has its own library root (``an`` →
 ``~/.local/share/an``, a genre such as ``cutan`` → ``~/.local/share/cutan``),
 read together as an ordered search path.
 
+The example publishes a character, which is the cut-out genre's asset (``pip install
+"an[cutout]"``), so it is not run where that package is absent:
+
 >>> import tempfile
->>> from an.characters.schema import CharacterDescriptor
->>> with tempfile.TemporaryDirectory() as d:
+>>> from cutan.characters.schema import CharacterDescriptor  # doctest: +SKIP
+>>> with tempfile.TemporaryDirectory() as d:  # doctest: +SKIP
 ...     lib = open_library("an", root=d)
 ...     doc = CharacterDescriptor(name="blob")
 ...     r = publish(lib, "character.blob", doc, style="reiniger")

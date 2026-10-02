@@ -24,12 +24,12 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
-from an.characters.factory import (
+from cutan.characters.factory import (
     FACTORY_PROVIDER,
     new_character,
     stamp_factory_parts,
 )
-from an.characters.validate import validate_character
+from cutan.characters.validate import validate_character
 from an.credits import collect_credits
 from an.library import (
     RightsRefusal,
@@ -55,6 +55,9 @@ from an.orchestrate import validate_project
 from an.project import init as init_project
 from an.stores import build_project_mall
 from an.tools import init as init_cli
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 PRIVATE = {"provider": "a-film", "license": "all-rights-reserved-private-study"}
 CC0 = {"provider": "an-tests", "license": "cc0-1.0"}
@@ -450,7 +453,7 @@ def test_init_by_id_lands_under_the_genre_root(tmp_path):
 
 def test_the_core_names_no_genre_package():
     from an.genres import genre_library
-    from an.genres.cutout import CUTOUT
+    from cutan.genre import CUTOUT
     from an.library import root
 
     assert CUTOUT.library == "cutan"
@@ -577,8 +580,8 @@ def test_a_carried_label_does_not_cover_bytes_it_never_saw(tmp_path):
 
 def test_a_generated_descriptor_source_speaks_only_for_what_it_pins(tmp_path):
     """S1, DiceBear: a generator's source does not cover a re-carved part."""
-    from an.characters.factory import stamp_generated_head
-    from an.characters.licenses import dicebear_source
+    from cutan.characters.factory import stamp_generated_head
+    from cutan.characters.licenses import dicebear_source
 
     lib = open_library("cutan", records={}, versions={}, blobs={})
     char = new_character(tmp_path, name="dee", use_dicebear=False).parent
@@ -714,7 +717,7 @@ def test_os_clutter_never_makes_a_copy_look_edited(project):
 
 def test_regenerated_mouths_stay_the_factorys_work(project):
     """`an character mouths` re-stamps what it redraws."""
-    from an.characters.cli import mouths
+    from cutan.characters.cli import mouths
 
     chars = project / "assets" / "characters"
     new_character(chars, name="amy", use_dicebear=False)
@@ -736,7 +739,7 @@ def test_a_namespaced_reference_joins_an_explicit_package_path(tmp_path, project
 
 def test_a_dicebear_character_is_pinned_to_dicebears_bytes(tmp_path, monkeypatch):
     """S1: the factory pins DiceBear's source on the head it drew and the drawing."""
-    from an.characters import factory
+    from cutan.characters import factory
 
     monkeypatch.setattr(
         factory,

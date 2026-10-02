@@ -428,6 +428,7 @@ def test_a_cubic_path_reaches_the_wire_flattened():
     assert len(scene.scene.children[0].visual.path.points) == 9
 
 
+@pytest.mark.genre("cutout_animation")
 def test_trim_on_a_character_raises_at_compile():
     shot = _shot(
         actions=[
@@ -560,6 +561,7 @@ def test_dash_offset_on_a_solid_path_raises_and_validate_agrees():
     assert _validate(shot, {"dash": 10.0}).passed
 
 
+@pytest.mark.genre("cutout_animation")
 def test_dash_offset_on_a_character_is_refused_too():
     shot = _shot(
         actions=[SetAction(target="charlie", property="dash_offset", value=1.0)],

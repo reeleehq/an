@@ -71,6 +71,7 @@ def test_the_error_names_the_shot_and_an_validate_reports_it(tmp_path):
     assert "shot 's1'" in finding.description and "maya (warm)" in finding.description
 
 
+@pytest.mark.genre("cutout_animation")
 def test_every_speaking_corpus_scene_ir_is_reproducible_from_its_md():
     """The committed IR carries the offline visemes; it must be exactly what
     `scene.md` + the offline providers produce, or a md edit without a
@@ -81,7 +82,9 @@ def test_every_speaking_corpus_scene_ir_is_reproducible_from_its_md():
     from an.ir.sync import markdown_to_ir
 
     checked = 0
-    for ir_path in sorted(ROOT.glob("misc/bench/corpus/*/ir/scene.json")):
+    from tests._corpus_roots import corpus_glob
+
+    for ir_path in corpus_glob("misc/bench/corpus/*/ir/scene.json"):
         scene = markdown_to_ir((ir_path.parent.parent / "scene.md").read_text(encoding="utf-8"))
         if not any(s.dialogue for s in scene.timeline):
             continue
@@ -93,6 +96,7 @@ def test_every_speaking_corpus_scene_ir_is_reproducible_from_its_md():
     assert checked >= 1
 
 
+@pytest.mark.genre("cutout_animation")
 def test_comments_and_blank_lines_are_still_skipped():
     scene = markdown_to_ir(_md("# a comment", "", "charlie: hi", "   ", "maya [happy]: yo"))
     assert [d.text for d in scene.timeline[0].dialogue] == ["hi", "yo"]
@@ -115,6 +119,7 @@ def test_every_committed_scene_md_dialogue_line_parses():
     assert not offenders, offenders
 
 
+@pytest.mark.genre("cutout_animation")
 def test_promote_demo_has_its_line_again():
     """Its IR carries the line. Whether visemes are stamped depends on whether
     someone ran the example (`auto_audio=True` persists them) — the bench does
@@ -123,6 +128,9 @@ def test_promote_demo_has_its_line_again():
     tree, not of developer state."""
     import json
 
-    ir = json.loads((ROOT / "examples/promote_demo/ir/scene.json").read_text(encoding="utf-8"))
+    from tests._corpus_roots import corpus_glob
+
+    (promote,) = corpus_glob("examples/promote_demo/ir/scene.json")
+    ir = json.loads(promote.read_text(encoding="utf-8"))
     (line,) = ir["timeline"][0]["dialogue"]
     assert line["speaker"] == "maya" and line["text"].startswith("I started life")

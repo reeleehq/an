@@ -55,6 +55,14 @@ STAGE: tuple[str, ...] = (
     "an.bench.contract",  # hashes the stage's compiled document
     "an.bench.stage",
     "an.bench.palette",
+    # The bench runner renders through the stage and serves any corpus (the
+    # core's and a genre's: `cutan.bench` runs its own through it), so it is the
+    # stage's, not a genre's (the move, an#225).
+    "an.bench.corpus",
+    "an.bench.capture",
+    "an.bench.run",
+    "an.bench.mutants",
+    "an.bench.mutations",
     "an.data.cutout_runtime",  # old path of the runtime, now an alias
 )
 
@@ -63,29 +71,21 @@ STAGE: tuple[str, ...] = (
 #: corpus exists" (module map).
 GENRE: tuple[str, ...] = (
     "cutan",
+    # The old `an` paths of what moved: live aliases with a warning. A core module
+    # importing one is a core module importing the genre, so they stay classified.
     "an.genres.cutout",
-    # Physically under the stage's old package (`an.adapters.cutout`), but
-    # cut-out code (module map: coarticulate, gaze -> cutan). The LONGEST
-    # matching prefix classifies a module, so these two are genre.
     "an.adapters.cutout.coarticulate",
     "an.adapters.cutout.gaze",
-    # The B1 movers that live outside the genre's own packages (P8 manifest
-    # §4.1), classified now so B0b's removals of their core edges are held by
-    # this test, not by prose (review of an#298, M5).
     "an.genre",
     "an.audio.offline_lipsync",
     "an.audio.rhubarb_lipsync",
+    "an.audio.whisper_lipsync",
+    "an.audio.injectable_lipsync",
     "an.verify.style",
     "an.library.character",
-    "an.stores.characters",
     "an.characters",
     "an.expression",
     "an.impacts",
-    "an.bench.corpus",
-    "an.bench.capture",
-    "an.bench.run",
-    "an.bench.mutants",
-    "an.bench.mutations",
 )
 
 #: Engines and back-ends no core module may need in order to import.
@@ -95,39 +95,7 @@ FIREWALLED: tuple[str, ...] = STAGE + GENRE + ENGINES
 
 #: Today's violations, ``(core module, firewalled prefix) -> what removes it``.
 #: ONLY SHRINKS: see the module docstring.
-ALLOWED_TODAY: dict[tuple[str, str], str] = {
-    ("an.tools", "an.characters"): "an#225 (P8): the `an character` namespace registers from cutan",
-    ("an.tools", "an.impacts"): "an#225 (P8): the `an impacts` namespace registers from cutan",
-    ("an.ir", "an.characters"): (
-        "an#225 (P8): the character descriptor's document kind registers from cutan"
-    ),
-    ("an.ir.validate", "an.characters"): "an#246 (P8): cut-out branches left in core checks",
-    ("an.ir.validate", "an.expression"): "an#246 (P8): cut-out branches left in core checks",
-    # The B1 movers' core edges (classified in an#298), all removed by B0b's
-    # hooks: a lip-sync provider registry and the post-audio viseme hook, the
-    # analyser's publish check, the mall's characters store from the entity kind.
-    ("an.audio", "an.audio.offline_lipsync"): "an#225 (P8 B0b): lip-sync providers register by name",
-    ("an.audio", "an.audio.rhubarb_lipsync"): "an#225 (P8 B0b): lip-sync providers register by name",
-    ("an.audio.providers", "an.audio.offline_lipsync"): "an#225 (P8 B0b): lip-sync provider registry",
-    ("an.audio.providers", "an.audio.rhubarb_lipsync"): "an#225 (P8 B0b): lip-sync provider registry",
-    ("an.audio.pipeline", "an.audio.offline_lipsync"): "an#225 (P8 B0b): the post-audio viseme hook",
-    ("an.audio.whisper_lipsync", "an.audio.offline_lipsync"): (
-        "an#225 (P8 B0b): the letter-to-viseme half moves to the genre"
-    ),
-    ("an.audio.injectable_lipsync", "an.audio.offline_lipsync"): (
-        "an#225 (P8 B0b): the viseme half moves to the genre"
-    ),
-    ("an.library.api", "an.library.character"): (
-        "an#225 (P8 B0b): the analyser's publish check registers from the genre"
-    ),
-    ("an.stores", "an.stores.characters"): (
-        "an#225 (P8 B0b): the mall builds the characters store from the entity kind"
-    ),
-    ("an.bench", "an.bench.run"): (
-        "an#225 (P8): the cut-out corpus runner moves with cutan; the core "
-        "corpus gets its own"
-    ),
-}
+ALLOWED_TODAY: dict[tuple[str, str], str] = {}
 
 
 def _matches(name: str, prefixes: tuple[str, ...]) -> str | None:
@@ -417,22 +385,13 @@ def test_a_new_seam_imports_with_the_stage_and_the_genre_unimportable(module):
 # Three passes: static top-level imports, a dynamic probe attributing every
 # load, and (below) function-level imports -- each allow-list only shrinks.
 # The dynamic probe is nearly vacuous until P8 B0b: core modules (`an.ir.validate`)
-# load `an.characters` and `an.expression` before any stage module runs, so the
+# load `cutan.characters` and `cutan.expression` before any stage module runs, so the
 # probe attributes those loads to the core. The static passes are complete.
 # -----------------------------------------------------------------------------
 
 #: Today's stage -> genre edges, ``(stage module, genre prefix) -> what removes it``.
 #: ONLY SHRINKS.
-STAGE_ALLOWED_TODAY: dict[tuple[str, str], str] = {
-    ("an.stage.compile", "an.characters"): (
-        "an#225 B0c: action lowering and swap-vocabulary hooks; the cut-out "
-        "passes register from the genre side"
-    ),
-    ("an.stage.compile", "an.expression"): "an#225 B0c: the face passes register from the genre side",
-    ("an.stage.compile", "an.adapters.cutout.coarticulate"): "an#225 B0c: with the viseme pass",
-    ("an.stage.compile", "an.adapters.cutout.gaze"): "an#225 B0c: with the face pass",
-    ("an.stage.props", "an.characters"): "an#293 (B0c): the rig primitives move to the stage",
-}
+STAGE_ALLOWED_TODAY: dict[tuple[str, str], str] = {}
 
 
 def _stage_modules() -> list[tuple[str, Path]]:
@@ -531,7 +490,7 @@ def test_every_stage_exemption_says_what_removes_it():
 # optional back-end stays optional. For stage -> genre it is no exemption: a
 # lazy import of genre code is still a reverse dependency, it just fails later
 # -- at render time, without the genre. `an.stage.raster.art_size` sizes EVERY
-# SVG (props, environments, `an validate`) through `an.characters.svg_utils`, so
+# SVG (props, environments, `an validate`) through `cutan.characters.svg_utils`, so
 # once the characters leave, a character-free prop would need `cutan` to render.
 
 
@@ -576,15 +535,7 @@ def _stage_lazy_violations() -> dict[tuple[str, str], str]:
 
 
 #: Today's LAZY stage -> genre edges. ONLY SHRINKS, like the others.
-STAGE_LAZY_ALLOWED_TODAY: dict[tuple[str, str], str] = {
-    ("an.stage.raster", "an.characters"): (
-        "an#293 (P8 B0c): `raster_size` (sizes every SVG) moves into the stage"
-    ),
-    ("an.stage.compile", "an.characters"): (
-        "an#225 (P8 B0c): the cut-out passes and the play/locomotion lowering "
-        "register from the genre side"
-    ),
-}
+STAGE_LAZY_ALLOWED_TODAY: dict[tuple[str, str], str] = {}
 
 
 def test_no_stage_module_imports_a_genre_even_lazily():

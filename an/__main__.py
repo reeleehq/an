@@ -58,7 +58,7 @@ import typer
 
 from an.ir.migrate import DocumentMigrationError
 from an.ir.sync import SceneMarkdownError, SceneValidationError
-from an.tools import _dispatch_funcs, _dispatch_namespaces
+from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
 
 
 def command_name(func: Callable[..., Any]) -> str:
@@ -192,7 +192,9 @@ def build_app(
     for func in funcs if funcs is not None else _dispatch_funcs:
         app.command(name=command_name(func), help=help_text(func))(_printing(func))
     for group, group_funcs in (
-        namespaces if namespaces is not None else _dispatch_namespaces
+        namespaces
+        if namespaces is not None
+        else {**_dispatch_namespaces, **registered_namespaces()}
     ).items():
         sub = typer.Typer(no_args_is_help=True, help=f"{group} subcommands")
         for func in group_funcs:

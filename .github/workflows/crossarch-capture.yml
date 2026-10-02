@@ -86,10 +86,21 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Install package with the cutout extra
+      - name: Install package with the stage extra
         run: |
           uv venv --python 3.12
-          uv pip install -e '.[dev,cutout]'
+          uv pip install -e '.[dev,stage]'
+
+      - name: Install the cut-out genre (cutan)
+        # A SOURCE checkout of cutan (editable): its corpus and examples are read by the
+        # tests that check every committed scene. The move's own branch while its PR
+        # is open, else main -- never PyPI, which may lag `an` main (an#225).
+        run: |
+          source .venv/bin/activate
+          git clone --depth 1 --branch feat/225-genre-move https://github.com/thorwhalen/cutan.git ../cutan \
+            || git clone --depth 1 https://github.com/thorwhalen/cutan.git ../cutan
+          uv pip install --no-deps -e ../cutan
+          uv pip install pyyaml
 
       - name: Resolve the pinned Playwright version
         id: pw

@@ -178,7 +178,11 @@ def kind_of(doc: dict[str, Any], *, kind: str | None = None) -> DocumentKind:
     if name not in KINDS:
         raise ValueError(
             f"unknown document kind {name!r}; registered: {sorted(KINDS)}. "
-            "Call register_kind() from the package that owns the schema."
+            "Call register_kind() from the package that owns the schema. A genre's "
+            "kinds register when the genre loads (an.genres.load(), which `an.load` "
+            'and the CLI call); the cut-out genre\'s CharacterDescriptor needs the '
+            'cutan package: pip install "an[cutout]".'
+
         )
     return KINDS[name]
 

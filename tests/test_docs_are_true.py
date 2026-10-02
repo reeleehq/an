@@ -63,6 +63,7 @@ def test_a_reference_to_a_growing_directory_carries_no_count(rel, pointer):
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_no_gap_line_survives_its_gap_loop_mode():
     """`loop_mode` shipped, and two docs went on calling it a gap for months;
     then its INVERSE ("nothing emits a non-default value") shipped in an#7 and
@@ -89,7 +90,12 @@ def test_no_gap_line_survives_its_gap_loop_mode():
             assert phrase not in text, f"{rel} still states a closed loop_mode gap: {phrase!r}"
 
     # The emitter exists: a compiler path writes a non-default loop_mode.
-    compile_src = (ROOT / "an/stage/compile.py").read_text(encoding="utf-8")
+    import importlib.util
+
+    # `_resolve_play` (where the emitter lives) moved to the genre package (an#225).
+    passes = importlib.util.find_spec("cutan.compile.passes")
+    assert passes is not None and passes.origin, "cutan is not installed"
+    compile_src = Path(passes.origin).read_text(encoding="utf-8")
     assert 'loop_mode="loop" if loop else "once"' in compile_src, (
         "the compiler no longer emits loop_mode — the gap line would be true again"
     )

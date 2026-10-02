@@ -21,7 +21,7 @@ LEDGER_DIRNAME: str = "misc/bench/ledger"
 GOLDEN_DIRNAME: str = "misc/bench/golden"
 
 #: Directories that must exist for a checkout to be benchable.
-_REPO_MARKERS: tuple[str, ...] = ("examples", "an", "misc")
+_REPO_MARKERS: tuple[str, ...] = ("an", "misc")
 
 
 class BenchLayoutError(RuntimeError):
@@ -33,7 +33,7 @@ def repo_root() -> Path:
 
     Raises rather than returning a plausible-but-wrong path, because the
     failure it guards is running the bench against an installed wheel: the
-    corpus lives under ``examples/``, which is not packaged, so the first
+    corpus lives under ``misc/bench/``, which is not packaged, so the first
     symptom would be a missing-fixture error three frames deep.
 
     The checkout's folder name is not asserted: a git worktree or a clone
@@ -47,7 +47,7 @@ def repo_root() -> Path:
     if missing:
         raise BenchLayoutError(
             f"`an bench` needs a source checkout, not an installed wheel: "
-            f"{root} is missing {missing}. The corpus lives under `examples/`, "
+            f"{root} is missing {missing}. The corpus lives under `misc/bench/`, "
             "which is not packaged. Clone the repo and run the bench from there."
         )
     return root

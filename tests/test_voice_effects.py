@@ -22,13 +22,16 @@ from an.audio.effects import (
     normalize_effects,
     voice_effects,
 )
-from an.audio.injectable_lipsync import StaticWordTimings, WordTimingsLipSync
+from cutan.audio.injectable_lipsync import StaticWordTimings, WordTimingsLipSync
 from an.audio.lipsync import Viseme, VisemeTrack
 from an.audio.pipeline import audio_key, produce_audio_for_scene, viseme_key
 from an.audio.tts import AudioClip
 from an.ir.schema import Dialogue, Meta, SceneIR, Shot
 from an.ir.validate import validate_semantic
 from an.util import _stable_hash
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 RATE = 22050
 TONE_HZ = 440.0

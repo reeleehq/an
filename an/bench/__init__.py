@@ -65,7 +65,6 @@ from an.bench.registry import (  # noqa: F401
     Prediction,
     RegistryError,
 )
-from an.bench.run import BenchError, format_panel, run_bench  # noqa: F401
 
 __all__ = [
     "METRICS",
@@ -104,3 +103,13 @@ __all__ = [
     "format_panel",
     "BenchError",
 ]
+
+
+def __getattr__(name: str):
+    """``BenchError``, ``format_panel`` and ``run_bench`` load on first use: the
+    runner renders through the stage, which ``import an.bench`` must not pull in."""
+    if name in {"BenchError", "format_panel", "run_bench"}:
+        from an.bench import run
+
+        return getattr(run, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

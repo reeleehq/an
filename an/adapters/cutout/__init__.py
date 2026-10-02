@@ -4,8 +4,8 @@ The render path is ``an.stage.compile`` -> ``an.stage.serialize`` ->
 ``an.stage.render`` (the stage engine, driven by the core frame stage) ->
 ``runtime.js``. Every module that moved keeps a LIVE alias here
 (``an.adapters.cutout.render`` is ``an.stage.render`` for reading and for
-rebinding, :func:`an._shims.alias_module`). What stays here is cut-out genre
-code on its way to ``cutan`` (an#225): ``coarticulate``, ``gaze``, and the
+rebinding, :func:`an._shims.alias_module`). ``coarticulate`` and ``gaze`` moved to ``cutan`` (an#225; live aliases with a
+warning). What stays here is the
 timing re-exports (``channel``, ``clip``, ``timeline``).
 
 The names this package used to export are resolved LAZILY, on first access:

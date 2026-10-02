@@ -72,6 +72,7 @@ def test_silent_shot_still_has_audio_stream():
         assert streams["audio"].get("codec_name") == "aac"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_dialogue_shot_carries_audio_stream():
     """A shot with dialogue should get audio at line.start times."""
     with tempfile.TemporaryDirectory() as d:
@@ -104,6 +105,7 @@ def test_dialogue_shot_carries_audio_stream():
         assert line.audio_ref in proj_reloaded.mall["audio"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_multi_shot_concat_preserves_audio():
     """Concat across two shots (one silent + one with dialogue) should produce
     a single mp4 with one continuous audio track."""

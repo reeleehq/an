@@ -176,17 +176,18 @@ def test_scene_md_round_trips_transitions_and_sounds():
     assert back.timeline[0].transition is None
 
 
+@pytest.mark.genre("cutout_animation")
 def test_every_committed_scene_takes_the_old_concat_path():
     """The default is byte-identical because nothing committed opts in."""
     import json
 
     from an.ir.sync import scene_from_json_doc
 
-    mds = sorted(REPO.glob("examples/*/scene.md")) + sorted(
-        REPO.glob("misc/bench/corpus/*/scene.md")
-    )
-    jsons = sorted(REPO.glob("examples/*/ir/scene.json")) + sorted(
-        REPO.glob("misc/bench/corpus/*/ir/scene.json")
+    from tests._corpus_roots import corpus_glob
+
+    mds = corpus_glob("examples/*/scene.md") + corpus_glob("misc/bench/corpus/*/scene.md")
+    jsons = corpus_glob("examples/*/ir/scene.json") + corpus_glob(
+        "misc/bench/corpus/*/ir/scene.json"
     )
     assert mds and jsons
     # The ONE committed scene that opts in, on purpose: the core corpus's
@@ -430,6 +431,7 @@ def test_a_fade_reaches_the_colour_on_exactly_one_frame(tmp_path, monkeypatch):
     assert len(_decode_rgb(out)) == 20  # a fade holds the film's length
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.ffmpeg
 def test_dialogue_stays_on_its_own_shots_frames_across_a_dissolve(tmp_path, monkeypatch):
     """The offline TTS stamps the line; its cached WAV is swapped for a tone of

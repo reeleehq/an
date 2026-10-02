@@ -12,16 +12,11 @@ kind or compile pass exists; every core scene compiles to its blessed contract
 hash (default leg) and renders to its goldens (labelled lane); and the task
 imports no cut-out module the core had not already imported.
 
-**What it does NOT prove yet: that no cut-out CODE runs.** ``an.stage.compile``
-and ``an.stage.props`` import ``an.characters`` and ``an.expression`` at module
-level, and a stage render executes ``an.characters.play`` (measured, review of
-#301 H1). Those modules are already loaded by the time the render starts, so the
-"no new import" check above cannot see them. That coupling is what P8's B0c (the
-stage-compile split, an#225) removes. The real proof — the same corpus, in an
-interpreter where every cut-out module is POISONED before ``import an``, loaded
-or not — is :func:`test_the_core_corpus_compiles_with_the_cut_out_modules_poisoned`
-and its render twin, both **strict xfail** today: B0c's acceptance is flipping
-them to pass (and deleting the ``xfail``).
+**The stronger proof, since the move (an#225):** the same corpus, in an interpreter where
+every cut-out module (`cutan` and the old `cutan.characters`-style paths) is POISONED
+before ``import an``, loaded or not -- :func:`test_the_core_corpus_compiles_with_the_cut_out_modules_poisoned`
+and its render twin. The strict ``xfail`` they carried since #301 is gone: the stage
+compiler reaches the genre only through registered hooks, so nothing cut-out runs.
 """
 
 from __future__ import annotations
@@ -94,17 +89,6 @@ print(json.dumps({
     "loaded_by_task": sorted(set(loaded_after) - set(preloaded)),
 }))
 """
-
-#: Why the poisoned proof fails today, and what makes it pass.
-B0C_XFAIL_REASON: str = (
-    "an.stage.compile / an.stage.props import an.characters and an.expression at "
-    "module level and a stage render runs an.characters.play (review of #301, H1); "
-    "P8's B0c — the stage-compile split (an#225) — removes that coupling, and its "
-    "acceptance is this test passing (with the core's own allow-listed imports of "
-    "cut-out modules, tests/test_import_firewall.py::ALLOWED_TODAY, also gone by "
-    "then): delete the xfail then"
-)
-
 
 def _run_without_the_genre(task: str, names: list[str], *, mode: str = "no-new-import") -> dict:
     result = subprocess.run(
@@ -226,7 +210,7 @@ def test_the_core_corpus_renders_with_no_genre_registered_to_its_goldens():
     assert all(report["result"][name] for name in CORE_FIXTURES)
 
 
-# ------------------------------------------- the proof B0c must make pass
+# ------------------------------------------- the proof of the move (an#225)
 
 
 def _poisoned(task: str) -> dict:
@@ -235,7 +219,6 @@ def _poisoned(task: str) -> dict:
     return report
 
 
-@pytest.mark.xfail(strict=True, reason=B0C_XFAIL_REASON)
 def test_the_core_corpus_compiles_with_the_cut_out_modules_poisoned():
     """ADR 0001 decision 7, for real: every cut-out module raises on import from
     the interpreter's first line — none can be preloaded — and the core corpus
@@ -247,7 +230,6 @@ def test_the_core_corpus_compiles_with_the_cut_out_modules_poisoned():
 
 @pytest.mark.browser
 @pytest.mark.ffmpeg
-@pytest.mark.xfail(strict=True, reason=B0C_XFAIL_REASON)
 def test_the_core_corpus_renders_with_the_cut_out_modules_poisoned():
     """The render twin: with every cut-out module poisoned, the core corpus
     renders to its goldens."""

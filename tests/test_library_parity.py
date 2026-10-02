@@ -21,10 +21,15 @@ from an.ir.sync import markdown_to_ir
 from an.library import open_library, publish_dir
 from an.motion import WALK_ARM_NAMES, WALK_LEG_NAMES, _limb_pair
 from an.stores import build_project_mall
+from tests._corpus_roots import corpus_glob
 
-CORPUS = Path(__file__).resolve().parents[1] / "misc" / "bench" / "corpus"
+pytestmark = pytest.mark.genre("cutout_animation")
+
+
 PROJECTS = sorted(
-    p for p in CORPUS.iterdir() if any((p / "assets" / "characters").glob("*/"))
+    p
+    for p in corpus_glob("misc/bench/corpus/*")
+    if any((p / "assets" / "characters").glob("*/"))
 )
 
 
@@ -63,7 +68,7 @@ def _built(project: Path) -> dict[str, tuple[str, set[str], dict[str, set[str]]]
 
 @pytest.fixture(scope="module")
 def factory_project(tmp_path_factory) -> Path:
-    from an.characters.factory import new_character
+    from cutan.characters.factory import new_character
     from an.project import init
 
     project = init(tmp_path_factory.mktemp("parity") / "proj")

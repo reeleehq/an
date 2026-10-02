@@ -133,8 +133,6 @@ BUILTIN_VISUAL_KINDS: tuple[str, ...] = (
     "sprite",
     "rect",
     "ellipse",
-    "mouth",
-    "eye",
     "svg_sprite",
     "path",
 )

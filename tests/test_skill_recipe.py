@@ -12,6 +12,8 @@ and compiles every shot with ``strict_assets`` (no browser needed).
 
 from __future__ import annotations
 
+import pytest
+
 import re
 import warnings
 from pathlib import Path
@@ -30,6 +32,7 @@ def _block(marker: str, fence: str) -> str:
     return m.group(2)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_recipe_and_the_minimal_scene_validate_and_compile(tmp_path, monkeypatch):
     from an.adapters.cutout.compile import compile_shot, style_pack_for
     from an.ir.schema import resolve_step_hz

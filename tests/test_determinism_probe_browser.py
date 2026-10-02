@@ -23,7 +23,7 @@ from an.adapters.cutout.render import CutoutRenderer
 from an.determinism import _REQUIRED_FIELDS
 from an.ir.schema import AssetRef, Shot
 
-pytestmark = [pytest.mark.browser, pytest.mark.ffmpeg]
+pytestmark = [pytest.mark.browser, pytest.mark.ffmpeg, pytest.mark.genre("cutout_animation")]
 
 #: Small and short on purpose: the probe runs once per shot regardless, so the
 #: frames are pure cost.

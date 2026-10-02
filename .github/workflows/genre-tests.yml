@@ -1,0 +1,48 @@
+# The genre lane (an#225): `an`'s own tests that need the cut-out genre, run where
+# `cutan` is installed. The main CI leg installs no genre (AN_GENRE_TESTS=0 in
+# pyproject.toml's [tool.wads.ci.env.defaults]) and SKIPS-AND-COUNTS those tests;
+# this lane runs them, so none is quietly lost (tests/conftest.py, the `genre`
+# marker). Rendering tests stay in browser-tests.yml.
+#
+# cutan comes from a source checkout of its move branch while that PR is open, else
+# main -- never from PyPI, whose release may lag (an#225). A checkout, not a wheel:
+# `an` keeps invariants about every committed scene, and the cut-out scenes are there.
+
+name: Genre tests (cutan installed)
+
+on: [push, pull_request]
+
+concurrency:
+  group: genre-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  genre:
+    name: Genre lane (Linux)
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install an with the stage extra, then cutan
+        run: |
+          uv python install 3.12
+          uv venv --python 3.12
+          uv pip install -e '.[dev,stage]'
+          git clone --depth 1 --branch feat/225-genre-move https://github.com/thorwhalen/cutan.git ../cutan \
+            || git clone --depth 1 https://github.com/thorwhalen/cutan.git ../cutan
+          uv pip install --no-deps -e ../cutan
+          uv pip install pyyaml
+
+      - name: Tests that need the genre (no browser, no ffmpeg)
+        env:
+          AN_GENRE_TESTS: "1"
+        run: |
+          source .venv/bin/activate
+          python -m pytest -q -p no:cacheprovider -m "not browser and not ffmpeg" tests

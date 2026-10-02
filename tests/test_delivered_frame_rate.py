@@ -135,6 +135,7 @@ def test_a_sound_and_a_dissolve_play_at_the_scene_rate(tmp_path, monkeypatch):
     _assert_plays_at(out, film_timeline(shots, fps=FPS).total_frames)
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.ffmpeg
 def test_the_style_lint_reads_the_rate_the_frames_arrive_at(tmp_path):
     """A file WITH the holes (the old per-shot audio length, rebuilt on
@@ -146,7 +147,7 @@ def test_the_style_lint_reads_the_rate_the_frames_arrive_at(tmp_path):
         _ffmpeg_add_audio,
         _ffmpeg_mux,
     )
-    from an.verify.style import _probe_fps
+    from cutan.verify.style import _probe_fps
 
     shots = []
     for sid, d in DURATIONS.items():
@@ -165,6 +166,7 @@ def test_the_style_lint_reads_the_rate_the_frames_arrive_at(tmp_path):
     assert _probe_fps(holed) == pytest.approx(FPS, rel=0.01)
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 @pytest.mark.parametrize("assembled", [False, True], ids=["concat", "sound+dissolve"])

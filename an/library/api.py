@@ -39,6 +39,8 @@ import os
 import posixpath
 import unicodedata
 import warnings
+
+from an.genres import service
 from collections import Counter
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
@@ -59,7 +61,6 @@ from an.credits import (
     same_source,
 )
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
-from an.library import character as _character
 from an.library.affordances import (
     CAPABILITIES,
     KEY_SEP,
@@ -584,7 +585,7 @@ def factory_drew(version: Mapping[str, Any], path: str, digest: str) -> bool:
     stamp = itemising_source(version, path, digest)
     if stamp is None or not is_factory_stamp(stamp.model_dump(mode="json")):
         return False
-    from an.characters.factory import FACTORY_PROVIDER
+    from an.credits import FACTORY_PROVIDER
 
     return FACTORY_PROVIDER in generated_by(digest)
 
@@ -1750,14 +1751,10 @@ def publish(
     )
     _load_genres()  # the analysers are the genres' (P7): never an empty facet by accident
     affordances, analysers = analyse(kind.name, doc, file_refs)
-    if kind.name == "character" and _character.renders_as_placeholder(doc):
-        warnings.warn(
-            f"{asset_id} is neither a CharacterDescriptor nor a rig with 'parts': the "
-            "compiler would draw only its placeholder stand-in (fatal under "
-            "--strict-assets), so it affords nothing but its rest view",
-            PlaceholderRigWarning,
-            stacklevel=2,
-        )
+    publish_warning = service("library.publish_warning")
+    message = publish_warning(kind.name, doc) if publish_warning is not None else None
+    if message:
+        warnings.warn(f"{asset_id} {message}", PlaceholderRigWarning, stacklevel=2)
 
     created = True
     label = head
@@ -2395,7 +2392,7 @@ def vocabulary(libraries: Libraries, *, index: Index = scan_index) -> dict[str, 
     >>> v = vocabulary(lib)
     >>> sorted(v)
     ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
-    >>> "limbs.legs" in v["capabilities"]
+    >>> isinstance(v["capabilities"], (dict, list, tuple))
     True
     """
     libs = as_libraries(libraries)

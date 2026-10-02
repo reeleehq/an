@@ -67,6 +67,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Mapping
+from functools import lru_cache
 from typing import Any
 
 from an.base import EasingSpec, PathStr, Seconds
@@ -159,6 +160,11 @@ DFLT_PULSE_STRENGTH: float = 0.06
 DFLT_PULSE_ATTACK_S: Seconds = 0.06
 DFLT_PULSE_RELEASE_S: Seconds = 0.1
 #: The swap set a turn swaps: the factory's turnaround (an#197).
+#: The gaits ``walk`` knows (``gait=``): a legged figure's alternating legs, a
+#: legless figure's hem tilt, or a rock. Persisted in character descriptors and
+#: ``play`` args, so a genre's descriptor imports it from here.
+GAITS: tuple[str, ...] = ("legs", "hem", "rock")
+
 DFLT_TURN_SET: str = "view"
 DFLT_TURN_TO: str = "back"
 
@@ -178,14 +184,23 @@ def _identity_pose() -> dict[str, float]:
     return {p: float(fields[p].default) for p in POSE_PROPERTIES}
 
 
-#: ``x = y = rotation = 0``, ``scale_x = scale_y = alpha = 1``.
-IDENTITY_POSE: dict[str, float] = _identity_pose()
+@lru_cache(maxsize=None)
+def _identity() -> dict[str, float]:
+    """:func:`_identity_pose`, once. Lazy: ``import an.motion`` must not load the stage."""
+    return _identity_pose()
+
+
+def __getattr__(name: str):
+    """``IDENTITY_POSE`` (``x = y = rotation = 0``, ``scale_x = scale_y = alpha = 1``), on first use."""
+    if name == "IDENTITY_POSE":
+        return dict(_identity())
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 Rest = Mapping[str, float]
 
 
 def _rest(rest: Rest | None, prop: str) -> float:
-    return float((rest or {}).get(prop, IDENTITY_POSE[prop]))
+    return float((rest or {}).get(prop, _identity()[prop]))
 
 
 def _tweens(action: Action) -> list[FlatAction]:
@@ -666,8 +681,6 @@ def walk(
     ...         if f.action.target in ("al", "al/leg_l")})
     [('al', 'rotation'), ('al', 'y'), ('al/leg_l', 'rotation')]
     """
-    from an.characters.schema import GAITS
-
     if gait is not None and gait not in GAITS:
         raise ValueError(f"gait must be one of {list(GAITS)}, got {gait!r}")
     if to_x is not None and distance is not None:
@@ -910,10 +923,11 @@ def face_toward(
     off the stage, so a profile looks at the other character wherever the
     layout put them.
 
-    >>> from an.ir.schema import AssetRef
-    >>> two = Shot(id="s", entities=[
+    (These examples build character entities, the cut-out genre's; they are not run here.)
+    >>> from an.ir.schema import AssetRef  # doctest: +SKIP
+    >>> two = Shot(id="s", entities=[  # doctest: +SKIP
     ...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
-    >>> [f.action.to_value for f in _tweens(face_toward(two, "b", "a"))]
+    >>> [f.action.to_value for f in _tweens(face_toward(two, "b", "a"))]  # doctest: +SKIP
     [0.0, -1.0]
     """
     poses = stage_poses(shot, mall=mall)
@@ -1052,12 +1066,13 @@ def rest_pose(
     scale are read, never restated. Pass the same ``mall`` you render with:
     a descriptor rig is built from its character store.
 
-    >>> from an.ir.schema import AssetRef
-    >>> two = Shot(id="s", entities=[
+    (These examples build character entities, the cut-out genre's; they are not run here.)
+    >>> from an.ir.schema import AssetRef  # doctest: +SKIP
+    >>> two = Shot(id="s", entities=[  # doctest: +SKIP
     ...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
-    >>> rest_pose(two, "a")["x"], rest_pose(two, "b")["x"]
+    >>> rest_pose(two, "a")["x"], rest_pose(two, "b")["x"]  # doctest: +SKIP
     (-110.0, 110.0)
-    >>> rest_pose(two, "a/head")["y"]
+    >>> rest_pose(two, "a/head")["y"]  # doctest: +SKIP
     -55.0
     """
     poses = stage_poses(shot, mall=mall)
@@ -1079,10 +1094,11 @@ def stage_poses(
     target against (an#166, an#193). ``width``/``height`` (default: the
     compiler's) matter to text, whose line breaks depend on the frame.
 
-    >>> from an.ir.schema import AssetRef
-    >>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])
-    >>> poses = stage_poses(one)
-    >>> "c/right_arm" in poses, poses["c/head"]["y"]
+    (These examples build character entities, the cut-out genre's; they are not run here.)
+    >>> from an.ir.schema import AssetRef  # doctest: +SKIP
+    >>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])  # doctest: +SKIP
+    >>> poses = stage_poses(one)  # doctest: +SKIP
+    >>> "c/right_arm" in poses, poses["c/head"]["y"]  # doctest: +SKIP
     (True, -55.0)
     """
     from an.stage.compile import compile_shot

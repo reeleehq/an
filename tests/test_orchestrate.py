@@ -51,6 +51,7 @@ def test_orchestrate_fails_on_invalid_scene():
 
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_orchestrate_full_pipeline_renders():

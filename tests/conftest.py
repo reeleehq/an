@@ -116,7 +116,7 @@ def pytest_configure(config):
 #
 # The RECORDING half is the load-bearing one, and it matters more here than it
 # does in illustration, because `an` degrades network failures silently in its
-# own code: `an/characters/factory.py` catches the RuntimeError from
+# own code: `cutan/characters/factory.py` catches the RuntimeError from
 # `fetch_dicebear` and falls back to generated geometry. A refusal alone gets
 # absorbed and the test stays green; asserting the record at teardown is what
 # actually holds the line.
@@ -528,6 +528,11 @@ GENRE_ENV_VAR = "AN_GENRE_TESTS"
 #: first test is marked.
 KNOWN_GENRES: frozenset[str] = frozenset({"cutout_animation"})
 
+#: The import package of each genre, so a test file that cannot even be IMPORTED
+#: without it (a module-level ``from cutan... import``) is recognised as a genre
+#: test of an absent genre rather than as a broken file (an#225).
+GENRE_PACKAGES: dict[str, str] = {"cutout_animation": "cutan"}
+
 #: How to get the genres, quoted in the skip reason.
 _GENRE_INSTALL_HINT = "pip install -e '.[cutout]' (the cut-out genre, an#225)"
 
@@ -600,7 +605,7 @@ def _genre_status():
     """``(available names, {name: load error})`` over every discoverable genre.
 
     Side effect, stated: resolving a genre imports its declaring module (today
-    `an.genres.cutout`, and through it `an.characters`), at collection, in any
+    `cutan.genre`, and through it `cutan.characters`), at collection, in any
     run that selects a genre-marked test. `an.genres.available()` is not used
     because it swallows a genre that fails to import -- which is exactly the
     failure this gate must report.
@@ -722,11 +727,57 @@ def _genre_guard_scope(config):
     return {f for f in files if not any(f == i or i in f.parents for i in ignored)}
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_make_collect_report(collector):
+    """A genre-marked test FILE that cannot be imported because its genre package is
+    absent is SKIPPED AND COUNTED when the lane declares the genre absent
+    (``AN_GENRE_TESTS=0``); in any other lane it stays the collection error it is.
+
+    The marked tests of the file still count as collected, so the count guard
+    (:func:`genre_count_gaps`) holds the line: a file whose import failed for ANY
+    other reason, or in a lane that says the genre is installed, fails loudly.
+    """
+    outcome = yield
+    report = outcome.get_result()
+    if not report.failed or not isinstance(collector, pytest.Module):
+        return
+    if _env_flag(os.environ, GENRE_ENV_VAR) is not False:
+        return
+    text = str(report.longrepr)
+    packages = set(GENRE_PACKAGES.values())
+    if not any(f"No module named '{p}" in text for p in packages):
+        return
+    path = Path(str(collector.path))
+    static = static_genre_marked([path])
+    if not static:
+        return
+    # Kept apart from _GENRE_COLLECTED, which `pytest_collection_modifyitems` rebuilds
+    # from the items (and so would drop these): the guard counts both.
+    _GENRE_UNIMPORTABLE_COLLECTED.update(
+        (str(path.resolve()), name) for _, name in static
+    )
+    _GENRE_UNIMPORTABLE.append((str(path), len(static)))
+    report.outcome = "skipped"
+    report.longrepr = (
+        str(path),
+        0,
+        f"Skipped: genre package not importable and {GENRE_ENV_VAR}=0 declares it absent",
+    )
+
+
+#: ``(file, marked tests)`` of genre test files skipped because the genre is absent.
+_GENRE_UNIMPORTABLE: list = []
+#: The marked tests of those files, as the count guard keys them.
+_GENRE_UNIMPORTABLE_COLLECTED: set = set()
+
+
 def pytest_sessionfinish(session, exitstatus):
     scope = _genre_guard_scope(session.config)
     if not scope:
         return
-    gaps = genre_count_gaps(static_genre_marked(sorted(scope)), _GENRE_COLLECTED)
+    gaps = genre_count_gaps(
+        static_genre_marked(sorted(scope)), _GENRE_COLLECTED | _GENRE_UNIMPORTABLE_COLLECTED
+    )
     if gaps:
         reporter = session.config.pluginmanager.get_plugin("terminalreporter")
         lines = "\n  ".join(f"{f}::{n}" for f, n in gaps)

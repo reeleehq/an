@@ -128,14 +128,16 @@ def test_every_preset_is_covered_on_both_rigs():
     assert set(PROCEDURAL_CALLS) | DESCRIPTOR_ONLY == set(PRESETS) == set(DESCRIPTOR_CALLS)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_swapping_preset_on_the_procedural_rig_is_refused_by_name():
     from an.adapters.cutout.compile import CutoutCompileError
-    from an.ir.schema import PlayAction
+    from cutan.characters.registration import PlayAction
 
     with pytest.raises(CutoutCompileError, match="'view'"):
         _compile(_shot([PlayAction(target="charlie", animation="turn")]))
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("name", PROCEDURAL_PRESETS)
 def test_preset_targets_nodes_the_procedural_rig_builds(name):
     action = PROCEDURAL_CALLS[name]()
@@ -145,6 +147,7 @@ def test_preset_targets_nodes_the_procedural_rig_builds(name):
     assert targets and targets <= paths, targets - paths
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("name", sorted(PRESETS))
 def test_preset_targets_nodes_a_descriptor_rig_builds(name, gale_store):
     action = DESCRIPTOR_CALLS[name]()
@@ -156,6 +159,7 @@ def test_preset_targets_nodes_a_descriptor_rig_builds(name, gale_store):
     assert targets and targets <= paths, targets - paths
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_rigs_name_their_arms_differently():
     """Why `point` takes the arm node: the procedural rig has no `arm_r`, and
     the compiler refuses it as an unknown node, naming the one it has (an#193;
@@ -167,6 +171,7 @@ def test_the_rigs_name_their_arms_differently():
     assert "charlie/right_arm" in _node_paths(scene)
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("name", sorted(set(PROCEDURAL_PRESETS) - {"slide_out"}))
 def test_preset_ends_at_rest(name):
     """Every preset but the exit leaves each property it touched at REST."""
@@ -192,6 +197,7 @@ def _landed(scene, *, fps, duration):
     return state
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("fps,step_hz", [(30, None), (24, None), (30, 10.0), (30, 15.0)])
 @pytest.mark.parametrize("name", PROCEDURAL_PRESETS)
 def test_preset_lands_on_its_end_value_at_frame_times(name, fps, step_hz):
@@ -215,6 +221,7 @@ def test_preset_lands_on_its_end_value_at_frame_times(name, fps, step_hz):
         assert shown[key] == pytest.approx(value, abs=1e-9), key
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("fps,step_hz", [(30, None), (24, None), (30, 10.0)])
 def test_turn_lands_mirrored_on_the_swapped_key(fps, step_hz, gale_store):
     """`turn` on a descriptor rig: `scale_x` lands on minus the rest for a left
@@ -229,11 +236,13 @@ def test_turn_lands_mirrored_on_the_swapped_key(fps, step_hz, gale_store):
     assert shown[("gale/torso", "body_facing")] == "left"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_hop_reaches_its_apex_mid_move():
     scene = _compile(_shot([hop("charlie", height=30.0, duration=0.6)]))
     assert _pose_at(scene, 0.3)[("charlie", "y")] == pytest.approx(-30.0)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_pop_in_overshoots_and_settles():
     scene = _compile(_shot([pop_in("charlie", duration=1.0)]))
     peak = max(_pose_at(scene, i / 100)[("charlie", "scale_x")] for i in range(101))
@@ -241,6 +250,7 @@ def test_pop_in_overshoots_and_settles():
     assert _pose_at(scene, 1.0)[("charlie", "scale_x")] == pytest.approx(1.0)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_rest_pose_reads_the_compilers_layout_and_placement():
     two = [_char("a"), _char("b", stage=StagePlacement(at=(300.0, 40.0), scale=2.0))]
     shot = _shot([], entities=two)
@@ -251,6 +261,7 @@ def test_rest_pose_reads_the_compilers_layout_and_placement():
         rest_pose(shot, "a/arm_r")
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_move_on_x_stays_centred_on_the_laid_out_rest():
     """The trap `rest` exists for: with two characters `a` rests at x=-110,
     and a shake around the identity would teleport it to the centre."""
@@ -264,6 +275,7 @@ def test_a_move_on_x_stays_centred_on_the_laid_out_rest():
     assert _pose_at(scene, duration_of(action))[("a", "x")] == pytest.approx(-110.0)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_scale_presets_respect_a_stage_scale():
     entities = [_char("c", stage=StagePlacement(scale=2.0))]
     rest = rest_pose(_shot([], entities=entities), "c")
@@ -292,6 +304,7 @@ def test_nonsense_parameters_raise(bad):
         bad()
 
 
+@pytest.mark.genre("cutout_animation")
 def test_as_leaves_survives_the_scene_md_round_trip():
     action = sequence(pop_in("charlie"), hop("charlie"), shake("charlie"))
     shot = _shot(as_leaves(action, start=0.5))
@@ -322,6 +335,7 @@ def test_a_composition_tree_survives_scene_md_verbatim():
     assert back.actions == scene.timeline[0].actions
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_presets_render_smoke():

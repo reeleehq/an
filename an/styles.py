@@ -118,8 +118,8 @@ REACHABLE_ROLES: frozenset[str] = frozenset(
 #: change nothing, and say nothing. `tests/test_styles.py` reads the literals
 #: out of `runtime.js` so this list cannot quietly stop matching it.
 UNREACHABLE_ROLES: dict[str, str] = {
-    "lip": "runtime.js `_LIP_COLOR`, drawn by makeMouth and never read from the document",
-    "mouth_fill": "runtime.js `_MOUTH_FILL`",
+    "lip": "cutan's runtime script `_LIP_COLOR`, drawn by makeMouth and never read from the document",
+    "mouth_fill": "cutan's runtime script `_MOUTH_FILL`",
     "teeth": "runtime.js `_TEETH_COLOR`",
     "tongue": "runtime.js `_TONGUE_COLOR`",
     "eye_sclera": "runtime.js draws the eye white as a literal 0xffffff in makeEye",

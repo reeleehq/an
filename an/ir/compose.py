@@ -39,14 +39,11 @@ from an.genres.registry import (
     register_action_kind,
 )
 from an.ir.schema import (
-    DFLT_EXPRESSION_BLEND_S,
     Action,
     DelayAction,
-    ExpressionAction,
     ExtensionAction,
     LoopAction,
     ParallelAction,
-    PlayAction,
     SequenceAction,
     SetAction,
     TweenAction,
@@ -104,83 +101,6 @@ def tween(
         from_value=from_,
         duration=duration,
         **kwargs,
-    )
-
-
-def play(
-    target: PathStr,
-    animation: str,
-    *,
-    duration: Seconds | None = None,
-    speed: float = 1.0,
-    loop: bool | None = None,
-    args: dict[str, Any] | None = None,
-) -> PlayAction:
-    """Play a named animation of the target entity's descriptor (an#7).
-
-    ``duration=None`` fills the animation's natural length — or the shot's
-    remainder for a looping one. In a ``sequence`` a play with no ``duration``
-    occupies its **natural** length (a motion preset's own length divided by
-    ``speed``; a non-looping descriptor animation's likewise), so the sibling
-    after it starts when it ends; a looping one runs to the shot end and
-    occupies **zero**:
-
-    >>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
-    [0.0, 1.0]
-    >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
-    [0.0, 2.0]
-    >>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
-    [0.0, 0.5]
-    >>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
-    [0.0, 0.25]
-
-    (Bare ``flatten`` knows only the presets, by name; ``an validate`` and the
-    compiler pass the entity's descriptor too — :func:`an.characters.play.play_extent`
-    — so a descriptor animation that shares a preset's name is measured as the
-    descriptor's.)
-
-    A name the descriptor does not declare falls back to a motion preset of
-    :data:`an.motion.PRESETS`, with ``args`` as its parameters (an#166):
-
-    >>> play("charlie", "hop", args={"height": 30}).args
-    {'height': 30}
-    """
-    return PlayAction(
-        target=target,
-        animation=animation,
-        duration=duration,
-        speed=speed,
-        loop=loop,
-        args=args,
-    )
-
-
-def expression(
-    target: PathStr,
-    preset: str | None = None,
-    *,
-    axes: dict[str, float] | None = None,
-    intensity: float = 1.0,
-    duration: Seconds | None = None,
-    blend: Seconds = DFLT_EXPRESSION_BLEND_S,
-) -> ExpressionAction:
-    """Hold a facial expression on an entity (an#98).
-
-    ``duration=None`` runs to the shot end and counts as **zero** in a
-    ``sequence``, as a looping ``play`` does:
-
-    >>> [f.start for f in flatten(sequence(expression("a", "happy"), delay(1.0), expression("a", "sad")))]
-    [0.0, 1.0]
-    >>> flatten(expression("a", "angry", duration=2.0))[0].end
-    2.0
-    """
-    return ExpressionAction(
-        target=target,
-        preset=preset,
-        axes=dict(axes or {}),
-        intensity=intensity,
-        duration=duration,
-        blend=blend,
     )
 
 
@@ -259,24 +179,7 @@ def stagger(lag: Seconds, *actions: Action) -> ParallelAction:
 #: the caller's **extent resolver**: it is handed to every leaf kind's
 #: ``duration`` hook (:class:`an.genres.ActionKind`), and the kinds that have an
 #: open-ended length (the cut-out genre's ``play``) consult it.
-PlayExtent = Callable[[PlayAction], Seconds]
-
-
-def default_play_extent(action: PlayAction) -> Seconds:
-    """A duration-less play's extent when no descriptor is known: a motion
-    preset's natural length over ``speed``, else ``0.0``.
-
-    The one resolver is :func:`an.characters.play.play_extent`; this is it with
-    ``desc=None``.
-
-    >>> default_play_extent(PlayAction(target="a", animation="hop"))
-    0.5
-    >>> default_play_extent(PlayAction(target="a", animation="not_a_preset"))
-    0.0
-    """
-    from an.characters.play import play_extent  # lazy: play imports the IR
-
-    return play_extent(None, action)
+PlayExtent = Callable[[Any], Seconds]
 
 
 def kind_of(action: Any) -> ActionKind:
@@ -528,3 +431,17 @@ def _register_core_kinds() -> None:
 
 
 _register_core_kinds()
+
+
+# `play`, `expression` and `default_play_extent` moved to `cutan` with the cut-out
+# genre's action kinds (an#225); the old names resolve there, with a warning.
+from an._shims import moved_names as _moved_names  # noqa: E402
+
+__getattr__ = _moved_names(
+    __name__,
+    {
+        "play": "cutan.characters.registration:play",
+        "default_play_extent": "cutan.characters.registration:default_play_extent",
+        "expression": "cutan.expression.registration:expression",
+    },
+)

@@ -42,16 +42,15 @@ from an.genres import (
     register_genre,
     without_genres,
 )
-from an.genres.cutout import CUTOUT
-from an.ir.compose import delay, duration_of, flatten, play, sequence, stagger, tween
-from an.ir.schema import (
-    AssetRef,
-    ExpressionAction,
-    ExtensionAction,
-    PlayAction,
-    SceneIR,
-    Shot,
-)
+from cutan.genre import CUTOUT
+from an.ir.compose import delay, duration_of, flatten, sequence, stagger, tween
+from cutan.characters.registration import play
+from an.ir.schema import AssetRef, ExtensionAction, SceneIR, Shot
+from cutan.expression.registration import ExpressionAction
+from cutan.characters.registration import PlayAction
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -70,13 +69,10 @@ PLAY_DOC = {
 
 
 def _declared_entry_point() -> EntryPoint:
-    """The `an.genres` entry point `pyproject.toml` declares (read from the file,
-    so the test does not depend on how current the installed metadata is)."""
-    text = (REPO / "pyproject.toml").read_text(encoding="utf-8")
-    section = text.split('[project.entry-points."an.genres"]', 1)[1]
-    match = re.search(r'^(\w+)\s*=\s*"([^"]+)"', section, re.M)
-    assert match, "pyproject.toml declares no an.genres entry point"
-    return EntryPoint(match.group(1), match.group(2), genres.ENTRY_POINT_GROUP)
+    """The `an.genres` entry point `cutan`'s `pyproject.toml` declares."""
+    # `an` declares none since the move (an#225); `cutan` declares the cut-out genre under
+    # the same name, so the test builds that declaration.
+    return EntryPoint("cutout_animation", "cutan.genre:CUTOUT", genres.ENTRY_POINT_GROUP)
 
 
 @pytest.fixture
@@ -104,7 +100,7 @@ def test_kind_play_validates_only_after_the_cut_out_genre_is_registered():
 
 
 def test_entry_point_load_registers_the_genre_and_is_idempotent(declared_entry_points):
-    assert declared_entry_points[0].value == "an.genres.cutout:CUTOUT"
+    assert declared_entry_points[0].value == "cutan.genre:CUTOUT"
     assert declared_entry_points[0].name == "cutout_animation"
     with without_genres():
         assert action_kind("play") is None
@@ -119,7 +115,7 @@ def test_importing_an_registers_no_genre():
     """Decision 3: discovery is explicit. A fresh interpreter that imports the
     whole package (and the genre declaration itself) has registered nothing."""
     code = (
-        "import an, an.genres, an.genres.cutout\n"
+        "import an, an.genres, cutan.genre\n"
         "from an.genres.registry import action_kind_names, entity_kind_names, check_names\n"
         "print(an.genres.installed(), 'play' in action_kind_names(),"
         " 'character' in entity_kind_names(), any(n.startswith('cutout.') for n in check_names()))\n"
@@ -152,7 +148,7 @@ def test_flatten_refuses_an_unregistered_kind_naming_its_genre(declared_entry_po
             flatten(sequence(delay(1.0), action))
         message = str(err.value)
         assert "'play' is not registered" in message
-        assert "cutout_animation (an)" in message
+        assert "cutout_animation (cutan)" in message
         assert "an.genres.load()" in message
         with pytest.raises(UnregisteredKindError):
             duration_of(action)
@@ -170,7 +166,7 @@ def test_validate_reports_unregistered_kinds_and_keeps_going(declared_entry_poin
         f.ir_path: f.description for f in report.findings if f.severity == "error"
     }
     assert "action kind 'play' is not registered" in errors["timeline/0/actions/0"]
-    assert "cutout_animation (an)" in errors["timeline/0/actions/0"]
+    assert "cutout_animation (cutan)" in errors["timeline/0/actions/0"]
     assert (
         "entity kind 'character' is not registered" in errors["timeline/0/entities/0"]
     )
@@ -361,7 +357,7 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
 
 def test_the_nw_genre_slug_is_the_genre_name():
     pytest.importorskip("nw")
-    from an.genre import CUTOUT_ANIMATION_SLUG
+    from cutan.nw import CUTOUT_ANIMATION_SLUG
 
     assert CUTOUT_ANIMATION_SLUG == CUTOUT.name
 
@@ -475,6 +471,11 @@ def _committed_scene_documents():
     paths = [REPO / p for p in out.stdout.split()] if out.returncode == 0 else []
     if not paths:
         paths = sorted(REPO.glob("**/ir/scene.json"))
+    from tests._corpus_roots import corpus_roots
+
+    # ...and the cut-out genre's committed scenes, when its source checkout is installed.
+    for root in corpus_roots()[1:]:
+        paths += sorted(root.glob("**/ir/scene.json"))
     return [p for p in paths if p.exists()]
 
 
@@ -505,25 +506,27 @@ def test_every_committed_scene_json_round_trips_with_or_without_the_genre(unload
 # ------------------------------------------------- review-244 (S1-S8, nits)
 
 
-def test_the_in_distribution_genre_is_found_without_any_entry_point():
-    """S1: an editable install made before the entry point existed has no
-    `an.genres` metadata; the genre `an` ships must still load."""
+def test_no_genre_is_found_without_its_entry_point():
+    """`an` ships no genre since the cut-out genre moved to `cutan` (an#225): with no
+    entry points there is nothing to load, and the one declared loads once."""
     with without_genres():
-        assert genres.load(entry_points=()) == ("cutout_animation",)
+        assert genres.load(entry_points=()) == ()
+        assert genres.IN_DISTRIBUTION_GENRES == ()
     with without_genres():
-        assert genres.load(entry_points=(), builtin=False) == ()
-    with without_genres():  # the declared entry point and the built-in: one genre
         genres.load(entry_points=(_declared_entry_point(),))
         assert genres.installed() == ("cutout_animation",)
-    assert "cutout_animation (an)" in genres.providers_of("play")
+        assert "cutout_animation (cutan)" in genres.providers_of("play")
 
 
 def _fresh_example(tmp_path, name="park_bench_cartoon"):
     import shutil
     import time
 
+    from tests._corpus_roots import corpus_glob
+
+    (source,) = corpus_glob(f"examples/{name}")
     root = tmp_path / name
-    shutil.copytree(REPO / "examples" / name, root)
+    shutil.copytree(source, root)
     later = time.time() + 5  # the md is the newer file: `sync` must PARSE it
     os.utime(root / "scene.md", (later, later))
     return root

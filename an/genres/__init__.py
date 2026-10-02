@@ -30,7 +30,7 @@ registers each genre it finds; ``an.load(project)``, the ``an`` CLI and (later)
 the MCP entry call it, and anyone can. A package declares its genre as::
 
     [project.entry-points."an.genres"]
-    cutout_animation = "an.genres.cutout:CUTOUT"
+    cutout_animation = "cutan.genre:CUTOUT"
 
 :func:`register_genre` installs a genre object directly (a test, a notebook, a
 genre defined in the same process).
@@ -50,7 +50,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib import import_module
 from importlib.metadata import EntryPoint, entry_points as _entry_points
 
@@ -59,6 +59,8 @@ from an.genres.registry import (
     ActionKind,
     CompilePass,
     RuntimeScript,
+    ServiceMissingError,
+    SwapDeclaration,
     DialogueSugar,
     EntityKind,
     RegistryError,
@@ -72,6 +74,11 @@ from an.genres.registry import (
     register_check,
     register_compile_pass,
     register_runtime_script,
+    hook_modules,
+    register_service,
+    require_service,
+    service,
+    services,
     register_dialogue_sugar,
     register_entity_kind,
     restore,
@@ -102,7 +109,9 @@ class GenreError(RegistryError):
 #: Levels (one line each; ``tests/test_genre_gate.py`` holds the list complete):
 #:
 #: 1 = moved-module shims (``an._shims.moved_to_package``) and this check (an#296, P8 B0a).
-API_LEVEL: int = 1
+#: 2 = the cut-out genre's move (an#225): ``Genre.services``, ``ActionKind.lowering``,
+#:     ``EntityKind.swap_declaration``, ``an.stage.rig``.
+API_LEVEL: int = 2
 
 
 class GenreAPILevelError(GenreError, ImportError):
@@ -179,6 +188,11 @@ class Genre:
     #: Code the genre adds to an engine's runtime: its visual kinds
     #: (:class:`RuntimeScript`; an#247).
     runtime_scripts: tuple[RuntimeScript, ...] = ()
+    #: ``{name: object or "module:attr"}`` the genre offers the core by name
+    #: (:func:`register_service`; an#225): the CLI namespaces it adds
+    #: (``cli.<namespace>``), its lip-sync providers (``lipsync.<name>``), and the
+    #: other places the core asks "is there a genre that does this?".
+    services: dict[str, object] = field(default_factory=dict)
 
     def provides(self) -> dict[str, tuple[str, ...]]:
         """What this genre registers, by registry, as names — without registering it.
@@ -199,6 +213,7 @@ class Genre:
             "aspects": tuple(a.name for a in self.aspects),
             "compile passes": tuple(p.name for p in self.compile_passes),
             "runtime scripts": tuple(s.name for s in self.runtime_scripts),
+            "services": tuple(self.services),
         }
 
 
@@ -270,6 +285,8 @@ def _install(genre: Genre, *, check_capabilities: bool = True) -> None:
         register_compile_pass(compile_pass, owner=owner)
     for script in genre.runtime_scripts:
         register_runtime_script(script, owner=owner)
+    for name, target in genre.services.items():
+        register_service(name, target, owner=owner)
     if genre.capabilities or genre.analysers or genre.vocabulary or genre.aspects:
         _install_semantics(genre, check_capabilities=check_capabilities)
 
@@ -390,12 +407,10 @@ def installed_genre(name: str) -> Genre | None:
 #: install made before the ``an.genres`` group existed never refreshes its
 #: ``dist-info``, and a missing entry point must never silently drop a genre
 #: that ships in the same distribution as the core (review-244 S1). Still
-#: explicit discovery (only :func:`load` reads it, never an import). External
-#: genres (``cutan`` after P8) come through the entry point alone; when the
-#: cut-out genre moves there, its line here goes.
-IN_DISTRIBUTION_GENRES: tuple[tuple[str, str], ...] = (
-    ("cutout_animation", "an.genres.cutout:CUTOUT"),
-)
+#: explicit discovery (only :func:`load` reads it, never an import). Every genre is
+#: external now: the cut-out genre moved to ``cutan`` (an#225) and comes through
+#: the ``an.genres`` entry point alone.
+IN_DISTRIBUTION_GENRES: tuple[tuple[str, str], ...] = ()
 
 
 def genre_library(name: str | None, *, default: str = "an") -> str:
@@ -420,12 +435,12 @@ def genre_entry_points(*, group: str = ENTRY_POINT_GROUP) -> tuple[EntryPoint, .
 def discovered_entry_points(
     *, entry_points: Iterable[EntryPoint] | None = None, builtin: bool = True
 ) -> tuple[EntryPoint, ...]:
-    """The in-distribution genres (``builtin``) merged with ``entry_points``
-    (default: the installed ones), de-duplicated by name — the in-distribution
-    declaration first, so a stale or missing installed entry cannot shadow it.
+    """The in-distribution genres (``builtin``; none since the cut-out genre moved to
+    ``cutan``, an#225) merged with ``entry_points`` (default: the installed ones),
+    de-duplicated by name — the in-distribution declaration first.
 
     >>> [ep.name for ep in discovered_entry_points(entry_points=())]
-    ['cutout_animation']
+    []
     """
     eps = genre_entry_points() if entry_points is None else tuple(entry_points)
     builtins = (
@@ -621,6 +636,13 @@ __all__ = [
     "ActionKind",
     "CompilePass",
     "RuntimeScript",
+    "ServiceMissingError",
+    "SwapDeclaration",
+    "hook_modules",
+    "register_service",
+    "require_service",
+    "service",
+    "services",
     "DialogueSugar",
     "EntityKind",
     "Genre",

@@ -3,7 +3,7 @@
 # WHY THIS IS A SEPARATE, MANUALLY-DISPATCHED WORKFLOW
 #
 # `an` renders through headless Chromium, so its rendering tests need Playwright
-# (in the `cutout` extra, which CI does not install) and ffmpeg (not on the
+# (in the `stage` extra, which CI does not install) and ffmpeg (not on the
 # runner image). Adding both to the main CI would put a ~200 MB browser download
 # and an apt install on every push, on every leg of the Python matrix, to run a
 # lane that takes well under a minute. Against a main CI run of about a minute,
@@ -93,10 +93,21 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ inputs.python-version || '3.12' }}
 
-      - name: Install package with the cutout extra
+      - name: Install package with the stage extra
         run: |
           uv venv --python ${{ inputs.python-version || '3.12' }}
-          uv pip install -e '.[dev,cutout]'
+          uv pip install -e '.[dev,stage]'
+
+      - name: Install the cut-out genre (cutan)
+        # A SOURCE checkout of cutan (editable): its corpus and examples are read by the
+        # tests that check every committed scene. The move's own branch while its PR
+        # is open, else main -- never PyPI, which may lag `an` main (an#225).
+        run: |
+          source .venv/bin/activate
+          git clone --depth 1 --branch feat/225-genre-move https://github.com/thorwhalen/cutan.git ../cutan \
+            || git clone --depth 1 https://github.com/thorwhalen/cutan.git ../cutan
+          uv pip install --no-deps -e ../cutan
+          uv pip install pyyaml
 
       # Cached so a repeat dispatch measures the WARM cost too — the cold cost is
       # what the first run reports, and both matter to any decision to promote
@@ -127,6 +138,8 @@ jobs:
       # Two steps, so GitHub's own step timings answer "what would adding this
       # lane to the main workflow actually cost?" without anyone timing by hand.
       - name: Non-rendering tests (baseline timing)
+        env:
+          AN_GENRE_TESTS: "1"
         run: |
           source .venv/bin/activate
           python -m pytest -q -p no:cacheprovider -m "not browser and not ffmpeg"
@@ -137,6 +150,7 @@ jobs:
       - name: Rendering tests
         env:
           AN_BROWSER_TESTS: "1"
+          AN_GENRE_TESTS: "1"
         run: |
           source .venv/bin/activate
           python -m pytest -q -p no:cacheprovider -m "browser or ffmpeg" --durations=30

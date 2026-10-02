@@ -83,6 +83,7 @@ def _mall() -> dict:
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize(
     "spelling, expected",
     [
@@ -104,6 +105,7 @@ def test_the_md_grammar_reads_a_pause_or_an_at(spelling, expected):
     assert got == {"pause": None, "at": None, "emotion": None, **expected}
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize(
     "bad, says",
     [
@@ -130,6 +132,7 @@ def test_the_schema_refuses_both_a_pause_and_an_at():
         Dialogue(speaker="a", text="b", pause=-0.5)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_md_to_ir_to_md_round_trips_the_timing():
     md = _md(
         "x: Hi, Y.",
@@ -315,6 +318,7 @@ def test_the_per_shot_mux_places_the_shifted_line(tmp_path):
     assert [at for _path, at in placed] == pytest.approx([0.0, b.start])
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_visemes_follow_the_shifted_line():
     from an.adapters.cutout.compile import compile_shot
 
@@ -410,6 +414,7 @@ def test_an_iterate_patch_of_a_pause_validates_and_re_times():
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_timing_survives_an_sync_both_ways(tmp_path):
     """The acceptance line: md → json, then json (the pipeline's stamps, via
     the store) → md, with real files and the mtime rule `sync` runs on."""
@@ -490,6 +495,7 @@ def test_retime_without_synthesis_follows_an_edited_pause_and_leaves_untimed_sho
     assert hand.dialogue[0].start == 1.0
 
 
+@pytest.mark.genre("cutout_animation")
 def test_every_committed_scene_is_stamped_where_the_derivation_puts_it():
     """The byte-identity claim, as a test: re-timing a committed `scene.json`
     moves no `start`."""
@@ -497,9 +503,10 @@ def test_every_committed_scene_is_stamped_where_the_derivation_puts_it():
 
     from an.audio.pipeline import retime_dialogue
 
-    root = Path(__file__).resolve().parents[1]
-    paths = sorted(root.glob("examples/*/ir/scene.json")) + sorted(
-        root.glob("misc/bench/corpus/*/ir/scene.json")
+    from tests._corpus_roots import corpus_glob
+
+    paths = corpus_glob("examples/*/ir/scene.json") + corpus_glob(
+        "misc/bench/corpus/*/ir/scene.json"
     )
     assert paths
     for path in paths:

@@ -48,13 +48,13 @@ from typing import Any, Literal, Optional
 
 from pydantic import Field
 
-from an.characters.schema import (
+from an.stage.rig import (
     DEFAULT_VIEW_BOX,
-    Attachment,
+    Attachment,  # noqa: F401
     Bone,
+    RigModel as _CharModel,
     Skin,
     Slot,
-    _CharModel,
 )
 from an.ir.assets import AssetSource
 from an.ir.migrate import DocumentKind, register_kind

@@ -351,13 +351,26 @@ def test_every_test_module_imports_with_every_optional_dependency_absent(tmp_pat
     """
     env = _env(tmp_path, shadow=OPTIONAL_IMPORTS)
     names = [p.stem for p in _test_modules()]
+    # A module marked `genre` may fail to import for want of its genre package: the
+    # conftest skips and counts it where the lane declares the genre absent
+    # (`pytest_make_collect_report`), and the count guard fails it anywhere else.
+    from tests.conftest import GENRE_PACKAGES, static_genre_marked
+
+    genre_files = {Path(f).stem for f, _ in static_genre_marked(_test_modules())}
+    genre_packages = sorted(GENRE_PACKAGES.values())
     script = (
         "import importlib, sys\n"
         f"names = {names!r}\n"
+        f"genre_files = {sorted(genre_files)!r}\n"
+        f"genre_packages = {genre_packages!r}\n"
         "bad = []\n"
         "for n in names:\n"
         "    try:\n"
         "        importlib.import_module('tests.' + n)\n"
+        "    except ModuleNotFoundError as e:\n"
+        "        if n in genre_files and (e.name or '').split('.')[0] in genre_packages:\n"
+        "            continue\n"
+        "        bad.append(f'{n}: {type(e).__name__}: {e}')\n"
         "    except BaseException as e:\n"
         "        bad.append(f'{n}: {type(e).__name__}: {e}')\n"
         "print('\\n'.join(bad))\n"

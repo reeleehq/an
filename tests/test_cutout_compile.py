@@ -26,6 +26,7 @@ def test_non_cutout_style_rejected():
         compile_shot(shot)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_character_entity_creates_subtree():
     shot = Shot(
         id="s1",
@@ -55,6 +56,7 @@ def test_character_entity_creates_subtree():
     assert mouth.visual is not None and mouth.visual.kind == "mouth"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_character_uses_store_provided_parts_when_present():
     shot = Shot(
         id="s1",
@@ -142,6 +144,7 @@ def test_set_action_compiles_to_step_keyframe():
     assert placed.start_time == 0.5
 
 
+@pytest.mark.genre("cutout_animation")
 def test_compile_output_round_trips_through_serialize():
     shot = Shot(
         id="s1",

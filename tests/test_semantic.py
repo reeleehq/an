@@ -43,6 +43,7 @@ LEGS = {"limbs.legs": {"slots": ["leg_l", "leg_r"]}}
 # --------------------------------------------------------------------------- the registry
 
 
+@pytest.mark.genre("cutout_animation")
 def test_every_registered_aspects_chain_ends_in_a_requirement_free_method_or_the_no_op():
     """ADR 0002 decision 5, as a test over whatever is registered."""
     assert aspects(), "the cut-out genre registers its aspects (conftest loads it)"
@@ -61,10 +62,11 @@ def test_every_entry_is_versioned_and_ids_are_unique():
     json.dumps(vocabulary())  # the MCP surface returns it as is
 
 
+@pytest.mark.genre("cutout_animation")
 def test_todays_named_vocabularies_are_all_entries():
     """ADR 0003 first slice: motion presets, expression presets, camera moves,
     easings, action kinds, entity kinds — each from the table that defines it."""
-    from an.expression.presets import PRESETS as EXPRESSIONS
+    from cutan.expression.presets import PRESETS as EXPRESSIONS
     from an.genres import action_kind_names, entity_kind_names
     from an.ir.camera import CAMERA_MOVES
     from an.motion import PRESET_VERSIONS, PRESETS
@@ -82,6 +84,7 @@ def test_todays_named_vocabularies_are_all_entries():
     assert names("entity") == set(entity_kind_names())
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_motion_presets_entry_describes_its_parameters_with_defaults():
     walk = lookup("motion_preset", "walk")
     props = walk.params["properties"]
@@ -90,6 +93,7 @@ def test_a_motion_presets_entry_describes_its_parameters_with_defaults():
     assert walk.aspects == ("locomotion",)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_genres_entries_come_and_go_with_it():
     with without_genres():
         assert lookup("motion_preset", "walk") is None
@@ -102,6 +106,7 @@ def test_a_genres_entries_come_and_go_with_it():
 # --------------------------------------------------------------------------- the matcher
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_locomotion_chain_is_todays_walk_gait_chain():
     """legs when the character affords a leg pair, rock when it does not."""
     assert resolve("locomotion", LEGS).method.id == "loco.legged_cycle"
@@ -109,6 +114,7 @@ def test_the_locomotion_chain_is_todays_walk_gait_chain():
     assert [m.id for m in applicable("locomotion", {})] == ["loco.rock"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_request_by_its_spelling_applies_or_falls_back_with_a_recorded_substitution():
     r = resolve("locomotion", LEGS, requested="hem", entity="robe")
     assert (r.method.id, r.source, r.substitution) == ("loco.hem_sway", "request", None)
@@ -124,12 +130,14 @@ def test_a_request_by_its_spelling_applies_or_falls_back_with_a_recorded_substit
     assert "hem" in s.remedies["limbs.legs"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_why_not_gives_the_methods_own_remedy_before_the_capabilitys():
     (gap,) = why_not("loco.legged_cycle", {})
     assert gap.term == "limbs.legs" and "hip" in gap.remedy
     assert why_not("loco.legged_cycle", LEGS) == ()
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_policy_choice_over_an_applicable_chain_is_information_not_a_warning():
     """South Park: the show rocks even when its characters have legs."""
     r = resolve("locomotion", LEGS, policy={"locomotion": ["loco.rock"]})
@@ -137,12 +145,14 @@ def test_a_policy_choice_over_an_applicable_chain_is_information_not_a_warning()
     assert r.substitution.reason == "policy" and not r.substitution.fatal
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_policy_choice_that_does_not_apply_is_a_recorded_substitution():
     r = resolve("locomotion", {}, policy={"locomotion": ["hem", "loco.rock"]})
     assert r.method.id == "loco.rock"
     assert r.substitution.reason == "missing" and r.substitution.requested == "loco.hem_sway"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_authors_request_outranks_the_policy_and_policies_layer_shot_first():
     r = resolve("locomotion", LEGS, requested="legs", policy={"locomotion": ["loco.rock"]})
     assert r.method.id == "loco.legged_cycle" and r.substitution is None
@@ -151,11 +161,13 @@ def test_the_authors_request_outranks_the_policy_and_policies_layer_shot_first()
     assert [c.method for c in layered.choices("speech")] == ["pulse"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_policy_args_reach_the_resolution():
     r = resolve("speech", {}, policy={"speech": [{"method": "pulse", "args": {"strength": 0}}]})
     assert r.method.id == "speech.pose_only" and r.args["strength"] == 0
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_version_pin_that_no_longer_holds_is_an_error_not_a_silent_change():
     with pytest.raises(VocabularyError, match="pinned"):
         resolve("locomotion", LEGS, requested={"method": "loco.legged_cycle", "version": "0"})
@@ -200,6 +212,7 @@ def test_a_requirement_must_name_a_registered_capability():
         register_genre(bad)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_genre_from_another_distribution_adds_methods_capabilities_and_a_policy():
     """P8/P10's question: can `cutan` (another distribution) add a locomotion
     method with its capability and a style policy choosing it — without an
@@ -234,6 +247,7 @@ def test_a_genre_from_another_distribution_adds_methods_capabilities_and_a_polic
     assert lookup("method", "loco.demo_glide") is None
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_second_genre_cannot_register_a_second_chain_for_an_aspect():
     """It adds methods and a policy; the chain is the owning genre's."""
     with pytest.raises(GenreError):
@@ -252,6 +266,7 @@ def _idents(text: str) -> set[str]:
     return set(re.findall(r"[A-Za-z_#][A-Za-z0-9_]*", text))
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_generated_iterate_prompt_covers_the_hand_written_one():
     """Semantic coverage, not bytes (ADR 0003 first slice, item 2), checked before
     the hand-written prompt was deleted: every field named in braces, every
@@ -281,6 +296,7 @@ def test_the_generated_iterate_prompt_covers_the_hand_written_one():
         assert phrase in flat, phrase
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_generated_prompt_teaches_what_the_hand_written_one_had_dropped():
     from an.iterate import system_prompt
 
@@ -301,6 +317,7 @@ def test_the_prompt_lists_only_easings_a_tween_may_name():
     assert "smooth" not in listed  # a kernel easing the stage does not draw yet
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_skill_vocabulary_section_is_generated_and_current():
     from an.semantic.docs import current_section, skill_vocabulary_section
 
@@ -323,9 +340,11 @@ def _shot(**kw):
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_digest_names_every_entry_a_shot_uses_with_its_version():
     from an.ir.compose import tween
-    from an.ir.schema import Camera, PlayAction
+    from an.ir.schema import Camera
+    from cutan.characters.registration import PlayAction
     from an.semantic.digest import vocabulary_versions
 
     from an.ir.compose import loop, parallel, sequence
@@ -356,8 +375,9 @@ def test_the_digest_names_every_entry_a_shot_uses_with_its_version():
         assert eid in v, eid
 
 
+@pytest.mark.genre("cutout_animation")
 def test_bumping_one_entrys_version_moves_only_the_shots_that_use_it():
-    from an.ir.schema import PlayAction
+    from cutan.characters.registration import PlayAction
     from an.semantic import register_entry
     from an.semantic.digest import vocabulary_digest
 
@@ -389,11 +409,12 @@ def test_the_vocabulary_is_a_part_of_the_cut_out_shot_key_and_registering_it_is_
     assert register_vocabulary_key_part("no-such-renderer") is False
 
 
+@pytest.mark.genre("cutout_animation")
 def test_bumping_an_entrys_version_rerenders_the_shots_that_use_it(tmp_path):
     """ADR 0003 decision 2 through P6's seam: the shot key moves with the version."""
     from dataclasses import replace
 
-    from an.ir.schema import PlayAction
+    from cutan.characters.registration import PlayAction
     from an.semantic import register_entry
     from tests.test_shot_cache import _ctx, _key
 
@@ -487,6 +508,7 @@ def test_another_package_declares_a_view_space_and_moves_through_it():
 # --------------------------------------------------------------------------- review-256 invariants
 
 
+@pytest.mark.genre("cutout_animation")
 def test_resolve_refuses_a_method_of_another_aspect():
     """S3: a typo in a style's policy must not realise one aspect with another's method."""
     with pytest.raises(VocabularyError, match="method of 'speech'"):
@@ -495,6 +517,7 @@ def test_resolve_refuses_a_method_of_another_aspect():
         resolve("locomotion", {}, policy={"locomotion": ["speech.pose_only"]})
 
 
+@pytest.mark.genre("cutout_animation")
 def test_one_name_is_one_entry_and_a_replacement_is_explicit_and_recorded():
     """S5: `push_in` means one thing; burns cannot redefine it by accident."""
     from dataclasses import replace
@@ -533,6 +556,7 @@ EXTENSION = Genre(
 )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_genre_needing_another_genres_capability_loads_in_any_order():
     """S7: the capability check runs once every genre is in."""
     from importlib.metadata import EntryPoint
@@ -541,7 +565,7 @@ def test_a_genre_needing_another_genres_capability_loads_in_any_order():
 
     eps = [
         EntryPoint("demo_extension", "tests.test_semantic:EXTENSION", "an.genres"),
-        EntryPoint("cutout_animation", "an.genres.cutout:CUTOUT", "an.genres"),
+        EntryPoint("cutout_animation", "cutan.genre:CUTOUT", "an.genres"),
     ]
     with without_genres():
         assert load(entry_points=eps, builtin=False) == ("demo_extension", "cutout_animation")

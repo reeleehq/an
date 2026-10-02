@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Callable, Iterator, Sequence
+from typing import Any, Iterator, Sequence
 
 # Moved to the core (an#279, ADR 0001 decision 7) and re-exported: the fixture
 # type, the pinned render knobs and the corpus folder serve the CORE corpus too.
@@ -41,154 +41,11 @@ class CorpusError(RuntimeError):
     """A fixture did not render what it declared."""
 
 
-def _declare_procedural_rig(entity_ref: str) -> Callable[[Path], None]:
-    """Make a fixture's use of the built-in placeholder rig **explicit**.
 
-    ``examples/single_character`` references ``charlie-v1``, which is in no
-    store — and that is what it *means*: it is the asset-less smoke scene, and
-    the placeholder rig is the picture it intends. But before an#33 that intent
-    was indistinguishable from a missing descriptor, and the bench renders with
-    ``strict_assets=True`` precisely so it can never measure a stand-in and file
-    the row under this scene's name.
-
-    So the fixture declares the rig instead of falling into it. The store entry
-    lists exactly ``_PLACEHOLDER_PARTS``, which is the same list the fallback
-    would have used, so the compiled scene tree — and therefore every pixel — is
-    **identical**; what changes is that the compiled scene now records
-    ``resolved: "parts", fallback: false``.
-
-    Written into the throwaway copy, never into ``examples/``.
-    """
-
-    def prepare(project_dir: Path) -> None:
-        from an.stage.compile import _PLACEHOLDER_PARTS
-        from an.project import load
-
-        project = load(project_dir)
-        project.mall["characters"][entity_ref] = {
-            "name": entity_ref,
-            "parts": list(_PLACEHOLDER_PARTS),
-            "note": (
-                "declared by the bench corpus so the procedural rig is a choice "
-                "rather than a fallback (an#33). Byte-identical render."
-            ),
-        }
-
-    return prepare
-
-
-def _prepare_promote_demo(project_dir: Path) -> None:
-    """Regenerate the promoted character from the committed source SVG.
-
-    ``examples/promote_demo`` ships only ``raw_maya.svg``; the promoted
-    character its scene references is a build product and is gitignored.
-    Without this step the fixture renders on a clean checkout, produces no
-    error, and — before an#33 — quietly drew a different character.
-    """
-    from an.characters import promote
-
-    promote(project_dir, entity="raw_maya", as_="maya-promoted", overwrite=True)
-    # The IR is regenerated from `scene.md` in the staged copy. Since an#96 the
-    # scene has a dialogue line, and `python examples/promote_demo/build.py`
-    # (auto_audio=True) stamps visemes into the committed `ir/scene.json` —
-    # which would move this fixture's contract hash with developer state.
-    # The bench renders with auto_audio=False and this scene's picture has no
-    # visemes in it by design; dropping the staged IR makes that a property of
-    # the fixture rather than of whoever last ran the example.
-    ir = project_dir / "ir" / "scene.json"
-    if ir.exists():
-        ir.unlink()
-
-
-#: The corpus. One fixture per render path, deliberately both: the descriptor
-#: (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
-#: procedural one (2.94% vs 0.24% of pixels under GPU-vs-software), so a
-#: procedural-only corpus under-reports the case that matters.
 #:
-#: The four scenes an#38 adds, each for a **measured** reason:
-#:
-#: - ``graded_field`` — a real gradient (98 distinct luma levels down the centre
-#:   column) over a large flat block. Banding has no edge in it, so every
-#:   edge-masked metric is blind to it; and the gradient itself sits OUTSIDE the
-#:   flat mask by construction (``flat_mask`` demands a zero 4-neighbour delta),
-#:   which is why the scene carries a flat block too — measured 0.2795 of the
-#:   frame, against 0.0341 for a gradient alone.
-#: - ``saturated_outline`` — maximally saturated fills under a pure-black 12px
-#:   outline. The shipped examples are 31 colours on white and their measured
-#:   4:2:0 edge error is ~3x smaller, so the chroma metric under-reports exactly
-#:   the artefact class the epic cares about. Highest edge-mask fraction in the
-#:   corpus (0.0566).
-#: - ``aa_probe`` — three bars pinned at 7, 23 and 45 degrees. Axis-aligned
-#:   ``drawRect`` edges are bit-identical with MSAA on or off, so a corpus of
-#:   axis-aligned art cannot validate an AA metric at all. Measured under the
-#:   real AA lever (PixiJS ``antialias: false``): ``edge_transition_width``
-#:   2.9866 -> 2.0000 and ``video_stream_bytes`` **+6.1%**. That last number is
-#:   why this scene is load-bearing rather than decorative — on
-#:   ``single_character`` the same lever moves the bytes **-6.1%**, the opposite
-#:   of the declared direction, because AA-off on axis-aligned art removes
-#:   intermediate colours instead of creating a staircase. Family F is only an
-#:   honest witness for ``disabled_aa`` on a scene with non-axis-aligned edges.
-#: - ``multi_shot`` — two shots, so ``an/render.py``'s ``_ffmpeg_concat`` is
-#:   exercised at all (a single-shot render short-circuits it to
-#:   ``shutil.copy``) and ``file_bytes`` stops meaning two different things
-#:   depending on shot count. Its shot ids are ``intro`` then ``beat``
-#:   **deliberately**: they sort the other way, so any code that recovers shot
-#:   order from the directory name instead of the timeline pairs source frames
-#:   against the wrong half of the concatenated video, and this fixture is what
-#:   notices.
-#:
-#: One measured fact that shapes the set: the **descriptor path is nearly blind
-#: to the AA lever** (96 differing pixels out of 12.4M on ``promote_demo``),
-#: because MSAA applies to WebGL geometry and an SVG sprite is a pre-rasterised
-#: texture. So the descriptor scenes are in the corpus for the rasteriser
-#: sensitivity the cross-arch work measured, not as AA witnesses.
+#: The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
+#: is the core's: `prop_swap` and the core corpus (`an.bench.core_corpus`).
 DFLT_FIXTURES: dict[str, Fixture] = {
-    "single_character": Fixture(
-        path="examples/single_character",
-        prepare=_declare_procedural_rig("charlie-v1"),
-        expect_visual_kinds=frozenset({"rect", "ellipse"}),
-        golden_frames=(0.0, 1.0),
-        golden_note=(
-            "a blink (the compiled scale_y squash on the procedural eyes) plus, "
-            "since an#97, the mouth: 253 pixels differ, 172 from the blink and "
-            "81 from the mouth (frame 0 shows the led first shape of the 0.71 s "
-            "line, frame 24 the closed rest after it, which the frame-ceiled "
-            "window now samples). Blinks occupy 3.5% of frames, so before the "
-            "lead frame 0 against duration/2 was a pixel-identical pair on this "
-            "scene; the mouth now separates them by 81 px."
-        ),
-    ),
-    "promote_demo": Fixture(
-        path="examples/promote_demo",
-        prepare=_prepare_promote_demo,
-        expect_visual_kinds=frozenset({"svg_sprite"}),
-        golden_frames=(0.0, 2.9167),
-        golden_note=(
-            "a blink — the compiled eyelid swap shows the closed-eye art at "
-            "t=2.9167 (an earlier note blamed 'the idle animation', which "
-            "nothing on the render path consumes). Measured: frame 0 against "
-            "duration/2 differs by exactly ZERO pixels here, so the obvious "
-            "second time would have blessed one image twice."
-        ),
-    ),
-    "graded_field": Fixture(
-        path=f"{CORPUS_DIRNAME}/graded_field",
-        expect_visual_kinds=frozenset({"svg_sprite"}),
-        golden_frames=(0.0, 0.1667),
-        golden_note=(
-            "the white marker sweeping across the gradient (6,270 px). Frame 4, "
-            "not the obvious mid-scene frame 6: the marker advances by a "
-            "sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact "
-            "pixel boundary and AA-off changes ZERO pixels there. A blessed pair "
-            "that no available mutation can move is a gate that cannot go red."
-        ),
-    ),
-    "saturated_outline": Fixture(
-        path=f"{CORPUS_DIRNAME}/saturated_outline",
-        expect_visual_kinds=frozenset({"svg_sprite"}),
-        golden_frames=(0.0, 0.25),
-        golden_note="the head plate rotating through 0.3 rad (1,187 px).",
-    ),
     "prop_swap": Fixture(
         path=f"{CORPUS_DIRNAME}/prop_swap",
         expect_visual_kinds=frozenset({"svg_sprite"}),
@@ -210,73 +67,6 @@ DFLT_FIXTURES: dict[str, Fixture] = {
     ),
     "stage_pan": CORE_FIXTURES["stage_pan"],
     "path_draw": CORE_FIXTURES["path_draw"],
-    "expressions": Fixture(
-        path=f"{CORPUS_DIRNAME}/expressions",
-        expect_visual_kinds=frozenset({"svg_sprite"}),
-        golden_frames=tuple(0.125 + 0.25 * k for k in range(8)),
-        golden_note=(
-            "eight 0.25 s shots of one silent synthesized character holding one "
-            "expression preset each (neutral, happy, sad, angry, surprised, "
-            "afraid, thinking, skeptical — the two presets whose faces differ "
-            "only by a mouth form the silent rest does not show, disgusted and "
-            "amused, are left out), sampled at each shot's mid-frame (an#98). "
-            "What moves between goldens is the FACE SOLVER's output alone: brow "
-            "height and angle, the eyelid key, and the mouth form's rest. The "
-            "character is named `face` because its seeded blink phase puts no "
-            "blink window inside any 0.25 s shot (the blink clock restarts per "
-            "shot), so no golden straddles a blink; "
-            "it is lowered by an absolute `set face y` so the head clears the "
-            "frame's top edge at 320x240. Its rig is committed whole (parts and "
-            "descriptor, `viseme@happy`/`viseme@sad` variants included) and, since "
-            "an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, "
-            "`gaze_travel`), so the pupils also make their seeded ambient "
-            "saccades — sub-pixel at 320x240 and inside the face crop. The "
-            "pairwise distinguishability test in "
-            "tests/test_expression_goldens.py reads these same PNGs."
-        ),
-    ),
-    "aa_probe": Fixture(
-        path=f"{CORPUS_DIRNAME}/aa_probe",
-        expect_visual_kinds=frozenset({"rect"}),
-        golden_frames=(0.0, 0.25),
-        golden_note=(
-            "the fourth bar sweeping horizontally (4,200 px). The three angled "
-            "bars are pinned and do not move — they are the AA subject."
-        ),
-    ),
-    "dialogue": Fixture(
-        path=f"{CORPUS_DIRNAME}/dialogue",
-        expect_visual_kinds=frozenset({"rect", "ellipse", "mouth", "eye"}),
-        golden_frames=(0.0, 0.6),
-        golden_note=(
-            "the mouth mid-line: frame 14 sits on the `h`/`a` of 'shape' and "
-            "shows `A`, the winner of its 0.14 s window under the an#97 vote; "
-            "the old drop-not-hold condenser showed `C` there, having dropped "
-            "the `D` and `A` that followed inside the window. Frame 0 shows "
-            "`E` — the winner of the first window, after the lead pulled the "
-            "line's opening cues to 0 — where the old path showed the rest. The "
-            "head is lifted 34 px above its rest by an absolute `set` so the "
-            "placeholder rig's mouth clears the torso. The second golden sits "
-            "INSIDE the spoken interval; `single_character`'s second golden "
-            "samples after its line ends (its first, at t=0, is on the led "
-            "first shape) and `promote_demo` renders mute in the bench (no "
-            "visemes in its IR, by design). The visemes are the "
-            "offline provider's, stamped into the committed ir/scene.json; the "
-            "bench renders with auto_audio=False and reads them from there."
-        ),
-    ),
-    "multi_shot": Fixture(
-        path=f"{CORPUS_DIRNAME}/multi_shot",
-        expect_visual_kinds=frozenset({"rect", "ellipse"}),
-        golden_frames=(0.0, 0.25),
-        golden_note=(
-            "the whole picture: 0.25s is the FIRST frame of the second shot, so "
-            "the pair spans the concat boundary (75,050 px). A golden pair "
-            "inside one shot would not notice a shot rendered in the wrong order."
-        ),
-    ),
-    # The core corpus's own scenes (an#279), after every existing one so the
-    # ledger's scene order for the cut-out corpus is unchanged.
     **{k: v for k, v in CORE_FIXTURES.items() if k not in ("stage_pan", "path_draw")},
 }
 

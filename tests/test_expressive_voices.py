@@ -29,6 +29,9 @@ from an.util import _stable_hash
 
 from tests.test_voice_effects import _RecordingLipSync, _sine_wav
 
+pytestmark = pytest.mark.genre("cutout_animation")
+
+
 
 class _FakeClient:
     """Stands in for ``elevenlabs.client.ElevenLabs``; records every request."""

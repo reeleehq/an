@@ -135,6 +135,7 @@ def test_the_compiler_refuses_the_same_range_because_a_render_never_validates(ba
         step_times(0.0, 1.0, bad if bad <= 0 else -1.0)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_compiler_checks_against_the_fps_it_compiles_with():
     """Validate compares with `meta.fps`, but `render_project(fps=12)` compiles
     with 12: a 15 Hz grid the scene called fine is finer than those frames."""
@@ -152,6 +153,7 @@ def test_a_non_positive_fps_is_reported_once_not_as_a_step_hz_riddle():
     assert "meta/fps" in paths and not any(p.endswith("step_hz") for p in paths)
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("prop", sorted(__import__("an.adapters.cutout.compile", fromlist=["_PROPERTY_REST_VALUES"])._PROPERTY_REST_VALUES))
 def test_every_transform_property_is_stepped_not_just_x(prop):
     """A mutant exempting `alpha` from stepping survived a suite that only ever
@@ -184,6 +186,7 @@ def test_every_transform_property_is_stepped_not_just_x(prop):
     assert all(isinstance(k.value, float) for k in kfs)
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("good", [None, 30.0, 15.0, 10.0, 0.5])
 def test_validate_accepts_none_and_rates_up_to_fps(good):
     scene = SceneIR(meta=Meta(title="t", duration=2.0, fps=30, step_hz=good), timeline=[_shot(step_hz=good)])
@@ -208,6 +211,7 @@ def test_step_times_are_a_shot_wide_grid_not_the_tweens_own():
 # --------------------------------------------------------------- the compiler
 
 
+@pytest.mark.genre("cutout_animation")
 def test_off_leaves_the_compiled_document_and_its_contract_hash_untouched():
     """The knob's absence must cost nothing — not one keyframe, not one byte of
     the document the ledger hashes. `meta.step_hz` is serialized only when set."""
@@ -226,6 +230,7 @@ def test_off_leaves_the_compiled_document_and_its_contract_hash_untouched():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_on_resamples_each_tween_onto_step_eased_keyframes_of_the_smooth_curve():
     """Every grid keyframe carries the value the SMOOTH tween would show at that
     instant (evaluated through the Python spec) and step easing, so the pose
@@ -245,6 +250,7 @@ def test_on_resamples_each_tween_onto_step_eased_keyframes_of_the_smooth_curve()
     assert 0.0 < kfs[7].value < 100.0
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_delayed_tween_snaps_to_the_shot_grid():
     """`sequence(delay(0.05), tween)` under 10 Hz: updates at shot times 0.1,
     0.2 ... — clip-local 0.05, 0.15 ... — because "on twos" is a property of
@@ -254,6 +260,7 @@ def test_a_delayed_tween_snaps_to_the_shot_grid():
     assert [round(k.time, 6) for k in kfs] == [0.0, 0.05, 0.15, 0.25, 0.3]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_camera_is_exempt_by_construction():
     """`_add_camera_clips` is its own emission site, so the camera's scale tween
     stays a two-keyframe eased curve under any step_hz — a stepped character
@@ -267,6 +274,7 @@ def test_the_camera_is_exempt_by_construction():
     assert len(_tween_channel(scene).keyframes) > 2
 
 
+@pytest.mark.genre("cutout_animation")
 def test_plane_compensation_is_exempt_by_construction():
     """The THIRD emission site, which Wave 7 added and nothing asserted (an#127).
 
@@ -337,12 +345,13 @@ def test_plane_compensation_is_exempt_by_construction():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_swap_tweens_blinks_and_plays_are_not_resampled(tmp_path):
     """Swap channels are stepped by format already (their two keyframes stay
     two); blink clips and `play` clips are separate emission sites."""
     import shutil
 
-    from an.ir.compose import play
+    from cutan.characters.registration import play
     from an.stores.characters import CharactersStore
 
     shutil.copytree(FIXTURES / "gale", tmp_path / "gale")
@@ -371,6 +380,7 @@ def test_swap_tweens_blinks_and_plays_are_not_resampled(tmp_path):
             assert to_dict(on.animations[aid]) == to_dict(off.animations[aid]), aid
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_tween_shorter_than_one_step_is_a_single_step_to_its_end():
     shot = _shot([tween("c", "x", to=10.0, duration=0.02)])
     kfs = _tween_channel(_compile(shot, step_hz=10.0)).keyframes
@@ -442,6 +452,7 @@ def test_the_cli_maps_zero_to_the_scene_declaration(monkeypatch):
     assert seen["step_hz"] == 15.0
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_bench_row_records_the_policy_per_shot():
     """Additive scene provenance, like `blink_phases`: the compiled meta's
     `step_hz` (None when smooth) per shot, so a stepped row says so. Asserted
@@ -460,6 +471,7 @@ def test_the_bench_row_records_the_policy_per_shot():
     assert set(prov["blink_phases"]) == {"a", "b"}
 
 
+@pytest.mark.genre("cutout_animation")
 def test_twos_and_threes_are_what_the_docs_say_they_are():
     """At 30 fps, 15 Hz holds each pose for two frames and 10 Hz for three —
     the vocabulary the practice uses (research §10)."""

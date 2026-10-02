@@ -53,13 +53,6 @@ def test_the_gif_recipe_is_the_demo_gallerys_byte_for_byte():
         "[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=none"
     )
     assert gif_filter(crop="100:80:10:0").startswith("crop=100:80:10:0,fps=12,")
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(
-        "_demos_gif_check", Path(__file__).resolve().parents[1] / "misc/demos/build_demos.py"
-    )
-    source = Path(spec.origin).read_text(encoding="utf-8")
-    assert "palettegen" not in source, "the recipe has one home, an.media.gif"
 
 
 def test_the_png_sequence_sink_renumbers_from_zero(tmp_path):

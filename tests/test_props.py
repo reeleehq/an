@@ -119,6 +119,7 @@ def test_a_set_action_times_itself_with_at_not_start():
     }
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_drawable_kinds_are_exactly_what_the_compiler_dispatches_on():
     """Pinned against the compiler's own source, not against a copy of the list.
 
@@ -267,12 +268,13 @@ def test_placement_replaces_the_layout_rather_than_offsetting_it():
 # --- the descriptor is not a character ---------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_prop_descriptor_is_not_seeded_with_a_person():
     """`CharacterDescriptor(name="sword")` is a seven-bone humanoid with a face
     and a blink, re-seeded from an empty list by `model_post_init`. That is the
     measured reason a prop is its own document rather than `kind: "prop"` on a
     character."""
-    from an.characters.schema import CharacterDescriptor
+    from cutan.characters.schema import CharacterDescriptor
 
     person = CharacterDescriptor(name="sword")
     assert len(person.bones) > 5 and person.animations and person.asset_sets
@@ -459,6 +461,7 @@ def test_a_store_that_was_not_supplied_skips_its_checks_rather_than_failing_them
     assert _validate(_shot(ref="ghost"), mall).passed is False
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_expression_on_a_prop_is_an_error_even_though_it_compiles(mall):
     """A DELIBERATE divergence, written down so it is not mistaken for the
     other kind.
@@ -469,7 +472,7 @@ def test_an_expression_on_a_prop_is_an_error_even_though_it_compiles(mall):
     `test_loud_discards.py` exists to prevent. So validate errors on a scene
     that renders, on purpose, and says why: "it would compile to nothing".
     """
-    from an.ir.compose import expression
+    from cutan.expression.registration import expression
 
     shot = _shot(actions=[expression("lamp", preset="happy", duration=0.5)])
     report = _validate(shot, mall)

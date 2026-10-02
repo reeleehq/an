@@ -166,8 +166,8 @@ They are the pixel gate that stays in `an` when the cut-out corpus moves to
 `cutan` (P8): `tests/test_core_corpus.py` compiles and renders them in a fresh
 interpreter with **no genre registered**, importing no cut-out module the core
 had not already imported. That is all it proves today: `an.stage.compile` still
-imports `an.characters`/`an.expression` and a stage render RUNS
-`an.characters.play` (review of #301). The real proof — every cut-out module
+imports `cutan.characters`/`cutan.expression` and a stage render RUNS
+`cutan.characters.play` (review of #301). The real proof — every cut-out module
 poisoned before `import an` — is the pair of **strict xfail** tests in the same
 file; P8's B0c (the stage-compile split, an#225) flips them to pass. A new core
 scene must not draw a character, and must keep the passing tests green.

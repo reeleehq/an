@@ -128,6 +128,7 @@ def test_force_include_is_a_complete_inventory_of_the_runtime_assets():
 # The one that matters: a real render, with the outside world switched off.
 # --------------------------------------------------------------------------
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_a_render_succeeds_with_the_outside_world_switched_off(

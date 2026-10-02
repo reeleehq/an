@@ -23,7 +23,7 @@ from an.project import load
 
 
 
-pytestmark = [pytest.mark.browser, pytest.mark.ffmpeg]
+pytestmark = [pytest.mark.browser, pytest.mark.ffmpeg, pytest.mark.genre("cutout_animation")]
 
 
 _NEAR_WHITE_THRESHOLD = 240  # rgb component above this counts as "near white"

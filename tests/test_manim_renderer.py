@@ -328,6 +328,7 @@ def test_fps_alternation_neither_runs_manim_again_nor_touches_the_scene(tmp_path
     assert (root / "scene.md").read_bytes() == md
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.ffmpeg
 def test_narration_longer_than_the_picture_holds_the_last_frame_and_says_so(tmp_path, fake):
     """H3: never cut silently — held with a warning, or refused under strict."""
@@ -409,6 +410,7 @@ def test_the_shot_key_moves_with_each_input_and_the_picture_key_only_with_the_pi
     assert parts(sharper)["manim"] != p0["manim"] and pkey(sharper) != k0
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.ffmpeg
 def test_a_narration_edit_remuxes_without_running_manim(tmp_path, fake):
     """M4: the picture is cached apart from the shot."""
@@ -523,6 +525,7 @@ def test_render_conforms_to_the_film_and_records_the_contact_sheet(tmp_path, fak
     assert sheet["store"] == "contact_sheets" and sheet["key"] in mall["contact_sheets"]
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.ffmpeg
 def test_a_film_of_manim_shots_with_a_dissolve_and_narration(tmp_path, fake):
     """The film lays out on the MEASURED durations."""
@@ -570,6 +573,7 @@ def test_real_manim_render_measures_and_locates_a_cut_off_line(tmp_path):
     assert result.provenance["manim"]["contact_sheet"]["key"] in mall["contact_sheets"]
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 @pytest.mark.skipif(not HAS_MANIM, reason="manim + manimkit not installed (pip install 'an[manim]')")

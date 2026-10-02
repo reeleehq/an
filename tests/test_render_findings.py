@@ -96,7 +96,7 @@ def fake_render(monkeypatch):
 def _project(tmp_path, *shots: Shot, characters=()):
     root = init(tmp_path / "p")
     if characters:
-        from an.characters.factory import new_character
+        from cutan.characters.factory import new_character
 
         for name in characters:
             new_character(root / "assets" / "characters", name=name, use_dicebear=False)
@@ -137,6 +137,7 @@ def _kinds(root, *, prefix: str = ""):
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_line_synthesized_past_its_shot_is_reported_by_the_render(tmp_path, fake_render):
     from an.orchestrate import validate_project
     from an.render import render_project
@@ -161,6 +162,7 @@ def test_a_line_synthesized_past_its_shot_is_reported_by_the_render(tmp_path, fa
     ]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_pipeline_does_not_announce_what_the_render_reports(tmp_path, fake_render, capsys):
     from an.render import render_project
 
@@ -169,6 +171,7 @@ def test_the_pipeline_does_not_announce_what_the_render_reports(tmp_path, fake_r
     assert "cut off" not in capsys.readouterr().err
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_line_heard_during_a_dissolve_is_reported(tmp_path, fake_render):
     from an.render import render_project
 
@@ -188,6 +191,7 @@ def test_a_line_heard_during_a_dissolve_is_reported(tmp_path, fake_render):
     assert "0.00-1.80s" in findings[0].description
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_clean_render_reports_nothing(tmp_path, fake_render):
     from an.render import format_render_findings, render_findings, render_project
 
@@ -211,6 +215,7 @@ def _stand_in_scene(tmp_path):
     return _project(tmp_path, shot)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_stand_in_is_a_finding_addressed_to_its_shot(tmp_path, fake_render):
     from an.render import render_project
 
@@ -227,6 +232,7 @@ def test_a_stand_in_is_a_finding_addressed_to_its_shot(tmp_path, fake_render):
     assert "Pass strict_assets=True" not in stand_in.description
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_python_api_still_warns_by_default(tmp_path, fake_render):
     from an.adapters.cutout.compile import CutoutCompileWarning
     from an.render import render_project
@@ -236,6 +242,7 @@ def test_the_python_api_still_warns_by_default(tmp_path, fake_render):
         render_project(root, incremental=False)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_strict_assets_still_refuses_before_any_shot_renders(tmp_path, fake_render):
     from an.adapters.cutout.compile import CutoutCompileError
     from an.render import render_project
@@ -246,6 +253,7 @@ def test_strict_assets_still_refuses_before_any_shot_renders(tmp_path, fake_rend
     assert fake_render == []
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_failed_render_still_shows_its_warnings(tmp_path, fake_render, monkeypatch):
     """`echo_warnings=False` hides what the summary will list — but a render
     that fails has no summary, so what it warned is warned anyway."""
@@ -267,6 +275,7 @@ def test_a_failed_render_still_shows_its_warnings(tmp_path, fake_render, monkeyp
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_render_prints_the_findings_grouped_with_their_fix(tmp_path, fake_render, monkeypatch):
     from an import tools
     from an.audio import providers
@@ -307,6 +316,7 @@ def test_the_summary_is_short(tmp_path):
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_report_names_no_absolute_path(tmp_path, fake_render, monkeypatch):
     import an.render as render_mod
     from an.adapters.cutout.render import CutoutRenderer
@@ -351,6 +361,7 @@ def test_an_init_keeps_render_reports_out_of_git(tmp_path):
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_every_post_synthesis_check_is_a_registered_check():
     """The render runs them BY NAME through validate's registry, so a name that
     registers nothing would silently drop a check."""
@@ -362,10 +373,11 @@ def test_every_post_synthesis_check_is_a_registered_check():
     assert set(POST_SYNTHESIS_CHECKS) <= set(check_names())
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_line_spoken_while_a_view_hides_the_mouth_is_rerun_after_synthesis(monkeypatch):
     """`cutout.hidden_mouth_while_speaking` reads the line's real span: run after
     synthesis, it is reported under its own kind."""
-    import an.ir.validate as v
+    import cutan.characters.checks as v
     from an.genres import load as load_genres
 
     load_genres()
@@ -379,7 +391,9 @@ def test_a_line_spoken_while_a_view_hides_the_mouth_is_rerun_after_synthesis(mon
         ),
     )
     scene = SceneIR(meta=Meta(fps=12), timeline=[_hi_shot(duration=2.0)])
-    found = v.post_synthesis_findings(scene)
+    import an.ir.validate as core_validate
+
+    found = core_validate.post_synthesis_findings(scene)
     assert ("cutout.hidden_mouth_while_speaking", "timeline/0/dialogue/0") in [
         (k, f.ir_path) for k, f in found
     ]

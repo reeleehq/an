@@ -28,9 +28,6 @@ from an.ir import (
     Resolution,
     set_,
     tween,
-    play,
-    # `expression` (the combinator) is deliberately NOT re-exported here: the
-    # name is the `an.expression` subpackage. Reach it as `an.ir.expression`.
     sequence,
     parallel,
     stagger,
@@ -46,6 +43,12 @@ from an.ir import (
 from an.project import init, load, save, Project
 from an.check_requirements import check_requirements
 from an.stores import build_project_mall
+
+# `an.play` moved to `cutan` with the cut-out genre (an#225); the name still
+# resolves, with a warning, while that package is installed.
+from an._shims import moved_names as _moved_names
+
+__getattr__ = _moved_names(__name__, {"play": "cutan.characters.registration:play"})
 
 # Read from installed distribution metadata rather than written literally here:
 # CI bumps the version in pyproject.toml and pushes back, so a literal in this
@@ -80,7 +83,6 @@ __all__ = [
     # Composition
     "set_",
     "tween",
-    "play",
     "sequence",
     "parallel",
     "stagger",

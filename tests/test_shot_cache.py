@@ -92,7 +92,7 @@ def _shot(sid: str, x: float, *, entities=()) -> Shot:
 def _project(tmp_path, *shots: Shot, character: bool = False):
     root = init(tmp_path / "p")
     if character:
-        from an.characters.factory import new_character
+        from cutan.characters.factory import new_character
 
         new_character(root / "assets" / "characters", name="amy", use_dicebear=False)
     project = load(root)
@@ -155,6 +155,7 @@ def test_the_key_is_never_the_shot_id(tmp_path, fake_render):
     assert rendered == [] and report.reused == ["renamed", "b"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_editing_an_svg_part_in_place_rerenders_the_shot_that_draws_it(tmp_path, fake_render):
     amy = AssetRef(kind="character", id="amy", store="characters", ref="amy")
     root = _project(
@@ -179,6 +180,7 @@ def test_editing_an_svg_part_in_place_rerenders_the_shot_that_draws_it(tmp_path,
     assert rendered == ["with_amy", "empty"]
 
 
+@pytest.mark.genre("cutout_animation")
 def test_without_the_project_fallback_only_the_drawing_shot_rerenders(tmp_path, fake_render):
     """The texture digests alone are precise: with decision 3's whole-project
     dependency switched off, an SVG edit re-renders only the shot whose
@@ -255,8 +257,11 @@ def test_compile_and_render_wall_times_are_recorded_per_shot(tmp_path, fake_rend
     store = load(root).mall["shot_cache"]
     rec = store[report.outcomes[0].key]
     assert {"compile_s", "render_s", "key_s"} <= set(rec.timings)
-    assert {"compiled", "textures", "easings", "audio", "runtime", "code", "knobs",
-            "environment", "project", "renderer", "vocabulary"} == set(rec.inputs)
+    core_parts = {"compiled", "textures", "easings", "audio", "runtime", "code", "knobs",
+                  "environment", "project", "renderer", "vocabulary"}
+    # A loaded genre that registered runtime scripts (the cut-out mouth and eye) adds its
+    # staged code as one more named part.
+    assert core_parts <= set(rec.inputs) <= core_parts | {"runtime_extensions"}
 
 
 def test_force_render_renders_every_shot_and_no_cache_writes_nothing(tmp_path, fake_render):
@@ -414,9 +419,10 @@ def test_the_keyer_compiles_exactly_what_the_renderer_compiles(tmp_path, monkeyp
     assert s1 is s2 and m1 is m2 and kw1 == kw2
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_project_digest_covers_sidecar_art_not_only_the_mapping(tmp_path):
     root = init(tmp_path / "p")
-    from an.characters.factory import new_character
+    from cutan.characters.factory import new_character
 
     new_character(root / "assets" / "characters", name="amy", use_dicebear=False)
     mall = load(root).mall
@@ -577,6 +583,7 @@ def test_a_missing_blob_is_a_miss(tmp_path):
     assert engine.plan(shot, _Named(), ctx).cached is None
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_same_size_edit_with_its_mtime_restored_is_seen_in_one_process(tmp_path, fake_render):
     """S2: no (path, mtime, size) memo decides a key — through the texture
     digests (no project dependency) and through the project digest alike."""
@@ -706,7 +713,10 @@ def test_the_render_path_walk_reaches_what_the_frame_stage_runs():
         "an._shims",
     }
     for name in list(mods):
-        module = __import__(name, fromlist=["_"])
+        try:
+            module = __import__(name, fromlist=["_"])
+        except ModuleNotFoundError:
+            continue  # a keyed module of a genre package that needs an optional dependency (cutan.nw: nw)
         required |= {target for target, _ in forwarded_names(module).values()}
     missing = sorted(required - set(mods))
     assert not missing, f"render-path modules outside the code key: {missing}"
@@ -874,6 +884,7 @@ def test_svg_art_that_draws_text_keys_on_the_machines_fonts(tmp_path, monkeypatc
     assert len(cache_key.system_fonts_digest()) == 64
 
 
+@pytest.mark.genre("cutout_animation")
 def test_compile_warnings_are_replayed_on_a_reused_shot(tmp_path, fake_render):
     """an#33: a stand-in must stay audible when its shot is reused."""
     from an.adapters.cutout.compile import CutoutCompileWarning
@@ -902,6 +913,7 @@ def test_the_environment_is_memoised_per_renderer(monkeypatch):
     assert shot_cache.default_environment_digest("probe-a") != shot_cache.default_environment_digest("probe-b")
 
 
+@pytest.mark.genre("cutout_animation")
 def test_measuring_callers_render_cold_explicitly(monkeypatch, tmp_path):
     """The ruling on `render()`: the bench says `incremental=False` itself."""
     import an.render as render_mod
@@ -928,10 +940,6 @@ def test_measuring_callers_render_cold_explicitly(monkeypatch, tmp_path):
     repo = repo_root()
     crossarch = (repo / "misc" / "bench" / "crossarch.py").read_text(encoding="utf-8")
     assert "render(project, **CAPTURE_RENDER_KWARGS, incremental=False)" in crossarch
-    demos = (repo / "misc" / "demos" / "build_demos.py").read_text(encoding="utf-8")
-    # The two direct `render(...)` calls, and `_render` for every other demo.
-    assert demos.count("incremental=False") == 2
-    assert 'kwargs.setdefault("incremental", False)' in demos
 
 
 @pytest.mark.browser
@@ -978,6 +986,7 @@ def test_two_rates_that_compile_and_mux_alike_still_key_apart(tmp_path, duration
     assert _key(shot, a) != _key(shot, b)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_svg_text_puts_the_machines_fonts_in_the_key(tmp_path, monkeypatch):
     """R2-3: a part drawing `<text>` keys on the font set; one without does not."""
     from an.adapters.cutout import cache_key

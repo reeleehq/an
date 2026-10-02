@@ -85,7 +85,8 @@ def vocabulary_entry(entry_id: str) -> dict[str, Any]:
 #: The documents :func:`scene_schema` describes, and where their models live.
 _SCHEMAS: dict[str, tuple[str, str]] = {
     "scene": ("an.ir.schema", "SceneIR"),
-    "character": ("an.characters.schema", "CharacterDescriptor"),
+    # The cut-out genre's descriptor: needs the `cutan` package (an#225).
+    "character": ("cutan.characters.schema", "CharacterDescriptor"),
 }
 
 
@@ -99,7 +100,14 @@ def scene_schema(document: str = "scene") -> dict[str, Any]:
             f"document must be one of {sorted(_SCHEMAS)}, got {document!r}"
         )
     module, name = _SCHEMAS[document]
-    return getattr(import_module(module), name).model_json_schema()
+    try:
+        model = getattr(import_module(module), name)
+    except ModuleNotFoundError as e:
+        raise ValueError(
+            f"the {document!r} schema comes from the {module.split('.')[0]!r} "
+            f'package, which is not installed: pip install "an[cutout]"'
+        ) from e
+    return model.model_json_schema()
 
 
 def validate_scene(project_dir: str) -> dict[str, Any]:

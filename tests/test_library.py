@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from an.characters.factory import new_character
-from an.characters.schema import CharacterDescriptor
+from cutan.characters.factory import new_character
+from cutan.characters.schema import CharacterDescriptor
 from an.ir.assets import AssetSource
 from an.library import (
     AssetIdError,
@@ -43,10 +43,13 @@ from an.library import (
     vocabulary,
 )
 from an.library.affordances import ANALYSERS
-from an.library.character import CHARACTER_ANALYSER_VERSION
+from cutan.library import CHARACTER_ANALYSER_VERSION
 from an.library.lock import LOCKFILE_NAME, ProjectLock
 from an.library.rights import roll_up
 from an.project import init as init_project
+
+pytestmark = pytest.mark.genre("cutout_animation")
+
 
 MIT = {"provider": "an-tests", "license": "mit"}
 CC0 = {"provider": "an-tests", "license": "cc0-1.0"}
@@ -691,7 +694,7 @@ def test_importing_the_library_imports_no_cut_out_module():
     code = (
         "import sys, an; before = set(sys.modules); import an.library; "
         "new = set(sys.modules) - before; "
-        "print(','.join(sorted(m for m in new if m.startswith(('an.motion', 'an.adapters', 'an.characters')))))"
+        "print(','.join(sorted(m for m in new if m.startswith(('an.motion', 'an.adapters', 'cutan.characters')))))"
     )
     # PYTHONPATH pins the tree under test: a bare `import an` in a child process
     # resolves through the editable install, which may be another checkout.

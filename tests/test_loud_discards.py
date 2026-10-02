@@ -48,13 +48,18 @@ from an.ir.schema import (
     Dialogue,
     Meta,
     Narration,
-    PlayAction,
     Resolution,
     SceneIR,
     Shot,
     VisemeKeyframe,
     VisemeTrack,
 )
+
+def PlayAction(**kwargs):  # noqa: N802 -- a lazy stand-in: the action model is the cut-out genre's (an#225)
+    from cutan.characters.registration import PlayAction as _PlayAction
+
+    return _PlayAction(**kwargs)
+
 
 RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/stage/runtime/runtime.js"
 
@@ -66,6 +71,7 @@ def _character(entity_id: str = "charlie") -> AssetRef:
 # ------------------------------------------------------------------- 1. camera
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_unknown_camera_move_raises_and_lists_the_ones_that_exist():
     """`pan_left` was this test's unknown move until an#109 implemented it.
 
@@ -88,6 +94,7 @@ def test_an_unknown_camera_move_raises_and_lists_the_ones_that_exist():
     assert "pan_left" in str(e.value) and "push_in" in str(e.value)
 
 
+@pytest.mark.genre("cutout_animation")
 def test_hold_is_a_real_no_op_and_must_not_raise():
     """`hold` early-returned through the same branch as an unknown move.
 
@@ -104,6 +111,7 @@ def test_hold_is_a_real_no_op_and_must_not_raise():
     compile_shot(shot)  # must not raise
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("move", ["push_in", "pull_out", "zoom_in", "zoom_out"])
 def test_the_implemented_moves_still_compile(move):
     shot = Shot(
@@ -152,6 +160,7 @@ def test_the_schema_no_longer_advertises_a_move_the_compiler_lacks():
 # --------------------------------------------------------------- 2. PlayAction
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_play_on_a_descriptor_less_entity_is_refused_not_faked():
     """`play` resolves against the target's descriptor (an#7); an entity with
     none — the placeholder rig here — can play nothing, and must say so.
@@ -212,6 +221,7 @@ def _spoken_line(speaker: str) -> Dialogue:
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_helper_actually_reaches_the_viseme_branch():
     """Guards the guard: prove `_spoken_line` gets past the earlier `continue`s.
 
@@ -233,6 +243,7 @@ def test_the_helper_actually_reaches_the_viseme_branch():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_off_screen_speaker_warns_and_emits_no_channel():
     """The narration error recommends this idiom, so it must keep working.
 
@@ -255,6 +266,7 @@ def test_an_off_screen_speaker_warns_and_emits_no_channel():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_typo_speaker_names_the_scenes_actual_mouths():
     """The whole reason the skip warns instead of passing silently."""
     shot = Shot(
@@ -639,6 +651,7 @@ def test_the_runtime_switch_matches_what_the_compiler_can_emit():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_iterate_prompt_enumerates_the_legal_properties():
     """The one real risk of making this loud.
 
@@ -741,6 +754,7 @@ _UNRENDERABLE_SHOTS = {
 }
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.parametrize("name", sorted(_UNRENDERABLE_SHOTS))
 def test_validate_reports_every_scene_the_pipeline_refuses(name):
     """The structural fix, and the point of this whole change.
@@ -771,6 +785,7 @@ def test_validate_reports_every_scene_the_pipeline_refuses(name):
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_validate_still_passes_a_scene_that_renders():
     """The other half: the pre-flight must not reject working scenes.
 
@@ -813,6 +828,7 @@ def test_the_validators_camera_list_matches_the_compilers():
     )
 
 
+@pytest.mark.genre("cutout_animation")
 def test_an_empty_camera_move_is_treated_like_any_other_unusable_value():
     """`move=""` used to be ignored while `move="  "` raised — same input, two
     behaviours, purely because falsiness was tested before normalisation."""
@@ -824,6 +840,7 @@ def test_an_empty_camera_move_is_treated_like_any_other_unusable_value():
 
 # ------------------------- 11. the authoring surface refuses it first
 
+@pytest.mark.genre("cutout_animation")
 def test_scene_md_accepts_play_and_the_mistake_is_caught_where_it_can_be_seen():
     """The layer principle, applied to the surface an author actually edits.
 
@@ -872,6 +889,7 @@ def test_scene_md_still_accepts_the_actions_that_work():
     assert len(scene.timeline[0].actions) == 2
 
 
+@pytest.mark.genre("cutout_animation")
 def test_no_doc_offers_a_targeting_example_that_no_rig_builds():
     """`charlie/torso/left_arm:rotation` named a node nothing creates.
 
@@ -920,11 +938,12 @@ def _placeholder_rig_store(ref: str = "c-v1") -> dict:
     an#33 a real ambiguity rather than a theoretical one: it compiles to a tree
     that is byte-identical to the tree a *missing* descriptor produces.
     """
-    from an.adapters.cutout.compile import _PLACEHOLDER_PARTS
+    from cutan.compile.passes import _PLACEHOLDER_PARTS
 
     return {"characters": {ref: {"parts": list(_PLACEHOLDER_PARTS)}}}
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_missing_character_descriptor_is_no_longer_silent():
     """It drew a different character and said nothing (an#33).
 
@@ -942,6 +961,7 @@ def test_a_missing_character_descriptor_is_no_longer_silent():
     assert "placeholder" in msg, "and what got drawn instead"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_strict_assets_refuses_to_draw_a_stand_in():
     """The gate anything measuring pixels needs."""
     shot = Shot(id="s1", renderer="cutout", duration=1.0, entities=[_character()])
@@ -953,6 +973,7 @@ def test_strict_assets_refuses_to_draw_a_stand_in():
     assert "strict_assets" in msg, "and say how to opt back out deliberately"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_strict_assets_is_off_by_default_so_an_assetless_project_still_renders():
     """The fallback stays. `an` working out of the box depends on it.
 
@@ -965,6 +986,7 @@ def test_strict_assets_is_off_by_default_so_an_assetless_project_still_renders()
     assert scene.scene.children, "the placeholder rig must still be drawn"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_compiled_scene_distinguishes_two_identical_pictures():
     """The heart of an#33, asserted as the ambiguity it actually is.
 
@@ -987,6 +1009,7 @@ def test_the_compiled_scene_distinguishes_two_identical_pictures():
     assert intended.asset_resolution[0].resolved == "parts"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_descriptor_backed_character_is_not_a_fallback():
     """The guard must not fire on the case it exists to protect."""
     shot = Shot(id="s1", renderer="cutout", duration=1.0, entities=[_character()])

@@ -60,6 +60,7 @@ def test_default_orchestrator_uses_media_quality():
         assert len(report.verifications) >= 3
 
 
+@pytest.mark.genre("cutout_animation")
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_dialogue_render_with_offline_tts_flagged_as_silent():

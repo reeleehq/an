@@ -229,19 +229,19 @@ def test_doctest_collection_skips_moved_shims_and_only_them(tmp_path):
 
 
 def test_the_shot_cache_walk_keys_a_b1_mover_under_its_new_name(tmp_path, monkeypatch):
-    """`an.audio.offline_lipsync` is on today's render path and moves in B1.
+    """`an.media.mp4` stands in for a module on the render path that moves to a genre package.
     Once moved, the walk must key the code that RUNS (the new module, and what it
     imports in its own package), under any warnings filter, without importing the
     old name (review of an#298, S2; an#294)."""
     from an.stage import cache_key
 
-    real = (ROOT / "an" / "audio" / "offline_lipsync.py").read_text(encoding="utf-8")
+    real = (ROOT / "an" / "media" / "mp4.py").read_text(encoding="utf-8")
     _write(tmp_path / "_mv_genre" / "__init__.py", "")
-    _write(tmp_path / "_mv_genre" / "audio" / "__init__.py", "")
-    _write(tmp_path / "_mv_genre" / "audio" / "offline_lipsync.py", real + "\nfrom _mv_genre.audio import helper\n")
-    _write(tmp_path / "_mv_genre" / "audio" / "helper.py", "X = 1\n")
+    _write(tmp_path / "_mv_genre" / "media" / "__init__.py", "")
+    _write(tmp_path / "_mv_genre" / "media" / "mp4.py", real + "\nfrom _mv_genre.media import helper\n")
+    _write(tmp_path / "_mv_genre" / "media" / "helper.py", "X = 1\n")
     monkeypatch.syspath_prepend(str(tmp_path))
-    moves = {"an.audio.offline_lipsync": "_mv_genre.audio.offline_lipsync"}
+    moves = {"an.media.mp4": "_mv_genre.media.mp4"}
     looked_up = []
     original = cache_key._quiet_find_spec
 
@@ -249,14 +249,14 @@ def test_the_shot_cache_walk_keys_a_b1_mover_under_its_new_name(tmp_path, monkey
         looked_up.append(name)
         return original(name)
 
-    assert "an.audio.offline_lipsync" in cache_key.render_path_modules(moves={})  # today
+    assert "an.media.mp4" in cache_key.render_path_modules(moves={})  # today
     monkeypatch.setattr(cache_key, "_quiet_find_spec", recording)
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         mods = cache_key.render_path_modules(moves=moves)
-    assert "_mv_genre.audio.offline_lipsync" in mods
-    assert "_mv_genre.audio.helper" in mods
-    assert "an.audio.offline_lipsync" not in looked_up
+    assert "_mv_genre.media.mp4" in mods
+    assert "_mv_genre.media.helper" in mods
+    assert "an.media.mp4" not in looked_up
     sys.modules.pop("_mv_genre", None)
 
 

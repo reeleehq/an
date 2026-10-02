@@ -83,6 +83,7 @@ def test_the_error_names_the_kind_it_could_not_migrate():
 # --------------------------------------------------------------------------
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_migration_for_one_kind_never_runs_against_another(registry_sandbox):
     """THE regression (an#77).
 
@@ -108,6 +109,7 @@ def test_a_migration_for_one_kind_never_runs_against_another(registry_sandbox):
     assert character["schema_version"] == "0.2.0"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_each_kind_reads_its_own_version_field(registry_sandbox):
     """`version` vs `schema_version` is why a migrator cannot just reach for
     `doc["version"]` — the descriptor has never had that key."""
@@ -126,10 +128,11 @@ def test_each_kind_reads_its_own_version_field(registry_sandbox):
     assert out["schema_version"] == "0.2.0"
 
 
+@pytest.mark.genre("cutout_animation")
 def test_the_target_defaults_to_the_kinds_own_current_version():
     """A shared default would migrate a descriptor toward the *scene's*
     version, which is how the two schemas got conflated in the first place."""
-    from an.characters.schema import CHARACTER_SCHEMA_VERSION
+    from cutan.characters.schema import CHARACTER_SCHEMA_VERSION
 
     assert kind_of({"kind": "CharacterDescriptor"}).current_version == (
         CHARACTER_SCHEMA_VERSION
@@ -137,31 +140,33 @@ def test_the_target_defaults_to_the_kinds_own_current_version():
     assert kind_of({"kind": SCENE}).current_version == SCHEMA_VERSION
 
 
+@pytest.mark.genre("cutout_animation")
 def test_both_shipped_kinds_are_registered():
-    """A kind that registers only when its own module happens to be imported is
-    a kind that raises "unknown document kind" in half the processes that need
-    it. `an/ir/__init__.py` imports the character schema for exactly this
-    reason, the way `an.adapters` imports its backends.
-
-    Asserted in a FRESH interpreter, because by the time this test runs the
-    suite has imported nearly everything — so an in-process assertion would
-    pass even if the guarantee were gone.
+    """The scene IR's kind is the core's and registers on `import an`; the character
+    descriptor's is the cut-out genre's (`cutan`, an#225) and registers when its genre
+    loads (the CLI and `an.load(project)` do), not before. A kind that registered only
+    when some module happened to be imported would raise "unknown document kind" in
+    half the processes that need it, so both halves are asserted in FRESH interpreters:
+    by the time this test runs the suite has imported nearly everything.
     """
     import subprocess
     import sys
 
-    out = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "import an; from an.ir.migrate import KINDS; print(sorted(KINDS))",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    assert "CharacterDescriptor" in out, out
-    assert "SceneIR" in out, out
+    def kinds(load: bool) -> str:
+        code = "import an; from an.ir.migrate import KINDS;"
+        if load:
+            code += "from an.genres import load; load();"
+        return subprocess.run(
+            [sys.executable, "-c", code + "print(sorted(KINDS))"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+
+    assert "SceneIR" in kinds(load=False)
+    assert "CharacterDescriptor" not in kinds(load=False)
+    loaded = kinds(load=True)
+    assert "CharacterDescriptor" in loaded and "SceneIR" in loaded, loaded
 
 
 def test_an_unregistered_kind_raises_rather_than_guessing(registry_sandbox):
