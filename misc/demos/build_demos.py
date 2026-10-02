@@ -615,6 +615,75 @@ def _build_multiplane(work: Path) -> Path:
     return _render(_project(work, scene_md=md, characters=("maya",)))
 
 
+def _build_gradient_planes(work: Path) -> Path:
+    """Gradient planes (an#275): a backlit-glass stage with no drawn plate.
+
+    A linear dusk sky shaped over the frame, a radial glow behind the
+    character, and a table top authored as a flat `fill` that the scene's
+    StylePack repaints through a gradient ROLE. The camera pans so the sky's
+    end colours can be seen to hold past the frame it was laid out on.
+    """
+    import json
+
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.styles import StylePack
+
+    env = EnvironmentDescriptor(
+        name="glass",
+        planes=[
+            Plane(
+                name="sky",
+                art=PlaneArt(
+                    kind="gradient",
+                    gradient={"stops": ["#141a33", "#5a4a6a", "#f2c48a"]},
+                ),
+                depth=0.2,
+            ),
+            Plane(
+                name="glow",
+                art=PlaneArt(
+                    kind="gradient",
+                    gradient={"type": "radial", "stops": ["#fff3d2", "#fff3d200"]},
+                ),
+                depth=0.6,
+                offset=(60.0, -10.0),
+                size=(420.0, 300.0),
+            ),
+            Plane(
+                name="table",
+                art=PlaneArt(kind="fill", color="#2a2018", role="glass"),
+                offset=(0.0, 165.0),
+                size=(900.0, 140.0),
+            ),
+        ],
+        characters_after="table",
+    )
+    d = work / "assets" / "environments" / "glass"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "meta.json").write_text(
+        json.dumps(json.loads(env.model_dump_json()), indent=2), encoding="utf-8"
+    )
+    pack = StylePack(
+        name="dusk",
+        gradients={"glass": {"angle": 90, "stops": ["#3a2414", "#b8783c", "#3a2414"]}},
+    )
+    (work / "assets" / "styles").mkdir(parents=True, exist_ok=True)
+    (work / "assets" / "styles" / "dusk.json").write_text(
+        json.dumps(json.loads(pack.model_dump_json()), indent=2), encoding="utf-8"
+    )
+    meta = _meta("Gradient planes", 3.0).replace("```\n", "style_pack: dusk\n```\n", 1)
+    md = (
+        meta
+        + "\n"
+        + _shot("s1", 3.0, camera="pan_right")
+        + "\n```yaml entities\n"
+        "- kind: environment\n  id: glass\n  store: environments\n  ref: glass\n"
+        + _character_rows(("maya",))
+        + "\n```\n"
+    )
+    return _render(_project(work, scene_md=md, characters=("maya",)))
+
+
 def _build_raster(work: Path) -> Path:
     """Raster art (an#211): a shaded PNG plate and two shaded PNG props.
 
@@ -2587,6 +2656,27 @@ DEMOS: tuple[Demo, ...] = (
             "be a second ordering it could not honour."
         ),
         build=_build_multiplane,
+    ),
+    Demo(
+        slug="gradient-planes",
+        title="Gradient planes: a backlit-glass stage with no drawn plate",
+        shows=(
+            "A dusk sky, a glow behind the character and a lit table edge, all "
+            "gradients, none of them drawn art. The sky has no declared size, so "
+            "it is laid out over the frame and its end colours hold as the camera "
+            "pans past it. The table was authored as a flat brown `fill`; the "
+            "scene's style pack repaints it through a gradient role. Gradients are "
+            "interpolated in sRGB, like CSS and SVG, not in a perceptual space."
+        ),
+        how=(
+            "`PlaneArt(kind=\"gradient\", gradient={\"stops\": [...]})`, with "
+            "`type: radial`, `angle` (CSS degrees, 0 = up) or `center`/`radius` "
+            "(fractions of the box). `role: glass` on a plane plus "
+            "`StylePack(gradients={\"glass\": {...}})` repaints it. The compiler "
+            "turns each into an inline SVG texture (`an.stage.gradients`), so "
+            "`runtime.js` is unchanged."
+        ),
+        build=_build_gradient_planes,
     ),
     Demo(
         slug="style-pack",

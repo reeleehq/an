@@ -146,6 +146,17 @@ roll, because x/y/zoom share one eased parameter and each edge gap is convex in 
 `_ENV_PRESETS` as planes moves two ledger hashes for no picture change; a richer default look
 ships as a *new* preset. `repeat` ships with `TilingSprite` wired or not at all.
 
+**Gradient planes (an#275)** are document content, not a runtime feature: `PlaneArt(kind=
+"gradient")` holds an `an.paint.Gradient` (core vocabulary, CSS terms), and
+`an.stage.gradients.gradient_svg` writes an inline SVG — `userSpaceOnUse` geometry in scene
+pixels, the CSS gradient-line length for a linear `angle`, an ellipse in the frame's proportions
+for a radial — under a content-addressed alias on an `svg_sprite`. An unsized gradient is sized
+like a fill (the covering span) but SHAPED over the canvas, so it means "across what the camera
+frames" and pads with its end colours under a pan; the raster is capped (`GRADIENT_RASTER_MAX`)
+and stretched. `PlaneArt.role` is the StylePack's hook (`StylePack.gradients`), repainting `fill`
+and `gradient` planes; a repainted fill keeps the fill's geometry (centred). Nothing about a plane
+without a gradient changed, so no corpus hash moves.
+
 **A prop** is a thin profile of `CharacterDescriptor` sharing `Bone`/`Slot`/`Attachment`/`Skin`
 and one extracted rig builder, with different defaults. Not "a character with `kind: prop`":
 `model_post_init` re-seeds a seven-bone humanoid with a face and a blink from an empty list (even
@@ -259,8 +270,9 @@ alone, then the path **(landed, an#108: PRs #117 and #118)** → `4` the transla
 
 **Wave 7 is complete.** What it left behind for a later wave, each named with its reason:
 the **dolly** (`dolly_in`/`dolly_out` and the `z`/`focal_z` sugar — depth-aware zoom, which is
-what `depth` does NOT do today); `repeat`/tiling and the `gradient`/`generated` plane arts (each
-needs a runtime that can draw it); attaching a prop
+what `depth` does NOT do today); `repeat`/tiling and the `generated` plane art (each needs a
+runtime that can draw it — `gradient` shipped in an#275 WITHOUT one: it compiles to an inline SVG
+texture, the glow's pattern, see §3b); attaching a prop
 to a character (`_track_root_of` makes entity identity the first path segment, and the rig has no
 hand bone); and additive folding for the camera/plane collisions that currently raise.
 

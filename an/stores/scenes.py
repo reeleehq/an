@@ -5,7 +5,9 @@ exposes only the ``"main"`` key. Future versions can support multi-scene
 projects by promoting siblings inside a ``scenes/`` directory.
 
 Reading returns a ``SceneIR``. Writing accepts a ``SceneIR`` (or a dict that
-validates as one) and persists both the JSON and the regenerated Markdown.
+validates as one) and persists the JSON and the Markdown -- the Markdown UPDATED
+rather than regenerated (an#275): unchanged content leaves the author's file as it
+was, and a change rewrites only the blocks it touches (`an.ir.sync.merge_markdown`).
 """
 
 from __future__ import annotations
@@ -17,7 +19,7 @@ from pathlib import Path
 from typing import Iterator
 
 from an.ir.schema import SceneIR
-from an.ir.sync import ir_to_markdown, scene_from_json_doc
+from an.ir.sync import ir_to_markdown, merge_markdown, scene_from_json_doc
 from an.util import _read_text, _write_json, _write_text
 
 
@@ -63,8 +65,15 @@ class ScenesStore(MutableMapping):
         # loaded genre can spell), and a refusal must leave the pair as it was,
         # not a new JSON beside a stale md (review-244 N5).
         markdown = ir_to_markdown(scene)
+        # The author's file is UPDATED, not regenerated (an#275): unchanged
+        # content leaves it byte-for-byte as written, and a change rewrites
+        # only the blocks it touches -- never the prose around them.
+        existing = _read_text(self.md_path) if self.md_path.exists() else None
+        if existing is not None:
+            markdown = merge_markdown(existing, scene)
         _write_json(self.json_path, json.loads(scene.model_dump_json()))
-        _write_text(self.md_path, markdown)
+        if markdown != existing:
+            _write_text(self.md_path, markdown)
         # Equalize mtimes so the JSON wins ties on subsequent sync()s. Pipeline
         # stages (audio, lip-sync) inject rich state into the JSON that the
         # Markdown can't represent — without this, sync() would round-trip
