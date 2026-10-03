@@ -221,18 +221,22 @@ def _workflow() -> dict:
     return yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
 
 
-def test_the_workflow_publishes_only_with_a_token_and_never_fails_without_one():
+def test_the_workflow_publishes_only_from_the_default_branch_and_never_fails_without_a_token():
     doc = _workflow()
     triggers = doc.get("on") or doc[True]  # YAML 1.1 reads a bare `on` as True
     assert "an/data/timing/**" in triggers["push"]["paths"]
     steps = doc["jobs"]["contract-package"]["steps"]
     by_id = {s.get("id"): s for s in steps if s.get("id")}
     decide = by_id["decide"]["run"]
-    assert "NPM_TOKEN" in decide and "SKIPPING the npm publish" in decide
-    assert "exit 1" not in decide  # the missing token is a notice, not a failure
+    # only a push to the default branch, of a version not yet on npm, publishes
+    assert "github.event.repository.default_branch" in decide
+    assert "npm view" in decide and "publish=false" in decide
+    assert "exit 1" not in decide  # not publishing is a notice, never a failure
     publish = next(s for s in steps if s.get("name") == "Publish to npm")
     assert publish["if"] == "steps.decide.outputs.publish == 'true'"
-    # the token is read through one job-level env var and handed only to the steps that need it
+    # trusted publishing (OIDC, an#268): the id-token permission, and an npm CLI new enough for it
+    assert doc["permissions"] == {"contents": "read", "id-token": "write"}
+    assert any("npm@^11.5.1" in (s.get("run") or "") for s in steps)
+    # the fallback token is read through one job-level env var, never inlined in a step
     assert "secrets.NPM_TOKEN" in json.dumps(doc["jobs"]["contract-package"]["env"])
     assert [s["name"] for s in steps if "secrets.NPM_TOKEN" in json.dumps(s)] == []
-    assert doc["permissions"] == {"contents": "read"}
