@@ -10,6 +10,8 @@ never `shot.id`) already has an entry, and reuses that entry’s mp4.
 - [`an.build.keys`](an.build.keys.html.md#module-an.build.keys) — canonical digests, the project-wide fallback
   dependency, and the registry through which a renderer says what its shot
   render reads ([`register_shot_keyer()`](#an.build.register_shot_keyer)).
+- [`an.build.reads`](an.build.reads.html.md#module-an.build.reads) — what a shot read: the recording view of the mall a
+  keyer compiles against, and the digests of the entries it saw (an#316).
 - [`an.build.shot_cache`](an.build.shot_cache.html.md#module-an.build.shot_cache) — the `incremental=` seam
   ([`IncrementalEngine`](#an.build.IncrementalEngine)), its built-in engine [`ShotCache`](#an.build.ShotCache), and
   the entries, shaped as `lacing` artifacts in a `lacing.ArtifactStore`.
@@ -28,25 +30,29 @@ True
 
 ### Functions
 
-| [`cache_info`](#an.build.cache_info)(project_dir, \*[, reachability, ...])   | What `project_dir`'s shot cache holds; never fails on reachability (it says why it is unknown instead).   |
-|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [`canonical_digest`](#an.build.canonical_digest)(obj)                              | The hex sha256 of `canonical_json()` of `obj`.                                                            |
-| [`collect_garbage`](#an.build.collect_garbage)(project_dir, \*[, dry_run, ...])   | Delete the shot-cache entries of `project_dir` that nothing reaches.                                      |
-| [`compose_shot_key`](#an.build.compose_shot_key)(parts)                            | The shot key: one digest over the named parts and the key's own version.                                  |
-| [`default_environment_digest`](#an.build.default_environment_digest)(renderer_name)          | The digest of `renderer_name`'s registered environment probe, once per process.                           |
-| [`in_memory_shot_cache_store`](#an.build.in_memory_shot_cache_store)()                       | A shot cache held in dicts — for tests, and for a mall with no disk.                                      |
-| [`project_assets_digest`](#an.build.project_assets_digest)(mall, \*[, stores, ...])     | One digest over every asset store of the project (ADR 0004 decision 3).                                   |
-| [`register_shot_keyer`](#an.build.register_shot_keyer)(renderer_name, keyer, \*)      | Declare how shots of `renderer_name` are keyed, and how its machine is probed.                            |
-| [`registered_shot_keyers`](#an.build.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                                     |
-| [`resolve_incremental`](#an.build.resolve_incremental)(incremental)                   | `incremental=` → an engine, or `None` for "render every shot cold".                                       |
-| [`shot_artifact_type`](#an.build.shot_artifact_type)()                               | The record type (`lacing.Artifact` subclass), built on first use.                                         |
-| [`shot_cache_store`](#an.build.shot_cache_store)(root)                             | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                            |
-| [`shot_keyer_for`](#an.build.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                                  |
+| [`cache_info`](#an.build.cache_info)(project_dir, \*[, reachability, ...])   | What `project_dir`'s shot cache holds; never fails on reachability (it says why it is unknown instead).                                                          |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`canonical_digest`](#an.build.canonical_digest)(obj)                              | The hex sha256 of `canonical_json()` of `obj`.                                                                                                                   |
+| [`collect_garbage`](#an.build.collect_garbage)(project_dir, \*[, dry_run, ...])   | Delete the shot-cache entries of `project_dir` that nothing reaches.                                                                                             |
+| [`compose_shot_key`](#an.build.compose_shot_key)(parts)                            | The shot key: one digest over the named parts and the key's own version.                                                                                         |
+| [`every_asset_digest`](#an.build.every_asset_digest)(mall, \*[, project_root])       | Every asset in the project (decision 3's fallback), without the root files — those are [`project_dependencies()`](#an.build.project_dependencies)'. |
+| [`default_environment_digest`](#an.build.default_environment_digest)(renderer_name)          | The digest of `renderer_name`'s registered environment probe, once per process.                                                                                  |
+| [`in_memory_shot_cache_store`](#an.build.in_memory_shot_cache_store)()                       | A shot cache held in dicts — for tests, and for a mall with no disk.                                                                                             |
+| [`project_assets_digest`](#an.build.project_assets_digest)(mall, \*[, stores, ...])     | One digest over every asset store of the project (ADR 0004 decision 3).                                                                                          |
+| [`project_dependencies`](#an.build.project_dependencies)(mall, \*[, project_root])     | What every shot depends on project-wide: the project-root files (`PROJECT_ROOT_FILES`, the library lockfile), read by path.                                      |
+| [`read_digests`](#an.build.read_digests)(mall, reads)                          | `{"store/key": digest}` for every recorded read — the shot's dependency edges.                                                                                   |
+| [`register_shot_keyer`](#an.build.register_shot_keyer)(renderer_name, keyer, \*)      | Declare how shots of `renderer_name` are keyed, and how its machine is probed.                                                                                   |
+| [`registered_shot_keyers`](#an.build.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                                                                                            |
+| [`resolve_incremental`](#an.build.resolve_incremental)(incremental)                   | `incremental=` → an engine, or `None` for "render every shot cold".                                                                                              |
+| [`shot_artifact_type`](#an.build.shot_artifact_type)()                               | The record type (`lacing.Artifact` subclass), built on first use.                                                                                                |
+| [`shot_cache_store`](#an.build.shot_cache_store)(root)                             | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                                   |
+| [`shot_keyer_for`](#an.build.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                                                                                         |
 
 ### Classes
 
-| [`BuildReport`](#an.build.BuildReport)([outcomes, store_bytes, ...])       | Every shot's outcome, in timeline order.                                      |
+| [`RecordingMall`](#an.build.RecordingMall)(mall, \*[, recorded])             | A view of `mall` that records which asset entries are read through it.        |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`BuildReport`](#an.build.BuildReport)([outcomes, store_bytes, ...])       | Every shot's outcome, in timeline order.                                      |
 | [`IncrementalEngine`](#an.build.IncrementalEngine)(\*args, \*\*kwargs)           | The `incremental=` seam of `an.render.render` (ADR 0004 decision 5).          |
 | [`ShotCache`](#an.build.ShotCache)([store, environment, ...])            | The built-in engine: look a shot's key up in an ArtifactStore; record misses. |
 | [`ShotKeyInputs`](#an.build.ShotKeyInputs)(parts[, compile_s, details])      | What a renderer's keyer returns for one shot.                                 |
@@ -125,7 +131,18 @@ them): `record_parts(plan, parts)` once per rendered shot whose film
 window is not whole (an#260), and `record_root(output_name, profile=...,
 output=...)` once the film is delivered (what the garbage collector keeps).
 
-### *class* an.build.ShotCache(store=None, \*, environment=<function default_environment_digest>, dependencies=<function project_assets_digest>, cache_frames=False)
+### *class* an.build.RecordingMall(mall, , recorded=('characters', 'environments', 'props', 'styles', 'voices', 'sounds'))
+
+Bases: [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)
+
+A view of `mall` that records which asset entries are read through it.
+
+Stores named in `recorded` come back wrapped in a `RecordingStore`
+(one per store, so identity is stable across lookups); every other store
+comes back as it is. [`reads`](an.build.reads.html.md#module-an.build.reads) is the set of `(store, key)` read so
+far, `key` being `WHOLE_STORE` for a store that was listed.
+
+### *class* an.build.ShotCache(store=None, \*, environment=<function default_environment_digest>, dependencies=<function project_dependencies>, fallback=<function every_asset_digest>, record_reads=True, cache_frames=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -135,10 +152,23 @@ The built-in engine: look a shot’s key up in an ArtifactStore; record misses.
 mall’s `shot_cache` (resolved in `begin()`), and a mall without one
 renders every shot. `environment(renderer_name) -> digest` is the
 environment seam — injectable so a test (or a remote-render backend) can
-state its machine rather than probe this one. `dependencies` is the
-project-wide dependency strategy (see `Dependencies`); `None` keys
-a shot on its own parts alone (its document and the bytes of the textures
-it stages) — and then drops the lockfile too, so use it knowingly.
+state its machine rather than probe this one. Three dependency seams (see
+`Dependencies`):
+
+- `record_reads` (on by default) keys a shot whose keyer is registered
+  with `records_reads=True` on the asset entries its compile read
+  ([`an.build.reads`](an.build.reads.html.md#module-an.build.reads), an#316: the `assets` part), so an edit to an
+  asset re-renders only the shots that read it;
+- `fallback` is the `assets` part of every OTHER shot — a keyer that
+  cannot vouch for its reads, or every shot under `record_reads=False`:
+  by default every asset in the project (decision 3’s first slice);
+- `dependencies` is what EVERY shot depends on (the `project` part): by
+  default the library lockfile. `None` drops it, and `fallback=None`
+  keys an unrecorded shot on its own parts alone — use either knowingly.
+
+An engine built with other seams writes keys `an cache gc` (which
+recomputes the current scene’s keys with the defaults) does not reach:
+collect such a cache with the same engine.
 `cache_frames` also stores each shot’s whole PNG sequence when a caller
 plans with `needs_frames=True`. The render loop no longer does (an#260):
 an assembled film takes a shot’s mp4 and, at a transition, its *parts*
@@ -221,7 +251,7 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -234,6 +264,10 @@ The reused parts (`an.assemble.ShotParts`), materialised for this plan.
 #### parts_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 The catalog id of this shot’s parts entry, when its window is not whole.
+
+#### reads *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+The asset entries the shot read, digested (`{"store/key": digest}`).
 
 #### window *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
@@ -298,6 +332,20 @@ renderer with no probe has the empty environment.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### an.build.every_asset_digest(mall, , project_root=None)
+
+Every asset in the project (decision 3’s fallback), without the root
+files — those are [`project_dependencies()`](#an.build.project_dependencies)’. The `assets` part of a
+shot whose keyer cannot vouch for its reads.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
+True
+```
+
 ### an.build.in_memory_shot_cache_store()
 
 A shot cache held in dicts — for tests, and for a mall with no disk.
@@ -328,14 +376,46 @@ the mall has a store for the file yet.
 False
 ```
 
-### an.build.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, replace=False)
+### an.build.project_dependencies(mall, , project_root=None)
+
+What every shot depends on project-wide: the project-root files
+(`PROJECT_ROOT_FILES`, the library lockfile), read by path. A re-pin
+changes what is checked out, so it moves every key, conservatively.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
+True
+```
+
+### an.build.read_digests(mall, reads)
+
+`{"store/key": digest}` for every recorded read — the shot’s dependency edges.
+
+A read of a store the mall does not have is recorded as `ABSENT`, so
+the day the store appears the key moves.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> read_digests({}, [("props", "logo")])
+{'props/logo': 'absent'}
+```
+
+### an.build.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, records_reads=False, replace=False)
 
 Declare how shots of `renderer_name` are keyed, and how its machine is probed.
 
 The registration seam for every backend (cut-out here; Manim’s opaque
 shots, keyed on source hash + Manim version + quality, are the next).
 `renderer_type` binds the keyer to one renderer class: a renderer whose
-type is not exactly it is never cached. A second registration for a name
+type is not exactly it is never cached. `records_reads=True` claims
+that every asset the shot depends on is read through `ctx.mall` (or is
+already digested by one of the keyer’s parts): the engine then keys the
+shot on the entries it read rather than on the whole project. A second registration for a name
 is refused unless `replace=True` — a silent replacement would drop the
 first keyer’s parts from every key without anyone saying so.
 
@@ -402,4 +482,5 @@ renderer whose class is not the one the keyer was registered for.
 |----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
 | [`gc`](an.build.gc.html.md#module-an.build.gc)                 | Garbage collection of the shot cache: `an cache gc` and `an cache info` (an#274).     |
 | [`keys`](an.build.keys.html.md#module-an.build.keys)             | Cache keys for build stages: canonical digests, the project fallback, keyers.         |
+| [`reads`](an.build.reads.html.md#module-an.build.reads)           | What a shot read: a read-recording view of the mall, and the digests of what it saw.  |
 | [`shot_cache`](an.build.shot_cache.html.md#module-an.build.shot_cache) | The content-keyed shot cache: ADR 0004's first slice, behind the `incremental=` seam. |

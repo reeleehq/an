@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=29d58b84"></script>
+    <script src="../_static/documentation_options.js?v=1e2d01ee"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.raster" href="an.stage.raster.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.155" />
+  <meta name="docsearch:version" content="0.1.156" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -367,6 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
 </details></li>
@@ -671,6 +672,9 @@ facade boundary.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.render.runtime_extensions" title="an.stage.render.runtime_extensions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_extensions</span></code></a>()</p></td>
 <td><p>The registered genres' runtime code for the stage, as one file's text -- <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> when none is registered (the shipped file stays as it is).</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.render.texture_source" title="an.stage.render.texture_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">texture_source</span></code></a>(src_rel, mall)</p></td>
+<td><p>Where a texture's bytes are read from: <code class="docutils literal notranslate"><span class="pre">(path,</span> <span class="pre">&quot;&quot;)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">why)</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -974,6 +978,23 @@ scene, so its read-back is the evaluator’s alone.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.render.texture_source">
+<span class="sig-prename descclassname"><span class="pre">an.stage.render.</span></span><span class="sig-name descname"><span class="pre">texture_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_rel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/render.html#texture_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.render.texture_source" title="Link to this definition">#</a></dt>
+<dd><p>Where a texture’s bytes are read from: <code class="docutils literal notranslate"><span class="pre">(path,</span> <span class="pre">&quot;&quot;)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">why)</span></code>.</p>
+<p>The ONE resolution of a texture <code class="docutils literal notranslate"><span class="pre">src</span></code> to a file: staging copies from it
+(<code class="xref py py-func docutils literal notranslate"><span class="pre">_stage_scene_assets()</span></code>) and the shot cache digests it
+(<code class="code docutils literal notranslate"><span class="pre">an.stage.cache_key.texture_digests</span></code>), so the bytes keyed are the bytes
+drawn — a change to where art is read from (the asset library’s reference
+mode, ADR 0005) changes both or neither (an#316 review). <code class="docutils literal notranslate"><span class="pre">why</span></code> is one of
+<code class="docutils literal notranslate"><span class="pre">&quot;prefix&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;store&quot;</span></code> (absent or in-memory) and <code class="docutils literal notranslate"><span class="pre">&quot;missing&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -1048,6 +1069,7 @@ scene, so its read-back is the evaluator’s alone.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.StageRenderer"><code class="docutils literal notranslate"><span class="pre">StageRenderer</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.effective_step_hz"><code class="docutils literal notranslate"><span class="pre">effective_step_hz()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.runtime_extensions"><code class="docutils literal notranslate"><span class="pre">runtime_extensions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.texture_source"><code class="docutils literal notranslate"><span class="pre">texture_source()</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -272,9 +272,8 @@ otherwise the listing (name, size, mtime) of the platform’s font folders.
 
 `{alias: sha256 of the bytes staged for it}` for every texture the document declares.
 
-Resolved exactly as `_stage_scene_assets` resolves them — the prefix map,
-the store’s root, the versioned `src` stripped — so what is digested is
-what is staged. Inline (`data:`) textures are already in the document and
+Resolved by the staging step’s own resolver (`an.stage.render.texture_source`),
+so what is digested is what is staged. Inline (`data:`) textures are already in the document and
 are skipped; anything unresolvable is `ABSENT` with its `src`, so
 it still moves the key the day it appears.
 

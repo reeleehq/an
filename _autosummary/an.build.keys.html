@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=29d58b84"></script>
+    <script src="../_static/documentation_options.js?v=1e2d01ee"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.build.shot_cache" href="an.build.shot_cache.html" />
+    <link rel="next" title="an.build.reads" href="an.build.reads.html" />
     <link rel="prev" title="an.build.gc" href="an.build.gc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.155" />
+  <meta name="docsearch:version" content="0.1.156" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -367,6 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
 </ul>
 </details></li>
@@ -610,7 +611,7 @@ shot is re-rendered, never reused on a guess.</p>
 <td><p>The key's own version — the <code class="docutils literal notranslate"><span class="pre">impl_version</span></code> salt of <code class="code docutils literal notranslate"><span class="pre">nw.Transform</span></code> and of <code class="code docutils literal notranslate"><span class="pre">burns.RESOLVER_IMPL_VERSION</span></code> (&quot;a lock, not a receipt&quot;).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.build.keys.PROJECT_ASSET_STORES" title="an.build.keys.PROJECT_ASSET_STORES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROJECT_ASSET_STORES</span></code></a></p></td>
-<td><p>The mall stores that make up &quot;every asset in the project&quot; for decision 3's fallback: the art the compiler reads (characters, environments, props, styles) and the two the audio path reads (voices, sounds).</p></td>
+<td><p>the art the compiler reads (characters, environments, props, styles) and the two the audio path reads (voices, sounds).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.build.keys.PROJECT_ROOT_FILES" title="an.build.keys.PROJECT_ROOT_FILES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROJECT_ROOT_FILES</span></code></a></p></td>
 <td><p>Files at the project ROOT that every shot depends on, whether or not a mall store exposes them.</p></td>
@@ -651,11 +652,17 @@ shot is re-rendered, never reused on a guess.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.build.keys.compose_shot_key" title="an.build.keys.compose_shot_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compose_shot_key</span></code></a>(parts)</p></td>
 <td><p>The shot key: one digest over the named parts and the key's own version.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.build.keys.file_digest" title="an.build.keys.file_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_digest</span></code></a>(path)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.keys.every_asset_digest" title="an.build.keys.every_asset_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">every_asset_digest</span></code></a>(mall, *[, project_root])</p></td>
+<td><p>Every asset in the project (decision 3's fallback), without the root files — those are <a class="reference internal" href="#an.build.keys.project_dependencies" title="an.build.keys.project_dependencies"><code class="xref py py-func docutils literal notranslate"><span class="pre">project_dependencies()</span></code></a>'.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.keys.file_digest" title="an.build.keys.file_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_digest</span></code></a>(path)</p></td>
 <td><p>The hex sha256 of a file's bytes, read NOW.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.keys.project_assets_digest" title="an.build.keys.project_assets_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_assets_digest</span></code></a>(mall, *[, stores, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.keys.project_assets_digest" title="an.build.keys.project_assets_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_assets_digest</span></code></a>(mall, *[, stores, ...])</p></td>
 <td><p>One digest over every asset store of the project (ADR 0004 decision 3).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.keys.project_dependencies" title="an.build.keys.project_dependencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_dependencies</span></code></a>(mall, *[, project_root])</p></td>
+<td><p>What every shot depends on project-wide: the project-root files (<a class="reference internal" href="#an.build.keys.PROJECT_ROOT_FILES" title="an.build.keys.PROJECT_ROOT_FILES"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_ROOT_FILES</span></code></a>, the library lockfile), read by path.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.build.keys.project_root_files_digest" title="an.build.keys.project_root_files_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_root_files_digest</span></code></a>(project_root, *[, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">sha256</span> <span class="pre">or</span> <span class="pre">ABSENT}</span></code> for the project-root files every shot depends on.</p></td>
@@ -738,12 +745,18 @@ metadata must not re-render a film.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.build.keys.PROJECT_ASSET_STORES">
 <span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">PROJECT_ASSET_STORES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('characters',</span> <span class="pre">'environments',</span> <span class="pre">'props',</span> <span class="pre">'styles',</span> <span class="pre">'voices',</span> <span class="pre">'sounds')</span></span><a class="headerlink" href="#an.build.keys.PROJECT_ASSET_STORES" title="Link to this definition">#</a></dt>
-<dd><p>The mall stores that make up “every asset in the project” for decision 3’s
-fallback: the art the compiler reads (characters, environments, props,
-styles) and the two the audio path reads (voices, sounds). The scene
+<dd><p>the art the compiler reads (characters,
+environments, props, styles) and the two the audio path reads (voices,
+sounds). What a recording view records (<a class="reference internal" href="an.build.reads.html#module-an.build.reads" title="an.build.reads"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.build.reads</span></code></a>), and what
+“every asset in the project” means for decision 3’s fallback. The scene
 document is deliberately NOT here — each shot’s own slice reaches its key
 through its compiled document, which is what lets an edit to one shot
 re-render only that shot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The mall’s ASSET stores</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -759,7 +772,7 @@ its registration in the mall (an#240). Read by path, through
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.build.keys.SHOT_KEY_IMPL_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">SHOT_KEY_IMPL_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.build.keys.SHOT_KEY_IMPL_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">SHOT_KEY_IMPL_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.build.keys.SHOT_KEY_IMPL_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>The key’s own version — the <code class="docutils literal notranslate"><span class="pre">impl_version</span></code> salt of <code class="code docutils literal notranslate"><span class="pre">nw.Transform</span></code> and of
 <code class="code docutils literal notranslate"><span class="pre">burns.RESOLVER_IMPL_VERSION</span></code> (“a lock, not a receipt”). Bump it when the
 COMPOSITION of a key changes (a part added, renamed or re-spelled). It is
@@ -890,6 +903,23 @@ observed.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.build.keys.every_asset_digest">
+<span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">every_asset_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/keys.html#every_asset_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.keys.every_asset_digest" title="Link to this definition">#</a></dt>
+<dd><p>Every asset in the project (decision 3’s fallback), without the root
+files — those are <a class="reference internal" href="#an.build.keys.project_dependencies" title="an.build.keys.project_dependencies"><code class="xref py py-func docutils literal notranslate"><span class="pre">project_dependencies()</span></code></a>’. The <code class="docutils literal notranslate"><span class="pre">assets</span></code> part of a
+shot whose keyer cannot vouch for its reads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">every_asset_digest</span><span class="p">({</span><span class="s2">"props"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">!=</span> <span class="n">every_asset_digest</span><span class="p">({</span><span class="s2">"props"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.build.keys.file_digest">
 <span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">file_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/keys.html#file_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.keys.file_digest" title="Link to this definition">#</a></dt>
 <dd><p>The hex sha256 of a file’s bytes, read NOW.</p>
@@ -926,6 +956,23 @@ the mall has a store for the file yet.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">project_assets_digest</span><span class="p">({</span><span class="s2">"characters"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"c"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"v"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}}},</span> <span class="n">stores</span><span class="o">=</span><span class="p">[</span><span class="s2">"characters"</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
 <span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.build.keys.project_dependencies">
+<span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">project_dependencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/keys.html#project_dependencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.keys.project_dependencies" title="Link to this definition">#</a></dt>
+<dd><p>What every shot depends on project-wide: the project-root files
+(<a class="reference internal" href="#an.build.keys.PROJECT_ROOT_FILES" title="an.build.keys.PROJECT_ROOT_FILES"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_ROOT_FILES</span></code></a>, the library lockfile), read by path. A re-pin
+changes what is checked out, so it moves every key, conservatively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">project_dependencies</span><span class="p">({})</span> <span class="o">==</span> <span class="n">project_dependencies</span><span class="p">({</span><span class="s2">"props"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -968,12 +1015,15 @@ key part at install (<code class="docutils literal notranslate"><span class="pre
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.keys.register_shot_keyer">
-<span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">register_shot_keyer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">renderer_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keyer</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/keys.html#register_shot_keyer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.keys.register_shot_keyer" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.build.keys.</span></span><span class="sig-name descname"><span class="pre">register_shot_keyer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">renderer_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keyer</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records_reads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/keys.html#register_shot_keyer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.keys.register_shot_keyer" title="Link to this definition">#</a></dt>
 <dd><p>Declare how shots of <code class="docutils literal notranslate"><span class="pre">renderer_name</span></code> are keyed, and how its machine is probed.</p>
 <p>The registration seam for every backend (cut-out here; Manim’s opaque
 shots, keyed on source hash + Manim version + quality, are the next).
 <code class="docutils literal notranslate"><span class="pre">renderer_type</span></code> binds the keyer to one renderer class: a renderer whose
-type is not exactly it is never cached. A second registration for a name
+type is not exactly it is never cached. <code class="docutils literal notranslate"><span class="pre">records_reads=True</span></code> claims
+that every asset the shot depends on is read through <code class="docutils literal notranslate"><span class="pre">ctx.mall</span></code> (or is
+already digested by one of the keyer’s parts): the engine then keys the
+shot on the entries it read rather than on the whole project. A second registration for a name
 is refused unless <code class="docutils literal notranslate"><span class="pre">replace=True</span></code> — a silent replacement would drop the
 first keyer’s parts from every key without anyone saying so.</p>
 <dl class="field-list simple">
@@ -1060,11 +1110,11 @@ other mapping is digested from its items.</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.build.shot_cache.html"
+       href="an.build.reads.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.build.shot_cache</p>
+        <p class="prev-next-title">an.build.reads</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1105,8 +1155,10 @@ other mapping is digested from its items.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.canonical_digest"><code class="docutils literal notranslate"><span class="pre">canonical_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.canonical_json"><code class="docutils literal notranslate"><span class="pre">canonical_json()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.compose_shot_key"><code class="docutils literal notranslate"><span class="pre">compose_shot_key()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.every_asset_digest"><code class="docutils literal notranslate"><span class="pre">every_asset_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.file_digest"><code class="docutils literal notranslate"><span class="pre">file_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.project_assets_digest"><code class="docutils literal notranslate"><span class="pre">project_assets_digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.project_dependencies"><code class="docutils literal notranslate"><span class="pre">project_dependencies()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.project_root_files_digest"><code class="docutils literal notranslate"><span class="pre">project_root_files_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.register_shot_key_part"><code class="docutils literal notranslate"><span class="pre">register_shot_key_part()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.keys.register_shot_keyer"><code class="docutils literal notranslate"><span class="pre">register_shot_keyer()</span></code></a></li>

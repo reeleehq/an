@@ -59,6 +59,7 @@ facade boundary.
 | [`effective_step_hz`](#an.stage.render.effective_step_hz)(shot, ctx)   | The stepped-timing policy a shot renders under (an#89): the shot's own `step_hz` when it declares one, else the scene's (`ctx.step_hz`), else `None` — smooth.   |
 |---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`runtime_extensions`](#an.stage.render.runtime_extensions)()           | The registered genres' runtime code for the stage, as one file's text -- `""` when none is registered (the shipped file stays as it is).                         |
+| [`texture_source`](#an.stage.render.texture_source)(src_rel, mall)  | Where a texture's bytes are read from: `(path, "")`, or `(None, why)`.                                                                                           |
 
 ### Classes
 
@@ -299,3 +300,17 @@ Part of the shot cache’s key when non-empty: it can change pixels.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.render.texture_source(src_rel, mall)
+
+Where a texture’s bytes are read from: `(path, "")`, or `(None, why)`.
+
+The ONE resolution of a texture `src` to a file: staging copies from it
+(`_stage_scene_assets()`) and the shot cache digests it
+(`an.stage.cache_key.texture_digests`), so the bytes keyed are the bytes
+drawn — a change to where art is read from (the asset library’s reference
+mode, ADR 0005) changes both or neither (an#316 review). `why` is one of
+`"prefix"`, `"store"` (absent or in-memory) and `"missing"`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

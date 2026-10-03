@@ -67,6 +67,7 @@
 - [an.build.cli](_autosummary/an.build.cli.html.md): &#96;an cache …&#96; — the shot cache from the shell (an#274).
 - [an.build.gc](_autosummary/an.build.gc.html.md): Garbage collection of the shot cache: &#96;an cache gc&#96; and &#96;an cache info&#96; (an#274).
 - [an.build.keys](_autosummary/an.build.keys.html.md): Cache keys for build stages: canonical digests, the project fallback, keyers.
+- [an.build.reads](_autosummary/an.build.reads.html.md): What a shot read: a read-recording view of the mall, and the digests of what it saw.
 - [an.build.shot_cache](_autosummary/an.build.shot_cache.html.md): The content-keyed shot cache: ADR 0004’s first slice, behind the &#96;incremental=&#96; seam.
 - [an.capabilities](_autosummary/an.capabilities.html.md): Capabilities: what an asset, an engine or the environment affords, and the one matcher.
 - [an.capabilities.subjects](_autosummary/an.capabilities.subjects.html.md): The core’s two non-asset subjects: the engine (a renderer) and the environment.
@@ -193,7 +194,7 @@
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-02 04:05 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-03 04:43 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

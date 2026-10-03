@@ -19,32 +19,34 @@ True
 
 ### Module Attributes
 
-| [`SHOT_KEY_IMPL_VERSION`](#an.build.keys.SHOT_KEY_IMPL_VERSION)       | The key's own version — the `impl_version` salt of `nw.Transform` and of `burns.RESOLVER_IMPL_VERSION` ("a lock, not a receipt").                                                                            |
-|------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`PROJECT_ASSET_STORES`](#an.build.keys.PROJECT_ASSET_STORES)        | The mall stores that make up "every asset in the project" for decision 3's fallback: the art the compiler reads (characters, environments, props, styles) and the two the audio path reads (voices, sounds). |
-| [`PROJECT_ROOT_FILES`](#an.build.keys.PROJECT_ROOT_FILES)          | Files at the project ROOT that every shot depends on, whether or not a mall store exposes them.                                                                                                              |
-| [`IGNORED_ASSET_NAME_PREFIXES`](#an.build.keys.IGNORED_ASSET_NAME_PREFIXES) | an OS's folder metadata must not re-render a film.                                                                                                                                                           |
-| [`ABSENT`](#an.build.keys.ABSENT)                      | a missing texture, an audio ref the store does not hold.                                                                                                                                                     |
-| [`ShotKeyer`](#an.build.keys.ShotKeyer)                   | `keyer(shot, ctx) -> ShotKeyInputs`.                                                                                                                                                                         |
-| [`EnvironmentProbe`](#an.build.keys.EnvironmentProbe)            | the renderer's environment record.                                                                                                                                                                           |
-| [`ShotKeyPart`](#an.build.keys.ShotKeyPart)                 | one more named digest for a renderer's key — the additive seam for an input read OUTSIDE the compiled document (a genre's side file, a vocabulary entry's version).                                          |
+| [`SHOT_KEY_IMPL_VERSION`](#an.build.keys.SHOT_KEY_IMPL_VERSION)       | The key's own version — the `impl_version` salt of `nw.Transform` and of `burns.RESOLVER_IMPL_VERSION` ("a lock, not a receipt").                                   |
+|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROJECT_ASSET_STORES`](#an.build.keys.PROJECT_ASSET_STORES)        | the art the compiler reads (characters, environments, props, styles) and the two the audio path reads (voices, sounds).                                             |
+| [`PROJECT_ROOT_FILES`](#an.build.keys.PROJECT_ROOT_FILES)          | Files at the project ROOT that every shot depends on, whether or not a mall store exposes them.                                                                     |
+| [`IGNORED_ASSET_NAME_PREFIXES`](#an.build.keys.IGNORED_ASSET_NAME_PREFIXES) | an OS's folder metadata must not re-render a film.                                                                                                                  |
+| [`ABSENT`](#an.build.keys.ABSENT)                      | a missing texture, an audio ref the store does not hold.                                                                                                            |
+| [`ShotKeyer`](#an.build.keys.ShotKeyer)                   | `keyer(shot, ctx) -> ShotKeyInputs`.                                                                                                                                |
+| [`EnvironmentProbe`](#an.build.keys.EnvironmentProbe)            | the renderer's environment record.                                                                                                                                  |
+| [`ShotKeyPart`](#an.build.keys.ShotKeyPart)                 | one more named digest for a renderer's key — the additive seam for an input read OUTSIDE the compiled document (a genre's side file, a vocabulary entry's version). |
 
 ### Functions
 
-| [`bytes_digest`](#an.build.keys.bytes_digest)(data)                                 | The hex sha256 of `data`.                                                                     |
-|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| [`callable_identity`](#an.build.keys.callable_identity)(obj)                             | `module.qualname` of a function or class (of an instance: of its type).                       |
-| [`canonical_digest`](#an.build.keys.canonical_digest)(obj)                              | The hex sha256 of [`canonical_json()`](#an.build.keys.canonical_json) of `obj`. |
-| [`canonical_json`](#an.build.keys.canonical_json)(obj)                                | `obj` as sorted, whitespace-free JSON — the one spelling every digest hashes.                 |
-| [`compose_shot_key`](#an.build.keys.compose_shot_key)(parts)                            | The shot key: one digest over the named parts and the key's own version.                      |
-| [`file_digest`](#an.build.keys.file_digest)(path)                                  | The hex sha256 of a file's bytes, read NOW.                                                   |
-| [`project_assets_digest`](#an.build.keys.project_assets_digest)(mall, \*[, stores, ...])     | One digest over every asset store of the project (ADR 0004 decision 3).                       |
-| [`project_root_files_digest`](#an.build.keys.project_root_files_digest)(project_root, \*[, ...]) | `{name: sha256 or ABSENT}` for the project-root files every shot depends on.                  |
-| [`register_shot_key_part`](#an.build.keys.register_shot_key_part)(renderer_name, ...)         | Add one named input to every key of `renderer_name`'s shots — additively.                     |
-| [`register_shot_keyer`](#an.build.keys.register_shot_keyer)(renderer_name, keyer, \*)      | Declare how shots of `renderer_name` are keyed, and how its machine is probed.                |
-| [`registered_shot_keyers`](#an.build.keys.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                         |
-| [`shot_keyer_for`](#an.build.keys.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                      |
-| [`store_digest`](#an.build.keys.store_digest)(store)                                | A digest of one store's whole content.                                                        |
+| [`bytes_digest`](#an.build.keys.bytes_digest)(data)                                 | The hex sha256 of `data`.                                                                                                                                                  |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`callable_identity`](#an.build.keys.callable_identity)(obj)                             | `module.qualname` of a function or class (of an instance: of its type).                                                                                                    |
+| [`canonical_digest`](#an.build.keys.canonical_digest)(obj)                              | The hex sha256 of [`canonical_json()`](#an.build.keys.canonical_json) of `obj`.                                                                              |
+| [`canonical_json`](#an.build.keys.canonical_json)(obj)                                | `obj` as sorted, whitespace-free JSON — the one spelling every digest hashes.                                                                                              |
+| [`compose_shot_key`](#an.build.keys.compose_shot_key)(parts)                            | The shot key: one digest over the named parts and the key's own version.                                                                                                   |
+| [`every_asset_digest`](#an.build.keys.every_asset_digest)(mall, \*[, project_root])       | Every asset in the project (decision 3's fallback), without the root files — those are [`project_dependencies()`](#an.build.keys.project_dependencies)'.           |
+| [`file_digest`](#an.build.keys.file_digest)(path)                                  | The hex sha256 of a file's bytes, read NOW.                                                                                                                                |
+| [`project_assets_digest`](#an.build.keys.project_assets_digest)(mall, \*[, stores, ...])     | One digest over every asset store of the project (ADR 0004 decision 3).                                                                                                    |
+| [`project_dependencies`](#an.build.keys.project_dependencies)(mall, \*[, project_root])     | What every shot depends on project-wide: the project-root files ([`PROJECT_ROOT_FILES`](#an.build.keys.PROJECT_ROOT_FILES), the library lockfile), read by path. |
+| [`project_root_files_digest`](#an.build.keys.project_root_files_digest)(project_root, \*[, ...]) | `{name: sha256 or ABSENT}` for the project-root files every shot depends on.                                                                                               |
+| [`register_shot_key_part`](#an.build.keys.register_shot_key_part)(renderer_name, ...)         | Add one named input to every key of `renderer_name`'s shots — additively.                                                                                                  |
+| [`register_shot_keyer`](#an.build.keys.register_shot_keyer)(renderer_name, keyer, \*)      | Declare how shots of `renderer_name` are keyed, and how its machine is probed.                                                                                             |
+| [`registered_shot_keyers`](#an.build.keys.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                                                                                                      |
+| [`shot_keyer_for`](#an.build.keys.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                                                                                                   |
+| [`store_digest`](#an.build.keys.store_digest)(store)                                | A digest of one store's whole content.                                                                                                                                     |
 
 ### Classes
 
@@ -86,12 +88,16 @@ metadata must not re-render a film.
 
 ### an.build.keys.PROJECT_ASSET_STORES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('characters', 'environments', 'props', 'styles', 'voices', 'sounds')*
 
-The mall stores that make up “every asset in the project” for decision 3’s
-fallback: the art the compiler reads (characters, environments, props,
-styles) and the two the audio path reads (voices, sounds). The scene
+the art the compiler reads (characters,
+environments, props, styles) and the two the audio path reads (voices,
+sounds). What a recording view records ([`an.build.reads`](an.build.reads.html.md#module-an.build.reads)), and what
+“every asset in the project” means for decision 3’s fallback. The scene
 document is deliberately NOT here — each shot’s own slice reaches its key
 through its compiled document, which is what lets an edit to one shot
 re-render only that shot.
+
+* **Type:**
+  The mall’s ASSET stores
 
 ### an.build.keys.PROJECT_ROOT_FILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('assets.lock.json',)*
 
@@ -102,7 +108,7 @@ so it must move every key — and it must do so before (and independently of)
 its registration in the mall (an#240). Read by path, through
 [`project_root_files_digest()`](#an.build.keys.project_root_files_digest); an absent file is recorded as absent.
 
-### an.build.keys.SHOT_KEY_IMPL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+### an.build.keys.SHOT_KEY_IMPL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 The key’s own version — the `impl_version` salt of `nw.Transform` and of
 `burns.RESOLVER_IMPL_VERSION` (“a lock, not a receipt”). Bump it when the
@@ -207,6 +213,20 @@ observed.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### an.build.keys.every_asset_digest(mall, , project_root=None)
+
+Every asset in the project (decision 3’s fallback), without the root
+files — those are [`project_dependencies()`](#an.build.keys.project_dependencies)’. The `assets` part of a
+shot whose keyer cannot vouch for its reads.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
+True
+```
+
 ### an.build.keys.file_digest(path)
 
 The hex sha256 of a file’s bytes, read NOW.
@@ -244,6 +264,20 @@ the mall has a store for the file yet.
 False
 ```
 
+### an.build.keys.project_dependencies(mall, , project_root=None)
+
+What every shot depends on project-wide: the project-root files
+([`PROJECT_ROOT_FILES`](#an.build.keys.PROJECT_ROOT_FILES), the library lockfile), read by path. A re-pin
+changes what is checked out, so it moves every key, conservatively.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
+True
+```
+
 ### an.build.keys.project_root_files_digest(project_root, , files=('assets.lock.json',))
 
 `{name: sha256 or ABSENT}` for the project-root files every shot depends on.
@@ -275,14 +309,17 @@ key part at install (`cutan`, P8) needs no prior lookup.
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.build.keys.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, replace=False)
+### an.build.keys.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, records_reads=False, replace=False)
 
 Declare how shots of `renderer_name` are keyed, and how its machine is probed.
 
 The registration seam for every backend (cut-out here; Manim’s opaque
 shots, keyed on source hash + Manim version + quality, are the next).
 `renderer_type` binds the keyer to one renderer class: a renderer whose
-type is not exactly it is never cached. A second registration for a name
+type is not exactly it is never cached. `records_reads=True` claims
+that every asset the shot depends on is read through `ctx.mall` (or is
+already digested by one of the keyer’s parts): the engine then keys the
+shot on the entries it read rather than on the whole project. A second registration for a name
 is refused unless `replace=True` — a silent replacement would drop the
 first keyer’s parts from every key without anyone saying so.
 

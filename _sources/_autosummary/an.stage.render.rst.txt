@@ -25,6 +25,7 @@ an.stage.render
    
       effective_step_hz
       runtime_extensions
+      texture_source
    
    .. rubric:: Classes
 

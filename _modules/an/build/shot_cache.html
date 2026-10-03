@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=29d58b84"></script>
+    <script src="../../../_static/documentation_options.js?v=1e2d01ee"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.155" />
+  <meta name="docsearch:version" content="0.1.156" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -773,7 +773,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">bytes_digest</span><span class="p">,</span>
     <span class="n">canonical_digest</span><span class="p">,</span>
     <span class="n">compose_shot_key</span><span class="p">,</span>
-    <span class="n">project_assets_digest</span><span class="p">,</span>
+    <span class="n">SHOT_KEY_IMPL_VERSION</span><span class="p">,</span>
+    <span class="n">every_asset_digest</span><span class="p">,</span>
+    <span class="n">project_dependencies</span><span class="p">,</span>
     <span class="n">shot_keyer_for</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -865,6 +867,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"The author's id. Informational: never a key."</span><span class="p">)</span>
         <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="c1">#: ``{"store/key": digest}``: the asset entries the shot read (an#316),</span>
+        <span class="c1">#: the ``assets`` part spelled out, so a re-render can name the asset</span>
+        <span class="c1">#: that moved. Empty for a shot keyed on the whole project.</span>
+        <span class="n">reads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="c1">#: The key composition it was written under (`SHOT_KEY_IMPL_VERSION`);</span>
+        <span class="c1">#: 0 for an entry older than the field.</span>
+        <span class="n">key_version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">timings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
         <span class="n">render_provenance</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
@@ -1024,6 +1033,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="n">inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The asset entries the shot read, digested (``{"store/key": digest}``).</span>
+    <span class="n">reads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">cached</span><span class="p">:</span> <span class="s2">"RenderResult | None"</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">key_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1188,11 +1199,12 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="c1">#: ``dependencies(mall, project_root) -&gt; digest | None``: what every shot of the</span>
-<span class="c1">#: project depends on beyond its own key parts. The default is ADR 0004</span>
-<span class="c1">#: decision 3's fallback, :func:`~an.build.keys.project_assets_digest` (every</span>
-<span class="c1">#: asset, plus the library lockfile read by path). Read recording replaces it</span>
-<span class="c1">#: with a value, not a flag.</span>
+<span class="c1">#: ``strategy(mall, *, project_root) -&gt; digest``: a project-wide digest — the</span>
+<span class="c1">#: shape of both ``ShotCache(dependencies=...)`` (what EVERY shot depends on:</span>
+<span class="c1">#: by default the library lockfile, :func:`~an.build.keys.project_dependencies`;</span>
+<span class="c1">#: the ``project`` part) and ``ShotCache(fallback=...)`` (the ``assets`` of a</span>
+<span class="c1">#: shot whose reads are not recorded: by default every asset,</span>
+<span class="c1">#: :func:`~an.build.keys.every_asset_digest`).</span>
 <span class="n">Dependencies</span> <span class="o">=</span> <span class="n">Any</span>
 
 
@@ -1205,10 +1217,23 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    mall's ``shot_cache`` (resolved in :meth:`begin`), and a mall without one</span>
 <span class="sd">    renders every shot. ``environment(renderer_name) -&gt; digest`` is the</span>
 <span class="sd">    environment seam — injectable so a test (or a remote-render backend) can</span>
-<span class="sd">    state its machine rather than probe this one. ``dependencies`` is the</span>
-<span class="sd">    project-wide dependency strategy (see :data:`Dependencies`); ``None`` keys</span>
-<span class="sd">    a shot on its own parts alone (its document and the bytes of the textures</span>
-<span class="sd">    it stages) — and then drops the lockfile too, so use it knowingly.</span>
+<span class="sd">    state its machine rather than probe this one. Three dependency seams (see</span>
+<span class="sd">    :data:`Dependencies`):</span>
+
+<span class="sd">    - ``record_reads`` (on by default) keys a shot whose keyer is registered</span>
+<span class="sd">      with ``records_reads=True`` on the asset entries its compile read</span>
+<span class="sd">      (:mod:`an.build.reads`, an#316: the ``assets`` part), so an edit to an</span>
+<span class="sd">      asset re-renders only the shots that read it;</span>
+<span class="sd">    - ``fallback`` is the ``assets`` part of every OTHER shot — a keyer that</span>
+<span class="sd">      cannot vouch for its reads, or every shot under ``record_reads=False``:</span>
+<span class="sd">      by default every asset in the project (decision 3's first slice);</span>
+<span class="sd">    - ``dependencies`` is what EVERY shot depends on (the ``project`` part): by</span>
+<span class="sd">      default the library lockfile. ``None`` drops it, and ``fallback=None``</span>
+<span class="sd">      keys an unrecorded shot on its own parts alone — use either knowingly.</span>
+
+<span class="sd">    An engine built with other seams writes keys `an cache gc` (which</span>
+<span class="sd">    recomputes the current scene's keys with the defaults) does not reach:</span>
+<span class="sd">    collect such a cache with the same engine.</span>
 <span class="sd">    ``cache_frames`` also stores each shot's whole PNG sequence when a caller</span>
 <span class="sd">    plans with ``needs_frames=True``. The render loop no longer does (an#260):</span>
 <span class="sd">    an assembled film takes a shot's mp4 and, at a transition, its *parts*</span>
@@ -1223,7 +1248,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">store</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">environment</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">default_environment_digest</span><span class="p">,</span>
-        <span class="n">dependencies</span><span class="p">:</span> <span class="n">Dependencies</span> <span class="o">=</span> <span class="n">project_assets_digest</span><span class="p">,</span>
+        <span class="n">dependencies</span><span class="p">:</span> <span class="n">Dependencies</span> <span class="o">=</span> <span class="n">project_dependencies</span><span class="p">,</span>
+        <span class="n">fallback</span><span class="p">:</span> <span class="n">Dependencies</span> <span class="o">=</span> <span class="n">every_asset_digest</span><span class="p">,</span>
+        <span class="n">record_reads</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">cache_frames</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">cache_frames</span><span class="p">:</span>
@@ -1238,10 +1265,14 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="o">=</span> <span class="n">store</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dependencies</span> <span class="o">=</span> <span class="n">dependencies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fallback</span> <span class="o">=</span> <span class="n">fallback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_reads</span> <span class="o">=</span> <span class="n">record_reads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_frames</span> <span class="o">=</span> <span class="n">cache_frames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">BuildReport</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">store</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_digests</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_previous</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_outcomes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">ShotOutcome</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_environments</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1254,12 +1285,12 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">project_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mall</span> <span class="o">=</span> <span class="n">mall</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_project_root</span> <span class="o">=</span> <span class="n">project_root</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_project</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dependencies</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">project_root</span><span class="o">=</span><span class="n">project_root</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dependencies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="kc">None</span>
-        <span class="p">)</span>
+        <span class="c1"># Digested on first need: a film of recorded-read shots never hashes</span>
+        <span class="c1"># the whole project.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_digests</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_previous</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_outcomes</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_order</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_environments</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1291,13 +1322,14 @@ window.runMermaid = runMermaid;</script>
             <span class="n">plan</span> <span class="o">=</span> <span class="n">ShotPlan</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">keyed</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_note</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="s2">"uncached"</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">plan</span>
-        <span class="n">key</span><span class="p">,</span> <span class="n">parts</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">key_s</span> <span class="o">=</span> <span class="n">keyed</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">parts</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">key_s</span><span class="p">,</span> <span class="n">reads</span> <span class="o">=</span> <span class="n">keyed</span>
 
         <span class="n">plan</span> <span class="o">=</span> <span class="n">ShotPlan</span><span class="p">(</span>
             <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
             <span class="n">name</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
             <span class="n">inputs</span><span class="o">=</span><span class="n">parts</span><span class="p">,</span>
+            <span class="n">reads</span><span class="o">=</span><span class="n">reads</span><span class="p">,</span>
             <span class="n">key_s</span><span class="o">=</span><span class="n">key_s</span><span class="p">,</span>
             <span class="n">compile_s</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">compile_s</span><span class="p">,</span>
             <span class="n">needs_frames</span><span class="o">=</span><span class="n">needs_frames</span><span class="p">,</span>
@@ -1457,6 +1489,16 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"no shot cache store in the mall"</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">recording</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_reads</span> <span class="ow">and</span> <span class="n">entry</span><span class="o">.</span><span class="n">records_reads</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
+
+            <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.reads</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecordingMall</span>
+
+            <span class="c1"># The keyer compiles against a view that notes every asset entry</span>
+            <span class="c1"># it reads: those reads are the shot's dependency edges (an#316).</span>
+            <span class="n">recording</span> <span class="o">=</span> <span class="n">RecordingMall</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">)</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">recording</span><span class="p">)</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">ShotKeyInputs</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">keyer</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"renderer"</span><span class="p">:</span> <span class="n">canonical_digest</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">identity</span><span class="p">()]),</span> <span class="o">**</span><span class="n">inputs</span><span class="o">.</span><span class="n">parts</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">part_name</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1467,9 +1509,72 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
             <span class="n">parts</span><span class="p">[</span><span class="n">part_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">part</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
         <span class="n">parts</span><span class="p">[</span><span class="s2">"environment"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_environment_of</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">parts</span><span class="p">[</span><span class="s2">"project"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span>
-        <span class="k">return</span> <span class="n">compose_shot_key</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span> <span class="n">parts</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+        <span class="n">reads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">recording</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.reads</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_digests</span>
+
+            <span class="n">reads</span> <span class="o">=</span> <span class="n">read_digests</span><span class="p">(</span><span class="n">recording</span><span class="o">.</span><span class="n">_mall</span><span class="p">,</span> <span class="n">recording</span><span class="o">.</span><span class="n">reads</span><span class="p">)</span>
+            <span class="n">parts</span><span class="p">[</span><span class="s2">"assets"</span><span class="p">]</span> <span class="o">=</span> <span class="n">canonical_digest</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fallback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_digest</span><span class="p">(</span><span class="s2">"fallback"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fallback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">parts</span><span class="p">[</span><span class="s2">"assets"</span><span class="p">]</span> <span class="o">=</span> <span class="n">fallback</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_digest</span><span class="p">(</span><span class="s2">"dependencies"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parts</span><span class="p">[</span><span class="s2">"project"</span><span class="p">]</span> <span class="o">=</span> <span class="n">project</span>
+        <span class="k">return</span> <span class="n">compose_shot_key</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span> <span class="n">parts</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">,</span> <span class="n">reads</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_project_digest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seam</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A project-wide seam's digest (``dependencies`` or ``fallback``),</span>
+<span class="sd">        computed once per render, on first need."""</span>
+        <span class="k">if</span> <span class="n">seam</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_digests</span><span class="p">:</span>
+            <span class="n">strategy</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seam</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_digests</span><span class="p">[</span><span class="n">seam</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">strategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mall</span><span class="p">,</span> <span class="n">project_root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_project_root</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">strategy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_digests</span><span class="p">[</span><span class="n">seam</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_explain_miss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Why ``plan`` has no entry, read off the newest earlier entry of the</span>
+<span class="sd">        same shot: which asset or which key part moved (an#316). The shot id</span>
+<span class="sd">        is only a way to FIND that entry — never part of a key."""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">previous</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_previous_entries</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">plan</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">shot_id</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — an explanation never fails a render</span>
+            <span class="n">previous</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">MISS</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="s2">"key_version"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="n">SHOT_KEY_IMPL_VERSION</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">KEY_FORMAT_CHANGED</span>
+        <span class="k">return</span> <span class="n">explain_change</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">previous</span><span class="o">.</span><span class="n">inputs</span><span class="p">),</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="s2">"reads"</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="n">plan</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_previous_entries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""``{(renderer, shot id): newest mp4 entry}``, read once per render,</span>
+<span class="sd">        on the first miss (a scan of the catalog, never of the blobs)."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_previous</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">newest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">):</span>
+                <span class="c1"># Only a shot's mp4 entry is named by its bare key: parts,</span>
+                <span class="c1"># frames and roots are skipped unread (a cache holds many).</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_HEX64</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)):</span>
+                    <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">rec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unreadable: not a candidate</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rec</span><span class="p">,</span> <span class="s2">"role"</span><span class="p">,</span> <span class="s2">"mp4"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"mp4"</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">rec</span><span class="o">.</span><span class="n">shot_id</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">when</span> <span class="o">=</span> <span class="n">_generated_at</span><span class="p">(</span><span class="n">rec</span><span class="p">)</span>
+                <span class="n">slot</span> <span class="o">=</span> <span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span> <span class="n">rec</span><span class="o">.</span><span class="n">shot_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">slot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">newest</span> <span class="ow">or</span> <span class="n">when</span> <span class="o">&gt;</span> <span class="n">newest</span><span class="p">[</span><span class="n">slot</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">newest</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">rec</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_previous</span> <span class="o">=</span> <span class="p">{</span><span class="n">slot</span><span class="p">:</span> <span class="n">rec</span> <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">rec</span><span class="p">)</span> <span class="ow">in</span> <span class="n">newest</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_previous</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_environment_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">digest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -1528,7 +1633,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — an unreadable entry is a miss, said</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"unreadable entry (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">)"</span>
         <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">MISS</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_explain_miss</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
         <span class="n">mp4_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_blob</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mp4_bytes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"entry whose mp4 blob is missing or does not match its id"</span>
@@ -1684,6 +1789,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">shot_id</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">shot_id</span><span class="p">,</span>
             <span class="n">renderer</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span>
             <span class="n">inputs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">inputs</span><span class="p">),</span>
+            <span class="n">reads</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">reads</span><span class="p">),</span>
+            <span class="n">key_version</span><span class="o">=</span><span class="n">SHOT_KEY_IMPL_VERSION</span><span class="p">,</span>
             <span class="n">timings</span><span class="o">=</span><span class="n">timings</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># Frames first, the mp4 record last: the mp4 record is what a lookup</span>
@@ -1721,6 +1828,98 @@ window.runMermaid = runMermaid;</script>
             <span class="n">render_provenance</span><span class="o">=</span><span class="n">_jsonable_dict</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">provenance</span><span class="p">),</span>
             <span class="o">**</span><span class="n">common</span><span class="p">,</span>
         <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_generated_at</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""When ``record`` was generated, as an orderable fraction (0 when unknown)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">"provenance"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"generated_at_time"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">to_fraction</span><span class="p">()</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — an unreadable time sorts first</span>
+        <span class="k">return</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="c1">#: How the summary names a key part that moved (:func:`explain_change`).</span>
+<span class="n">PART_LABELS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"compiled"</span><span class="p">:</span> <span class="s2">"its document"</span><span class="p">,</span>
+    <span class="s2">"textures"</span><span class="p">:</span> <span class="s2">"its art"</span><span class="p">,</span>
+    <span class="s2">"easings"</span><span class="p">:</span> <span class="s2">"an easing version"</span><span class="p">,</span>
+    <span class="s2">"audio"</span><span class="p">:</span> <span class="s2">"its dialogue audio"</span><span class="p">,</span>
+    <span class="s2">"runtime"</span><span class="p">:</span> <span class="s2">"the JS runtime"</span><span class="p">,</span>
+    <span class="s2">"runtime_extensions"</span><span class="p">:</span> <span class="s2">"a genre's runtime code"</span><span class="p">,</span>
+    <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"an's render code"</span><span class="p">,</span>
+    <span class="s2">"knobs"</span><span class="p">:</span> <span class="s2">"render settings"</span><span class="p">,</span>
+    <span class="s2">"environment"</span><span class="p">:</span> <span class="s2">"the render environment"</span><span class="p">,</span>
+    <span class="s2">"renderer"</span><span class="p">:</span> <span class="s2">"the renderer"</span><span class="p">,</span>
+    <span class="s2">"fonts"</span><span class="p">:</span> <span class="s2">"the system fonts"</span><span class="p">,</span>
+    <span class="s2">"vocabulary"</span><span class="p">:</span> <span class="s2">"a vocabulary entry"</span><span class="p">,</span>
+    <span class="s2">"project"</span><span class="p">:</span> <span class="s2">"the library lockfile"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1">#: Parts that move BECAUSE an asset the shot read moved: when an asset is</span>
+<span class="c1">#: named, naming these too would only blur the cause.</span>
+<span class="n">FOLLOWS_ASSETS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">"compiled"</span><span class="p">,</span> <span class="s2">"textures"</span><span class="p">,</span> <span class="s2">"fonts"</span><span class="p">,</span> <span class="s2">"easings"</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1">#: The reason when the newest earlier entry of a shot was keyed by another</span>
+<span class="c1">#: composition of the key (an `an` upgrade: `SHOT_KEY_IMPL_VERSION`, recorded</span>
+<span class="c1">#: on the entry as ``key_version``).</span>
+<span class="n">KEY_FORMAT_CHANGED</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"the shot key's format changed (an upgrade)"</span>
+
+
+<div class="viewcode-block" id="explain_change">
+<a class="viewcode-back" href="../../../_autosummary/an.build.shot_cache.html#an.build.explain_change">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">explain_change</span><span class="p">(</span>
+    <span class="n">before</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">before_reads</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">after</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">after_reads</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why a shot keyed ``after`` is not the entry keyed ``before``, in words.</span>
+
+<span class="sd">    The assets it read that moved come first, by name (``asset changed:</span>
+<span class="sd">    props/logo``), then every other key part that moved, appeared or went, by</span>
+<span class="sd">    :data:`PART_LABELS` (an optional part — ``fonts``, ``runtime_extensions`` —</span>
+<span class="sd">    comes and goes with what the shot draws). The parts that follow from an</span>
+<span class="sd">    asset (:data:`FOLLOWS_ASSETS`) are left out when one is named. Both keys</span>
+<span class="sd">    are of one composition: a different ``key_version`` is</span>
+<span class="sd">    :data:`KEY_FORMAT_CHANGED`, decided before this is called.</span>
+
+<span class="sd">    &gt;&gt;&gt; explain_change({"compiled": "a", "assets": "x"}, {"props/logo": "1"},</span>
+<span class="sd">    ...                {"compiled": "b", "assets": "y"}, {"props/logo": "2"})</span>
+<span class="sd">    'asset changed: props/logo'</span>
+<span class="sd">    &gt;&gt;&gt; explain_change({"knobs": "a", "compiled": "c"}, {}, {"knobs": "b", "compiled": "c"}, {})</span>
+<span class="sd">    'render settings changed'</span>
+<span class="sd">    &gt;&gt;&gt; explain_change({"compiled": "a"}, {}, {"compiled": "a", "fonts": "f"}, {})</span>
+<span class="sd">    'the system fonts changed'</span>
+<span class="sd">    &gt;&gt;&gt; explain_change({"assets": "a"}, {}, {"assets": "b"}, {})  # an unrecorded shot</span>
+<span class="sd">    'a project asset changed'</span>
+<span class="sd">    """</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="o">*</span><span class="n">after</span><span class="p">,</span> <span class="o">*</span><span class="n">before</span><span class="p">]))</span>
+    <span class="n">moved</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="n">after</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
+    <span class="n">assets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">before_reads</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">after_reads</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">before_reads</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="n">after_reads</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+    <span class="n">said</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">assets</span><span class="p">:</span>
+        <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"asset changed: "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">assets</span><span class="p">))</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">moved</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">assets</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOLLOWS_ASSETS</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">PART_LABELS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">"assets"</span>
+        <span class="k">else</span> <span class="s2">"a project asset"</span>  <span class="c1"># a whole-project digest: nothing to name</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">others</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">" and "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" changed"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">" and "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">said</span><span class="p">)</span> <span class="ow">or</span> <span class="n">MISS</span></div>
 
 
 
@@ -1858,6 +2057,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"ShotOutcome"</span><span class="p">,</span>
     <span class="s2">"ShotPlan"</span><span class="p">,</span>
     <span class="s2">"default_environment_digest"</span><span class="p">,</span>
+    <span class="s2">"explain_change"</span><span class="p">,</span>
     <span class="s2">"human_bytes"</span><span class="p">,</span>
     <span class="s2">"in_memory_shot_cache_store"</span><span class="p">,</span>
     <span class="s2">"machine_id"</span><span class="p">,</span>

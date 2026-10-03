@@ -12,9 +12,12 @@ an.build
       canonical_digest
       collect_garbage
       compose_shot_key
+      every_asset_digest
       default_environment_digest
       in_memory_shot_cache_store
       project_assets_digest
+      project_dependencies
+      read_digests
       register_shot_keyer
       registered_shot_keyers
       resolve_incremental
@@ -26,6 +29,7 @@ an.build
 
    .. autosummary::
    
+      RecordingMall
       BuildReport
       IncrementalEngine
       ShotCache
@@ -49,4 +53,5 @@ an.build
    cli
    gc
    keys
+   reads
    shot_cache

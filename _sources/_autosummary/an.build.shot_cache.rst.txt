@@ -17,6 +17,7 @@ an.build.shot\_cache
    .. autosummary::
    
       default_environment_digest
+      explain_change
       human_bytes
       in_memory_shot_cache_store
       machine_id

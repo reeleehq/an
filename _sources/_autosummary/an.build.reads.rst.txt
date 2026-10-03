@@ -1,0 +1,27 @@
+an.build.reads
+==============
+
+.. automodule:: an.build.reads
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      WHOLE_STORE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      entry_digest
+      entry_files
+      read_digests
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      RecordingMall
+      RecordingStore
+   

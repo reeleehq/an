@@ -26,8 +26,10 @@ an.build.keys
       canonical_digest
       canonical_json
       compose_shot_key
+      every_asset_digest
       file_digest
       project_assets_digest
+      project_dependencies
       project_root_files_digest
       register_shot_key_part
       register_shot_keyer
