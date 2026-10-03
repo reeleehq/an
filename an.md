@@ -1,4 +1,4 @@
-> built 2026-10-03 05:12 UTC from a74dd72 (main) · an 0.1.157. Details: build_info.json
+> built 2026-10-03 08:15 UTC from 7874da6 (main) · an 0.1.158. Details: build_info.json
 
 # index.html.md
 
@@ -5299,7 +5299,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5518,7 +5518,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -18431,7 +18431,8 @@ a namespaced reference names (`cutan:character.alice@v002` reads `cutan`
 with no `--package`; an#251). A refusal (an unknown asset, a private asset
 leaving its library, …) prints one sentence and exits non-zero.
 
-Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
+Subcommands: `publish`, `kit`, `find`, `vocabulary`, `show`,
+`checkout` (which checks out a whole kit when the reference is one),
 `promote`, `retire`.
 
 ### Functions
@@ -18439,6 +18440,7 @@ Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 | [`checkout`](_autosummary/an.library.cli.html.md#an.library.cli.checkout)(project_dir, ref[, key, overwrite, ...])   | Check a library version out into a project, and pin it in assets.lock.json.      |
 |------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`find`](_autosummary/an.library.cli.html.md#an.library.cli.find)([kind, style, affords, rights, family, ...])   | Find assets: AND across facets, OR within one facet's comma-separated values.    |
+| [`kit`](_autosummary/an.library.cli.html.md#an.library.cli.kit)(package, asset_id, refs[, key_for, ...])        | Publish a kit: a pinned set of assets a project checks out in one call.          |
 | [`promote`](_autosummary/an.library.cli.html.md#an.library.cli.promote)(ref[, package, root, core_root, ...])       | Copy a version into the core an library, so other genres can reuse it.           |
 | [`publish`](_autosummary/an.library.cli.html.md#an.library.cli.publish)(folder, asset_id[, package, root, ...])     | Publish an asset folder as the next version of `asset_id`.                       |
 | [`retire`](_autosummary/an.library.cli.html.md#an.library.cli.retire)(ref[, by, reason, status, package, root])    | Retire an asset id: hidden from find, never deleted; its versions stay readable. |
@@ -18450,7 +18452,7 @@ Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 Check a library version out into a project, and pin it in assets.lock.json.
 
 project_dir: the an project
-ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed
+ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed. A kit.<slug> reference checks out every member of the kit, each pinned, and records the kit in the lockfile
 key: the key in the project store (default: the asset’s slug)
 overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
 package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
@@ -18477,6 +18479,31 @@ package: the library to search first (then the core an library)
 root: that library’s root
 extra: further libraries to search, by package name, comma-separated
 json_out: print JSON instead of a table
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.kit(package, asset_id, refs, key_for='', name='', note='', title='', family='', style='', status='', tags='', license='', provider='', author='', source_url='', root='', extra='')
+
+Publish a kit: a pinned set of assets a project checks out in one call.
+
+package: whose library to publish the kit into (an, or a genre such as cutan)
+asset_id: kit.<slug>, e.g. kit.reiniger-base
+refs: the members, comma-separated [<library>:]<asset_id>[@<version>] (latest is pinned now)
+key_for: the project key of a member, as ref=key pairs, comma-separated (default: the asset’s slug)
+name: the kit’s name in its document (default: the asset id’s slug)
+note: what the kit is for
+title: a human title for the record
+family: the identity shared across styles and variants
+style: styles the kit suits, comma-separated
+status: draft, approved, deprecated or retired
+tags: free tags, comma-separated
+license: licence code of the kit document itself (the members keep their own rights)
+provider: where the kit document came from (required with –license)
+author: who made it
+source_url: where it was fetched from
+root: that library’s root (default: the package’s data folder)
+extra: further libraries where the members resolve, by package name, comma-separated
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -18924,6 +18951,9 @@ What lives where:
   `check_pins`, `drift_findings` (both run by `an validate`);
   [`an.library.lock`](_autosummary/an.library.lock.html.md#module-an.library.lock) — the project lockfile (a project store,
   > `mall["library_lock"]`);
+- [`an.library.kits`](_autosummary/an.library.kits.html.md#module-an.library.kits) — kits: a curated, pinned set of assets a project checks
+  out in one call (`publish_kit`, `checkout_kit`); the kit is recorded in
+  the lockfile’s `kits` section;
 - [`an.library.cli`](_autosummary/an.library.cli.html.md#module-an.library.cli) — `an library …`, a projection of the same functions.
 
 ### Functions
@@ -18933,6 +18963,7 @@ What lives where:
 | [`build_library_mall`](_autosummary/an.library.html.md#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](_autosummary/an.library.html.md#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
 | [`checkout`](_autosummary/an.library.html.md#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
+| [`checkout_kit`](_autosummary/an.library.html.md#an.library.checkout_kit)(libraries, project_dir, ref, \*)      | Check every member of a kit out into a project, pin each, and record the kit.                                                                 |
 | [`drift_findings`](_autosummary/an.library.html.md#an.library.drift_findings)([project_dir, mall, lock, ...])     | One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.                                   |
 | [`effective_rights`](_autosummary/an.library.html.md#an.library.effective_rights)(libraries, version, \*[, ...])    | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
 | [`find`](_autosummary/an.library.html.md#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
@@ -18944,6 +18975,7 @@ What lives where:
 | [`promote`](_autosummary/an.library.html.md#an.library.promote)(libraries, ref, \*[, to, as_id, ...])      | Copy one version into another library — by default the core `an` library.                                                                     |
 | [`publish`](_autosummary/an.library.html.md#an.library.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.                                                                 |
 | [`publish_dir`](_autosummary/an.library.html.md#an.library.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).                                                           |
+| [`publish_kit`](_autosummary/an.library.html.md#an.library.publish_kit)(library, asset_id, members, \*[, ...]) | Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`.                                                      |
 | [`reindex`](_autosummary/an.library.html.md#an.library.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                                                                            |
 | [`retire`](_autosummary/an.library.html.md#an.library.retire)(library, asset_id, \*, by, reason)          | Retire an asset id: recorded, hidden from `find` by default, never deleted.                                                                   |
 | [`register_analyser`](_autosummary/an.library.html.md#an.library.register_analyser)(kind, \*[, version, ...])        | Register an analyser.                                                                                                                         |
@@ -18968,6 +19000,8 @@ What lives where:
 | [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
 | [`FindResult`](_autosummary/an.library.html.md#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
 | [`Hit`](_autosummary/an.library.html.md#an.library.Hit)(library, asset_id, version, score[, ...])     | One asset that answers a query — or nearly does (`missing` non-empty).               |
+| [`Kit`](_autosummary/an.library.html.md#an.library.Kit)(\*\*data)                                     | The kit document: a name, its pinned members, and a note saying what it is for.      |
+| [`KitMember`](_autosummary/an.library.html.md#an.library.KitMember)(\*\*data)                               | One member of a kit: a pinned reference and the project key it lands under.          |
 | [`Library`](_autosummary/an.library.html.md#an.library.Library)(name, mall[, root])                       | One library: its name (the namespace of its ids), its mall, and its root if on disk. |
 | [`LibraryRef`](_autosummary/an.library.html.md#an.library.LibraryRef)(asset_id[, version, namespace])        | A parsed `[<namespace>:]<asset_id>[@<version>]`.                                     |
 | [`ProjectLock`](_autosummary/an.library.html.md#an.library.ProjectLock)(project_dir)                          | `<store>/<key> -> pin` over a project's `assets.lock.json`.                          |
@@ -19073,6 +19107,28 @@ Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.Libra
 
 Stored bytes, paths or a stored manifest do not match what was recorded.
 
+### *class* an.library.Kit(\*\*data)
+
+Bases: `BaseModel`
+
+The kit document: a name, its pinned members, and a note saying what it is for.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.library.KitMember(\*\*data)
+
+Bases: `BaseModel`
+
+One member of a kit: a pinned reference and the project key it lands under.
+
+`key=None` takes the check-out’s default (the asset id’s slug).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.library.Library(name, mall, root=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -19147,7 +19203,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](_autosummary/an.library.kits.html.md#module-an.library.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### *class* an.library.PublishResult(ref, manifest_sha256, created, rights, affordances, advice=())
 
@@ -19285,6 +19346,35 @@ Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
+
+### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+
+Check every member of a kit out into a project, pin each, and record the kit.
+
+libraries: where the kit and its members resolve
+project_dir: the project to check out into
+ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
+overwrite: replace project entries that are not exactly their member’s version
+mall: the project mall (default: `build_project_mall(project_dir)`)
+lock: the lockfile (default: the mall’s `library_lock` store); it needs a
+
+> `kits` section, as [`ProjectLock`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock) has
+
+Returns one [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult) per member, in the
+kit’s order. Each member is checked out by `checkout()`
+under its `key` and pinned in `assets.lock.json` as any check-out is; the
+kit itself is recorded under the lockfile’s `kits` section (its pinned
+reference, manifest and the members’ lockfile keys), so `an library` readers
+and a human can see which kit the project came from. Checking the same kit out
+again is idempotent.
+
+All members are resolved and checked before the first is written: a missing
+member, a member that is itself a kit, a corrupt stored file, or a project
+entry that is a fork (without `overwrite`) raises [`CheckoutError`](_autosummary/an.library.html.md#an.library.CheckoutError)
+and the project is untouched.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)]
 
 ### an.library.drift_findings(project_dir=None, , mall=None, lock=None, libraries=None)
 
@@ -19560,6 +19650,43 @@ its file is called (review-288 S2). Keyword arguments go to [`publish()`](_autos
 * **Return type:**
   [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
 
+### an.library.publish_kit(library, asset_id, members, , search=None, name=None, note=None, \*\*curation)
+
+Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`.
+
+library: the owning library (writes never go to a search path)
+asset_id: `kit.<slug>`
+members: each a library reference (`[<library>:]<asset_id>[@<version>]`), a
+
+> `(reference, key)` pair, or a mapping `{"ref": …, "key": …}`; `key` is
+> the name the member takes in the project’s store (default: the asset’s slug)
+
+search: further libraries where member references resolve (the owning library
+: is always searched first, as in [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish))
+
+name: the kit’s name in its document (default: the asset id’s slug)
+note: what the kit is for, stored in the document and on the version
+curation: everything else [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish) takes — `source=`
+
+> (the kit document is its author’s own authoring: its rights come from
+> this, never from its members), `title`, `style`, `tags`, …
+
+Every member must resolve; `latest` and unversioned references are pinned to
+the concrete version now, so the kit version is reproducible. A member that is
+itself a kit, one with no project store, or two members landing in one
+`(store, key)` are refused.
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "style.noir", {"name": "noir"}, source={"provider": "me", "license": "cc0-1.0"})
+>>> r = publish_kit(lib, "kit.noir-base", ["style.noir"], source={"provider": "me", "license": "cc0-1.0"})
+>>> lib.versions["kit.noir-base@v001"]["doc"]["members"]
+[{'ref': 'style.noir@v001', 'key': None}]
+```
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
+
 ### an.library.register_analyser(kind, , version='', subject='asset', owner='an')
 
 Register an analyser. Two forms.
@@ -19806,6 +19933,7 @@ True
 | [`floor`](_autosummary/an.library.floor.html.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.                                                                       |
 | [`ids`](_autosummary/an.library.ids.html.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                                                                                            |
 | [`kinds`](_autosummary/an.library.kinds.html.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                                                                                          |
+| [`kits`](_autosummary/an.library.kits.html.md#module-an.library.kits)                 | Kits: a curated, versioned set of library assets that a project checks out in one call.                                                                                      |
 | [`lock`](_autosummary/an.library.lock.html.md#module-an.library.lock)                 | The project lockfile, as the asset library sees it (re-exported from [`an.stores.library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock)). |
 | [`registry`](_autosummary/an.library.registry.html.md#module-an.library.registry)         | The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).                                                                      |
 | [`rights`](_autosummary/an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).                                                                          |
@@ -20019,7 +20147,10 @@ An asset id’s prefix is its kind (`character.alice`). A kind says two things t
 library needs for check-out and for publishing from a folder: which project
 store holds it (`characters`) and what its descriptor file is called inside a
 folder (`character.json`). Kinds with no project store yet (`motion`,
-`reference`, `plane`) can be published and found, not checked out.
+`reference`, `plane`) can be published and found, not checked out. The
+`kit` kind is one of them for `checkout()`: a kit is a
+document naming other assets, and [`checkout_kit()`](_autosummary/an.library.kits.html.md#an.library.kits.checkout_kit) checks
+out the assets it names.
 
 Genre packages register their kinds on import (ADR 0005 decision 12); the
 built-ins below are the kinds `an`’s project mall already stores, plus the ones
@@ -20034,8 +20165,9 @@ True
 
 ### Module Attributes
 
-| [`ASSET_KINDS`](_autosummary/an.library.kinds.html.md#an.library.kinds.ASSET_KINDS)   | Registered asset kinds, by name.   |
-|----------------------------------------------------------------|------------------------------------|
+| [`KIT_KIND`](_autosummary/an.library.kinds.html.md#an.library.kinds.KIT_KIND)    | a versioned set of assets a production checks out together.   |
+|--------------------------------------------------------------|---------------------------------------------------------------|
+| [`ASSET_KINDS`](_autosummary/an.library.kinds.html.md#an.library.kinds.ASSET_KINDS) | Registered asset kinds, by name.                              |
 
 ### Functions
 
@@ -20053,7 +20185,7 @@ True
 | [`UnknownKindError`](_autosummary/an.library.kinds.html.md#an.library.kinds.UnknownKindError)   | An asset id whose kind prefix nobody registered.   |
 |---------------------------------------------------------------------|----------------------------------------------------|
 
-### an.library.kinds.ASSET_KINDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [AssetKind](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)]* *= {'character': AssetKind(name='character', store='characters', descriptor='character.json', credits_store='characters'), 'environment': AssetKind(name='environment', store='environments', descriptor='meta.json', credits_store='environments'), 'motion': AssetKind(name='motion', store=None, descriptor=None, credits_store=None), 'plane': AssetKind(name='plane', store=None, descriptor=None, credits_store=None), 'prop': AssetKind(name='prop', store='props', descriptor='prop.json', credits_store='props'), 'reference': AssetKind(name='reference', store=None, descriptor=None, credits_store=None), 'sound': AssetKind(name='sound', store='sounds', descriptor='sound.json', credits_store='sounds'), 'style': AssetKind(name='style', store='styles', descriptor=None, credits_store=None), 'voice': AssetKind(name='voice', store='voices', descriptor=None, credits_store=None)}*
+### an.library.kinds.ASSET_KINDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [AssetKind](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)]* *= {'character': AssetKind(name='character', store='characters', descriptor='character.json', credits_store='characters'), 'environment': AssetKind(name='environment', store='environments', descriptor='meta.json', credits_store='environments'), 'kit': AssetKind(name='kit', store=None, descriptor=None, credits_store=None), 'motion': AssetKind(name='motion', store=None, descriptor=None, credits_store=None), 'plane': AssetKind(name='plane', store=None, descriptor=None, credits_store=None), 'prop': AssetKind(name='prop', store='props', descriptor='prop.json', credits_store='props'), 'reference': AssetKind(name='reference', store=None, descriptor=None, credits_store=None), 'sound': AssetKind(name='sound', store='sounds', descriptor='sound.json', credits_store='sounds'), 'style': AssetKind(name='style', store='styles', descriptor=None, credits_store=None), 'voice': AssetKind(name='voice', store='voices', descriptor=None, credits_store=None)}*
 
 Registered asset kinds, by name.
 
@@ -20070,6 +20202,13 @@ document per key with no folder (voices, styles): such an asset has no files.
 
 The `an credits` store name its sources are read under (rights roll-up);
 `None` reads the top-level `source` only.
+
+### an.library.kinds.KIT_KIND *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'kit'*
+
+a versioned set of assets a production checks out together.
+
+* **Type:**
+  The kind of a kit
 
 ### *exception* an.library.kinds.UnknownKindError
 
@@ -20090,6 +20229,164 @@ Register (or re-register) an asset kind. Returns it.
 
 * **Return type:**
   [`AssetKind`](_autosummary/an.library.kinds.html.md#an.library.kinds.AssetKind)
+
+
+# _autosummary/an.library.kits.html.md
+
+# an.library.kits
+
+Kits: a curated, versioned set of library assets that a project checks out in one call.
+
+A production in a named style needs a *set* of assets — the style’s StylePack and
+voice documents, a date-card environment, recurring props, the base cast — not
+one. A **kit** is the library’s answer: an asset of kind `kit` whose document
+lists the members, each pinned to a concrete version, so a kit version always
+means the same set of bytes. [`publish_kit()`](_autosummary/an.library.kits.html.md#an.library.kits.publish_kit) makes one; [`checkout_kit()`](_autosummary/an.library.kits.html.md#an.library.kits.checkout_kit)
+checks every member out through the ordinary `checkout()`
+(its pin in `assets.lock.json`, its rights, its credits) and records the kit
+beside them (`ProjectLock.kits`, [`an.stores.library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock)).
+
+The document (kind `Kit`, versioned like every document kind):
+
+```json
+{"kind": "Kit", "schema_version": "0.1.0", "name": "reiniger-base",
+ "members": [{"ref": "style.reiniger@v003", "key": null},
+             {"ref": "cutan:character.alice@v002", "key": "alice"}],
+ "note": "what a Reiniger-style short starts from"}
+```
+
+Three rules, each the point rather than a detail:
+
+- **Members are pinned.** `latest` and unversioned references are resolved when
+  the kit is published, so re-checking out an old kit version never drifts. A
+  member reference with no `<library>:` prefix resolves in the kit’s own
+  library first, then along the search path.
+- **Kits do not nest** (v1). A member of kind `kit` is refused, at publish and
+  at check-out: a nested set would make the lockfile’s record of a kit’s members
+  a tree, and no one has asked for one.
+- **Rights stay per member.** The kit’s own document is its author’s, so its
+  rights come from the `source=` the publisher gives, like any document; the
+  members’ rights are NOT rolled into the kit’s record, because each member
+  carries its own at check-out (and `an credits` reads them there).
+
+A check-out resolves and checks every member before it writes any: a missing
+member, a nested kit, a corrupt blob or a project entry that is a fork refuses
+the whole kit and leaves the project as it was.
+
+```pycon
+>>> doc = Kit(name="base", members=[KitMember(ref="style.reiniger@v001")])
+>>> [m.ref for m in doc.members], doc.schema_version
+(['style.reiniger@v001'], '0.1.0')
+```
+
+### Module Attributes
+
+| [`KIT_SCHEMA_VERSION`](_autosummary/an.library.kits.html.md#an.library.kits.KIT_SCHEMA_VERSION)   | Schema version of the kit document (its own document kind).   |
+|-----------------------------------------------------------------------|---------------------------------------------------------------|
+
+### Functions
+
+| [`checkout_kit`](_autosummary/an.library.kits.html.md#an.library.kits.checkout_kit)(libraries, project_dir, ref, \*)      | Check every member of a kit out into a project, pin each, and record the kit.            |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| [`publish_kit`](_autosummary/an.library.kits.html.md#an.library.kits.publish_kit)(library, asset_id, members, \*[, ...]) | Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`. |
+
+### Classes
+
+| [`Kit`](_autosummary/an.library.kits.html.md#an.library.kits.Kit)(\*\*data)       | The kit document: a name, its pinned members, and a note saying what it is for.   |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`KitMember`](_autosummary/an.library.kits.html.md#an.library.kits.KitMember)(\*\*data) | One member of a kit: a pinned reference and the project key it lands under.       |
+
+### an.library.kits.KIT_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
+
+Schema version of the kit document (its own document kind).
+
+### *class* an.library.kits.Kit(\*\*data)
+
+Bases: `BaseModel`
+
+The kit document: a name, its pinned members, and a note saying what it is for.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.library.kits.KitMember(\*\*data)
+
+Bases: `BaseModel`
+
+One member of a kit: a pinned reference and the project key it lands under.
+
+`key=None` takes the check-out’s default (the asset id’s slug).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+
+Check every member of a kit out into a project, pin each, and record the kit.
+
+libraries: where the kit and its members resolve
+project_dir: the project to check out into
+ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
+overwrite: replace project entries that are not exactly their member’s version
+mall: the project mall (default: `build_project_mall(project_dir)`)
+lock: the lockfile (default: the mall’s `library_lock` store); it needs a
+
+> `kits` section, as [`ProjectLock`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock) has
+
+Returns one [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult) per member, in the
+kit’s order. Each member is checked out by `checkout()`
+under its `key` and pinned in `assets.lock.json` as any check-out is; the
+kit itself is recorded under the lockfile’s `kits` section (its pinned
+reference, manifest and the members’ lockfile keys), so `an library` readers
+and a human can see which kit the project came from. Checking the same kit out
+again is idempotent.
+
+All members are resolved and checked before the first is written: a missing
+member, a member that is itself a kit, a corrupt stored file, or a project
+entry that is a fork (without `overwrite`) raises `CheckoutError`
+and the project is untouched.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)]
+
+### an.library.kits.publish_kit(library, asset_id, members, , search=None, name=None, note=None, \*\*curation)
+
+Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`.
+
+library: the owning library (writes never go to a search path)
+asset_id: `kit.<slug>`
+members: each a library reference (`[<library>:]<asset_id>[@<version>]`), a
+
+> `(reference, key)` pair, or a mapping `{"ref": …, "key": …}`; `key` is
+> the name the member takes in the project’s store (default: the asset’s slug)
+
+search: further libraries where member references resolve (the owning library
+: is always searched first, as in [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish))
+
+name: the kit’s name in its document (default: the asset id’s slug)
+note: what the kit is for, stored in the document and on the version
+curation: everything else [`publish()`](_autosummary/an.library.api.html.md#an.library.api.publish) takes — `source=`
+
+> (the kit document is its author’s own authoring: its rights come from
+> this, never from its members), `title`, `style`, `tags`, …
+
+Every member must resolve; `latest` and unversioned references are pinned to
+the concrete version now, so the kit version is reproducible. A member that is
+itself a kit, one with no project store, or two members landing in one
+`(store, key)` are refused.
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "style.noir", {"name": "noir"}, source={"provider": "me", "license": "cc0-1.0"})
+>>> r = publish_kit(lib, "kit.noir-base", ["style.noir"], source={"provider": "me", "license": "cc0-1.0"})
+>>> lib.versions["kit.noir-base@v001"]["doc"]["members"]
+[{'ref': 'style.noir@v001', 'key': None}]
+```
+
+* **Return type:**
+  [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
 
 
 # _autosummary/an.library.lock.html.md
@@ -20125,7 +20422,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](_autosummary/an.library.lock.html.md#an.library.lock.ProjectLock.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### an.library.lock.lock_key(store, key)
 
@@ -24471,7 +24773,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -29733,7 +30035,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](_autosummary/an.stores.html.md#an.stores.ProjectLock.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### *class* an.stores.PropsStore(root_dir)
 
@@ -29918,6 +30225,24 @@ says whether it still is its version (`an validate` reports the drift as
 `info`: an edited check-out is a fork, not a mistake), and only then may
 anything treat the pin as standing for the content.
 
+A **kit** check-out ([`an.library.kits.checkout_kit()`](_autosummary/an.library.kits.html.md#an.library.kits.checkout_kit)) pins each member the
+way any check-out does, and additionally records the kit in a top-level
+`"kits"` section, keyed by the kit’s asset id:
+
+```default
+{"kits": {"kit.reiniger-base": {"library": "cutan:kit.reiniger-base@v002",
+                                "manifest_sha256": "…", "checked_out": "…",
+                                "members": ["styles/reiniger", "voices/narrator"]}}}
+```
+
+`members` are lockfile keys of `assets`. The section sits OUTSIDE `assets`
+on purpose: everything that walks the pins (`verify_checkout`, `an validate`,
+`check_pins`) iterates the mapping, which is `assets` only, so a kit entry
+cannot be mistaken for an asset or collide with a `<store>/<key>` key. It is
+additive (an older `an` reads the file and ignores the section, though its
+next write drops it) and read through
+[`ProjectLock.kits`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock.kits).
+
 The lockfile is a `MutableMapping` like every other store (pillar 7),
 registered in the project mall as `mall["library_lock"]`
 ([`an.stores.build_project_mall()`](_autosummary/an.stores.html.md#an.stores.build_project_mall)); `an.library.checkout.checkout()`
@@ -29965,7 +30290,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### an.stores.library_lock.lock_key(store, key)
 
@@ -34237,20 +34567,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-03 05:12 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a74dd7240cd3a8ec2956c772cbcc6a5ea0b003a8"><code>a74dd72</code></a> on branch <code>main</code>, for **an 0.1.157** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-03 08:15 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/7874da676949327fbdc35355532249b790759b71"><code>7874da6</code></a> on branch <code>main</code>, for **an 0.1.158** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.157) is ahead of the latest release on PyPI (0.1.156): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/a74dd7240cd3a8ec2956c772cbcc6a5ea0b003a8"><code>a74dd7240cd3a8ec2956c772cbcc6a5ea0b003a8</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/7874da676949327fbdc35355532249b790759b71"><code>7874da676949327fbdc35355532249b790759b71</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.157</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.158</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -34259,9 +34587,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37098788191">37098788191</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37108794480">37108794480</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>439a6fd09076cd8e8a29f1399b70b7536f44d6aa</code> (in the history of the built commit) |
+| Event commit | <code>e465b3dc0e97d339c54e865be178898582fc0cd0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -34286,13 +34614,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.156/">0.1.156</a>, older than the documented version (0.1.157).
+Latest release: <a href="https://pypi.org/project/an/0.1.158/">0.1.158</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout a74dd7240cd3a8ec2956c772cbcc6a5ea0b003a8
+git checkout 7874da676949327fbdc35355532249b790759b71
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

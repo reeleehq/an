@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=ba5585f7"></script>
+    <script src="../_static/documentation_options.js?v=524f2635"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,10 +53,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="an.library.registry" href="an.library.registry.html" />
-    <link rel="prev" title="an.library.kinds" href="an.library.kinds.html" />
+    <link rel="prev" title="an.library.kits" href="an.library.kits.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.157" />
+  <meta name="docsearch:version" content="0.1.158" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kits.html">an.library.kits</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.library.lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
@@ -624,9 +625,16 @@ keeps the import path the library and its callers already use.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
 <p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project’s <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p>
 <p>Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.</p>
+cleanly under version control. The mapping is the <code class="docutils literal notranslate"><span class="pre">assets</span></code> section;
+<a class="reference internal" href="#an.library.lock.ProjectLock.kits" title="an.library.lock.ProjectLock.kits"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kits</span></code></a> is the <code class="docutils literal notranslate"><span class="pre">kits</span></code> section, and a write to either keeps the other.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.library.lock.ProjectLock.kits">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">kits</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.library.lock.ProjectLock.kits" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">kit</span> <span class="pre">asset</span> <span class="pre">id</span> <span class="pre">-&gt;</span> <span class="pre">record</span></code> of the kits checked out into the project.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -657,12 +665,12 @@ cleanly under version control.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="an.library.kinds.html"
+       href="an.library.kits.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">an.library.kinds</p>
+        <p class="prev-next-title">an.library.kits</p>
       </div>
     </a>
     <a class="right-next"
@@ -693,7 +701,10 @@ cleanly under version control.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.ProjectLock.kits"><code class="docutils literal notranslate"><span class="pre">ProjectLock.kits</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.lock.lock_key"><code class="docutils literal notranslate"><span class="pre">lock_key()</span></code></a></li>
 </ul>
   </nav></div>

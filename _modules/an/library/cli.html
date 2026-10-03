@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=ba5585f7"></script>
+    <script src="../../../_static/documentation_options.js?v=524f2635"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.157" />
+  <meta name="docsearch:version" content="0.1.158" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -725,7 +725,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">with no ``--package``; an#251). A refusal (an unknown asset, a private asset</span>
 <span class="sd">leaving its library, …) prints one sentence and exits non-zero.</span>
 
-<span class="sd">Subcommands: ``publish``, ``find``, ``vocabulary``, ``show``, ``checkout``,</span>
+<span class="sd">Subcommands: ``publish``, ``kit``, ``find``, ``vocabulary``, ``show``,</span>
+<span class="sd">``checkout`` (which checks out a whole kit when the reference is one),</span>
 <span class="sd">``promote``, ``retire``.</span>
 <span class="sd">"""</span>
 
@@ -747,12 +748,26 @@ window.runMermaid = runMermaid;</script>
     <span class="n">vocabulary</span> <span class="k">as</span> <span class="n">_vocabulary</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.checkout</span><span class="w"> </span><span class="kn">import</span> <span class="n">checkout</span> <span class="k">as</span> <span class="n">_checkout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">KIT_KIND</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.kits</span><span class="w"> </span><span class="kn">import</span> <span class="n">checkout_kit</span> <span class="k">as</span> <span class="n">_checkout_kit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.kits</span><span class="w"> </span><span class="kn">import</span> <span class="n">publish_kit</span> <span class="k">as</span> <span class="n">_publish_kit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.federation</span><span class="w"> </span><span class="kn">import</span> <span class="n">Library</span><span class="p">,</span> <span class="n">open_library</span><span class="p">,</span> <span class="n">search_path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_ref</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_kind</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_PACKAGE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">version_key</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"checkout"</span><span class="p">,</span> <span class="s2">"find"</span><span class="p">,</span> <span class="s2">"promote"</span><span class="p">,</span> <span class="s2">"publish"</span><span class="p">,</span> <span class="s2">"retire"</span><span class="p">,</span> <span class="s2">"show"</span><span class="p">,</span> <span class="s2">"vocabulary"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"checkout"</span><span class="p">,</span>
+    <span class="s2">"find"</span><span class="p">,</span>
+    <span class="s2">"kit"</span><span class="p">,</span>
+    <span class="s2">"promote"</span><span class="p">,</span>
+    <span class="s2">"publish"</span><span class="p">,</span>
+    <span class="s2">"retire"</span><span class="p">,</span>
+    <span class="s2">"show"</span><span class="p">,</span>
+    <span class="s2">"vocabulary"</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_split</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -944,6 +959,86 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="kit">
+<a class="viewcode-back" href="../../../_autosummary/an.library.cli.html#an.library.cli.kit">[docs]</a>
+<span class="nd">@_refusing</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">kit</span><span class="p">(</span>
+    <span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">refs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">key_for</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">note</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">family</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">source_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Publish a kit: a pinned set of assets a project checks out in one call.</span>
+
+<span class="sd">    package: whose library to publish the kit into (an, or a genre such as cutan)</span>
+<span class="sd">    asset_id: kit.&lt;slug&gt;, e.g. kit.reiniger-base</span>
+<span class="sd">    refs: the members, comma-separated [&lt;library&gt;:]&lt;asset_id&gt;[@&lt;version&gt;] (latest is pinned now)</span>
+<span class="sd">    key_for: the project key of a member, as ref=key pairs, comma-separated (default: the asset's slug)</span>
+<span class="sd">    name: the kit's name in its document (default: the asset id's slug)</span>
+<span class="sd">    note: what the kit is for</span>
+<span class="sd">    title: a human title for the record</span>
+<span class="sd">    family: the identity shared across styles and variants</span>
+<span class="sd">    style: styles the kit suits, comma-separated</span>
+<span class="sd">    status: draft, approved, deprecated or retired</span>
+<span class="sd">    tags: free tags, comma-separated</span>
+<span class="sd">    license: licence code of the kit document itself (the members keep their own rights)</span>
+<span class="sd">    provider: where the kit document came from (required with --license)</span>
+<span class="sd">    author: who made it</span>
+<span class="sd">    source_url: where it was fetched from</span>
+<span class="sd">    root: that library's root (default: the package's data folder)</span>
+<span class="sd">    extra: further libraries where the members resolve, by package name, comma-separated</span>
+<span class="sd">    """</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="n">_split</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">_split</span><span class="p">(</span><span class="n">key_for</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span> <span class="k">if</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">)</span>
+    <span class="n">strays</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">members</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">strays</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">_split</span><span class="p">(</span><span class="n">key_for</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]):</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"an library kit: --key-for takes ref=key pairs naming members; "</span>
+            <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">key_for</span><span class="si">!r}</span><span class="s2"> for members </span><span class="si">{</span><span class="n">members</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="n">members</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_publish_kit</span><span class="p">(</span>
+        <span class="n">lib</span><span class="p">,</span>
+        <span class="n">asset_id</span><span class="p">,</span>
+        <span class="p">[(</span><span class="n">ref</span><span class="p">,</span> <span class="n">keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span> <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">members</span><span class="p">],</span>
+        <span class="n">search</span><span class="o">=</span><span class="n">others</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">note</span><span class="o">=</span><span class="n">note</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="n">_source_from_flags</span><span class="p">(</span>
+            <span class="n">license</span><span class="o">=</span><span class="n">license</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">author</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">source_url</span>
+        <span class="p">),</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">family</span><span class="o">=</span><span class="n">family</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">_split</span><span class="p">(</span><span class="n">style</span><span class="p">),</span>
+        <span class="n">status</span><span class="o">=</span><span class="n">status</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tags</span><span class="o">=</span><span class="n">_split</span><span class="p">(</span><span class="n">tags</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">)]</span>
+    <span class="n">pinned</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">versions</span><span class="p">[</span><span class="n">version_key</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">ref</span><span class="o">.</span><span class="n">version</span><span class="p">)][</span><span class="s2">"doc"</span><span class="p">][</span><span class="s2">"members"</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'ref'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" as </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'key'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="s2">"key"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">pinned</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"unknown"</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown (never publishable): </span><span class="si">{</span><span class="s1">'; '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">reasons</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+        <span class="p">)</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">advice</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="find">
 <a class="viewcode-back" href="../../../_autosummary/an.library.cli.html#an.library.cli.find">[docs]</a>
 <span class="nd">@_refusing</span>
@@ -1100,28 +1195,43 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Check a library version out into a project, and pin it in assets.lock.json.</span>
 
 <span class="sd">    project_dir: the an project</span>
-<span class="sd">    ref: [&lt;library&gt;:]&lt;asset_id&gt;[@&lt;version&gt;] (latest is resolved now and pinned); a &lt;library&gt;: prefix reads that library, no --package needed</span>
+<span class="sd">    ref: [&lt;library&gt;:]&lt;asset_id&gt;[@&lt;version&gt;] (latest is resolved now and pinned); a &lt;library&gt;: prefix reads that library, no --package needed. A kit.&lt;slug&gt; reference checks out every member of the kit, each pinned, and records the kit in the lockfile</span>
 <span class="sd">    key: the key in the project store (default: the asset's slug)</span>
 <span class="sd">    overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)</span>
 <span class="sd">    package: the library to read first, then the core an library (default: the reference's &lt;library&gt;: prefix, else an)</span>
 <span class="sd">    root: that library's root (with no --package, the root of the library the reference names)</span>
 <span class="sd">    extra: further libraries, by package name, comma-separated</span>
 <span class="sd">    """</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">parse_ref</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">KIT_KIND</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+                <span class="s2">"an library checkout: --key names one asset's key; a kit's members "</span>
+                <span class="s2">"carry their own keys (set them with `an library kit --key-for`)"</span>
+            <span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">_checkout_kit</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"kit </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> members"</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">results</span><span class="p">)]</span>
+        <span class="n">castable</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">ref</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="n">_entities_block</span><span class="p">(</span><span class="n">castable</span><span class="p">)])</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_checkout</span><span class="p">(</span>
-        <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="p">[</span><span class="n">ref</span><span class="p">]),</span>
-        <span class="n">project_dir</span><span class="p">,</span>
-        <span class="n">ref</span><span class="p">,</span>
-        <span class="n">key</span><span class="o">=</span><span class="n">key</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+        <span class="n">libraries</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span>
     <span class="p">)</span>
-    <span class="n">entity</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">asset_ref</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
-        <span class="sa">f</span><span class="s2">"cast it in scene.md under `yaml entities`:</span><span class="se">\n</span><span class="s2">"</span>
-        <span class="sa">f</span><span class="s2">"  - </span><span class="se">{{</span><span class="s2">id: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">, kind: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2">, store: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="si">}</span><span class="s2">, "</span>
-        <span class="sa">f</span><span class="s1">'ref: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s1">, library: "</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">library</span><span class="si">}</span><span class="s1">"</span><span class="se">}}</span><span class="s1">'</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="o">*</span><span class="n">_entities_block</span><span class="p">([</span><span class="n">result</span><span class="p">])])</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_entities_block</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The lines inviting the author to cast ``results`` under ``yaml entities`` (none for none)."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"cast it in scene.md under `yaml entities`:"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">asset_ref</span><span class="p">()</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"  - </span><span class="se">{{</span><span class="s2">id: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">, kind: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2">, store: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s1">'ref: </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s1">, library: "</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">library</span><span class="si">}</span><span class="s1">"</span><span class="se">}}</span><span class="s1">'</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lines</span>
 
 
 <div class="viewcode-block" id="promote">
@@ -1200,7 +1310,7 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">publish</span><span class="p">,</span> <span class="n">find</span><span class="p">,</span> <span class="n">vocabulary</span><span class="p">,</span> <span class="n">show</span><span class="p">,</span> <span class="n">checkout</span><span class="p">,</span> <span class="n">promote</span><span class="p">,</span> <span class="n">retire</span><span class="p">]</span>
+<span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">publish</span><span class="p">,</span> <span class="n">kit</span><span class="p">,</span> <span class="n">find</span><span class="p">,</span> <span class="n">vocabulary</span><span class="p">,</span> <span class="n">show</span><span class="p">,</span> <span class="n">checkout</span><span class="p">,</span> <span class="n">promote</span><span class="p">,</span> <span class="n">retire</span><span class="p">]</span>
 </pre></div>
 
                 </article>

@@ -99,6 +99,7 @@
 - [an.library.floor](an.library.floor.html.md): The rights floor of a blob: the strictest statement any library on this machine makes about its byte...
 - [an.library.ids](an.library.ids.html.md): Asset ids, version labels and library references — the library’s persisted names.
 - [an.library.kinds](an.library.kinds.html.md): Asset kinds: the &#96;kind&#96; facet’s vocabulary, and where each kind lives in a project.
+- [an.library.kits](an.library.kits.html.md): Kits: a curated, versioned set of library assets that a project checks out in one call.
 - [an.library.lock](an.library.lock.html.md): The project lockfile, as the asset library sees it (re-exported from &#96;an.stores.library_lock&#96;).
 - [an.library.registry](an.library.registry.html.md): The machine’s memory of its libraries: every root ever written, and every statement ever made (an#24...
 - [an.library.rights](an.library.rights.html.md): Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).

@@ -15,7 +15,8 @@ a namespaced reference names (`cutan:character.alice@v002` reads `cutan`
 with no `--package`; an#251). A refusal (an unknown asset, a private asset
 leaving its library, …) prints one sentence and exits non-zero.
 
-Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
+Subcommands: `publish`, `kit`, `find`, `vocabulary`, `show`,
+`checkout` (which checks out a whole kit when the reference is one),
 `promote`, `retire`.
 
 ### Functions
@@ -23,6 +24,7 @@ Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 | [`checkout`](#an.library.cli.checkout)(project_dir, ref[, key, overwrite, ...])   | Check a library version out into a project, and pin it in assets.lock.json.      |
 |------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`find`](#an.library.cli.find)([kind, style, affords, rights, family, ...])   | Find assets: AND across facets, OR within one facet's comma-separated values.    |
+| [`kit`](#an.library.cli.kit)(package, asset_id, refs[, key_for, ...])        | Publish a kit: a pinned set of assets a project checks out in one call.          |
 | [`promote`](#an.library.cli.promote)(ref[, package, root, core_root, ...])       | Copy a version into the core an library, so other genres can reuse it.           |
 | [`publish`](#an.library.cli.publish)(folder, asset_id[, package, root, ...])     | Publish an asset folder as the next version of `asset_id`.                       |
 | [`retire`](#an.library.cli.retire)(ref[, by, reason, status, package, root])    | Retire an asset id: hidden from find, never deleted; its versions stay readable. |
@@ -34,7 +36,7 @@ Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
 Check a library version out into a project, and pin it in assets.lock.json.
 
 project_dir: the an project
-ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed
+ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed. A kit.<slug> reference checks out every member of the kit, each pinned, and records the kit in the lockfile
 key: the key in the project store (default: the asset’s slug)
 overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
 package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
@@ -61,6 +63,31 @@ package: the library to search first (then the core an library)
 root: that library’s root
 extra: further libraries to search, by package name, comma-separated
 json_out: print JSON instead of a table
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.kit(package, asset_id, refs, key_for='', name='', note='', title='', family='', style='', status='', tags='', license='', provider='', author='', source_url='', root='', extra='')
+
+Publish a kit: a pinned set of assets a project checks out in one call.
+
+package: whose library to publish the kit into (an, or a genre such as cutan)
+asset_id: kit.<slug>, e.g. kit.reiniger-base
+refs: the members, comma-separated [<library>:]<asset_id>[@<version>] (latest is pinned now)
+key_for: the project key of a member, as ref=key pairs, comma-separated (default: the asset’s slug)
+name: the kit’s name in its document (default: the asset id’s slug)
+note: what the kit is for
+title: a human title for the record
+family: the identity shared across styles and variants
+style: styles the kit suits, comma-separated
+status: draft, approved, deprecated or retired
+tags: free tags, comma-separated
+license: licence code of the kit document itself (the members keep their own rights)
+provider: where the kit document came from (required with –license)
+author: who made it
+source_url: where it was fetched from
+root: that library’s root (default: the package’s data folder)
+extra: further libraries where the members resolve, by package name, comma-separated
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

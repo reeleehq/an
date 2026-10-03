@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=ba5585f7"></script>
+    <script src="../_static/documentation_options.js?v=524f2635"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.timeline" href="an.stage.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.157" />
+  <meta name="docsearch:version" content="0.1.158" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kits.html">an.library.kits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
@@ -813,9 +814,16 @@ again (an#279).</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
 <p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project’s <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p>
 <p>Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.</p>
+cleanly under version control. The mapping is the <code class="docutils literal notranslate"><span class="pre">assets</span></code> section;
+<a class="reference internal" href="#an.stores.ProjectLock.kits" title="an.stores.ProjectLock.kits"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kits</span></code></a> is the <code class="docutils literal notranslate"><span class="pre">kits</span></code> section, and a write to either keeps the other.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.stores.ProjectLock.kits">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">kits</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stores.ProjectLock.kits" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">kit</span> <span class="pre">asset</span> <span class="pre">id</span> <span class="pre">-&gt;</span> <span class="pre">record</span></code> of the kits checked out into the project.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1082,7 +1090,10 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.OutputStore"><code class="docutils literal notranslate"><span class="pre">OutputStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PictureStore"><code class="docutils literal notranslate"><span class="pre">PictureStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PreviewArtifactStore"><code class="docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ProjectLock.kits"><code class="docutils literal notranslate"><span class="pre">ProjectLock.kits</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PropsStore"><code class="docutils literal notranslate"><span class="pre">PropsStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.RenderReportStore"><code class="docutils literal notranslate"><span class="pre">RenderReportStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a><ul class="nav section-nav flex-column">

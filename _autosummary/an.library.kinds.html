@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=ba5585f7"></script>
+    <script src="../_static/documentation_options.js?v=524f2635"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.library.lock" href="an.library.lock.html" />
+    <link rel="next" title="an.library.kits" href="an.library.kits.html" />
     <link rel="prev" title="an.library.ids" href="an.library.ids.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.157" />
+  <meta name="docsearch:version" content="0.1.158" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kits.html">an.library.kits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
@@ -596,7 +597,10 @@
 library needs for check-out and for publishing from a folder: which project
 store holds it (<code class="docutils literal notranslate"><span class="pre">characters</span></code>) and what its descriptor file is called inside a
 folder (<code class="docutils literal notranslate"><span class="pre">character.json</span></code>). Kinds with no project store yet (<code class="docutils literal notranslate"><span class="pre">motion</span></code>,
-<code class="docutils literal notranslate"><span class="pre">reference</span></code>, <code class="docutils literal notranslate"><span class="pre">plane</span></code>) can be published and found, not checked out.</p>
+<code class="docutils literal notranslate"><span class="pre">reference</span></code>, <code class="docutils literal notranslate"><span class="pre">plane</span></code>) can be published and found, not checked out. The
+<code class="docutils literal notranslate"><span class="pre">kit</span></code> kind is one of them for <code class="xref py py-func docutils literal notranslate"><span class="pre">checkout()</span></code>: a kit is a
+document naming other assets, and <a class="reference internal" href="an.library.kits.html#an.library.kits.checkout_kit" title="an.library.kits.checkout_kit"><code class="xref py py-func docutils literal notranslate"><span class="pre">checkout_kit()</span></code></a> checks
+out the assets it names.</p>
 <p>Genre packages register their kinds on import (ADR 0005 decision 12); the
 built-ins below are the kinds <code class="docutils literal notranslate"><span class="pre">an</span></code>’s project mall already stores, plus the ones
 the design names.</p>
@@ -609,7 +613,10 @@ the design names.</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.kinds.ASSET_KINDS" title="an.library.kinds.ASSET_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_KINDS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.kinds.KIT_KIND" title="an.library.kinds.KIT_KIND"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KIT_KIND</span></code></a></p></td>
+<td><p>a versioned set of assets a production checks out together.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.kinds.ASSET_KINDS" title="an.library.kinds.ASSET_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_KINDS</span></code></a></p></td>
 <td><p>Registered asset kinds, by name.</p></td>
 </tr>
 </tbody>
@@ -647,7 +654,7 @@ the design names.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.kinds.ASSET_KINDS">
-<span class="sig-prename descclassname"><span class="pre">an.library.kinds.</span></span><span class="sig-name descname"><span class="pre">ASSET_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.library.kinds.AssetKind" title="an.library.kinds.AssetKind"><span class="pre">AssetKind</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'character':</span> <span class="pre">AssetKind(name='character',</span> <span class="pre">store='characters',</span> <span class="pre">descriptor='character.json',</span> <span class="pre">credits_store='characters'),</span> <span class="pre">'environment':</span> <span class="pre">AssetKind(name='environment',</span> <span class="pre">store='environments',</span> <span class="pre">descriptor='meta.json',</span> <span class="pre">credits_store='environments'),</span> <span class="pre">'motion':</span> <span class="pre">AssetKind(name='motion',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'plane':</span> <span class="pre">AssetKind(name='plane',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'prop':</span> <span class="pre">AssetKind(name='prop',</span> <span class="pre">store='props',</span> <span class="pre">descriptor='prop.json',</span> <span class="pre">credits_store='props'),</span> <span class="pre">'reference':</span> <span class="pre">AssetKind(name='reference',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'sound':</span> <span class="pre">AssetKind(name='sound',</span> <span class="pre">store='sounds',</span> <span class="pre">descriptor='sound.json',</span> <span class="pre">credits_store='sounds'),</span> <span class="pre">'style':</span> <span class="pre">AssetKind(name='style',</span> <span class="pre">store='styles',</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'voice':</span> <span class="pre">AssetKind(name='voice',</span> <span class="pre">store='voices',</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None)}</span></span><a class="headerlink" href="#an.library.kinds.ASSET_KINDS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.kinds.</span></span><span class="sig-name descname"><span class="pre">ASSET_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.library.kinds.AssetKind" title="an.library.kinds.AssetKind"><span class="pre">AssetKind</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'character':</span> <span class="pre">AssetKind(name='character',</span> <span class="pre">store='characters',</span> <span class="pre">descriptor='character.json',</span> <span class="pre">credits_store='characters'),</span> <span class="pre">'environment':</span> <span class="pre">AssetKind(name='environment',</span> <span class="pre">store='environments',</span> <span class="pre">descriptor='meta.json',</span> <span class="pre">credits_store='environments'),</span> <span class="pre">'kit':</span> <span class="pre">AssetKind(name='kit',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'motion':</span> <span class="pre">AssetKind(name='motion',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'plane':</span> <span class="pre">AssetKind(name='plane',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'prop':</span> <span class="pre">AssetKind(name='prop',</span> <span class="pre">store='props',</span> <span class="pre">descriptor='prop.json',</span> <span class="pre">credits_store='props'),</span> <span class="pre">'reference':</span> <span class="pre">AssetKind(name='reference',</span> <span class="pre">store=None,</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'sound':</span> <span class="pre">AssetKind(name='sound',</span> <span class="pre">store='sounds',</span> <span class="pre">descriptor='sound.json',</span> <span class="pre">credits_store='sounds'),</span> <span class="pre">'style':</span> <span class="pre">AssetKind(name='style',</span> <span class="pre">store='styles',</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None),</span> <span class="pre">'voice':</span> <span class="pre">AssetKind(name='voice',</span> <span class="pre">store='voices',</span> <span class="pre">descriptor=None,</span> <span class="pre">credits_store=None)}</span></span><a class="headerlink" href="#an.library.kinds.ASSET_KINDS" title="Link to this definition">#</a></dt>
 <dd><p>Registered asset kinds, by name.</p>
 </dd></dl>
 
@@ -667,6 +674,17 @@ document per key with no folder (voices, styles): such an asset has no files.</p
 <code class="docutils literal notranslate"><span class="pre">None</span></code> reads the top-level <code class="docutils literal notranslate"><span class="pre">source</span></code> only.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.library.kinds.KIT_KIND">
+<span class="sig-prename descclassname"><span class="pre">an.library.kinds.</span></span><span class="sig-name descname"><span class="pre">KIT_KIND</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'kit'</span></span><a class="headerlink" href="#an.library.kinds.KIT_KIND" title="Link to this definition">#</a></dt>
+<dd><p>a versioned set of assets a production checks out together.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The kind of a kit</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py exception">
@@ -720,11 +738,11 @@ document per key with no folder (voices, styles): such an asset has no files.</p
       </div>
     </a>
     <a class="right-next"
-       href="an.library.lock.html"
+       href="an.library.kits.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.library.lock</p>
+        <p class="prev-next-title">an.library.kits</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -752,6 +770,7 @@ document per key with no folder (voices, styles): such an asset has no files.</p
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.kinds.AssetKind.credits_store"><code class="docutils literal notranslate"><span class="pre">AssetKind.credits_store</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.kinds.KIT_KIND"><code class="docutils literal notranslate"><span class="pre">KIT_KIND</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.kinds.UnknownKindError"><code class="docutils literal notranslate"><span class="pre">UnknownKindError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.kinds.asset_kind_info"><code class="docutils literal notranslate"><span class="pre">asset_kind_info()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.kinds.register_asset_kind"><code class="docutils literal notranslate"><span class="pre">register_asset_kind()</span></code></a></li>

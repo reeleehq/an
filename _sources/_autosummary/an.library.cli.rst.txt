@@ -10,6 +10,7 @@ an.library.cli
    
       checkout
       find
+      kit
       promote
       publish
       retire

@@ -41,6 +41,9 @@ What lives where:
   `check_pins`, `drift_findings` (both run by `an validate`);
   [`an.library.lock`](an.library.lock.md#module-an.library.lock) — the project lockfile (a project store,
   > `mall["library_lock"]`);
+- [`an.library.kits`](an.library.kits.md#module-an.library.kits) — kits: a curated, pinned set of assets a project checks
+  out in one call (`publish_kit`, `checkout_kit`); the kit is recorded in
+  the lockfile’s `kits` section;
 - [`an.library.cli`](an.library.cli.md#module-an.library.cli) — `an library …`, a projection of the same functions.
 
 ### Functions
@@ -50,6 +53,7 @@ What lives where:
 | [`build_library_mall`](#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
 | [`checkout`](#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
+| [`checkout_kit`](#an.library.checkout_kit)(libraries, project_dir, ref, \*)      | Check every member of a kit out into a project, pin each, and record the kit.                                                                 |
 | [`drift_findings`](#an.library.drift_findings)([project_dir, mall, lock, ...])     | One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.                                   |
 | [`effective_rights`](#an.library.effective_rights)(libraries, version, \*[, ...])    | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
 | [`find`](#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
@@ -61,6 +65,7 @@ What lives where:
 | [`promote`](#an.library.promote)(libraries, ref, \*[, to, as_id, ...])      | Copy one version into another library — by default the core `an` library.                                                                     |
 | [`publish`](#an.library.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.                                                                 |
 | [`publish_dir`](#an.library.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).                                                           |
+| [`publish_kit`](#an.library.publish_kit)(library, asset_id, members, \*[, ...]) | Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`.                                                      |
 | [`reindex`](#an.library.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                                                                            |
 | [`retire`](#an.library.retire)(library, asset_id, \*, by, reason)          | Retire an asset id: recorded, hidden from `find` by default, never deleted.                                                                   |
 | [`register_analyser`](#an.library.register_analyser)(kind, \*[, version, ...])        | Register an analyser.                                                                                                                         |
@@ -85,6 +90,8 @@ What lives where:
 | [`CheckoutResult`](#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
 | [`FindResult`](#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
 | [`Hit`](#an.library.Hit)(library, asset_id, version, score[, ...])     | One asset that answers a query — or nearly does (`missing` non-empty).               |
+| [`Kit`](#an.library.Kit)(\*\*data)                                     | The kit document: a name, its pinned members, and a note saying what it is for.      |
+| [`KitMember`](#an.library.KitMember)(\*\*data)                               | One member of a kit: a pinned reference and the project key it lands under.          |
 | [`Library`](#an.library.Library)(name, mall[, root])                       | One library: its name (the namespace of its ids), its mall, and its root if on disk. |
 | [`LibraryRef`](#an.library.LibraryRef)(asset_id[, version, namespace])        | A parsed `[<namespace>:]<asset_id>[@<version>]`.                                     |
 | [`ProjectLock`](#an.library.ProjectLock)(project_dir)                          | `<store>/<key> -> pin` over a project's `assets.lock.json`.                          |
@@ -190,6 +197,28 @@ Bases: [`LibraryError`](an.library.api.md#an.library.api.LibraryError)
 
 Stored bytes, paths or a stored manifest do not match what was recorded.
 
+### *class* an.library.Kit(\*\*data)
+
+Bases: `BaseModel`
+
+The kit document: a name, its pinned members, and a note saying what it is for.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.library.KitMember(\*\*data)
+
+Bases: `BaseModel`
+
+One member of a kit: a pinned reference and the project key it lands under.
+
+`key=None` takes the check-out’s default (the asset id’s slug).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.library.Library(name, mall, root=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -264,7 +293,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](an.library.kits.md#module-an.library.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### *class* an.library.PublishResult(ref, manifest_sha256, created, rights, affordances, advice=())
 
@@ -402,6 +436,35 @@ Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
+
+### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+
+Check every member of a kit out into a project, pin each, and record the kit.
+
+libraries: where the kit and its members resolve
+project_dir: the project to check out into
+ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
+overwrite: replace project entries that are not exactly their member’s version
+mall: the project mall (default: `build_project_mall(project_dir)`)
+lock: the lockfile (default: the mall’s `library_lock` store); it needs a
+
+> `kits` section, as [`ProjectLock`](an.stores.library_lock.md#an.stores.library_lock.ProjectLock) has
+
+Returns one [`CheckoutResult`](#an.library.CheckoutResult) per member, in the
+kit’s order. Each member is checked out by `checkout()`
+under its `key` and pinned in `assets.lock.json` as any check-out is; the
+kit itself is recorded under the lockfile’s `kits` section (its pinned
+reference, manifest and the members’ lockfile keys), so `an library` readers
+and a human can see which kit the project came from. Checking the same kit out
+again is idempotent.
+
+All members are resolved and checked before the first is written: a missing
+member, a member that is itself a kit, a corrupt stored file, or a project
+entry that is a fork (without `overwrite`) raises [`CheckoutError`](#an.library.CheckoutError)
+and the project is untouched.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CheckoutResult`](#an.library.CheckoutResult)]
 
 ### an.library.drift_findings(project_dir=None, , mall=None, lock=None, libraries=None)
 
@@ -677,6 +740,43 @@ its file is called (review-288 S2). Keyword arguments go to [`publish()`](#an.li
 * **Return type:**
   [`PublishResult`](an.library.api.md#an.library.api.PublishResult)
 
+### an.library.publish_kit(library, asset_id, members, , search=None, name=None, note=None, \*\*curation)
+
+Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`.
+
+library: the owning library (writes never go to a search path)
+asset_id: `kit.<slug>`
+members: each a library reference (`[<library>:]<asset_id>[@<version>]`), a
+
+> `(reference, key)` pair, or a mapping `{"ref": …, "key": …}`; `key` is
+> the name the member takes in the project’s store (default: the asset’s slug)
+
+search: further libraries where member references resolve (the owning library
+: is always searched first, as in [`publish()`](an.library.api.md#an.library.api.publish))
+
+name: the kit’s name in its document (default: the asset id’s slug)
+note: what the kit is for, stored in the document and on the version
+curation: everything else [`publish()`](an.library.api.md#an.library.api.publish) takes — `source=`
+
+> (the kit document is its author’s own authoring: its rights come from
+> this, never from its members), `title`, `style`, `tags`, …
+
+Every member must resolve; `latest` and unversioned references are pinned to
+the concrete version now, so the kit version is reproducible. A member that is
+itself a kit, one with no project store, or two members landing in one
+`(store, key)` are refused.
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "style.noir", {"name": "noir"}, source={"provider": "me", "license": "cc0-1.0"})
+>>> r = publish_kit(lib, "kit.noir-base", ["style.noir"], source={"provider": "me", "license": "cc0-1.0"})
+>>> lib.versions["kit.noir-base@v001"]["doc"]["members"]
+[{'ref': 'style.noir@v001', 'key': None}]
+```
+
+* **Return type:**
+  [`PublishResult`](an.library.api.md#an.library.api.PublishResult)
+
 ### an.library.register_analyser(kind, , version='', subject='asset', owner='an')
 
 Register an analyser. Two forms.
@@ -923,6 +1023,7 @@ True
 | [`floor`](an.library.floor.md#module-an.library.floor)               | The rights floor of a blob: the strictest statement any library on this machine makes about its bytes.                                                                       |
 | [`ids`](an.library.ids.md#module-an.library.ids)                   | Asset ids, version labels and library references — the library's persisted names.                                                                                            |
 | [`kinds`](an.library.kinds.md#module-an.library.kinds)               | Asset kinds: the `kind` facet's vocabulary, and where each kind lives in a project.                                                                                          |
+| [`kits`](an.library.kits.md#module-an.library.kits)                 | Kits: a curated, versioned set of library assets that a project checks out in one call.                                                                                      |
 | [`lock`](an.library.lock.md#module-an.library.lock)                 | The project lockfile, as the asset library sees it (re-exported from [`an.stores.library_lock`](an.stores.library_lock.md#module-an.stores.library_lock)). |
 | [`registry`](an.library.registry.md#module-an.library.registry)         | The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).                                                                      |
 | [`rights`](an.library.rights.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).                                                                          |

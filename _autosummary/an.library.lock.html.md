@@ -29,7 +29,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](#an.library.lock.ProjectLock.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### an.library.lock.lock_key(store, key)
 

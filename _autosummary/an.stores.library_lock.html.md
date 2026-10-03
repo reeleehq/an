@@ -30,6 +30,24 @@ says whether it still is its version (`an validate` reports the drift as
 `info`: an edited check-out is a fork, not a mistake), and only then may
 anything treat the pin as standing for the content.
 
+A **kit** check-out ([`an.library.kits.checkout_kit()`](an.library.kits.html.md#an.library.kits.checkout_kit)) pins each member the
+way any check-out does, and additionally records the kit in a top-level
+`"kits"` section, keyed by the kit’s asset id:
+
+```default
+{"kits": {"kit.reiniger-base": {"library": "cutan:kit.reiniger-base@v002",
+                                "manifest_sha256": "…", "checked_out": "…",
+                                "members": ["styles/reiniger", "voices/narrator"]}}}
+```
+
+`members` are lockfile keys of `assets`. The section sits OUTSIDE `assets`
+on purpose: everything that walks the pins (`verify_checkout`, `an validate`,
+`check_pins`) iterates the mapping, which is `assets` only, so a kit entry
+cannot be mistaken for an asset or collide with a `<store>/<key>` key. It is
+additive (an older `an` reads the file and ignores the section, though its
+next write drops it) and read through
+[`ProjectLock.kits`](#an.stores.library_lock.ProjectLock.kits).
+
 The lockfile is a `MutableMapping` like every other store (pillar 7),
 registered in the project mall as `mall["library_lock"]`
 ([`an.stores.build_project_mall()`](an.stores.html.md#an.stores.build_project_mall)); `an.library.checkout.checkout()`
@@ -77,7 +95,12 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 `<store>/<key> -> pin` over a project’s `assets.lock.json`.
 
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
-cleanly under version control.
+cleanly under version control. The mapping is the `assets` section;
+[`kits`](#an.stores.library_lock.ProjectLock.kits) is the `kits` section, and a write to either keeps the other.
+
+#### *property* kits *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]*
+
+`kit asset id -> record` of the kits checked out into the project.
 
 ### an.stores.library_lock.lock_key(store, key)
 

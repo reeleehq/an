@@ -12,6 +12,7 @@ an.library
       build_library_mall
       check_pins
       checkout
+      checkout_kit
       drift_findings
       effective_rights
       find
@@ -23,6 +24,7 @@ an.library
       promote
       publish
       publish_dir
+      publish_kit
       reindex
       retire
       register_analyser
@@ -48,6 +50,8 @@ an.library
       CheckoutResult
       FindResult
       Hit
+      Kit
+      KitMember
       Library
       LibraryRef
       ProjectLock
@@ -81,6 +85,7 @@ an.library
    floor
    ids
    kinds
+   kits
    lock
    registry
    rights

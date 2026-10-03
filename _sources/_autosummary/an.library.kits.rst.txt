@@ -1,0 +1,26 @@
+an.library.kits
+===============
+
+.. automodule:: an.library.kits
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      KIT_SCHEMA_VERSION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      checkout_kit
+      publish_kit
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Kit
+      KitMember
+   

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=ba5585f7"></script>
+    <script src="../../../_static/documentation_options.js?v=524f2635"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.157" />
+  <meta name="docsearch:version" content="0.1.158" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -716,7 +716,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">library needs for check-out and for publishing from a folder: which project</span>
 <span class="sd">store holds it (``characters``) and what its descriptor file is called inside a</span>
 <span class="sd">folder (``character.json``). Kinds with no project store yet (``motion``,</span>
-<span class="sd">``reference``, ``plane``) can be published and found, not checked out.</span>
+<span class="sd">``reference``, ``plane``) can be published and found, not checked out. The</span>
+<span class="sd">``kit`` kind is one of them for :func:`~an.library.checkout.checkout`: a kit is a</span>
+<span class="sd">document naming other assets, and :func:`~an.library.kits.checkout_kit` checks</span>
+<span class="sd">out the assets it names.</span>
 
 <span class="sd">Genre packages register their kinds on import (ADR 0005 decision 12); the</span>
 <span class="sd">built-ins below are the kinds ``an``'s project mall already stores, plus the ones</span>
@@ -734,6 +737,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"ASSET_KINDS"</span><span class="p">,</span>
+    <span class="s2">"KIT_KIND"</span><span class="p">,</span>
     <span class="s2">"AssetKind"</span><span class="p">,</span>
     <span class="s2">"UnknownKindError"</span><span class="p">,</span>
     <span class="s2">"asset_kind_info"</span><span class="p">,</span>
@@ -766,6 +770,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">credits_store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
+
+<span class="c1">#: The kind of a kit: a versioned set of assets a production checks out together.</span>
+<span class="n">KIT_KIND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"kit"</span>
 
 <span class="c1">#: Registered asset kinds, by name.</span>
 <span class="n">ASSET_KINDS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetKind</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -824,6 +831,7 @@ window.runMermaid = runMermaid;</script>
 <span class="n">register_asset_kind</span><span class="p">(</span><span class="s2">"plane"</span><span class="p">)</span>
 <span class="n">register_asset_kind</span><span class="p">(</span><span class="s2">"motion"</span><span class="p">)</span>
 <span class="n">register_asset_kind</span><span class="p">(</span><span class="s2">"reference"</span><span class="p">)</span>
+<span class="n">register_asset_kind</span><span class="p">(</span><span class="n">KIT_KIND</span><span class="p">)</span>
 </pre></div>
 
                 </article>

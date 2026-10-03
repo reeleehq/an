@@ -6,7 +6,10 @@ An asset id’s prefix is its kind (`character.alice`). A kind says two things t
 library needs for check-out and for publishing from a folder: which project
 store holds it (`characters`) and what its descriptor file is called inside a
 folder (`character.json`). Kinds with no project store yet (`motion`,
-`reference`, `plane`) can be published and found, not checked out.
+`reference`, `plane`) can be published and found, not checked out. The
+`kit` kind is one of them for `checkout()`: a kit is a
+document naming other assets, and [`checkout_kit()`](an.library.kits.md#an.library.kits.checkout_kit) checks
+out the assets it names.
 
 Genre packages register their kinds on import (ADR 0005 decision 12); the
 built-ins below are the kinds `an`’s project mall already stores, plus the ones
@@ -21,8 +24,9 @@ True
 
 ### Module Attributes
 
-| [`ASSET_KINDS`](#an.library.kinds.ASSET_KINDS)   | Registered asset kinds, by name.   |
-|----------------------------------------------------------------|------------------------------------|
+| [`KIT_KIND`](#an.library.kinds.KIT_KIND)    | a versioned set of assets a production checks out together.   |
+|--------------------------------------------------------------|---------------------------------------------------------------|
+| [`ASSET_KINDS`](#an.library.kinds.ASSET_KINDS) | Registered asset kinds, by name.                              |
 
 ### Functions
 
@@ -40,7 +44,7 @@ True
 | [`UnknownKindError`](#an.library.kinds.UnknownKindError)   | An asset id whose kind prefix nobody registered.   |
 |---------------------------------------------------------------------|----------------------------------------------------|
 
-### an.library.kinds.ASSET_KINDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [AssetKind](#an.library.kinds.AssetKind)]* *= {'character': AssetKind(name='character', store='characters', descriptor='character.json', credits_store='characters'), 'environment': AssetKind(name='environment', store='environments', descriptor='meta.json', credits_store='environments'), 'motion': AssetKind(name='motion', store=None, descriptor=None, credits_store=None), 'plane': AssetKind(name='plane', store=None, descriptor=None, credits_store=None), 'prop': AssetKind(name='prop', store='props', descriptor='prop.json', credits_store='props'), 'reference': AssetKind(name='reference', store=None, descriptor=None, credits_store=None), 'sound': AssetKind(name='sound', store='sounds', descriptor='sound.json', credits_store='sounds'), 'style': AssetKind(name='style', store='styles', descriptor=None, credits_store=None), 'voice': AssetKind(name='voice', store='voices', descriptor=None, credits_store=None)}*
+### an.library.kinds.ASSET_KINDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [AssetKind](#an.library.kinds.AssetKind)]* *= {'character': AssetKind(name='character', store='characters', descriptor='character.json', credits_store='characters'), 'environment': AssetKind(name='environment', store='environments', descriptor='meta.json', credits_store='environments'), 'kit': AssetKind(name='kit', store=None, descriptor=None, credits_store=None), 'motion': AssetKind(name='motion', store=None, descriptor=None, credits_store=None), 'plane': AssetKind(name='plane', store=None, descriptor=None, credits_store=None), 'prop': AssetKind(name='prop', store='props', descriptor='prop.json', credits_store='props'), 'reference': AssetKind(name='reference', store=None, descriptor=None, credits_store=None), 'sound': AssetKind(name='sound', store='sounds', descriptor='sound.json', credits_store='sounds'), 'style': AssetKind(name='style', store='styles', descriptor=None, credits_store=None), 'voice': AssetKind(name='voice', store='voices', descriptor=None, credits_store=None)}*
 
 Registered asset kinds, by name.
 
@@ -57,6 +61,13 @@ document per key with no folder (voices, styles): such an asset has no files.
 
 The `an credits` store name its sources are read under (rights roll-up);
 `None` reads the top-level `source` only.
+
+### an.library.kinds.KIT_KIND *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'kit'*
+
+a versioned set of assets a production checks out together.
+
+* **Type:**
+  The kind of a kit
 
 ### *exception* an.library.kinds.UnknownKindError
 
