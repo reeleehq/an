@@ -19,7 +19,7 @@ import pytest
 from an.adapters.cutout.compile import compile_shot
 from an.ir.sync import markdown_to_ir
 from an.library import open_library, publish_dir
-from an.motion import WALK_ARM_NAMES, WALK_LEG_NAMES, _limb_pair
+from cutan.motion import WALK_ARM_NAMES, WALK_LEG_NAMES, _limb_pair
 from an.stores import build_project_mall
 from tests._corpus_roots import corpus_glob
 
