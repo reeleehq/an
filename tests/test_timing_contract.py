@@ -606,3 +606,27 @@ def test_the_schema_address_pattern_is_the_parser():
         except AddressError:
             parsed = False
         assert parsed == bool(pattern.match(text)), text
+
+
+def test_every_transform_property_has_its_own_write_group_in_the_runtime():
+    """`RUNTIME_PROPERTIES` is the JS port of `write_group`: a property missing
+    from it falls into the swap write group, so two of its tracks on one node
+    would conflict as if they were swaps. It must be exactly `TRANSFORM_PROPERTIES`
+    and exactly the cases `applyProperty` handles (an#314's plane properties were
+    once handled but not listed). Kept in the core because the runtime is the
+    core's; the same check in `cutan` stopped running here when the genre moved."""
+    import re
+
+    from an.base import TRANSFORM_PROPERTIES
+
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    listed = src[
+        src.index("const RUNTIME_PROPERTIES") : src.index("const SWAP_WRITE_GROUP")
+    ]
+    runtime = set(re.findall(r"'([a-z_]+)'", listed))
+    cases = set(
+        re.findall(
+            r"case '([a-z_]+)':", _extract_js_block(src, "function applyProperty")
+        )
+    )
+    assert runtime == set(TRANSFORM_PROPERTIES) == cases
