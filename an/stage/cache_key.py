@@ -125,14 +125,12 @@ def compiled_document(shot: Any, ctx: Any) -> Any:
 def texture_digests(scene_json: Any, mall: Mapping[str, Any]) -> dict[str, str]:
     """``{alias: sha256 of the bytes staged for it}`` for every texture the document declares.
 
-    Resolved exactly as `_stage_scene_assets` resolves them — the prefix map,
-    the store's root, the versioned ``src`` stripped — so what is digested is
-    what is staged. Inline (``data:``) textures are already in the document and
+    Resolved by the staging step's own resolver (`an.stage.render.texture_source`),
+    so what is digested is what is staged. Inline (``data:``) textures are already in the document and
     are skipped; anything unresolvable is :data:`ABSENT` with its ``src``, so
     it still moves the key the day it appears.
     """
     from an.stage.text_layout import INLINE_SRC_PREFIX
-    from an.stage.raster import strip_version
 
     r = _render_module()
     textures = getattr(scene_json.assets, "textures", {}) if scene_json.assets else {}
@@ -141,14 +139,7 @@ def texture_digests(scene_json: Any, mall: Mapping[str, Any]) -> dict[str, str]:
         src = getattr(asset, "src", None) or ""
         if not src or src.startswith(INLINE_SRC_PREFIX):
             continue
-        prefix = next(
-            (p for p in r.ASSET_SRC_PREFIX_TO_STORE if src.startswith(p)), None
-        )
-        store = mall.get(r.ASSET_SRC_PREFIX_TO_STORE[prefix]) if prefix else None
-        root = getattr(store, "_root", None) if store is not None else None
-        path = (
-            Path(root) / strip_version(src)[len(prefix) :] if root and prefix else None
-        )
+        path, _ = r.texture_source(src, mall)
         if path is not None and path.is_file():
             out[alias] = file_digest(path)
             if path.suffix.lower() == ".svg" and _draws_system_text(path):

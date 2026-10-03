@@ -16,7 +16,7 @@ import pytest
 from an.adapters._base import RenderContext
 from an.build import ShotCache, in_memory_shot_cache_store
 from an.build.reads import WHOLE_STORE, RecordingMall, entry_digest, read_digests
-from an.build.shot_cache import KEY_FORMAT_CHANGED, explain_change
+from an.build.shot_cache import KEY_FORMAT_CHANGED, explain_change  # noqa: F401
 from an.ir.schema import AssetRef
 from an.project import load
 
@@ -148,21 +148,52 @@ def test_a_keyer_that_does_not_record_reads_keeps_the_project_dependency(tmp_pat
     import an.adapters  # noqa: F401 — registers the cut-out keyer
     from an.adapters.cutout.render import CutoutRenderer
 
+    from an.build import every_asset_digest
+    from an.build.keys import canonical_digest
+
     entry = keys._KEYERS["cutout"]
     assert entry.records_reads
-    ctx = RenderContext(mall={"audio": {}, "props": {}}, work_dir=tmp_path, fps=12,
-                        resolution=(160, 120))
+    mall = {"audio": {}, "props": {"unread": {"text": "x"}}}
+    ctx = RenderContext(mall=mall, work_dir=tmp_path, fps=12, resolution=(160, 120))
     engine = ShotCache(in_memory_shot_cache_store(), environment=_env())
-    engine.begin({"props": {}})
+    engine.begin(mall)
     recorded = engine.plan(_shot("a", 1.0), CutoutRenderer(), ctx)
-    assert "assets" in recorded.inputs and "project" not in recorded.inputs
+    assert recorded.inputs["assets"] == canonical_digest({})  # read nothing
 
     monkeypatch.setitem(keys._KEYERS, "cutout", keys._KeyerEntry(
         keyer=entry.keyer, environment=entry.environment,
         renderer_type=entry.renderer_type, parts=dict(entry.parts)))
-    engine.begin({"props": {}})
+    engine.begin(mall)
     opaque = engine.plan(_shot("a", 1.0), CutoutRenderer(), ctx)
-    assert "project" in opaque.inputs and "assets" not in opaque.inputs
+    assert opaque.inputs["assets"] == every_asset_digest(mall)
+    assert recorded.inputs["project"] == opaque.inputs["project"]
+
+
+def test_a_custom_dependency_reaches_every_shot(tmp_path, fake_render):
+    """``dependencies=`` is what EVERY shot depends on, recorded reads or not
+    (an#316 review, finding 1)."""
+    root = _crawl_film(tmp_path)
+    value = {"v": "one"}
+    custom = lambda: ShotCache(  # noqa: E731
+        environment=_env(), dependencies=lambda mall, project_root=None: value["v"] * 32
+    )
+    _render(root, fake_render, cache=custom())
+    value["v"] = "two"
+    report, rendered = _render(root, fake_render, cache=custom())
+    assert rendered == ["intro", "main", "end"]
+    assert "the library lockfile changed" in report.summary()
+
+
+def test_an_older_entry_is_said_to_be_another_key_format(tmp_path, fake_render, monkeypatch):
+    from an.build import keys, shot_cache
+
+    root = _crawl_film(tmp_path)
+    _render(root, fake_render)
+    monkeypatch.setattr(keys, "SHOT_KEY_IMPL_VERSION", keys.SHOT_KEY_IMPL_VERSION + 1)
+    monkeypatch.setattr(shot_cache, "SHOT_KEY_IMPL_VERSION", keys.SHOT_KEY_IMPL_VERSION)
+    report, rendered = _render(root, fake_render)
+    assert rendered == ["intro", "main", "end"]
+    assert report.summary().endswith(f"not reused: {KEY_FORMAT_CHANGED} (intro, main, end)")
 
 
 # -----------------------------------------------------------------------------
@@ -205,6 +236,25 @@ def test_an_entry_digest_covers_its_files_beside_the_mapping(tmp_path):
     # OS clutter is not an asset.
     (tmp_path / "props" / "logo" / ".DS_Store").write_bytes(b"x")
     assert entry_digest(store, "logo") == after
+    # Nor is an entry whose name only starts with this one's (review, finding 5).
+    store["logo.v2"] = dict(_LOGO)
+    (tmp_path / "props" / "logo.v2" / "font.ttf").write_bytes(b"v2")
+    assert entry_digest(store, "logo") == after
+
+
+def test_the_key_digests_the_texture_staging_reads(tmp_path, monkeypatch):
+    """One resolver for staging and keying (review, finding 2): whatever file
+    staging would copy for a ``src`` is the file the key digests."""
+    from types import SimpleNamespace
+
+    from an.build.keys import file_digest
+    from an.stage import cache_key, render
+
+    art = tmp_path / "art.svg"
+    art.write_text("<svg/>", encoding="utf-8")
+    monkeypatch.setattr(render, "texture_source", lambda src, mall: (art, ""))
+    doc = SimpleNamespace(assets=SimpleNamespace(textures={"t": SimpleNamespace(src="anywhere/x.svg")}))
+    assert cache_key.texture_digests(doc, {}) == {"t": file_digest(art)}
 
 
 @pytest.mark.parametrize(
@@ -213,7 +263,8 @@ def test_an_entry_digest_covers_its_files_beside_the_mapping(tmp_path):
         ({"compiled": "a"}, {"compiled": "b"}, "its document changed"),
         ({"knobs": "a", "environment": "e"}, {"knobs": "b", "environment": "f"},
          "render settings and the render environment changed"),
-        ({"project": "p"}, {"assets": "a"}, KEY_FORMAT_CHANGED),
+        ({"compiled": "a"}, {"compiled": "a", "fonts": "f"}, "the system fonts changed"),
+        ({"assets": "a"}, {"assets": "b"}, "a project asset changed"),
     ],
 )
 def test_explain_change_names_the_parts_that_moved(before, after, expected):

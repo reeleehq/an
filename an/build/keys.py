@@ -13,13 +13,13 @@ impl       :data:`SHOT_KEY_IMPL_VERSION`, the salt bumped when the key's own
            composition changes
 assets     the asset entries the shot's compile READ (ADR 0004 decision 3,
            an#316): :func:`an.build.reads.read_digests`, for a renderer
-           whose keyer is registered with ``records_reads=True``
-root_files the project-root files every shot depends on (the library
-           lockfile): :func:`project_root_files_digest`
-project    every asset in the project — the first slice's fallback, kept for
-           a renderer whose keyer cannot vouch that its reads go through
-           the mall (an opaque Manim source opens files by path, an#291):
-           :func:`project_assets_digest`
+           whose keyer is registered with ``records_reads=True`` — and for
+           any other, every asset in the project, the first slice's
+           fallback (an opaque Manim source opens files by path, an#291):
+           :func:`every_asset_digest`
+project    what EVERY shot depends on, project-wide: by default the
+           project-root files (the library lockfile),
+           :func:`project_dependencies`
 environment the machine's render environment, from the renderer's registered
            probe — separate, so a machine change invalidates renders without
            pretending the content changed
@@ -56,7 +56,7 @@ from typing import Any
 #: one someone forgets — that is each keyer's ``code`` part, a digest of the
 #: render path's source. Bumping it orphans every entry; nothing is deleted
 #: (decision 6).
-SHOT_KEY_IMPL_VERSION: int = 2
+SHOT_KEY_IMPL_VERSION: int = 2  # 2: `assets` (recorded reads) beside `project` (an#316)
 
 #: The mall's ASSET stores: the art the compiler reads (characters,
 #: environments, props, styles) and the two the audio path reads (voices,
@@ -254,6 +254,34 @@ def project_assets_digest(
     if project_root is not None:
         digest["root_files"] = project_root_files_digest(project_root, files=root_files)
     return canonical_digest(digest)
+
+
+def project_dependencies(
+    mall: Mapping[str, Any], *, project_root: str | Path | None = None
+) -> str:
+    """What every shot depends on project-wide: the project-root files
+    (:data:`PROJECT_ROOT_FILES`, the library lockfile), read by path. A re-pin
+    changes what is checked out, so it moves every key, conservatively.
+
+    >>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
+    True
+    """
+    return canonical_digest(
+        project_root_files_digest(project_root) if project_root is not None else ABSENT
+    )
+
+
+def every_asset_digest(
+    mall: Mapping[str, Any], *, project_root: str | Path | None = None
+) -> str:
+    """Every asset in the project (decision 3's fallback), without the root
+    files — those are :func:`project_dependencies`'. The ``assets`` part of a
+    shot whose keyer cannot vouch for its reads.
+
+    >>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
+    True
+    """
+    return project_assets_digest(mall)
 
 
 # -----------------------------------------------------------------------------

@@ -257,7 +257,7 @@ def test_compile_and_render_wall_times_are_recorded_per_shot(tmp_path, fake_rend
     rec = store[report.outcomes[0].key]
     assert {"compile_s", "render_s", "key_s"} <= set(rec.timings)
     core_parts = {"compiled", "textures", "easings", "audio", "runtime", "code", "knobs",
-                  "environment", "assets", "root_files", "renderer", "vocabulary"}
+                  "environment", "assets", "project", "renderer", "vocabulary"}
     # A loaded genre that registered runtime scripts (the cut-out mouth and eye) adds its
     # staged code as one more named part.
     assert core_parts <= set(rec.inputs) <= core_parts | {"runtime_extensions"}

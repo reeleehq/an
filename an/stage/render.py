@@ -437,6 +437,31 @@ ASSET_SRC_PREFIX_TO_STORE: dict[str, str] = {
 }
 
 
+def texture_source(src_rel: str, mall: Mapping[str, Any]) -> tuple[Path | None, str]:
+    """Where a texture's bytes are read from: ``(path, "")``, or ``(None, why)``.
+
+    The ONE resolution of a texture ``src`` to a file: staging copies from it
+    (:func:`_stage_scene_assets`) and the shot cache digests it
+    (`an.stage.cache_key.texture_digests`), so the bytes keyed are the bytes
+    drawn — a change to where art is read from (the asset library's reference
+    mode, ADR 0005) changes both or neither (an#316 review). ``why`` is one of
+    ``"prefix"``, ``"store"`` (absent or in-memory) and ``"missing"``.
+    """
+    prefix = next((p for p in ASSET_SRC_PREFIX_TO_STORE if src_rel.startswith(p)), None)
+    if prefix is None:
+        return None, "prefix"
+    store = mall.get(ASSET_SRC_PREFIX_TO_STORE[prefix])
+    root = getattr(store, "_root", None) if store is not None else None
+    if root is None:
+        return None, "store"
+    # A raster src carries its digest as a query (an#211); the file is the
+    # path before it.
+    source = Path(root) / strip_version(src_rel)[len(prefix) :]
+    if not source.exists():
+        return None, "missing"
+    return source, ""
+
+
 def _stage_scene_assets(
     scene_json: Any,
     mall: Mapping[str, Any],
@@ -472,10 +497,8 @@ def _stage_scene_assets(
             # there is nothing to copy, and nothing is missing.
             continue
 
-        prefix = next(
-            (p for p in ASSET_SRC_PREFIX_TO_STORE if src_rel.startswith(p)), None
-        )
-        if prefix is None:
+        source, why = texture_source(src_rel, mall)
+        if why == "prefix":
             warnings.warn(
                 f"texture {alias!r} has src {src_rel!r}, whose prefix is not one of "
                 f"{sorted(ASSET_SRC_PREFIX_TO_STORE)}. It cannot be resolved to a "
@@ -486,10 +509,10 @@ def _stage_scene_assets(
             )
             continue
 
-        store_name = ASSET_SRC_PREFIX_TO_STORE[prefix]
-        store = mall.get(store_name)
-        root = getattr(store, "_root", None) if store is not None else None
-        if root is None:
+        if why == "store":
+            store_name = next(
+                v for k, v in ASSET_SRC_PREFIX_TO_STORE.items() if src_rel.startswith(k)
+            )
             # An in-memory store is legitimate (tests do it) and has nothing on
             # disk to copy — but a scene that *declared* the texture still will
             # not get it, so say so.
@@ -501,13 +524,13 @@ def _stage_scene_assets(
             )
             continue
 
-        # A raster src carries its digest as a query (an#211); the file is the
-        # path before it.
-        source = Path(root) / strip_version(src_rel)[len(prefix) :]
-        if not source.exists():
+        if why == "missing":
+            prefix = next(k for k in ASSET_SRC_PREFIX_TO_STORE if src_rel.startswith(k))
+            store = mall.get(ASSET_SRC_PREFIX_TO_STORE[prefix])
+            looked = Path(store._root) / strip_version(src_rel)[len(prefix) :]
             warnings.warn(
                 f"texture {alias!r} declared as {src_rel!r} was not found at "
-                f"{source}. Nothing is staged for it, so the render will fail at "
+                f"{looked}. Nothing is staged for it, so the render will fail at "
                 f"load rather than draw a stand-in.",
                 CutoutAssetWarning,
                 stacklevel=2,

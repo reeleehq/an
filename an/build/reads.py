@@ -56,8 +56,11 @@ class RecordingStore(MutableMapping):
     Attribute access (``_root``, a store's own helpers) reaches the wrapped
     store unchanged — the compiler reads art by path through ``_root``, and
     those bytes are keyed by the ``textures`` part, not here. ``bool()`` is
-    NOT a read: ``mall.get(name) or {}`` asks whether the store exists, and
-    a key read after it is recorded on its own.
+    NOT a read: ``mall.get(name) or {}`` asks whether the store has anything,
+    and recording it would make every shot depend on the whole store. So a
+    read of an EMPTY store (which that idiom replaces with ``{}``) goes
+    unrecorded — safe, because what the shot draws from an entry that appears
+    later reaches its compiled document.
     """
 
     def __init__(self, store: Any, name: str, reads: set[Read]) -> None:
@@ -150,10 +153,10 @@ def entry_files(store: Any, key: str) -> list[Path]:
     """The files of entry ``key`` in a filesystem store (one exposing ``_root``).
 
     Both store layouts are covered: a sidecar store's folder ``<root>/<key>/``
-    (everything under it) and a JSON store's ``<root>/<key>.json``. Over-
-    inclusive by design — a sibling ``<key>.<anything>`` counts too — because
-    an extra re-render is the safe error. Operating-system clutter is never an
-    asset (:func:`an.stores._common.is_os_junk`).
+    (everything under it) and a file store's ``<root>/<key>.<ext>`` (one
+    suffix: ``logo.json`` is entry ``logo``'s; ``logo.v2/`` and
+    ``logo.v2.json`` are entry ``logo.v2``'s). Operating-system clutter is
+    never an asset (:func:`an.stores._common.is_os_junk`).
     """
     from an.stores._common import is_os_junk
 
@@ -163,8 +166,7 @@ def entry_files(store: Any, key: str) -> list[Path]:
     root = Path(root)
     found: list[Path] = []
     for path in sorted(root.glob(f"{_glob_escape(key)}*")):
-        name = path.name
-        if name != key and not name.startswith(f"{key}."):
+        if path.name != key and not (path.is_file() and path.stem == key):
             continue
         candidates = sorted(path.rglob("*")) if path.is_dir() else [path]
         for f in candidates:
