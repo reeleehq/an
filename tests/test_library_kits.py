@@ -139,7 +139,7 @@ def test_checkout_kit_lands_every_member_pinned_and_records_the_kit(library, pro
 
 def test_a_lockfile_without_kits_reads_and_writes_as_before(library, project):
     checkout(library, project, "style.noir")
-    assert set(json.loads((project / LOCKFILE_NAME).read_text())) == {
+    assert set(json.loads((project / LOCKFILE_NAME).read_text(encoding="utf-8"))) == {
         "kind",
         "schema_version",
         "assets",
