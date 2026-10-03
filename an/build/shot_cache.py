@@ -61,7 +61,9 @@ from an.build.keys import (
     bytes_digest,
     canonical_digest,
     compose_shot_key,
-    project_assets_digest,
+    SHOT_KEY_IMPL_VERSION,
+    every_asset_digest,
+    project_dependencies,
     shot_keyer_for,
 )
 
@@ -150,6 +152,13 @@ def _make_record_type():
         shot_id: str = Field("", description="The author's id. Informational: never a key.")
         renderer: str = ""
         inputs: dict[str, str] = Field(default_factory=dict)
+        #: ``{"store/key": digest}``: the asset entries the shot read (an#316),
+        #: the ``assets`` part spelled out, so a re-render can name the asset
+        #: that moved. Empty for a shot keyed on the whole project.
+        reads: dict[str, str] = Field(default_factory=dict)
+        #: The key composition it was written under (`SHOT_KEY_IMPL_VERSION`);
+        #: 0 for an entry older than the field.
+        key_version: int = 0
         timings: dict[str, float] = Field(default_factory=dict)
         render_provenance: dict[str, Any] = Field(default_factory=dict)
 
@@ -283,6 +292,8 @@ class ShotPlan:
     renderer: str
     key: str | None
     inputs: dict[str, str] = field(default_factory=dict)
+    #: The asset entries the shot read, digested (``{"store/key": digest}``).
+    reads: dict[str, str] = field(default_factory=dict)
     cached: "RenderResult | None" = None
     reason: str = ""
     key_s: float | None = None
@@ -431,11 +442,12 @@ def default_environment_digest(renderer_name: str) -> str:
     return _ENVIRONMENTS[renderer_name]
 
 
-#: ``dependencies(mall, project_root) -> digest | None``: what every shot of the
-#: project depends on beyond its own key parts. The default is ADR 0004
-#: decision 3's fallback, :func:`~an.build.keys.project_assets_digest` (every
-#: asset, plus the library lockfile read by path). Read recording replaces it
-#: with a value, not a flag.
+#: ``strategy(mall, *, project_root) -> digest``: a project-wide digest — the
+#: shape of both ``ShotCache(dependencies=...)`` (what EVERY shot depends on:
+#: by default the library lockfile, :func:`~an.build.keys.project_dependencies`;
+#: the ``project`` part) and ``ShotCache(fallback=...)`` (the ``assets`` of a
+#: shot whose reads are not recorded: by default every asset,
+#: :func:`~an.build.keys.every_asset_digest`).
 Dependencies = Any
 
 
@@ -446,10 +458,23 @@ class ShotCache:
     mall's ``shot_cache`` (resolved in :meth:`begin`), and a mall without one
     renders every shot. ``environment(renderer_name) -> digest`` is the
     environment seam — injectable so a test (or a remote-render backend) can
-    state its machine rather than probe this one. ``dependencies`` is the
-    project-wide dependency strategy (see :data:`Dependencies`); ``None`` keys
-    a shot on its own parts alone (its document and the bytes of the textures
-    it stages) — and then drops the lockfile too, so use it knowingly.
+    state its machine rather than probe this one. Three dependency seams (see
+    :data:`Dependencies`):
+
+    - ``record_reads`` (on by default) keys a shot whose keyer is registered
+      with ``records_reads=True`` on the asset entries its compile read
+      (:mod:`an.build.reads`, an#316: the ``assets`` part), so an edit to an
+      asset re-renders only the shots that read it;
+    - ``fallback`` is the ``assets`` part of every OTHER shot — a keyer that
+      cannot vouch for its reads, or every shot under ``record_reads=False``:
+      by default every asset in the project (decision 3's first slice);
+    - ``dependencies`` is what EVERY shot depends on (the ``project`` part): by
+      default the library lockfile. ``None`` drops it, and ``fallback=None``
+      keys an unrecorded shot on its own parts alone — use either knowingly.
+
+    An engine built with other seams writes keys `an cache gc` (which
+    recomputes the current scene's keys with the defaults) does not reach:
+    collect such a cache with the same engine.
     ``cache_frames`` also stores each shot's whole PNG sequence when a caller
     plans with ``needs_frames=True``. The render loop no longer does (an#260):
     an assembled film takes a shot's mp4 and, at a transition, its *parts*
@@ -464,7 +489,9 @@ class ShotCache:
         store: Any = None,
         *,
         environment: Any = default_environment_digest,
-        dependencies: Dependencies = project_assets_digest,
+        dependencies: Dependencies = project_dependencies,
+        fallback: Dependencies = every_asset_digest,
+        record_reads: bool = True,
         cache_frames: bool = False,
     ) -> None:
         if cache_frames:
@@ -479,10 +506,14 @@ class ShotCache:
         self.store = store
         self.environment = environment
         self.dependencies = dependencies
+        self.fallback = fallback
+        self.record_reads = record_reads
         self.cache_frames = cache_frames
         self.report = BuildReport()
         self._store = store
-        self._project: str | None = None
+        self._mall: Mapping[str, Any] = {}
+        self._digests: dict[str, str | None] = {}
+        self._previous: dict[tuple[str, str], Any] | None = None
         self._outcomes: dict[int, ShotOutcome] = {}
         self._order: list[int] = []
         self._environments: dict[str, str] = {}
@@ -495,12 +526,12 @@ class ShotCache:
         self, mall: Mapping[str, Any], *, project_root: Path | None = None
     ) -> None:
         self._store = self.store if self.store is not None else mall.get(SHOT_CACHE_STORE)
+        self._mall = mall if mall is not None else {}
         self._project_root = project_root
-        self._project = (
-            self.dependencies(mall, project_root=project_root)
-            if self.dependencies is not None
-            else None
-        )
+        # Digested on first need: a film of recorded-read shots never hashes
+        # the whole project.
+        self._digests = {}
+        self._previous = None
         self._outcomes = {}
         self._order = []
         self._environments = {}
@@ -530,13 +561,14 @@ class ShotCache:
             plan = ShotPlan(shot.id, name, key=None, reason=keyed)
             self._note(plan, "uncached")
             return plan
-        key, parts, inputs, key_s = keyed
+        key, parts, inputs, key_s, reads = keyed
 
         plan = ShotPlan(
             shot.id,
             name,
             key=key,
             inputs=parts,
+            reads=reads,
             key_s=key_s,
             compile_s=inputs.compile_s,
             needs_frames=needs_frames,
@@ -686,6 +718,16 @@ class ShotCache:
         if self._store is None:
             return "no shot cache store in the mall"
         t0 = time.perf_counter()
+        recording = None
+        if self.record_reads and entry.records_reads:
+            from dataclasses import replace
+
+            from an.build.reads import RecordingMall
+
+            # The keyer compiles against a view that notes every asset entry
+            # it reads: those reads are the shot's dependency edges (an#316).
+            recording = RecordingMall(ctx.mall)
+            ctx = replace(ctx, mall=recording)
         inputs: ShotKeyInputs = entry.keyer(shot, ctx)
         parts = {"renderer": canonical_digest([name, entry.identity()]), **inputs.parts}
         for part_name, part in entry.parts.items():
@@ -696,9 +738,72 @@ class ShotCache:
                 )
             parts[part_name] = part(shot, ctx)
         parts["environment"] = self._environment_of(name)
-        if self._project is not None:
-            parts["project"] = self._project
-        return compose_shot_key(parts), parts, inputs, time.perf_counter() - t0
+        reads: dict[str, str] = {}
+        if recording is not None:
+            from an.build.reads import read_digests
+
+            reads = read_digests(recording._mall, recording.reads)
+            parts["assets"] = canonical_digest(reads)
+        else:
+            fallback = self._project_digest("fallback")
+            if fallback is not None:
+                parts["assets"] = fallback
+        project = self._project_digest("dependencies")
+        if project is not None:
+            parts["project"] = project
+        return compose_shot_key(parts), parts, inputs, time.perf_counter() - t0, reads
+
+    def _project_digest(self, seam: str) -> str | None:
+        """A project-wide seam's digest (``dependencies`` or ``fallback``),
+        computed once per render, on first need."""
+        if seam not in self._digests:
+            strategy = getattr(self, seam)
+            self._digests[seam] = (
+                strategy(self._mall, project_root=self._project_root)
+                if strategy is not None
+                else None
+            )
+        return self._digests[seam]
+
+    def _explain_miss(self, plan: ShotPlan) -> str:
+        """Why ``plan`` has no entry, read off the newest earlier entry of the
+        same shot: which asset or which key part moved (an#316). The shot id
+        is only a way to FIND that entry — never part of a key."""
+        try:
+            previous = self._previous_entries().get((plan.renderer, plan.shot_id))
+        except Exception:  # noqa: BLE001 — an explanation never fails a render
+            previous = None
+        if previous is None:
+            return MISS
+        if getattr(previous, "key_version", 0) != SHOT_KEY_IMPL_VERSION:
+            return KEY_FORMAT_CHANGED
+        return explain_change(
+            dict(previous.inputs), dict(getattr(previous, "reads", {}) or {}),
+            plan.inputs, plan.reads,
+        )  # fmt: skip
+
+    def _previous_entries(self) -> dict[tuple[str, str], Any]:
+        """``{(renderer, shot id): newest mp4 entry}``, read once per render,
+        on the first miss (a scan of the catalog, never of the blobs)."""
+        if self._previous is None:
+            newest: dict[tuple[str, str], tuple[Any, Any]] = {}
+            for key in list(self._store):
+                # Only a shot's mp4 entry is named by its bare key: parts,
+                # frames and roots are skipped unread (a cache holds many).
+                if not _HEX64.match(str(key)):
+                    continue
+                try:
+                    rec = self._store[key]
+                except Exception:  # noqa: BLE001 — unreadable: not a candidate
+                    continue
+                if getattr(rec, "role", "mp4") != "mp4" or not rec.shot_id:
+                    continue
+                when = _generated_at(rec)
+                slot = (rec.renderer, rec.shot_id)
+                if slot not in newest or when > newest[slot][0]:
+                    newest[slot] = (when, rec)
+            self._previous = {slot: rec for slot, (_, rec) in newest.items()}
+        return self._previous
 
     def _environment_of(self, name: str) -> str:
         digest = self.environment(name)
@@ -757,7 +862,7 @@ class ShotCache:
         except Exception as e:  # noqa: BLE001 — an unreadable entry is a miss, said
             return None, f"unreadable entry ({type(e).__name__})"
         if record is None:
-            return None, MISS
+            return None, self._explain_miss(plan)
         mp4_bytes = self._verified_blob(record.asset_id)
         if mp4_bytes is None:
             return None, "entry whose mp4 blob is missing or does not match its id"
@@ -913,6 +1018,8 @@ class ShotCache:
             shot_id=plan.shot_id,
             renderer=plan.renderer,
             inputs=dict(plan.inputs),
+            reads=dict(plan.reads),
+            key_version=SHOT_KEY_IMPL_VERSION,
             timings=timings,
         )
         # Frames first, the mp4 record last: the mp4 record is what a lookup
@@ -950,6 +1057,95 @@ class ShotCache:
             render_provenance=_jsonable_dict(result.provenance),
             **common,
         )
+
+
+def _generated_at(record: Any) -> Any:
+    """When ``record`` was generated, as an orderable fraction (0 when unknown)."""
+    from fractions import Fraction
+
+    t = getattr(getattr(record, "provenance", None), "generated_at_time", None)
+    try:
+        return t.to_fraction() if t is not None else Fraction(0)
+    except Exception:  # noqa: BLE001 — an unreadable time sorts first
+        return Fraction(0)
+
+
+#: How the summary names a key part that moved (:func:`explain_change`).
+PART_LABELS: dict[str, str] = {
+    "compiled": "its document",
+    "textures": "its art",
+    "easings": "an easing version",
+    "audio": "its dialogue audio",
+    "runtime": "the JS runtime",
+    "runtime_extensions": "a genre's runtime code",
+    "code": "an's render code",
+    "knobs": "render settings",
+    "environment": "the render environment",
+    "renderer": "the renderer",
+    "fonts": "the system fonts",
+    "vocabulary": "a vocabulary entry",
+    "project": "the library lockfile",
+}
+
+#: Parts that move BECAUSE an asset the shot read moved: when an asset is
+#: named, naming these too would only blur the cause.
+FOLLOWS_ASSETS: frozenset[str] = frozenset(
+    {"compiled", "textures", "fonts", "easings", "assets"}
+)
+
+#: The reason when the newest earlier entry of a shot was keyed by another
+#: composition of the key (an `an` upgrade: `SHOT_KEY_IMPL_VERSION`, recorded
+#: on the entry as ``key_version``).
+KEY_FORMAT_CHANGED: str = "the shot key's format changed (an upgrade)"
+
+
+def explain_change(
+    before: Mapping[str, str],
+    before_reads: Mapping[str, str],
+    after: Mapping[str, str],
+    after_reads: Mapping[str, str],
+) -> str:
+    """Why a shot keyed ``after`` is not the entry keyed ``before``, in words.
+
+    The assets it read that moved come first, by name (``asset changed:
+    props/logo``), then every other key part that moved, appeared or went, by
+    :data:`PART_LABELS` (an optional part — ``fonts``, ``runtime_extensions`` —
+    comes and goes with what the shot draws). The parts that follow from an
+    asset (:data:`FOLLOWS_ASSETS`) are left out when one is named. Both keys
+    are of one composition: a different ``key_version`` is
+    :data:`KEY_FORMAT_CHANGED`, decided before this is called.
+
+    >>> explain_change({"compiled": "a", "assets": "x"}, {"props/logo": "1"},
+    ...                {"compiled": "b", "assets": "y"}, {"props/logo": "2"})
+    'asset changed: props/logo'
+    >>> explain_change({"knobs": "a", "compiled": "c"}, {}, {"knobs": "b", "compiled": "c"}, {})
+    'render settings changed'
+    >>> explain_change({"compiled": "a"}, {}, {"compiled": "a", "fonts": "f"}, {})
+    'the system fonts changed'
+    >>> explain_change({"assets": "a"}, {}, {"assets": "b"}, {})  # an unrecorded shot
+    'a project asset changed'
+    """
+    names = list(dict.fromkeys([*after, *before]))
+    moved = [name for name in names if before.get(name) != after.get(name)]
+    assets = sorted(
+        k for k in set(before_reads) | set(after_reads)
+        if before_reads.get(k) != after_reads.get(k)
+    )  # fmt: skip
+    said: list[str] = []
+    if assets:
+        said.append("asset changed: " + ", ".join(assets))
+    others = [
+        name for name in moved if not (assets and name in FOLLOWS_ASSETS)
+    ]
+    labels = [
+        PART_LABELS.get(name, name)
+        if name != "assets"
+        else "a project asset"  # a whole-project digest: nothing to name
+        for name in others
+    ]
+    if labels:
+        said.append(" and ".join(labels) + " changed")
+    return " and ".join(said) or MISS
 
 
 class ShotCacheWarning(UserWarning):
@@ -1077,6 +1273,7 @@ __all__ = [
     "ShotOutcome",
     "ShotPlan",
     "default_environment_digest",
+    "explain_change",
     "human_bytes",
     "in_memory_shot_cache_store",
     "machine_id",
