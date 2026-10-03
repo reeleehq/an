@@ -1169,6 +1169,7 @@
         'x', 'y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x',
         'skew_y', 'pivot_x', 'pivot_y', 'alpha', 'tint_r', 'tint_g', 'tint_b',
         'trim_start', 'trim_end', 'dash_offset',
+        'rotation_x', 'perspective', 'plane_fade_start', 'plane_fade_end',
     ]);
     const SWAP_WRITE_GROUP = '<swap>';
     const SHARED_WRITES = { rotation_rad: 'rotation' };
