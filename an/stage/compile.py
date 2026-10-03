@@ -43,6 +43,7 @@ from typing import Any, Callable, Protocol
 
 from an.base import (
     DEFAULT_RESOLUTION,
+    PLANE_REST_VALUES,
     TRANSFORM_PROPERTIES,
     TRIM_PROPERTIES,
     swap_set_name_problem,
@@ -296,6 +297,11 @@ def _property_rest_values() -> dict[str, float]:
     rest["trim_start"] = 0.0
     rest["trim_end"] = 1.0
     rest["dash_offset"] = 0.0  # an#161: a path's dash phase, same exception
+    # an#314: the plane properties are the same exception — channel properties
+    # the runtime applies to a node it draws on a tilted plane, never node rest
+    # state (a defaulted field would move every corpus hash). The rest is the
+    # untilted plane, the eye one frame height away, no far fade.
+    rest.update(PLANE_REST_VALUES)
     return rest
 
 

@@ -184,8 +184,33 @@ TRANSFORM_PROPERTIES: frozenset[str] = frozenset(
         "trim_end",
         # an#161: the dash pattern's phase — path-only like the trims.
         "dash_offset",
+        # an#314: the node's PLANE, tilted away from the camera. A node any
+        # channel targets with one of these is drawn on a projected plane by
+        # the runtime; `pivot_y` then slides its content along that plane.
+        "rotation_x",
+        "perspective",
+        "plane_fade_start",
+        "plane_fade_end",
     }
 )
+
+#: The plane properties inside :data:`TRANSFORM_PROPERTIES` (an#314): a node
+#: targeted with any of them is drawn on a plane tilted away from the camera
+#: (``rotation_x``, radians, positive = the top recedes; ``perspective``, the
+#: eye's distance in frame heights; ``plane_fade_start``/``plane_fade_end``,
+#: the far fade, scene px up the plane from the hinge, off while the end is
+#: ``<= 0``). See `runtime.js` "Planes" and `an.stage.timeline.Transform2D`.
+#: Their rest values — the untilted plane, the eye one frame height away, no
+#: far fade — the one table the compiler's rest table, the Python projection
+#: (`an.stage.timeline`) and `runtime.js`'s ``PLANE_PROPERTIES`` (pinned by a
+#: test) agree on.
+PLANE_REST_VALUES: dict[str, float] = {
+    "rotation_x": 0.0,
+    "perspective": 1.0,
+    "plane_fade_start": 0.0,
+    "plane_fade_end": 0.0,
+}
+PLANE_PROPERTIES: frozenset[str] = frozenset(PLANE_REST_VALUES)
 
 #: The path-only properties inside :data:`TRANSFORM_PROPERTIES` (an#160; the
 #: name predates `dash_offset`, an#161): trim and the dash phase. A node that

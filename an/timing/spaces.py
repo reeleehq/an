@@ -73,6 +73,10 @@ STAGE_NODE_UNITS: dict[str, str] = {
     "trim_start": "fraction",
     "trim_end": "fraction",
     "dash_offset": "px",
+    "rotation_x": "rad",
+    "perspective": "frame_height",
+    "plane_fade_start": "px",
+    "plane_fade_end": "px",
 }
 
 #: Properties that write another property's value on the same node.

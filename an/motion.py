@@ -1,7 +1,7 @@
 """Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 ``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,
-``squash_stretch``, ``waddle``, ``turn``, ``walk`` and ``speech_pulse`` each EXPAND to ordinary ``tween``
+``squash_stretch``, ``waddle``, ``turn``, ``walk``, ``speech_pulse`` and ``crawl`` each EXPAND to ordinary ``tween``
 actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and
 :func:`~an.ir.compose.parallel`. Called from Python, nothing downstream
 learns a preset exists: the flat timeline, ``an validate``, the verifiers and
@@ -116,6 +116,16 @@ DFLT_WADDLE_STEP_DURATION: Seconds = 0.3
 DFLT_WADDLE_ANGLE: float = 0.1  # radians
 DFLT_WADDLE_LIFT: float = 6.0  # scene px
 DFLT_TURN_DURATION: Seconds = 0.3
+#: The crawl (an#314): how far up its tilted plane the content travels (scene
+#: px along the plane), in how long, at what tilt (radians; ~55°, the top
+#: receding) and eye distance (frame heights), with the far fade's start and
+#: end (scene px up the plane from the hinge; sized for a 1080-row frame).
+DFLT_CRAWL_DISTANCE: float = 2400.0
+DFLT_CRAWL_DURATION: Seconds = 30.0
+DFLT_CRAWL_TILT: float = 0.96
+DFLT_CRAWL_PERSPECTIVE: float = 1.0
+DFLT_CRAWL_FADE: tuple[float, float] | None = (700.0, 1500.0)
+DFLT_CRAWL_EASING: EasingSpec = "linear"
 DFLT_WALK_STEP_S: Seconds = 0.4
 #: Steps a walk takes when neither ``steps`` nor ``distance`` sets them: a walk
 #: to an ABSOLUTE ``to_x`` cannot count its steps from where it starts, because
@@ -1015,6 +1025,69 @@ def speech_pulse(
     return sequence(*moves)
 
 
+def crawl(
+    target: PathStr,
+    *,
+    distance: float = DFLT_CRAWL_DISTANCE,
+    duration: Seconds = DFLT_CRAWL_DURATION,
+    start: float | None = None,
+    tilt: float = DFLT_CRAWL_TILT,
+    perspective: float = DFLT_CRAWL_PERSPECTIVE,
+    fade: tuple[float, float] | None = DFLT_CRAWL_FADE,
+    y: float | None = None,
+    easing: EasingSpec = DFLT_CRAWL_EASING,
+    rest: Rest | None = None,
+) -> Action:
+    """An opening crawl: lay ``target`` on a plane tilted away, and slide it up and away.
+
+    Sets the plane (``rotation_x`` = ``tilt``, ``perspective``, the far
+    ``fade``, and the hinge's ``y`` when given) at the start, then ONE tween:
+    ``pivot_y`` from ``start`` (default: where the pivot rests) to ``start +
+    distance``. On a tilted node the pivot is the point of the plane on the
+    hinge (an#314), so the content travels ``distance`` scene px along the
+    plane; the slowing and shrinking as it recedes are the projection's, not
+    the tween's. A block centred on its origin starts with its middle on the
+    hinge: a negative ``start`` (half the block's height and more) has it
+    enter from below. ``fade=None`` draws the plane to the horizon.
+
+    >>> leaves = flatten(crawl("crawl", distance=1000, duration=20, start=-300, fade=None))
+    >>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
+    ...        if isinstance(f.action, SetAction) and f.start == 0)
+    [('perspective', 1.0), ('rotation_x', 0.96)]
+    >>> [(f.action.from_value, f.action.to_value, f.end) for f in _tweens(crawl("crawl",
+    ...     distance=1000, duration=20, start=-300))]
+    [(-300.0, 700.0, 20.0)]
+    """
+    _positive(duration=duration)
+    p0 = float(start) if start is not None else float((rest or {}).get("pivot_y", 0.0))
+    plane = [
+        set_(target, "rotation_x", float(tilt)),
+        set_(target, "perspective", float(perspective)),
+    ]
+    if fade is not None:
+        fade_start, fade_end = (float(v) for v in fade)
+        if not 0.0 <= fade_start < fade_end:
+            raise ValueError(
+                f"fade must be (start, end) with 0 <= start < end, got {fade!r}"
+            )
+        plane += [
+            set_(target, "plane_fade_start", fade_start),
+            set_(target, "plane_fade_end", fade_end),
+        ]
+    if y is not None:
+        plane.append(set_(target, "y", float(y)))
+    end = p0 + float(distance)
+    return parallel(
+        *plane,
+        _settled(
+            target,
+            "pivot_y",
+            end,
+            tween(target, "pivot_y", to=end, duration=duration, from_=p0, easing=easing),
+        ),
+    )
+
+
 #: Every preset by name — the one list the skill, the demo and the ``play``
 #: fallback (:func:`an.characters.play.play_source`, an#166) read.
 PRESETS: dict[str, Callable[..., Action]] = {
@@ -1032,6 +1105,7 @@ PRESETS: dict[str, Callable[..., Action]] = {
         turn,
         walk,
         speech_pulse,
+        crawl,
     )
 }
 
@@ -1171,6 +1245,7 @@ __all__ = [
     "OVERSHOOT",
     "PRESETS",
     "as_leaves",
+    "crawl",
     "hop",
     "nod",
     "point",

@@ -34,6 +34,8 @@
     let restIndex = {};    // 'target::prop' → restore-to-built function (an#185)
     let restOrder = [];    // restIndex's keys, in pose application order
     let pixiReady = false;
+    let planeNodes = [];   // nodes drawn on a tilted plane (an#314), in tree order
+    let sceneHeight = 1080;  // the frame's height: `perspective` is measured in it
 
     // ------------------------------------------------------------------------
     // Easing — mirror an/adapters/cutout/easing.py for consistency
@@ -578,7 +580,7 @@
     }
 
     function applyTrim(node, prop, value) {
-        const child = (node.children || []).find(c => c._anPath);
+        const child = (contentOf(node).children || []).find(c => c._anPath);
         if (!child) {
             throw new Error(
                 'property ' + JSON.stringify(prop) + ' on ' + JSON.stringify(node.name) +
@@ -600,6 +602,300 @@
         if (typeof s !== 'string') return 0x888888;
         const hex = s.startsWith('#') ? s.slice(1) : s;
         return parseInt(hex.padEnd(6, '0').slice(0, 6), 16);
+    }
+
+    // ------------------------------------------------------------------------
+    // Planes (an#314): a node drawn on a plane tilted away from the camera.
+    //
+    // A node that any channel targets with a PLANE property becomes a plane
+    // node at load. Its children (and its own visual) move into a detached
+    // `flat` container, which is still indexed and animated exactly as before;
+    // what the node itself draws is ONE mesh: each frame the visible slice of
+    // `flat` is rendered into a texture, and that texture is laid on the
+    // projected quad. The projection keeps PixiJS's own composition,
+    //     world = position + M·P(local − pivot),
+    // so the pivot is the point of the plane that sits on the HINGE (the node's
+    // position) — and tweening `pivot_y` slides the content along the tilted
+    // plane, which is a crawl. With q = local − pivot, a tilt θ (`rotation_x`,
+    // positive = the top recedes, CSS `rotateX`) and the eye at distance
+    // f = perspective · frame height:
+    //     k = f / (f − q_y·sin θ),   P(q) = (k·q_x, k·q_y·cos θ).
+    // The texture coordinates travel as (u·k, v·k, k) and are divided per
+    // fragment, so the mapping is exactly projective, not a subdivided
+    // approximation. `an.stage.timeline.Transform2D` is the Python twin of P.
+    // Nothing here is a filter, and nothing is random: the determinism
+    // perimeter is unchanged.
+    // ------------------------------------------------------------------------
+
+    //: Each plane property and its rest value (`an.stage.compile`'s rest table).
+    const PLANE_PROPERTIES = {
+        rotation_x: 0, perspective: 1, plane_fade_start: 0, plane_fade_end: 0,
+    };
+    //: The near clip: no part of a plane is drawn magnified more than this.
+    const PLANE_MAX_MAGNIFICATION = 8;
+    //: The largest texture a plane renders into, in pixels (4096²).
+    const PLANE_MAX_TEXTURE_PIXELS = 16777216;
+    //: A texture's size grows in steps of this many pixels, so a plane whose
+    //: visible slice changes every frame re-uses one texture.
+    const PLANE_TEXTURE_STEP = 256;
+    //: Below this cos θ the plane is edge-on (or facing away) and draws nothing.
+    const PLANE_EDGE_ON = 1e-4;
+    //: Frame rows kept beyond each edge when clipping to the visible slice.
+    const PLANE_CLIP_MARGIN = 4;
+
+    const PLANE_VERTEX = [
+        'precision highp float;',
+        'attribute vec2 aVertexPosition;',
+        'attribute vec3 aUvq;',
+        'uniform mat3 projectionMatrix;',
+        'uniform mat3 translationMatrix;',
+        'varying vec3 vUvq;',
+        'void main(void) {',
+        '    vec3 p = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);',
+        '    gl_Position = vec4(p.xy, 0.0, 1.0);',
+        '    vUvq = aUvq;',
+        '}',
+    ].join('\n');
+
+    const PLANE_FRAGMENT = [
+        'precision highp float;',
+        'varying vec3 vUvq;',
+        'uniform sampler2D uSampler;',
+        'uniform vec4 uColor;',
+        'uniform float uQ0;',
+        'uniform float uQPerV;',
+        'uniform float uFadeStart;',
+        'uniform float uFadeEnd;',
+        'void main(void) {',
+        '    vec2 uv = vUvq.xy / vUvq.z;',
+        '    vec4 c = texture2D(uSampler, uv) * uColor;',
+        '    if (uFadeEnd > 0.0) {',
+        '        float d = -(uQ0 + uv.y * uQPerV);',
+        '        c *= 1.0 - smoothstep(uFadeStart, uFadeEnd, d);',
+        '    }',
+        '    gl_FragColor = c;',
+        '}',
+    ].join('\n');
+
+    let planeProgram = null;
+
+    // What a node's own drawing and its children live in: the node itself,
+    // or, for a plane node, its detached `flat` content.
+    function contentOf(node) {
+        return node._anPlane ? node._anPlane.flat : node;
+    }
+
+    function makePlane(node) {
+        if (node._anPlane) return;
+        for (let p = node.parent; p; p = p.parent) {
+            if (p._anPlaneFlat) {
+                throw new Error(
+                    'a plane inside a plane is not supported: ' +
+                    JSON.stringify(node.name) + ' is drawn on a tilted ancestor ' +
+                    '(an#314). Tilt one of them.'
+                );
+            }
+        }
+        const nested = (function find(n) {
+            for (const c of n.children || []) {
+                if (c._anPlane) return c;
+                const deeper = find(c);
+                if (deeper) return deeper;
+            }
+            return null;
+        })(node);
+        if (nested) {
+            throw new Error(
+                'a plane inside a plane is not supported: ' + JSON.stringify(node.name) +
+                ' contains the tilted node ' + JSON.stringify(nested.name) + ' (an#314).'
+            );
+        }
+        if (!planeProgram) {
+            planeProgram = PIXI.Program.from(PLANE_VERTEX, PLANE_FRAGMENT, 'an-plane');
+        }
+        const flat = new PIXI.Container();
+        flat._anPlaneFlat = true;
+        flat.name = node.name + '#flat';
+        for (const child of node.removeChildren()) flat.addChild(child);
+        const geometry = new PIXI.Geometry()
+            .addAttribute('aVertexPosition', new Float32Array(8), 2)
+            .addAttribute('aUvq', new Float32Array(12), 3)
+            .addIndex([0, 1, 2, 0, 2, 3]);
+        const material = new PIXI.MeshMaterial(PIXI.Texture.EMPTY, {
+            program: planeProgram,
+            uniforms: { uQ0: 0, uQPerV: 0, uFadeStart: 0, uFadeEnd: 0 },
+        });
+        const mesh = new PIXI.Mesh(geometry, material);
+        mesh.visible = false;
+        node.addChild(mesh);
+        node._anPlane = Object.assign({}, PLANE_PROPERTIES, {
+            flat: flat, mesh: mesh, texture: null,
+            pivot_x: node.pivot.x, pivot_y: node.pivot.y,
+        });
+        // The pivot is applied INSIDE the projection (see above), so the
+        // container's own pivot stays at zero.
+        node.pivot.set(0, 0);
+        planeNodes.push(node);
+    }
+
+    function makePlanes(doc) {
+        for (const node of planeNodes) {
+            if (node._anPlane.texture) node._anPlane.texture.destroy(true);
+        }
+        planeNodes = [];
+        const targets = new Set();
+        for (const anim of Object.values(doc.animations || {})) {
+            for (const ch of anim.channels || []) {
+                if (ch.property in PLANE_PROPERTIES) targets.add(ch.target);
+            }
+        }
+        for (const target of Array.from(targets).sort()) {
+            const node = nodeIndex[target];
+            if (!node) {
+                throw new Error(
+                    'a plane property targets unknown node ' + JSON.stringify(target) +
+                    '. Known: ' + JSON.stringify(Object.keys(nodeIndex).sort())
+                );
+            }
+            makePlane(node);
+        }
+    }
+
+    function planeOf(node, prop) {
+        if (!node._anPlane) {
+            throw new Error(
+                'property ' + JSON.stringify(prop) + ' on ' + JSON.stringify(node.name) +
+                ': not a plane node (an#314). The runtime makes a node a plane ' +
+                'when a channel of the document targets it with a plane property.'
+            );
+        }
+        return node._anPlane;
+    }
+
+    function maxTextureSize() {
+        const gl = app.renderer.gl;
+        return gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : 4096;
+    }
+
+    function planeTextureFor(P, width, height) {
+        const max = maxTextureSize();
+        const step = PLANE_TEXTURE_STEP;
+        const w = Math.min(max, Math.ceil(width / step) * step);
+        const h = Math.min(max, Math.ceil(height / step) * step);
+        const tex = P.texture;
+        if (tex && tex.width >= width && tex.height >= height) return tex;
+        if (tex) tex.destroy(true);
+        P.texture = PIXI.RenderTexture.create({
+            width: Math.max(w, tex ? tex.width : 0),
+            height: Math.max(h, tex ? tex.height : 0),
+            resolution: 1,
+        });
+        P.mesh.material.texture = P.texture;
+        return P.texture;
+    }
+
+    // The node-local rows (q_y) a frame can show, or null when none: the
+    // frame's rows [0, H], back through the node's world transform and the
+    // projection's inverse q = s·f / (f·cos θ + s·sin θ). Only when the node
+    // carries no 2D rotation or skew; otherwise the whole content is kept.
+    function visibleRows(node, f, cos, sin) {
+        const wt = node.worldTransform;
+        if (Math.abs(wt.b) > 1e-9 || Math.abs(wt.c) > 1e-9 || wt.d === 0) {
+            return [-Infinity, Infinity];
+        }
+        const a = (0 - PLANE_CLIP_MARGIN - wt.ty) / wt.d;
+        const b = (sceneHeight + PLANE_CLIP_MARGIN - wt.ty) / wt.d;
+        const sLo = Math.min(a, b), sHi = Math.max(a, b);
+        const back = function (sy, beyond) {
+            const den = f * cos + sy * sin;
+            return den > 0 ? sy * f / den : beyond;
+        };
+        // Beyond the horizon every row up to it is visible (sin > 0: the
+        // top recedes, so the horizon is above; sin < 0: below).
+        const lo = back(sLo, sin > 0 ? -Infinity : null);
+        const hi = back(sHi, sin < 0 ? Infinity : null);
+        if (lo === null || hi === null) return null;
+        return [lo, hi];
+    }
+
+    function updatePlane(node) {
+        const P = node._anPlane;
+        const mesh = P.mesh;
+        const cos = Math.cos(P.rotation_x), sin = Math.sin(P.rotation_x);
+        const f = P.perspective * sceneHeight;
+        mesh.visible = false;
+        if (!(cos > PLANE_EDGE_ON) || !(f > 0)) return;
+        const bounds = P.flat.getLocalBounds();
+        if (!(bounds.width > 0 && bounds.height > 0)) return;
+        let x0 = bounds.x - P.pivot_x, x1 = bounds.x + bounds.width - P.pivot_x;
+        let y0 = bounds.y - P.pivot_y, y1 = bounds.y + bounds.height - P.pivot_y;
+        // The near clip: k = f / (f − q·sin θ) stays below the cap.
+        if (sin !== 0) {
+            const near = f * (1 - 1 / PLANE_MAX_MAGNIFICATION) / sin;
+            if (sin > 0) y1 = Math.min(y1, near); else y0 = Math.max(y0, near);
+        }
+        const rows = visibleRows(node, f, cos, sin);
+        if (!rows) return;
+        y0 = Math.max(y0, rows[0]);
+        y1 = Math.min(y1, rows[1]);
+        const w = x1 - x0, h = y1 - y0;
+        if (!(w > 0 && h > 0)) return;
+        const kOf = q => f / (f - q * sin);
+        const k0 = kOf(y0), k1 = kOf(y1);
+        // The texture's density: the on-screen magnification at its nearest
+        // row, capped by the GPU and by PLANE_MAX_TEXTURE_PIXELS.
+        const wt = node.worldTransform;
+        const worldScale = Math.max(Math.hypot(wt.a, wt.b), Math.hypot(wt.c, wt.d));
+        const max = maxTextureSize();
+        let res = app.renderer.resolution * worldScale * Math.max(k0, k1);
+        res = Math.min(
+            res, max / w, max / h,
+            Math.sqrt(PLANE_MAX_TEXTURE_PIXELS / (w * h))
+        );
+        const pw = w * res, ph = h * res;
+        const tex = planeTextureFor(P, Math.ceil(pw), Math.ceil(ph));
+        // Content (flat-local) → texture pixels: the slice's top-left corner
+        // (in flat coordinates: q + pivot) goes to the origin.
+        const lx0 = x0 + P.pivot_x, ly0 = y0 + P.pivot_y;
+        app.renderer.render(P.flat, {
+            renderTexture: tex,
+            clear: true,
+            transform: new PIXI.Matrix(res, 0, 0, res, -lx0 * res, -ly0 * res),
+        });
+        const u1 = pw / tex.width, v1 = ph / tex.height;
+        const corners = [[x0, y0, 0, 0], [x1, y0, u1, 0], [x1, y1, u1, v1], [x0, y1, 0, v1]];
+        const pos = mesh.geometry.getBuffer('aVertexPosition');
+        const uvq = mesh.geometry.getBuffer('aUvq');
+        corners.forEach(function (c, i) {
+            const k = kOf(c[1]);
+            pos.data[2 * i] = k * c[0];
+            pos.data[2 * i + 1] = k * c[1] * cos;
+            uvq.data[3 * i] = c[2] * k;
+            uvq.data[3 * i + 1] = c[3] * k;
+            uvq.data[3 * i + 2] = k;
+        });
+        pos.update();
+        uvq.update();
+        const u = mesh.material.uniforms;
+        u.uQ0 = y0;
+        u.uQPerV = h / v1;
+        const end = P.plane_fade_end;
+        u.uFadeEnd = end;
+        // smoothstep needs start < end; a start at or past the end is a cut.
+        u.uFadeStart = Math.min(P.plane_fade_start, end - 1e-3);
+        mesh.visible = true;
+    }
+
+    function updatePlanes() {
+        if (!planeNodes.length) return;
+        // World transforms first: the visible slice is read through them.
+        // The stage has no parent, so it borrows a temporary one, exactly as
+        // `renderer.render` does before it draws.
+        const stage = app.stage;
+        const cacheParent = stage.enableTempParent();
+        stage.updateTransform();
+        stage.disableTempParent(cacheParent);
+        for (const node of planeNodes) updatePlane(node);
     }
 
     function applyTransform(displayObject, t) {
@@ -734,7 +1030,7 @@
         // An underlay copy's own tint IS its colour (an#163), so an entity
         // tint multiplies into it rather than replacing it.
         node.tint = node._anBaseTint != null ? mulTint(node._anBaseTint, packed) : packed;
-        for (const child of (node.children || [])) {
+        for (const child of (contentOf(node).children || [])) {
             applyTintDeep(child, packed);
         }
     }
@@ -749,9 +1045,19 @@
             case 'scale_y': node.scale.y = value; break;
             case 'skew_x': node.skew.x = value; break;
             case 'skew_y': node.skew.y = value; break;
-            case 'pivot_x': node.pivot.x = value; break;
-            case 'pivot_y': node.pivot.y = value; break;
+            // On a plane node the pivot is applied inside the projection: it
+            // is the point of the plane on the hinge (an#314).
+            case 'pivot_x':
+                if (node._anPlane) node._anPlane.pivot_x = value; else node.pivot.x = value;
+                break;
+            case 'pivot_y':
+                if (node._anPlane) node._anPlane.pivot_y = value; else node.pivot.y = value;
+                break;
             case 'alpha': node.alpha = value; break;
+            case 'rotation_x':
+            case 'perspective':
+            case 'plane_fade_start':
+            case 'plane_fade_end': planeOf(node, prop)[prop] = value; break;
             // an#160: a stroked path's visible span. Applied to the node's
             // path visual and redrawn; loud on a node without one.
             case 'trim_start':
@@ -786,7 +1092,7 @@
                 // throw. Loud, not silent — "forward compat" was the stated
                 // reason for ignoring unknown properties once, but silence
                 // meant a channel rendered as nothing with no diagnostic.
-                const child = (node.children || []).find(
+                const child = (contentOf(node).children || []).find(
                     c => c._anAssetSets || c._anDrawSets
                 );
                 const sets = child
@@ -801,7 +1107,8 @@
                     ' on ' + JSON.stringify(node.name) + '. The runtime applies: ' +
                     'x, y, rotation, rotation_rad, scale_x, scale_y, skew_x, ' +
                     'skew_y, pivot_x, pivot_y, alpha, tint_r, tint_g, tint_b, ' +
-                    'trim_start, trim_end, dash_offset (paths only) ' +
+                    'trim_start, trim_end, dash_offset (paths only), ' +
+                    'rotation_x, perspective, plane_fade_start, plane_fade_end ' +
                     '(author `tint` as a #rrggbb string; the compiler expands ' +
                     'it into the three) — plus this node\'s swap ' +
                     'sets: ' + JSON.stringify(Object.keys(sets).sort()) + '.'
@@ -1450,13 +1757,30 @@
             case 'scale_y': { const v = node.scale.y; return () => { node.scale.y = v; }; }
             case 'skew_x': { const v = node.skew.x; return () => { node.skew.x = v; }; }
             case 'skew_y': { const v = node.skew.y; return () => { node.skew.y = v; }; }
-            case 'pivot_x': { const v = node.pivot.x; return () => { node.pivot.x = v; }; }
-            case 'pivot_y': { const v = node.pivot.y; return () => { node.pivot.y = v; }; }
+            case 'pivot_x':
+            case 'pivot_y': {
+                if (node._anPlane) {
+                    const P = node._anPlane, v = P[prop];
+                    return () => { P[prop] = v; };
+                }
+                const axis = prop === 'pivot_x' ? 'x' : 'y';
+                const v = node.pivot[axis];
+                return () => { node.pivot[axis] = v; };
+            }
             case 'alpha': { const v = node.alpha; return () => { node.alpha = v; }; }
+            case 'rotation_x':
+            case 'perspective':
+            case 'plane_fade_start':
+            case 'plane_fade_end': {
+                const P = node._anPlane;
+                if (!P) return null;
+                const v = P[prop];
+                return () => { P[prop] = v; };
+            }
             case 'trim_start':
             case 'trim_end':
             case 'dash_offset': {
-                const child = (node.children || []).find(c => c._anPath);
+                const child = (contentOf(node).children || []).find(c => c._anPath);
                 if (!child) return null;
                 const v = child._anPath[prop];
                 return () => {
@@ -1472,7 +1796,7 @@
             case 'tint_b':
                 return () => applyProperty(node, prop, 1);
             default: {
-                const child = (node.children || []).find(
+                const child = (contentOf(node).children || []).find(
                     c => c._anAssetSets || c._anDrawSets
                 );
                 if (!child) return null;
@@ -1556,6 +1880,7 @@
         const meta = scene.meta || {};
         const width = meta.width || 1920;
         const height = meta.height || 1080;
+        sceneHeight = height;
         const bg = parseColor(meta.background || '#ffffff');
 
         // Reloading a scene (which `an preview` does on every file change) needs a
@@ -1665,7 +1990,11 @@
             }
         }
 
+        // Before the rest poses: a plane node keeps its pivot (and its plane
+        // properties) where the rest capture reads them.
+        makePlanes(scene);
         indexRestPoses();
+        updatePlanes();
         app.render();
         pixiReady = true;
         return true;
@@ -1684,6 +2013,7 @@
             if (!(key in pose) && restIndex[key]) restIndex[key]();
         }
         applyPose(pose);
+        updatePlanes();
         app.render();
         return true;
     };

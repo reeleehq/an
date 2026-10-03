@@ -2141,7 +2141,7 @@
    "levels": [
     "a"
    ],
-   "usage": "A tween/set action's property is EITHER a transform: alpha, dash_offset, pivot_x, pivot_y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set."
+   "usage": "A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set."
   },
   {
    "id": "field.shot.camera",
