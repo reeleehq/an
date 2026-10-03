@@ -347,6 +347,7 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
         "cutout.play",
         "cutout.expression",
         "cutout.brow_acting",
+        "cutout.walk_gait",
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",
         "cutout.character_refs",
@@ -686,6 +687,7 @@ def test_the_report_order_is_pinned():
         "cutout.play",
         "cutout.expression",
         "cutout.brow_acting",  # an#252: right after the expression check it extends
+        "cutout.walk_gait",  # an#224: a walk's requested gait applies
         "swap_references",
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",
