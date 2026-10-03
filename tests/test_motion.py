@@ -41,6 +41,7 @@ from an.motion import (
     slide_in,
     slide_out,
     speech_pulse,
+    crawl,
     squash_stretch,
     turn,
     waddle,
@@ -110,6 +111,8 @@ PROCEDURAL_CALLS = {
     "walk": lambda: walk("charlie", legs=(), arms=("left_arm", "right_arm")),
     # The speech aspect's requirement-free last link (an#248): the head pulses.
     "speech_pulse": lambda: speech_pulse("charlie", beats=(0.0, 0.3)),
+    # an#314: a plane move works on any entity, a rig's included.
+    "crawl": lambda: crawl("charlie", distance=300.0, duration=2.0),
 }
 #: Presets that swap a SET, which only a descriptor declares (an#197): `turn`
 #: swaps the view. The procedural rig refuses them loudly (below); on `gale`,
@@ -172,9 +175,11 @@ def test_the_rigs_name_their_arms_differently():
 
 
 @pytest.mark.genre("cutout_animation")
-@pytest.mark.parametrize("name", sorted(set(PROCEDURAL_PRESETS) - {"slide_out"}))
+@pytest.mark.parametrize("name", sorted(set(PROCEDURAL_PRESETS) - {"slide_out", "crawl"}))
 def test_preset_ends_at_rest(name):
-    """Every preset but the exit leaves each property it touched at REST."""
+    """Every preset but the exit and the crawl (which leaves its plane tilted
+    and its content up the plane, an#314) leaves each property it touched at
+    REST."""
     action = PROCEDURAL_CALLS[name]()
     if name == "waddle":  # travel moves x on purpose
         action = waddle("charlie")

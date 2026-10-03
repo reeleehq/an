@@ -21,6 +21,7 @@ import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from an.base import PLANE_REST_VALUES
 from an.stage.serialize import TransformJSON
 from an.timing.channel import Channel, Keyframe
 from an.timing.clip import Clip, LoopMode, Pose, merge_poses
@@ -91,6 +92,12 @@ def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:
 # stage that is parallaxing correctly.
 
 
+#: The frame height a ``perspective`` is measured in when no scene says (px).
+DFLT_FRAME_HEIGHT: float = 1080.0
+#: ``perspective``'s rest value: the eye one frame height from the hinge.
+PLANE_PERSPECTIVE_REST: float = PLANE_REST_VALUES["perspective"]
+
+
 @dataclass(frozen=True, slots=True)
 class Transform2D:
     """One node's local transform, in the runtime's own vocabulary.
@@ -110,6 +117,64 @@ class Transform2D:
     scale_y: float = 1.0
     pivot_x: float = 0.0
     pivot_y: float = 0.0
+    #: The plane's tilt (an#314, radians; positive = the top recedes) and the
+    #: eye's distance from the hinge in scene px (``perspective`` × the frame
+    #: height). The projection is applied to ``local − pivot``, before the 2D
+    #: transform, exactly as `runtime.js` "Planes" draws it.
+    rotation_x: float = 0.0
+    eye_distance: float = 0.0
+
+    def project(self, q: tuple[float, float]) -> tuple[float, float]:
+        """A plane point ``q = local − pivot`` as the tilted plane shows it.
+
+        ``k = f / (f − q_y·sin θ)``, ``P(q) = (k·q_x, k·q_y·cos θ)``: the hinge
+        row (``q_y = 0``) is unmoved, and a row up a receding plane is pulled
+        toward the horizon at ``f·cot θ`` above it.
+
+        >>> t = Transform2D(rotation_x=math.pi / 3, eye_distance=1000.0)
+        >>> t.project((100.0, 0.0))
+        (100.0, 0.0)
+        >>> x, y = t.project((100.0, -500.0))
+        >>> x < 100.0 and -500.0 < y < 0.0
+        True
+
+        A point behind the eye (or a plane edge-on, or no eye distance) is one
+        the runtime does not draw, so it has no position:
+
+        >>> t.project((0.0, 5000.0))
+        Traceback (most recent call last):
+        ...
+        ValueError: plane point (0.0, 5000.0) is not drawn: ...
+        """
+        if not self.rotation_x:
+            return q
+        sin_t, cos_t = math.sin(self.rotation_x), math.cos(self.rotation_x)
+        depth = self.eye_distance - q[1] * sin_t
+        if not self.eye_distance > 0 or cos_t <= 0 or depth <= 0:
+            raise ValueError(
+                f"plane point {q} is not drawn: the runtime draws a plane only "
+                "with a positive eye distance, short of edge-on, and in front of "
+                f"the eye (eye_distance={self.eye_distance}, rotation_x="
+                f"{self.rotation_x}); the near clip at 8x magnification is the "
+                "runtime's alone"
+            )
+        k = self.eye_distance / depth
+        return k * q[0], k * q[1] * cos_t
+
+    def unproject(self, p: tuple[float, float]) -> tuple[float, float]:
+        """The inverse of :meth:`project`.
+
+        >>> t = Transform2D(rotation_x=1.0, eye_distance=800.0)
+        >>> [round(v, 9) for v in t.unproject(t.project((40.0, -300.0)))]
+        [40.0, -300.0]
+        """
+        if not self.rotation_x:
+            return p
+        sin_t, cos_t = math.sin(self.rotation_x), math.cos(self.rotation_x)
+        f = self.eye_distance
+        qy = p[1] * f / (f * cos_t + p[1] * sin_t)
+        k = f / (f - qy * sin_t)
+        return p[0] / k, qy
 
     def unapply(self, point: tuple[float, float]) -> tuple[float, float]:
         """The inverse of :meth:`apply` — a parent-space point, in local space.
@@ -122,7 +187,8 @@ class Transform2D:
         if self.rotation:
             cos_r, sin_r = math.cos(-self.rotation), math.sin(-self.rotation)
             px, py = px * cos_r - py * sin_r, px * sin_r + py * cos_r
-        return px / self.scale_x + self.pivot_x, py / self.scale_y + self.pivot_y
+        qx, qy = self.unproject((px / self.scale_x, py / self.scale_y))
+        return qx + self.pivot_x, qy + self.pivot_y
 
     def apply(self, point: tuple[float, float]) -> tuple[float, float]:
         """This node's local point, in its PARENT's coordinates.
@@ -138,7 +204,7 @@ class Transform2D:
         >>> Transform2D(scale_x=2.0).apply((5.0, 0.0))
         (10.0, 0.0)
         """
-        lx, ly = point[0] - self.pivot_x, point[1] - self.pivot_y
+        lx, ly = self.project((point[0] - self.pivot_x, point[1] - self.pivot_y))
         sx, sy = lx * self.scale_x, ly * self.scale_y
         if self.rotation:
             cos_r, sin_r = math.cos(self.rotation), math.sin(self.rotation)
@@ -146,13 +212,19 @@ class Transform2D:
         return self.x + sx, self.y + sy
 
 
-def transform_of(node: NodeJSON | None, pose: Pose | None = None) -> Transform2D:
+def transform_of(
+    node: NodeJSON | None,
+    pose: Pose | None = None,
+    *,
+    frame_height: float = DFLT_FRAME_HEIGHT,
+) -> Transform2D:
     """A node's transform, with ``pose`` overriding what the document declares.
 
     The runtime applies a pose value by assigning the property on the display
     object, so a channel REPLACES the declared value rather than adding to it —
     which is why the parallax compensation carries the plane's own offset in
-    every keyframe instead of an offset from it.
+    every keyframe instead of an offset from it. ``frame_height`` turns a
+    ``perspective`` (in frame heights, an#314) into the eye's distance.
     """
     t = node.transform if node is not None else TransformJSON()
     values = {
@@ -164,11 +236,17 @@ def transform_of(node: NodeJSON | None, pose: Pose | None = None) -> Transform2D
         "pivot_x": t.pivot_x,
         "pivot_y": t.pivot_y,
     }
+    values["rotation_x"] = 0.0
+    perspective = PLANE_PERSPECTIVE_REST
     if pose:
         for (_target, prop), value in pose.items():
-            if prop in values and isinstance(value, (int, float)):
+            if not isinstance(value, (int, float)):
+                continue
+            if prop in values:
                 values[prop] = float(value)
-    return Transform2D(**values)
+            elif prop == "perspective":
+                perspective = float(value)
+    return Transform2D(**values, eye_distance=perspective * frame_height)
 
 
 def screen_position(
@@ -212,12 +290,16 @@ def screen_position(
         # container. Only the path's own nodes compose.
         at = point
         for node, node_path in reversed(_node_chain(overlay, path)[1:]):
-            at = transform_of(node, _pose_for(pose, node_path)).apply(at)
+            at = transform_of(
+                node, _pose_for(pose, node_path), frame_height=scene.meta.height
+            ).apply(at)
         return at[0] + scene.meta.width / 2.0, at[1] + scene.meta.height / 2.0
     chain = _node_chain(scene.scene, path)
     at = point
     for node, node_path in reversed(chain[1:]):
-        at = transform_of(node, _pose_for(pose, node_path)).apply(at)
+        at = transform_of(
+            node, _pose_for(pose, node_path), frame_height=scene.meta.height
+        ).apply(at)
     # The root LAST, and from the pose alone. `runtime.js` builds its own root
     # container at the canvas centre and says so: "Do NOT apply its transform".
     # What it does apply to that container is pose channels — which is exactly

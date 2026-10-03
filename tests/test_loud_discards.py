@@ -472,6 +472,13 @@ COMPOSED_ELSEWHERE: frozenset[str] = frozenset({"tint_r", "tint_g", "tint_b"})
 #: `tests/test_path.py::test_the_runtime_applies_trim_to_the_path_visual`.
 PATH_ONLY: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_offset"})
 
+#: Runtime properties that land on a PLANE node's plane state (an#314), and are
+#: refused on any other node. Checked by
+#: `test_the_runtime_applies_plane_properties_to_a_plane_node_only`.
+PLANE_ONLY: frozenset[str] = frozenset(
+    {"rotation_x", "perspective", "plane_fade_start", "plane_fade_end"}
+)
+
 
 def _apply_property_source() -> str:
     """`applyProperty` plus the helpers it calls, so the snippet is runnable.
@@ -483,6 +490,9 @@ def _apply_property_source() -> str:
     """
     return "\n".join(
         (
+            # an#314: where a node's own drawing lives, and its plane state.
+            _extract("contentOf", r"function contentOf\([^)]*\)\s*\{.*?\n    \}"),
+            _extract("planeOf", r"function planeOf\([^)]*\)\s*\{.*?\n    \}"),
             _extract(
                 "applyTintDeep",
                 r"function applyTintDeep\([^)]*\)\s*\{.*?\n    \}",
@@ -550,8 +560,8 @@ def test_the_runtime_still_applies_every_known_property():
     `case 'x': node.y = value` passed it unnoticed.
     """
     fn = _apply_property_source()
-    props = sorted(set(_runtime_switch_cases()) - PATH_ONLY)
-    assert PATH_ONLY <= set(_runtime_switch_cases()), (
+    props = sorted(set(_runtime_switch_cases()) - PATH_ONLY - PLANE_ONLY)
+    assert PATH_ONLY | PLANE_ONLY <= set(_runtime_switch_cases()), (
         f"{sorted(PATH_ONLY - set(_runtime_switch_cases()))} is exempted as "
         "path-only but is no longer a runtime property — delete the exemption"
     )
@@ -603,6 +613,35 @@ def test_the_runtime_still_applies_every_known_property():
         assert got == 7, (
             f"{prop!r} did not land on {outer}{'.' + inner if inner else ''}: {node}"
         )
+
+
+def test_the_runtime_applies_plane_properties_to_a_plane_node_only():
+    """an#314: a plane property lands on the plane state of a plane node --
+    and, on a plane node, so does the pivot (applied inside the projection) --
+    while any other node REFUSES it, naming the property."""
+    fn = _apply_property_source()
+    props = sorted(PLANE_ONLY | {"pivot_x", "pivot_y"})
+    script = "\n".join(
+        [
+            fn,
+            f"const props = {props!r};".replace("'", '"'),
+            "const out = {};",
+            "for (const p of props) {",
+            "  const node = {name: 'crawl', scale: {}, skew: {}, pivot: {x: 0, y: 0},",
+            "                _anPlane: {}};",
+            "  applyProperty(node, p, 7);",
+            "  out[p] = [node._anPlane[p], node.pivot.x, node.pivot.y];",
+            "}",
+            "const flat = {name: 'flat', scale: {}, skew: {}, pivot: {}};",
+            "try { applyProperty(flat, 'rotation_x', 0.5); out.refused = 'SILENT'; }",
+            "catch (e) { out.refused = e.message; }",
+            "console.log(JSON.stringify(out));",
+        ]
+    )
+    out = json.loads(_run_node(script))
+    for p in props:
+        assert out[p] == [7, 0, 0], (p, out[p])
+    assert "rotation_x" in out["refused"] and "plane" in out["refused"], out["refused"]
 
 
 def test_the_runtime_raises_on_an_unknown_target():

@@ -1058,6 +1058,13 @@
      "unit": "px"
     },
     {
+     "pattern": "perspective",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "frame_height"
+    },
+    {
      "pattern": "pivot_x",
      "spec": {
       "kind": "number"
@@ -1066,6 +1073,20 @@
     },
     {
      "pattern": "pivot_y",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "plane_fade_end",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "px"
+    },
+    {
+     "pattern": "plane_fade_start",
      "spec": {
       "kind": "number"
      },
@@ -1085,6 +1106,13 @@
      },
      "unit": "rad",
      "writes": "rotation"
+    },
+    {
+     "pattern": "rotation_x",
+     "spec": {
+      "kind": "number"
+     },
+     "unit": "rad"
     },
     {
      "pattern": "scale_x",
