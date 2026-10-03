@@ -22,6 +22,7 @@ an.stage.compile
       CHARACTER_ART_PREFIX
       PROP_ART_PREFIX
       STAGE_NODE_SPACE
+      PLANE_EDGE_ON_MARGIN
    
    .. rubric:: Functions
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="../../../_static/documentation_options.js?v=ba5585f7"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -755,6 +755,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
+    <span class="n">PLANE_REST_VALUES</span><span class="p">,</span>
     <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span>
     <span class="n">TRIM_PROPERTIES</span><span class="p">,</span>
     <span class="n">swap_set_name_problem</span><span class="p">,</span>
@@ -1011,6 +1012,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">rest</span><span class="p">[</span><span class="s2">"trim_start"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">rest</span><span class="p">[</span><span class="s2">"trim_end"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="n">rest</span><span class="p">[</span><span class="s2">"dash_offset"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># an#161: a path's dash phase, same exception</span>
+    <span class="c1"># an#314: the plane properties are the same exception — channel properties</span>
+    <span class="c1"># the runtime applies to a node it draws on a tilted plane, never node rest</span>
+    <span class="c1"># state (a defaulted field would move every corpus hash). The rest is the</span>
+    <span class="c1"># untilted plane, the eye one frame height away, no far fade.</span>
+    <span class="n">rest</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">PLANE_REST_VALUES</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rest</span>
 
 
@@ -1644,6 +1650,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># find (an#193).</span>
     <span class="n">_check_channel_targets</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">paths</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
     <span class="n">_check_keyframe_easings</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">_check_planes</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="c1"># AFTER action + viseme compilation, deliberately: a swap key the timeline</span>
     <span class="c1"># actually USES whose art is missing is recorded as a fallback during</span>
     <span class="c1"># those passes (usage-aware escalation, an#87), and this is the one place</span>
@@ -4222,6 +4229,74 @@ window.runMermaid = runMermaid;</script>
         <span class="n">apply_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"meta.default_easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+
+<span class="c1">#: How close to edge-on a plane may be authored (radians short of ±π/2): at</span>
+<span class="c1">#: ±π/2 the runtime draws nothing, and a value past it is almost always</span>
+<span class="c1">#: DEGREES typed where radians were meant (an#314 review).</span>
+<span class="n">PLANE_EDGE_ON_MARGIN</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_planes</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="s2">"CompileState"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Plane properties (an#314): refuse a value that would draw nothing, and</span>
+<span class="sd">    warn about native blends a tilted node cannot composite.</span>
+
+<span class="sd">    ``rotation_x`` outside ``(-π/2, π/2)`` (edge-on or facing away) and a</span>
+<span class="sd">    ``perspective`` at or below 0 make the runtime draw the node as NOTHING,</span>
+<span class="sd">    with no error — so they are refused here, naming the value. A visual with</span>
+<span class="sd">    a native blend (``add``/``multiply``: a StylePack glow) under a tilted node</span>
+<span class="sd">    is drawn into the plane's own texture, where there is no scene to blend</span>
+<span class="sd">    with, so the runtime does not draw it on a plane.</span>
+<span class="sd">    """</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">PLANE_EDGE_ON_MARGIN</span>
+    <span class="n">planes</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">clip</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">clip</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ch</span><span class="o">.</span><span class="n">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PLANE_REST_VALUES</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">planes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">kf</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">keyframes</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">kf</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">ch</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"rotation_x"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="o">-</span><span class="n">limit</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="n">limit</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="si">}</span><span class="s2">:rotation_x = </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2"> tilts "</span>
+                        <span class="s2">"the plane edge-on or past it, so it would draw nothing. "</span>
+                        <span class="s2">"rotation_x is in RADIANS, within (-π/2, π/2) "</span>
+                        <span class="sa">f</span><span class="s2">"(55° is </span><span class="si">{</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">55</span><span class="p">)</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)."</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">ch</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"perspective"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="si">}</span><span class="s2">:perspective = </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">; the "</span>
+                        <span class="s2">"eye's distance from the plane, in frame heights, must be "</span>
+                        <span class="s2">"positive (1.0 is the rest)."</span>
+                    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">planes</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">blended</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">inside</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">here</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">path</span> <span class="k">else</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">inside</span> <span class="o">=</span> <span class="n">inside</span> <span class="ow">or</span> <span class="n">here</span> <span class="ow">in</span> <span class="n">planes</span>
+        <span class="k">if</span> <span class="n">inside</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">blend</span><span class="p">:</span>
+            <span class="n">blended</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">here</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">walk</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">here</span><span class="p">,</span> <span class="n">inside</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">scene_root</span><span class="o">.</span><span class="n">children</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">scene_root</span> <span class="k">else</span> <span class="p">()),</span>
+                  <span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">overlay_children</span><span class="p">]:</span>  <span class="c1"># fmt: skip</span>
+        <span class="n">walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">blended</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">blended</span><span class="p">)</span><span class="si">}</span><span class="s2"> draw with a blend mode "</span>
+            <span class="s2">"(add/multiply: a glow) on a tilted node; a plane is drawn into its "</span>
+            <span class="s2">"own texture, where there is nothing to blend with, so these are not "</span>
+            <span class="s2">"drawn (an#314). Switch the treatment off for that entity "</span>
+            <span class="s2">"(`entity_surfaces: {&lt;id&gt;: {glow: false}}`) to silence this."</span><span class="p">,</span>
+            <span class="n">CutoutCompileWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_keyframe_easings</span><span class="p">(</span>

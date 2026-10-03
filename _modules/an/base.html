@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="../../_static/documentation_options.js?v=ba5585f7"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -896,8 +896,33 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"trim_end"</span><span class="p">,</span>
         <span class="c1"># an#161: the dash pattern's phase — path-only like the trims.</span>
         <span class="s2">"dash_offset"</span><span class="p">,</span>
+        <span class="c1"># an#314: the node's PLANE, tilted away from the camera. A node any</span>
+        <span class="c1"># channel targets with one of these is drawn on a projected plane by</span>
+        <span class="c1"># the runtime; `pivot_y` then slides its content along that plane.</span>
+        <span class="s2">"rotation_x"</span><span class="p">,</span>
+        <span class="s2">"perspective"</span><span class="p">,</span>
+        <span class="s2">"plane_fade_start"</span><span class="p">,</span>
+        <span class="s2">"plane_fade_end"</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
+
+<span class="c1">#: The plane properties inside :data:`TRANSFORM_PROPERTIES` (an#314): a node</span>
+<span class="c1">#: targeted with any of them is drawn on a plane tilted away from the camera</span>
+<span class="c1">#: (``rotation_x``, radians, positive = the top recedes; ``perspective``, the</span>
+<span class="c1">#: eye's distance in frame heights; ``plane_fade_start``/``plane_fade_end``,</span>
+<span class="c1">#: the far fade, scene px up the plane from the hinge, off while the end is</span>
+<span class="c1">#: ``&lt;= 0``). See `runtime.js` "Planes" and `an.stage.timeline.Transform2D`.</span>
+<span class="c1">#: Their rest values — the untilted plane, the eye one frame height away, no</span>
+<span class="c1">#: far fade — the one table the compiler's rest table, the Python projection</span>
+<span class="c1">#: (`an.stage.timeline`) and `runtime.js`'s ``PLANE_PROPERTIES`` (pinned by a</span>
+<span class="c1">#: test) agree on.</span>
+<span class="n">PLANE_REST_VALUES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"rotation_x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">"perspective"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s2">"plane_fade_start"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">"plane_fade_end"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">PLANE_PROPERTIES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">PLANE_REST_VALUES</span><span class="p">)</span>
 
 <span class="c1">#: The path-only properties inside :data:`TRANSFORM_PROPERTIES` (an#160; the</span>
 <span class="c1">#: name predates `dash_offset`, an#161): trim and the dash phase. A node that</span>

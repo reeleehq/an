@@ -18,6 +18,7 @@ an.motion
    
       face_toward
       as_leaves
+      crawl
       hop
       nod
       point

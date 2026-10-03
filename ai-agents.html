@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="_static/documentation_options.js?v=ba5585f7"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="an.verify.vision" href="_autosummary/an.verify.vision.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -437,7 +437,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-stage">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-stage</span></code><a class="headerlink" href="#an-dev-stage" title="Link to this heading">#</a></h3>
-<p>The stage in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — the camera (which is <code class="docutils literal notranslate"><span class="pre">root.pivot</span></code>, and already exists), parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the rename <code class="docutils literal notranslate"><span class="pre">Shot.style</span></code> → <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code>. Load before touching <code class="docutils literal notranslate"><span class="pre">_add_camera_clips</span></code>, <code class="docutils literal notranslate"><span class="pre">_build_environment_subtree</span></code>, <code class="docutils literal notranslate"><span class="pre">_build_scene_root</span></code>, <code class="docutils literal notranslate"><span class="pre">Camera</span></code>, <code class="docutils literal notranslate"><span class="pre">AssetRef.stage</span></code>, the environments/styles/props stores, or any scene that pans. Triggers on “camera”, “pan”, “parallax”, “multiplane”, “plane”, “environment”, “backdrop”, “prop”, “style pack”, “art direction”, “renderer selector”.</p>
+<p>The stage in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — the camera (which is <code class="docutils literal notranslate"><span class="pre">root.pivot</span></code>, and already exists), parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the rename <code class="docutils literal notranslate"><span class="pre">Shot.style</span></code> → <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code>. Load before touching <code class="docutils literal notranslate"><span class="pre">_add_camera_clips</span></code>, <code class="docutils literal notranslate"><span class="pre">_build_environment_subtree</span></code>, <code class="docutils literal notranslate"><span class="pre">_build_scene_root</span></code>, <code class="docutils literal notranslate"><span class="pre">Camera</span></code>, <code class="docutils literal notranslate"><span class="pre">AssetRef.stage</span></code>, the environments/styles/props stores, or any scene that pans. Triggers on “camera”, “pan”, “parallax”, “tilt”, “perspective”, “rotation_x”, “crawl”, “multiplane”, “plane”, “environment”, “backdrop”, “prop”, “style pack”, “art direction”, “renderer selector”.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-stage"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-stage</span></code></a>.</p>
 </section>
 <section id="an-dev-swap-channels">

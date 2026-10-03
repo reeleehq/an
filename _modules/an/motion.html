@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="../../_static/documentation_options.js?v=ba5585f7"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -713,7 +713,7 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="sd">"""Motion presets: a named vocabulary of cut-out moves, as authoring macros.</span>
 
 <span class="sd">``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,</span>
-<span class="sd">``squash_stretch``, ``waddle``, ``turn``, ``walk`` and ``speech_pulse`` each EXPAND to ordinary ``tween``</span>
+<span class="sd">``squash_stretch``, ``waddle``, ``turn``, ``walk``, ``speech_pulse`` and ``crawl`` each EXPAND to ordinary ``tween``</span>
 <span class="sd">actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and</span>
 <span class="sd">:func:`~an.ir.compose.parallel`. Called from Python, nothing downstream</span>
 <span class="sd">learns a preset exists: the flat timeline, ``an validate``, the verifiers and</span>
@@ -828,6 +828,16 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DFLT_WADDLE_ANGLE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># radians</span>
 <span class="n">DFLT_WADDLE_LIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.0</span>  <span class="c1"># scene px</span>
 <span class="n">DFLT_TURN_DURATION</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.3</span>
+<span class="c1">#: The crawl (an#314): how far up its tilted plane the content travels (scene</span>
+<span class="c1">#: px along the plane), in how long, at what tilt (radians; ~55°, the top</span>
+<span class="c1">#: receding) and eye distance (frame heights), with the far fade's start and</span>
+<span class="c1">#: end (scene px up the plane from the hinge; sized for a 1080-row frame).</span>
+<span class="n">DFLT_CRAWL_DISTANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2400.0</span>
+<span class="n">DFLT_CRAWL_DURATION</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">30.0</span>
+<span class="n">DFLT_CRAWL_TILT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.96</span>
+<span class="n">DFLT_CRAWL_PERSPECTIVE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">DFLT_CRAWL_FADE</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">(</span><span class="mf">700.0</span><span class="p">,</span> <span class="mf">1500.0</span><span class="p">)</span>
+<span class="n">DFLT_CRAWL_EASING</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">=</span> <span class="s2">"linear"</span>
 <span class="n">DFLT_WALK_STEP_S</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.4</span>
 <span class="c1">#: Steps a walk takes when neither ``steps`` nor ``distance`` sets them: a walk</span>
 <span class="c1">#: to an ABSOLUTE ``to_x`` cannot count its steps from where it starts, because</span>
@@ -1763,6 +1773,74 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">sequence</span><span class="p">(</span><span class="o">*</span><span class="n">moves</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="crawl">
+<a class="viewcode-back" href="../../_autosummary/an.motion.html#an.motion.crawl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">crawl</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">PathStr</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_CRAWL_DISTANCE</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DFLT_CRAWL_DURATION</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tilt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_CRAWL_TILT</span><span class="p">,</span>
+    <span class="n">perspective</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_CRAWL_PERSPECTIVE</span><span class="p">,</span>
+    <span class="n">fade</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DFLT_CRAWL_FADE</span><span class="p">,</span>
+    <span class="n">y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">easing</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">=</span> <span class="n">DFLT_CRAWL_EASING</span><span class="p">,</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">Rest</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Action</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An opening crawl: lay ``target`` on a plane tilted away, and slide it up and away.</span>
+
+<span class="sd">    Sets the plane (``rotation_x`` = ``tilt``, ``perspective``, the far</span>
+<span class="sd">    ``fade``, and the hinge's ``y`` when given) at the start, then ONE tween:</span>
+<span class="sd">    ``pivot_y`` from ``start`` (default: where the pivot rests) to ``start +</span>
+<span class="sd">    distance``. On a tilted node the pivot is the point of the plane on the</span>
+<span class="sd">    hinge (an#314), so the content travels ``distance`` scene px along the</span>
+<span class="sd">    plane; the slowing and shrinking as it recedes are the projection's, not</span>
+<span class="sd">    the tween's. A block centred on its origin starts with its middle on the</span>
+<span class="sd">    hinge: a negative ``start`` (half the block's height and more) has it</span>
+<span class="sd">    enter from below. ``fade=None`` draws the plane to the horizon.</span>
+
+<span class="sd">    &gt;&gt;&gt; leaves = flatten(crawl("crawl", distance=1000, duration=20, start=-300, fade=None))</span>
+<span class="sd">    &gt;&gt;&gt; sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves</span>
+<span class="sd">    ...        if isinstance(f.action, SetAction) and f.start == 0)</span>
+<span class="sd">    [('perspective', 1.0), ('rotation_x', 0.96)]</span>
+<span class="sd">    &gt;&gt;&gt; [(f.action.from_value, f.action.to_value, f.end) for f in _tweens(crawl("crawl",</span>
+<span class="sd">    ...     distance=1000, duration=20, start=-300))]</span>
+<span class="sd">    [(-300.0, 700.0, 20.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">_positive</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+    <span class="n">p0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">((</span><span class="n">rest</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pivot_y"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">plane</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"rotation_x"</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">tilt</span><span class="p">)),</span>
+        <span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"perspective"</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">perspective</span><span class="p">)),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">fade</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fade_start</span><span class="p">,</span> <span class="n">fade_end</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fade</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">fade_start</span> <span class="o">&lt;</span> <span class="n">fade_end</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"fade must be (start, end) with 0 &lt;= start &lt; end, got </span><span class="si">{</span><span class="n">fade</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">plane</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"plane_fade_start"</span><span class="p">,</span> <span class="n">fade_start</span><span class="p">),</span>
+            <span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"plane_fade_end"</span><span class="p">,</span> <span class="n">fade_end</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plane</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">p0</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parallel</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">plane</span><span class="p">,</span>
+        <span class="n">_settled</span><span class="p">(</span>
+            <span class="n">target</span><span class="p">,</span>
+            <span class="s2">"pivot_y"</span><span class="p">,</span>
+            <span class="n">end</span><span class="p">,</span>
+            <span class="n">tween</span><span class="p">(</span>
+                <span class="n">target</span><span class="p">,</span> <span class="s2">"pivot_y"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="n">p0</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="n">easing</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
 <span class="c1">#: Every preset by name — the one list the skill, the demo and the ``play``</span>
 <span class="c1">#: fallback (:func:`an.characters.play.play_source`, an#166) read.</span>
 <span class="n">PRESETS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Action</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -1780,6 +1858,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">turn</span><span class="p">,</span>
         <span class="n">walk</span><span class="p">,</span>
         <span class="n">speech_pulse</span><span class="p">,</span>
+        <span class="n">crawl</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">}</span>
 
@@ -1928,6 +2007,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"OVERSHOOT"</span><span class="p">,</span>
     <span class="s2">"PRESETS"</span><span class="p">,</span>
     <span class="s2">"as_leaves"</span><span class="p">,</span>
+    <span class="s2">"crawl"</span><span class="p">,</span>
     <span class="s2">"hop"</span><span class="p">,</span>
     <span class="s2">"nod"</span><span class="p">,</span>
     <span class="s2">"point"</span><span class="p">,</span>

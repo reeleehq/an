@@ -55,6 +55,7 @@ mall). It reads only.
 | [`CHARACTER_ART_PREFIX`](#an.stage.compile.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                    |
 | [`PROP_ART_PREFIX`](#an.stage.compile.PROP_ART_PREFIX)              | The same, for props.                                                                                                                                                                                                      |
 | [`STAGE_NODE_SPACE`](#an.stage.compile.STAGE_NODE_SPACE)             | The property space every compiled node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                              |
+| [`PLANE_EDGE_ON_MARGIN`](#an.stage.compile.PLANE_EDGE_ON_MARGIN)         | at ±π/2 the runtime draws nothing, and a value past it is almost always DEGREES typed where radians were meant (an#314 review).                                                                                           |
 
 ### Functions
 
@@ -213,6 +214,15 @@ and the runtime’s unknown-target throw does not fire because the name IS
 known, just bound to the wrong one of two. The determinism report’s
 `node_count` under-counted by one per split environment too.
 
+### an.stage.compile.PLANE_EDGE_ON_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
+
+at
+±π/2 the runtime draws nothing, and a value past it is almost always
+DEGREES typed where radians were meant (an#314 review).
+
+* **Type:**
+  How close to edge-on a plane may be authored (radians short of ±π/2)
+
 ### an.stage.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
 A `fill` plane with no declared size covers the canvas at any camera scale
@@ -224,7 +234,7 @@ layer’s framing check reads the same number, re-exported here.
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
 
-### an.stage.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.stage.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'perspective', 'pivot_x', 'pivot_y', 'plane_fade_end', 'plane_fade_start', 'rotation', 'rotation_rad', 'rotation_x', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT

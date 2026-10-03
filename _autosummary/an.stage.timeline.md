@@ -26,7 +26,7 @@ composing node transforms into canvas positions ([`screen_position()`](#an.stage
 | [`evaluate_timeline`](#an.stage.timeline.evaluate_timeline)(timeline, t, \*[, space])     | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                       |
 | [`clip_from_json`](#an.stage.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](#an.stage.timeline.Clip). |
 | [`timeline_from_scene`](#an.stage.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.                                                  |
-| [`transform_of`](#an.stage.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                                    |
+| [`transform_of`](#an.stage.timeline.transform_of)(node[, pose, frame_height])        | A node's transform, with `pose` overriding what the document declares.                                                    |
 | [`screen_position`](#an.stage.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                                                |
 
 ### Classes
@@ -102,7 +102,7 @@ A sequence of placed clips that share a common purpose / target prefix.
 `target_root` is informational metadata for downstream tools (the JS
 runtime can use it to scope rendering); evaluation does not filter by it.
 
-### *class* an.stage.timeline.Transform2D(x=0.0, y=0.0, rotation=0.0, scale_x=1.0, scale_y=1.0, pivot_x=0.0, pivot_y=0.0)
+### *class* an.stage.timeline.Transform2D(x=0.0, y=0.0, rotation=0.0, scale_x=1.0, scale_y=1.0, pivot_x=0.0, pivot_y=0.0, rotation_x=0.0, eye_distance=0.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -135,6 +135,43 @@ moves everything the node contains, in the opposite direction.
 (10.0, 0.0)
 ```
 
+#### project(q)
+
+A plane point `q = local − pivot` as the tilted plane shows it.
+
+`k = f / (f − q_y·sin θ)`, `P(q) = (k·q_x, k·q_y·cos θ)`: the hinge
+row (`q_y = 0`) is unmoved, and a row up a receding plane is pulled
+toward the horizon at `f·cot θ` above it.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> t = Transform2D(rotation_x=math.pi / 3, eye_distance=1000.0)
+>>> t.project((100.0, 0.0))
+(100.0, 0.0)
+>>> x, y = t.project((100.0, -500.0))
+>>> x < 100.0 and -500.0 < y < 0.0
+True
+```
+
+A point behind the eye (or a plane edge-on, or no eye distance) is one
+the runtime does not draw, so it has no position:
+
+```pycon
+>>> t.project((0.0, 5000.0))
+Traceback (most recent call last):
+...
+ValueError: plane point (0.0, 5000.0) is not drawn: ...
+```
+
+#### rotation_x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The plane’s tilt (an#314, radians; positive = the top recedes) and the
+eye’s distance from the hinge in scene px (`perspective` × the frame
+height). The projection is applied to `local − pivot`, before the 2D
+transform, exactly as `runtime.js` “Planes” draws it.
+
 #### unapply(point)
 
 The inverse of [`apply()`](#an.stage.timeline.Transform2D.apply) — a parent-space point, in local space.
@@ -146,6 +183,19 @@ The inverse of [`apply()`](#an.stage.timeline.Transform2D.apply) — a parent-sp
 >>> t = Transform2D(x=10.0, pivot_x=3.0, scale_x=2.0, rotation=0.4)
 >>> round(t.unapply(t.apply((7.0, -2.0)))[0], 9)
 7.0
+```
+
+#### unproject(p)
+
+The inverse of [`project()`](#an.stage.timeline.Transform2D.project).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> t = Transform2D(rotation_x=1.0, eye_distance=800.0)
+>>> [round(v, 9) for v in t.unproject(t.project((40.0, -300.0)))]
+[40.0, -300.0]
 ```
 
 ### an.stage.timeline.clip_from_json(anim, , name=None)
@@ -301,14 +351,15 @@ kernel’s ([`an.timing.timeline.timeline_from_compiled()`](an.timing.timeline.m
 5.0
 ```
 
-### an.stage.timeline.transform_of(node, pose=None)
+### an.stage.timeline.transform_of(node, pose=None, , frame_height=1080.0)
 
 A node’s transform, with `pose` overriding what the document declares.
 
 The runtime applies a pose value by assigning the property on the display
 object, so a channel REPLACES the declared value rather than adding to it —
 which is why the parallax compensation carries the plane’s own offset in
-every keyframe instead of an offset from it.
+every keyframe instead of an offset from it. `frame_height` turns a
+`perspective` (in frame heights, an#314) into the eye’s distance.
 
 * **Return type:**
   [`Transform2D`](#an.stage.timeline.Transform2D)

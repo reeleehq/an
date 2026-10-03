@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="../_static/documentation_options.js?v=ba5585f7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.voices" href="an.audio.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -619,43 +619,46 @@ fraction of a second so the CLI is snappy.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.COLOUR_PROPERTY" title="an.base.COLOUR_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COLOUR_PROPERTY</span></code></a></p></td>
 <td><p>The property names the cutout runtime animates NUMERICALLY.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.TRIM_PROPERTIES" title="an.base.TRIM_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_PROPERTIES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PLANE_REST_VALUES" title="an.base.PLANE_REST_VALUES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PLANE_REST_VALUES</span></code></a></p></td>
+<td><p>a node targeted with any of them is drawn on a plane tilted away from the camera (<code class="docutils literal notranslate"><span class="pre">rotation_x</span></code>, radians, positive = the top recedes; <code class="docutils literal notranslate"><span class="pre">perspective</span></code>, the eye's distance in frame heights; <code class="docutils literal notranslate"><span class="pre">plane_fade_start</span></code>/<code class="docutils literal notranslate"><span class="pre">plane_fade_end</span></code>, the far fade, scene px up the plane from the hinge, off while the end is <code class="docutils literal notranslate"><span class="pre">&lt;=</span> <span class="pre">0</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.TRIM_PROPERTIES" title="an.base.TRIM_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_PROPERTIES</span></code></a></p></td>
 <td><p>The path-only properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#160; the name predates <code class="code docutils literal notranslate"><span class="pre">dash_offset</span></code>, an#161): trim and the dash phase.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/</span></code> would read as a path segment and <code class="docutils literal notranslate"><span class="pre">::</span></code> is the runtime's pose-key separator.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.AUTHORABLE_PROPERTIES" title="an.base.AUTHORABLE_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.AUTHORABLE_PROPERTIES" title="an.base.AUTHORABLE_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></p></td>
 <td><p>a compiled transform channel, or the authored colour spelling the compiler expands.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.PathStr" title="an.base.PathStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathStr</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PathStr" title="an.base.PathStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathStr</span></code></a></p></td>
 <td><p>Slash-delimited node path, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;charlie/head/mouth&quot;</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.Seconds" title="an.base.Seconds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seconds</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.Seconds" title="an.base.Seconds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seconds</span></code></a></p></td>
 <td><p>Time in seconds.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.EasingSpec" title="an.base.EasingSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.EasingSpec" title="an.base.EasingSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></p></td>
 <td><p>Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererName</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererName</span></code></a></p></td>
 <td><p>Which renderer draws a shot.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SUPPORTED_RENDERERS" title="an.base.SUPPORTED_RENDERERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.SUPPORTED_RENDERERS" title="an.base.SUPPORTED_RENDERERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></p></td>
 <td><p>The same vocabulary as <a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-data docutils literal notranslate"><span class="pre">RendererName</span></code></a>, as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.TRANSITION_KINDS" title="an.base.TRANSITION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.TRANSITION_KINDS" title="an.base.TRANSITION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></p></td>
 <td><p>The transition kinds a shot may be entered by.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_DURATION" title="an.base.DEFAULT_TRANSITION_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_DURATION</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_DURATION" title="an.base.DEFAULT_TRANSITION_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_DURATION</span></code></a></p></td>
 <td><p>half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_COLOR" title="an.base.DEFAULT_TRANSITION_COLOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_COLOR</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_COLOR" title="an.base.DEFAULT_TRANSITION_COLOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_COLOR</span></code></a></p></td>
 <td><p>The colour a <code class="docutils literal notranslate"><span class="pre">fade</span></code> passes through when it names none.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.FILM_AUDIO_SAMPLE_RATE" title="an.base.FILM_AUDIO_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.FILM_AUDIO_SAMPLE_RATE" title="an.base.FILM_AUDIO_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></p></td>
 <td><p>The film mix's sample rate and channel count.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_DUCK_DB" title="an.base.DEFAULT_DUCK_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_DUCK_DB" title="an.base.DEFAULT_DUCK_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code></a></p></td>
 <td><p>how far a ducked cue drops under dialogue, and how fast it gets there and comes back.</p></td>
 </tr>
 </tbody>
@@ -672,7 +675,7 @@ fraction of a second so the CLI is snappy.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.AUTHORABLE_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">AUTHORABLE_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.base.AUTHORABLE_PROPERTIES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">AUTHORABLE_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'perspective',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'plane_fade_end',</span> <span class="pre">'plane_fade_start',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'rotation_x',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.base.AUTHORABLE_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
 compiler’s rest table against <code class="code docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> — the difference between
@@ -850,6 +853,26 @@ identical, video/audio packet totals identical, file size identical,
 decoded YUV sha256 identical, wall time unchanged.</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.PLANE_REST_VALUES">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">PLANE_REST_VALUES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'perspective':</span> <span class="pre">1.0,</span> <span class="pre">'plane_fade_end':</span> <span class="pre">0.0,</span> <span class="pre">'plane_fade_start':</span> <span class="pre">0.0,</span> <span class="pre">'rotation_x':</span> <span class="pre">0.0}</span></span><a class="headerlink" href="#an.base.PLANE_REST_VALUES" title="Link to this definition">#</a></dt>
+<dd><p>a node
+targeted with any of them is drawn on a plane tilted away from the camera
+(<code class="docutils literal notranslate"><span class="pre">rotation_x</span></code>, radians, positive = the top recedes; <code class="docutils literal notranslate"><span class="pre">perspective</span></code>, the
+eye’s distance in frame heights; <code class="docutils literal notranslate"><span class="pre">plane_fade_start</span></code>/<code class="docutils literal notranslate"><span class="pre">plane_fade_end</span></code>,
+the far fade, scene px up the plane from the hinge, off while the end is
+<code class="docutils literal notranslate"><span class="pre">&lt;=</span> <span class="pre">0</span></code>). See <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> “Planes” and <code class="code docutils literal notranslate"><span class="pre">an.stage.timeline.Transform2D</span></code>.
+Their rest values — the untilted plane, the eye one frame height away, no
+far fade — the one table the compiler’s rest table, the Python projection
+(<code class="code docutils literal notranslate"><span class="pre">an.stage.timeline</span></code>) and <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code>’s <code class="docutils literal notranslate"><span class="pre">PLANE_PROPERTIES</span></code> (pinned by a
+test) agree on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The plane properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#314)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.base.PathStr">
 <span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">PathStr</span></span><a class="headerlink" href="#an.base.PathStr" title="Link to this definition">#</a></dt>
@@ -1001,6 +1024,7 @@ draws no path refuses all of them.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.EasingSpec"><code class="docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.FILM_AUDIO_SAMPLE_RATE"><code class="docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.MP4_FASTSTART_ARGS"><code class="docutils literal notranslate"><span class="pre">MP4_FASTSTART_ARGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PLANE_REST_VALUES"><code class="docutils literal notranslate"><span class="pre">PLANE_REST_VALUES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PathStr"><code class="docutils literal notranslate"><span class="pre">PathStr</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.RendererName"><code class="docutils literal notranslate"><span class="pre">RendererName</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SCHEMA_VERSION"><code class="docutils literal notranslate"><span class="pre">SCHEMA_VERSION</span></code></a></li>

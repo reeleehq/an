@@ -3,7 +3,7 @@
 Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 `pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
-`squash_stretch`, `waddle`, `turn`, `walk` and `speech_pulse` each EXPAND to ordinary `tween`
+`squash_stretch`, `waddle`, `turn`, `walk`, `speech_pulse` and `crawl` each EXPAND to ordinary `tween`
 actions on transform properties (`turn` adds one swap `set`), composed with [`sequence()`](an.ir.compose.md#an.ir.compose.sequence) and
 [`parallel()`](an.ir.compose.md#an.ir.compose.parallel). Called from Python, nothing downstream
 learns a preset exists: the flat timeline, `an validate`, the verifiers and
@@ -78,6 +78,7 @@ too since an#241, but verbatim, as its JSON form).
 | [`face_toward`](#an.motion.face_toward)(shot, who, other, \*[, view, ...])     | [`turn()`](#an.motion.turn) `who` to `view`, facing `other` — the direction read off the stage, so a profile looks at the other character wherever the layout put them.                                                                                  |
 |-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                     | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
+| [`crawl`](#an.motion.crawl)(target, \*[, distance, duration, ...])       | An opening crawl: lay `target` on a plane tilted away, and slide it up and away.                                                                                                                                                                                                     |
 | [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])          | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
 | [`nod`](#an.motion.nod)(target, \*[, part, angle, duration, ...])      | Dip the head `count` times (a rotation of `<target>/<part>`).                                                                                                                                                                                                                        |
 | [`point`](#an.motion.point)(target, \*[, angle, raise_duration, ...])    | Swing an arm out to point, hold it, and lower it again.                                                                                                                                                                                                                              |
@@ -106,7 +107,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](an.ir.schema.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](an.ir.schema.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](an.ir.schema.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](an.ir.schema.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](an.ir.schema.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](an.ir.schema.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'speech_pulse': <function speech_pulse>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](an.ir.schema.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](an.ir.schema.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](an.ir.schema.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](an.ir.schema.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](an.ir.schema.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](an.ir.schema.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'crawl': <function crawl>, 'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'speech_pulse': <function speech_pulse>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback (`an.characters.play.play_source()`, an#166) read.
@@ -132,6 +133,33 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 ['SequenceAction', 'SequenceAction', 'SetAction']
 >>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
 [1.0, 1.25, 1.5]
+```
+
+### an.motion.crawl(target, , distance=2400.0, duration=30.0, start=None, tilt=0.96, perspective=1.0, fade=(700.0, 1500.0), y=None, easing='linear', rest=None)
+
+An opening crawl: lay `target` on a plane tilted away, and slide it up and away.
+
+Sets the plane (`rotation_x` = `tilt`, `perspective`, the far
+`fade`, and the hinge’s `y` when given) at the start, then ONE tween:
+`pivot_y` from `start` (default: where the pivot rests) to `start +
+distance`. On a tilted node the pivot is the point of the plane on the
+hinge (an#314), so the content travels `distance` scene px along the
+plane; the slowing and shrinking as it recedes are the projection’s, not
+the tween’s. A block centred on its origin starts with its middle on the
+hinge: a negative `start` (half the block’s height and more) has it
+enter from below. `fade=None` draws the plane to the horizon.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.md#an.ir.schema.ExtensionAction)]
+
+```pycon
+>>> leaves = flatten(crawl("crawl", distance=1000, duration=20, start=-300, fade=None))
+>>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
+...        if isinstance(f.action, SetAction) and f.start == 0)
+[('perspective', 1.0), ('rotation_x', 0.96)]
+>>> [(f.action.from_value, f.action.to_value, f.end) for f in _tweens(crawl("crawl",
+...     distance=1000, duration=20, start=-300))]
+[(-300.0, 700.0, 20.0)]
 ```
 
 ### an.motion.face_toward(shot, who, other, , view='side', from_direction=None, duration=0.3, mall=None)

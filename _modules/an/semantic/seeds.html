@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="../../../_static/documentation_options.js?v=ba5585f7"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1106,8 +1106,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"parts). 'alpha' is the fade primitive and cascades to a character's "</span>
             <span class="s2">"parts. Any other property (opacity, visible, color, width, ...) is "</span>
             <span class="s2">"refused at compile. A tween with no 'from' starts at the property's "</span>
-            <span class="s2">"rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, "</span>
-            <span class="s2">"0.0 for the rest. A tween with no 'easing' takes the scene's "</span>
+            <span class="s2">"rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, "</span>
+            <span class="s2">"'#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / "</span>
+            <span class="s2">"plane_fade_start / plane_fade_end tilt the node's plane away from "</span>
+            <span class="s2">"the camera (radians, frame heights, plane px), and then pivot_y "</span>
+            <span class="s2">"slides its content along the plane. A tween with no 'easing' takes the scene's "</span>
             <span class="s2">"meta.default_easing when set."</span><span class="p">,</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">"what a set or tween animates"</span><span class="p">,</span>
         <span class="p">),</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1e2d01ee"></script>
+    <script src="../_static/documentation_options.js?v=ba5585f7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.canvas_capture" href="an.stage.canvas_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.156" />
+  <meta name="docsearch:version" content="0.1.157" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -664,6 +664,9 @@ mall). It reads only.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_NODE_SPACE" title="an.stage.compile.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
 <td><p>The property space every compiled node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.PLANE_EDGE_ON_MARGIN" title="an.stage.compile.PLANE_EDGE_ON_MARGIN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PLANE_EDGE_ON_MARGIN</span></code></a></p></td>
+<td><p>at ±π/2 the runtime draws nothing, and a value past it is almost always DEGREES typed where radians were meant (an#314 review).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -896,6 +899,19 @@ known, just bound to the wrong one of two. The determinism report’s
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.PLANE_EDGE_ON_MARGIN">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PLANE_EDGE_ON_MARGIN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></span><a class="headerlink" href="#an.stage.compile.PLANE_EDGE_ON_MARGIN" title="Link to this definition">#</a></dt>
+<dd><p>at
+±π/2 the runtime draws nothing, and a value past it is almost always
+DEGREES typed where radians were meant (an#314 review).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How close to edge-on a plane may be authored (radians short of ±π/2)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.stage.compile.PLANE_FILL_SPAN">
 <span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PLANE_FILL_SPAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4000.0</span></span><a class="headerlink" href="#an.stage.compile.PLANE_FILL_SPAN" title="Link to this definition">#</a></dt>
 <dd><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale
@@ -912,7 +928,7 @@ which is what decides where the staging step copies the art from.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.compile.RUNTIME_APPLIED_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'perspective',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'plane_fade_end',</span> <span class="pre">'plane_fade_start',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'rotation_x',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>Every property name the JS runtime’s <code class="docutils literal notranslate"><span class="pre">applyProperty</span></code> STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT
 above). This is the Python side of the two-evaluator drift gate:
@@ -1325,6 +1341,7 @@ reports it), so the two say the same thing about the same path.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.DFLT_TARGET_SUGGESTIONS"><code class="docutils literal notranslate"><span class="pre">DFLT_TARGET_SUGGESTIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.ENVIRONMENT_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">ENVIRONMENT_ART_PREFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.FOREGROUND_SUFFIX"><code class="docutils literal notranslate"><span class="pre">FOREGROUND_SUFFIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PLANE_EDGE_ON_MARGIN"><code class="docutils literal notranslate"><span class="pre">PLANE_EDGE_ON_MARGIN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PLANE_FILL_SPAN"><code class="docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PROP_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">PROP_ART_PREFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></code></a></li>

@@ -79,7 +79,7 @@ Source: [`.claude/skills/an-dev-runtime-assets`](https://github.com/thorwhalen/a
 
 ### `an-dev-stage`
 
-The stage in the `an` repo — the camera (which is `root.pivot`, and already exists), parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the rename `Shot.style` → `Shot.renderer`. Load before touching `_add_camera_clips`, `_build_environment_subtree`, `_build_scene_root`, `Camera`, `AssetRef.stage`, the environments/styles/props stores, or any scene that pans. Triggers on "camera", "pan", "parallax", "multiplane", "plane", "environment", "backdrop", "prop", "style pack", "art direction", "renderer selector".
+The stage in the `an` repo — the camera (which is `root.pivot`, and already exists), parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the rename `Shot.style` → `Shot.renderer`. Load before touching `_add_camera_clips`, `_build_environment_subtree`, `_build_scene_root`, `Camera`, `AssetRef.stage`, the environments/styles/props stores, or any scene that pans. Triggers on "camera", "pan", "parallax", "tilt", "perspective", "rotation_x", "crawl", "multiplane", "plane", "environment", "backdrop", "prop", "style pack", "art direction", "renderer selector".
 
 Source: [`.claude/skills/an-dev-stage`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-stage).
 
