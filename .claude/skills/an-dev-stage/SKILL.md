@@ -1,6 +1,6 @@
 ---
 name: an-dev-stage
-description: The stage in the `an` repo — the camera (which is `root.pivot`, and already exists), parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the rename `Shot.style` → `Shot.renderer`. Load before touching `_add_camera_clips`, `_build_environment_subtree`, `_build_scene_root`, `Camera`, `AssetRef.stage`, the environments/styles/props stores, or any scene that pans. Triggers on "camera", "pan", "parallax", "multiplane", "plane", "environment", "backdrop", "prop", "style pack", "art direction", "renderer selector".
+description: The stage in the `an` repo — the camera (which is `root.pivot`, and already exists), parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the rename `Shot.style` → `Shot.renderer`. Load before touching `_add_camera_clips`, `_build_environment_subtree`, `_build_scene_root`, `Camera`, `AssetRef.stage`, the environments/styles/props stores, or any scene that pans. Triggers on "camera", "pan", "parallax", "tilt", "perspective", "rotation_x", "crawl", "multiplane", "plane", "environment", "backdrop", "prop", "style pack", "art direction", "renderer selector".
 ---
 
 # an-dev-stage — the camera, the planes, the props
@@ -170,6 +170,28 @@ without being revisited. Tracked as an#126; do not read the four-field shape bel
 present tense. Attaching
 a prop to a character is deferred: `_track_root_of` makes entity identity the first path segment,
 and the rig has **no hand bone**.
+
+## 3c. Planes tilted away from the camera (an#314)
+
+`rotation_x`, `perspective`, `plane_fade_start`, `plane_fade_end` are **channel** properties
+(the `tint_r` precedent: rest values in `an.base.PLANE_REST_VALUES`, never `TransformJSON`
+fields), so no corpus hash moves. The runtime turns a node into a plane node at LOAD, from the
+channels that name it; there is no document marker. What to know before touching it:
+
+- **The pivot is applied inside the projection**: `world = position + M·P(local − pivot)`, the
+  plane hinged at the node's position. On a plane node the container's own `pivot` is held at 0
+  and the value lives in `node._anPlane` (`applyProperty`/`captureRest` route it there). A
+  `pivot_y` tween is the crawl; do not add a "scroll" property.
+- **`contentOf(node)`** is where a node's visual and children live (the node itself, or its
+  `flat` container). Any new code that walks `node.children` for the node's own drawing (swap
+  sets, trims, tint) must use it, or it silently misses a tilted node's content.
+- **Exactly projective, not subdivided**: 4 vertices, `(u·k, v·k, k)` divided per fragment.
+  `Transform2D.project` is the spec; `tests/test_plane.py` renders a tilted square and finds its
+  corners where it says.
+- **Textures are destroyed AFTER the material is swapped** (`MeshMaterial`'s texture setter reads
+  the old one), and the size is read before `destroy`.
+- Not built: `rotation_y`, a plane inside a plane (refused), mipmaps (the far fade hides the
+  minification).
 
 ## 4. What a pack may and may not do
 

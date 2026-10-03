@@ -784,13 +784,15 @@
         const h = Math.min(max, Math.ceil(height / step) * step);
         const tex = P.texture;
         if (tex && tex.width >= width && tex.height >= height) return tex;
-        if (tex) tex.destroy(true);
+        // Grow only: a slice that shrinks keeps the larger texture.
+        const oldW = tex ? tex.width : 0, oldH = tex ? tex.height : 0;
         P.texture = PIXI.RenderTexture.create({
-            width: Math.max(w, tex ? tex.width : 0),
-            height: Math.max(h, tex ? tex.height : 0),
-            resolution: 1,
+            width: Math.max(w, oldW), height: Math.max(h, oldH), resolution: 1,
         });
+        // The material reads its current texture when it is swapped, so the
+        // old one is destroyed only after.
         P.mesh.material.texture = P.texture;
+        if (tex) tex.destroy(true);
         return P.texture;
     }
 
