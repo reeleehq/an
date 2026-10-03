@@ -102,6 +102,10 @@ The vision makes this a requirement, not a nice-to-have. A draft must always be 
    - Its default is an in-process implementation of verifying traces with early cutoff over the stores above. This is the algorithm `nw.freshness` uses, applied to `an`'s stage list.
    - An `nw`-backed implementation (an `nw.Transform` per stage, through `an.genre`) becomes possible once `nw`'s layout coupling and heavy dependencies are optional.
    - `an` never imports `nw` outside `an.genre`.
+   - **As built (nw#101, 2026-10-03): the objections are cleared on `nw`'s side, and the genre is `available`.**
+     - *Layout* and *a second persistence path*: `nw.storage` (nw#103) lets a genre keep a project's graph and documents in mappings it owns. `cutan.nw` keeps the graph as `dol` JSON files under `.an/nw/graph` inside the `an` project, with only nw's small `project.json` manifest at the root, the marker every host uses to recognise an nw project. No SQLite file sits beside the mall. A registered storage resolver lets a host that only knows the path open the same graph.
+     - *Dependencies*: `import nw` loads no paid client (nw#96), and `fal-client` is an optional install of `falaw` (`falaw[fal]`), which `cutan[nw]` does not pull in.
+     - *What was wired*: the genre level, not a `Transform` per stage. `cutan.nw` offers `status` and `render` as nw genre ops. `render` runs `render_project`, whose own shot cache (this ADR's default `incremental=`) still decides which shots re-render, and records the scene document and the film in nw's graph, so `nw.stale_verdicts` reports the film stale when the scene changes. A per-stage `nw`-backed `incremental=` engine remains possible behind the same seam, and nothing needs it yet.
 
 6. **Invalidation is by digest, never by deletion.**
    - `an iterate` stops deleting from the shots store.
