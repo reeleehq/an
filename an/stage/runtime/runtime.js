@@ -717,6 +717,18 @@
         flat._anPlaneFlat = true;
         flat.name = node.name + '#flat';
         for (const child of node.removeChildren()) flat.addChild(child);
+        // A native blend (`add`, `multiply`: a glow) composites against what
+        // is ALREADY drawn, and inside a plane that is the cleared texture, not
+        // the scene: an `add` would draw as its bare colour and a `multiply`
+        // as black. So it is not drawn on a plane; the compiler warns.
+        (function hideBlended(n) {
+            for (const c of n.children || []) {
+                if (c.blendMode != null && c.blendMode !== PIXI.BLEND_MODES.NORMAL) {
+                    c.visible = false;
+                }
+                hideBlended(c);
+            }
+        })(flat);
         const geometry = new PIXI.Geometry()
             .addAttribute('aVertexPosition', new Float32Array(8), 2)
             .addAttribute('aUvq', new Float32Array(12), 3)
@@ -784,10 +796,16 @@
         const h = Math.min(max, Math.ceil(height / step) * step);
         const tex = P.texture;
         if (tex && tex.width >= width && tex.height >= height) return tex;
-        // Grow only: a slice that shrinks keeps the larger texture.
-        const oldW = tex ? tex.width : 0, oldH = tex ? tex.height : 0;
+        // Grow only, so a slice that shrinks keeps the larger texture — unless
+        // the union of the two would pass the pixel cap (a tall slice, then a
+        // wide one): then exactly what this slice needs.
+        let gw = Math.max(w, tex ? tex.width : 0), gh = Math.max(h, tex ? tex.height : 0);
+        if (gw * gh > PLANE_MAX_TEXTURE_PIXELS) { gw = w; gh = h; }
         P.texture = PIXI.RenderTexture.create({
-            width: Math.max(w, oldW), height: Math.max(h, oldH), resolution: 1,
+            width: gw, height: gh, resolution: 1,
+            // Multisampled like the canvas, so vector art drawn into the plane
+            // keeps its antialiased edges (resolved by the `blit` below).
+            multisample: app.renderer.multisample,
         });
         // The material reads its current texture when it is swapped, so the
         // old one is destroyed only after.
@@ -843,13 +861,15 @@
         const w = x1 - x0, h = y1 - y0;
         if (!(w > 0 && h > 0)) return;
         const kOf = q => f / (f - q * sin);
-        const k0 = kOf(y0), k1 = kOf(y1);
         // The texture's density: the on-screen magnification at its nearest
-        // row, capped by the GPU and by PLANE_MAX_TEXTURE_PIXELS.
+        // row — k across, k²·cos θ down the plane (d(k·q·cos θ)/dq) —
+        // capped by the GPU and by PLANE_MAX_TEXTURE_PIXELS.
+        const magnification = q => { const k = kOf(q); return Math.max(k, k * k * cos); };
         const wt = node.worldTransform;
         const worldScale = Math.max(Math.hypot(wt.a, wt.b), Math.hypot(wt.c, wt.d));
         const max = maxTextureSize();
-        let res = app.renderer.resolution * worldScale * Math.max(k0, k1);
+        let res = app.renderer.resolution * worldScale *
+            Math.max(magnification(y0), magnification(y1));
         res = Math.min(
             res, max / w, max / h,
             Math.sqrt(PLANE_MAX_TEXTURE_PIXELS / (w * h))
@@ -862,6 +882,7 @@
         app.renderer.render(P.flat, {
             renderTexture: tex,
             clear: true,
+            blit: true,
             transform: new PIXI.Matrix(res, 0, 0, res, -lx0 * res, -ly0 * res),
         });
         const u1 = pw / tex.width, v1 = ph / tex.height;

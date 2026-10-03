@@ -247,3 +247,41 @@ def test_in_pixels_a_tilted_square_lands_where_the_projection_says(tmp_path, piv
     tol = 6
     assert abs(top - tly) <= tol and abs(bottom - bry) <= tol, (top, bottom, tly, bry)
     assert abs(rows[top][0] - tlx) <= tol and abs(rows[bottom][1] - brx) <= tol
+
+
+# -----------------------------------------------------------------------------
+# Loud, not blank (an#314 review)
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "prop, value, match",
+    [("rotation_x", 60.0, "RADIANS"), ("rotation_x", -math.pi / 2, "edge-on"),
+     ("perspective", 0.0, "positive"), ("perspective", -1.0, "positive")],
+)
+def test_a_plane_value_that_would_draw_nothing_is_refused(prop, value, match):
+    from an.ir.compose import set_
+    from an.stage.compile import CutoutCompileError
+
+    shot, mall = _square_shot(tilt=0.5)
+    shot = shot.model_copy(update={"actions": [*shot.actions, set_("sq", prop, value)]})
+    with pytest.raises(CutoutCompileError, match=match):
+        compile_shot(shot, mall, width=W, height=H)
+
+
+def test_a_blend_on_a_tilted_node_is_warned_about():
+    from an.stage.compile import CutoutCompileWarning
+    from an.styles import StylePack
+
+    shot, mall = _square_shot(tilt=0.5)
+    pack = StylePack.model_validate({"name": "p", "surface": {"glow": {"color": "#ffffff"}}})
+    with pytest.warns(CutoutCompileWarning, match="blend mode"):
+        compile_shot(shot, mall, width=W, height=H, style_pack=pack)
+
+
+def test_the_projection_has_no_position_for_a_point_it_does_not_draw():
+    t = Transform2D(rotation_x=1.0, eye_distance=500.0)
+    with pytest.raises(ValueError, match="not drawn"):
+        t.project((100.0, 700.0))
+    with pytest.raises(ValueError, match="not drawn"):
+        Transform2D(rotation_x=1.0, eye_distance=0.0).project((0.0, 0.0))

@@ -190,8 +190,14 @@ channels that name it; there is no document marker. What to know before touching
   corners where it says.
 - **Textures are destroyed AFTER the material is swapped** (`MeshMaterial`'s texture setter reads
   the old one), and the size is read before `destroy`.
+- **Loud, not blank**: `_check_planes` (compile) refuses `rotation_x` outside (−π/2, π/2) and
+  `perspective` ≤ 0, which the runtime would draw as nothing; a native blend under a tilted node
+  is hidden by the runtime and warned about by the compiler (no scene to blend with in the
+  plane's texture). A tilted node fades as one image.
+- The texture is multisampled (`multisample: app.renderer.multisample`, `blit: true`); without
+  it vector art on a plane lost its antialiasing.
 - Not built: `rotation_y`, a plane inside a plane (refused), mipmaps (the far fade hides the
-  minification).
+  minification), tilt in `an validate`'s framing check.
 
 ## 4. What a pack may and may not do
 

@@ -137,11 +137,28 @@ class Transform2D:
         >>> x, y = t.project((100.0, -500.0))
         >>> x < 100.0 and -500.0 < y < 0.0
         True
+
+        A point behind the eye (or a plane edge-on, or no eye distance) is one
+        the runtime does not draw, so it has no position:
+
+        >>> t.project((0.0, 5000.0))
+        Traceback (most recent call last):
+        ...
+        ValueError: plane point (0.0, 5000.0) is not drawn: ...
         """
         if not self.rotation_x:
             return q
         sin_t, cos_t = math.sin(self.rotation_x), math.cos(self.rotation_x)
-        k = self.eye_distance / (self.eye_distance - q[1] * sin_t)
+        depth = self.eye_distance - q[1] * sin_t
+        if not self.eye_distance > 0 or cos_t <= 0 or depth <= 0:
+            raise ValueError(
+                f"plane point {q} is not drawn: the runtime draws a plane only "
+                "with a positive eye distance, short of edge-on, and in front of "
+                f"the eye (eye_distance={self.eye_distance}, rotation_x="
+                f"{self.rotation_x}); the near clip at 8x magnification is the "
+                "runtime's alone"
+            )
+        k = self.eye_distance / depth
         return k * q[0], k * q[1] * cos_t
 
     def unproject(self, p: tuple[float, float]) -> tuple[float, float]:

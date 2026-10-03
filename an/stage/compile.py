@@ -917,6 +917,7 @@ def _checks_pass(state: CompileState) -> None:
     # find (an#193).
     _check_channel_targets(state.animations, state.vocab.paths, shot_id=state.shot.id)
     _check_keyframe_easings(state.animations, shot_id=state.shot.id)
+    _check_planes(state)
     # AFTER action + viseme compilation, deliberately: a swap key the timeline
     # actually USES whose art is missing is recorded as a fallback during
     # those passes (usage-aware escalation, an#87), and this is the one place
@@ -3459,6 +3460,74 @@ def _check_default_easing(spec: Any) -> None:
         apply_easing(spec, 0.5)
     except (ValueError, TypeError) as e:
         raise CutoutCompileError(f"meta.default_easing {spec!r}: {e}") from e
+
+
+#: How close to edge-on a plane may be authored (radians short of ±π/2): at
+#: ±π/2 the runtime draws nothing, and a value past it is almost always
+#: DEGREES typed where radians were meant (an#314 review).
+PLANE_EDGE_ON_MARGIN: float = 1e-3
+
+
+def _check_planes(state: "CompileState") -> None:
+    """Plane properties (an#314): refuse a value that would draw nothing, and
+    warn about native blends a tilted node cannot composite.
+
+    ``rotation_x`` outside ``(-π/2, π/2)`` (edge-on or facing away) and a
+    ``perspective`` at or below 0 make the runtime draw the node as NOTHING,
+    with no error — so they are refused here, naming the value. A visual with
+    a native blend (``add``/``multiply``: a StylePack glow) under a tilted node
+    is drawn into the plane's own texture, where there is no scene to blend
+    with, so the runtime does not draw it on a plane.
+    """
+    limit = math.pi / 2 - PLANE_EDGE_ON_MARGIN
+    planes: set[str] = set()
+    for clip in state.animations.values():
+        for ch in clip.channels:
+            if ch.property not in PLANE_REST_VALUES:
+                continue
+            planes.add(ch.target)
+            for kf in ch.keyframes:
+                v = kf.value
+                if not isinstance(v, (int, float)):
+                    continue
+                if ch.property == "rotation_x" and not -limit <= v <= limit:
+                    raise CutoutCompileError(
+                        f"shot {state.shot.id!r}: {ch.target}:rotation_x = {v!r} tilts "
+                        "the plane edge-on or past it, so it would draw nothing. "
+                        "rotation_x is in RADIANS, within (-π/2, π/2) "
+                        f"(55° is {math.radians(55):.3f})."
+                    )
+                if ch.property == "perspective" and not v > 0:
+                    raise CutoutCompileError(
+                        f"shot {state.shot.id!r}: {ch.target}:perspective = {v!r}; the "
+                        "eye's distance from the plane, in frame heights, must be "
+                        "positive (1.0 is the rest)."
+                    )
+    if not planes:
+        return
+    blended: list[str] = []
+
+    def walk(n: NodeJSON, path: str, inside: bool) -> None:
+        here = f"{path}/{n.name}" if path else n.name
+        inside = inside or here in planes
+        if inside and n.visual is not None and n.visual.blend:
+            blended.append(here)
+        for c in n.children:
+            walk(c, here, inside)
+
+    for child in [*(state.scene_root.children if state.scene_root else ()),
+                  *state.overlay_children]:  # fmt: skip
+        walk(child, "", False)
+    if blended:
+        warnings.warn(
+            f"shot {state.shot.id!r}: {sorted(blended)} draw with a blend mode "
+            "(add/multiply: a glow) on a tilted node; a plane is drawn into its "
+            "own texture, where there is nothing to blend with, so these are not "
+            "drawn (an#314). Switch the treatment off for that entity "
+            "(`entity_surfaces: {<id>: {glow: false}}`) to silence this.",
+            CutoutCompileWarning,
+            stacklevel=4,
+        )
 
 
 def _check_keyframe_easings(

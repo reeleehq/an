@@ -388,8 +388,11 @@ def _core_fields() -> tuple[Entry, ...]:
             "parts). 'alpha' is the fade primitive and cascades to a character's "
             "parts. Any other property (opacity, visible, color, width, ...) is "
             "refused at compile. A tween with no 'from' starts at the property's "
-            "rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, "
-            "0.0 for the rest. A tween with no 'easing' takes the scene's "
+            "rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, "
+            "'#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / "
+            "plane_fade_start / plane_fade_end tilt the node's plane away from "
+            "the camera (radians, frame heights, plane px), and then pivot_y "
+            "slides its content along the plane. A tween with no 'easing' takes the scene's "
             "meta.default_easing when set.",
             description="what a set or tween animates",
         ),
