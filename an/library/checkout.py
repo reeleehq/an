@@ -66,7 +66,7 @@ from an.library.federation import (
     resolve,
 )
 from an.library.ids import SHA256_PREFIX, AssetIdError, LibraryRef, parse_ref
-from an.library.kinds import asset_kind_info
+from an.library.kinds import KIT_KIND, asset_kind_info
 from an.library.lock import ProjectLock, lock_key
 from an.library.rights import (
     ASSET_SOURCE_LABEL,
@@ -89,6 +89,7 @@ __all__ = [
     "LibraryPinError",
     "LibraryPinWarning",
     "check_pins_before_render",
+    "check_checkout",
     "check_pins",
     "checkout",
     "drift_findings",
@@ -245,6 +246,11 @@ def checkout(
         )
     library, pinned, version = resolve(libraries, ref)
     kind = asset_kind_info(pinned.kind)
+    if kind.name == KIT_KIND:
+        raise CheckoutError(
+            f"{pinned} is a kit: a set of assets, not an asset with files of its own. "
+            "Check it out with checkout_kit() (an library checkout does, for a kit)"
+        )
     if kind.store is None:
         raise CheckoutError(
             f"a {kind.name} has no project store to check out into (yet)"
@@ -277,7 +283,13 @@ def checkout(
         differences = drift(store, key, version)
         # A copy checked out by an older `an` lacks the record of which bytes
         # its carried label speaks for (an#264): an unedited one is re-linked.
-        outdated = bool(labelled.get("source")) and CHECKED_OUT_KEY not in origin
+        # Only a kind whose descriptor carries the origin block can be outdated:
+        # a style or a voice never records one, and is never re-linked for it.
+        outdated = (
+            kind.name in METADATA_KINDS
+            and bool(labelled.get("source"))
+            and CHECKED_OUT_KEY not in origin
+        )
         if same_version and not differences and not overwrite and not outdated:
             if entry_key not in lock:
                 lock[entry_key] = _pin(pinned, manifest)
@@ -289,15 +301,8 @@ def checkout(
         # bytes, so it needs no overwrite.
         linking = not differences and (not same_version or outdated)
         if not overwrite and not linking:
-            what = (
-                f"a fork of it ({', '.join(differences)})"
-                if same_version
-                else f"a local fork or another asset ({', '.join(differences)})"
-            )
             raise CheckoutError(
-                f"the project already has {kind.store}/{key}, and it is not {pinned} "
-                f"as published: it is {what}. Replace it with overwrite=True "
-                "(--overwrite), or check out beside it with key=… (--key …)"
+                _fork_refusal(kind.store, key, pinned, same_version, differences)
             )
         del store[key]
     if files and not hasattr(store, "sidecar_path"):
@@ -382,6 +387,83 @@ def checkout(
     store[key] = doc
     lock[entry_key] = _pin(pinned, manifest)
     return CheckoutResult(pinned, kind.store, key, manifest, len(files), True, rights)
+
+
+def _fork_refusal(
+    store_name: str,
+    key: str,
+    pinned: LibraryRef,
+    same_version: bool,
+    differences: list[str],
+) -> str:
+    """The refusal when a project entry is a fork (or another asset) and no overwrite was asked."""
+    what = (
+        f"a fork of it ({', '.join(differences)})"
+        if same_version
+        else f"a local fork or another asset ({', '.join(differences)})"
+    )
+    return (
+        f"the project already has {store_name}/{key}, and it is not {pinned} "
+        f"as published: it is {what}. Replace it with overwrite=True "
+        "(--overwrite), or check out beside it with key=… (--key …)"
+    )
+
+
+def check_checkout(
+    libraries: Libraries,
+    ref: str | LibraryRef,
+    *,
+    key: str | None = None,
+    mall: Mapping[str, Any],
+    lock: Any,
+    overwrite: bool = False,
+) -> LibraryRef:
+    """Raise :class:`CheckoutError` if :func:`checkout` of ``ref`` would refuse; write nothing.
+
+    Resolves the version, verifies its stored files, and applies the refusals
+    ``checkout`` makes about the project (a key that is not a folder name, a kind
+    with no store, a store that keeps no files, an entry that is a fork) — so a
+    caller about to check out several assets (a kit) learns of the one that will
+    fail before the first is written. Returns the pinned reference.
+    """
+    if key is not None and not _KEY_RE.fullmatch(key):
+        raise CheckoutError(
+            f"key {key!r} must be one folder name (letters, digits, '.', '_', '-')"
+        )
+    library, pinned, version = resolve(libraries, ref)
+    kind = asset_kind_info(pinned.kind)
+    if kind.name == KIT_KIND or kind.store is None:
+        raise CheckoutError(
+            f"{pinned} is a {kind.name}: it has no project store to check out into"
+        )
+    files = verified_files(library, version)
+    store = mall[kind.store]
+    if files and not hasattr(store, "sidecar_path"):
+        raise CheckoutError(
+            f"the project's {kind.store!r} store keeps no files beside its documents, "
+            f"so the {len(files)} files of {pinned} have nowhere to go"
+        )
+    key = (
+        key
+        or _unedited_copy(store, lock, kind.store, pinned, version)
+        or pinned.asset_id.split(".", 1)[1]
+    )
+    if key in store and not overwrite:
+        differences = drift(store, key, version)
+        if differences:
+            entry_key = lock_key(kind.store, key)
+            origin = (
+                (store[key].get("metadata") or {})
+                if isinstance(store[key], Mapping)
+                else {}
+            ).get(ORIGIN_KEY) or {}
+            same_version = origin.get("library") == str(pinned) or (
+                lock.get(entry_key, {}) if entry_key in lock else {}
+            ).get("library") == str(pinned)
+            raise CheckoutError(
+                _fork_refusal(kind.store, key, pinned, same_version, differences)
+            )
+    return pinned
 
 
 def _unedited_copy(

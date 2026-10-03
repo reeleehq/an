@@ -13,7 +13,8 @@ a namespaced reference names (``cutan:character.alice@v002`` reads ``cutan``
 with no ``--package``; an#251). A refusal (an unknown asset, a private asset
 leaving its library, …) prints one sentence and exits non-zero.
 
-Subcommands: ``publish``, ``find``, ``vocabulary``, ``show``, ``checkout``,
+Subcommands: ``publish``, ``kit``, ``find``, ``vocabulary``, ``show``,
+``checkout`` (which checks out a whole kit when the reference is one),
 ``promote``, ``retire``.
 """
 
@@ -35,12 +36,26 @@ from an.library.api import (
     vocabulary as _vocabulary,
 )
 from an.library.checkout import checkout as _checkout
+from an.library.kinds import KIT_KIND
+from an.library.kits import checkout_kit as _checkout_kit
+from an.library.kits import publish_kit as _publish_kit
 from an.library.federation import Library, open_library, search_path
 from an.library.ids import parse_ref
+from an.genres import entity_kind
 from an.ir.assets import AssetSource
 from an.library.root import CORE_PACKAGE
+from an.library.stores import version_key
 
-__all__ = ["checkout", "find", "promote", "publish", "retire", "show", "vocabulary"]
+__all__ = [
+    "checkout",
+    "find",
+    "kit",
+    "promote",
+    "publish",
+    "retire",
+    "show",
+    "vocabulary",
+]
 
 
 def _split(text: str) -> list[str] | None:
@@ -230,6 +245,83 @@ def publish(
 
 
 @_refusing
+def kit(
+    package: str,
+    asset_id: str,
+    refs: str,
+    key_for: str = "",
+    name: str = "",
+    note: str = "",
+    title: str = "",
+    family: str = "",
+    style: str = "",
+    status: str = "",
+    tags: str = "",
+    license: str = "",
+    provider: str = "",
+    author: str = "",
+    source_url: str = "",
+    root: str = "",
+    extra: str = "",
+) -> str:
+    """Publish a kit: a pinned set of assets a project checks out in one call.
+
+    package: whose library to publish the kit into (an, or a genre such as cutan)
+    asset_id: kit.<slug>, e.g. kit.reiniger-base
+    refs: the members, comma-separated [<library>:]<asset_id>[@<version>] (latest is pinned now)
+    key_for: the project key of a member, as ref=key pairs, comma-separated (default: the asset's slug)
+    name: the kit's name in its document (default: the asset id's slug)
+    note: what the kit is for
+    title: a human title for the record
+    family: the identity shared across styles and variants
+    style: styles the kit suits, comma-separated
+    status: draft, approved, deprecated or retired
+    tags: free tags, comma-separated
+    license: licence code of the kit document itself (the members keep their own rights)
+    provider: where the kit document came from (required with --license)
+    author: who made it
+    source_url: where it was fetched from
+    root: that library's root (default: the package's data folder)
+    extra: further libraries where the members resolve, by package name, comma-separated
+    """
+    members = _split(refs) or []
+    keys = dict(pair.split("=", 1) for pair in _split(key_for) or [] if "=" in pair)
+    strays = [r for r in keys if r not in members]
+    if strays or len(keys) != len(_split(key_for) or []):
+        raise SystemExit(
+            f"an library kit: --key-for takes ref=key pairs naming members; "
+            f"got {key_for!r} for members {members}"
+        )
+    lib = open_library(package, root or None)
+    others = _libraries(package, root, extra, refs=members)[1:]
+    result = _publish_kit(
+        lib,
+        asset_id,
+        [(ref, keys.get(ref)) for ref in members],
+        search=others or None,
+        name=name or None,
+        note=note or None,
+        source=_source_from_flags(
+            license=license, provider=provider, author=author, url=source_url
+        ),
+        title=title or None,
+        family=family or None,
+        style=_split(style),
+        status=status or None,
+        tags=_split(tags),
+    )
+    lines = [str(result)]
+    pinned = lib.versions[version_key(asset_id, result.ref.version)]["doc"]["members"]
+    lines += [f"  {m['ref']}" + (f" as {m['key']}" if m["key"] else "") for m in pinned]
+    if result.rights.license_class == "unknown":
+        lines.append(
+            f"unknown (never publishable): {'; '.join(result.rights.reasons)}."
+        )
+        lines += list(result.advice)
+    return "\n".join(lines)
+
+
+@_refusing
 def find(
     kind: str = "",
     style: str = "",
@@ -374,27 +466,42 @@ def checkout(
     """Check a library version out into a project, and pin it in assets.lock.json.
 
     project_dir: the an project
-    ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no --package needed
+    ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no --package needed. A kit.<slug> reference checks out every member of the kit, each pinned, and records the kit in the lockfile
     key: the key in the project store (default: the asset's slug)
     overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
     package: the library to read first, then the core an library (default: the reference's <library>: prefix, else an)
     root: that library's root (with no --package, the root of the library the reference names)
     extra: further libraries, by package name, comma-separated
     """
+    libraries = _libraries(package, root, extra, refs=[ref])
+    if parse_ref(ref).kind == KIT_KIND:
+        if key:
+            raise SystemExit(
+                "an library checkout: --key names one asset's key; a kit's members "
+                "carry their own keys (set them with `an library kit --key-for`)"
+            )
+        results = _checkout_kit(libraries, project_dir, ref, overwrite=overwrite)
+        lines = [f"kit {ref}: {len(results)} members", *map(str, results)]
+        castable = [r for r in results if entity_kind(r.ref.kind) is not None]
+        return "\n".join([*lines, *_entities_block(castable)])
     result = _checkout(
-        _libraries(package, root, extra, refs=[ref]),
-        project_dir,
-        ref,
-        key=key or None,
-        overwrite=overwrite,
+        libraries, project_dir, ref, key=key or None, overwrite=overwrite
     )
-    entity = result.asset_ref()
-    return (
-        f"{result}\n"
-        f"cast it in scene.md under `yaml entities`:\n"
-        f"  - {{id: {entity.id}, kind: {entity.kind}, store: {entity.store}, "
-        f'ref: {entity.ref}, library: "{entity.library}"}}'
-    )
+    return "\n".join([str(result), *_entities_block([result])])
+
+
+def _entities_block(results: list[Any]) -> list[str]:
+    """The lines inviting the author to cast ``results`` under ``yaml entities`` (none for none)."""
+    if not results:
+        return []
+    lines = ["cast it in scene.md under `yaml entities`:"]
+    for result in results:
+        entity = result.asset_ref()
+        lines.append(
+            f"  - {{id: {entity.id}, kind: {entity.kind}, store: {entity.store}, "
+            f'ref: {entity.ref}, library: "{entity.library}"}}'
+        )
+    return lines
 
 
 @_refusing
@@ -467,4 +574,4 @@ def retire(
     )
 
 
-_dispatch_funcs = [publish, find, vocabulary, show, checkout, promote, retire]
+_dispatch_funcs = [publish, kit, find, vocabulary, show, checkout, promote, retire]

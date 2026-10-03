@@ -42,6 +42,7 @@ def test_the_library_group_is_wired_with_its_commands_pinned_by_literal():
     info = next(g for g in app.registered_groups if g.name == "library")
     assert [c.name for c in info.typer_instance.registered_commands] == [
         "publish",
+        "kit",
         "find",
         "vocabulary",
         "show",
