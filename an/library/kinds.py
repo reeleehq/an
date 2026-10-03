@@ -4,7 +4,10 @@ An asset id's prefix is its kind (``character.alice``). A kind says two things t
 library needs for check-out and for publishing from a folder: which project
 store holds it (``characters``) and what its descriptor file is called inside a
 folder (``character.json``). Kinds with no project store yet (``motion``,
-``reference``, ``plane``) can be published and found, not checked out.
+``reference``, ``plane``) can be published and found, not checked out. The
+``kit`` kind is one of them for :func:`~an.library.checkout.checkout`: a kit is a
+document naming other assets, and :func:`~an.library.kits.checkout_kit` checks
+out the assets it names.
 
 Genre packages register their kinds on import (ADR 0005 decision 12); the
 built-ins below are the kinds ``an``'s project mall already stores, plus the ones
@@ -22,6 +25,7 @@ from dataclasses import dataclass
 
 __all__ = [
     "ASSET_KINDS",
+    "KIT_KIND",
     "AssetKind",
     "UnknownKindError",
     "asset_kind_info",
@@ -48,6 +52,9 @@ class AssetKind:
     #: ``None`` reads the top-level ``source`` only.
     credits_store: str | None = None
 
+
+#: The kind of a kit: a versioned set of assets a production checks out together.
+KIT_KIND: str = "kit"
 
 #: Registered asset kinds, by name.
 ASSET_KINDS: dict[str, AssetKind] = {}
@@ -100,3 +107,4 @@ register_asset_kind("voice", store="voices")
 register_asset_kind("plane")
 register_asset_kind("motion")
 register_asset_kind("reference")
+register_asset_kind(KIT_KIND)

@@ -37,6 +37,9 @@ What lives where:
   ``check_pins``, ``drift_findings`` (both run by ``an validate``);
   :mod:`an.library.lock` — the project lockfile (a project store,
   ``mall["library_lock"]``);
+- :mod:`an.library.kits` — kits: a curated, pinned set of assets a project checks
+  out in one call (``publish_kit``, ``checkout_kit``); the kit is recorded in
+  the lockfile's ``kits`` section;
 - :mod:`an.library.cli` — ``an library …``, a projection of the same functions.
 """
 
@@ -84,6 +87,7 @@ from an.library.federation import (
 )
 from an.library.ids import AssetIdError, LibraryRef, parse_ref
 from an.library.kinds import register_asset_kind
+from an.library.kits import Kit, KitMember, checkout_kit, publish_kit
 from an.library.lock import ProjectLock
 from an.library.registry import RegistryError, register_root, registered_roots
 from an.library.rights import Rights, RightsRefusal, roll_up
@@ -100,6 +104,8 @@ __all__ = [
     "FindResult",
     "Hit",
     "IntegrityError",
+    "Kit",
+    "KitMember",
     "LIBRARY_ERRORS",
     "Library",
     "LibraryError",
@@ -114,6 +120,7 @@ __all__ = [
     "build_library_mall",
     "check_pins",
     "checkout",
+    "checkout_kit",
     "drift_findings",
     "effective_rights",
     "find",
@@ -125,6 +132,7 @@ __all__ = [
     "promote",
     "publish",
     "publish_dir",
+    "publish_kit",
     "reindex",
     "retire",
     "register_analyser",
