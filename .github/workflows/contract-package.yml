@@ -11,7 +11,7 @@
 # WHEN IT PUBLISHES
 #
 #   Only when ALL of these hold: the run is a push to the default branch (a PR
-#   builds and stops), the `NPM_TOKEN` secret exists, and the version in
+#   builds and stops), and the version in
 #   contract/package.json is not on npm yet. The version changes only when a
 #   contract file changes (`python contract/build.py check` fails otherwise, here
 #   and in `an`'s tests), so a release of `an` that leaves the contract alone
@@ -20,8 +20,9 @@
 #
 # WHAT IT NEVER DOES
 #
-#   Fail for lack of the token: without `NPM_TOKEN` it builds, packs, logs one
-#   clear notice and skips the publish. It is a separate workflow from ci.yml, so
+#   Need a stored token: it publishes by npm trusted publishing (GitHub OIDC; a
+#   trusted publisher for this repo + workflow is set on the package's npm
+#   settings page). `NPM_TOKEN` is only a fallback and can be deleted. It is a separate workflow from ci.yml, so
 #   it cannot hold up (or break) the PyPI release; a bump commit by that workflow
 #   carries `[skip ci]` and does not trigger it.
 #
@@ -46,6 +47,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # npm trusted publishing (OIDC): no stored token needed once configured
 
 jobs:
   contract-package:
@@ -68,6 +70,9 @@ jobs:
         with:
           node-version: "22"
           registry-url: https://registry.npmjs.org
+
+      - name: Use an npm CLI that supports trusted publishing (>= 11.5.1)
+        run: npm install -g npm@^11.5.1
 
       - name: Check the recorded version matches the contract files
         run: python contract/build.py check
@@ -93,9 +98,6 @@ jobs:
           if [ "${{ github.event_name }}" != "push" ] || [ "${{ github.ref_name }}" != "$default_branch" ]; then
             echo "::notice::Built $name@$version. Not publishing: only a push to $default_branch publishes."
             echo "publish=false" >> "$GITHUB_OUTPUT"
-          elif [ -z "$NPM_TOKEN" ]; then
-            echo "::notice::Built $name@$version. SKIPPING the npm publish: the NPM_TOKEN secret is not set. Add it (see the manual-task issue on the an repository) and re-run this workflow; nothing else fails."
-            echo "publish=false" >> "$GITHUB_OUTPUT"
           elif [ -n "$(npm view "$name@$version" version 2>/dev/null)" ]; then
             echo "::notice::$name@$version is already on npm: the contract did not change since it was published, nothing to do."
             echo "publish=false" >> "$GITHUB_OUTPUT"
@@ -106,6 +108,7 @@ jobs:
       - name: Publish to npm
         if: steps.decide.outputs.publish == 'true'
         working-directory: ${{ env.PACKAGE_DIR }}
+        # Trusted publishing (OIDC) first; NPM_TOKEN, if still set, is only a fallback.
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
         run: npm publish --access public
