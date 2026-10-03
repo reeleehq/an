@@ -69,7 +69,7 @@ def test_todays_named_vocabularies_are_all_entries():
     from cutan.expression.presets import PRESETS as EXPRESSIONS
     from an.genres import action_kind_names, entity_kind_names
     from an.ir.camera import CAMERA_MOVES
-    from an.motion import PRESET_VERSIONS, PRESETS
+    from cutan.motion import PRESET_VERSIONS, PRESETS
     from an.semantic.seeds import CAMERA_MOVE_VERSIONS
     from an.timing.easing import easing_entries
 
