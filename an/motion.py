@@ -1083,7 +1083,9 @@ def crawl(
             target,
             "pivot_y",
             end,
-            tween(target, "pivot_y", to=end, duration=duration, from_=p0, easing=easing),
+            tween(
+                target, "pivot_y", to=end, duration=duration, from_=p0, easing=easing
+            ),
         ),
     )
 
