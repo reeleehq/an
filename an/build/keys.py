@@ -11,8 +11,15 @@ renderer   the backend's registered identity: its class and its keyer, by
            qualified name (two implementations never share an entry)
 impl       :data:`SHOT_KEY_IMPL_VERSION`, the salt bumped when the key's own
            composition changes
-project    every asset in the project (ADR 0004 decision 3's fallback, until
-           reads are recorded): :func:`project_assets_digest`
+assets     the asset entries the shot's compile READ (ADR 0004 decision 3,
+           an#316): :func:`an.build.reads.read_digests`, for a renderer
+           whose keyer is registered with ``records_reads=True``
+root_files the project-root files every shot depends on (the library
+           lockfile): :func:`project_root_files_digest`
+project    every asset in the project — the first slice's fallback, kept for
+           a renderer whose keyer cannot vouch that its reads go through
+           the mall (an opaque Manim source opens files by path, an#291):
+           :func:`project_assets_digest`
 environment the machine's render environment, from the renderer's registered
            probe — separate, so a machine change invalidates renders without
            pretending the content changed
@@ -49,11 +56,12 @@ from typing import Any
 #: one someone forgets — that is each keyer's ``code`` part, a digest of the
 #: render path's source. Bumping it orphans every entry; nothing is deleted
 #: (decision 6).
-SHOT_KEY_IMPL_VERSION: int = 1
+SHOT_KEY_IMPL_VERSION: int = 2
 
-#: The mall stores that make up "every asset in the project" for decision 3's
-#: fallback: the art the compiler reads (characters, environments, props,
-#: styles) and the two the audio path reads (voices, sounds). The scene
+#: The mall's ASSET stores: the art the compiler reads (characters,
+#: environments, props, styles) and the two the audio path reads (voices,
+#: sounds). What a recording view records (:mod:`an.build.reads`), and what
+#: "every asset in the project" means for decision 3's fallback. The scene
 #: document is deliberately NOT here — each shot's own slice reaches its key
 #: through its compiled document, which is what lets an edit to one shot
 #: re-render only that shot.
@@ -307,6 +315,12 @@ class _KeyerEntry:
     #: everything the render reads" is about one implementation (review S4).
     renderer_type: type | None = None
     parts: dict[str, ShotKeyPart] = field(default_factory=dict)
+    #: The keyer's claim that everything its shot reads from the project's
+    #: ASSET stores, it reads through ``ctx.mall`` — so the engine may hand it
+    #: a recording view and key the shot on exactly those reads (an#316).
+    #: ``False`` (an opaque source that opens files by path) keeps the
+    #: whole-project dependency.
+    records_reads: bool = False
 
     def identity(self) -> str:
         """What the ``renderer`` part digests: the class and the keyer, by name."""
@@ -334,6 +348,7 @@ def register_shot_keyer(
     *,
     environment: EnvironmentProbe | None = None,
     renderer_type: type | None = None,
+    records_reads: bool = False,
     replace: bool = False,
 ) -> None:
     """Declare how shots of ``renderer_name`` are keyed, and how its machine is probed.
@@ -341,7 +356,10 @@ def register_shot_keyer(
     The registration seam for every backend (cut-out here; Manim's opaque
     shots, keyed on source hash + Manim version + quality, are the next).
     ``renderer_type`` binds the keyer to one renderer class: a renderer whose
-    type is not exactly it is never cached. A second registration for a name
+    type is not exactly it is never cached. ``records_reads=True`` claims
+    that every asset the shot depends on is read through ``ctx.mall`` (or is
+    already digested by one of the keyer's parts): the engine then keys the
+    shot on the entries it read rather than on the whole project. A second registration for a name
     is refused unless ``replace=True`` — a silent replacement would drop the
     first keyer's parts from every key without anyone saying so.
     """
@@ -354,6 +372,7 @@ def register_shot_keyer(
         environment=environment,
         renderer_type=renderer_type,
         parts=dict(old.parts) if old is not None else {},
+        records_reads=records_reads,
     )
     if old is not None and not replace and old.identity() == new.identity() and (
         callable_identity(old.environment) if old.environment else None
@@ -374,6 +393,7 @@ def register_shot_keyer(
         environment=environment,
         renderer_type=renderer_type,
         parts=old_parts,
+        records_reads=records_reads,
     )
 
 

@@ -8,6 +8,8 @@ never ``shot.id``) already has an entry, and reuses that entry's mp4.
 - :mod:`an.build.keys` — canonical digests, the project-wide fallback
   dependency, and the registry through which a renderer says what its shot
   render reads (:func:`register_shot_keyer`).
+- :mod:`an.build.reads` — what a shot read: the recording view of the mall a
+  keyer compiles against, and the digests of the entries it saw (an#316).
 - :mod:`an.build.shot_cache` — the ``incremental=`` seam
   (:class:`IncrementalEngine`), its built-in engine :class:`ShotCache`, and
   the entries, shaped as ``lacing`` artifacts in a ``lacing.ArtifactStore``.
@@ -37,6 +39,7 @@ from an.build.keys import (
     shot_keyer_for,
 )
 from an.build.gc import CacheGcError, cache_info, collect_garbage
+from an.build.reads import RecordingMall, read_digests
 from an.build.shot_cache import (
     SHOT_CACHE_STORE,
     BuildReport,
@@ -55,6 +58,7 @@ from an.build.shot_cache import (
 __all__ = [
     "PROJECT_ASSET_STORES",
     "PROJECT_ROOT_FILES",
+    "RecordingMall",
     "SHOT_CACHE_STORE",
     "SHOT_KEY_IMPL_VERSION",
     "BuildReport",
@@ -72,6 +76,7 @@ __all__ = [
     "default_environment_digest",
     "in_memory_shot_cache_store",
     "project_assets_digest",
+    "read_digests",
     "register_shot_keyer",
     "registered_shot_keyers",
     "resolve_incremental",

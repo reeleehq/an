@@ -90,6 +90,7 @@ The vision makes this a requirement, not a nice-to-have. A draft must always be 
    - The mall handed to `compile_shot` is wrapped in a view that records which keys are read; those reads become the shot's dependency edges.
    - That only works once art bytes are read *through* the stores. Routing them there is the asset library's job (ADR 0005), and it comes first.
    - Until then, every shot depends on every asset in its project. That is safe, but it loses the per-character saving, and it is the behaviour of the first slice.
+   - **As built (an#316, 2026-10-03):** read recording landed before the asset library's routing, because for the cut-out renderer the routing is not needed for correctness: art read by path behind the store reaches the pixels only through `assets.textures`, whose bytes are already the `textures` key part. The keyer compiles against a recording view of the mall (`an.build.reads`), and the shot depends on the asset entries it read (the `assets` part) plus the library lockfile. A renderer that cannot vouch that its reads go through the mall (Manim, an#291) keeps the whole-project fallback.
 
 4. **Data model: `lacing`'s.**
    - Artifacts are recorded as `lacing.Artifact`s (content id plus provenance).

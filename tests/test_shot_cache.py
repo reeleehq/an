@@ -173,11 +173,10 @@ def test_editing_an_svg_part_in_place_rerenders_the_shot_that_draws_it(tmp_path,
     os.utime(part, ns=(before.st_atime_ns, before.st_mtime_ns + 10**9))
 
     report, rendered = _render(root, fake_render)
-    assert "with_amy" in rendered
-    # Decision 3's fallback: every shot depends on every asset in the project,
-    # so the shot that does not draw Amy re-renders too — until reads are
-    # recorded. The precise half is already in the key: see the next test.
-    assert rendered == ["with_amy", "empty"]
+    # Reads are recorded (an#316): the shot that does not draw Amy never read
+    # her, so it is reused, and the one that did says which asset moved.
+    assert rendered == ["with_amy"] and report.reused == ["empty"]
+    assert "asset changed: characters/amy" in report.summary()
 
 
 @pytest.mark.genre("cutout_animation")
@@ -258,7 +257,7 @@ def test_compile_and_render_wall_times_are_recorded_per_shot(tmp_path, fake_rend
     rec = store[report.outcomes[0].key]
     assert {"compile_s", "render_s", "key_s"} <= set(rec.timings)
     core_parts = {"compiled", "textures", "easings", "audio", "runtime", "code", "knobs",
-                  "environment", "project", "renderer", "vocabulary"}
+                  "environment", "assets", "root_files", "renderer", "vocabulary"}
     # A loaded genre that registered runtime scripts (the cut-out mouth and eye) adds its
     # staged code as one more named part.
     assert core_parts <= set(rec.inputs) <= core_parts | {"runtime_extensions"}

@@ -1107,6 +1107,10 @@ _register_shot_keyer(
     cutout_shot_inputs,
     environment=cutout_environment,
     renderer_type=CutoutRenderer,
+    # Every asset a cut-out shot depends on is read through `ctx.mall` by its
+    # compile, or staged by path and digested by the `textures` part: so the
+    # shot is keyed on the entries it read, not the whole project (an#316).
+    records_reads=True,
 )
 
 # The versions of the vocabulary entries a shot names (ADR 0003 decision 2,
