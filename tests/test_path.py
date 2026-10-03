@@ -328,6 +328,9 @@ def _apply_property_source() -> str:
     return "\n".join(
         [
             _runtime_pieces(*_GEOMETRY_FUNCS, "function drawPath", "function applyTrim"),
+            # an#314: a node's own drawing lives in `contentOf(node)`.
+            _extract_js_block(src, "function contentOf"),
+            _extract_js_block(src, "function planeOf"),
             _extract_js_block(src, "function applyTintDeep"),
             _extract_js_block(src, "function applyProperty"),
         ]

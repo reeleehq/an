@@ -189,7 +189,12 @@ def test_the_transform_has_no_field_the_runtime_does_not_apply():
 
     ours = {f.name for f in fields(Transform2D)}
     applied = {"x", "y", "rotation", "scale_x", "scale_y", "pivot_x", "pivot_y"}
-    assert ours == applied
+    # an#314: the plane, drawn by runtime.js "Planes" -- the tilt, and the eye's
+    # distance (`perspective` x the frame height).
+    plane = {"rotation_x": "rotation_x", "eye_distance": "P.perspective * sceneHeight"}
+    assert ours == applied | set(plane)
     src = (RUNTIME_DIR / "runtime.js").read_text(encoding="utf-8")
     for name in applied:
         assert f"t.{name}" in src, name
+    for spelled in plane.values():
+        assert spelled in src, spelled
