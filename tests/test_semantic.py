@@ -88,9 +88,12 @@ def test_todays_named_vocabularies_are_all_entries():
 def test_a_motion_presets_entry_describes_its_parameters_with_defaults():
     walk = lookup("motion_preset", "walk")
     props = walk.params["properties"]
-    assert props["step_s"] == {"type": "number", "default": 0.4}
+    assert {"step_s", "step_length", "gait"} <= set(props)
     assert not {"target", "rest", "parts"} & set(props)
     assert walk.aspects == ("locomotion",)
+    # Per-gait defaults live on the locomotion methods (an#224).
+    legs = lookup("method", "legs", aspect="locomotion")
+    assert legs.params["properties"]["step_s"]["default"] == 0.4
 
 
 @pytest.mark.genre("cutout_animation")
@@ -107,11 +110,13 @@ def test_a_genres_entries_come_and_go_with_it():
 
 
 @pytest.mark.genre("cutout_animation")
-def test_the_locomotion_chain_is_todays_walk_gait_chain():
-    """legs when the character affords a leg pair, rock when it does not."""
+def test_the_locomotion_chain_is_legs_then_glide():
+    """legs when the character affords a leg pair, a glide when it does not (an#224)."""
     assert resolve("locomotion", LEGS).method.id == "loco.legged_cycle"
-    assert resolve("locomotion", {}).method.id == "loco.rock"
-    assert [m.id for m in applicable("locomotion", {})] == ["loco.rock"]
+    assert resolve("locomotion", {}).method.id == "loco.glide"
+    legless = [m.id for m in applicable("locomotion", {})]
+    assert legless[0] == "loco.glide"
+    assert set(legless) == {"loco.glide", "loco.waddle", "loco.hop", "loco.bounce", "loco.rock"}
 
 
 @pytest.mark.genre("cutout_animation")
@@ -121,7 +126,7 @@ def test_a_request_by_its_spelling_applies_or_falls_back_with_a_recorded_substit
     r = resolve("locomotion", {}, requested="hem", entity="blob")
     s = r.substitution
     assert (r.method.id, s.reason, s.requested, s.missing, s.fatal) == (
-        "loco.rock",
+        "loco.glide",
         "missing",
         "loco.hem_sway",
         ("limbs.legs",),
