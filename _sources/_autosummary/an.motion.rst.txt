@@ -10,18 +10,16 @@ an.motion
    
       OVERSHOOT
       PRESETS
+      PRESET_VERSIONS
       HOME_PRESETS
    
    .. rubric:: Functions
 
    .. autosummary::
    
-      face_toward
       as_leaves
       crawl
       hop
-      nod
-      point
       pop_in
       rest_pose
       shake
@@ -29,7 +27,4 @@ an.motion
       slide_in
       slide_out
       squash_stretch
-      turn
-      waddle
-      walk
    

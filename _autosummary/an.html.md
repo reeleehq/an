@@ -666,7 +666,7 @@ which decides how long a dissolve’s overlap is.
 | [`mcp`](an.mcp.html.md#module-an.mcp)                   | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry.                                                      |
 | [`measurements`](an.measurements.html.md#module-an.measurements) | Measured durations: shots whose renderer, not their author, decides their length.                                                                       |
 | [`media`](an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.                                                                   |
-| [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                                                                               |
+| [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of moves, as authoring macros.                                                                                       |
 | [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                                                                       |
 | [`paint`](an.paint.html.md#module-an.paint)               | Paint: what fills a shape when one flat colour is not enough -- a gradient.                                                                             |
 | [`paths`](an.paths.html.md#module-an.paths)               | Moved to [`an.stage.paths`](an.stage.paths.html.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
