@@ -103,6 +103,10 @@ class NullLipSync:
 
     name: str = "none"
     convention: str = "none"
+    #: The same request gives the same track, and nothing is billed: a reader
+    #: of the cache keys may run it in memory (an#311).
+    repeatable: bool = True
+    billed: bool = False
 
     def align(self, audio: AudioClip, transcript: str) -> VisemeTrack:
         return VisemeTrack(

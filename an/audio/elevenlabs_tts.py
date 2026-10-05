@@ -143,6 +143,8 @@ class ElevenLabsTTS:
     """
 
     name: str = "elevenlabs"
+    #: Every request is charged (an#311: what may never run in memory).
+    billed: bool = True
 
     def __init__(
         self,

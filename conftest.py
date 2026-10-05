@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 
 def pytest_configure(config):  # noqa: D103 — a pytest hook
     from an.genres import load
@@ -263,3 +265,22 @@ def _isolated_library_registry(tmp_path_factory, monkeypatch):
     monkeypatch.setattr(registry, "_account_home", lambda: home)
     # Children get the same fresh registry (an#302), restored afterwards.
     monkeypatch.setitem(_CHILD_STATE, "home", home)
+
+
+@pytest.fixture(autouse=True)
+def _no_paid_provider_keys(request, monkeypatch):
+    """Strip every paid provider's API key (:func:`an.live_api.paid_provider_key_vars`)
+    from every test AND doctest not marked ``live_api`` (an#311).
+
+    Since an#305 a voice that declares ``provider: elevenlabs`` is spoken by
+    ElevenLabs with no flag, so a test that forgot its fake would otherwise
+    bill on a machine with a key exported — the network guard records the
+    attempt, but only after the fact. Here at the repository root, so it
+    reaches the doctests under ``an/`` too.
+    """
+    if request.node.get_closest_marker("live_api"):
+        return
+    from an.live_api import paid_provider_key_vars
+
+    for var in paid_provider_key_vars():
+        monkeypatch.delenv(var, raising=False)

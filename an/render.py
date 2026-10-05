@@ -1105,16 +1105,31 @@ def cache_entries(
     stores only (`an.audio.pipeline.stamp_from_stores`): a ``scene.md`` edit
     drops every stamp on re-sync, and the next render re-stamps the same audio
     from the stores, so those are the keys it will use. A line the stores
-    cannot answer (new text, another provider) raises
-    `an.audio.pipeline.AudioNotCachedError`: its shot's next key is unknowable
-    without a synthesis, and a collector must not guess.
+    cannot answer whose provider is free and repeatable (offline speech) is
+    re-made IN MEMORY, writing nothing (an#311): a later render re-makes the
+    same bytes. Any other (new text in a billed voice, a non-repeatable
+    provider) raises `an.audio.pipeline.AudioNotCachedError`: its shot's next
+    key is unknowable without a paid or random synthesis, and a collector must
+    not guess.
     """
-    from an.audio.pipeline import retime_dialogue, stamp_from_stores
+    from an.audio.pipeline import (
+        InMemoryOverlay,
+        in_memory_audio_mall,
+        retime_dialogue,
+        stamp_from_stores,
+    )
 
     scene = project.scene
     if _has_any_audio_content(scene):
+        from dataclasses import replace
+
         from an.audio.providers import make_lipsync
 
+        # Free, repeatable speech missing from the stores is re-made in memory
+        # (an#311) and the keys below read it from there; no store is written.
+        # A caller keying several knob sets passes one overlaid mall for all.
+        if not isinstance(project.mall.get("audio"), InMemoryOverlay):
+            project = replace(project, mall=in_memory_audio_mall(project.mall))
         stamp_from_stores(
             scene,
             project.mall,
@@ -1124,6 +1139,7 @@ def cache_entries(
                 if isinstance(lipsync, str)
                 else lipsync
             ),
+            free_in_memory=True,
         )
     else:
         retime_dialogue(scene, timed_shots_only=True)
