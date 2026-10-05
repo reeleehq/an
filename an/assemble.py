@@ -862,7 +862,7 @@ def mix_plan(
     stage_dir: Path,
 ) -> MixPlan:
     """Stage every audio source of the film into ``stage_dir`` and place it."""
-    from an.sounds import get_sound, wav_duration
+    from an.sounds import SoundError, get_sound, wav_duration
 
     stage_dir.mkdir(parents=True, exist_ok=True)
     plan = MixPlan(duration=timeline.duration)
@@ -900,8 +900,13 @@ def mix_plan(
             path = stage_dir / f"sound_{len(staged)}.wav"
             path.write_bytes(data)
             # The audio's own length, not the record's: a store filled before
-            # an#330 recorded a pipe-cut WAV's streaming header (~22369 s).
-            staged[key] = (path, wav_duration(data))
+            # an#330 recorded a pipe-cut WAV's streaming header (~22369 s). A
+            # file this cannot parse keeps its record (ffmpeg decodes it).
+            try:
+                length = wav_duration(data)
+            except SoundError:
+                length = asset.duration
+            staged[key] = (path, length)
         return staged[key]
 
     def place(cue: SoundCue, *, at: float, container_end: float) -> None:
