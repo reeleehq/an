@@ -21,9 +21,17 @@ the shot cache.
 **The files a scene reads.** The render runs in a staged copy of the WHOLE
 ``sources`` folder (``assets/sources/`` and everything under it), so a scene
 imports a sibling module or loads ``ImageMobject("bars/logo.png")`` by a path
-relative to its own file, and every one of those bytes is in both keys below. A
-string literal that names a file OUTSIDE that folder (an absolute path) is a
-finding located at its line: the cache cannot see that file change.
+relative to its own file, and every one of those bytes is in both keys below.
+A file read from OUTSIDE that folder — a literal absolute path, or one computed
+(``Path.home() / "data.csv"``, an environment variable, a helper) — is
+RECORDED as the render runs (manimkit's ``record_reads``: an audit hook in the
+render's child process, an#291) and stored with the measurement as a trace
+(:func:`read_trace`): each file's digest, ``absent`` for one looked for and
+missing, and each listed folder's names. A stored picture is reused only while
+its trace still holds (:func:`stale_reads`), and the shot key has a ``reads``
+part, so editing such a file re-renders the picture and the shot, and leaving it
+alone reuses both. A literal outside path is still a finding at its line: the
+cache sees it now, but another machine will not have it.
 
 **Manim owns its clock** (core study §4.2): only the file's own ``play`` and
 ``wait`` calls decide how long it runs. The renderer implements
@@ -36,8 +44,9 @@ Never the film's fps or size, the encode, or this module's code: those change
 how the picture is CONFORMED, not what Manim draws. The core applies it in memory
 (:mod:`an.measurements`); the author's scene is never rewritten.
 
-**The picture is cached apart from the shot.** Manim's raw video is stored under
-the picture key (``pictures`` store), so a change that is not to the picture —
+**The picture is cached apart from the shot.** Manim's raw video is stored by
+its own sha256 (``pictures`` store), named by the measurement record under the
+picture key, so a change that is not to the picture —
 narration, the film's fps, the background pad, an ``an`` upgrade — re-conforms
 and re-muxes without running Manim. The shot key (:func:`manim_shot_inputs`)
 is the picture key's inputs plus the conform and encode knobs, the muxed audio
@@ -69,7 +78,9 @@ from __future__ import annotations
 import ast
 import hashlib
 import importlib.util
+import inspect
 import json
+import os
 import platform
 import re
 import shutil
@@ -449,6 +460,88 @@ def outside_reads(code: str, closure: Mapping[str, bytes]) -> list[tuple[int, st
     return sorted(out)
 
 
+#: A recorded read: ``[kind, path, digest]`` — ``kind`` ``"file"`` (digest of
+#: its bytes) or ``"dir"`` (digest of its sorted names), ``ABSENT`` for neither.
+ReadTrace = list[list[str]]
+
+#: The digest of a read whose file changed between the render reading it and
+#: the trace being taken: matches nothing, so the next render renders again.
+CHANGED_WHILE_RENDERING: str = "changed while rendering"
+
+
+def _stat_now(path: str) -> list[int] | None:
+    try:
+        st = os.stat(path)
+    except (OSError, ValueError):
+        return None
+    return [st.st_mtime_ns, st.st_size]
+
+
+def _read_digest(kind: str, path: str) -> str:
+    p = Path(path)
+    try:
+        if kind == "dir":
+            return (
+                canonical_digest(sorted(c.name for c in p.iterdir()))
+                if p.is_dir()
+                else ABSENT
+            )
+        return file_digest(p) if p.is_file() else ABSENT
+    except OSError:  # unreadable now: not what was read, so not current
+        return ABSENT
+
+
+def read_trace(reads: Any, *, staged: Path | str) -> ReadTrace | None:
+    """manimkit's recorded ``reads`` as a trace a later render can re-check.
+
+    Reads inside ``staged`` (the render's copy of the sources folder) are
+    dropped: those bytes are keyed already, by the closure. ``None`` (the
+    render_check did not record reads) stays ``None``. The digests are taken
+    AFTER the render, so a read whose ``stat`` (taken by manimkit at the first
+    read) no longer matches is marked :data:`CHANGED_WHILE_RENDERING`: what
+    the render saw is unknown, so it is never reused.
+
+    >>> import tempfile, os
+    >>> d = tempfile.mkdtemp(); f = os.path.join(d, "x.txt"); _ = open(f, "w").write("1")
+    >>> [(k, os.path.basename(p)) for k, p, _ in read_trace(
+    ...     [{"path": f, "kind": "file"}, {"path": os.path.join(d, "s", "a.py"), "kind": "file"}],
+    ...     staged=os.path.join(d, "s"))]
+    [('file', 'x.txt')]
+    """
+    if reads is None:
+        return None
+    root = os.path.realpath(str(staged))
+    out = []
+    for r in reads:
+        kind, path = str(r.get("kind", "file")), str(r["path"])
+        real = os.path.realpath(path)
+        if real == root or real.startswith(root.rstrip(os.sep) + os.sep):
+            continue
+        seen = r.get("stat", _NOT_STATED)
+        changed = seen is not _NOT_STATED and (
+            None if seen is None else list(seen)
+        ) != _stat_now(path)
+        out.append(
+            [kind, path, CHANGED_WHILE_RENDERING if changed else _read_digest(kind, path)]
+        )
+    return sorted(out)
+
+
+_NOT_STATED = object()  # a render_check that reports no stat for its reads
+
+
+def stale_reads(trace: ReadTrace) -> list[str]:
+    """The paths of ``trace`` whose content is no longer what was read."""
+    return [path for kind, path, digest in trace if _read_digest(kind, path) != digest]
+
+
+def current_reads_digest(trace: ReadTrace | None) -> str:
+    """The shot key's ``reads`` part: what the recorded paths hold NOW."""
+    if trace is None:
+        return ABSENT
+    return canonical_digest([[k, p, _read_digest(k, p)] for k, p, _ in trace])
+
+
 def _module_stem(key: str) -> str:
     """A file stem the runner can import as a module (it is a ``sys.modules`` key)."""
     stem = re.sub(r"\W", "_", key)
@@ -577,14 +670,20 @@ def report_findings(
                 location=f"{source.display}:{m.group(1)}" if m else fallback,
             )
         )
+    recorded = getattr(report, "reads", None) is not None
     for line, path in outside_reads(source.text, source.closure):
         out.append(
             _finding(
                 "warning",
                 SOURCE_PATH,
                 f"this scene reads {path!r}, which is not under "
-                f"{source.display.rsplit('/', 1)[0]}/: the shot cache cannot see it "
-                "change, and another machine will not have it",
+                f"{source.display.rsplit('/', 1)[0]}/: "
+                + (
+                    "the shot cache keys it as read, but another machine will not have it"
+                    if recorded
+                    else "the shot cache cannot see it change, and another machine "
+                    "will not have it"
+                ),
                 "copy the file under the sources folder and name it by a path "
                 "relative to the scene file",
                 location=f"{source.display}:{line}",
@@ -642,6 +741,43 @@ def _manimkit_render_check() -> RenderCheck:
             f"rendering a Manim shot needs manimkit ({e}): {INSTALL_HINT}"
         ) from e
     return render_check
+
+
+def _accepts_keyword(func: Callable[..., Any], name: str) -> bool:
+    """Whether ``func`` takes keyword ``name`` (a ``render_check`` from an older
+    manimkit, or an injected one, may not record reads)."""
+    try:
+        params = inspect.signature(func).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return any(
+        p.name == name or p.kind is inspect.Parameter.VAR_KEYWORD for p in params
+    )
+
+
+def _stored_picture(pictures: Any, record: Mapping[str, Any]) -> bytes | None:
+    """The video a measurement record names, checked against its name (a
+    content address); ``None`` when absent, unnamed (a record from before
+    an#291) or damaged."""
+    name = record.get("picture")
+    if not name or name not in pictures:
+        return None
+    video = pictures[name]
+    return video if bytes_digest(video) == name else None
+
+
+def _trace_holds(record: Mapping[str, Any]) -> bool:
+    """Whether a stored picture's read trace still holds (an#291).
+
+    A record from before reads were recorded has no ``reads`` field: nothing
+    vouches for what it read, so it is a miss (rendered once more). ``None``
+    is a render_check that could not record: reused, as before (its render
+    said so in a finding). A trace holds while every path holds what was read.
+    """
+    if "reads" not in record:
+        return False
+    trace = record["reads"]
+    return trace is None or not stale_reads(trace)
 
 
 def _version(package: str) -> str | None:
@@ -740,10 +876,19 @@ class RawPicture:
     timeline: list[dict] = field(default_factory=list)
     contact_sheet: str | None = None
     log: str = ""
+    #: The files read outside the sources folder (:func:`read_trace`); ``None``
+    #: when the render_check could not record them.
+    reads: ReadTrace | None = None
+
+    @property
+    def picture(self) -> str:
+        """The video's name in the content-addressed ``pictures`` store."""
+        return bytes_digest(self.video)
 
     def record(self) -> dict[str, Any]:
         return {
             "key": self.key,
+            "picture": self.picture,
             "quality": self.quality,
             "fps": self.fps,
             "n_frames": self.n_frames,
@@ -752,11 +897,13 @@ class RawPicture:
             "timeline": self.timeline,
             "contact_sheet": self.contact_sheet,
             "log": self.log,
+            "reads": self.reads,
         }
 
     @classmethod
     def from_record(cls, record: Mapping[str, Any], video: bytes) -> "RawPicture":
         d = dict(record)
+        d.pop("picture", None)
         d["findings"] = [_finding(**f) for f in d.get("findings", [])]
         return cls(video=video, **d)
 
@@ -955,6 +1102,11 @@ class ManimRenderer:
                         else None
                     ),
                     "findings": [asdict(f) for f in raw.findings],
+                    "outside_reads": (
+                        [path for _, path, _ in raw.reads]
+                        if raw.reads is not None
+                        else None
+                    ),
                 },
             },
         )
@@ -976,24 +1128,42 @@ class ManimRenderer:
         if not force:
             if measurements is not None and pictures is not None:
                 try:
-                    if key in measurements and key in pictures:
+                    if key in measurements:
                         record = json.loads(measurements[key])
-                        return RawPicture.from_record(record, pictures[key])
-                except (KeyError, ValueError, TypeError):
+                        video = _stored_picture(pictures, record)
+                        if video is not None and _trace_holds(record):
+                            return RawPicture.from_record(record, video)
+                except (KeyError, ValueError, TypeError, OSError):
                     pass  # an unreadable entry is a miss: rendered again below
-            elif key in self._memo:
+            elif key in self._memo and _trace_holds(self._memo[key].record()):
                 return self._memo[key]
         if not render:
             return None
         raw = self._render_raw(spec, source, inputs, key, ctx)
         if measurements is not None and pictures is not None:
-            pictures[key] = (
-                raw.video
-            )  # the picture first: a record never points at nothing
+            # The picture first, by its content: a record never points at
+            # nothing, and two renders writing one key at once each leave a
+            # record that names ITS picture (an#291 review).
+            if raw.picture not in pictures:
+                pictures[raw.picture] = raw.video
             measurements[key] = json.dumps(raw.record(), sort_keys=True).encode("utf-8")
         else:
             self._memo[key] = raw
         return raw
+
+    def stored_reads(self, key: str, ctx: RenderContext) -> ReadTrace | None:
+        """The read trace stored with picture ``key`` (``None``: none stored,
+        or not recorded). Reads stores only; never renders."""
+        measurements = ctx.mall.get(MEASUREMENT_STORE) if ctx.mall else None
+        try:
+            if measurements is not None:
+                if key not in measurements:
+                    return None
+                return json.loads(measurements[key]).get("reads")
+            raw = self._memo.get(key)
+            return raw.reads if raw is not None else None
+        except (KeyError, ValueError, TypeError, AttributeError):
+            return None
 
     def _render_raw(
         self,
@@ -1018,6 +1188,7 @@ class ManimRenderer:
         entry = src_dir / f"{_module_stem(source.key)}.py"
         if entry != src_dir / source.entry:
             entry.write_bytes(source.data)
+        records = _accepts_keyword(render_check, "record_reads")
         report = render_check(
             entry,
             spec.scene,
@@ -1026,8 +1197,22 @@ class ManimRenderer:
             out_dir=root / "manimkit",
             no_latex=bool(inputs["no_latex"]),
             timeout=spec.timeout,
+            **({"record_reads": True} if records else {}),
         )
         findings = report_findings(report, source, scene=spec.scene)
+        reads = read_trace(getattr(report, "reads", None), staged=root) if records else None
+        if reads is None and self._render_check is None:
+            findings.append(
+                _finding(
+                    "warning",
+                    SOURCE_PATH,
+                    f"manimkit {manimkit_version()} cannot record the files a scene "
+                    "reads: one read from outside the sources folder by a computed "
+                    "path is in no cache key",
+                    "upgrade manimkit (pip install -U manimkit)",
+                    location=source.display,
+                )
+            )
         if not getattr(report, "ok", False) or not getattr(report, "video", None):
             errors = [f for f in findings if f.severity == "error"] or [
                 _finding(
@@ -1068,6 +1253,7 @@ class ManimRenderer:
             timeline=list(getattr(report, "timeline", None) or []),
             contact_sheet=sheet,
             log=str(report),
+            reads=reads,
         )
 
 
@@ -1115,12 +1301,16 @@ def manim_shot_inputs(shot: Shot, ctx: RenderContext) -> ShotKeyInputs:
     manimkit versions, quality, LaTeX mode — :func:`picture_inputs`), ``knobs``
     (fps, size, background and the encode: pixel format, x264 argv, scale
     filter, faststart), ``audio`` (the dialogue muxed under it and the frame
-    count it is cut to — a held narration moves it) and ``code``
-    (:func:`render_code_digest`). Raises what the render would for a bad shot.
+    count it is cut to — a held narration moves it), ``code``
+    (:func:`render_code_digest`) and ``reads`` (what the files the picture's
+    render read outside the sources folder hold NOW —
+    :func:`current_reads_digest` of the trace stored with the picture; an#291).
+    Raises what the render would for a bad shot.
     """
     from an.media import mp4
 
-    spec, source = _registered_renderer(shot).resolve(shot, ctx)
+    renderer = _registered_renderer(shot)
+    spec, source = renderer.resolve(shot, ctx)
     inputs = picture_inputs(spec, source, ctx)
     try:
         pix_fmt = mp4.check_pix_fmt(ctx.pix_fmt)
@@ -1144,6 +1334,9 @@ def manim_shot_inputs(shot: Shot, ctx: RenderContext) -> ShotKeyInputs:
             "knobs": canonical_digest(knobs),
             "audio": canonical_digest(_muxed_audio(shot, ctx)),
             "code": render_code_digest(),
+            "reads": current_reads_digest(
+                renderer.stored_reads(picture_key(inputs), ctx)
+            ),
         },
         details={"source": source.display},
     )
