@@ -178,7 +178,9 @@ def test_an_md_edit_that_drops_the_audio_stamps_keeps_what_the_next_render_reuse
 
 
 @pytest.mark.genre("cutout_animation")
-def test_a_line_whose_audio_is_not_cached_makes_gc_refuse(tmp_path, fake_render, eleven):
+def test_a_line_whose_audio_is_not_cached_makes_gc_refuse(
+    tmp_path, fake_render, eleven, unfree_offline_lipsync
+):
     """A line in a BILLED voice (an#311 narrowed this from every provider:
     free, repeatable speech is re-made in memory instead)."""
     root = _project(tmp_path, _shot("a", 10.0))
@@ -1040,6 +1042,31 @@ def test_a_fresh_process_finds_the_renderers_through_the_lazy_registry(tmp_path,
 # -----------------------------------------------------------------------------
 
 
+class _UnfreeOfflineLipSync:
+    """The default ``offline`` lip-sync as these tests mean it: one that does
+    not declare itself free (cutan's, until thorwhalen/cutan#29), so a line
+    whose visemes are missing cannot be keyed in memory. Pinned, because which
+    provider ``offline`` is depends on whether the cut-out genre is installed
+    (without it, the core's ``NullLipSync``, which IS free)."""
+
+    name = "offline"
+    convention = "none"
+
+    def align(self, audio, transcript):
+        from an.audio.lipsync import NullLipSync
+
+        return NullLipSync().align(audio, transcript)
+
+
+@pytest.fixture
+def unfree_offline_lipsync(monkeypatch):
+    import an.audio.providers as providers
+
+    monkeypatch.setitem(
+        providers.LIPSYNC_FACTORIES, "offline", lambda **_: _UnfreeOfflineLipSync()
+    )
+
+
 def _voiced(root, *texts: str, voice: dict | None = None) -> None:
     """One shot per text, each with one line in voice `bob`."""
     from an.ir.schema import Dialogue
@@ -1055,7 +1082,7 @@ def _voiced(root, *texts: str, voice: dict | None = None) -> None:
         load(root).mall["voices"]["bob"] = voice
 
 
-def test_gc_and_info_work_right_after_an_elevenlabs_render(tmp_path, fake_render, eleven):
+def test_gc_and_info_work_right_after_an_elevenlabs_render(tmp_path, fake_render, eleven, unfree_offline_lipsync):
     """The end-user report: `--tts elevenlabs` for a voice that names no
     provider, then `an cache info/gc` failed keying the scene under offline."""
     root = _project(tmp_path, _shot("a", 10.0))
@@ -1083,7 +1110,7 @@ def test_a_voice_that_names_elevenlabs_is_kept_under_a_plain_render(
 
 
 def test_a_knob_set_missing_a_lines_audio_keeps_what_its_render_used(
-    tmp_path, fake_render, eleven
+    tmp_path, fake_render, eleven, unfree_offline_lipsync
 ):
     """Rendered offline once, then ElevenLabs; a line edited and re-rendered
     with ElevenLabs only. The offline knob set cannot key the edited shot, so
@@ -1144,7 +1171,9 @@ def test_gc_keys_deleted_offline_audio_in_memory_and_keeps_what_an_offline_rende
     assert rendered == []  # every preview shot reused
 
 
-def test_a_billed_provider_is_never_called_in_memory(tmp_path, fake_render, eleven):
+def test_a_billed_provider_is_never_called_in_memory(
+    tmp_path, fake_render, eleven, unfree_offline_lipsync
+):
     """Only a free, repeatable provider is synthesised in memory: a line in a
     billed voice whose audio is not cached still skips its knob set."""
     root = _project(tmp_path, _shot("a", 10.0))
@@ -1253,7 +1282,7 @@ class _FreeTTS:
 
 
 def test_a_free_provider_this_machine_cannot_run_skips_and_a_broken_one_refuses(
-    tmp_path, fake_render, monkeypatch
+    tmp_path, fake_render, monkeypatch, unfree_offline_lipsync
 ):
     """an#311 review: unavailable is unkeyable (skip, as a missing line), but a
     failure after it said it can run is a bug — refuse rather than skip, which
