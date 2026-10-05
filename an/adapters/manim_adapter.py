@@ -522,7 +522,11 @@ def read_trace(reads: Any, *, staged: Path | str) -> ReadTrace | None:
             None if seen is None else list(seen)
         ) != _stat_now(path)
         out.append(
-            [kind, path, CHANGED_WHILE_RENDERING if changed else _read_digest(kind, path)]
+            [
+                kind,
+                path,
+                CHANGED_WHILE_RENDERING if changed else _read_digest(kind, path),
+            ]
         )
     return sorted(out)
 
@@ -1200,7 +1204,9 @@ class ManimRenderer:
             **({"record_reads": True} if records else {}),
         )
         findings = report_findings(report, source, scene=spec.scene)
-        reads = read_trace(getattr(report, "reads", None), staged=root) if records else None
+        reads = (
+            read_trace(getattr(report, "reads", None), staged=root) if records else None
+        )
         if reads is None and self._render_check is None:
             findings.append(
                 _finding(
