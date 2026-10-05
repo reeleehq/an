@@ -42,11 +42,38 @@ class OrchestratorReport:
     validation: ValidationReport | None = None
     verifications: list[VerificationReport] = field(default_factory=list)
     error: str | None = None
+    #: The project root, when known: descriptions are compared with their
+    #: paths made portable (the render report stores them so; an#309).
+    root: Path | None = None
 
     def merge_verification(self, vr: VerificationReport) -> None:
+        """Add ``vr`` — less any finding this report already holds: the render
+        report repeats what the pre-render validation found (a synthesized
+        line still past its shot), and one finding is reported once (an#309).
+        The SAME finding: severity, path, location and description (its paths
+        made portable) — so a render that escalates a warning to an error, or
+        locates it elsewhere, is reported. ``vr``'s verdict is kept."""
+        seen = {self._identity(f) for f in self._findings()}
+        fresh = [f for f in vr.findings if self._identity(f) not in seen]
+        if len(fresh) != len(vr.findings):
+            vr = VerificationReport(passed=vr.passed, findings=fresh)
         self.verifications.append(vr)
         if not vr.passed:
             self.success = False
+
+    def _identity(self, f) -> tuple:
+        from an.render import portable_text
+
+        description = f.description
+        if self.root is not None:
+            description = portable_text(description, root=self.root)
+        return (f.severity, f.ir_path, getattr(f, "location", None), description)
+
+    def _findings(self):
+        if self.validation is not None:
+            yield from self.validation.findings
+        for v in self.verifications:
+            yield from v.findings
 
 
 def validate_project(project_dir: str | Path) -> ValidationReport:
@@ -144,7 +171,7 @@ def orchestrate(
     own alignment store, instead of letting ``an`` re-transcribe. ``tts``
     defaults to each voice's own provider (an#305), as ``an render`` does.
     """
-    report = OrchestratorReport()
+    report = OrchestratorReport(root=Path(project_dir))
     if verifiers is None:
         verifiers = [LayoutLintVerifier(), MediaQualityVerifier()]
 

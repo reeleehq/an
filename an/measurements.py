@@ -32,7 +32,7 @@ True
 from __future__ import annotations
 
 import warnings
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -219,11 +219,31 @@ def warn_findings(findings: Iterable["Finding"], *, stacklevel: int = 3) -> None
         )
 
 
-def findings_record(findings: Iterable["Finding"]) -> list[dict[str, Any]]:
-    """JSON-able findings (the render report's shape)."""
+def findings_record(
+    findings: Iterable[Any],
+    *,
+    kind: str | None = None,
+    text: Callable[[str], str] | None = None,
+) -> list[dict[str, Any]]:
+    """JSON-able findings — THE render report's shape, its one writer (an#309):
+    each ``Finding``'s fields plus its ``kind``. ``findings`` are ``Finding`` s
+    (each of ``kind``) or ``(kind, Finding)`` pairs (a render's, of many kinds);
+    ``text`` maps every text field (the render makes paths portable).
+
+    >>> from an.verify._base import Finding
+    >>> findings_record([Finding("info", "timeline/0", "x")], kind="measurement")[0]["kind"]
+    'measurement'
+    """
     from dataclasses import asdict
 
-    return [asdict(f) for f in findings]
+    out = []
+    for item in findings:
+        k, f = item if isinstance(item, tuple) else (kind, item)
+        fields = asdict(f)
+        if text is not None:
+            fields = {n: text(v) if isinstance(v, str) else v for n, v in fields.items()}
+        out.append({**fields, "kind": k})
+    return out
 
 
 def render_context_for(project: Any, **overrides: Any) -> "RenderContext":
@@ -272,4 +292,4 @@ def accept_measured(project_dir: str | Path) -> dict[str, float]:
 
 
 def report_to_mapping(findings: Iterable["Finding"]) -> Mapping[str, Any]:
-    return {"findings": findings_record(findings)}
+    return {"findings": findings_record(findings, kind="measurement")}

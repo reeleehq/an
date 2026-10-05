@@ -809,3 +809,18 @@ def test_takes_chosen_differently_under_earlier_effects_are_a_choice_to_make():
     with pytest.raises(pipeline.TakesRecordError, match="an voices rescore"):
         _run(_scene(), mall, tts)
     assert len(tts.calls) == 3
+
+
+def test_a_lost_take_with_no_heard_digest_names_none(tmp_path):
+    """an#309: a carried take has no heard digest yet; the error says nothing
+    about one rather than printing ``sha256 None``."""
+    tts, mall = _TakesTTS((2.0, 1.0, 0.6)), _mall({"takes": _takes(3)})
+    ref = _line(_run(_scene(), mall, tts)).audio_ref
+    key, record = _record(mall)
+    for take in record["takes"]:
+        take.pop("heard_digest", None)
+    _edit_record(mall, takes=record["takes"])
+    del mall["audio"][ref]
+    with pytest.raises(TakeLostError) as e:
+        _run(_scene(), mall, tts)
+    assert "None" not in str(e.value) and "sha256" not in str(e.value)

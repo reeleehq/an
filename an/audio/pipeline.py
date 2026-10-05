@@ -1218,8 +1218,13 @@ def _line_request(
             req.restore = True
         elif strict:
             raise TakeLostError(
-                f"the recorded take {chosen} of {line.text!r} (voice {voice_id!r}, "
-                f"sha256 {str(entry.get('heard_digest'))[:12]}) is gone from the audio "
+                f"the recorded take {chosen} of {line.text!r} (voice {voice_id!r}"
+                + (
+                    f", sha256 {str(entry['heard_digest'])[:12]}"
+                    if entry.get("heard_digest")
+                    else ""  # a carried take has no heard digest yet (an#309)
+                )
+                + ") is gone from the audio "
                 f"store, raw and processed; nothing was billed. Restore the audio, or "
                 f"{REROLL_ONLY_HINT}"
             )
