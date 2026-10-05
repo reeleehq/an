@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4f0c6b85"></script>
+    <script src="../_static/documentation_options.js?v=eb74ef9c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an" href="an.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.162" />
+  <meta name="docsearch:version" content="0.1.163" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -680,6 +680,18 @@ to the measured length, or longer to hold for its narration).</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="an.adapters.ManimRenderer.stored_reads">
+<span class="sig-name descname"><span class="pre">stored_reads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/manim_adapter.html#ManimRenderer.stored_reads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.ManimRenderer.stored_reads" title="Link to this definition">#</a></dt>
+<dd><p>The read trace stored with picture <code class="docutils literal notranslate"><span class="pre">key</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code>: none stored,
+or not recorded). Reads stores only; never renders.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1050,6 +1062,7 @@ a backend failed to import, since that backend may have been the one.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer"><code class="docutils literal notranslate"><span class="pre">ManimRenderer</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer.measure_duration"><code class="docutils literal notranslate"><span class="pre">ManimRenderer.measure_duration()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer.render"><code class="docutils literal notranslate"><span class="pre">ManimRenderer.render()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer.stored_reads"><code class="docutils literal notranslate"><span class="pre">ManimRenderer.stored_reads()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RemotionRenderer"><code class="docutils literal notranslate"><span class="pre">RemotionRenderer</span></code></a></li>

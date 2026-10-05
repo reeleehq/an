@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4f0c6b85"></script>
+    <script src="../../../_static/documentation_options.js?v=eb74ef9c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.162" />
+  <meta name="docsearch:version" content="0.1.163" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -863,10 +863,12 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="PictureStore">
 <a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.PictureStore">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PictureStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""An opaque renderer's raw picture (.mp4), keyed by its content key — a</span>
-<span class="sd">    Manim scene's own render, before it is conformed to a film's fps and size,</span>
-<span class="sd">    so a change that is not to the picture (narration, fps) does not run Manim</span>
-<span class="sd">    again (an#279)."""</span>
+<span class="w">    </span><span class="sd">"""An opaque renderer's raw picture (.mp4) — a Manim scene's own render,</span>
+<span class="sd">    before it is conformed to a film's fps and size, so a change that is not to</span>
+<span class="sd">    the picture (narration, fps) does not run Manim again (an#279).</span>
+<span class="sd">    Content-addressed (the key is the sha256 of the mp4): the measurement</span>
+<span class="sd">    record under the picture key names it, so a record and its picture are</span>
+<span class="sd">    written as one (an#291)."""</span>
 
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"mp4"</span></div>
 

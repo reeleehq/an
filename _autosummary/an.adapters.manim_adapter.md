@@ -23,9 +23,17 @@ the shot cache.
 **The files a scene reads.** The render runs in a staged copy of the WHOLE
 `sources` folder (`assets/sources/` and everything under it), so a scene
 imports a sibling module or loads `ImageMobject("bars/logo.png")` by a path
-relative to its own file, and every one of those bytes is in both keys below. A
-string literal that names a file OUTSIDE that folder (an absolute path) is a
-finding located at its line: the cache cannot see that file change.
+relative to its own file, and every one of those bytes is in both keys below.
+A file read from OUTSIDE that folder — a literal absolute path, or one computed
+(`Path.home() / "data.csv"`, an environment variable, a helper) — is
+RECORDED as the render runs (manimkit’s `record_reads`: an audit hook in the
+render’s child process, an#291) and stored with the measurement as a trace
+(`read_trace()`): each file’s digest, `absent` for one looked for and
+missing, and each listed folder’s names. A stored picture is reused only while
+its trace still holds (`stale_reads()`), and the shot key has a `reads`
+part, so editing such a file re-renders the picture and the shot, and leaving it
+alone reuses both. A literal outside path is still a finding at its line: the
+cache sees it now, but another machine will not have it.
 
 **Manim owns its clock** (core study §4.2): only the file’s own `play` and
 `wait` calls decide how long it runs. The renderer implements
@@ -38,8 +46,9 @@ Never the film’s fps or size, the encode, or this module’s code: those chang
 how the picture is CONFORMED, not what Manim draws. The core applies it in memory
 ([`an.measurements`](an.measurements.md#module-an.measurements)); the author’s scene is never rewritten.
 
-**The picture is cached apart from the shot.** Manim’s raw video is stored under
-the picture key (`pictures` store), so a change that is not to the picture —
+**The picture is cached apart from the shot.** Manim’s raw video is stored by
+its own sha256 (`pictures` store), named by the measurement record under the
+picture key, so a change that is not to the picture —
 narration, the film’s fps, the background pad, an `an` upgrade — re-conforms
 and re-muxes without running Manim. The shot key ([`manim_shot_inputs()`](#an.adapters.manim_adapter.manim_shot_inputs))
 is the picture key’s inputs plus the conform and encode knobs, the muxed audio
@@ -152,6 +161,14 @@ to the measured length, or longer to hold for its narration).
 * **Return type:**
   [`RenderResult`](an.adapters.md#an.adapters.RenderResult)
 
+#### stored_reads(key, ctx)
+
+The read trace stored with picture `key` (`None`: none stored,
+or not recorded). Reads stores only; never renders.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### *class* an.adapters.manim_adapter.ManimShotSpec(source, scene=None, quality=None, background='#000000', timeout=600.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -219,8 +236,11 @@ stages), `manim` (the picture’s other inputs: entry, scene, Manim and
 manimkit versions, quality, LaTeX mode — `picture_inputs()`), `knobs`
 (fps, size, background and the encode: pixel format, x264 argv, scale
 filter, faststart), `audio` (the dialogue muxed under it and the frame
-count it is cut to — a held narration moves it) and `code`
-(`render_code_digest()`). Raises what the render would for a bad shot.
+count it is cut to — a held narration moves it), `code`
+(`render_code_digest()`) and `reads` (what the files the picture’s
+render read outside the sources folder hold NOW —
+`current_reads_digest()` of the trace stored with the picture; an#291).
+Raises what the render would for a bad shot.
 
 * **Return type:**
   [`ShotKeyInputs`](an.build.keys.md#an.build.keys.ShotKeyInputs)

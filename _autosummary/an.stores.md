@@ -33,27 +33,27 @@ True
 
 ### Classes
 
-| [`CharactersStore`](#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                                                                                                                                                                                              |
-|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`EnvironmentsStore`](#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                                                                                                                                                                                       |
-| [`VoicesStore`](#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                                                                                                                                                                                                |
-| [`StylesStore`](#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                                                                                                                                                                                                |
-| [`PropsStore`](#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                                                                                                                   |
-| [`ScenesStore`](#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                                                                                                                         |
-| [`SoundsStore`](#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                                                                                                                  |
-| [`AudioArtifactStore`](#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                                                                                                            |
-| [`VisemeArtifactStore`](#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                                                                                                                      |
-| [`TakesArtifactStore`](#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265).                                                                                           |
-| [`ShotArtifactStore`](#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                                                                                                                     |
-| [`PreviewArtifactStore`](#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                                                                                                                      |
-| [`ContactSheetStore`](#an.stores.ContactSheetStore)(root_dir)    | Contact sheets (.png): frames of a render at its settled beats, labelled with their time, for a person or an agent to LOOK at (core study §2.10).                                                                                           |
-| [`MeasurementStore`](#an.stores.MeasurementStore)(root_dir)     | Measurements a clock-owning renderer made of its content (.json bytes), keyed by that content's key — DERIVED data, never the author's (an#279): a Manim shot's length, its timeline of beats, its findings.                                |
-| [`PictureStore`](#an.stores.PictureStore)(root_dir)         | An opaque renderer's raw picture (.mp4), keyed by its content key — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279). |
-| [`RenderReportStore`](#an.stores.RenderReportStore)(root_dir)    | What a render found (.json), keyed like the output it describes — `render_reports["main"]` — so `orchestrate` and MCP read the findings that `an render` warned (an#279).                                                                   |
-| [`SourcesStore`](#an.stores.SourcesStore)(root_dir)         | Python scene sources (`.py` bytes) — a Manim scene file per key.                                                                                                                                                                            |
-| [`OutputStore`](#an.stores.OutputStore)(root_dir)          | Final composited renders.                                                                                                                                                                                                                   |
-| [`DecisionLogStore`](#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).                                                                                                                                                                                   |
-| [`ProjectLock`](#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.                                                                                                                                                                                 |
+| [`CharactersStore`](#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                                                                                                                                                                    |
+|---------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`EnvironmentsStore`](#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                                                                                                                                                             |
+| [`VoicesStore`](#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                                                                                                                                                                      |
+| [`StylesStore`](#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                                                                                                                                                                      |
+| [`PropsStore`](#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                                                                                         |
+| [`ScenesStore`](#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                                                                                               |
+| [`SoundsStore`](#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                                                                                        |
+| [`AudioArtifactStore`](#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                                                                                  |
+| [`VisemeArtifactStore`](#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                                                                                            |
+| [`TakesArtifactStore`](#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265).                                                                 |
+| [`ShotArtifactStore`](#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                                                                                           |
+| [`PreviewArtifactStore`](#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                                                                                            |
+| [`ContactSheetStore`](#an.stores.ContactSheetStore)(root_dir)    | Contact sheets (.png): frames of a render at its settled beats, labelled with their time, for a person or an agent to LOOK at (core study §2.10).                                                                 |
+| [`MeasurementStore`](#an.stores.MeasurementStore)(root_dir)     | Measurements a clock-owning renderer made of its content (.json bytes), keyed by that content's key — DERIVED data, never the author's (an#279): a Manim shot's length, its timeline of beats, its findings.      |
+| [`PictureStore`](#an.stores.PictureStore)(root_dir)         | An opaque renderer's raw picture (.mp4) — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279). |
+| [`RenderReportStore`](#an.stores.RenderReportStore)(root_dir)    | What a render found (.json), keyed like the output it describes — `render_reports["main"]` — so `orchestrate` and MCP read the findings that `an render` warned (an#279).                                         |
+| [`SourcesStore`](#an.stores.SourcesStore)(root_dir)         | Python scene sources (`.py` bytes) — a Manim scene file per key.                                                                                                                                                  |
+| [`OutputStore`](#an.stores.OutputStore)(root_dir)          | Final composited renders.                                                                                                                                                                                         |
+| [`DecisionLogStore`](#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).                                                                                                                                                         |
+| [`ProjectLock`](#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.                                                                                                                                                       |
 
 ### *class* an.stores.AudioArtifactStore(root_dir)
 
@@ -138,10 +138,12 @@ Final composited renders.
 
 Bases: `_BlobStore`
 
-An opaque renderer’s raw picture (.mp4), keyed by its content key — a
-Manim scene’s own render, before it is conformed to a film’s fps and size,
-so a change that is not to the picture (narration, fps) does not run Manim
-again (an#279).
+An opaque renderer’s raw picture (.mp4) — a Manim scene’s own render,
+before it is conformed to a film’s fps and size, so a change that is not to
+the picture (narration, fps) does not run Manim again (an#279).
+Content-addressed (the key is the sha256 of the mp4): the measurement
+record under the picture key names it, so a record and its picture are
+written as one (an#291).
 
 ### *class* an.stores.PreviewArtifactStore(root_dir)
 

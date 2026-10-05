@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4f0c6b85"></script>
+    <script src="../_static/documentation_options.js?v=eb74ef9c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.timeline" href="an.stage.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.162" />
+  <meta name="docsearch:version" content="0.1.163" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -667,7 +667,7 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <td><p>Measurements a clock-owning renderer made of its content (.json bytes), keyed by that content's key — DERIVED data, never the author's (an#279): a Manim shot's length, its timeline of beats, its findings.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.PictureStore" title="an.stores.PictureStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PictureStore</span></code></a>(root_dir)</p></td>
-<td><p>An opaque renderer's raw picture (.mp4), keyed by its content key — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279).</p></td>
+<td><p>An opaque renderer's raw picture (.mp4) — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stores.RenderReportStore" title="an.stores.RenderReportStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RenderReportStore</span></code></a>(root_dir)</p></td>
 <td><p>What a render found (.json), keyed like the output it describes — <code class="docutils literal notranslate"><span class="pre">render_reports[&quot;main&quot;]</span></code> — so <code class="docutils literal notranslate"><span class="pre">orchestrate</span></code> and MCP read the findings that <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> warned (an#279).</p></td>
@@ -791,10 +791,12 @@ a Manim shot’s length, its timeline of beats, its findings.</p>
 <dt class="sig sig-object py" id="an.stores.PictureStore">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">PictureStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#PictureStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.PictureStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
-<p>An opaque renderer’s raw picture (.mp4), keyed by its content key — a
-Manim scene’s own render, before it is conformed to a film’s fps and size,
-so a change that is not to the picture (narration, fps) does not run Manim
-again (an#279).</p>
+<p>An opaque renderer’s raw picture (.mp4) — a Manim scene’s own render,
+before it is conformed to a film’s fps and size, so a change that is not to
+the picture (narration, fps) does not run Manim again (an#279).
+Content-addressed (the key is the sha256 of the mp4): the measurement
+record under the picture key names it, so a record and its picture are
+written as one (an#291).</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

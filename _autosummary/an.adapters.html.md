@@ -59,6 +59,14 @@ to the measured length, or longer to hold for its narration).
 * **Return type:**
   [`RenderResult`](#an.adapters.RenderResult)
 
+#### stored_reads(key, ctx)
+
+The read trace stored with picture `key` (`None`: none stored,
+or not recorded). Reads stores only; never renders.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### *class* an.adapters.RemotionRenderer
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)

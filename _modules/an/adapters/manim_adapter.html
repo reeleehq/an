@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4f0c6b85"></script>
+    <script src="../../../_static/documentation_options.js?v=eb74ef9c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.162" />
+  <meta name="docsearch:version" content="0.1.163" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -733,9 +733,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">**The files a scene reads.** The render runs in a staged copy of the WHOLE</span>
 <span class="sd">``sources`` folder (``assets/sources/`` and everything under it), so a scene</span>
 <span class="sd">imports a sibling module or loads ``ImageMobject("bars/logo.png")`` by a path</span>
-<span class="sd">relative to its own file, and every one of those bytes is in both keys below. A</span>
-<span class="sd">string literal that names a file OUTSIDE that folder (an absolute path) is a</span>
-<span class="sd">finding located at its line: the cache cannot see that file change.</span>
+<span class="sd">relative to its own file, and every one of those bytes is in both keys below.</span>
+<span class="sd">A file read from OUTSIDE that folder — a literal absolute path, or one computed</span>
+<span class="sd">(``Path.home() / "data.csv"``, an environment variable, a helper) — is</span>
+<span class="sd">RECORDED as the render runs (manimkit's ``record_reads``: an audit hook in the</span>
+<span class="sd">render's child process, an#291) and stored with the measurement as a trace</span>
+<span class="sd">(:func:`read_trace`): each file's digest, ``absent`` for one looked for and</span>
+<span class="sd">missing, and each listed folder's names. A stored picture is reused only while</span>
+<span class="sd">its trace still holds (:func:`stale_reads`), and the shot key has a ``reads``</span>
+<span class="sd">part, so editing such a file re-renders the picture and the shot, and leaving it</span>
+<span class="sd">alone reuses both. A literal outside path is still a finding at its line: the</span>
+<span class="sd">cache sees it now, but another machine will not have it.</span>
 
 <span class="sd">**Manim owns its clock** (core study §4.2): only the file's own ``play`` and</span>
 <span class="sd">``wait`` calls decide how long it runs. The renderer implements</span>
@@ -748,8 +756,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">how the picture is CONFORMED, not what Manim draws. The core applies it in memory</span>
 <span class="sd">(:mod:`an.measurements`); the author's scene is never rewritten.</span>
 
-<span class="sd">**The picture is cached apart from the shot.** Manim's raw video is stored under</span>
-<span class="sd">the picture key (``pictures`` store), so a change that is not to the picture —</span>
+<span class="sd">**The picture is cached apart from the shot.** Manim's raw video is stored by</span>
+<span class="sd">its own sha256 (``pictures`` store), named by the measurement record under the</span>
+<span class="sd">picture key, so a change that is not to the picture —</span>
 <span class="sd">narration, the film's fps, the background pad, an ``an`` upgrade — re-conforms</span>
 <span class="sd">and re-muxes without running Manim. The shot key (:func:`manim_shot_inputs`)</span>
 <span class="sd">is the picture key's inputs plus the conform and encode knobs, the muxed audio</span>
@@ -781,7 +790,9 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -1182,6 +1193,92 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 
 
+<span class="c1">#: A recorded read: ``[kind, path, digest]`` — ``kind`` ``"file"`` (digest of</span>
+<span class="c1">#: its bytes) or ``"dir"`` (digest of its sorted names), ``ABSENT`` for neither.</span>
+<span class="n">ReadTrace</span> <span class="o">=</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+
+<span class="c1">#: The digest of a read whose file changed between the render reading it and</span>
+<span class="c1">#: the trace being taken: matches nothing, so the next render renders again.</span>
+<span class="n">CHANGED_WHILE_RENDERING</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"changed while rendering"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stat_now</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">st</span><span class="o">.</span><span class="n">st_mtime_ns</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">st_size</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_digest</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"dir"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">canonical_digest</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+                <span class="k">else</span> <span class="n">ABSENT</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">file_digest</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="k">else</span> <span class="n">ABSENT</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>  <span class="c1"># unreadable now: not what was read, so not current</span>
+        <span class="k">return</span> <span class="n">ABSENT</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">read_trace</span><span class="p">(</span><span class="n">reads</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">staged</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReadTrace</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""manimkit's recorded ``reads`` as a trace a later render can re-check.</span>
+
+<span class="sd">    Reads inside ``staged`` (the render's copy of the sources folder) are</span>
+<span class="sd">    dropped: those bytes are keyed already, by the closure. ``None`` (the</span>
+<span class="sd">    render_check did not record reads) stays ``None``. The digests are taken</span>
+<span class="sd">    AFTER the render, so a read whose ``stat`` (taken by manimkit at the first</span>
+<span class="sd">    read) no longer matches is marked :data:`CHANGED_WHILE_RENDERING`: what</span>
+<span class="sd">    the render saw is unknown, so it is never reused.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tempfile, os</span>
+<span class="sd">    &gt;&gt;&gt; d = tempfile.mkdtemp(); f = os.path.join(d, "x.txt"); _ = open(f, "w").write("1")</span>
+<span class="sd">    &gt;&gt;&gt; [(k, os.path.basename(p)) for k, p, _ in read_trace(</span>
+<span class="sd">    ...     [{"path": f, "kind": "file"}, {"path": os.path.join(d, "s", "a.py"), "kind": "file"}],</span>
+<span class="sd">    ...     staged=os.path.join(d, "s"))]</span>
+<span class="sd">    [('file', 'x.txt')]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">reads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">staged</span><span class="p">))</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reads</span><span class="p">:</span>
+        <span class="n">kind</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">,</span> <span class="s2">"file"</span><span class="p">)),</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"path"</span><span class="p">])</span>
+        <span class="n">real</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">real</span> <span class="o">==</span> <span class="n">root</span> <span class="ow">or</span> <span class="n">real</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"stat"</span><span class="p">,</span> <span class="n">_NOT_STATED</span><span class="p">)</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="n">seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_NOT_STATED</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="n">seen</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">seen</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">!=</span> <span class="n">_stat_now</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">kind</span><span class="p">,</span>
+                <span class="n">path</span><span class="p">,</span>
+                <span class="n">CHANGED_WHILE_RENDERING</span> <span class="k">if</span> <span class="n">changed</span> <span class="k">else</span> <span class="n">_read_digest</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">path</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+
+<span class="n">_NOT_STATED</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>  <span class="c1"># a render_check that reports no stat for its reads</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stale_reads</span><span class="p">(</span><span class="n">trace</span><span class="p">:</span> <span class="n">ReadTrace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The paths of ``trace`` whose content is no longer what was read."""</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">path</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">trace</span> <span class="k">if</span> <span class="n">_read_digest</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="o">!=</span> <span class="n">digest</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">current_reads_digest</span><span class="p">(</span><span class="n">trace</span><span class="p">:</span> <span class="n">ReadTrace</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The shot key's ``reads`` part: what the recorded paths hold NOW."""</span>
+    <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ABSENT</span>
+    <span class="k">return</span> <span class="n">canonical_digest</span><span class="p">([[</span><span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">_read_digest</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">)]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trace</span><span class="p">])</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_module_stem</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A file stem the runner can import as a module (it is a ``sys.modules`` key)."""</span>
     <span class="n">stem</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\W"</span><span class="p">,</span> <span class="s2">"_"</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
@@ -1310,14 +1407,20 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">display</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">m</span> <span class="k">else</span> <span class="n">fallback</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
+    <span class="n">recorded</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="s2">"reads"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">outside_reads</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">closure</span><span class="p">):</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">_finding</span><span class="p">(</span>
                 <span class="s2">"warning"</span><span class="p">,</span>
                 <span class="n">SOURCE_PATH</span><span class="p">,</span>
                 <span class="sa">f</span><span class="s2">"this scene reads </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">, which is not under "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/: the shot cache cannot see it "</span>
-                <span class="s2">"change, and another machine will not have it"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/: "</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="s2">"the shot cache keys it as read, but another machine will not have it"</span>
+                    <span class="k">if</span> <span class="n">recorded</span>
+                    <span class="k">else</span> <span class="s2">"the shot cache cannot see it change, and another machine "</span>
+                    <span class="s2">"will not have it"</span>
+                <span class="p">),</span>
                 <span class="s2">"copy the file under the sources folder and name it by a path "</span>
                 <span class="s2">"relative to the scene file"</span><span class="p">,</span>
                 <span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">display</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -1375,6 +1478,43 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"rendering a Manim shot needs manimkit (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">INSTALL_HINT</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">return</span> <span class="n">render_check</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_accepts_keyword</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``func`` takes keyword ``name`` (a ``render_check`` from an older</span>
+<span class="sd">    manimkit, or an injected one, may not record reads)."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stored_picture</span><span class="p">(</span><span class="n">pictures</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The video a measurement record names, checked against its name (a</span>
+<span class="sd">    content address); ``None`` when absent, unnamed (a record from before</span>
+<span class="sd">    an#291) or damaged."""</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"picture"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pictures</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">video</span> <span class="o">=</span> <span class="n">pictures</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">video</span> <span class="k">if</span> <span class="n">bytes_digest</span><span class="p">(</span><span class="n">video</span><span class="p">)</span> <span class="o">==</span> <span class="n">name</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_trace_holds</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a stored picture's read trace still holds (an#291).</span>
+
+<span class="sd">    A record from before reads were recorded has no ``reads`` field: nothing</span>
+<span class="sd">    vouches for what it read, so it is a miss (rendered once more). ``None``</span>
+<span class="sd">    is a render_check that could not record: reused, as before (its render</span>
+<span class="sd">    said so in a finding). A trace holds while every path holds what was read.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="s2">"reads"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"reads"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">trace</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">stale_reads</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_version</span><span class="p">(</span><span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -1473,10 +1613,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">timeline</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">contact_sheet</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">log</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="c1">#: The files read outside the sources folder (:func:`read_trace`); ``None``</span>
+    <span class="c1">#: when the render_check could not record them.</span>
+    <span class="n">reads</span><span class="p">:</span> <span class="n">ReadTrace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">picture</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The video's name in the content-addressed ``pictures`` store."""</span>
+        <span class="k">return</span> <span class="n">bytes_digest</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">video</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">"key"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span>
+            <span class="s2">"picture"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">picture</span><span class="p">,</span>
             <span class="s2">"quality"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">quality</span><span class="p">,</span>
             <span class="s2">"fps"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span>
             <span class="s2">"n_frames"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">,</span>
@@ -1485,11 +1634,13 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"timeline"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span>
             <span class="s2">"contact_sheet"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">contact_sheet</span><span class="p">,</span>
             <span class="s2">"log"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+            <span class="s2">"reads"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_record</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">video</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"RawPicture"</span><span class="p">:</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"picture"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">"findings"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_finding</span><span class="p">(</span><span class="o">**</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"findings"</span><span class="p">,</span> <span class="p">[])]</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">video</span><span class="o">=</span><span class="n">video</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
 
@@ -1695,6 +1846,11 @@ window.runMermaid = runMermaid;</script>
                         <span class="k">else</span> <span class="kc">None</span>
                     <span class="p">),</span>
                     <span class="s2">"findings"</span><span class="p">:</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">findings</span><span class="p">],</span>
+                    <span class="s2">"outside_reads"</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">[</span><span class="n">path</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">reads</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">raw</span><span class="o">.</span><span class="n">reads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                        <span class="k">else</span> <span class="kc">None</span>
+                    <span class="p">),</span>
                 <span class="p">},</span>
             <span class="p">},</span>
         <span class="p">)</span></div>
@@ -1717,24 +1873,45 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">measurements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pictures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">measurements</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">pictures</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">measurements</span><span class="p">:</span>
                         <span class="n">record</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">measurements</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-                        <span class="k">return</span> <span class="n">RawPicture</span><span class="o">.</span><span class="n">from_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">pictures</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-                <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                        <span class="n">video</span> <span class="o">=</span> <span class="n">_stored_picture</span><span class="p">(</span><span class="n">pictures</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">video</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_trace_holds</span><span class="p">(</span><span class="n">record</span><span class="p">):</span>
+                            <span class="k">return</span> <span class="n">RawPicture</span><span class="o">.</span><span class="n">from_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">video</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
                     <span class="k">pass</span>  <span class="c1"># an unreadable entry is a miss: rendered again below</span>
-            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span> <span class="ow">and</span> <span class="n">_trace_holds</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">record</span><span class="p">()):</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">render</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_raw</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">measurements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pictures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pictures</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">raw</span><span class="o">.</span><span class="n">video</span>
-            <span class="p">)</span>  <span class="c1"># the picture first: a record never points at nothing</span>
+            <span class="c1"># The picture first, by its content: a record never points at</span>
+            <span class="c1"># nothing, and two renders writing one key at once each leave a</span>
+            <span class="c1"># record that names ITS picture (an#291 review).</span>
+            <span class="k">if</span> <span class="n">raw</span><span class="o">.</span><span class="n">picture</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pictures</span><span class="p">:</span>
+                <span class="n">pictures</span><span class="p">[</span><span class="n">raw</span><span class="o">.</span><span class="n">picture</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">video</span>
             <span class="n">measurements</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">record</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw</span>
         <span class="k">return</span> <span class="n">raw</span>
+
+<div class="viewcode-block" id="ManimRenderer.stored_reads">
+<a class="viewcode-back" href="../../../_autosummary/an.adapters.manim_adapter.html#an.adapters.ManimRenderer.stored_reads">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stored_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReadTrace</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The read trace stored with picture ``key`` (``None``: none stored,</span>
+<span class="sd">        or not recorded). Reads stores only; never renders."""</span>
+        <span class="n">measurements</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MEASUREMENT_STORE</span><span class="p">)</span> <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">mall</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">measurements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">measurements</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">measurements</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reads"</span><span class="p">)</span>
+            <span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">raw</span><span class="o">.</span><span class="n">reads</span> <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_render_raw</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1759,6 +1936,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">entry</span> <span class="o">=</span> <span class="n">src_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_module_stem</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">.py"</span>
         <span class="k">if</span> <span class="n">entry</span> <span class="o">!=</span> <span class="n">src_dir</span> <span class="o">/</span> <span class="n">source</span><span class="o">.</span><span class="n">entry</span><span class="p">:</span>
             <span class="n">entry</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="n">_accepts_keyword</span><span class="p">(</span><span class="n">render_check</span><span class="p">,</span> <span class="s2">"record_reads"</span><span class="p">)</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">render_check</span><span class="p">(</span>
             <span class="n">entry</span><span class="p">,</span>
             <span class="n">spec</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span>
@@ -1767,8 +1945,24 @@ window.runMermaid = runMermaid;</script>
             <span class="n">out_dir</span><span class="o">=</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"manimkit"</span><span class="p">,</span>
             <span class="n">no_latex</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"no_latex"</span><span class="p">]),</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span>
+            <span class="o">**</span><span class="p">({</span><span class="s2">"record_reads"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span> <span class="k">if</span> <span class="n">records</span> <span class="k">else</span> <span class="p">{}),</span>
         <span class="p">)</span>
         <span class="n">findings</span> <span class="o">=</span> <span class="n">report_findings</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
+        <span class="n">reads</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">read_trace</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="s2">"reads"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">staged</span><span class="o">=</span><span class="n">root</span><span class="p">)</span> <span class="k">if</span> <span class="n">records</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">reads</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_check</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">findings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_finding</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span>
+                    <span class="n">SOURCE_PATH</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"manimkit </span><span class="si">{</span><span class="n">manimkit_version</span><span class="p">()</span><span class="si">}</span><span class="s2"> cannot record the files a scene "</span>
+                    <span class="s2">"reads: one read from outside the sources folder by a computed "</span>
+                    <span class="s2">"path is in no cache key"</span><span class="p">,</span>
+                    <span class="s2">"upgrade manimkit (pip install -U manimkit)"</span><span class="p">,</span>
+                    <span class="n">location</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">display</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="s2">"ok"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="s2">"video"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">findings</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">"error"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[</span>
                 <span class="n">_finding</span><span class="p">(</span>
@@ -1809,6 +2003,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">timeline</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]),</span>
             <span class="n">contact_sheet</span><span class="o">=</span><span class="n">sheet</span><span class="p">,</span>
             <span class="n">log</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">),</span>
+            <span class="n">reads</span><span class="o">=</span><span class="n">reads</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
@@ -1859,12 +2054,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    manimkit versions, quality, LaTeX mode — :func:`picture_inputs`), ``knobs``</span>
 <span class="sd">    (fps, size, background and the encode: pixel format, x264 argv, scale</span>
 <span class="sd">    filter, faststart), ``audio`` (the dialogue muxed under it and the frame</span>
-<span class="sd">    count it is cut to — a held narration moves it) and ``code``</span>
-<span class="sd">    (:func:`render_code_digest`). Raises what the render would for a bad shot.</span>
+<span class="sd">    count it is cut to — a held narration moves it), ``code``</span>
+<span class="sd">    (:func:`render_code_digest`) and ``reads`` (what the files the picture's</span>
+<span class="sd">    render read outside the sources folder hold NOW —</span>
+<span class="sd">    :func:`current_reads_digest` of the trace stored with the picture; an#291).</span>
+<span class="sd">    Raises what the render would for a bad shot.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp4</span>
 
-    <span class="n">spec</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">_registered_renderer</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="n">renderer</span> <span class="o">=</span> <span class="n">_registered_renderer</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+    <span class="n">spec</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">picture_inputs</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">pix_fmt</span> <span class="o">=</span> <span class="n">mp4</span><span class="o">.</span><span class="n">check_pix_fmt</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">pix_fmt</span><span class="p">)</span>
@@ -1888,6 +2087,9 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"knobs"</span><span class="p">:</span> <span class="n">canonical_digest</span><span class="p">(</span><span class="n">knobs</span><span class="p">),</span>
             <span class="s2">"audio"</span><span class="p">:</span> <span class="n">canonical_digest</span><span class="p">(</span><span class="n">_muxed_audio</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)),</span>
             <span class="s2">"code"</span><span class="p">:</span> <span class="n">render_code_digest</span><span class="p">(),</span>
+            <span class="s2">"reads"</span><span class="p">:</span> <span class="n">current_reads_digest</span><span class="p">(</span>
+                <span class="n">renderer</span><span class="o">.</span><span class="n">stored_reads</span><span class="p">(</span><span class="n">picture_key</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">ctx</span><span class="p">)</span>
+            <span class="p">),</span>
         <span class="p">},</span>
         <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">"source"</span><span class="p">:</span> <span class="n">source</span><span class="o">.</span><span class="n">display</span><span class="p">},</span>
     <span class="p">)</span></div>
