@@ -2123,6 +2123,7 @@ def _check_assembly(
                 )
     if sounds is None:
         return  # store not supplied: the reference checks did not run
+    durations: dict[str, str | None] = {}  # one read of each sound, however many cues
     for base, j, cue in cues:
         path = f"{base}/{j}/sound"
         if cue.sound not in sounds:
@@ -2133,6 +2134,10 @@ def _check_assembly(
                 "raises); add it with an.sounds.add_sound",
             )
             continue
+        if cue.sound not in durations:
+            durations[cue.sound] = _sound_duration_problem(sounds, cue.sound)
+        if durations[cue.sound]:
+            report.add("warning", path, durations[cue.sound])
         source = (sounds[cue.sound] or {}).get("source") or {}
         if not source.get("license"):
             report.add(
@@ -2141,6 +2146,41 @@ def _check_assembly(
                 f"sound {cue.sound!r} has no recorded licence; `an credits` "
                 "reports it UNVERIFIED — unknown is not unencumbered",
             )
+
+
+def _sound_duration_problem(sounds: Mapping[str, Any], key: str) -> str | None:
+    """What is wrong with a sound's recorded ``duration``, if its audio says
+    otherwise (an#330: a WAV cut to a pipe recorded its streaming header,
+    ~22369 s). The mix measures the audio itself, so this only says the record
+    is wrong — and how to fix it where it came from."""
+    from an.sounds import DURATION_TOLERANCE_S, SoundError, wav_duration
+
+    record = sounds[key] or {}
+    read_audio = getattr(sounds, "read_audio", None)
+    try:
+        recorded = float(record.get("duration"))
+    except (TypeError, ValueError):
+        return None
+    if read_audio is None:
+        return None
+    try:
+        actual = wav_duration(read_audio(key))
+    except (SoundError, OSError, KeyError):
+        return None  # unreadable audio is the render's error to raise, with its fix
+    if abs(recorded - actual) <= DURATION_TOLERANCE_S:
+        return None
+    from_library = bool((record.get("metadata") or {}).get("library_origin"))
+    fix = (
+        "it was checked out from a library: publish a corrected version there "
+        "(re-adding it here would fork the pin)"
+        if from_library
+        else "re-add it with an.sounds.add_sound (which measures the audio)"
+    )
+    return (
+        f"sound {key!r} records a duration of {recorded:g} s but its audio is "
+        f"{actual:g} s (a WAV written to a pipe states no length, or the file "
+        f"was cut); the mix uses the audio's. Fix the record: {fix}"
+    )
 
 
 _register_core_checks()
