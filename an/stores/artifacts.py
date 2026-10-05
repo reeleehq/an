@@ -122,10 +122,12 @@ class MeasurementStore(_BlobStore):
 
 
 class PictureStore(_BlobStore):
-    """An opaque renderer's raw picture (.mp4), keyed by its content key — a
-    Manim scene's own render, before it is conformed to a film's fps and size,
-    so a change that is not to the picture (narration, fps) does not run Manim
-    again (an#279)."""
+    """An opaque renderer's raw picture (.mp4) — a Manim scene's own render,
+    before it is conformed to a film's fps and size, so a change that is not to
+    the picture (narration, fps) does not run Manim again (an#279).
+    Content-addressed (the key is the sha256 of the mp4): the measurement
+    record under the picture key names it, so a record and its picture are
+    written as one (an#291)."""
 
     EXT = "mp4"
 

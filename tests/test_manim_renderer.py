@@ -17,6 +17,7 @@ Three tiers, by what the machine has:
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import subprocess
@@ -379,12 +380,20 @@ class OutsideReadingFake(FakeRenderCheck):
     def __init__(self, outside: Path, seconds: float = 1.0) -> None:
         super().__init__(seconds)
         self.outside = outside
+        self.edit_while_rendering: str | None = None  # a save landing mid-render
 
     def __call__(self, file, scene=None, *, quality, n_frames, out_dir, no_latex,
                  timeout, record_reads=False):  # fmt: skip
         self.calls += 1
         colour_file = self.outside / "colour.txt"
-        colour = colour_file.read_text().strip() if colour_file.is_file() else "gray"
+        seen = _stat(colour_file)  # manimkit stats a file when it is first read
+        colour = colour_file.read_text(encoding="utf-8").strip() if colour_file.is_file() else "gray"
+        if self.edit_while_rendering is not None:
+            import time
+
+            time.sleep(0.01)  # a later mtime than the read's
+            colour_file.write_text(self.edit_while_rendering, encoding="utf-8")
+            self.edit_while_rendering = None
         q = ma.QUALITY_PRESETS[quality]
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -396,8 +405,8 @@ class OutsideReadingFake(FakeRenderCheck):
             check=True,
         )  # fmt: skip
         reads = [
-            {"path": str(colour_file), "kind": "file"},
-            {"path": str(self.outside / "listed"), "kind": "dir"},
+            {"path": str(colour_file), "kind": "file", "stat": seen},
+            {"path": str(self.outside / "listed"), "kind": "dir", "stat": _stat(self.outside / "listed")},
             # the staged copy of the sources folder: keyed already, never twice
             {"path": str(Path(file)), "kind": "file"},
         ]
@@ -406,6 +415,14 @@ class OutsideReadingFake(FakeRenderCheck):
             timeline=[], layout_warnings=[], lint=[], error=None, error_kind=None,
             user_frames=[], reads=reads if record_reads else None,
         )  # fmt: skip
+
+
+def _stat(path: Path) -> list[int] | None:
+    try:
+        st = path.stat()
+    except OSError:
+        return None
+    return [st.st_mtime_ns, st.st_size]
 
 
 def _first_pixel(path: Path) -> tuple[int, int, int]:
@@ -425,7 +442,7 @@ def test_a_file_read_by_a_computed_path_outside_the_sources_is_keyed(tmp_path, m
     monkeypatch.setattr(ma, "manim_version", lambda: "0.0.0-fake")
     outside = tmp_path / "elsewhere"
     outside.mkdir()
-    (outside / "colour.txt").write_text("red")
+    (outside / "colour.txt").write_text("red", encoding="utf-8")
     check = OutsideReadingFake(outside)
     monkeypatch.setattr(ma, "_manimkit_render_check", lambda: check)
     root = _project(tmp_path / "p", shots=[Shot(id="a", renderer="manim", options={"source": "a"})])
@@ -435,7 +452,7 @@ def test_a_file_read_by_a_computed_path_outside_the_sources_is_keyed(tmp_path, m
     _render(root)
     assert check.calls == 1  # unchanged: reused, picture and shot
 
-    (outside / "colour.txt").write_text("blue")  # same length, another picture
+    (outside / "colour.txt").write_text("blue", encoding="utf-8")  # same length, another picture
     r, g, b = _first_pixel(_render(root)[0])
     assert b > 200 and r < 60, "the film is stale: the edited file was not in any key"
     assert check.calls == 2
@@ -448,20 +465,66 @@ def test_a_file_read_by_a_computed_path_outside_the_sources_is_keyed(tmp_path, m
     assert check.calls == 3
     _render(root)
     assert check.calls == 3  # its absence is keyed too…
-    (outside / "colour.txt").write_text("red")  # …so its return re-renders
+    (outside / "colour.txt").write_text("red", encoding="utf-8")  # …so its return re-renders
     r, g, b = _first_pixel(_render(root)[0])
     assert r > 200 and g < 60
     assert check.calls == 4
     (outside / "listed").mkdir()  # a folder the scene listed (a glob) appears…
     _render(root)
     assert check.calls == 5
-    (outside / "listed" / "new.csv").write_text("")  # …and gains a file
+    (outside / "listed" / "new.csv").write_text("", encoding="utf-8")  # …and gains a file
     _render(root)
     assert check.calls == 6
 
     (record,) = [json.loads(v) for v in build_project_mall(root)["measurements"].values()]
     traced = {(kind, Path(path).name) for kind, path, _ in record["reads"]}
     assert traced == {("file", "colour.txt"), ("dir", "listed")}  # not the staged copy
+
+
+def _reading_project(tmp_path, monkeypatch, colour: str = "red"):
+    monkeypatch.setattr(ma, "manim_version", lambda: "0.0.0-fake")
+    outside = tmp_path / "elsewhere"
+    outside.mkdir()
+    (outside / "colour.txt").write_text(colour, encoding="utf-8")
+    check = OutsideReadingFake(outside)
+    monkeypatch.setattr(ma, "_manimkit_render_check", lambda: check)
+    root = _project(tmp_path / "p", shots=[Shot(id="a", renderer="manim", options={"source": "a"})])
+    return root, outside, check
+
+
+@pytest.mark.ffmpeg
+def test_a_file_saved_while_the_render_runs_is_never_taken_as_what_it_read(tmp_path, monkeypatch):
+    """an#291 review: the trace is digested after the render; a save that
+    lands in between must not be recorded as what the picture was made from."""
+    root, outside, check = _reading_project(tmp_path, monkeypatch)
+    check.edit_while_rendering = "blue"  # read red, then saved blue mid-render
+    r, g, b = _first_pixel(_render(root)[0])
+    # The measurement's picture is red, but its trace cannot vouch for it, so the
+    # shot's own render runs Manim again and the film shows what the file says.
+    assert b > 200 and r < 60, "a picture of red is used for a file that says blue"
+    assert check.calls == 2
+    _render(root)
+    assert check.calls == 2  # and, current now, it is reused
+
+
+@pytest.mark.ffmpeg
+def test_a_record_and_its_picture_are_one_content_addressed_pair(tmp_path, monkeypatch):
+    """an#291 review: the record names its picture by sha256, so two renders
+    writing one picture key cannot pair one's record with the other's video,
+    and a damaged or missing picture is a miss, never a wrong film."""
+    root, outside, check = _reading_project(tmp_path, monkeypatch)
+    _render(root)
+    mall = build_project_mall(root)
+    (record,) = [json.loads(v) for v in mall["measurements"].values()]
+    (name,) = list(mall["pictures"])
+    assert record["picture"] == name == hashlib.sha256(mall["pictures"][name]).hexdigest()
+    mall["pictures"][name] = b"not the picture"
+    _render(root)
+    assert check.calls == 2
+    for name in list(mall["pictures"]):
+        del mall["pictures"][name]
+    _render(root)
+    assert check.calls == 3
 
 
 @pytest.mark.ffmpeg
@@ -525,12 +588,12 @@ def test_the_shot_key_moves_with_each_input_and_the_picture_key_only_with_the_pi
     sharper = base.model_copy(update={"options": {"source": "a", "quality": "h"}})
     assert parts(sharper)["manim"] != p0["manim"] and pkey(sharper) != k0
     outside = tmp_path / "elsewhere.csv"  # a read recorded with the picture (an#291)
-    outside.write_text("1")
+    outside.write_text("1", encoding="utf-8")
     trace = ma.read_trace([{"path": str(outside), "kind": "file"}], staged=tmp_path / "s")
     mall["measurements"][k0] = json.dumps({"reads": trace}).encode()
     traced = parts()["reads"]
     assert traced != p0["reads"] and pkey() == k0
-    outside.write_text("2")
+    outside.write_text("2", encoding="utf-8")
     assert parts()["reads"] != traced and pkey() == k0
 
 
@@ -697,14 +760,17 @@ def test_real_manim_render_measures_and_locates_a_cut_off_line(tmp_path):
     assert result.provenance["manim"]["contact_sheet"]["key"] in mall["contact_sheets"]
 
 
-READS_BY_A_COMPUTED_PATH = b"""import os
+READS_BY_A_COMPUTED_PATH = b"""import os, sys
 from pathlib import Path
 from manim import *
+
+sys.path.insert(0, os.environ["AN_TEST_PACE_DIR"])
+import pacer  # a helper module outside the sources folder
 
 class Paced(Scene):
     def construct(self):
         seconds = float((Path(os.environ["AN_TEST_PACE_DIR"]) / "pace.txt").read_text())
-        self.play(FadeIn(Square()), run_time=seconds)
+        self.play(FadeIn(Square()), run_time=seconds * pacer.FACTOR)
 """
 
 
@@ -718,7 +784,11 @@ def test_real_manim_keys_a_file_read_by_a_computed_path(tmp_path, monkeypatch):
         pytest.skip("this manimkit cannot record reads (pip install -U manimkit)")
     pace = tmp_path / "elsewhere"
     pace.mkdir()
-    (pace / "pace.txt").write_text("0.5")
+    (pace / "pace.txt").write_text("0.5", encoding="utf-8")
+    (pace / "pacer.py").write_text("FACTOR = 1\n", encoding="utf-8")
+    import py_compile
+
+    py_compile.compile(str(pace / "pacer.py"), doraise=True)  # imported once elsewhere
     monkeypatch.setenv("AN_TEST_PACE_DIR", str(pace))
     mall = build_project_mall(tmp_path / "p", ensure=True)
     mall["sources"]["paced"] = READS_BY_A_COMPUTED_PATH
@@ -728,8 +798,10 @@ def test_real_manim_keys_a_file_read_by_a_computed_path(tmp_path, monkeypatch):
     assert r.measure_duration(shot, ctx).duration == pytest.approx(0.5, abs=0.07)
     (record,) = [json.loads(v) for v in mall["measurements"].values()]
     assert [Path(p).name for _, p, _ in record["reads"] if Path(p).name == "pace.txt"] == ["pace.txt"]
-    (pace / "pace.txt").write_text("1.0")
+    (pace / "pace.txt").write_text("1.0", encoding="utf-8")
     assert r.measure_duration(shot, ctx).duration == pytest.approx(1.0, abs=0.07)
+    (pace / "pacer.py").write_text("FACTOR = 2\n", encoding="utf-8")  # only its .pyc was read
+    assert r.measure_duration(shot, ctx).duration == pytest.approx(2.0, abs=0.07)
 
 
 @pytest.mark.genre("cutout_animation")

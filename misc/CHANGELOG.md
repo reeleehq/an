@@ -4,7 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-05
-- **Manim reads outside `assets/sources/` are keyed** (an#291, with manimkit's new `render_check(record_reads=True)`): the render's child process records every file the scene opens for reading and every folder it lists (an audit hook), whatever built the path; the trace is stored with the measurement, a stored picture is reused only while it holds, and the Manim shot key gains a `reads` part. Editing a file found by a computed path (`Path.home() / ...`, an env var) now re-renders the picture and the shot instead of serving a stale film. Pictures stored before this have no trace and render once more.
+- **Manim reads outside `assets/sources/` are keyed** (an#291, with manimkit's new `render_check(record_reads=True)`): the render's child process records every file the scene opens for reading and every folder it lists (an audit hook), whatever built the path; the trace is stored with the measurement, a stored picture is reused only while it holds, and the Manim shot key gains a `reads` part. Editing a file found by a computed path (`Path.home() / ...`, an env var) now re-renders the picture and the shot instead of serving a stale film. The `pictures` store is content-addressed (the measurement record names its video), and a file saved while the render runs is never taken as what it read. Pictures stored before this have no trace and render once more.
 
 ## 2026-10-03
 - **Locomotion gaits land in `cutan`** (an#224, thorwhalen/cutan#8): nine gaits as locomotion methods, chain `legs` → `glide`; the `an` skill's generated vocabulary, its `walk` row and the as-built locomotion line follow.

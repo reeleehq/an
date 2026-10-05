@@ -44,8 +44,9 @@ Never the film's fps or size, the encode, or this module's code: those change
 how the picture is CONFORMED, not what Manim draws. The core applies it in memory
 (:mod:`an.measurements`); the author's scene is never rewritten.
 
-**The picture is cached apart from the shot.** Manim's raw video is stored under
-the picture key (``pictures`` store), so a change that is not to the picture —
+**The picture is cached apart from the shot.** Manim's raw video is stored by
+its own sha256 (``pictures`` store), named by the measurement record under the
+picture key, so a change that is not to the picture —
 narration, the film's fps, the background pad, an ``an`` upgrade — re-conforms
 and re-muxes without running Manim. The shot key (:func:`manim_shot_inputs`)
 is the picture key's inputs plus the conform and encode knobs, the muxed audio
@@ -463,6 +464,18 @@ def outside_reads(code: str, closure: Mapping[str, bytes]) -> list[tuple[int, st
 #: its bytes) or ``"dir"`` (digest of its sorted names), ``ABSENT`` for neither.
 ReadTrace = list[list[str]]
 
+#: The digest of a read whose file changed between the render reading it and
+#: the trace being taken: matches nothing, so the next render renders again.
+CHANGED_WHILE_RENDERING: str = "changed while rendering"
+
+
+def _stat_now(path: str) -> list[int] | None:
+    try:
+        st = os.stat(path)
+    except (OSError, ValueError):
+        return None
+    return [st.st_mtime_ns, st.st_size]
+
 
 def _read_digest(kind: str, path: str) -> str:
     p = Path(path)
@@ -483,7 +496,10 @@ def read_trace(reads: Any, *, staged: Path | str) -> ReadTrace | None:
 
     Reads inside ``staged`` (the render's copy of the sources folder) are
     dropped: those bytes are keyed already, by the closure. ``None`` (the
-    render_check did not record reads) stays ``None``.
+    render_check did not record reads) stays ``None``. The digests are taken
+    AFTER the render, so a read whose ``stat`` (taken by manimkit at the first
+    read) no longer matches is marked :data:`CHANGED_WHILE_RENDERING`: what
+    the render saw is unknown, so it is never reused.
 
     >>> import tempfile, os
     >>> d = tempfile.mkdtemp(); f = os.path.join(d, "x.txt"); _ = open(f, "w").write("1")
@@ -501,8 +517,17 @@ def read_trace(reads: Any, *, staged: Path | str) -> ReadTrace | None:
         real = os.path.realpath(path)
         if real == root or real.startswith(root.rstrip(os.sep) + os.sep):
             continue
-        out.append([kind, path, _read_digest(kind, path)])
+        seen = r.get("stat", _NOT_STATED)
+        changed = seen is not _NOT_STATED and (
+            None if seen is None else list(seen)
+        ) != _stat_now(path)
+        out.append(
+            [kind, path, CHANGED_WHILE_RENDERING if changed else _read_digest(kind, path)]
+        )
     return sorted(out)
+
+
+_NOT_STATED = object()  # a render_check that reports no stat for its reads
 
 
 def stale_reads(trace: ReadTrace) -> list[str]:
@@ -730,6 +755,17 @@ def _accepts_keyword(func: Callable[..., Any], name: str) -> bool:
     )
 
 
+def _stored_picture(pictures: Any, record: Mapping[str, Any]) -> bytes | None:
+    """The video a measurement record names, checked against its name (a
+    content address); ``None`` when absent, unnamed (a record from before
+    an#291) or damaged."""
+    name = record.get("picture")
+    if not name or name not in pictures:
+        return None
+    video = pictures[name]
+    return video if bytes_digest(video) == name else None
+
+
 def _trace_holds(record: Mapping[str, Any]) -> bool:
     """Whether a stored picture's read trace still holds (an#291).
 
@@ -844,9 +880,15 @@ class RawPicture:
     #: when the render_check could not record them.
     reads: ReadTrace | None = None
 
+    @property
+    def picture(self) -> str:
+        """The video's name in the content-addressed ``pictures`` store."""
+        return bytes_digest(self.video)
+
     def record(self) -> dict[str, Any]:
         return {
             "key": self.key,
+            "picture": self.picture,
             "quality": self.quality,
             "fps": self.fps,
             "n_frames": self.n_frames,
@@ -861,6 +903,7 @@ class RawPicture:
     @classmethod
     def from_record(cls, record: Mapping[str, Any], video: bytes) -> "RawPicture":
         d = dict(record)
+        d.pop("picture", None)
         d["findings"] = [_finding(**f) for f in d.get("findings", [])]
         return cls(video=video, **d)
 
@@ -1085,11 +1128,12 @@ class ManimRenderer:
         if not force:
             if measurements is not None and pictures is not None:
                 try:
-                    if key in measurements and key in pictures:
+                    if key in measurements:
                         record = json.loads(measurements[key])
-                        if _trace_holds(record):
-                            return RawPicture.from_record(record, pictures[key])
-                except (KeyError, ValueError, TypeError):
+                        video = _stored_picture(pictures, record)
+                        if video is not None and _trace_holds(record):
+                            return RawPicture.from_record(record, video)
+                except (KeyError, ValueError, TypeError, OSError):
                     pass  # an unreadable entry is a miss: rendered again below
             elif key in self._memo and _trace_holds(self._memo[key].record()):
                 return self._memo[key]
@@ -1097,9 +1141,11 @@ class ManimRenderer:
             return None
         raw = self._render_raw(spec, source, inputs, key, ctx)
         if measurements is not None and pictures is not None:
-            pictures[key] = (
-                raw.video
-            )  # the picture first: a record never points at nothing
+            # The picture first, by its content: a record never points at
+            # nothing, and two renders writing one key at once each leave a
+            # record that names ITS picture (an#291 review).
+            if raw.picture not in pictures:
+                pictures[raw.picture] = raw.video
             measurements[key] = json.dumps(raw.record(), sort_keys=True).encode("utf-8")
         else:
             self._memo[key] = raw
