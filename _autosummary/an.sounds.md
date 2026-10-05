@@ -35,13 +35,15 @@ numpy, seeded, so the same call writes the same bytes.
 
 ### Functions
 
-| [`add_sound`](#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.     |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`get_sound`](#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.    |
-| [`synth_bed`](#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end. |
-| [`synth_hit`](#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.  |
-| [`synth_tone`](#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.       |
-| [`wav_info`](#an.sounds.wav_info)(data)                                     | `(sample_rate, channels, frames)` from a WAV's header.                   |
+| [`add_sound`](#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.                                                                                                                                                                |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`get_sound`](#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.                                                                                                                                                               |
+| [`synth_bed`](#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end.                                                                                                                                                            |
+| [`synth_hit`](#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.                                                                                                                                                             |
+| [`synth_tone`](#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.                                                                                                                                                                  |
+| [`wav_duration`](#an.sounds.wav_duration)(data)                                 | Seconds of audio in a PCM WAV ([`wav_info()`](#an.sounds.wav_info): the bytes, not the header).                                                                                                             |
+| [`wav_info`](#an.sounds.wav_info)(data)                                     | `(sample_rate, channels, frames)` of a PCM WAV: its format from the header, its length from the audio bytes actually present (an#330).                                                                                              |
+| [`well_formed_wav`](#an.sounds.well_formed_wav)(data)                              | `data` with a data size that states its true length — the SAME bytes whenever it already does (a trailing `LIST` chunk, a pad byte and the format are kept, so the digest of a healthy file is the digest of the file as supplied). |
 
 ### Classes
 
@@ -67,7 +69,8 @@ The `sound.json` of one entry in the `sounds` store.
 
 #### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
-Seconds, from the WAV header.
+Seconds of audio, from the audio bytes ([`wav_duration()`](#an.sounds.wav_duration); before
+an#330 a pipe-cut WAV recorded its streaming header’s ~22369 s).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
@@ -143,9 +146,22 @@ A sine at `freq` Hz, with short linear ramps so it does not click.
 True
 ```
 
+### an.sounds.wav_duration(data)
+
+Seconds of audio in a PCM WAV ([`wav_info()`](#an.sounds.wav_info): the bytes, not the header).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> wav_duration(synth_tone(440.0, 0.5, sample_rate=8000))
+0.5
+```
+
 ### an.sounds.wav_info(data)
 
-`(sample_rate, channels, frames)` from a WAV’s header.
+`(sample_rate, channels, frames)` of a PCM WAV: its format from the
+header, its length from the audio bytes actually present (an#330).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
@@ -153,4 +169,23 @@ True
 ```pycon
 >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
 (8000, 1, 4000)
+```
+
+### an.sounds.well_formed_wav(data)
+
+`data` with a data size that states its true length — the SAME bytes
+whenever it already does (a trailing `LIST` chunk, a pad byte and the
+format are kept, so the digest of a healthy file is the digest of the file
+as supplied). What [`add_sound()`](#an.sounds.add_sound) stores, so a WAV cut to a pipe is kept
+as a file every reader agrees on: only its two size fields are patched and
+anything past its audio dropped, the format chunk untouched
+(WAVE_FORMAT_EXTENSIBLE and its channel mask included).
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> wav = synth_tone(440.0, 0.1, sample_rate=8000)
+>>> well_formed_wav(wav) is wav
+True
 ```

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=eb74ef9c"></script>
+    <script src="../../../_static/documentation_options.js?v=20fd7f51"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.163" />
+  <meta name="docsearch:version" content="0.1.164" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2871,6 +2871,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
     <span class="k">if</span> <span class="n">sounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>  <span class="c1"># store not supplied: the reference checks did not run</span>
+    <span class="n">durations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># one read of each sound, however many cues</span>
     <span class="k">for</span> <span class="n">base</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/sound"</span>
         <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">sound</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sounds</span><span class="p">:</span>
@@ -2881,6 +2882,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"raises); add it with an.sounds.add_sound"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">sound</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">durations</span><span class="p">:</span>
+            <span class="n">durations</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sound_duration_problem</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">durations</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">durations</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">])</span>
         <span class="n">source</span> <span class="o">=</span> <span class="p">(</span><span class="n">sounds</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"license"</span><span class="p">):</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
@@ -2889,6 +2894,41 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">!r}</span><span class="s2"> has no recorded licence; `an credits` "</span>
                 <span class="s2">"reports it UNVERIFIED — unknown is not unencumbered"</span><span class="p">,</span>
             <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sound_duration_problem</span><span class="p">(</span><span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What is wrong with a sound's recorded ``duration``, if its audio says</span>
+<span class="sd">    otherwise (an#330: a WAV cut to a pipe recorded its streaming header,</span>
+<span class="sd">    ~22369 s). The mix measures the audio itself, so this only says the record</span>
+<span class="sd">    is wrong — and how to fix it where it came from."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">DURATION_TOLERANCE_S</span><span class="p">,</span> <span class="n">SoundError</span><span class="p">,</span> <span class="n">wav_duration</span>
+
+    <span class="n">record</span> <span class="o">=</span> <span class="n">sounds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">read_audio</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="s2">"read_audio"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">recorded</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">read_audio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">wav_duration</span><span class="p">(</span><span class="n">read_audio</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">SoundError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># unreadable audio is the render's error to raise, with its fix</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">recorded</span> <span class="o">-</span> <span class="n">actual</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">DURATION_TOLERANCE_S</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">from_library</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">((</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library_origin"</span><span class="p">))</span>
+    <span class="n">fix</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"it was checked out from a library: publish a corrected version there "</span>
+        <span class="s2">"(re-adding it here would fork the pin)"</span>
+        <span class="k">if</span> <span class="n">from_library</span>
+        <span class="k">else</span> <span class="s2">"re-add it with an.sounds.add_sound (which measures the audio)"</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> records a duration of </span><span class="si">{</span><span class="n">recorded</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s but its audio is "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">actual</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s (a WAV written to a pipe states no length, or the file "</span>
+        <span class="sa">f</span><span class="s2">"was cut); the mix uses the audio's. Fix the record: </span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
 
 
 <span class="n">_register_core_checks</span><span class="p">()</span>

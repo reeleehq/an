@@ -19,7 +19,9 @@ an.sounds
       synth_bed
       synth_hit
       synth_tone
+      wav_duration
       wav_info
+      well_formed_wav
    
    .. rubric:: Classes
 

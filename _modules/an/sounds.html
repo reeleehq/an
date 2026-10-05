@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=eb74ef9c"></script>
+    <script src="../../_static/documentation_options.js?v=20fd7f51"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.163" />
+  <meta name="docsearch:version" content="0.1.164" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -742,8 +742,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">wave</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">ValidationError</span>
@@ -760,7 +762,9 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"synth_bed"</span><span class="p">,</span>
     <span class="s2">"synth_hit"</span><span class="p">,</span>
     <span class="s2">"synth_tone"</span><span class="p">,</span>
+    <span class="s2">"wav_duration"</span><span class="p">,</span>
     <span class="s2">"wav_info"</span><span class="p">,</span>
+    <span class="s2">"well_formed_wav"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: Full scale for the synthesizers' default amplitudes: a little under 0 dBFS</span>
@@ -768,6 +772,23 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DEFAULT_SYNTH_AMPLITUDE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span>
 <span class="c1">#: The int16 full-scale value the synthesizers quantize to.</span>
 <span class="n">_INT16_FULL_SCALE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32767</span>
+
+<span class="c1">#: The size a streaming WAV writer (``ffmpeg ... -f wav -``) leaves in its</span>
+<span class="c1">#: headers, unable to seek back: "as long as there is" (an#330).</span>
+<span class="n">_STREAMING_SIZE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mh">0xFFFFFFFF</span>
+<span class="c1">#: ``RIFF&lt;size&gt;WAVE``, then chunks of ``&lt;id&gt;&lt;size&gt;``.</span>
+<span class="n">_RIFF_HEADER_BYTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">_CHUNK_HEADER_BYTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="c1">#: The fmt chunk's PCM fields (tag, channels, rate, byte rate, block align,</span>
+<span class="c1">#: bits), and its WAVE_FORMAT_EXTENSIBLE length (with the sub-format GUID).</span>
+<span class="n">_FMT_PCM_BYTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">_FMT_EXTENSIBLE_BYTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span>
+<span class="n">_WAVE_FORMAT_PCM</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mh">0x0001</span>
+<span class="n">_WAVE_FORMAT_EXTENSIBLE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mh">0xFFFE</span>
+<span class="c1">#: How far a sound's recorded duration may sit from its audio's before</span>
+<span class="c1">#: `an validate` says so (one 48 kHz frame is ~0.02 ms; a store filled before</span>
+<span class="c1">#: an#330 is off by hours).</span>
+<span class="n">DURATION_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span>
 
 <span class="c1">#: The provenance of everything :func:`synth_tone` / :func:`synth_hit` /</span>
 <span class="c1">#: :func:`synth_bed` produce: generated on the user's machine by ``an`` from</span>
@@ -799,28 +820,134 @@ window.runMermaid = runMermaid;</script>
     <span class="n">sha256</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">channels</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="c1">#: Seconds, from the WAV header.</span>
+    <span class="c1">#: Seconds of audio, from the audio bytes (:func:`wav_duration`; before</span>
+    <span class="c1">#: an#330 a pipe-cut WAV recorded its streaming header's ~22369 s).</span>
     <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span></div>
 
 
 
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_WavLayout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A PCM WAV's format and where its audio is, read from its chunks."""</span>
+
+    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">channels</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">block_align</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">size_at</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># offset of the data chunk's size field</span>
+    <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># first byte of audio</span>
+    <span class="n">stated</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># the data size its header states</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># whole frames of audio actually present</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_align</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_wav_layout</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_WavLayout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Parse a PCM WAV's chunks (no :mod:`wave`, which refuses</span>
+<span class="sd">    WAVE_FORMAT_EXTENSIBLE before Python 3.12).</span>
+
+<span class="sd">    The length is read from the BYTES PRESENT (an#330): a WAV written to a pipe</span>
+<span class="sd">    (``ffmpeg ... -f wav -``) cannot seek back to write its sizes, so its header</span>
+<span class="sd">    says ``0xFFFFFFFF`` (some writers ``0``) — read literally, ~2^32 bytes, the</span>
+<span class="sd">    22369.6 s of a 48 kHz stereo cut. A stated size is believed only up to the</span>
+<span class="sd">    bytes that follow it; a ragged last frame is dropped.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_RIFF_HEADER_BYTES</span> <span class="ow">or</span> <span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">"RIFF"</span> <span class="ow">or</span> <span class="n">data</span><span class="p">[</span><span class="mi">8</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">"WAVE"</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="s2">"it does not start with a RIFF/WAVE header"</span><span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">_RIFF_HEADER_BYTES</span>
+    <span class="k">while</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">_CHUNK_HEADER_BYTES</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">cid</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">pos</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="p">(</span><span class="n">size</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">8</span><span class="p">])</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">_CHUNK_HEADER_BYTES</span>
+        <span class="k">if</span> <span class="n">cid</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"fmt "</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="n">_FMT_PCM_BYTES</span> <span class="ow">or</span> <span class="n">body</span> <span class="o">+</span> <span class="n">_FMT_PCM_BYTES</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="s2">"its fmt chunk is truncated"</span><span class="p">)</span>
+            <span class="n">tag</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">align</span><span class="p">,</span> <span class="n">bits</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span>
+                <span class="s2">"&lt;HHIIHH"</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">body</span> <span class="p">:</span> <span class="n">body</span> <span class="o">+</span> <span class="n">_FMT_PCM_BYTES</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">_WAVE_FORMAT_EXTENSIBLE</span> <span class="ow">and</span> <span class="n">size</span> <span class="o">&gt;=</span> <span class="n">_FMT_EXTENSIBLE_BYTES</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">tag</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">"&lt;H"</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">body</span> <span class="o">+</span> <span class="mi">24</span> <span class="p">:</span> <span class="n">body</span> <span class="o">+</span> <span class="mi">26</span><span class="p">])</span>  <span class="c1"># sub-format</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">!=</span> <span class="n">_WAVE_FORMAT_PCM</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"its audio is not PCM (format tag </span><span class="si">{</span><span class="n">tag</span><span class="si">:</span><span class="s2">#x</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">channels</span> <span class="ow">and</span> <span class="n">rate</span> <span class="ow">and</span> <span class="n">align</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="s2">"its fmt chunk has no channels, rate or frame size"</span><span class="p">)</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">align</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cid</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"data"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fmt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="s2">"its data chunk comes before its fmt chunk"</span><span class="p">)</span>
+            <span class="n">rate</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">align</span> <span class="o">=</span> <span class="n">fmt</span>
+            <span class="n">present</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">body</span>
+            <span class="n">unknown</span> <span class="o">=</span> <span class="n">size</span> <span class="ow">in</span> <span class="p">(</span><span class="n">_STREAMING_SIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">present</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">usable</span> <span class="o">=</span> <span class="n">present</span> <span class="k">if</span> <span class="n">unknown</span> <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">present</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_WavLayout</span><span class="p">(</span>
+                <span class="n">rate</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">align</span><span class="p">,</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">usable</span> <span class="o">//</span> <span class="n">align</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="n">_STREAMING_SIZE</span><span class="p">:</span>
+            <span class="k">break</span>  <span class="c1"># a streamed chunk before data: nothing after it can be found</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="n">size</span> <span class="o">+</span> <span class="p">(</span><span class="n">size</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># chunks are word-aligned</span>
+    <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="s2">"it has no data chunk"</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="wav_info">
 <a class="viewcode-back" href="../../_autosummary/an.sounds.html#an.sounds.wav_info">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">wav_info</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``(sample_rate, channels, frames)`` from a WAV's header.</span>
+<span class="w">    </span><span class="sd">"""``(sample_rate, channels, frames)`` of a PCM WAV: its format from the</span>
+<span class="sd">    header, its length from the audio bytes actually present (an#330).</span>
 
 <span class="sd">    &gt;&gt;&gt; wav_info(synth_tone(440.0, 0.5, sample_rate=8000))</span>
 <span class="sd">    (8000, 1, 4000)</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">getframerate</span><span class="p">(),</span> <span class="n">w</span><span class="o">.</span><span class="n">getnchannels</span><span class="p">(),</span> <span class="n">w</span><span class="o">.</span><span class="n">getnframes</span><span class="p">()</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">_wav_layout</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">SoundError</span><span class="p">,</span> <span class="n">struct</span><span class="o">.</span><span class="n">error</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"not a PCM WAV file (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). The sounds store holds WAV only; convert "</span>
             <span class="s2">"with: ffmpeg -i in.mp3 out.wav"</span>
-        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">channels</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">frames</span></div>
+
+
+
+<div class="viewcode-block" id="wav_duration">
+<a class="viewcode-back" href="../../_autosummary/an.sounds.html#an.sounds.wav_duration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wav_duration</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds of audio in a PCM WAV (:func:`wav_info`: the bytes, not the header).</span>
+
+<span class="sd">    &gt;&gt;&gt; wav_duration(synth_tone(440.0, 0.5, sample_rate=8000))</span>
+<span class="sd">    0.5</span>
+<span class="sd">    """</span>
+    <span class="n">rate</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">frames</span> <span class="o">=</span> <span class="n">wav_info</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">frames</span> <span class="o">/</span> <span class="n">rate</span></div>
+
+
+
+<div class="viewcode-block" id="well_formed_wav">
+<a class="viewcode-back" href="../../_autosummary/an.sounds.html#an.sounds.well_formed_wav">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">well_formed_wav</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``data`` with a data size that states its true length — the SAME bytes</span>
+<span class="sd">    whenever it already does (a trailing ``LIST`` chunk, a pad byte and the</span>
+<span class="sd">    format are kept, so the digest of a healthy file is the digest of the file</span>
+<span class="sd">    as supplied). What :func:`add_sound` stores, so a WAV cut to a pipe is kept</span>
+<span class="sd">    as a file every reader agrees on: only its two size fields are patched and</span>
+<span class="sd">    anything past its audio dropped, the format chunk untouched</span>
+<span class="sd">    (WAVE_FORMAT_EXTENSIBLE and its channel mask included).</span>
+
+<span class="sd">    &gt;&gt;&gt; wav = synth_tone(440.0, 0.1, sample_rate=8000)</span>
+<span class="sd">    &gt;&gt;&gt; well_formed_wav(wav) is wav</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">wav_info</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># refuses what is not a PCM WAV, with the fix</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">_wav_layout</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">stated</span> <span class="o">==</span> <span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="n">w</span><span class="o">.</span><span class="n">offset</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">data</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">offset</span> <span class="p">:</span> <span class="n">w</span><span class="o">.</span><span class="n">end</span><span class="p">]</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\0</span><span class="s2">"</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">""</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="p">[:</span> <span class="n">w</span><span class="o">.</span><span class="n">size_at</span><span class="p">])</span>
+    <span class="n">head</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">head</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">head</span><span class="p">)</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio</span><span class="p">))</span> <span class="o">+</span> <span class="n">audio</span> <span class="o">+</span> <span class="n">pad</span></div>
 
 
 
@@ -841,7 +968,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    that is recorded as UNKNOWN and reported as unverified, never as free.</span>
 <span class="sd">    """</span>
     <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">well_formed_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span>  <span class="c1"># a pipe's streaming header, re-written (an#330)</span>
     <span class="n">sample_rate</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">frames</span> <span class="o">=</span> <span class="n">wav_info</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">frames</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> holds no audio (0 frames)"</span><span class="p">)</span>
     <span class="n">asset</span> <span class="o">=</span> <span class="n">SoundAsset</span><span class="p">(</span>
         <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
         <span class="n">sha256</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>

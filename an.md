@@ -1,4 +1,4 @@
-> built 2026-10-05 15:50 UTC from 7e3d7f3 (main) · an 0.1.163. Details: build_info.json
+> built 2026-10-05 16:06 UTC from 7ea09c5 (main) · an 0.1.164. Details: build_info.json
 
 # index.html.md
 
@@ -5327,7 +5327,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5546,7 +5546,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -24796,13 +24796,15 @@ numpy, seeded, so the same call writes the same bytes.
 
 ### Functions
 
-| [`add_sound`](_autosummary/an.sounds.html.md#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.     |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`get_sound`](_autosummary/an.sounds.html.md#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.    |
-| [`synth_bed`](_autosummary/an.sounds.html.md#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end. |
-| [`synth_hit`](_autosummary/an.sounds.html.md#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.  |
-| [`synth_tone`](_autosummary/an.sounds.html.md#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.       |
-| [`wav_info`](_autosummary/an.sounds.html.md#an.sounds.wav_info)(data)                                     | `(sample_rate, channels, frames)` from a WAV's header.                   |
+| [`add_sound`](_autosummary/an.sounds.html.md#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.                                                                                                                                                                |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`get_sound`](_autosummary/an.sounds.html.md#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.                                                                                                                                                               |
+| [`synth_bed`](_autosummary/an.sounds.html.md#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end.                                                                                                                                                            |
+| [`synth_hit`](_autosummary/an.sounds.html.md#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.                                                                                                                                                             |
+| [`synth_tone`](_autosummary/an.sounds.html.md#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.                                                                                                                                                                  |
+| [`wav_duration`](_autosummary/an.sounds.html.md#an.sounds.wav_duration)(data)                                 | Seconds of audio in a PCM WAV ([`wav_info()`](_autosummary/an.sounds.html.md#an.sounds.wav_info): the bytes, not the header).                                                                                                             |
+| [`wav_info`](_autosummary/an.sounds.html.md#an.sounds.wav_info)(data)                                     | `(sample_rate, channels, frames)` of a PCM WAV: its format from the header, its length from the audio bytes actually present (an#330).                                                                                              |
+| [`well_formed_wav`](_autosummary/an.sounds.html.md#an.sounds.well_formed_wav)(data)                              | `data` with a data size that states its true length — the SAME bytes whenever it already does (a trailing `LIST` chunk, a pad byte and the format are kept, so the digest of a healthy file is the digest of the file as supplied). |
 
 ### Classes
 
@@ -24828,7 +24830,8 @@ The `sound.json` of one entry in the `sounds` store.
 
 #### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
-Seconds, from the WAV header.
+Seconds of audio, from the audio bytes ([`wav_duration()`](_autosummary/an.sounds.html.md#an.sounds.wav_duration); before
+an#330 a pipe-cut WAV recorded its streaming header’s ~22369 s).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
@@ -24904,9 +24907,22 @@ A sine at `freq` Hz, with short linear ramps so it does not click.
 True
 ```
 
+### an.sounds.wav_duration(data)
+
+Seconds of audio in a PCM WAV ([`wav_info()`](_autosummary/an.sounds.html.md#an.sounds.wav_info): the bytes, not the header).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> wav_duration(synth_tone(440.0, 0.5, sample_rate=8000))
+0.5
+```
+
 ### an.sounds.wav_info(data)
 
-`(sample_rate, channels, frames)` from a WAV’s header.
+`(sample_rate, channels, frames)` of a PCM WAV: its format from the
+header, its length from the audio bytes actually present (an#330).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
@@ -24914,6 +24930,25 @@ True
 ```pycon
 >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
 (8000, 1, 4000)
+```
+
+### an.sounds.well_formed_wav(data)
+
+`data` with a data size that states its true length — the SAME bytes
+whenever it already does (a trailing `LIST` chunk, a pad byte and the
+format are kept, so the digest of a healthy file is the digest of the file
+as supplied). What [`add_sound()`](_autosummary/an.sounds.html.md#an.sounds.add_sound) stores, so a WAV cut to a pipe is kept
+as a file every reader agrees on: only its two size fields are patched and
+anything past its audio dropped, the format chunk untouched
+(WAVE_FORMAT_EXTENSIBLE and its channel mask included).
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> wav = synth_tone(440.0, 0.1, sample_rate=8000)
+>>> well_formed_wav(wav) is wav
+True
 ```
 
 
@@ -34445,7 +34480,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-05 15:50 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/7e3d7f37baff8f2149b4ace85eb6bf3f2f75bca4"><code>7e3d7f3</code></a> on branch <code>main</code>, for **an 0.1.163** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-05 16:06 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/7ea09c54e9c6c0be941d8dacfb76b3137bb0e966"><code>7ea09c5</code></a> on branch <code>main</code>, for **an 0.1.164** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -34454,9 +34489,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/7e3d7f37baff8f2149b4ace85eb6bf3f2f75bca4"><code>7e3d7f37baff8f2149b4ace85eb6bf3f2f75bca4</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/7ea09c54e9c6c0be941d8dacfb76b3137bb0e966"><code>7ea09c54e9c6c0be941d8dacfb76b3137bb0e966</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.163</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.164</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -34465,9 +34500,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37335276857">37335276857</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37337584760">37337584760</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>ff7cbcdf73a0e9b00e4e08f1f0c52be631df3dc6</code> (in the history of the built commit) |
+| Event commit | <code>f00f84c499c5214f9efe7473feb6131031aeae9e</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -34492,13 +34527,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.163/">0.1.163</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.164/">0.1.164</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 7e3d7f37baff8f2149b4ace85eb6bf3f2f75bca4
+git checkout 7ea09c54e9c6c0be941d8dacfb76b3137bb0e966
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
