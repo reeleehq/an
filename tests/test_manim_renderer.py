@@ -370,6 +370,122 @@ def test_a_file_the_scene_reads_is_staged_and_keyed_and_cold_is_cold(tmp_path, f
     assert fake.calls == calls + 2  # cold renders run Manim; nothing hidden is reused
 
 
+class OutsideReadingFake(FakeRenderCheck):
+    """A scene that paints its picture the colour named in a file OUTSIDE the
+    sources folder, found by a computed path (an#291) — the length never moves,
+    so only the read itself can tell the cache the picture changed. Like
+    manimkit, it reports what it read when asked to (``record_reads``)."""
+
+    def __init__(self, outside: Path, seconds: float = 1.0) -> None:
+        super().__init__(seconds)
+        self.outside = outside
+
+    def __call__(self, file, scene=None, *, quality, n_frames, out_dir, no_latex,
+                 timeout, record_reads=False):  # fmt: skip
+        self.calls += 1
+        colour_file = self.outside / "colour.txt"
+        colour = colour_file.read_text().strip() if colour_file.is_file() else "gray"
+        q = ma.QUALITY_PRESETS[quality]
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        video = out_dir / "scene.mp4"
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+             f"color=c={colour}:s={q.width}x{q.height}:r={q.fps}:d={self.seconds}",
+             "-pix_fmt", "yuv420p", str(video)],
+            check=True,
+        )  # fmt: skip
+        reads = [
+            {"path": str(colour_file), "kind": "file"},
+            {"path": str(self.outside / "listed"), "kind": "dir"},
+            # the staged copy of the sources folder: keyed already, never twice
+            {"path": str(Path(file)), "kind": "file"},
+        ]
+        return SimpleNamespace(
+            ok=True, video=str(video), contact_sheet=None, duration=self.seconds,
+            timeline=[], layout_warnings=[], lint=[], error=None, error_kind=None,
+            user_frames=[], reads=reads if record_reads else None,
+        )  # fmt: skip
+
+
+def _first_pixel(path: Path) -> tuple[int, int, int]:
+    rgb = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-vframes", "1", "-vf", "scale=1:1",
+         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+        capture_output=True, check=True,
+    ).stdout  # fmt: skip
+    return tuple(rgb[:3])
+
+
+@pytest.mark.ffmpeg
+def test_a_file_read_by_a_computed_path_outside_the_sources_is_keyed(tmp_path, monkeypatch):
+    """an#291: the scene finds a file outside assets/sources/ by a computed path
+    (no literal to warn about). Editing it must re-render — the picture AND the
+    shot — and an unchanged file must still be reused."""
+    monkeypatch.setattr(ma, "manim_version", lambda: "0.0.0-fake")
+    outside = tmp_path / "elsewhere"
+    outside.mkdir()
+    (outside / "colour.txt").write_text("red")
+    check = OutsideReadingFake(outside)
+    monkeypatch.setattr(ma, "_manimkit_render_check", lambda: check)
+    root = _project(tmp_path / "p", shots=[Shot(id="a", renderer="manim", options={"source": "a"})])
+
+    r, g, b = _first_pixel(_render(root)[0])
+    assert r > 200 and g < 60 and b < 60
+    _render(root)
+    assert check.calls == 1  # unchanged: reused, picture and shot
+
+    (outside / "colour.txt").write_text("blue")  # same length, another picture
+    r, g, b = _first_pixel(_render(root)[0])
+    assert b > 200 and r < 60, "the film is stale: the edited file was not in any key"
+    assert check.calls == 2
+    _render(root)
+    assert check.calls == 2  # and reused again once it is current
+
+    (outside / "colour.txt").unlink()  # a file the scene looked for, now absent
+    r, g, b = _first_pixel(_render(root)[0])
+    assert abs(r - g) < 10 and abs(g - b) < 10 and 60 < r < 200
+    assert check.calls == 3
+    _render(root)
+    assert check.calls == 3  # its absence is keyed too…
+    (outside / "colour.txt").write_text("red")  # …so its return re-renders
+    r, g, b = _first_pixel(_render(root)[0])
+    assert r > 200 and g < 60
+    assert check.calls == 4
+    (outside / "listed").mkdir()  # a folder the scene listed (a glob) appears…
+    _render(root)
+    assert check.calls == 5
+    (outside / "listed" / "new.csv").write_text("")  # …and gains a file
+    _render(root)
+    assert check.calls == 6
+
+    (record,) = [json.loads(v) for v in build_project_mall(root)["measurements"].values()]
+    traced = {(kind, Path(path).name) for kind, path, _ in record["reads"]}
+    assert traced == {("file", "colour.txt"), ("dir", "listed")}  # not the staged copy
+
+
+@pytest.mark.ffmpeg
+def test_a_picture_stored_before_reads_were_recorded_is_rendered_again(tmp_path, monkeypatch):
+    """an#291: a measurement with no read trace cannot vouch for what its render
+    read, so it is a miss (once); a render_check that cannot record is trusted,
+    as before, and says so."""
+    monkeypatch.setattr(ma, "manim_version", lambda: "0.0.0-fake")
+    outside = tmp_path / "elsewhere"
+    outside.mkdir()
+    check = OutsideReadingFake(outside)
+    monkeypatch.setattr(ma, "_manimkit_render_check", lambda: check)
+    root = _project(tmp_path / "p", shots=[Shot(id="a", renderer="manim", options={"source": "a"})])
+    _render(root)
+    measurements = build_project_mall(root)["measurements"]
+    (key,) = list(measurements)
+    legacy = json.loads(measurements[key])
+    del legacy["reads"]
+    measurements[key] = json.dumps(legacy).encode()
+    _render(root)
+    assert check.calls == 2
+    assert "reads" in json.loads(build_project_mall(root)["measurements"][key])
+
+
 @pytest.mark.ffmpeg
 def test_the_shot_key_moves_with_each_input_and_the_picture_key_only_with_the_picture(
     tmp_path, fake
@@ -391,7 +507,7 @@ def test_the_shot_key_moves_with_each_input_and_the_picture_key_only_with_the_pi
         return ma.picture_key(ma.picture_inputs(spec, source, c))
 
     p0, k0 = parts(), pkey()
-    assert set(p0) == {"source", "manim", "knobs", "audio", "code"}
+    assert set(p0) == {"source", "manim", "knobs", "audio", "code", "reads"}
     mall["sources"]["a"] = LINEAR + b"# edited\n"
     assert parts()["source"] != p0["source"] and pkey() != k0
     mall["sources"]["a"] = LINEAR
@@ -408,6 +524,14 @@ def test_the_shot_key_moves_with_each_input_and_the_picture_key_only_with_the_pi
     assert parts(c=at24)["knobs"] != p0["knobs"] and pkey(c=at24) == k0
     sharper = base.model_copy(update={"options": {"source": "a", "quality": "h"}})
     assert parts(sharper)["manim"] != p0["manim"] and pkey(sharper) != k0
+    outside = tmp_path / "elsewhere.csv"  # a read recorded with the picture (an#291)
+    outside.write_text("1")
+    trace = ma.read_trace([{"path": str(outside), "kind": "file"}], staged=tmp_path / "s")
+    mall["measurements"][k0] = json.dumps({"reads": trace}).encode()
+    traced = parts()["reads"]
+    assert traced != p0["reads"] and pkey() == k0
+    outside.write_text("2")
+    assert parts()["reads"] != traced and pkey() == k0
 
 
 @pytest.mark.genre("cutout_animation")
@@ -571,6 +695,41 @@ def test_real_manim_render_measures_and_locates_a_cut_off_line(tmp_path):
     result = r.render(Shot(id="h", renderer="manim", duration=m.duration, options={"source": "hello"}), ctx)
     assert len(result.frame_manifest) == 75
     assert result.provenance["manim"]["contact_sheet"]["key"] in mall["contact_sheets"]
+
+
+READS_BY_A_COMPUTED_PATH = b"""import os
+from pathlib import Path
+from manim import *
+
+class Paced(Scene):
+    def construct(self):
+        seconds = float((Path(os.environ["AN_TEST_PACE_DIR"]) / "pace.txt").read_text())
+        self.play(FadeIn(Square()), run_time=seconds)
+"""
+
+
+@pytest.mark.ffmpeg
+@pytest.mark.skipif(not HAS_MANIM, reason="manim + manimkit not installed (pip install 'an[manim]')")
+def test_real_manim_keys_a_file_read_by_a_computed_path(tmp_path, monkeypatch):
+    """an#291 through the real manimkit: its audit hook records the read."""
+    from manimkit import render_check
+
+    if not ma._accepts_keyword(render_check, "record_reads"):
+        pytest.skip("this manimkit cannot record reads (pip install -U manimkit)")
+    pace = tmp_path / "elsewhere"
+    pace.mkdir()
+    (pace / "pace.txt").write_text("0.5")
+    monkeypatch.setenv("AN_TEST_PACE_DIR", str(pace))
+    mall = build_project_mall(tmp_path / "p", ensure=True)
+    mall["sources"]["paced"] = READS_BY_A_COMPUTED_PATH
+    ctx = _ctx(mall, tmp_path)
+    shot = Shot(id="p", renderer="manim", options={"source": "paced"})
+    r = ManimRenderer()
+    assert r.measure_duration(shot, ctx).duration == pytest.approx(0.5, abs=0.07)
+    (record,) = [json.loads(v) for v in mall["measurements"].values()]
+    assert [Path(p).name for _, p, _ in record["reads"] if Path(p).name == "pace.txt"] == ["pace.txt"]
+    (pace / "pace.txt").write_text("1.0")
+    assert r.measure_duration(shot, ctx).duration == pytest.approx(1.0, abs=0.07)
 
 
 @pytest.mark.genre("cutout_animation")

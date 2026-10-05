@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-05
+- **Manim reads outside `assets/sources/` are keyed** (an#291, with manimkit's new `render_check(record_reads=True)`): the render's child process records every file the scene opens for reading and every folder it lists (an audit hook), whatever built the path; the trace is stored with the measurement, a stored picture is reused only while it holds, and the Manim shot key gains a `reads` part. Editing a file found by a computed path (`Path.home() / ...`, an env var) now re-renders the picture and the shot instead of serving a stale film. Pictures stored before this have no trace and render once more.
+
 ## 2026-10-03
 - **Locomotion gaits land in `cutan`** (an#224, thorwhalen/cutan#8): nine gaits as locomotion methods, chain `legs` → `glide`; the `an` skill's generated vocabulary, its `walk` row and the as-built locomotion line follow.
 - **Library kits** (an#226, ADR 0005 addendum): `kit` asset kind, `an.library.publish_kit` / `checkout_kit` (members pinned at publish; all resolved and checked before any is written; no nesting; rights stay per member), the kit recorded in `assets.lock.json`'s new `kits` section (`ProjectLock.kits`), `an library kit` and kit-aware `an library checkout`. Also: a style or voice with a source is no longer re-linked (`changed`) on every re-check-out.
