@@ -164,7 +164,9 @@ def _wav_layout(data: bytes) -> _WavLayout:
             present = len(data) - body
             unknown = size in (_STREAMING_SIZE, 0) and present > 0
             usable = present if unknown else min(size, present)
-            return _WavLayout(rate, channels, align, pos + 4, body, size, usable // align)
+            return _WavLayout(
+                rate, channels, align, pos + 4, body, size, usable // align
+            )
         if size == _STREAMING_SIZE:
             break  # a streamed chunk before data: nothing after it can be found
         pos = body + size + (size & 1)  # chunks are word-aligned
