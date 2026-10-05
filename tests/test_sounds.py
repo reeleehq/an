@@ -80,3 +80,100 @@ def test_synthesis_is_deterministic_and_well_formed():
         a, b = make(), make()
         assert a == b and a[:4] == b"RIFF"
     assert wav_info(synth_bed(2.0)) == (44100, 1, 88200)
+
+
+# -----------------------------------------------------------------------------
+# A WAV written to a pipe (an#330): its header says "as long as there is"
+# -----------------------------------------------------------------------------
+
+#: The size a streaming writer (``ffmpeg ... -f wav -``) puts in the RIFF and
+#: data headers, because it cannot seek back to write the real one.
+STREAMING = 0xFFFFFFFF
+
+
+def _streaming(wav: bytes, *, riff: int = STREAMING, data: int = STREAMING) -> bytes:
+    """``wav`` re-headed the way a pipe writer leaves it."""
+    import struct
+
+    i = wav.index(b"data")
+    return (
+        wav[:4] + struct.pack("<I", riff) + wav[8:i + 4] + struct.pack("<I", data)
+        + wav[i + 8:]
+    )  # fmt: skip
+
+
+def test_a_streaming_header_wav_records_its_true_duration(tmp_path):
+    """an#330: the header's 0xFFFFFFFF is not a length; the bytes are."""
+    true = synth_tone(440.0, 1.5, sample_rate=48000)
+    piped = _streaming(true)
+    assert wav_info(piped) == wav_info(true) == (48000, 1, 72000)
+    store = SoundsStore(tmp_path)
+    asset = add_sound(store, "theme", piped, source=SYNTH_SOURCE)
+    assert asset.duration == pytest.approx(1.5)
+    stored = get_sound(store, "theme")[1]
+    import io
+    import wave
+
+    with wave.open(io.BytesIO(stored)) as w:  # stored well-formed, digest of THOSE bytes
+        assert w.getnframes() == 72000
+    assert asset.sha256 == hashlib.sha256(stored).hexdigest()
+
+
+def test_a_data_size_past_the_end_or_a_ragged_tail_is_cut_to_whole_frames():
+    true = synth_tone(440.0, 0.25, sample_rate=8000)  # 2000 frames of 2 bytes
+    assert wav_info(_streaming(true, riff=len(true) - 8, data=10**8))[2] == 2000
+    assert wav_info(_streaming(true)[:-1])[2] == 1999  # half a frame is no frame
+    assert wav_info(true + b"LIST\x04\x00\x00\x00abcd")[2] == 2000  # a chunk after data
+
+
+@pytest.mark.ffmpeg
+def test_a_wav_cut_by_ffmpeg_to_a_pipe_round_trips(tmp_path):
+    import subprocess
+
+    piped = subprocess.run(
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "sine=f=440:d=2.5",
+         "-ar", "48000", "-ac", "2", "-f", "wav", "-"],
+        capture_output=True, check=True,
+    ).stdout  # fmt: skip
+    asset = add_sound(SoundsStore(tmp_path), "cut", piped, source=SYNTH_SOURCE)
+    assert asset.duration == pytest.approx(2.5, abs=1e-3)
+    assert asset.channels == 2
+
+
+def test_validate_flags_a_recorded_duration_its_audio_disagrees_with(tmp_path):
+    """Stores filled before an#330 carry ~22369 s: say so, and mix the truth."""
+    from an.ir.schema import Meta, SceneIR, Shot, SoundCue
+    from an.ir.validate import validate_semantic
+
+    mall = build_project_mall(tmp_path, ensure=True)
+    add_sound(mall["sounds"], "theme", synth_tone(440.0, 1.0), source=SYNTH_SOURCE)
+    record = dict(mall["sounds"]["theme"])
+    record["duration"] = 22369.6213125  # what the streaming header made of it
+    mall["sounds"]["theme"] = record
+    scene = SceneIR(
+        meta=Meta(title="t", sounds=[SoundCue(sound="theme", at=0.0)]),
+        timeline=[Shot(id="a", duration=2.0)],
+    )
+    report = validate_semantic(scene, available_sounds=mall["sounds"])
+    (f,) = [f for f in report.findings if "22369" in f.description]
+    assert f.severity == "warning" and f.ir_path == "meta/sounds/0/sound"
+    assert "add_sound" in f.description
+
+
+def test_the_mix_plays_a_sound_for_its_audios_length_not_its_records(tmp_path):
+    """A store filled before an#330 still mixes right: the bytes decide."""
+    from an.assemble import film_timeline, mix_plan
+    from an.ir.schema import Meta, SceneIR, Shot, SoundCue
+
+    mall = build_project_mall(tmp_path, ensure=True)
+    add_sound(mall["sounds"], "theme", synth_tone(440.0, 1.0), source=SYNTH_SOURCE)
+    record = dict(mall["sounds"]["theme"])
+    record["duration"] = 22369.6213125
+    mall["sounds"]["theme"] = record
+    scene = SceneIR(
+        meta=Meta(title="t", sounds=[SoundCue(sound="theme", at=0.0)]),
+        timeline=[Shot(id="a", duration=5.0)],
+    )
+    plan = mix_plan(scene, film_timeline(scene.timeline, fps=24), mall, tmp_path / "mix")
+    (placement,) = plan.placements
+    assert placement.play == pytest.approx(1.0)

@@ -2133,6 +2133,7 @@ def _check_assembly(
                 "raises); add it with an.sounds.add_sound",
             )
             continue
+        _check_sound_duration(sounds, cue.sound, path, report)
         source = (sounds[cue.sound] or {}).get("source") or {}
         if not source.get("license"):
             report.add(
@@ -2141,6 +2142,33 @@ def _check_assembly(
                 f"sound {cue.sound!r} has no recorded licence; `an credits` "
                 "reports it UNVERIFIED — unknown is not unencumbered",
             )
+
+
+def _check_sound_duration(
+    sounds: Mapping[str, Any], key: str, path: str, report: "ValidationReport"
+) -> None:
+    """A sound whose recorded ``duration`` is not its audio's (an#330: a WAV
+    cut to a pipe recorded its streaming header, ~22369 s). The mix measures
+    the audio itself, so this only says the record is wrong."""
+    from an.sounds import DURATION_TOLERANCE_S, SoundError, wav_duration
+
+    recorded = (sounds[key] or {}).get("duration")
+    read_audio = getattr(sounds, "read_audio", None)
+    if recorded is None or read_audio is None:
+        return
+    try:
+        actual = wav_duration(read_audio(key))
+    except (SoundError, OSError, KeyError):
+        return  # unreadable audio is the render's error to raise, with its fix
+    if abs(float(recorded) - actual) > DURATION_TOLERANCE_S:
+        report.add(
+            "warning",
+            path,
+            f"sound {key!r} records a duration of {float(recorded):g} s but its "
+            f"audio is {actual:g} s (a WAV written to a pipe states no length); "
+            "the mix uses the audio's. Fix the record: re-add it with "
+            "an.sounds.add_sound",
+        )
 
 
 _register_core_checks()

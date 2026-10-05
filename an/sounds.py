@@ -30,6 +30,7 @@ from __future__ import annotations
 import hashlib
 import io
 import math
+import struct
 import wave
 from collections.abc import Mapping, MutableMapping, Sequence
 from typing import Any
@@ -48,7 +49,9 @@ __all__ = [
     "synth_bed",
     "synth_hit",
     "synth_tone",
+    "wav_duration",
     "wav_info",
+    "well_formed_wav",
 ]
 
 #: Full scale for the synthesizers' default amplitudes: a little under 0 dBFS
@@ -56,6 +59,17 @@ __all__ = [
 DEFAULT_SYNTH_AMPLITUDE: float = 0.3
 #: The int16 full-scale value the synthesizers quantize to.
 _INT16_FULL_SCALE: int = 32767
+
+#: The size a streaming WAV writer (``ffmpeg ... -f wav -``) leaves in its
+#: headers, unable to seek back: "as long as there is" (an#330).
+_STREAMING_SIZE: int = 0xFFFFFFFF
+#: ``RIFF<size>WAVE``, then chunks of ``<id><size>``.
+_RIFF_HEADER_BYTES: int = 12
+_CHUNK_HEADER_BYTES: int = 8
+#: How far a sound's recorded duration may sit from its audio's before
+#: `an validate` says so (one 48 kHz frame is ~0.02 ms; a store filled before
+#: an#330 is off by hours).
+DURATION_TOLERANCE_S: float = 0.001
 
 #: The provenance of everything :func:`synth_tone` / :func:`synth_hit` /
 #: :func:`synth_bed` produce: generated on the user's machine by ``an`` from
@@ -87,20 +101,84 @@ class SoundAsset(BaseModel):
     description: str = ""
 
 
+def _data_chunk(data: bytes) -> tuple[int, int]:
+    """``(offset, size)`` of a WAV's ``data`` chunk as the header states it."""
+    pos = _RIFF_HEADER_BYTES
+    while pos + _CHUNK_HEADER_BYTES <= len(data):
+        cid = data[pos : pos + 4]
+        (size,) = struct.unpack("<I", data[pos + 4 : pos + 8])
+        if cid == b"data":
+            return pos + _CHUNK_HEADER_BYTES, size
+        pos += _CHUNK_HEADER_BYTES + size + (size & 1)  # chunks are word-aligned
+    raise SoundError("a WAV file with no data chunk")
+
+
+def _wav_frames(data: bytes, *, block_align: int) -> tuple[int, int]:
+    """``(offset, frames)`` of the audio in ``data``, from the BYTES PRESENT.
+
+    A WAV written to a pipe (``ffmpeg ... -f wav -``) cannot seek back to write
+    its sizes, so its header says ``0xFFFFFFFF`` (an#330) — read literally,
+    ~2^32 bytes, the 22369.6 s of a 48 kHz stereo cut. A stated size is
+    believed only up to the bytes that follow it; a ragged last frame is dropped.
+    """
+    offset, size = _data_chunk(data)
+    present = len(data) - offset
+    usable = present if size == _STREAMING_SIZE else min(size, present)
+    return offset, max(0, usable) // block_align
+
+
 def wav_info(data: bytes) -> tuple[int, int, int]:
-    """``(sample_rate, channels, frames)`` from a WAV's header.
+    """``(sample_rate, channels, frames)`` of a PCM WAV: its format from the
+    header, its length from the audio bytes actually present (an#330).
 
     >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
     (8000, 1, 4000)
     """
     try:
         with wave.open(io.BytesIO(data), "rb") as w:
-            return w.getframerate(), w.getnchannels(), w.getnframes()
-    except (wave.Error, EOFError) as e:
+            rate, channels, width = w.getframerate(), w.getnchannels(), w.getsampwidth()
+    except (wave.Error, EOFError, struct.error) as e:
         raise SoundError(
             f"not a PCM WAV file ({e}). The sounds store holds WAV only; convert "
             "with: ffmpeg -i in.mp3 out.wav"
         ) from e
+    _, frames = _wav_frames(data, block_align=channels * width)
+    return rate, channels, frames
+
+
+def wav_duration(data: bytes) -> float:
+    """Seconds of audio in a PCM WAV (:func:`wav_info`: the bytes, not the header).
+
+    >>> wav_duration(synth_tone(440.0, 0.5, sample_rate=8000))
+    0.5
+    """
+    rate, _, frames = wav_info(data)
+    return frames / rate
+
+
+def well_formed_wav(data: bytes) -> bytes:
+    """``data`` with a header that states its true sizes — unchanged when it
+    already does. What :func:`add_sound` stores, so a WAV cut to a pipe is kept
+    as a file every reader agrees on.
+
+    >>> wav = synth_tone(440.0, 0.1, sample_rate=8000)
+    >>> well_formed_wav(wav) is wav
+    True
+    """
+    rate, channels, frames = wav_info(data)  # refuses what is not a PCM WAV
+    with wave.open(io.BytesIO(data), "rb") as w:
+        width, stated = w.getsampwidth(), w.getnframes()
+    offset, _ = _data_chunk(data)
+    pcm = data[offset : offset + frames * channels * width]
+    if stated == frames and len(data) == offset + len(pcm):
+        return data
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(channels)
+        w.setsampwidth(width)
+        w.setframerate(rate)
+        w.writeframes(pcm)
+    return buf.getvalue()
 
 
 def add_sound(
@@ -118,6 +196,7 @@ def add_sound(
     that is recorded as UNKNOWN and reported as unverified, never as free.
     """
     source = AssetSource.model_validate(source)
+    audio = well_formed_wav(audio)  # a pipe's streaming header, re-written (an#330)
     sample_rate, channels, frames = wav_info(audio)
     asset = SoundAsset(
         source=source,
