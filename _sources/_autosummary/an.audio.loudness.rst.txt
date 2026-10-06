@@ -1,0 +1,47 @@
+an.audio.loudness
+=================
+
+.. automodule:: an.audio.loudness
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LEVEL_VERSION
+      GAIN_STEP_DB
+      SILENCE_LUFS
+      SPREAD_WARNING_DB
+      LIMITER_WINDOW_S
+      MAX_GAIN_DB
+      OFFSET_LIMITS_DB
+      MIN_MEASURE_S
+      MISS_WARNING_DB
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      integrated_loudness
+      level_voices
+      leveled_audio
+      leveled_key
+      limit_peaks
+      loudness_report
+      voice_loudness_spread
+      voiced_lines
+      voiced_sources
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VoiceLevel
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      VoiceLoudnessError
+      VoiceLoudnessWarning
+   

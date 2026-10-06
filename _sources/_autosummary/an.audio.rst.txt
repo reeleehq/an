@@ -45,6 +45,7 @@ an.audio
    elevenlabs_tts
    injectable_lipsync
    lipsync
+   loudness
    mac_say_tts
    offline_lipsync
    offline_tts

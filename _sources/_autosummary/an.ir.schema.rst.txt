@@ -48,5 +48,6 @@ an.ir.schema
       TweenAction
       VisemeKeyframe
       VisemeTrack
+      VoiceLoudness
       WordTimingIR
    

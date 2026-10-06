@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1705f53b"></script>
+    <script src="../_static/documentation_options.js?v=ff1f56f9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.167" />
+  <meta name="docsearch:version" content="0.1.168" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -331,6 +331,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
@@ -733,7 +734,10 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(**data)</p></td>
 <td><p>Aligned viseme track produced by the lip-sync stage.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(**data)</p></td>
+<td><p>One loudness for every voice of the film (an#315).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(**data)</p></td>
 <td><p>One word of a line and when it was spoken, in seconds from the line's start (like <a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>, never absolute).</p></td>
 </tr>
 </tbody>
@@ -1063,6 +1067,22 @@ captions and lip-sync alignment never see a cue.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Dialogue.leveled">
+<span class="sig-name descname"><span class="pre">leveled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Dialogue.leveled" title="Link to this definition">#</a></dt>
+<dd><p>&lt;the synthesized
+line’s audio_ref&gt;, “gain_db”: &lt;its voice’s gain&gt;}`` when <code class="docutils literal notranslate"><span class="pre">audio_ref</span></code>
+is the leveled audio. <code class="docutils literal notranslate"><span class="pre">None</span></code> — unleveled — is omitted from JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Stamped by voice leveling (an#315)</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a href="#id1"><span class="problematic" id="id2">``</span></a>{“source”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.Dialogue.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.Dialogue.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
@@ -1258,6 +1278,13 @@ art whose descriptor tags its colours by role (<code class="code docutils litera
 <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">new</span></code>). Untagged art is never inferred (inferring a role
 from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
 cannot reach is WARNED about by name at compile.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Meta.voice_loudness">
+<span class="sig-name descname"><span class="pre">voice_loudness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><span class="pre">VoiceLoudness</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Meta.voice_loudness" title="Link to this definition">#</a></dt>
+<dd><p>One loudness for every voice (<a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>, an#315); <code class="docutils literal notranslate"><span class="pre">None</span></code>
+— the default — levels nothing, and is omitted from JSON.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1586,7 +1613,7 @@ distinction survives <code class="docutils literal notranslate"><span class="pre
 ramp (the evaluators’ reading of a null easing), not “unset”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The curve. **Unset is not the same as <a href="#id1"><span class="problematic" id="id2">``</span></a>”ease_in_out”<a href="#id3"><span class="problematic" id="id4">``</span></a>** (an#166)</p>
+<dd class="field-odd"><p>The curve. **Unset is not the same as <a href="#id3"><span class="problematic" id="id4">``</span></a>”ease_in_out”<a href="#id5"><span class="problematic" id="id6">``</span></a>** (an#166)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1602,7 +1629,7 @@ ramp (the evaluators’ reading of a null easing), not “unset”.</p>
 <span class="sig-name descname"><span class="pre">resolved_easing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#TweenAction.resolved_easing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.TweenAction.resolved_easing" title="Link to this definition">#</a></dt>
 <dd><p>The easing this tween draws with under a scene default of
 <code class="docutils literal notranslate"><span class="pre">default</span></code> — the ONE statement of the precedence **tween &gt; scene
-(<code class="docutils literal notranslate"><span class="pre">Meta.default_easing</span></code>) &gt; built-in <a href="#id5"><span class="problematic" id="id6">``</span></a>”ease_in_out”<a href="#id7"><span class="problematic" id="id8">``</span></a>** (an#166).</p>
+(<code class="docutils literal notranslate"><span class="pre">Meta.default_easing</span></code>) &gt; built-in <a href="#id7"><span class="problematic" id="id8">``</span></a>”ease_in_out”<a href="#id9"><span class="problematic" id="id10">``</span></a>** (an#166).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TweenAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">to_value</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">resolved_easing</span><span class="p">(</span><span class="s2">"linear"</span><span class="p">)</span>
 <span class="go">'linear'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">TweenAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">to_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"ease_in_out"</span><span class="p">)</span><span class="o">.</span><span class="n">resolved_easing</span><span class="p">(</span><span class="s2">"linear"</span><span class="p">)</span>
@@ -1646,6 +1673,51 @@ ramp (the evaluators’ reading of a null easing), not “unset”.</p>
 <dt class="sig sig-object py" id="an.ir.schema.VisemeTrack.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.VisemeTrack.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.VoiceLoudness">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">VoiceLoudness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#VoiceLoudness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.VoiceLoudness" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>One loudness for every voice of the film (an#315).</p>
+<p>TTS voices arrive at very different levels (a 19 dB spread measured on one
+episode). Set, the render levels each voice: its integrated loudness over
+ALL its lines (EBU R128), one gain to <code class="docutils literal notranslate"><span class="pre">target_lufs</span></code> (plus the voice
+document’s <code class="docutils literal notranslate"><span class="pre">loudness_offset_db</span></code>), peaks held at <code class="docutils literal notranslate"><span class="pre">peak_db</span></code> dBFS by a
+lookahead limiter — derived audio, content-keyed, never re-synthesised
+(<a class="reference internal" href="an.audio.loudness.html#module-an.audio.loudness" title="an.audio.loudness"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.loudness</span></code></a>). Unset, the default, levels nothing.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">VoiceLoudness</span><span class="p">()</span><span class="o">.</span><span class="n">target_lufs</span><span class="p">,</span> <span class="n">VoiceLoudness</span><span class="p">()</span><span class="o">.</span><span class="n">peak_db</span>
+<span class="go">(-16.0, -1.5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">VoiceLoudness</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">target_lufs</span>  <span class="c1"># a bare number is the target</span>
+<span class="go">-20.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.VoiceLoudness.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.VoiceLoudness.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.VoiceLoudness.peak_db">
+<span class="sig-name descname"><span class="pre">peak_db</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.VoiceLoudness.peak_db" title="Link to this definition">#</a></dt>
+<dd><p>The highest a sample may reach after the gain, dBFS.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.VoiceLoudness.target_lufs">
+<span class="sig-name descname"><span class="pre">target_lufs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.VoiceLoudness.target_lufs" title="Link to this definition">#</a></dt>
+<dd><p>speech for the web;
+-23: EBU R128 broadcast).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The level every voice is brought to, LUFS (-16</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1792,6 +1864,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue"><code class="docutils literal notranslate"><span class="pre">Dialogue</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.at"><code class="docutils literal notranslate"><span class="pre">Dialogue.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.direction"><code class="docutils literal notranslate"><span class="pre">Dialogue.direction</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.leveled"><code class="docutils literal notranslate"><span class="pre">Dialogue.leveled</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.model_config"><code class="docutils literal notranslate"><span class="pre">Dialogue.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.pause"><code class="docutils literal notranslate"><span class="pre">Dialogue.pause</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.planned_start"><code class="docutils literal notranslate"><span class="pre">Dialogue.planned_start()</span></code></a></li>
@@ -1816,6 +1889,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.sounds"><code class="docutils literal notranslate"><span class="pre">Meta.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.step_hz"><code class="docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.style_pack"><code class="docutils literal notranslate"><span class="pre">Meta.style_pack</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.voice_loudness"><code class="docutils literal notranslate"><span class="pre">Meta.voice_loudness</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Narration"><code class="docutils literal notranslate"><span class="pre">Narration</span></code></a><ul class="nav section-nav flex-column">
@@ -1879,6 +1953,12 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.VisemeTrack"><code class="docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.VisemeTrack.model_config"><code class="docutils literal notranslate"><span class="pre">VisemeTrack.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.VoiceLoudness"><code class="docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.VoiceLoudness.model_config"><code class="docutils literal notranslate"><span class="pre">VoiceLoudness.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.VoiceLoudness.peak_db"><code class="docutils literal notranslate"><span class="pre">VoiceLoudness.peak_db</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.VoiceLoudness.target_lufs"><code class="docutils literal notranslate"><span class="pre">VoiceLoudness.target_lufs</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.WordTimingIR"><code class="docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a><ul class="nav section-nav flex-column">

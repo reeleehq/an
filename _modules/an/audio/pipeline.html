@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1705f53b"></script>
+    <script src="../../../_static/documentation_options.js?v=ff1f56f9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.167" />
+  <meta name="docsearch:version" content="0.1.168" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,6 +736,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
@@ -1181,7 +1182,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">already_done</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">expected_audio_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="n">req</span><span class="o">.</span><span class="n">needs_work</span>
-                <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">==</span> <span class="n">expected_audio_ref</span>
+                <span class="c1"># A leveled line (an#315) is judged by the audio it was leveled from.</span>
+                <span class="ow">and</span> <span class="p">((</span><span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">)</span>
+                <span class="o">==</span> <span class="n">expected_audio_ref</span>
                 <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">==</span> <span class="n">expected_viseme_ref</span>
                 <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1243,7 +1246,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="o">=</span> <span class="n">_to_ir_viseme_track</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">=</span> <span class="n">_to_ir_word_timings</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># leveled again below, from this audio</span>
         <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1"># The spread is measured only when lines were (re)made: a warm render pays</span>
+    <span class="c1"># no ffmpeg pass for it, and says it once rather than on every render.</span>
+    <span class="n">_voice_loudness</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">overruns</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">pending</span><span class="p">))</span>
     <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">dialogue_overruns</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">)</span> <span class="k">if</span> <span class="n">overruns</span> <span class="k">else</span> <span class="p">():</span>
         <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1252,6 +1259,32 @@ window.runMermaid = runMermaid;</script>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">DialogueOverrunWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">scene</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_voice_loudness</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Level every voice to ``meta.voice_loudness`` (an#315: one gain per voice,</span>
+<span class="sd">    derived audio stamped on each line). With no target, and ``report``, warn</span>
+<span class="sd">    when the voices differ by more than a few dB (:mod:`an.audio.loudness`)."""</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">loudness</span>
+
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">voice_loudness</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">loudness</span><span class="o">.</span><span class="n">level_voices</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>  <span class="c1"># leveling turned off: the lines speak as made</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">leveled</span><span class="p">:</span>
+                <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">leveled</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span> <span class="ow">or</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffmpeg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">loudness</span><span class="o">.</span><span class="n">voiced_lines</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">loudness</span><span class="o">.</span><span class="n">voice_loudness_spread</span><span class="p">(</span><span class="n">loudness</span><span class="o">.</span><span class="n">loudness_report</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">loudness</span><span class="o">.</span><span class="n">VoiceLoudnessWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DialogueOverrunWarning">

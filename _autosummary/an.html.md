@@ -174,6 +174,21 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
+#### leveled *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+<the synthesized
+line’s audio_ref>, “gain_db”: <its voice’s gain>}\`\` when `audio_ref`
+is the leveled audio. `None` — unleveled — is omitted from JSON.
+
+* **Type:**
+  Stamped by voice leveling (an#315)
+* **Type:**
+  ```
+  ``
+  ```
+
+  {“source”
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -290,6 +305,11 @@ art whose descriptor tags its colours by role (`colour_roles`, written by
 `an character new`). Untagged art is never inferred (inferring a role
 from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
 cannot reach is WARNED about by name at compile.
+
+#### voice_loudness *: [VoiceLoudness](an.ir.schema.html.md#an.ir.schema.VoiceLoudness) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+One loudness for every voice (`VoiceLoudness`, an#315); `None`
+— the default — levels nothing, and is omitted from JSON.
 
 ### *class* an.Project(root, mall, scene)
 

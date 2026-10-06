@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1705f53b"></script>
+    <script src="../_static/documentation_options.js?v=ff1f56f9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.assemble" href="an.assemble.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.167" />
+  <meta name="docsearch:version" content="0.1.168" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -331,6 +331,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
@@ -1206,25 +1207,28 @@ audio’s actual length.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.audio.lipsync.html#module-an.audio.lipsync" title="an.audio.lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lipsync</span></code></a></p></td>
 <td><p>Lip-sync provider protocol + viseme dataclasses.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.mac_say_tts.html#module-an.audio.mac_say_tts" title="an.audio.mac_say_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mac_say_tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.loudness.html#module-an.audio.loudness" title="an.audio.loudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loudness</span></code></a></p></td>
+<td><p>Voice loudness: one integrated loudness for every voice of a film (an#315).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.mac_say_tts.html#module-an.audio.mac_say_tts" title="an.audio.mac_say_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mac_say_tts</span></code></a></p></td>
 <td><p>MacSayTTS — audible offline speech via macOS's built-in <code class="docutils literal notranslate"><span class="pre">say</span></code> command.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.offline_tts.html#module-an.audio.offline_tts" title="an.audio.offline_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.offline_tts.html#module-an.audio.offline_tts" title="an.audio.offline_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_tts</span></code></a></p></td>
 <td><p>OfflineTTS — produces silent audio of plausible duration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
 <td><p>Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
 <td><p>Provider factory: name → concrete TTS/LipSync provider instance.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
 <td><p>Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Which voice speaks a dialogue line: the character → voice binding (an#194).</p></td>
 </tr>
 </tbody>

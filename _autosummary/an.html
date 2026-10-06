@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1705f53b"></script>
+    <script src="../_static/documentation_options.js?v=ff1f56f9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.167" />
+  <meta name="docsearch:version" content="0.1.168" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -331,6 +331,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
@@ -832,6 +833,22 @@ captions and lip-sync alignment never see a cue.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.Dialogue.leveled">
+<span class="sig-name descname"><span class="pre">leveled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Dialogue.leveled" title="Link to this definition">#</a></dt>
+<dd><p>&lt;the synthesized
+line’s audio_ref&gt;, “gain_db”: &lt;its voice’s gain&gt;}`` when <code class="docutils literal notranslate"><span class="pre">audio_ref</span></code>
+is the leveled audio. <code class="docutils literal notranslate"><span class="pre">None</span></code> — unleveled — is omitted from JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Stamped by voice leveling (an#315)</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a href="#id1"><span class="problematic" id="id2">``</span></a>{“source”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.Dialogue.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.Dialogue.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
@@ -974,6 +991,13 @@ art whose descriptor tags its colours by role (<code class="code docutils litera
 <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">new</span></code>). Untagged art is never inferred (inferring a role
 from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
 cannot reach is WARNED about by name at compile.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.Meta.voice_loudness">
+<span class="sig-name descname"><span class="pre">voice_loudness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.schema.html#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><span class="pre">VoiceLoudness</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Meta.voice_loudness" title="Link to this definition">#</a></dt>
+<dd><p>One loudness for every voice (<code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudness</span></code>, an#315); <code class="docutils literal notranslate"><span class="pre">None</span></code>
+— the default — levels nothing, and is omitted from JSON.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1595,6 +1619,7 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue"><code class="docutils literal notranslate"><span class="pre">Dialogue</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.at"><code class="docutils literal notranslate"><span class="pre">Dialogue.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.direction"><code class="docutils literal notranslate"><span class="pre">Dialogue.direction</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.leveled"><code class="docutils literal notranslate"><span class="pre">Dialogue.leveled</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.model_config"><code class="docutils literal notranslate"><span class="pre">Dialogue.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.pause"><code class="docutils literal notranslate"><span class="pre">Dialogue.pause</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.planned_start"><code class="docutils literal notranslate"><span class="pre">Dialogue.planned_start()</span></code></a></li>
@@ -1610,6 +1635,7 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Meta.sounds"><code class="docutils literal notranslate"><span class="pre">Meta.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Meta.step_hz"><code class="docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Meta.style_pack"><code class="docutils literal notranslate"><span class="pre">Meta.style_pack</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Meta.voice_loudness"><code class="docutils literal notranslate"><span class="pre">Meta.voice_loudness</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Project"><code class="docutils literal notranslate"><span class="pre">Project</span></code></a></li>

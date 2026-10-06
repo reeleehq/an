@@ -79,6 +79,7 @@ True
 | [`TweenAction`](#an.ir.schema.TweenAction)(\*\*data)     | Animate a property from a start value to an end value over a duration.                                                                                              |
 | [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*\*data)  | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
 | [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*\*data)     | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
+| [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*\*data)   | One loudness for every voice of the film (an#315).                                                                                                                  |
 | [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*\*data)    | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
 
 ### an.ir.schema.Action
@@ -347,6 +348,21 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
+#### leveled *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+<the synthesized
+line’s audio_ref>, “gain_db”: <its voice’s gain>}\`\` when `audio_ref`
+is the leveled audio. `None` — unleveled — is omitted from JSON.
+
+* **Type:**
+  Stamped by voice leveling (an#315)
+* **Type:**
+  ```
+  ``
+  ```
+
+  {“source”
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -506,6 +522,11 @@ art whose descriptor tags its colours by role (`colour_roles`, written by
 `an character new`). Untagged art is never inferred (inferring a role
 from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
 cannot reach is WARNED about by name at compile.
+
+#### voice_loudness *: [VoiceLoudness](#an.ir.schema.VoiceLoudness) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+One loudness for every voice ([`VoiceLoudness`](#an.ir.schema.VoiceLoudness), an#315); `None`
+— the default — levels nothing, and is omitted from JSON.
 
 ### *class* an.ir.schema.Narration(\*\*data)
 
@@ -838,6 +859,42 @@ Aligned viseme track produced by the lip-sync stage. Optional in P1.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.VoiceLoudness(\*\*data)
+
+Bases: `_IRModel`
+
+One loudness for every voice of the film (an#315).
+
+TTS voices arrive at very different levels (a 19 dB spread measured on one
+episode). Set, the render levels each voice: its integrated loudness over
+ALL its lines (EBU R128), one gain to `target_lufs` (plus the voice
+document’s `loudness_offset_db`), peaks held at `peak_db` dBFS by a
+lookahead limiter — derived audio, content-keyed, never re-synthesised
+([`an.audio.loudness`](an.audio.loudness.html.md#module-an.audio.loudness)). Unset, the default, levels nothing.
+
+```pycon
+>>> VoiceLoudness().target_lufs, VoiceLoudness().peak_db
+(-16.0, -1.5)
+>>> VoiceLoudness.model_validate(-20).target_lufs  # a bare number is the target
+-20.0
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### peak_db *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The highest a sample may reach after the gain, dBFS.
+
+#### target_lufs *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+speech for the web;
+-23: EBU R128 broadcast).
+
+* **Type:**
+  The level every voice is brought to, LUFS (-16
 
 ### *class* an.ir.schema.WordTimingIR(\*\*data)
 

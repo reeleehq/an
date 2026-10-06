@@ -33,6 +33,7 @@
 - [an.audio.effects](an.audio.effects.html.md): Voice effects: a deterministic transform applied to a synthesized line (an#163).
 - [an.audio.elevenlabs_tts](an.audio.elevenlabs_tts.html.md): ElevenLabsTTS — real speech via the ElevenLabs API. Requires ELEVEN_API_KEY.
 - [an.audio.lipsync](an.audio.lipsync.html.md): Lip-sync provider protocol + viseme dataclasses.
+- [an.audio.loudness](an.audio.loudness.html.md): Voice loudness: one integrated loudness for every voice of a film (an#315).
 - [an.audio.mac_say_tts](an.audio.mac_say_tts.html.md): MacSayTTS — audible offline speech via macOS’s built-in &#96;say&#96; command.
 - [an.audio.offline_tts](an.audio.offline_tts.html.md): OfflineTTS — produces silent audio of plausible duration. No network, no keys.
 - [an.audio.pipeline](an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.

@@ -469,6 +469,7 @@ audio’s actual length.
 | [`effects`](an.audio.effects.html.md#module-an.audio.effects)               | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
 | [`elevenlabs_tts`](an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts) | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
 | [`lipsync`](an.audio.lipsync.html.md#module-an.audio.lipsync)               | Lip-sync provider protocol + viseme dataclasses.                                     |
+| [`loudness`](an.audio.loudness.html.md#module-an.audio.loudness)             | Voice loudness: one integrated loudness for every voice of a film (an#315).          |
 | [`mac_say_tts`](an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
 | [`offline_tts`](an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                            |
 | [`pipeline`](an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
