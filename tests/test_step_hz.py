@@ -108,6 +108,32 @@ def test_validate_refuses_a_rate_above_fps(bad):
     assert any(f.ir_path == "timeline/0/step_hz" for f in report.findings if f.severity == "error")
 
 
+def test_validate_checks_step_hz_against_the_render_fps_when_given():
+    """an#435: `an render --fps 12` refuses a step_hz of 15 at compile, so
+    `validate(fps=12)` predicts it, naming the render's rate."""
+    scene = SceneIR(meta=Meta(title="t", duration=2.0, fps=24, step_hz=15.0), timeline=[_shot(step_hz=15.0)])
+    assert validate_semantic(scene).passed  # the scene's 24 fps allows it
+    report = validate_semantic(scene, fps=12)
+    errors = {f.ir_path: f.description for f in report.findings if f.severity == "error"}
+    assert set(errors) >= {"meta/step_hz", "timeline/0/step_hz"}
+    assert "the render's 12 fps, not the scene's 24" in errors["meta/step_hz"]
+    assert validate_semantic(scene, fps=30).passed  # a faster render allows it too
+
+
+def test_an_validate_takes_the_render_fps(tmp_path):
+    from an.project import init, load
+    from an.tools import validate
+
+    root = init(tmp_path / "p")
+    proj = load(root)
+    proj.mall["scenes"]["main"] = SceneIR(
+        meta=Meta(title="t", duration=2.0, fps=24, step_hz=15.0), timeline=[_shot()]
+    )
+    assert "FAILED" not in validate(str(root))
+    out = validate(str(root), fps=12)
+    assert "FAILED" in out and "meta/step_hz" in out and "render's 12 fps" in out
+
+
 @pytest.mark.parametrize("bad", [0.0, -5.0])
 def test_the_schema_refuses_a_non_positive_rate(bad):
     """`Field(gt=0)`: a scene declaring `step_hz: -5` fails at LOAD, before any

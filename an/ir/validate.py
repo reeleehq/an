@@ -1165,20 +1165,33 @@ def _check_renderable(shot, path: str, report: "ValidationReport", stores=None) 
 
 
 def _check_step_hz(
-    step_hz: float | None, *, fps: int, path: str, report: "ValidationReport"
+    step_hz: float | None,
+    *,
+    fps: float,
+    path: str,
+    report: "ValidationReport",
+    render_fps: float | None = None,
 ) -> None:
     """``0 < step_hz <= fps`` (an#89): a pose grid finer than the frame rate
     cannot be shown, and zero or negative is not a rate. The schema already
     refuses ``<= 0`` (``Field(gt=0)``) and the compiler re-checks the whole
-    range, because a render never runs validate."""
-    if step_hz is None or fps <= 0:  # fps <= 0 is already its own error
+    range, because a render never runs validate. ``render_fps`` (an#435) is the
+    frame rate the render will use when it is not the scene's (``an render
+    --fps``): the compiler checks against THAT, so validate does too."""
+    rate = render_fps if render_fps is not None else fps
+    if step_hz is None or rate <= 0:  # fps <= 0 is already its own error
         return
-    if not (0 < step_hz <= fps):
+    if not (0 < step_hz <= rate):
+        whose = (
+            f"the render's {rate:g} fps, not the scene's {fps:g}"
+            if rate != fps
+            else f"{rate:g}"
+        )
         report.add(
             "error",
             path,
-            f"step_hz must satisfy 0 < step_hz <= fps ({fps}); got {step_hz!r}. "
-            f"At {fps} fps, {fps / 2:g} is 'on twos' and {fps / 3:g} 'on threes'.",
+            f"step_hz must satisfy 0 < step_hz <= fps ({whose}); got {step_hz!r}. "
+            f"At {rate:g} fps, {rate / 2:g} is 'on twos' and {rate / 3:g} 'on threes'.",
         )
 
 
@@ -1476,7 +1489,11 @@ def _core_meta(ctx: ValidationContext) -> None:
     if scene.meta.fps <= 0:
         report.add("error", "meta/fps", "fps must be positive")
     _check_step_hz(
-        scene.meta.step_hz, fps=scene.meta.fps, path="meta/step_hz", report=report
+        scene.meta.step_hz,
+        fps=scene.meta.fps,
+        path="meta/step_hz",
+        report=report,
+        render_fps=ctx.memo.get(_RENDER_FPS),
     )
 
 
@@ -1631,7 +1648,11 @@ def require_registered_kinds(scene: SceneIR, *, where: str = "") -> SceneIR:
 def _core_shot_basics(ctx: ValidationContext) -> None:
     shot, path, report = ctx.shot, ctx.path, ctx.report
     _check_step_hz(
-        shot.step_hz, fps=ctx.scene.meta.fps, path=f"{path}/step_hz", report=report
+        shot.step_hz,
+        fps=ctx.scene.meta.fps,
+        path=f"{path}/step_hz",
+        report=report,
+        render_fps=ctx.memo.get(_RENDER_FPS),
     )
     seen_shot_ids = ctx.memo.setdefault("seen shot ids", set())
     if not shot.id:
