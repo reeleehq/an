@@ -4,8 +4,10 @@
 
 This documentation was built on **2026-10-06 14:49 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/6179b039e7e2c7b43c0534980b3d25d2eb4a224c"><code>6179b03</code></a> on branch <code>main</code>, for **an 0.1.204** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.204) is ahead of the latest release on PyPI (0.1.202): these docs describe unreleased code.
 
 ## Source
 
@@ -22,7 +24,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37481096038">37481096038</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37480971953">37480971953</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
 | Event commit | <code>fe9e0ac7000ee5fb60a7cbdf5eccdcd5f80b68db</code> (in the history of the built commit) |
 
@@ -49,7 +51,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.204/">0.1.204</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.202/">0.1.202</a>, older than the documented version (0.1.204).
 
 ## Reproduce
 
